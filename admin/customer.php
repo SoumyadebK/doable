@@ -1661,7 +1661,7 @@ if(!empty($_GET['id'])) {
                                                                                 <div class="form-group">
                                                                                     <label class="form-label">Amount</label>
                                                                                     <div class="col-md-12">
-                                                                                        <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY" value="<?=$AMOUNT?>" class="form-control" readonly>
+                                                                                        <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY" class="form-control" readonly>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>

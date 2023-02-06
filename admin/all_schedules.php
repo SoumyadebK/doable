@@ -354,7 +354,7 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
     }
 
     function closeEditAppointment() {
-        $('#edit_appointment_half').hide();s
+        $('#edit_appointment_half').hide();
         $('#appointment_list_half').removeClass('col-6');
         $('#appointment_list_half').addClass('col-12');
     }

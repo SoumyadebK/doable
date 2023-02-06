@@ -29,7 +29,11 @@ if (isset($_POST['FUNCTION_NAME'])){
         if (!empty($_POST['OCCURRENCE'])){
             $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
             if ($_POST['OCCURRENCE'] == 'WEEKLY'){
-                $DAYS = $_POST['DAYS'];
+                if (isset($_POST['DAYS'])) {
+                    $DAYS = $_POST['DAYS'];
+                } else {
+                    $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
+                }
                 while ($APPOINTMENT_DATE < $END_DATE) {
                     for ($i = 0; $i < count($DAYS); $i++) {
                         $day = $DAYS[$i];

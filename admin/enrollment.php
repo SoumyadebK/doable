@@ -1434,6 +1434,7 @@ if(!empty($_GET['id'])) {
             TOTAL_AMOUNT += parseFloat($(this).val());
         });
         $('#total_bill').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
+        $('#BALANCE_PAYABLE').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
     }
 
     function calculatePayment() {
@@ -1476,7 +1477,7 @@ if(!empty($_GET['id'])) {
     function calculatePaymentPlans() {
         let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val())?$('#BALANCE_PAYABLE').val():0);
         let NUMBER_OF_PAYMENT = parseInt(($('#NUMBER_OF_PAYMENT').val())?$('#NUMBER_OF_PAYMENT').val():1);
-        $('#INSTALLMENT_AMOUNT').val(parseFloat(balance_payable/NUMBER_OF_PAYMENT).toFixeds(2));
+        $('#INSTALLMENT_AMOUNT').val(parseFloat(balance_payable/NUMBER_OF_PAYMENT).toFixed(2));
     }
 
     function calculateNumberOfPayment(param) {
