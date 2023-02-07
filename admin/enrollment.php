@@ -2,6 +2,9 @@
 require_once('../global/config.php');
 require_once("../global/stripe/init.php");
 
+use net\authorize\api\contract\v1 as AnetAPI;
+use net\authorize\api\controller as AnetController;
+
 if (empty($_GET['id']))
     $title = "Add Enrollment";
 else
@@ -21,12 +24,17 @@ if(!empty($_GET['customer_id'])) {
 $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
 
 $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
+
 $SECRET_KEY = $account_data->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
 
 $ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
 $APP_ID = $account_data->fields['APP_ID'];
 $LOCATION_ID = $account_data->fields['LOCATION_ID'];
+
+$LOGIN_ID = $account_data->fields['LOGIN_ID'];
+$TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
+$AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
 
 if(!empty($_POST['PK_PAYMENT_TYPE'])){
     $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
@@ -53,7 +61,76 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 }else{
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
+            } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
+
+                require 'global/authorizenet/vendor/autoload.php';
+
+                $AUTHORIZE_MODE = 2;
+                $LOGIN_ID = "4Y5pCy8Qr";
+                $TRANSACTION_KEY = "4ke43FW8z3287HV5";
+                $AUTHORIZE_CLIENT_KEY = "8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+
+                // Product Details
+                $itemName = "Demo Product";
+                $itemNumber = "PN12345";
+                $itemPrice = 25;
+                $currency = "USD";
+
+                // Retrieve card and user info from the submitted form data
+                $name = $_POST['NAME'];
+                $email = 'abc@gmail.com';
+                $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
+                $card_exp_month = $_POST['EXPIRATION_MONTH'];
+                $card_exp_year = $_POST['EXPIRATION_YEAR'];
+                $card_exp_year_month = $card_exp_year . '-' . $card_exp_month;
+                $card_cvc = $_POST['SECURITY_CODE'];
+
+                $refID = 'ref' . time();
+
+                $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+                $merchantAuthentication->setName($LOGIN_ID);
+                $merchantAuthentication->setTransactionKey($TRANSACTION_KEY);
+
+                // Create the payment data for a credit card
+                $creditCard = new AnetAPI\CreditCardType();
+                $creditCard->setCardNumber($card_number);
+                $creditCard->setExpirationDate($card_exp_year_month);
+                $creditCard->setCardCode($card_cvc);
+
+                // Add the payment data to a paymentType object
+                $paymentOne = new AnetAPI\PaymentType();
+                $paymentOne->setCreditCard($creditCard);
+
+                // Create order information
+                $order = new AnetAPI\OrderType();
+                $order->setDescription($itemName);
+
+                // Set the customer's identifying information
+                $customerData = new AnetAPI\CustomerDataType();
+                $customerData->setType("individual");
+                $customerData->setEmail($email);
+
+                $ANET_ENV = 'PRODUCTION';
+
+                // Create a transaction
+                $transactionRequestType = new AnetAPI\TransactionRequestType();
+                $transactionRequestType->setTransactionType("authCaptureTransaction");
+                $transactionRequestType->setAmount($itemPrice);
+                $transactionRequestType->setOrder($order);
+                $transactionRequestType->setPayment($paymentOne);
+                $transactionRequestType->setCustomer($customerData);
+                $request = new AnetAPI\CreateTransactionRequest();
+                $request->setMerchantAuthentication($merchantAuthentication);
+                $request->setRefId($refID);
+                $request->setTransactionRequest($transactionRequestType);
+                $controller = new AnetController\CreateTransactionController($request);
+                $response = $controller->executeWithApiResponse(constant("\\net\authorize\api\constants\ANetEnvironment::$ANET_ENV"));
+
+                pre_r($response);
+
+
             }
+
         } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
             $AMOUNT = $_POST['AMOUNT'];
             $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
@@ -984,7 +1061,7 @@ if(!empty($_GET['id'])) {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <?php } elseif ($PAYMENT_GATEWAY == 'Square'){?>
+                                                        <?php } elseif ($PAYMENT_GATEWAY == 'Square' || $PAYMENT_GATEWAY == 'Authorized.net'){?>
                                                         <div class="payment_type_div" id="credit_card_payment" style="display: none;">
                                                             <div class="row">
                                                                 <div class="col-12">
@@ -1009,9 +1086,17 @@ if(!empty($_GET['id'])) {
                                                             <div class="row">
                                                                 <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <label class="form-label">Expiration Date</label>
+                                                                        <label class="form-label">Expiration Month</label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" name="EXPIRATION_DATE" id="EXPIRATION_DATE" class="form-control" value="<?=$EXPIRATION_DATE?>" placeholder="MM/YYYY">
+                                                                            <input type="text" name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control" >
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Expiration Year</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control" >
                                                                         </div>
                                                                     </div>
                                                                 </div>
