@@ -100,8 +100,8 @@
                     <li class="nav-item" style="margin-top: 4px;">
                         <?php //if ($_SESSION["PK_ROLES"] == 1) { ?>
                         <!-- <a href="email.php" style="margin-left: 40px;color:white;">Email List</a> -->
-                        <a class="nav-link dropdown-toggle waves-effect waves-dark" href="https://focusbiz.com/sso.php?t=<?=$_SESSION['ACCESS_TOKEN'] ?>" aria-haspopup="true" aria-expanded="false" title="Create Support Tickets">
-                            <img src="../assets/images/icon/staff.png" alt="Mail" style="height: 35px; width: 35px; background-color: white;">
+                        <a class="nav-link dropdown-toggle waves-effect waves-dark" target="_blank" href="https://focusbiz.com/sso.php?t=<?=$_SESSION['ACCESS_TOKEN'] ?>" aria-haspopup="true" aria-expanded="false" title="Create Support Tickets">
+                            <img src="../assets/images/icon/ticket.png" alt="Mail" style="height: 35px; width: 35px; background-color: white;">
                             <div class="notify"> <span class="heartbit"></span> <span class="point"></span> </div>
                         </a>
                         <?php //} ?>
