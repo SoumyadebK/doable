@@ -77,6 +77,9 @@ $PUBLISHABLE_KEY        = $res->fields['PUBLISHABLE_KEY'];
 $ACCESS_TOKEN           = $res->fields['ACCESS_TOKEN'];
 $APP_ID                 = $res->fields['APP_ID'];
 $LOCATION_ID            = $res->fields['LOCATION_ID'];
+$LOGIN_ID               = $res->fields['LOGIN_ID'];
+$TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
+$AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
 
 ?>
 
@@ -376,7 +379,8 @@ $LOCATION_ID            = $res->fields['LOCATION_ID'];
                                                     <div class="form-group">
                                                         <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
                                                         <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
-                                                        <label><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
+                                                        <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
+                                                        <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'checked':''?> onclick="showPaymentGateway(this);">Authorized.net</label>
                                                     </div>
                                                 </div>
                                             </div>
@@ -407,6 +411,23 @@ $LOCATION_ID            = $res->fields['LOCATION_ID'];
                                                     <div class="form-group">
                                                         <label class="form-label">Location ID</label>
                                                         <input type="text" class="form-control" name="LOCATION_ID" value="<?=$LOCATION_ID?>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row payment_gateway" id="authorized" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'':'none'?>">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Login ID</label>
+                                                        <input type="text" class="form-control" name="LOGIN_ID" value="<?=$LOGIN_ID?>">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Transaction Key</label>
+                                                        <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?=$TRANSACTION_KEY?>">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Authorize Client Key</label>
+                                                        <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?=$AUTHORIZE_CLIENT_KEY?>">
                                                     </div>
                                                 </div>
                                             </div>
@@ -558,7 +579,12 @@ $LOCATION_ID            = $res->fields['LOCATION_ID'];
             }else {
                 if($(param).val() === 'Square'){
                     $('#square').slideDown();
+                }else {
+                    if($(param).val() === 'Authorized.net'){
+                        $('#authorized').slideDown();
+                    }
                 }
+
             }
         }
     </script>
