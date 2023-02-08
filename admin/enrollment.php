@@ -63,7 +63,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 }
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
 
-                require 'global/authorizenet/vendor/autoload.php';
+                require_once ('.../global/authorizenet/vendor/autoload.php');
 
                 $AUTHORIZE_MODE = 2;
                 $LOGIN_ID = "4Y5pCy8Qr";
@@ -87,7 +87,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
                 $refID = 'ref' . time();
 
-                $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+                $merchantAuthentication = new AnetAPI\MerchantAuthenticationType( https://js.stripe.com/v3/:1);
                 $merchantAuthentication->setName($LOGIN_ID);
                 $merchantAuthentication->setTransactionKey($TRANSACTION_KEY);
 
