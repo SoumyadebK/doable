@@ -63,7 +63,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 }
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
 
-                require 'global/authorizenet/vendor/autoload.php';
+                require_once('../global/authorizenet/vendor/autoload.php');
 
                 $AUTHORIZE_MODE = 2;
                 $LOGIN_ID = "4Y5pCy8Qr";
@@ -78,7 +78,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
                 // Retrieve card and user info from the submitted form data
                 $name = $_POST['NAME'];
-                $email = 'abc@gmail.com';
+                $email = 'deb.soumya93@gmail.com';
                 $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
                 $card_exp_month = $_POST['EXPIRATION_MONTH'];
                 $card_exp_year = $_POST['EXPIRATION_YEAR'];
@@ -1169,7 +1169,7 @@ if(!empty($_GET['id'])) {
 <!-- jQuery Modal -->
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
-<script src="https://js.stripe.com/v3/"></script>
+<!--<script src="https://js.stripe.com/v3/"></script>-->
 
 <script>
     // Get the modal
@@ -1202,7 +1202,7 @@ if(!empty($_GET['id'])) {
 </script>
 
 <script type="text/javascript">
-    function stripePaymentFunction() {
+    /*function stripePaymentFunction() {
 
         // Create a Stripe client.
         var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
@@ -1280,7 +1280,7 @@ if(!empty($_GET['id'])) {
             // Submit the form
             form.submit();
         }
-    }
+    }*/
 
 </script>
 
@@ -1671,7 +1671,7 @@ if(!empty($_GET['id'])) {
         switch (paymentType) {
             case 'Credit Card':
                 $('#card_div').html(`<div id="card-element"></div>`);
-                stripePaymentFunction();
+                /*stripePaymentFunction();*/
                 $('#credit_card_payment').slideDown();
                 break;
             
@@ -1721,7 +1721,7 @@ if(!empty($_GET['id'])) {
         switch (paymentType) {
             case 'Credit Card':
                 $('#remaining_card_div').html(`<div id="card-element"></div>`);
-                stripePaymentFunction();
+                /*stripePaymentFunction();*/
                 $('#remaining_credit_card_payment').slideDown();
                 break;
 
