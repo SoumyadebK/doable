@@ -22,22 +22,24 @@ if(!empty($_GET['customer_id'])) {
 }
 
 $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-
 $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
-
-$SECRET_KEY = $account_data->fields['SECRET_KEY'];
-$PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
-
-$ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
-$APP_ID = $account_data->fields['APP_ID'];
-$LOCATION_ID = $account_data->fields['LOCATION_ID'];
-
-$LOGIN_ID = $account_data->fields['LOGIN_ID'];
-$TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
-$AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
 
 if(!empty($_POST['PK_PAYMENT_TYPE'])){
     $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
+
+    $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+
+    $SECRET_KEY = $account_data->fields['SECRET_KEY'];
+    $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
+
+    $ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
+    $APP_ID = $account_data->fields['APP_ID'];
+    $LOCATION_ID = $account_data->fields['LOCATION_ID'];
+
+    $LOGIN_ID = $account_data->fields['LOGIN_ID'];
+    $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
+    $AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
+
     unset($_POST['PK_ENROLLMENT_LEDGER']);
     if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
         if ($_POST['PK_PAYMENT_TYPE'] == 1) {
@@ -63,22 +65,20 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 }
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
 
-                require_once ('.../global/authorizenet/vendor/autoload.php');
+                require_once('../global/authorizenet/vendor/autoload.php');
 
-                $AUTHORIZE_MODE = 2;
-                $LOGIN_ID = "4Y5pCy8Qr";
-                $TRANSACTION_KEY = "4ke43FW8z3287HV5";
-                $AUTHORIZE_CLIENT_KEY = "8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+                $LOGIN_ID = $account_data->fields['LOGIN_ID'];
+                $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
 
                 // Product Details
-                $itemName = "Demo Product";
+                $itemName = $_POST['PK_ENROLLMENT_MASTER'];
                 $itemNumber = "PN12345";
-                $itemPrice = 25;
+                $itemPrice = $_POST['AMOUNT'];
                 $currency = "USD";
 
                 // Retrieve card and user info from the submitted form data
                 $name = $_POST['NAME'];
-                $email = 'abc@gmail.com';
+                $email = 'deb.soumya93@gmail.com';
                 $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
                 $card_exp_month = $_POST['EXPIRATION_MONTH'];
                 $card_exp_year = $_POST['EXPIRATION_YEAR'];
@@ -110,7 +110,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $customerData->setType("individual");
                 $customerData->setEmail($email);
 
-                $ANET_ENV = 'PRODUCTION';
+                $ANET_ENV = 'SANDBOX';
 
                 // Create a transaction
                 $transactionRequestType = new AnetAPI\TransactionRequestType();
@@ -1169,7 +1169,7 @@ if(!empty($_GET['id'])) {
 <!-- jQuery Modal -->
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
-<script src="https://js.stripe.com/v3/"></script>
+<!--<script src="https://js.stripe.com/v3/"></script>-->
 
 <script>
     // Get the modal
@@ -1202,7 +1202,7 @@ if(!empty($_GET['id'])) {
 </script>
 
 <script type="text/javascript">
-    function stripePaymentFunction() {
+    /*function stripePaymentFunction() {
 
         // Create a Stripe client.
         var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
@@ -1280,7 +1280,7 @@ if(!empty($_GET['id'])) {
             // Submit the form
             form.submit();
         }
-    }
+    }*/
 
 </script>
 
@@ -1721,7 +1721,7 @@ if(!empty($_GET['id'])) {
         switch (paymentType) {
             case 'Credit Card':
                 $('#remaining_card_div').html(`<div id="card-element"></div>`);
-                stripePaymentFunction();
+                /*stripePaymentFunction();*/
                 $('#remaining_credit_card_payment').slideDown();
                 break;
 
