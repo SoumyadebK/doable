@@ -87,7 +87,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
                 $refID = 'ref' . time();
 
-                $merchantAuthentication = new AnetAPI\MerchantAuthenticationType( https://js.stripe.com/v3/:1);
+                $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
                 $merchantAuthentication->setName($LOGIN_ID);
                 $merchantAuthentication->setTransactionKey($TRANSACTION_KEY);
 
@@ -1671,7 +1671,7 @@ if(!empty($_GET['id'])) {
         switch (paymentType) {
             case 'Credit Card':
                 $('#card_div').html(`<div id="card-element"></div>`);
-                stripePaymentFunction();
+                /*stripePaymentFunction();*/
                 $('#credit_card_payment').slideDown();
                 break;
             
