@@ -69,9 +69,14 @@ if(!empty($_POST)){
     </div>
 </div>
 <section id="wrapper">
+
     <div class="login-register" style="background-image:url(assets/images/background/login_image.jpg);">
+        <div>
+            <img src="assets/images/background/doable_logo.png" style="margin-left:5%; margin-top: -150px; height: 80px; width: auto;">
+        </div>
         <div class="login-box card">
             <div class="card-body">
+
                 <form class="form-horizontal form-material" id="loginform" action="" method="post">
                     <?php if ($msg) {?>
                     <div class="alert alert-danger">
@@ -79,6 +84,10 @@ if(!empty($_POST)){
                     </div>
                     <?php } ?>
                     <h3 class="text-center m-b-20">Sign In</h3>
+                    <div>
+                        <img src="assets/images/background/doable_logo.png" style="margin-left: 33%; height: 60px; width: auto;">
+                    </div>
+
                     <div class="form-group ">
                         <div class="col-xs-12">
                             <input class="form-control" type="text" required="" placeholder="Username" id="USER_ID" name="USER_ID">

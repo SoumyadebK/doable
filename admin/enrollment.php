@@ -5,6 +5,12 @@ require_once("../global/stripe/init.php");
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 
+use Square\SquareClient;
+use Square\Environment;
+use Square\Exceptions\ApiException;
+use Square\Models\Address;
+use Square\Models\CreateCustomerRequest;
+
 if (empty($_GET['id']))
     $title = "Add Enrollment";
 else
@@ -63,6 +69,10 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 }else{
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
+            } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
+
+
+
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
                 require_once('../global/authorizenet/vendor/autoload.php');
 

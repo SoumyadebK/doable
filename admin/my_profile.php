@@ -349,7 +349,11 @@ $ACTIVE = $res->fields['ACTIVE'];
                                     </div>
 
                                     <div class="form-group">
-                                        <?php if($USER_IMAGE!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery"><img src = "<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a></div><?php } ?>
+                                        <?php if($USER_IMAGE!=''){?>
+                                            <div style="width: 120px;height: 120px;margin-top: 25px;">
+                                            <a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery">
+                                                <img src = "<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a>
+                                            </div><?php } ?>
                                     </div>
 
                                     <div class="form-group">
