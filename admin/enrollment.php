@@ -109,7 +109,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $customerData->setType("individual");
                 $customerData->setEmail($email);
 
-                $ANET_ENV = 'SANDBOX';
+                $ANET_ENV = 'PRODUCTION';
 
                 // Create a transaction
                 $transactionRequestType = new AnetAPI\TransactionRequestType();
