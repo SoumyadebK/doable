@@ -183,14 +183,22 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $PAYMENT_DATA['REMAINING_AMOUNT'] = $_POST['REMAINING_AMOUNT'];
             $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER_REMAINING'];
             $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE_REMAINING']));
-        } else {
+        } elseif($_POST['PK_PAYMENT_TYPE'] == 2) {
             $PAYMENT_DATA['REMAINING_AMOUNT'] = 0.00;
             $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
             $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));
         }
+
         $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
         $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
         $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+        if($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
+            $PAYMENT_DATA['NAME'] = $_POST['NAME'];
+            $PAYMENT_DATA['CARD_NUMBER'] = $_POST['CARD_NUMBER'];
+            $PAYMENT_DATA['EXPIRATION_DATE'] = $_POST['EXPIRATION_MONTH'] . "/" . $_POST['EXPIRATION_YEAR'];
+            $PAYMENT_DATA['SECURITY_CODE'] = $_POST['SECURITY_CODE'];
+        }
+
         db_perform('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 
         $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
