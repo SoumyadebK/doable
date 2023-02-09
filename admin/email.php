@@ -299,6 +299,6 @@ $user_id =  $_SESSION['PK_USER'];
 		    }
         </script>
 
-	</script>
+	</body>
 	</body>
 	</html>
