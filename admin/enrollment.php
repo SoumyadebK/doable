@@ -22,6 +22,7 @@ if(!empty($_GET['customer_id'])) {
 }
 
 $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
 $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
 
 if(!empty($_POST['PK_PAYMENT_TYPE'])){
@@ -30,7 +31,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
 
     $SECRET_KEY = $account_data->fields['SECRET_KEY'];
-    $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
 
     $ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
     $APP_ID = $account_data->fields['APP_ID'];
@@ -45,7 +45,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         if ($_POST['PK_PAYMENT_TYPE'] == 1) {
             if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
                 require_once("../global/stripe/init.php");
-                \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
+                \Stripe\Stripe::setApiKey($SECRET_KEY);
                 $STRIPE_TOKEN = $_POST['token'];
                 $AMOUNT = $_POST['AMOUNT'];
                 try {
@@ -64,7 +64,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-
                 require_once('../global/authorizenet/vendor/autoload.php');
 
                 $LOGIN_ID = $account_data->fields['LOGIN_ID'];
@@ -72,13 +71,13 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
                 // Product Details
                 $itemName = $_POST['PK_ENROLLMENT_MASTER'];
-                $itemNumber = "PN12345";
+                $itemNumber = $_POST['PK_ENROLLMENT_BILLING'];
                 $itemPrice = $_POST['AMOUNT'];
                 $currency = "USD";
 
                 // Retrieve card and user info from the submitted form data
                 $name = $_POST['NAME'];
-                $email = 'deb.soumya93@gmail.com';
+                $email = $_POST['EMAIL'];
                 $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
                 $card_exp_month = $_POST['EXPIRATION_MONTH'];
                 $card_exp_year = $_POST['EXPIRATION_YEAR'];
@@ -126,11 +125,13 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $controller = new AnetController\CreateTransactionController($request);
                 $response = $controller->executeWithApiResponse(constant("\\net\authorize\api\constants\ANetEnvironment::$ANET_ENV"));
 
-                pre_r($response);
-
-
+                if ($response != null && $response->getMessages()->getResultCode() == "Ok"){
+                    $tresponse = $response->getTransactionResponse();
+                    $PAYMENT_INFO = $tresponse->getTransId();
+                }else{
+                    $PAYMENT_INFO = 'Payment Unsuccessful.';
+                }
             }
-
         } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
             $AMOUNT = $_POST['AMOUNT'];
             $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
@@ -967,8 +968,7 @@ if(!empty($_GET['id'])) {
                                                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                                     <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=$PK_ENROLLMENT_BILLING?>">
                                                     <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
-                                                    <input type="hidden" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
-                                                    <input type="hidden" name="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
+                                                    <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
                                                     <div class="p-20">
                                                         <div class="row">
                                                             <div class="col-6">
@@ -1069,6 +1069,16 @@ if(!empty($_GET['id'])) {
                                                                         <label class="form-label">Name (As it appears on your card)</label>
                                                                         <div class="col-md-12">
                                                                             <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$NAME?>">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-12">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Email (For receiving payment confirmation mail)</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="email" name="EMAIL" id="EMAIL" class="form-control">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1202,7 +1212,7 @@ if(!empty($_GET['id'])) {
 </script>
 
 <script type="text/javascript">
-    /*function stripePaymentFunction() {
+    function stripePaymentFunction() {
 
         // Create a Stripe client.
         var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
@@ -1280,7 +1290,7 @@ if(!empty($_GET['id'])) {
             // Submit the form
             form.submit();
         }
-    }*/
+    }
 
 </script>
 
@@ -1666,12 +1676,15 @@ if(!empty($_GET['id'])) {
 
     function selectPaymentType(param){
         let paymentType = $("#PK_PAYMENT_TYPE option:selected").text();
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         $('.payment_type_div').slideUp();
         $('#card-element').remove();
         switch (paymentType) {
             case 'Credit Card':
-                $('#card_div').html(`<div id="card-element"></div>`);
-                /*stripePaymentFunction();*/
+                if (PAYMENT_GATEWAY == 'Stripe') {
+                    $('#card_div').html(`<div id="card-element"></div>`);
+                    stripePaymentFunction();
+                }
                 $('#credit_card_payment').slideDown();
                 break;
             
@@ -1716,12 +1729,15 @@ if(!empty($_GET['id'])) {
 
     function selectRemainingPaymentType(param){
         let paymentType = $("#PK_PAYMENT_TYPE_REMAINING option:selected").text();
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         $('.remaining_payment_type_div').slideUp();
         $('#card-element').remove();
         switch (paymentType) {
             case 'Credit Card':
-                $('#remaining_card_div').html(`<div id="card-element"></div>`);
-                /*stripePaymentFunction();*/
+                if (PAYMENT_GATEWAY == 'Stripe') {
+                    $('#card_div').html(`<div id="card-element"></div>`);
+                    stripePaymentFunction();
+                }
                 $('#remaining_credit_card_payment').slideDown();
                 break;
 
