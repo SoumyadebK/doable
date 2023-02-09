@@ -1084,7 +1084,7 @@ if(!empty($_GET['id'])) {
                                                                 </div>
                                                             </div>
                                                             <div class="row">
-                                                                <div class="col-6">
+                                                                <div class="col-4">
                                                                     <div class="form-group">
                                                                         <label class="form-label">Expiration Month</label>
                                                                         <div class="col-md-12">
@@ -1092,7 +1092,7 @@ if(!empty($_GET['id'])) {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-6">
+                                                                <div class="col-4">
                                                                     <div class="form-group">
                                                                         <label class="form-label">Expiration Year</label>
                                                                         <div class="col-md-12">
@@ -1100,7 +1100,7 @@ if(!empty($_GET['id'])) {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-6">
+                                                                <div class="col-4">
                                                                     <div class="form-group">
                                                                         <label class="form-label">Security Code</label>
                                                                         <div class="col-md-12">
