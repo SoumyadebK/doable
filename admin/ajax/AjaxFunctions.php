@@ -46,6 +46,15 @@ function saveServiceCodeData($RESPONSE_DATA){
             db_perform('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
         }
     }
+
+    if (count($RESPONSE_DATA['PK_USER']) > 0) {
+        $db->Execute("DELETE FROM `DOA_SERVICE_PROVIDER_SERVICE_NEW` WHERE `PK_SERVICE_MASTER` = '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
+        for ($i = 0; $i < count($RESPONSE_DATA['PK_USER']); $i++) {
+            $SERVICE_PROVIDER_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'][$i];
+            $SERVICE_PROVIDER_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'];
+            db_perform('DOA_SERVICE_PROVIDER_SERVICE_NEW', $SERVICE_PROVIDER_DATA, 'insert');
+        }
+    }
 }
 
 /*Saving Data from Enrollment Page*/

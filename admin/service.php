@@ -71,6 +71,7 @@ if(empty($_GET['id'])){
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
+<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
@@ -355,6 +356,29 @@ if(empty($_GET['id'])){
                                                 </div>
                                             </div>
 
+                                            <div class="row form-group">
+                                                <div>
+                                                    <label class="form-label">Service Providers</label>
+                                                </div>
+                                                <div class="col-6">
+                                                    <select class="multi_sumo_select" name="PK_USER[]" multiple>
+                                                        <?php
+                                                        $selected_service = [];
+                                                        if(!empty($_GET['id'])) {
+                                                            $selected_service_row = $db->Execute("SELECT `PK_USER` FROM `DOA_SERVICE_PROVIDER_SERVICE_NEW` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
+                                                            while (!$selected_service_row->EOF) {
+                                                                $selected_service[] = $selected_service_row->fields['PK_USER'];
+                                                                $selected_service_row->MoveNext();
+                                                            }
+                                                        }
+                                                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_ROLES.ROLES, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USERS.USER_TITLE FROM DOA_USERS LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES = DOA_USERS.PK_ROLES WHERE DOA_USERS.PK_ROLES = 5 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                        while (!$row->EOF) { ?>
+                                                            <option value="<?php echo $row->fields['PK_USER'];?>" <?=in_array($row->fields['PK_USER'], $selected_service)?"selected":""?> ><?=$row->fields['NAME']?></option>
+                                                            <?php $row->MoveNext(); } ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+
                                             <div class="form-group">
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Continue</button>
                                                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
@@ -450,6 +474,7 @@ if(empty($_GET['id'])){
     </div>
 </div>
 <?php require_once('../includes/footer.php');?>
+<script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 <script>
     let PK_SERVICE_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
 
@@ -620,6 +645,8 @@ if(empty($_GET['id'])){
             }
         });
     });
+
+    $('.multi_sumo_select').SumoSelect({placeholder: 'Select Services', selectAll: true});
 
 </script>
 </body>
