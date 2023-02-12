@@ -69,6 +69,9 @@ function saveEnrollmentData($RESPONSE_DATA){
     $ENROLLMENT_MASTER_DATA['PK_DOCUMENT_LIBRARY'] = $RESPONSE_DATA['PK_DOCUMENT_LIBRARY'];
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_ID'] = $RESPONSE_DATA['ENROLLMENT_BY_ID'];
 
+    $document_library_data = $db->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = '$RESPONSE_DATA[PK_DOCUMENT_LIBRARY]'");
+    $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($document_library_data->fields['DOCUMENT_TEMPLATE']);
+
     if(empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER'])){
         $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
         $enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]' ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
@@ -116,6 +119,87 @@ function saveEnrollmentData($RESPONSE_DATA){
     $return_data['TOTAL_AMOUNT'] = $total;
     echo json_encode($return_data);
 }
+
+
+
+function generatePdf($html){
+    error_reporting(0);
+    require_once('../../global/tcpdf/config/lang/eng.php');
+    require_once('../../global/tcpdf/tcpdf.php');
+
+    class MYPDF extends TCPDF {
+        public function Header() {
+            /*global $SITENAME, $PK_QUOTE_MASTER, $http_path;
+
+            $image_file = '../images/logo.png';
+            $this->Image($image_file, 10, 5, 50, '', 'PNG', '', 'T', false, 300, '', false, false, 0, false, false, false);
+            $this->SetFont('helvetica', '', 13);
+            $this->SetY(8);
+
+            $this->SetY(17);
+            $this->SetX(150);
+            $this->SetTextColor(255, 255, 255);
+            $this->SetFillColor(0, 0, 0);
+            $style = array('width' => 0.2, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(0, 0, 0));
+            $this->Line(5, 21, 205, 21, $style);
+            $this->Cell(58, 8, 'QUOTATION', 1, false, 'C', 1, '', 0, false, 'M', 'L');*/
+        }
+
+        public function Footer() {
+            /*$this->SetY(-15);
+            $style = array('width' => 0.2, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(0, 0, 0));
+            $this->Line(5, 282, 205, 282, $style);
+
+            $this->SetFont('helvetica', '', 8);
+            $this->Cell(30, 10, 'Page '.$this->getAliasNumPage().' of '.$this->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
+            */
+        }
+    }
+
+    // create new PDF document
+    //$pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+    $pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, false, 'ISO-8859-1', false);
+    //$pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, PDF_HEADER_TITLE.' 001', PDF_HEADER_STRING, array(0,64,255), array(0,64,128));
+
+    // set header and footer fonts
+    $pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+    //$pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
+
+    // set default monospaced font
+    $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+    //$pdf->SetDisplayMode('fullwidth','SinglePage','FullScreen');
+
+    //set margins
+    $pdf->SetMargins(3, 0, 3);
+    $pdf->SetHeaderMargin(0);
+    //$pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+
+    //set auto page breaks
+    $pdf->SetAutoPageBreak(TRUE, 0);
+
+    //set image scale factor
+    $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+
+    //set some language-dependent strings
+    /*$pdf->setLanguageArray($l);*/
+    // ---------------------------------------------------------
+
+    // set default font subsetting mode
+    $pdf->setFontSubsetting(true);
+    $pdf->SetFont('helvetica', '', 22, '', true);
+    $pdf->AddPage();
+
+    //echo $html;exit;
+    $pdf->writeHTML($html, $ln=true, $fill=false, $reseth=true, $cell=true, $align='');
+
+    //$file_name = 'Quote-'.$PK_QUOTE_MASTER.'.pdf';
+    $file_name = "data-".time().".pdf";
+    $pdf->Output("../../uploads/enrollment_pdf/".$file_name, 'F');
+
+    return $file_name;
+}
+
+
 
 function saveEnrollmentBillingData($RESPONSE_DATA){
     error_reporting(0);

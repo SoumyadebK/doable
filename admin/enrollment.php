@@ -252,6 +252,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 $PK_LOCATION = '';
 $PK_AGREEMENT_TYPE = '';
 $PK_DOCUMENT_LIBRARY = '';
+$AGREEMENT_PDF_LINK = '';
 $ENROLLMENT_BY_ID = $_SESSION['PK_USER'];
 $ACTIVE = '';
 
@@ -289,6 +290,7 @@ if(!empty($_GET['id'])) {
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
     $PK_DOCUMENT_LIBRARY = $res->fields['PK_DOCUMENT_LIBRARY'];
+    $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
     $ENROLLMENT_BY_ID = $res->fields['ENROLLMENT_BY_ID'];
     $ACTIVE = $res->fields['ACTIVE'];
 
@@ -631,6 +633,9 @@ if(!empty($_GET['id'])) {
                                                                 <option value="<?php echo $row->fields['PK_DOCUMENT_LIBRARY'];?>" <?=($PK_DOCUMENT_LIBRARY == $row->fields['PK_DOCUMENT_LIBRARY'])?'selected':''?>><?=$row->fields['DOCUMENT_NAME']?></option>
                                                                 <?php $row->MoveNext(); } ?>
                                                         </select>
+                                                        <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
+                                                            <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
+                                                        <?php } ?>
                                                     </div>
                                                 </div>
                                                 <div class="col-4">
