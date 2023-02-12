@@ -5,11 +5,9 @@ require_once("../global/stripe/init.php");
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 
-use Square\SquareClient;
-use Square\Environment;
-use Square\Exceptions\ApiException;
-use Square\Models\Address;
-use Square\Models\CreateCustomerRequest;
+$SQUARE_APP_ID 			= "sandbox-sq0idb-co7WstGtX_jQETuk18coQw";
+$SQUARE_LOCATION_ID 	= "C0K6B0E6FNJRY";
+$ACCESS_TOKEN 			= "EAAAEIhnXoKUu_9UUKem1yEohi8v3Q2Kg0eIR2SErebQA5gabFWENN_44xpjbRQ9";
 
 if (empty($_GET['id']))
     $title = "Add Enrollment";
@@ -30,6 +28,16 @@ if(!empty($_GET['customer_id'])) {
 $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
 $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
+$SQUARE_MODE 			= 2;
+if ($SQUARE_MODE == 1)
+    $SQ_URL = "https://connect.squareup.com";
+else if ($SQUARE_MODE == 2)
+    $SQ_URL = "https://connect.squareupsandbox.com";
+
+if ($SQUARE_MODE == 1)
+    $URL = "https://web.squarecdn.com/v1/square.js";
+else if ($SQUARE_MODE == 2)
+    $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
 
 if(!empty($_POST['PK_PAYMENT_TYPE'])){
     $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
@@ -45,6 +53,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     $LOGIN_ID = $account_data->fields['LOGIN_ID'];
     $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
     $AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
+
 
     unset($_POST['PK_ENROLLMENT_LEDGER']);
     if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
@@ -64,16 +73,70 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 } catch (Exception $e) {
 
                 }
-                if($charge->paid == 1){
+                if ($charge->paid == 1) {
                     $PAYMENT_INFO = $charge->id;
-                }else{
+                } else {
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
-            } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
+            }
+            elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
+
+                require_once("../global/square/autoload.php");
+
+                $AMOUNT = $_POST['AMOUNT'];
 
 
 
-            } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
+                $api_config = new \SquareConnect\Configuration();
+                $api_config->setHost($SQ_URL);
+
+                $api_config->setAccessToken($ACCESS_TOKEN);
+                $api_client = new \SquareConnect\ApiClient($api_config);
+                $payments_api = new \SquareConnect\Api\PaymentsApi($api_client);
+
+                $request_body = array(
+                    "source_id" => $_POST['sourceId'],
+                    "amount_money" => array(
+                        "amount" => ($AMOUNT * 100),
+                        "currency" => "USD"
+                    ),
+                    "idempotency_key" => uniqid(),
+                    "statement_description_identifier" => "Beacyn Order"
+                );
+
+                try {
+                    $result = $payments_api->createPayment($request_body);
+                    echo "<pre>";print_r($result);
+
+
+                    if (strtoupper($result['payment']['status']) == 'COMPLETED') {
+                        echo "Success<br />";
+                        echo "Payment ID: " . $result['payment']['id'] . '<br />';
+                        echo "Payment Amount: " . ($result['payment']['amount_money']['amount'] / 100) . '<br />';
+
+                    } else {
+                        echo "Failed<br />";
+                    }
+
+                } catch (\SquareConnect\ApiException $e) {
+                    $errors = $e->getResponseBody()->errors;
+                    echo "<pre>";print_r($errors);
+
+                    $payment_error = "";
+                    foreach ($errors as $error) {
+                        if ($payment_error != '')
+                            $payment_error .= ', ';
+
+                        $payment_error .= $error->detail;
+                    }
+                    echo $payment_error;
+                }
+
+                exit;
+            }
+
+
+            elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
                 require_once('../global/authorizenet/vendor/autoload.php');
 
                 $LOGIN_ID = $account_data->fields['LOGIN_ID'];
@@ -135,14 +198,14 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $controller = new AnetController\CreateTransactionController($request);
                 $response = $controller->executeWithApiResponse(constant("\\net\authorize\api\constants\ANetEnvironment::$ANET_ENV"));
 
-                if ($response != null && $response->getMessages()->getResultCode() == "Ok"){
+                if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
                     $tresponse = $response->getTransactionResponse();
                     $PAYMENT_INFO = $tresponse->getTransId();
-                }else{
+                } else {
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
             }
-        } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
+        }elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
             $AMOUNT = $_POST['AMOUNT'];
             $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
             $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
@@ -910,11 +973,13 @@ if(!empty($_GET['id'])) {
                                                         <td><?=$billing_details->fields['PAYMENT_TYPE']?></td>
                                                         <td></td>
                                                         <td><?=(($billing_details->fields['TRANSACTION_TYPE']=='Billing')?(($billing_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
+
                                                         <td>
                                                             <?php if($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS'] == 'A') { ?>
                                                             <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white myBtn" onclick="payNow(<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>);">Pay Now</a>
                                                             <?php } ?>
                                                         </td>
+
                                                     </tr>
                                                     <?php
                                                     $payment_details = $db->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
@@ -982,6 +1047,7 @@ if(!empty($_GET['id'])) {
                                                 <h4><b>Payment</b></h4>
 
                                                 <form id="payment_confirmation_form" role="form" action="" method="post">
+                                                    <input type="hidden" name="sourceId" id="sourceId" >
                                                     <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
                                                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                                     <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=$PK_ENROLLMENT_BILLING?>">
@@ -1074,12 +1140,24 @@ if(!empty($_GET['id'])) {
                                                         <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
                                                         <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
                                                             <div class="col-12">
+
                                                                 <div class="form-group" id="card_div">
 
                                                                 </div>
                                                             </div>
+                                                            <div id="payment-status-container"></div>
                                                         </div>
-                                                        <?php } elseif ($PAYMENT_GATEWAY == 'Square' || $PAYMENT_GATEWAY == 'Authorized.net'){?>
+                                                        <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
+
+                                                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                                                                <div class="col-12">
+                                                                    <div class="form-group" id="card-container">
+
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                        <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net'){?>
                                                         <div class="payment_type_div" id="credit_card_payment" style="display: none;">
                                                             <div class="row">
                                                                 <div class="col-12">
@@ -1172,12 +1250,11 @@ if(!empty($_GET['id'])) {
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                                                            <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
                                                         </div>
                                                     </div>
                                                 </form>
-
-                                            </div>
+                                                </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1310,6 +1387,128 @@ if(!empty($_GET['id'])) {
         }
     }
 
+</script>
+
+<script type="text/javascript" src="<?=$URL?>"></script>
+<script>
+    const appId = '<?=$SQUARE_APP_ID ?>';
+    const locationId = '<?=$SQUARE_LOCATION_ID ?>';
+
+    async function initializeCard(payments) {
+        const card = await payments.card();
+        await card.attach('#card-container');
+
+        return card;
+    }
+
+    async function createPayment(token) {
+        document.getElementById('sourceId').value = token;
+        document.payment_confirmation_form.submit()
+
+        /*const body = JSON.stringify({
+          locationId,
+          sourceId: token,
+        });
+
+        const paymentResponse = await fetch('payment.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body,
+        });
+
+        if (paymentResponse.ok) {
+          return paymentResponse.json();
+        }
+
+        const errorBody = await paymentResponse.text();
+        throw new Error(errorBody);*/
+
+        token
+    }
+
+    async function tokenize(paymentMethod) {
+        const tokenResult = await paymentMethod.tokenize();
+        if (tokenResult.status === 'OK') {
+            return tokenResult.token;
+        } else {
+            let errorMessage = `Tokenization failed with status: ${tokenResult.status}`;
+            if (tokenResult.errors) {
+                errorMessage += ` and errors: ${JSON.stringify(
+                    tokenResult.errors
+                )}`;
+            }
+
+            throw new Error(errorMessage);
+        }
+    }
+
+    // status is either SUCCESS or FAILURE;
+    function displayPaymentResults(status) {
+        const statusContainer = document.getElementById(
+            'payment-status-container'
+        );
+        if (status === 'SUCCESS') {
+            statusContainer.classList.remove('is-failure');
+            statusContainer.classList.add('is-success');
+        } else {
+            statusContainer.classList.remove('is-success');
+            statusContainer.classList.add('is-failure');
+        }
+
+        statusContainer.style.visibility = 'visible';
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        if (!window.Square) {
+            throw new Error('Square.js failed to load properly');
+        }
+
+        let payments;
+        try {
+            payments = window.Square.payments(appId, locationId);
+        } catch {
+            const statusContainer = document.getElementById(
+                'payment-status-container'
+            );
+            statusContainer.className = 'missing-credentials';
+            statusContainer.style.visibility = 'visible';
+            return;
+        }
+
+        let card;
+        try {
+            card = await initializeCard(payments);
+        } catch (e) {
+            console.error('Initializing Card failed', e);
+            return;
+        }
+
+        // Checkpoint 2.
+        async function handlePaymentMethodSubmission(event, paymentMethod) {
+            event.preventDefault();
+
+            try {
+                // disable the submit button as we await tokenization and make a payment request.
+                cardButton.disabled = true;
+                const token = await tokenize(paymentMethod);
+                const paymentResults = await createPayment(token);
+                displayPaymentResults('SUCCESS');
+
+                console.debug('Payment Success', paymentResults);
+            } catch (e) {
+                cardButton.disabled = false;
+                displayPaymentResults('FAILURE');
+                console.error(e.message);
+            }
+        }
+
+        const cardButton = document.getElementById('card-button');
+        cardButton.addEventListener('click', async function (event) {
+            await handlePaymentMethodSubmission(event, card);
+        });
+    });
 </script>
 
 <script>
