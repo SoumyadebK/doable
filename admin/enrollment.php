@@ -26,8 +26,10 @@ if(!empty($_GET['customer_id'])) {
 }
 
 $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+
 $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
 $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
+
 $SQUARE_MODE 			= 2;
 if ($SQUARE_MODE == 1)
     $SQ_URL = "https://connect.squareup.com";
@@ -40,15 +42,12 @@ else if ($SQUARE_MODE == 2)
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
 
 if(!empty($_POST['PK_PAYMENT_TYPE'])){
+
     $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
 
     $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
 
     $SECRET_KEY = $account_data->fields['SECRET_KEY'];
-
-    $ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
-    $APP_ID = $account_data->fields['APP_ID'];
-    $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
     $LOGIN_ID = $account_data->fields['LOGIN_ID'];
     $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
@@ -61,6 +60,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
                 require_once("../global/stripe/init.php");
                 \Stripe\Stripe::setApiKey($SECRET_KEY);
+
                 $STRIPE_TOKEN = $_POST['token'];
                 $AMOUNT = $_POST['AMOUNT'];
                 try {
@@ -78,14 +78,11 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 } else {
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
-            }
-            elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
+            } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
 
                 require_once("../global/square/autoload.php");
 
                 $AMOUNT = $_POST['AMOUNT'];
-
-
 
                 $api_config = new \SquareConnect\Configuration();
                 $api_config->setHost($SQ_URL);
@@ -101,42 +98,41 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                         "currency" => "USD"
                     ),
                     "idempotency_key" => uniqid(),
-                    "statement_description_identifier" => "Beacyn Order"
+                    "statement_description_identifier" => "Doable"
                 );
 
                 try {
                     $result = $payments_api->createPayment($request_body);
-                    echo "<pre>";print_r($result);
-
+                    //echo "<pre>";print_r($result); die;
 
                     if (strtoupper($result['payment']['status']) == 'COMPLETED') {
-                        echo "Success<br />";
-                        echo "Payment ID: " . $result['payment']['id'] . '<br />';
-                        echo "Payment Amount: " . ($result['payment']['amount_money']['amount'] / 100) . '<br />';
+
+                        $PAYMENT_INFO = $result['payment']['id'] ;
+                        $PAYMENT_INFO_LAST = $result['payment']['card_details']['card']['last_4'];
+                        $PAYMENT_INFO_EXP_MONTH = $result['payment']['card_details']['card']['exp_month'];
+                        $PAYMENT_INFO_EXP_YEAR = $result['payment']['card_details']['card']['exp_year'];
 
                     } else {
-                        echo "Failed<br />";
+                        $PAYMENT_INFO = "Payment Unsuccessful.";
                     }
 
                 } catch (\SquareConnect\ApiException $e) {
                     $errors = $e->getResponseBody()->errors;
-                    echo "<pre>";print_r($errors);
+                        echo "<pre>";print_r($errors);
 
-                    $payment_error = "";
+                    $PAYMENT_INFO = "";
                     foreach ($errors as $error) {
-                        if ($payment_error != '')
-                            $payment_error .= ', ';
+                        if ($PAYMENT_INFO != '')
+                            $PAYMENT_INFO .= ', ';
 
-                        $payment_error .= $error->detail;
+                        $PAYMENT_INFO .= $error->detail;
                     }
-                    echo $payment_error;
+                    echo $PAYMENT_INFO;
                 }
 
-                exit;
-            }
 
+            } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
 
-            elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
                 require_once('../global/authorizenet/vendor/autoload.php');
 
                 $LOGIN_ID = $account_data->fields['LOGIN_ID'];
@@ -205,7 +201,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
             }
-        }elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
+        } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
             $AMOUNT = $_POST['AMOUNT'];
             $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
             $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
@@ -231,6 +227,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
             }
+
             $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
             $wallet_data = $db->Execute("SELECT * FROM DOA_USER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_USER_WALLET DESC LIMIT 1");
             $DEBIT_AMOUNT = ($WALLET_BALANCE>$AMOUNT)?$AMOUNT:$WALLET_BALANCE;
@@ -265,11 +262,15 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
         $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
         $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+
         if($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
             $PAYMENT_DATA['NAME'] = $_POST['NAME'];
             $PAYMENT_DATA['CARD_NUMBER'] = $_POST['CARD_NUMBER'];
             $PAYMENT_DATA['EXPIRATION_DATE'] = $_POST['EXPIRATION_MONTH'] . "/" . $_POST['EXPIRATION_YEAR'];
             $PAYMENT_DATA['SECURITY_CODE'] = $_POST['SECURITY_CODE'];
+        } elseif($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Square') {
+            $PAYMENT_DATA['CARD_NUMBER'] = $PAYMENT_INFO_LAST;
+            $PAYMENT_DATA['EXPIRATION_DATE'] = $PAYMENT_INFO_EXP_MONTH . "/" . $PAYMENT_INFO_EXP_YEAR;
         }
 
         db_perform('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
