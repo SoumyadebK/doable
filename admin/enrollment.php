@@ -1145,23 +1145,21 @@ if(!empty($_GET['id'])) {
                                                         <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
                                                         <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
                                                             <div class="col-12">
-
                                                                 <div class="form-group" id="card_div">
 
                                                                 </div>
                                                             </div>
-                                                            <div id="payment-status-container"></div>
+
                                                         </div>
                                                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
-
                                                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
                                                                 <div class="col-12">
                                                                     <div class="form-group" id="card-container">
 
                                                                     </div>
                                                                 </div>
+                                                                <div id="payment-status-container"></div>
                                                             </div>
-
                                                         <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net'){?>
                                                         <div class="payment_type_div" id="credit_card_payment" style="display: none;">
                                                             <div class="row">
@@ -1408,7 +1406,7 @@ if(!empty($_GET['id'])) {
 
     async function createPayment(token) {
         document.getElementById('sourceId').value = token;
-        document.payment_confirmation_form.submit()
+        $('#payment_confirmation_form').submit();
 
         /*const body = JSON.stringify({
           locationId,
