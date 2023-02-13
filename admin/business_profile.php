@@ -75,8 +75,8 @@ $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
 $SECRET_KEY             = $res->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY        = $res->fields['PUBLISHABLE_KEY'];
 $ACCESS_TOKEN           = $res->fields['ACCESS_TOKEN'];
-$APP_ID                 = $res->fields['APP_ID'];
-$LOCATION_ID            = $res->fields['LOCATION_ID'];
+$SQUARE_APP_ID          = $res->fields['APP_ID'];
+$SQUARE_LOCATION_ID     = $res->fields['LOCATION_ID'];
 $LOGIN_ID               = $res->fields['LOGIN_ID'];
 $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
 $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
@@ -401,16 +401,16 @@ $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
                                             <div class="row payment_gateway" id="square" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Square')?'':'none'?>">
                                                 <div class="col-6">
                                                     <div class="form-group">
-                                                        <label class="form-label">Access Token</label>
-                                                        <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?=$ACCESS_TOKEN?>">
-                                                    </div>
-                                                    <div class="form-group">
                                                         <label class="form-label">Application ID</label>
-                                                        <input type="text" class="form-control" name="APP_ID" value="<?=$APP_ID?>">
+                                                        <input type="text" class="form-control" name="APP_ID" value="<?=$SQUARE_APP_ID?>">
                                                     </div>
                                                     <div class="form-group">
                                                         <label class="form-label">Location ID</label>
-                                                        <input type="text" class="form-control" name="LOCATION_ID" value="<?=$LOCATION_ID?>">
+                                                        <input type="text" class="form-control" name="LOCATION_ID" value="<?=$SQUARE_LOCATION_ID?>">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Access Token</label>
+                                                        <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?=$ACCESS_TOKEN?>">
                                                     </div>
                                                 </div>
                                             </div>
