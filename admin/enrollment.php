@@ -61,7 +61,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $STRIPE_TOKEN = $_POST['token'];
 
                 $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-
                 if ($user_payment_info_data->RecordCount() > 0) {
                     $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
                 } else {
@@ -173,8 +172,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     }
                     echo $PAYMENT_INFO;
                 }
-
-
 
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
 
