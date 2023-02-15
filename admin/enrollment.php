@@ -95,51 +95,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
 
-                // Add customer to stripe
-                try {
-                    $customer = \Stripe\Customer::create(array(
-                        'name' =>  $user_master->fields['NAME'],
-                        'email' =>  $user_master->fields['EMAIL_ID']
-                    ));
-                }catch(Exception $e) {
-                    $api_error = $e->getMessage();
-                }
-
-                if(empty($api_error) && $customer) {
-                    try {
-                        // Update PaymentIntent with the customer ID
-                        $charge = \Stripe\Charge::update($PAYMENT_INFO, [
-                            'customer' => $customer->id
-                        ]);
-                    } catch (Exception $e) {
-                        // log or do what you want
-                    }
-                }
-
-                // Retrieve customer info
-                try {
-                    $customer = \Stripe\Customer::retrieve($PAYMENT_INFO);
-                }catch(Exception $e) {
-                    $api_error = $e->getMessage();
-                }
-
-                // Check whether the charge was successful
-                if(!empty($charge) && $charge->status == 'succeeded') {
-                    // Transaction details
-                    $transaction_id = $charge->id;
-                    $paid_amount = $charge->amount;
-                    $paid_amount = ($paid_amount / 100);
-                    $paid_currency = $charge->currency;
-                    $payment_status = $charge->status;
-
-                    $customer_name = $customer_email = '';
-                    if (!empty($customer)) {
-                        $customer_name = !empty($customer->name) ? $customer->name : '';
-                        $customer_email = !empty($customer->email) ? $customer->email : '';
-                    }
-                }
-
-
                 $STRIPE_DETAILS['PK_USER']  = $user_master->fields['PK_USER'];
                 $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $customer->id;
                 $STRIPE_DETAILS['PAYMENT_TYPE'] = $_POST['PAYMENT_GATEWAY'];
