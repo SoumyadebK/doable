@@ -53,7 +53,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
     $AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
 
-
     unset($_POST['PK_ENROLLMENT_LEDGER']);
     if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
         if ($_POST['PK_PAYMENT_TYPE'] == 1) {
@@ -61,23 +60,93 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 require_once("../global/stripe/init.php");
                 \Stripe\Stripe::setApiKey($SECRET_KEY);
 
+                $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+
                 $STRIPE_TOKEN = $_POST['token'];
+
+                /*if (isset($_POST['token'])) {
+
+                    $STRIPE_TOKEN = $_POST['token'];
+                }*/
+
+                // Create a Customer:
+                $customer = \Stripe\Customer::create([
+                    'source' => $STRIPE_TOKEN,
+                    'email' => $user_master->fields['EMAIL_ID'],
+                ]);
+
+
                 $AMOUNT = $_POST['AMOUNT'];
                 try {
                     $charge = \Stripe\Charge::create([
                         'amount' => ($AMOUNT * 100),
                         'currency' => 'usd',
                         'description' => $_POST['NOTE'],
-                        'source' => $STRIPE_TOKEN
+                        'customer' => $customer->id
                     ]);
                 } catch (Exception $e) {
 
                 }
+
                 if ($charge->paid == 1) {
                     $PAYMENT_INFO = $charge->id;
+
                 } else {
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
+
+                // Add customer to stripe
+                try {
+                    $customer = \Stripe\Customer::create(array(
+                        'name' =>  $user_master->fields['NAME'],
+                        'email' =>  $user_master->fields['EMAIL_ID']
+                    ));
+                }catch(Exception $e) {
+                    $api_error = $e->getMessage();
+                }
+
+                if(empty($api_error) && $customer) {
+                    try {
+                        // Update PaymentIntent with the customer ID
+                        $charge = \Stripe\Charge::update($PAYMENT_INFO, [
+                            'customer' => $customer->id
+                        ]);
+                    } catch (Exception $e) {
+                        // log or do what you want
+                    }
+                }
+
+                // Retrieve customer info
+                try {
+                    $customer = \Stripe\Customer::retrieve($PAYMENT_INFO);
+                }catch(Exception $e) {
+                    $api_error = $e->getMessage();
+                }
+
+                // Check whether the charge was successful
+                if(!empty($charge) && $charge->status == 'succeeded') {
+                    // Transaction details
+                    $transaction_id = $charge->id;
+                    $paid_amount = $charge->amount;
+                    $paid_amount = ($paid_amount / 100);
+                    $paid_currency = $charge->currency;
+                    $payment_status = $charge->status;
+
+                    $customer_name = $customer_email = '';
+                    if (!empty($customer)) {
+                        $customer_name = !empty($customer->name) ? $customer->name : '';
+                        $customer_email = !empty($customer->email) ? $customer->email : '';
+                    }
+                }
+
+
+                $STRIPE_DETAILS['PK_USER']  = $user_master->fields['PK_USER'];
+                $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $customer->id;
+                $STRIPE_DETAILS['PAYMENT_TYPE'] = $_POST['PAYMENT_GATEWAY'];
+                $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+
+                db_perform('DOA_CUSTOMER_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
+
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
 
                 require_once("../global/square/autoload.php");
@@ -111,10 +180,13 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                         $PAYMENT_INFO_LAST = $result['payment']['card_details']['card']['last_4'];
                         $PAYMENT_INFO_EXP_MONTH = $result['payment']['card_details']['card']['exp_month'];
                         $PAYMENT_INFO_EXP_YEAR = $result['payment']['card_details']['card']['exp_year'];
+                        //$PAYMENT_INFO_CUSTOMER_ID = $result['payment']['card_details']['customer_id'];
 
                     } else {
                         $PAYMENT_INFO = "Payment Unsuccessful.";
                     }
+
+
 
                 } catch (\SquareConnect\ApiException $e) {
                     $errors = $e->getResponseBody()->errors;
@@ -129,6 +201,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     }
                     echo $PAYMENT_INFO;
                 }
+
 
 
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
@@ -271,6 +344,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         } elseif($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Square') {
             $PAYMENT_DATA['CARD_NUMBER'] = $PAYMENT_INFO_LAST;
             $PAYMENT_DATA['EXPIRATION_DATE'] = $PAYMENT_INFO_EXP_MONTH . "/" . $PAYMENT_INFO_EXP_YEAR;
+            $PAYMENT_DATA['CUSTOMER_ID'] = $PAYMENT_INFO_CUSTOMER_ID;
         }
 
         db_perform('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
@@ -288,6 +362,8 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $ENROLLMENT_BALANCE_DATA['CREATED_ON']  = date("Y-m-d H:i");
             db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
         }
+
+
 
         $PK_ENROLLMENT_PAYMENT = $db->insert_ID();
         $ledger_record = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
@@ -1059,6 +1135,8 @@ if(!empty($_GET['id'])) {
                                                     <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=$PK_ENROLLMENT_BILLING?>">
                                                     <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
                                                     <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
+                                                    <input type="hidden" name="PK_USER_MASTER" id="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
+
                                                     <div class="p-20">
                                                         <div class="row">
                                                             <div class="col-6">
@@ -1278,7 +1356,7 @@ if(!empty($_GET['id'])) {
 <!-- jQuery Modal -->
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
-<!--<script src="https://js.stripe.com/v3/"></script>-->
+<script src="https://js.stripe.com/v3/"></script>
 
 <script>
     // Get the modal

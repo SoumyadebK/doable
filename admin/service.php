@@ -202,12 +202,17 @@ if(empty($_GET['id'])){
                                                             <label id="frequency_duration_label">Frequency</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-2" style="text-align: center;">
+                                                    <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label>Is Group</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-2">
+                                                    <div class="col-2" style="text-align: center;">
+                                                        <div class="form-group">
+                                                            <label>Capacity</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-1">
                                                         <div class="form-group">
                                                             <label>Is Chargeable</label>
                                                         </div>
@@ -260,11 +265,21 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2" style="width: 14%;">
+                                                        <div class="col-1" style="width: 14%;">
                                                             <div class="form-group" style="margin-left: 55px;">
                                                                 <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="1" <?=(($row->fields['IS_CHARGEABLE'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label><br>
                                                                     <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="0" <?=(($row->fields['IS_CHARGEABLE'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="form-group service_capacity" style="display: <?=((IS_GROUP != '') ? ((IS_GROUP == 0) ? 'none' : '') : '')?>">
+                                                                <div class="col-md-12" >
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-text"><?=$capacity?></span>
+                                                                        <input type="text" id="Capacity" name="CAPACITY[]" class="form-control"  value="<?=$row->fields['CAPACITY']?>">
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -319,8 +334,18 @@ if(empty($_GET['id'])){
                                                         <div class="col-2" style="width: 14%;">
                                                             <div class="form-group" style="margin-left: 65px;">
                                                                 <div class="col-md-12">
-                                                                    <label><input type="radio" name="IS_GROUP_0" value="1"/>&nbsp;Yes</label><br>
-                                                                    <label><input type="radio" name="IS_GROUP_0" value="0" checked/>&nbsp;No</label>
+                                                                    <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP_0" value="1" checked/>&nbsp;Yes</label><br>
+                                                                    <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP_0" value="0" />&nbsp;No</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-2">
+                                                            <div class="form-group service_capacity" style="display: <?=(($IS_GROUP_0 == 0) ? (($IS_GROUP_0 == 1) ? 'none' : '') : '')?>">
+                                                                <div class="col-md-14" >
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-text"></span>
+                                                                        <input type="text" id="Capacity" name="CAPACITY" class="form-control" placeholder="Capacity" >
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -483,6 +508,14 @@ if(empty($_GET['id'])){
             $(this).closest('.row').find('.service_price').slideDown();
         }else {
             $(this).closest('.row').find('.service_price').slideUp();
+        }
+    });
+
+    $(document).on('change', '.IS_GROUP_0', function () {
+        if ($(this).val() == 1){
+            $(this).closest('.row').find('.service_capacity').slideDown();
+        }else {
+            $(this).closest('.row').find('.service_capacity').slideUp();
         }
     });
 

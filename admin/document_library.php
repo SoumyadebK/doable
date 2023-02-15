@@ -134,9 +134,32 @@ if(empty($_GET['id'])){
                                     <div class="form-group">
                                         <label class="form-label">Tag Name</label>
                                         <div class="col-md-6" style="padding-top: 10px; padding-left: 10px;">
-                                            <a href="javascript:;" class="tag_name" data-tag="{USER_NAME}" style="font-weight: normal;">{USER_NAME}</a>
-                                            <a href="javascript:;" class="tag_name" data-tag="{USER_PHONE}" style="font-weight: normal;">{USER_PHONE}</a>
-                                            <a href="javascript:;" class="tag_name" data-tag="{USER_EMAIL}" style="font-weight: normal;">{USER_EMAIL}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{FULL_NAME}" style="font-weight: normal;">{FULL_NAME}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{STREET_ADD}" style="font-weight: normal;">{STREET_ADD}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{CITY}" style="font-weight: normal;">{CITY}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{STATE}" style="font-weight: normal;">{STATE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{ZIP}" style="font-weight: normal;">{ZIP}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{RES_PHONE}" style="font-weight: normal;">{RES_PHONE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{CELL_PHONE}" style="font-weight: normal;">{CELL_PHONE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{PVT_LESSONS}" style="font-weight: normal;">{PVT_LESSONS}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{TUITION}" style="font-weight: normal;">{TUITION}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{DISCOUNT}" style="font-weight: normal;">{DISCOUNT}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{BAL_DUE}" style="font-weight: normal;">{BAL_DUE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{MISC_SERVICES}" style="font-weight: normal;">{MISC_SERVICES}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{TUITION_COST}" style="font-weight: normal;">{TUITION_COST}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{CASH_PRICE}" style="font-weight: normal;">{CASH_PRICE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{OUTSBAL_PREAGREE}" style="font-weight: normal;">{OUTSBAL_PREAGREE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{UNEARNED_CHARGE}" style="font-weight: normal;">{UNEARNED_CHARGE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{PREVBAL_RESCH}" style="font-weight: normal;">{PREVBAL_RESCH}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{CONSOLIDATED_PRICE}" style="font-weight: normal;">{CONSOLIDATED_PRICE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{PAYMENT_NAME}" style="font-weight: normal;">{PAYMENT_NAME}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{NOORAMT_PAYMENT}" style="font-weight: normal;">{NOORAMT_PAYMENT}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{STARTING_DATE}" style="font-weight: normal;">{STARTING_DATE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{SCHEDULE_AMOUNT}" style="font-weight: normal;">{SCHEDULE_AMOUNT}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{SERVICE_CHARGE}" style="font-weight: normal;">{SERVICE_CHARGE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{TOTAL_PAYMENTS}" style="font-weight: normal;">{TOTAL_PAYMENTS}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{TOTAL_SELLPRICE}" style="font-weight: normal;">{TOTAL_SELLPRICE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{PERCENTAGE_RATE}" style="font-weight: normal;">{PERCENTAGE_RATE}</a>
                                         </div>
                                     </div>
                                 </div>
