@@ -70,8 +70,7 @@ function saveEnrollmentData($RESPONSE_DATA){
     $ENROLLMENT_MASTER_DATA['PK_DOCUMENT_LIBRARY'] = $RESPONSE_DATA['PK_DOCUMENT_LIBRARY'];
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_ID'] = $RESPONSE_DATA['ENROLLMENT_BY_ID'];
 
-    $document_library_data = $db->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = '$RESPONSE_DATA[PK_DOCUMENT_LIBRARY]'");
-    $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($document_library_data->fields['DOCUMENT_TEMPLATE']);
+
 
     if(empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER'])){
         $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
@@ -115,6 +114,9 @@ function saveEnrollmentData($RESPONSE_DATA){
             $total += $RESPONSE_DATA['TOTAL'][$i];
         }
     }
+
+    $document_library_data = $db->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = '$RESPONSE_DATA[PK_DOCUMENT_LIBRARY]'");
+    $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($document_library_data->fields['DOCUMENT_TEMPLATE']);
 
     $return_data['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
     $return_data['TOTAL_AMOUNT'] = $total;
@@ -321,7 +323,9 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     }else{
         db_perform('DOA_ENROLLMENT_BILLING', $RESPONSE_DATA, 'update'," PK_ENROLLMENT_BILLING =  '$RESPONSE_DATA[PK_ENROLLMENT_BILLING]'");
         $PK_ENROLLMENT_BILLING = $RESPONSE_DATA['PK_ENROLLMENT_BILLING'];
+
     }
+
     $return_data['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
     $return_data['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
     echo json_encode($return_data);

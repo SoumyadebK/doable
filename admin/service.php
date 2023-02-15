@@ -261,7 +261,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
-                                                            <div class="form-group">
+                                                            <div class="form-group" style="margin-left: 55px;">
                                                                 <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="1" <?=(($row->fields['IS_GROUP'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label><br>
                                                                     <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="0"  <?=(($row->fields['IS_GROUP'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
@@ -324,7 +324,7 @@ if(empty($_GET['id'])){
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2 duration_div" style="display: none;">
+                                                        <div class="col-2 duration_div">
                                                             <div class="form-group">
                                                                 <div class="col-md-12">
                                                                     <input type="text" id="DURATION" name="DURATION[]" class="form-control" placeholder="Duration">
@@ -332,7 +332,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
-                                                            <div class="form-group" style="margin-left: 65px;">
+                                                            <div class="form-group" style="margin-left: 55px;">
                                                                 <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="1"/>&nbsp;Yes</label><br>
                                                                     <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
@@ -550,7 +550,7 @@ if(empty($_GET['id'])){
                                                 </div>
                                             </div>
                                             <div class="col-1">
-                                                <div class="form-group" style="margin-left: 65px;">
+                                                <div class="form-group" style="margin-left: 55px;">
                                                     <div class="col-md-12">
                                                         <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="1"/>&nbsp;Yes</label><br>
                                                         <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
