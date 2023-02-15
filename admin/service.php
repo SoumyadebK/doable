@@ -186,6 +186,7 @@ if(empty($_GET['id'])){
                                         <input type="hidden" name="PK_SERVICE_MASTER" class="PK_SERVICE_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                         <div class="p-20">
                                             <div id="append_service_code">
+
                                                 <div class="row align-items-end">
                                                     <div class="col-2" style="text-align: center;">
                                                         <div class="form-group">
@@ -202,22 +203,29 @@ if(empty($_GET['id'])){
                                                             <label id="frequency_duration_label">Frequency</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-2" style="text-align: center;">
+                                                    <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label>Is Group</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-2">
+                                                    <div class="col-1" style="text-align: center;">
+                                                        <div class="form-group">
+                                                            <label>Capacity</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label>Is Chargeable</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-2">
+                                                    <div class="col-2" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label>Price</label>
                                                         </div>
                                                     </div>
                                                 </div>
+
+
                                                 <?php
                                                 if(!empty($_GET['id'])) { $i = 0;
                                                 $row = $db->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = '$_GET[id]'");
@@ -252,15 +260,22 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2" style="width: 14%;">
-                                                            <div class="form-group" style="margin-left: 65px;">
+                                                        <div class="col-1">
+                                                            <div class="form-group">
                                                                 <div class="col-md-12">
-                                                                    <label><input type="radio" name="IS_GROUP_<?=$i?>" value="1" <?=(($row->fields['IS_GROUP'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label><br>
-                                                                    <label><input type="radio" name="IS_GROUP_<?=$i?>" value="0"  <?=(($row->fields['IS_GROUP'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
+                                                                    <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="1" <?=(($row->fields['IS_GROUP'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label><br>
+                                                                    <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="0"  <?=(($row->fields['IS_GROUP'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2" style="width: 14%;">
+                                                        <div class="col-1">
+                                                            <div class="form-group capacity_div" style="display: <?=(($row->fields['IS_GROUP'] == 0) ? 'none' : '')?>"">
+                                                                <div class="col-md-12" >
+                                                                    <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY" value="<?=$row->fields['CAPACITY']?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
                                                             <div class="form-group" style="margin-left: 55px;">
                                                                 <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="1" <?=(($row->fields['IS_CHARGEABLE'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label><br>
@@ -278,7 +293,7 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-1" style="width: 2%">
+                                                        <div class="col-1">
                                                             <div class="form-group">
                                                                 <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                             </div>
@@ -316,15 +331,22 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2" style="width: 14%;">
+                                                        <div class="col-1">
                                                             <div class="form-group" style="margin-left: 65px;">
                                                                 <div class="col-md-12">
-                                                                    <label><input type="radio" name="IS_GROUP_0" value="1"/>&nbsp;Yes</label><br>
-                                                                    <label><input type="radio" name="IS_GROUP_0" value="0" checked/>&nbsp;No</label>
+                                                                    <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="1"/>&nbsp;Yes</label><br>
+                                                                    <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2" style="width: 14%;">
+                                                        <div class="col-1">
+                                                            <div class="form-group capacity_div" style="display: none;">
+                                                                <div class="col-md-12" >
+                                                                    <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
                                                             <div class="form-group" style="margin-left: 55px;">
                                                                 <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_CHARGEABLE_0" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label><br>
@@ -333,7 +355,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="col-2">
-                                                            <div class="form-group service_price" style="display: <?= (($IS_CHARGEABLE != '') ? (($IS_CHARGEABLE == 0) ? 'none' : '') : '') ?>">
+                                                            <div class="form-group service_price">
                                                                 <div class="col-md-12" >
                                                                     <div class="input-group">
                                                                         <span class="input-group-text"><?=$currency?></span>
@@ -342,7 +364,7 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-1" style="width: 2%">
+                                                        <div class="col-1">
                                                             <div class="form-group">
                                                                 <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                             </div>
@@ -486,6 +508,14 @@ if(empty($_GET['id'])){
         }
     });
 
+    $(document).on('change', '.IS_GROUP', function () {
+        if ($(this).val() == 1){
+            $(this).closest('.row').find('.capacity_div').slideDown();
+        }else {
+            $(this).closest('.row').find('.capacity_div').slideUp();
+        }
+    });
+
     let counter = parseInt(<?=$i?>);
     function addMoreServiceCode() {
         let PK_SERVICE_CLASS = ($('.PK_SERVICE_CLASS').val())?parseInt($('.PK_SERVICE_CLASS').val()):1;
@@ -519,15 +549,22 @@ if(empty($_GET['id'])){
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-2" style="width: 14%;">
+                                            <div class="col-1">
                                                 <div class="form-group" style="margin-left: 65px;">
                                                     <div class="col-md-12">
-                                                        <label><input type="radio" name="IS_GROUP_${counter}" value="1"/>&nbsp;Yes</label><br>
-                                                        <label><input type="radio" name="IS_GROUP_${counter}" value="0" checked/>&nbsp;No</label>
+                                                        <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="1"/>&nbsp;Yes</label><br>
+                                                        <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-2" style="width: 14%;">
+                                            <div class="col-1">
+                                                <div class="form-group capacity_div" style="display: none;">
+                                                    <div class="col-md-12" >
+                                                        <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-1">
                                                 <div class="form-group" style="margin-left: 55px;">
                                                     <div class="col-md-12">
                                                         <label><input type="radio" name="IS_CHARGEABLE_${counter}" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label><br>
@@ -545,7 +582,7 @@ if(empty($_GET['id'])){
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-1" style="width: 2%">
+                                            <div class="col-1">
                                                 <div class="form-group">
                                                     <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                 </div>

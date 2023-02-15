@@ -181,6 +181,7 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='add_group_classes.php'" ><i class="fa fa-plus-circle"></i> Group Class</button>
                         <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='all_special_appointment.php'" ><i class="fa fa-plus-circle"></i> INT APP</button>
                         <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='add_schedule.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
                         <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='add_multiple_appointment.php'" ><i class="fa fa-plus-circle"></i> Standing</button>
