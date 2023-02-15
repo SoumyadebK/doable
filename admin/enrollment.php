@@ -104,7 +104,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
 
 
-                $AMOUNT = $_POST['AMOUNT'];
+                $AMOUNT = $_POST['AMOUNT']*100;
                 try {
                     /*$allpaymentmethods = $stripe->customers->allPaymentMethods(
                         $CUSTOMER_PAYMENT_ID,
@@ -112,7 +112,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     );*/
                     \Stripe\Stripe::setApiKey($SECRET_KEY);
                     $payment_intent = \Stripe\PaymentIntent::create([
-                        'payment_method_types' => ['card'],
                         'amount' => $AMOUNT,
                         'currency' => 'USD',
                         'customer' => $CUSTOMER_PAYMENT_ID,
@@ -1205,12 +1204,14 @@ if(!empty($_GET['id'])) {
 
                                                         <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
                                                         <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                                                            <div class="col-12" style="margin: 20px;" id="card_list">
+                                                                <a href="javascript:;">Card Number</a>
+                                                            </div>
                                                             <div class="col-12">
                                                                 <div class="form-group" id="card_div">
 
                                                                 </div>
                                                             </div>
-
                                                         </div>
                                                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
                                                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
@@ -1965,6 +1966,7 @@ if(!empty($_GET['id'])) {
                 if (PAYMENT_GATEWAY == 'Stripe') {
                     $('#card_div').html(`<div id="card-element"></div>`);
                     stripePaymentFunction();
+                    getCreditCardList();
                 }
                 $('#credit_card_payment').slideDown();
                 break;
@@ -2006,6 +2008,18 @@ if(!empty($_GET['id'])) {
                 $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
                 break;
         }
+    }
+
+    function getCreditCardList() {
+        let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+        $.ajax({
+            url: "ajax/get_credit_card_list.php",
+            type: 'POST',
+            data: {PK_USER_MASTER: PK_USER_MASTER},
+            success: function (data) {
+                $('#card_list').html(data);
+            }
+        });
     }
 
     function selectRemainingPaymentType(param){
