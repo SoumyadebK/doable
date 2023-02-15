@@ -64,10 +64,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
                 $STRIPE_TOKEN = $_POST['token'];
 
-                /*if (isset($_POST['token'])) {
-
-                    $STRIPE_TOKEN = $_POST['token'];
-                }*/
 
                 // Create a Customer:
                 $customer = \Stripe\Customer::create([
@@ -94,6 +90,8 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 } else {
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
+
+
 
                 $STRIPE_DETAILS['PK_USER']  = $user_master->fields['PK_USER'];
                 $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $customer->id;
@@ -457,11 +455,6 @@ if(!empty($_GET['id'])) {
     .SumoSelect{
         width: 90%;
     }
-
-    .disableDiv{
-        pointer-events: none;
-        opacity: 60%;
-    }
 </style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
@@ -503,11 +496,7 @@ if(!empty($_GET['id'])) {
                             <!-- Tab panes -->
                             <div class="tab-content tabcontent-border">
                                 <div class="tab-pane active" id="enrollment" role="tabpanel">
-                                    <?php if (!empty($_GET['id'])){ ?>
-                                        <a id="lock_button" href="javascript:;" onclick="unlockEnrollment(this)"><i class="icon-lock" style="float: right;font-size: 20px;color: red;font-weight: bold; margin: 15px;"></i></a>
-                                        <a id="unlock_button" href="javascript:;" onclick="lockEnrollment(this)" style="display: none;"><i class="icon-lock-open" style="float: right;font-size: 20px;color: green;font-weight: bold; margin: 15px;"></i></a>
-                                    <?php } ?>
-                                    <form id="enrollment_form" class="<?=empty($_GET['id'])?'':'disableDiv'?>">
+                                    <form id="enrollment_form">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentData">
                                         <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                         <div class="p-20">
@@ -1575,7 +1564,7 @@ if(!empty($_GET['id'])) {
         format: 'mm/dd/yyyy',
     });
 
-    
+
     function selectThisCustomer(param){
         let location_id = $(param).find(':selected').data('location_id');
         $('#PK_LOCATION').val(location_id);
@@ -1950,7 +1939,7 @@ if(!empty($_GET['id'])) {
                 }
                 $('#credit_card_payment').slideDown();
                 break;
-            
+
             case 'Check':
                 $('#check_payment').slideDown();
                 break;
@@ -2013,17 +2002,6 @@ if(!empty($_GET['id'])) {
                 $('.remaining_payment_type_div').slideUp();
                 break;
         }
-    }
-
-    function unlockEnrollment(param) {
-        $(param).hide();
-        $('#unlock_button').show();
-        $('#enrollment_form').removeClass('disableDiv');
-    }
-    function lockEnrollment(param) {
-        $(param).hide();
-        $('#lock_button').show();
-        $('#enrollment_form').addClass('disableDiv');
     }
 </script>
 
