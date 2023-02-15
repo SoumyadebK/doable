@@ -1,6 +1,5 @@
 <?php
 require_once('../global/config.php');
-require_once("../global/stripe/init.php");
 
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
@@ -57,48 +56,80 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
         if ($_POST['PK_PAYMENT_TYPE'] == 1) {
             if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
-                require_once("../global/stripe/init.php");
-                \Stripe\Stripe::setApiKey($SECRET_KEY);
-
-                $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-
+                require_once("../global/stripe-php-master/init.php");
+                $stripe = new \Stripe\StripeClient($SECRET_KEY);
                 $STRIPE_TOKEN = $_POST['token'];
 
+                $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+                if ($user_payment_info_data->RecordCount() > 0) {
+                    $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
+                } else {
+                    $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
 
-                // Create a Customer:
-                $customer = \Stripe\Customer::create([
-                    'source' => $STRIPE_TOKEN,
-                    'email' => $user_master->fields['EMAIL_ID'],
-                ]);
+                    try {
+                        $customer = $stripe->customers->create([
+                            'email' => $user_master->fields['EMAIL_ID'],
+                            'name' => $user_master->fields['FIRST_NAME']." ".$user_master->fields['LAST_NAME'],
+                            'phone' => $user_master->fields['PHONE'],
+                            'description' => $user_master->fields['PK_USER'],
+                        ]);
+                    } catch (\Stripe\Exception\ApiErrorException $e) {
+                        pre_r($e->getMessage());
+                    }
+
+                    $CUSTOMER_PAYMENT_ID = $customer->id;
+                    $STRIPE_DETAILS['PK_USER']  = $user_master->fields['PK_USER'];
+                    $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                    $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
+                    $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform('DOA_CUSTOMER_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
+                }
+
+                try {
+                    $payment_method = $stripe->paymentMethods->create([
+                        'type' => 'card',
+                        'card' => [
+                            'token' => $STRIPE_TOKEN
+                        ],
+                    ]);
+
+                    $stripe->paymentMethods->attach(
+                        $payment_method->id,
+                        ['customer' => $CUSTOMER_PAYMENT_ID]
+                    );
+
+                } catch (\Stripe\Exception\ApiErrorException $e) {
+                    pre_r($e->getMessage());
+                }
+
 
 
                 $AMOUNT = $_POST['AMOUNT'];
                 try {
-                    $charge = \Stripe\Charge::create([
-                        'amount' => ($AMOUNT * 100),
-                        'currency' => 'usd',
-                        'description' => $_POST['NOTE'],
-                        'customer' => $customer->id
+                    /*$allpaymentmethods = $stripe->customers->allPaymentMethods(
+                        $CUSTOMER_PAYMENT_ID,
+                        ['type' => 'card']
+                    );*/
+                    \Stripe\Stripe::setApiKey($SECRET_KEY);
+                    $payment_intent = \Stripe\PaymentIntent::create([
+                        'payment_method_types' => ['card'],
+                        'amount' => $AMOUNT,
+                        'currency' => 'USD',
+                        'customer' => $CUSTOMER_PAYMENT_ID,
+                        'payment_method' => $payment_method->id,
                     ]);
                 } catch (Exception $e) {
-
+                    pre_r($e->getMessage());
                 }
 
-                if ($charge->paid == 1) {
-                    $PAYMENT_INFO = $charge->id;
+                pre_r($payment_intent);
 
+
+                /*if ($charge->paid == 1) {
+                    $PAYMENT_INFO = $charge->id;
                 } else {
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
-                }
-
-
-
-                $STRIPE_DETAILS['PK_USER']  = $user_master->fields['PK_USER'];
-                $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $customer->id;
-                $STRIPE_DETAILS['PAYMENT_TYPE'] = $_POST['PAYMENT_GATEWAY'];
-                $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-
-                db_perform('DOA_CUSTOMER_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
+                }*/
 
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
 
@@ -154,8 +185,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     }
                     echo $PAYMENT_INFO;
                 }
-
-
 
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
 
