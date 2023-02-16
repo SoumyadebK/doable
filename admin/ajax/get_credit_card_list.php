@@ -16,9 +16,31 @@ $all_payment_methods = $stripe->customers->allPaymentMethods(
     $CUSTOMER_PAYMENT_ID,
     ['type' => 'card']
 );
+
+
 $card_list = '';
 foreach ($all_payment_methods as $all_payment_methods_data) {
-     $card_list .= '<a href="javascript:;">'.$all_payment_methods_data->card->last4.'</a><br>';
+     $card_list .= '
+<div class="col-4" > 
+
+    <!--
+INFO: The selectable class adds a pointer and shadow animations on hover.
+-->
+    <!-- Cards -->  
+
+    <!-- Visa - selectable -->
+    <div class="credit-card  selectable" id="plate" onclick="myFunction()">
+        <div class="credit-card-last4" style="font-size: 20px;">
+           '.$all_payment_methods_data->card->last4.'
+        </div>
+        <div class="credit-card-expiry" style="font-size: 11px; font-weight: bold;">
+            '.$all_payment_methods_data->card->exp_month.'/'.$all_payment_methods_data->card->exp_year.'
+        </div>
+    </div>
+
+
+
+</div>';
 }
 
 echo $card_list;
