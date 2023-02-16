@@ -4,6 +4,10 @@ require_once('../global/config.php');
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 
+use Square\Models\Address;
+use Square\SquareClient;
+use Square\Environment;
+
 $SQUARE_APP_ID 			= "sandbox-sq0idb-co7WstGtX_jQETuk18coQw";
 $SQUARE_LOCATION_ID 	= "C0K6B0E6FNJRY";
 $ACCESS_TOKEN 			= "EAAAEIhnXoKUu_9UUKem1yEohi8v3Q2Kg0eIR2SErebQA5gabFWENN_44xpjbRQ9";
@@ -60,7 +64,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $stripe = new \Stripe\StripeClient($SECRET_KEY);
                 $STRIPE_TOKEN = $_POST['token'];
 
-                $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+                $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
                 if ($user_payment_info_data->RecordCount() > 0) {
                     $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
                 } else {
@@ -132,18 +136,57 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
 
-                require_once("../global/square/autoload.php");
+                require_once("../global/vendor/autoload.php");
 
                 $AMOUNT = $_POST['AMOUNT'];
 
-                $api_config = new \SquareConnect\Configuration();
+                $client = new SquareClient([
+                    'accessToken' => $ACCESS_TOKEN,
+                    'environment' => Environment::SANDBOX,
+                ]);
+
+                /*$api_config = new \SquareConnect\Configuration();
                 $api_config->setHost($SQ_URL);
 
                 $api_config->setAccessToken($ACCESS_TOKEN);
                 $api_client = new \SquareConnect\ApiClient($api_config);
+<<<<<<< HEAD
                 $payments_api = new \SquareConnect\Api\PaymentsApi($api_client);
                 $customers_api = new SquareConnect\Api\CustomersApi();
                 $customer = new \SquareConnect\Model\CreateCustomerRequest();
+=======
+                $payments_api = new \SquareConnect\Api\PaymentsApi($api_client);*/
+
+                $address = new \Square\Models\Address();
+                $address->setAddressLine1('500 Electric Ave');
+                $address->setAddressLine2('Suite 600');
+                $address->setLocality('New York');
+                $address->setAdministrativeDistrictLevel1('NY');
+                $address->setPostalCode('10003');
+                $address->setCountry('US');
+
+                $body = new \Square\Models\CreateCustomerRequest();
+                $body->setGivenName('Amelia');
+                $body->setFamilyName('Earhart');
+                $body->setEmailAddress('Amelia.Earhart@example.com');
+                $body->setAddress($address);
+                $body->setPhoneNumber('+1-212-555-4240');
+                $body->setReferenceId('YOUR_REFERENCE_ID');
+                $body->setNote('a customer');
+
+                try {
+                    $api_response = $client->getCustomersApi()->createCustomer($body);
+                } catch (\Square\Exceptions\ApiException $e) {
+                    pre_r($e->getMessage());
+                }
+
+                pre_r(json_decode($api_response->getBody())->customer->id);
+
+                if ($api_response->isSuccess()) {
+                    $result = $api_response->getResult();
+                } else {
+                    $errors = $api_response->getErrors();
+                }
 
                 $request_body = array(
                     "source_id" => $_POST['sourceId'],
