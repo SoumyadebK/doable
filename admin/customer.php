@@ -515,7 +515,7 @@ if(!empty($_GET['id'])) {
                                                     <?php if(!empty($_GET['id'])) { ?>
                                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
                                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
-                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Accounts</span></a> </li>
+                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Ledger</span></a> </li>
                                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                                                     <?php } ?>
                                                 </ul>
@@ -972,13 +972,13 @@ if(!empty($_GET['id'])) {
                                                             <?php } else { ?>
                                                                 <div class="row">
                                                                     <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: none;">
-                                                                        <div class="col-3">
+                                                                        <!--<div class="col-3">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Old Password</label>
-                                                                                <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?=$PASSWORD?>">
+                                                                                <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?/*=$PASSWORD*/?>">
                                                                                 <input type="password" required name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
                                                                             </div>
-                                                                        </div>
+                                                                        </div>-->
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">New Password</label>

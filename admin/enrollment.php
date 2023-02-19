@@ -7,10 +7,11 @@ use net\authorize\api\controller as AnetController;
 use Square\Models\Address;
 use Square\SquareClient;
 use Square\Environment;
+$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
 
-$SQUARE_APP_ID 			= "sandbox-sq0idb-co7WstGtX_jQETuk18coQw";
-$SQUARE_LOCATION_ID 	= "C0K6B0E6FNJRY";
-$ACCESS_TOKEN 			= "EAAAEIhnXoKUu_9UUKem1yEohi8v3Q2Kg0eIR2SErebQA5gabFWENN_44xpjbRQ9";
+$SQUARE_APP_ID 			= $account_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID 	= $account_data->fields['LOCATION_ID'];
+$ACCESS_TOKEN 			= $account_data->fields['ACCESS_TOKEN'];
 
 if (empty($_GET['id']))
     $title = "Add Enrollment";
@@ -106,8 +107,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     pre_r($e->getMessage());
                 }
 
-
-
                 $AMOUNT = $_POST['AMOUNT']*100;
                 try {
                     /*$allpaymentmethods = $stripe->customers->allPaymentMethods(
@@ -145,118 +144,130 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     'environment' => Environment::SANDBOX,
                 ]);
 
-                /*$api_config = new \SquareConnect\Configuration();
-                $api_config->setHost($SQ_URL);
-
-                $api_config->setAccessToken($ACCESS_TOKEN);
-                $api_client = new \SquareConnect\ApiClient($api_config);
-<<<<<<< HEAD
-                $payments_api = new \SquareConnect\Api\PaymentsApi($api_client);
-                $customers_api = new SquareConnect\Api\CustomersApi();
-                $customer = new \SquareConnect\Model\CreateCustomerRequest();
-=======
-                $payments_api = new \SquareConnect\Api\PaymentsApi($api_client);*/
-
-                $address = new \Square\Models\Address();
-                $address->setAddressLine1('500 Electric Ave');
-                $address->setAddressLine2('Suite 600');
-                $address->setLocality('New York');
-                $address->setAdministrativeDistrictLevel1('NY');
-                $address->setPostalCode('10003');
-                $address->setCountry('US');
-
-                $body = new \Square\Models\CreateCustomerRequest();
-                $body->setGivenName('Amelia');
-                $body->setFamilyName('Earhart');
-                $body->setEmailAddress('Amelia.Earhart@example.com');
-                $body->setAddress($address);
-                $body->setPhoneNumber('+1-212-555-4240');
-                $body->setReferenceId('YOUR_REFERENCE_ID');
-                $body->setNote('a customer');
-
-                try {
-                    $api_response = $client->getCustomersApi()->createCustomer($body);
-                } catch (\Square\Exceptions\ApiException $e) {
-                    pre_r($e->getMessage());
-                }
-
-                pre_r(json_decode($api_response->getBody())->customer->id);
-
-                if ($api_response->isSuccess()) {
-                    $result = $api_response->getResult();
+                $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Square' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+                if ($user_payment_info_data->RecordCount() > 0) {
+                    $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
                 } else {
-                    $errors = $api_response->getErrors();
+                    $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+
+
+                    /*$api_config = new \SquareConnect\Configuration();
+                    $api_config->setHost($SQ_URL);
+
+                    $api_config->setAccessToken($ACCESS_TOKEN);
+                    $api_client = new \SquareConnect\ApiClient($api_config);
+
+                    $payments_api = new \SquareConnect\Api\PaymentsApi($api_client);
+                    $customers_api = new SquareConnect\Api\CustomersApi();
+                    $customer = new \SquareConnect\Model\CreateCustomerRequest();
+
+                    $payments_api = new \SquareConnect\Api\PaymentsApi($api_client);*/
+
+                    $address = new \Square\Models\Address();
+                    $address->setAddressLine1('500 Electric Ave');
+                    $address->setAddressLine2('Suite 600');
+                    $address->setLocality('New York');
+                    $address->setAdministrativeDistrictLevel1('NY');
+                    $address->setPostalCode('10003');
+                    $address->setCountry('US');
+
+                    $body = new \Square\Models\CreateCustomerRequest();
+                    $body->setGivenName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
+                    $body->setFamilyName('Earhart');
+                    $body->setEmailAddress($user_master->fields['EMAIL_ID']);
+                    $body->setAddress($address);
+                    $body->setPhoneNumber($user_master->fields['PHONE']);
+                    $body->setReferenceId('YOUR_REFERENCE_ID');
+                    $body->setNote('a customer');
+
+                    try {
+                        $api_response = $client->getCustomersApi()->createCustomer($body);
+                    } catch (\Square\Exceptions\ApiException $e) {
+                        pre_r($e->getMessage());
+                    }
+
+                    //pre_r(json_decode($api_response->getBody())->customer->id);
+
+                    /* if ($api_response->isSuccess()) {
+                         $result = $api_response->getResult();
+                     } else {
+                         $errors = $api_response->getErrors();
+                     }*/
+
+
+                    $CUSTOMER_PAYMENT_ID = json_decode($api_response->getBody())->customer->id;
+                    $SQUARE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+                    $SQUARE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                    $SQUARE_DETAILS['PAYMENT_TYPE'] = 'Square';
+                    $SQUARE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
+
                 }
 
-                $request_body = array(
-                    "source_id" => $_POST['sourceId'],
-                    "amount_money" => array(
-                        "amount" => ($AMOUNT * 100),
-                        "currency" => "USD"
-                    ),
-                    "idempotency_key" => uniqid(),
-                    "statement_description_identifier" => "Doable"
-                );
 
-                try {
-                    $result = $payments_api->createPayment($request_body);
-                    //echo "<pre>";print_r($result); die;
+                    $card = new \Square\Models\Card();
+                    $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
+                    //$card->setBillingAddress($billing_address);
+                    $card->setCustomerId($CUSTOMER_PAYMENT_ID);
+                    //$card->setReferenceId('user-id-1');
 
-                    if (strtoupper($result['payment']['status']) == 'COMPLETED') {
+                    $body = new \Square\Models\CreateCardRequest(
+                        uniqid(),
+                        $_POST['sourceId'],
+                        $card
+                    );
 
-                        $PAYMENT_INFO = $result['payment']['id'] ;
-                        $PAYMENT_INFO_LAST = $result['payment']['card_details']['card']['last_4'];
-                        $PAYMENT_INFO_EXP_MONTH = $result['payment']['card_details']['card']['exp_month'];
-                        $PAYMENT_INFO_EXP_YEAR = $result['payment']['card_details']['card']['exp_year'];
-                        //$PAYMENT_INFO_CUSTOMER_ID = $result['payment']['card_details']['customer_id'];
+                    $api_response = $client->getCardsApi()->createCard($body);
 
+                    if ($api_response->isSuccess()) {
+                        $result = $api_response->getResult();
                     } else {
-                        $PAYMENT_INFO = "Payment Unsuccessful.";
+                        $errors = $api_response->getErrors();
                     }
 
-                } catch (\SquareConnect\ApiException $e) {
-                    $errors = $e->getResponseBody()->errors;
-                        echo "<pre>";print_r($errors);
 
-                    $PAYMENT_INFO = "";
-                    foreach ($errors as $error) {
-                        if ($PAYMENT_INFO != '')
-                            $PAYMENT_INFO .= ', ';
 
-                        $PAYMENT_INFO .= $error->detail;
+
+                    /* $request_body = array(
+                         "source_id" => $_POST['sourceId'],
+                         "amount_money" => array(
+                             "amount" => ($AMOUNT * 100),
+                             "currency" => "USD"
+                         ),
+                         "idempotency_key" => uniqid(),
+                         "statement_description_identifier" => "Doable"
+                     );
+
+                     try {
+                         $result = $payments_api->createPayment($request_body);
+                         //echo "<pre>";print_r($result); die;
+
+                         if (strtoupper($result['payment']['status']) == 'COMPLETED') {
+
+                             $PAYMENT_INFO = $result['payment']['id'] ;
+                             $PAYMENT_INFO_LAST = $result['payment']['card_details']['card']['last_4'];
+                             $PAYMENT_INFO_EXP_MONTH = $result['payment']['card_details']['card']['exp_month'];
+                             $PAYMENT_INFO_EXP_YEAR = $result['payment']['card_details']['card']['exp_year'];
+                             //$PAYMENT_INFO_CUSTOMER_ID = $result['payment']['card_details']['customer_id'];
+
+                         } else {
+                             $PAYMENT_INFO = "Payment Unsuccessful.";
+                         }*/
+
+                    /*} catch (\SquareConnect\ApiException $e) {
+                        $errors = $e->getResponseBody()->errors;
+                            echo "<pre>";print_r($errors);
+
+                        $PAYMENT_INFO = "";
+                        foreach ($errors as $error) {
+                            if ($PAYMENT_INFO != '')
+                                $PAYMENT_INFO .= ', ';
+
+                            $PAYMENT_INFO .= $error->detail;
+                        }
+                        echo $PAYMENT_INFO;
                     }
-                    echo $PAYMENT_INFO;
-                }
-
-
-                /*SQUARE*/
-
-              $address = new \Square\Models\Address();
-            $address->setAddressLine1('500 Electric Ave');
-            $address->setAddressLine2('Suite 600');
-            $address->setLocality('New York');
-            $address->setAdministrativeDistrictLevel1('NY');
-            $address->setPostalCode('10003');
-            $address->setCountry('US');
-
-            $body = new \Square\Models\CreateCustomerRequest();
-            $body->setGivenName('Amelia');
-            $body->setFamilyName('Earhart');
-            $body->setemailaddress('amelia.earhart@example.com');
-            $body->setAddress($address);
-            $body->setPhoneNumber('+1-212-555-4240');
-            $body->setReferenceId('YOUR_REFERENCE_ID');
-            $body->setNote('a customer');
-
-            $api_response = $client->getCustomersApi()->createCustomer($body);
-
-            if ($api_response->isSuccess()) {
-                $result = $api_response->getResult();
-            } else {
-                $errors = $api_response->getErrors();
-            }
-
-            pre_r($api_response);
+                    }*/
 
 
 
@@ -307,7 +318,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $customerData->setType("individual");
                 $customerData->setEmail($email);
 
-                $ANET_ENV = 'PRODUCTION';
+                $ANET_ENV = 'SANDBOX';
 
                 // Create a transaction
                 $transactionRequestType = new AnetAPI\TransactionRequestType();
@@ -329,6 +340,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 } else {
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
+                pre_r($response);
             }
         } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
             $AMOUNT = $_POST['AMOUNT'];
@@ -1473,6 +1485,9 @@ if(!empty($_GET['id'])) {
                                                         </div>
                                                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
                                                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                                                                <div class="row" style="margin: auto;" id="card_list">
+                                                                    <a href="javascript:;">Card Number</a>
+                                                                </div>
                                                                 <div class="col-12">
                                                                     <div class="form-group" id="card-container">
 
@@ -1482,6 +1497,9 @@ if(!empty($_GET['id'])) {
                                                             </div>
                                                         <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net'){?>
                                                         <div class="payment_type_div" id="credit_card_payment" style="display: none;">
+                                                            <div class="row" style="margin: auto;" id="card_list">
+                                                                <a href="javascript:;">Card Number</a>
+                                                            </div>
                                                             <div class="row">
                                                                 <div class="col-12">
                                                                     <div class="form-group">
@@ -2224,8 +2242,9 @@ if(!empty($_GET['id'])) {
                 if (PAYMENT_GATEWAY == 'Stripe') {
                     $('#card_div').html(`<div id="card-element"></div>`);
                     stripePaymentFunction();
-                    getCreditCardList();
                 }
+
+                getCreditCardList();
                 $('#credit_card_payment').slideDown();
                 break;
 
@@ -2270,10 +2289,11 @@ if(!empty($_GET['id'])) {
 
     function getCreditCardList() {
         let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         $.ajax({
             url: "ajax/get_credit_card_list.php",
             type: 'POST',
-            data: {PK_USER_MASTER: PK_USER_MASTER},
+            data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
             success: function (data) {
                 $('#card_list').html(data);
             }
