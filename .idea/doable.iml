@@ -1,19 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="WEB_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$">
-<<<<<<< HEAD
-      <sourceFolder url="file://$MODULE_DIR$/spec" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
-=======
->>>>>>> d14dd6179ceb6720fb5fcb904cae654f32f888ce
-      <excludeFolder url="file://$MODULE_DIR$/global/vendor/apimatic/core" />
-      <excludeFolder url="file://$MODULE_DIR$/global/vendor/apimatic/core-interfaces" />
-      <excludeFolder url="file://$MODULE_DIR$/global/vendor/apimatic/jsonmapper" />
-      <excludeFolder url="file://$MODULE_DIR$/global/vendor/apimatic/unirest-php" />
-      <excludeFolder url="file://$MODULE_DIR$/global/vendor/composer" />
-      <excludeFolder url="file://$MODULE_DIR$/global/vendor/square/square" />
-    </content>
+    <content url="file://$MODULE_DIR$" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
