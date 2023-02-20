@@ -462,7 +462,9 @@ function saveProfileData($RESPONSE_DATA){
         db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");
         $PK_USER = $RESPONSE_DATA['PK_USER'];
         if ($RESPONSE_DATA['PK_ROLES'] == 4) {
-            $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
+            $USER_MASTER_DATE['PRIMARY_LOCATION_ID'] = $RESPONSE_DATA['PRIMARY_LOCATION_ID'];
+            db_perform('DOA_USER_MASTER', $USER_MASTER_DATE, 'update', " PK_USER_MASTER = '$RESPONSE_DATA[PK_USER_MASTER]'");
+
         }
     }
 

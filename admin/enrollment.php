@@ -1,17 +1,112 @@
 <?php
 require_once('../global/config.php');
 
+$PK_LOCATION = '';
+$PK_AGREEMENT_TYPE = '';
+$PK_DOCUMENT_LIBRARY = '';
+$AGREEMENT_PDF_LINK = '';
+$ENROLLMENT_BY_ID = $_SESSION['PK_USER'];
+$ACTIVE = '';
+
+$PK_ENROLLMENT_BILLING = '';
+$BILLING_REF = '';
+$BILLING_DATE = '';
+$DOWN_PAYMENT = 0;
+$BALANCE_PAYABLE = '';
+$PAYMENT_METHOD = '';
+$PAYMENT_TERM = '';
+$NUMBER_OF_PAYMENT = '';
+$FIRST_DUE_DATE = '';
+$INSTALLMENT_AMOUNT = '';
+
+$PK_ENROLLMENT_PAYMENT = '';
+$PK_PAYMENT_TYPE = '';
+$AMOUNT = '';
+$NAME = '';
+$CARD_NUMBER = '';
+$SECURITY_CODE = '';
+$EXPIRATION_DATE = '';
+$CHECK_NUMBER = '';
+$CHECK_DATE = '';
+$NOTE = '';
+
+if(!empty($_GET['id'])) {
+    $res = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
+
+    if($res->RecordCount() == 0){
+        header("location:all_enrollments.php");
+        exit;
+    }
+
+    $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
+    $PK_LOCATION = $res->fields['PK_LOCATION'];
+    $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
+    $PK_DOCUMENT_LIBRARY = $res->fields['PK_DOCUMENT_LIBRARY'];
+    $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
+    $ENROLLMENT_BY_ID = $res->fields['ENROLLMENT_BY_ID'];
+    $ACTIVE = $res->fields['ACTIVE'];
+
+    $billing_data = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
+
+    if($billing_data->RecordCount() > 0){
+        $PK_ENROLLMENT_BILLING = $billing_data->fields['PK_ENROLLMENT_BILLING'];
+        $BILLING_REF = $billing_data->fields['BILLING_REF'];
+        $BILLING_DATE = $billing_data->fields['BILLING_DATE'];
+        $DOWN_PAYMENT = $billing_data->fields['DOWN_PAYMENT'];
+        $BALANCE_PAYABLE = $billing_data->fields['BALANCE_PAYABLE'];
+        $PAYMENT_METHOD = $billing_data->fields['PAYMENT_METHOD'];
+        $PAYMENT_TERM = $billing_data->fields['PAYMENT_TERM'];
+        $NUMBER_OF_PAYMENT = $billing_data->fields['NUMBER_OF_PAYMENT'];
+        $FIRST_DUE_DATE = $billing_data->fields['FIRST_DUE_DATE'];
+        $INSTALLMENT_AMOUNT = $billing_data->fields['INSTALLMENT_AMOUNT'];
+    }
+
+    $payment_data = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_PAYMENT` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
+
+    if($payment_data->RecordCount() > 0){
+        $PK_ENROLLMENT_PAYMENT = $payment_data->fields['PK_ENROLLMENT_PAYMENT'];
+        $PK_PAYMENT_TYPE = $payment_data->fields['PK_PAYMENT_TYPE'];
+        $AMOUNT = $payment_data->fields['AMOUNT'];
+        $NAME = $payment_data->fields['NAME'];
+        $CARD_NUMBER = $payment_data->fields['CARD_NUMBER'];
+        $SECURITY_CODE = $payment_data->fields['SECURITY_CODE'];
+        $EXPIRATION_DATE = $payment_data->fields['EXPIRATION_DATE'];
+        $CHECK_NUMBER = $payment_data->fields['CHECK_NUMBER'];
+        $CHECK_DATE = $payment_data->fields['CHECK_DATE'];
+        $NOTE = $payment_data->fields['NOTE'];
+    }
+}
+
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 
 use Square\Models\Address;
 use Square\SquareClient;
 use Square\Environment;
-$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
 
-$SQUARE_APP_ID 			= $account_data->fields['APP_ID'];
-$SQUARE_LOCATION_ID 	= $account_data->fields['LOCATION_ID'];
-$ACCESS_TOKEN 			= $account_data->fields['ACCESS_TOKEN'];
+$user_payment_gateway = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER, DOA_LOCATION.PAYMENT_GATEWAY_TYPE, DOA_LOCATION.SECRET_KEY, DOA_LOCATION.PUBLISHABLE_KEY, DOA_LOCATION.ACCESS_TOKEN, DOA_LOCATION.APP_ID, DOA_LOCATION.LOCATION_ID, DOA_LOCATION.LOGIN_ID, DOA_LOCATION.TRANSACTION_KEY, DOA_LOCATION.AUTHORIZE_CLIENT_KEY FROM DOA_LOCATION INNER JOIN DOA_USER_MASTER ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
+if($user_payment_gateway->RecordCount() > 0){
+    $PAYMENT_GATEWAY = $user_payment_gateway->fields['PAYMENT_GATEWAY_TYPE'];
+    $SQUARE_APP_ID = $user_payment_gateway->fields['APP_ID'];
+    $SQUARE_LOCATION_ID = $user_payment_gateway->fields['LOCATION_ID'];
+    $ACCESS_TOKEN = $user_payment_gateway->fields['ACCESS_TOKEN'];
+    $PUBLISHABLE_KEY = $user_payment_gateway->fields['PUBLISHABLE_KEY'];
+    $SECRET_KEY = $user_payment_gateway->fields['SECRET_KEY'];
+    $LOGIN_ID = $user_payment_gateway->fields['LOGIN_ID'];
+    $TRANSACTION_KEY = $user_payment_gateway->fields['TRANSACTION_KEY'];
+    $AUTHORIZE_CLIENT_KEY = $user_payment_gateway->fields['AUTHORIZE_CLIENT_KEY'];
+} else {
+    $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+    $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
+    $SQUARE_APP_ID 			= $account_data->fields['APP_ID'];
+    $SQUARE_LOCATION_ID 	= $account_data->fields['LOCATION_ID'];
+    $ACCESS_TOKEN 			= $account_data->fields['ACCESS_TOKEN'];
+    $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
+    $SECRET_KEY = $account_data->fields['SECRET_KEY'];
+    $LOGIN_ID = $account_data->fields['LOGIN_ID'];
+    $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
+    $AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
+}
 
 if (empty($_GET['id']))
     $title = "Add Enrollment";
@@ -29,11 +124,6 @@ if(!empty($_GET['customer_id'])) {
     $PK_USER_MASTER = '';
 }
 
-$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-
-$PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
-$PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
-
 $SQUARE_MODE 			= 2;
 if ($SQUARE_MODE == 1)
     $SQ_URL = "https://connect.squareup.com";
@@ -48,14 +138,6 @@ else if ($SQUARE_MODE == 2)
 if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
     $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
-
-    $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-
-    $SECRET_KEY = $account_data->fields['SECRET_KEY'];
-
-    $LOGIN_ID = $account_data->fields['LOGIN_ID'];
-    $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
-    $AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
 
     unset($_POST['PK_ENROLLMENT_LEDGER']);
     if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
@@ -108,12 +190,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 }
 
                 $AMOUNT = $_POST['AMOUNT']*100;
-                try {
-                    /*$allpaymentmethods = $stripe->customers->allPaymentMethods(
-                        $CUSTOMER_PAYMENT_ID,
-                        ['type' => 'card']
-                    );*/
-                    \Stripe\Stripe::setApiKey($SECRET_KEY);
+                try {\Stripe\Stripe::setApiKey($SECRET_KEY);
                     $payment_intent = \Stripe\PaymentIntent::create([
                         'amount' => $AMOUNT,
                         'currency' => 'USD',
@@ -124,14 +201,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     pre_r($e->getMessage());
                 }
 
-                pre_r($payment_intent);
-
-
-                /*if ($charge->paid == 1) {
-                    $PAYMENT_INFO = $charge->id;
-                } else {
-                    $PAYMENT_INFO = 'Payment Unsuccessful.';
-                }*/
+                //pre_r($payment_intent);
 
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
 
@@ -149,19 +219,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
                 } else {
                     $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-
-
-                    /*$api_config = new \SquareConnect\Configuration();
-                    $api_config->setHost($SQ_URL);
-
-                    $api_config->setAccessToken($ACCESS_TOKEN);
-                    $api_client = new \SquareConnect\ApiClient($api_config);
-
-                    $payments_api = new \SquareConnect\Api\PaymentsApi($api_client);
-                    $customers_api = new SquareConnect\Api\CustomersApi();
-                    $customer = new \SquareConnect\Model\CreateCustomerRequest();
-
-                    $payments_api = new \SquareConnect\Api\PaymentsApi($api_client);*/
 
                     $address = new \Square\Models\Address();
                     $address->setAddressLine1('500 Electric Ave');
@@ -186,15 +243,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                         pre_r($e->getMessage());
                     }
 
-                    //pre_r(json_decode($api_response->getBody())->customer->id);
-
-                    /* if ($api_response->isSuccess()) {
-                         $result = $api_response->getResult();
-                     } else {
-                         $errors = $api_response->getErrors();
-                     }*/
-
-
                     $CUSTOMER_PAYMENT_ID = json_decode($api_response->getBody())->customer->id;
                     $SQUARE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
                     $SQUARE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
@@ -203,7 +251,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     db_perform('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
 
                 }
-
 
                     $card = new \Square\Models\Card();
                     $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
@@ -224,52 +271,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     } else {
                         $errors = $api_response->getErrors();
                     }
-
-
-
-
-                    /* $request_body = array(
-                         "source_id" => $_POST['sourceId'],
-                         "amount_money" => array(
-                             "amount" => ($AMOUNT * 100),
-                             "currency" => "USD"
-                         ),
-                         "idempotency_key" => uniqid(),
-                         "statement_description_identifier" => "Doable"
-                     );
-
-                     try {
-                         $result = $payments_api->createPayment($request_body);
-                         //echo "<pre>";print_r($result); die;
-
-                         if (strtoupper($result['payment']['status']) == 'COMPLETED') {
-
-                             $PAYMENT_INFO = $result['payment']['id'] ;
-                             $PAYMENT_INFO_LAST = $result['payment']['card_details']['card']['last_4'];
-                             $PAYMENT_INFO_EXP_MONTH = $result['payment']['card_details']['card']['exp_month'];
-                             $PAYMENT_INFO_EXP_YEAR = $result['payment']['card_details']['card']['exp_year'];
-                             //$PAYMENT_INFO_CUSTOMER_ID = $result['payment']['card_details']['customer_id'];
-
-                         } else {
-                             $PAYMENT_INFO = "Payment Unsuccessful.";
-                         }*/
-
-                    /*} catch (\SquareConnect\ApiException $e) {
-                        $errors = $e->getResponseBody()->errors;
-                            echo "<pre>";print_r($errors);
-
-                        $PAYMENT_INFO = "";
-                        foreach ($errors as $error) {
-                            if ($PAYMENT_INFO != '')
-                                $PAYMENT_INFO .= ', ';
-
-                            $PAYMENT_INFO .= $error->detail;
-                        }
-                        echo $PAYMENT_INFO;
-                    }
-                    }*/
-
-
 
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
 
@@ -413,7 +414,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $PAYMENT_DATA['CARD_NUMBER'] = $PAYMENT_INFO_LAST;
             $PAYMENT_DATA['EXPIRATION_DATE'] = $PAYMENT_INFO_EXP_MONTH . "/" . $PAYMENT_INFO_EXP_YEAR;
             $PAYMENT_DATA['CUSTOMER_ID'] = $PAYMENT_INFO_CUSTOMER_ID;
-
         }
 
         db_perform('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
@@ -431,8 +431,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $ENROLLMENT_BALANCE_DATA['CREATED_ON']  = date("Y-m-d H:i");
             db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
         }
-
-
 
         $PK_ENROLLMENT_PAYMENT = $db->insert_ID();
         $ledger_record = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
@@ -456,82 +454,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     }
 
     header('location:all_enrollments.php');
-}
-
-$PK_LOCATION = '';
-$PK_AGREEMENT_TYPE = '';
-$PK_DOCUMENT_LIBRARY = '';
-$AGREEMENT_PDF_LINK = '';
-$ENROLLMENT_BY_ID = $_SESSION['PK_USER'];
-$ACTIVE = '';
-
-$PK_ENROLLMENT_BILLING = '';
-$BILLING_REF = '';
-$BILLING_DATE = '';
-$DOWN_PAYMENT = 0;
-$BALANCE_PAYABLE = '';
-$PAYMENT_METHOD = '';
-$PAYMENT_TERM = '';
-$NUMBER_OF_PAYMENT = '';
-$FIRST_DUE_DATE = '';
-$INSTALLMENT_AMOUNT = '';
-
-$PK_ENROLLMENT_PAYMENT = '';
-$PK_PAYMENT_TYPE = '';
-$AMOUNT = '';
-$NAME = '';
-$CARD_NUMBER = '';
-$SECURITY_CODE = '';
-$EXPIRATION_DATE = '';
-$CHECK_NUMBER = '';
-$CHECK_DATE = '';
-$NOTE = '';
-
-if(!empty($_GET['id'])) {
-    $res = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
-
-    if($res->RecordCount() == 0){
-        header("location:all_enrollments.php");
-        exit;
-    }
-
-    $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
-    $PK_LOCATION = $res->fields['PK_LOCATION'];
-    $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
-    $PK_DOCUMENT_LIBRARY = $res->fields['PK_DOCUMENT_LIBRARY'];
-    $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
-    $ENROLLMENT_BY_ID = $res->fields['ENROLLMENT_BY_ID'];
-    $ACTIVE = $res->fields['ACTIVE'];
-
-    $billing_data = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
-
-    if($billing_data->RecordCount() > 0){
-        $PK_ENROLLMENT_BILLING = $billing_data->fields['PK_ENROLLMENT_BILLING'];
-        $BILLING_REF = $billing_data->fields['BILLING_REF'];
-        $BILLING_DATE = $billing_data->fields['BILLING_DATE'];
-        $DOWN_PAYMENT = $billing_data->fields['DOWN_PAYMENT'];
-        $BALANCE_PAYABLE = $billing_data->fields['BALANCE_PAYABLE'];
-        $PAYMENT_METHOD = $billing_data->fields['PAYMENT_METHOD'];
-        $PAYMENT_TERM = $billing_data->fields['PAYMENT_TERM'];
-        $NUMBER_OF_PAYMENT = $billing_data->fields['NUMBER_OF_PAYMENT'];
-        $FIRST_DUE_DATE = $billing_data->fields['FIRST_DUE_DATE'];
-        $INSTALLMENT_AMOUNT = $billing_data->fields['INSTALLMENT_AMOUNT'];
-    }
-
-    $payment_data = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_PAYMENT` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
-
-    if($payment_data->RecordCount() > 0){
-        $PK_ENROLLMENT_PAYMENT = $payment_data->fields['PK_ENROLLMENT_PAYMENT'];
-        $PK_PAYMENT_TYPE = $payment_data->fields['PK_PAYMENT_TYPE'];
-        $AMOUNT = $payment_data->fields['AMOUNT'];
-        $NAME = $payment_data->fields['NAME'];
-        $CARD_NUMBER = $payment_data->fields['CARD_NUMBER'];
-        $SECURITY_CODE = $payment_data->fields['SECURITY_CODE'];
-        $EXPIRATION_DATE = $payment_data->fields['EXPIRATION_DATE'];
-        $CHECK_NUMBER = $payment_data->fields['CHECK_NUMBER'];
-        $CHECK_DATE = $payment_data->fields['CHECK_DATE'];
-        $NOTE = $payment_data->fields['NOTE'];
-    }
 }
 
 ?>
