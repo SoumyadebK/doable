@@ -1,5 +1,6 @@
 <?php
 require_once('../global/config.php');
+$service_provider_title ='';
 $userType = $service_provider_title;
 $user_role_condition = " AND PK_ROLES = 5";
 

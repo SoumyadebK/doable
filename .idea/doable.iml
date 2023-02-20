@@ -2,8 +2,11 @@
 <module type="WEB_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+<<<<<<< HEAD
       <sourceFolder url="file://$MODULE_DIR$/spec" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
+=======
+>>>>>>> d14dd6179ceb6720fb5fcb904cae654f32f888ce
       <excludeFolder url="file://$MODULE_DIR$/global/vendor/apimatic/core" />
       <excludeFolder url="file://$MODULE_DIR$/global/vendor/apimatic/core-interfaces" />
       <excludeFolder url="file://$MODULE_DIR$/global/vendor/apimatic/jsonmapper" />
