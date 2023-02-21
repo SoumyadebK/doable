@@ -1090,3 +1090,10 @@ function getPrimaryKeyData($table_name, $primary_key_name, $primary_key) {
         return 0;
     }
 }
+
+function markAppointmentCompleted($RESPONSE_DATA) {
+    global $db;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $db->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER);
+    echo 1;
+}

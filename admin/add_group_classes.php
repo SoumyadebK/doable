@@ -11,6 +11,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
+$PK_LOCATION = $DEFAULT_LOCATION_ID;
+
 if (isset($_POST['FUNCTION_NAME'])){
     $SERVICE_ID = explode(',', $_POST['SERVICE_ID']);
     $DURATION = $SERVICE_ID[0];
@@ -58,11 +60,12 @@ if (isset($_POST['FUNCTION_NAME'])){
 
     if (count($GROUP_CLASS_DATE_ARRAY) > 0) {
         for ($i = 0; $i < count($GROUP_CLASS_DATE_ARRAY); $i++) {
-             $GROUP_CLASS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+            $GROUP_CLASS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
             $GROUP_CLASS_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
             $GROUP_CLASS_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
             $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_1'] = $_POST['SERVICE_PROVIDER_ID_1'];
             $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_2'] = $_POST['SERVICE_PROVIDER_ID_2'];
+            $GROUP_CLASS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
             $GROUP_CLASS_DATA['DATE'] = $GROUP_CLASS_DATE_ARRAY[$i];
             $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
             $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($END_TIME));
@@ -129,9 +132,9 @@ if (isset($_POST['FUNCTION_NAME'])){
                                 <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                 <div class="p-40" style="padding-top: 10px;">
                                     <div class="row">
-                                        <div class="col-4">
+                                        <div class="col-3">
                                             <div class="form-group">
-                                                <label class="form-label">Service<span class="text-danger">*</span></label><br>
+                                                <label class="form-label">Service <span class="text-danger">*</span></label><br>
                                                 <select required name="SERVICE_ID" id="SERVICE_ID" onchange="selectThisService(this);">
                                                     <option value="">Select Service</option>
                                                     <?php
@@ -142,21 +145,34 @@ if (isset($_POST['FUNCTION_NAME'])){
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-4">
+                                        <div class="col-3">
                                             <div class="form-group">
-                                                <label class="form-label">Primary <?=$service_provider_title?></label>
-                                                <select required name="SERVICE_PROVIDER_ID_1" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_1">
+                                                <label class="form-label">Primary <?=$service_provider_title?> <span class="text-danger">*</span></label>
+                                                <select name="SERVICE_PROVIDER_ID_1" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_1" required>
                                                 <option value="">Select <?=$service_provider_title?></option>
 
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-4">
+                                        <div class="col-3">
                                             <div class="form-group">
                                                 <label class="form-label">Secondary <?=$service_provider_title?></label>
-                                                <select required name="SERVICE_PROVIDER_ID_2" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_2">
+                                                <select name="SERVICE_PROVIDER_ID_2" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_2">
                                                 <option value="">Select <?=$service_provider_title?></option>
 
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="form-group">
+                                                <label class="form-label">Location</label>
+                                                <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
+                                                    <option value="">Select Location</option>
+                                                    <?php
+                                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                    while (!$row->EOF) { ?>
+                                                        <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($row->fields['PK_LOCATION']==$PK_LOCATION)?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                    <?php $row->MoveNext(); } ?>
                                                 </select>
                                             </div>
                                         </div>
@@ -267,7 +283,7 @@ if (isset($_POST['FUNCTION_NAME'])){
                     $('.SERVICE_PROVIDER_ID').append(result);
                     $('#SERVICE_PROVIDER_ID_1')[0].sumo.reload();
                     $('#SERVICE_PROVIDER_ID_2')[0].sumo.reload();
-                    $('.SERVICE_PROVIDER_ID').prop('required', false);
+                    $('#SERVICE_PROVIDER_ID_2').prop('required', false);
                 }
             });
         }
