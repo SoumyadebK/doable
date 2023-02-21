@@ -91,6 +91,15 @@ if(empty($_GET['id'])){
     $IMAGE_PATH = '';
     $PK_TIMEZONE = '';
     $ACTIVE = '';
+    $PAYMENT_GATEWAY_TYPE = '';
+    $SECRET_KEY = '';
+    $PUBLISHABLE_KEY = '';
+    $ACCESS_TOKEN = '';
+    $SQUARE_APP_ID ='';
+    $SQUARE_LOCATION_ID = '';
+    $LOGIN_ID = '';
+    $TRANSACTION_KEY = '';
+    $AUTHORIZE_CLIENT_KEY = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
 
@@ -113,7 +122,19 @@ if(empty($_GET['id'])){
     $IMAGE_PATH = $res->fields['IMAGE_PATH'];
     $PK_TIMEZONE = $res->fields['PK_TIMEZONE'];
     $ACTIVE = $res->fields['ACTIVE'];
+    $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
+    $SECRET_KEY             = $res->fields['SECRET_KEY'];
+    $PUBLISHABLE_KEY        = $res->fields['PUBLISHABLE_KEY'];
+    $ACCESS_TOKEN           = $res->fields['ACCESS_TOKEN'];
+    $SQUARE_APP_ID          = $res->fields['APP_ID'];
+    $SQUARE_LOCATION_ID     = $res->fields['LOCATION_ID'];
+    $LOGIN_ID               = $res->fields['LOGIN_ID'];
+    $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
+    $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
+
 }
+
+
 
 ?>
 
@@ -324,6 +345,64 @@ if(empty($_GET['id'])){
                                                 </div>
                                             <? } ?>
 
+
+                                                <div class="col-6" style="margin-top:50px"><div class="row">
+                                                    <div class="form-group">
+                                                        <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
+                                                        <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
+                                                        <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
+                                                        <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'checked':''?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row payment_gateway" id="stripe" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'':'none'?>;">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Secret Key</label>
+                                                        <input type="text" class="form-control" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Publishable Key</label>
+                                                        <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?=$PUBLISHABLE_KEY?>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row payment_gateway" id="square" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Square')?'':'none'?>">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Application ID</label>
+                                                        <input type="text" class="form-control" name="APP_ID" value="<?=$SQUARE_APP_ID?>">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Location ID</label>
+                                                        <input type="text" class="form-control" name="LOCATION_ID" value="<?=$SQUARE_LOCATION_ID?>">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Access Token</label>
+                                                        <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?=$ACCESS_TOKEN?>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row payment_gateway" id="authorized" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'':'none'?>">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Login ID</label>
+                                                        <input type="text" class="form-control" name="LOGIN_ID" value="<?=$LOGIN_ID?>">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Transaction Key</label>
+                                                        <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?=$TRANSACTION_KEY?>">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Authorize Client Key</label>
+                                                        <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?=$AUTHORIZE_CLIENT_KEY?>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
                                         </div>
@@ -491,6 +570,22 @@ if(empty($_GET['id'])){
                 }
             }).responseText;
         });
+    }
+
+    function showPaymentGateway(param) {
+        $('.payment_gateway').slideUp();
+        if($(param).val() === 'Stripe'){
+            $('#stripe').slideDown();
+        }else {
+            if($(param).val() === 'Square'){
+                $('#square').slideDown();
+            }else {
+                if($(param).val() === 'Authorized.net'){
+                    $('#authorized').slideDown();
+                }
+            }
+
+        }
     }
 </script>
 </body>

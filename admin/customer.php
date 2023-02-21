@@ -21,7 +21,6 @@ if (!empty($_GET['tab']))
 
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
-
 $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
 
 $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
@@ -450,6 +449,8 @@ if(!empty($_GET['id'])) {
     }
 }
 
+$selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER");
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -762,6 +763,20 @@ if(!empty($_GET['id'])) {
                                                                             $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                                             while (!$row->EOF) { ?>
                                                                                 <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                                                <?php $row->MoveNext(); } ?>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="col-6">
+                                                                    <label class="col-md-12">Primary Location</label>
+                                                                    <div class="form-group" style="margin-bottom: 15px;">
+                                                                        <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" >
+                                                                            <option value="">Select Primary Location</option>
+                                                                            <?php
+                                                                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                            while (!$row->EOF) { ?>
+                                                                                <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($selected_primary_location->fields['PRIMARY_LOCATION_ID'] == $row->fields['PK_LOCATION'])?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
                                                                                 <?php $row->MoveNext(); } ?>
                                                                         </select>
                                                                     </div>
