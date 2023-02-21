@@ -97,21 +97,22 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAp
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClassData'){
     $PK_GROUP_CLASS = $_POST['PK_GROUP_CLASS'];
-    $SPECIAL_APPOINTMENT_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
-    $SPECIAL_APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
-    $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
-
-    $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
-    $SPECIAL_APPOINTMENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-    $SPECIAL_APPOINTMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-    db_perform('DOA_GROUP_CLASS', $SPECIAL_APPOINTMENT_DATA, 'update'," PK_GROUP_CLASS =  '$PK_GROUP_CLASS'");
+    $GROUP_CLASS_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
+    $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+    $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
+    $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_1'] = $_POST['SERVICE_PROVIDER_ID_1'];
+    $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_2'] = $_POST['SERVICE_PROVIDER_ID_2'];
+    $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+    $GROUP_CLASS_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+    $GROUP_CLASS_DATA['EDITED_ON'] = date("Y-m-d H:i");
+    db_perform('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update'," PK_GROUP_CLASS =  '$PK_GROUP_CLASS'");
 
     if (isset($_POST['PK_USER_MASTER'])) {
         $db->Execute("DELETE FROM `DOA_GROUP_CLASS_CUSTOMER` WHERE `PK_GROUP_CLASS` = '$PK_GROUP_CLASS'");
         for ($i = 0; $i < count($_POST['PK_USER_MASTER']); $i++) {
-            $GROUP_CLASS_DATA['PK_GROUP_CLASS'] = $PK_GROUP_CLASS;
-            $GROUP_CLASS_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$i];
-            db_perform('DOA_GROUP_CLASS_CUSTOMER', $GROUP_CLASS_DATA, 'insert');
+            $GROUP_CLASS_USER_DATA['PK_GROUP_CLASS'] = $PK_GROUP_CLASS;
+            $GROUP_CLASS_USER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$i];
+            db_perform('DOA_GROUP_CLASS_CUSTOMER', $GROUP_CLASS_USER_DATA, 'insert');
         }
     }
     header("location:all_schedules.php");
@@ -472,14 +473,14 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
     let groupClassArray = [
         <?php
         if ($DEFAULT_LOCATION_ID > 0){
-            $group_class_data = $db->Execute("SELECT DOA_GROUP_CLASS.PK_GROUP_CLASS, DOA_GROUP_CLASS.SERVICE_PROVIDER_ID, DOA_GROUP_CLASS.DATE, DOA_GROUP_CLASS.START_TIME, DOA_GROUP_CLASS.END_TIME, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_GROUP_CLASS.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_GROUP_CLASS LEFT JOIN DOA_SERVICE_MASTER ON DOA_GROUP_CLASS.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_GROUP_CLASS.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_GROUP_CLASS.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER INNER JOIN DOA_USER_LOCATION ON SERVICE_PROVIDER.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_GROUP_CLASS.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_USER_LOCATION.PK_LOCATION = '$DEFAULT_LOCATION_ID' AND DOA_GROUP_CLASS.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+            $group_class_data = $db->Execute("SELECT DOA_GROUP_CLASS.PK_GROUP_CLASS, DOA_GROUP_CLASS.SERVICE_PROVIDER_ID_1, DOA_GROUP_CLASS.SERVICE_PROVIDER_ID_2, DOA_GROUP_CLASS.DATE, DOA_GROUP_CLASS.START_TIME, DOA_GROUP_CLASS.END_TIME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_GROUP_CLASS.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_GROUP_CLASS LEFT JOIN DOA_SERVICE_MASTER ON DOA_GROUP_CLASS.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_GROUP_CLASS.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS LEFT JOIN DOA_SERVICE_CODE ON DOA_GROUP_CLASS.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_USER_LOCATION.PK_LOCATION = '$DEFAULT_LOCATION_ID' AND DOA_GROUP_CLASS.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
         } else {
-            $group_class_data = $db->Execute("SELECT DOA_GROUP_CLASS.PK_GROUP_CLASS, DOA_GROUP_CLASS.SERVICE_PROVIDER_ID, DOA_GROUP_CLASS.DATE, DOA_GROUP_CLASS.START_TIME, DOA_GROUP_CLASS.END_TIME, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_GROUP_CLASS.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_GROUP_CLASS LEFT JOIN DOA_SERVICE_MASTER ON DOA_GROUP_CLASS.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_GROUP_CLASS.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_GROUP_CLASS.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_GROUP_CLASS.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_GROUP_CLASS.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+            $group_class_data = $db->Execute("SELECT DOA_GROUP_CLASS.PK_GROUP_CLASS, DOA_GROUP_CLASS.SERVICE_PROVIDER_ID_1, DOA_GROUP_CLASS.SERVICE_PROVIDER_ID_2, DOA_GROUP_CLASS.DATE, DOA_GROUP_CLASS.START_TIME, DOA_GROUP_CLASS.END_TIME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_GROUP_CLASS.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_GROUP_CLASS LEFT JOIN DOA_SERVICE_MASTER ON DOA_GROUP_CLASS.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_GROUP_CLASS.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS LEFT JOIN DOA_SERVICE_CODE ON DOA_GROUP_CLASS.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_GROUP_CLASS.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
         }
         while (!$group_class_data->EOF) { ?>
         {
             id: <?=$group_class_data->fields['PK_GROUP_CLASS']?>,
-            resourceId: <?=$group_class_data->fields['SERVICE_PROVIDER_ID']?>,
+            resourceId: <?=$group_class_data->fields['SERVICE_PROVIDER_ID_1']?>,
             title: '<?=$group_class_data->fields['SERVICE_NAME'].' - '.$group_class_data->fields['SERVICE_CODE']?>',
             start: new Date(<?=date("Y",strtotime($group_class_data->fields['DATE']))?>,<?=intval((date("m",strtotime($group_class_data->fields['DATE'])) - 1))?>,<?=intval(date("d",strtotime($group_class_data->fields['DATE'])))?>,<?=date("H",strtotime($group_class_data->fields['START_TIME']))?>,<?=date("i",strtotime($group_class_data->fields['START_TIME']))?>,1,1),
             end: new Date(<?=date("Y",strtotime($group_class_data->fields['DATE']))?>,<?=intval((date("m",strtotime($group_class_data->fields['DATE'])) - 1))?>,<?=intval(date("d",strtotime($group_class_data->fields['DATE'])))?>,<?=date("H",strtotime($group_class_data->fields['END_TIME']))?>,<?=date("i",strtotime($group_class_data->fields['END_TIME']))?>,1,1),
@@ -600,16 +601,16 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
         });
 
 
-        $('.fc-body').css({"overflow-y":"scroll", "height":"400px", "display":"block"});
+        $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
 
         $('.fc-agendaDay-button').click(function () {
-            $('.fc-body').css({"overflow-y":"scroll", "height":"400px", "display":"block"});
+            $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
         });
         $('.fc-agendaTwoDay-button').click(function () {
-            $('.fc-body').css({"overflow-y":"scroll", "height":"400px", "display":"block"});
+            $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
         });
         $('.fc-agendaWeek-button').click(function () {
-            $('.fc-body').css({"overflow-y":"scroll", "height":"400px", "display":"block"});
+            $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
         });
         $('.fc-month-button').click(function () {
             $('.fc-body').css({"overflow-y":"", "height":"", "display":""});

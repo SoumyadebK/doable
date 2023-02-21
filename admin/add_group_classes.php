@@ -58,12 +58,11 @@ if (isset($_POST['FUNCTION_NAME'])){
 
     if (count($GROUP_CLASS_DATE_ARRAY) > 0) {
         for ($i = 0; $i < count($GROUP_CLASS_DATE_ARRAY); $i++) {
-            $GROUP_CLASS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-
+             $GROUP_CLASS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
             $GROUP_CLASS_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
             $GROUP_CLASS_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
-
-            $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID'] = $_POST['SERVICE_PROVIDER_ID'];
+            $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_1'] = $_POST['SERVICE_PROVIDER_ID_1'];
+            $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_2'] = $_POST['SERVICE_PROVIDER_ID_2'];
             $GROUP_CLASS_DATA['DATE'] = $GROUP_CLASS_DATE_ARRAY[$i];
             $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
             $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($END_TIME));
@@ -130,7 +129,7 @@ if (isset($_POST['FUNCTION_NAME'])){
                                 <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                 <div class="p-40" style="padding-top: 10px;">
                                     <div class="row">
-                                        <div class="col-3">
+                                        <div class="col-4">
                                             <div class="form-group">
                                                 <label class="form-label">Service<span class="text-danger">*</span></label><br>
                                                 <select required name="SERVICE_ID" id="SERVICE_ID" onchange="selectThisService(this);">
@@ -143,10 +142,19 @@ if (isset($_POST['FUNCTION_NAME'])){
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-3">
+                                        <div class="col-4">
                                             <div class="form-group">
-                                                <label class="form-label"><?=$service_provider_title?><span class="text-danger">*</span></label>
-                                                <select required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" <!--onchange="getSlots()"-->>
+                                                <label class="form-label">Primary <?=$service_provider_title?></label>
+                                                <select required name="SERVICE_PROVIDER_ID_1" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_1">
+                                                <option value="">Select <?=$service_provider_title?></option>
+
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="form-group">
+                                                <label class="form-label">Secondary <?=$service_provider_title?></label>
+                                                <select required name="SERVICE_PROVIDER_ID_2" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_2">
                                                 <option value="">Select <?=$service_provider_title?></option>
 
                                                 </select>
@@ -229,6 +237,8 @@ if (isset($_POST['FUNCTION_NAME'])){
 
         $('.timepicker-normal').timepicker({
             timeFormat: 'hh:mm p',
+            minTime: '01:00 PM',
+            maxTime: '09:00 PM'
         });
 
         $('.DAYS').on('change', function(){
@@ -242,7 +252,7 @@ if (isset($_POST['FUNCTION_NAME'])){
         });
 
         $('#SERVICE_ID').SumoSelect({placeholder: 'Select Services', search: true, searchText: 'Search...'});
-        $('#SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
+        $('.SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
 
         function selectThisService(param) {
             let SERVICE_ID = $(param).val();
@@ -253,9 +263,11 @@ if (isset($_POST['FUNCTION_NAME'])){
                 async: false,
                 cache: false,
                 success: function (result) {
-                    $('#SERVICE_PROVIDER_ID').empty();
-                    $('#SERVICE_PROVIDER_ID').append(result);
-                    $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
+                    $('.SERVICE_PROVIDER_ID').empty();
+                    $('.SERVICE_PROVIDER_ID').append(result);
+                    $('#SERVICE_PROVIDER_ID_1')[0].sumo.reload();
+                    $('#SERVICE_PROVIDER_ID_2')[0].sumo.reload();
+                    $('.SERVICE_PROVIDER_ID').prop('required', false);
                 }
             });
         }
