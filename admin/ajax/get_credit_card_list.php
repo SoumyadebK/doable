@@ -23,10 +23,14 @@ if($PAYMENT_GATEWAY == "Stripe") {
 
     $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
 
-    $all_payment_methods = $stripe->customers->allPaymentMethods(
-        $CUSTOMER_PAYMENT_ID,
-        ['type' => 'card']
-    );
+    try {
+        $all_payment_methods = $stripe->customers->allPaymentMethods(
+            $CUSTOMER_PAYMENT_ID,
+            ['type' => 'card']
+        );
+    } catch (\Stripe\Exception\ApiErrorException $e) {
+        pre_r($e->getMessage());
+    }
 
     $card_list = '';
     foreach ($all_payment_methods as $all_payment_methods_data) {

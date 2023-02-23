@@ -19,7 +19,10 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d5d1cba2-6524-402d-8637-121083cb70fc" name="Default Changelist" comment="" />
+    <list default="true" id="d5d1cba2-6524-402d-8637-121083cb70fc" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/get_credit_card_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_credit_card_list.php" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -86,6 +89,7 @@
       <workItem from="1676873562877" duration="1658000" />
       <workItem from="1676876549922" duration="5000" />
       <workItem from="1676876623296" duration="144000" />
+      <workItem from="1677041399146" duration="2564000" />
     </task>
     <servers />
   </component>
