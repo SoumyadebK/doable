@@ -1,6 +1,7 @@
 <?php
 require_once('../global/config.php');
 
+$PK_USER_MASTER = '';
 $PK_LOCATION = '';
 $PK_AGREEMENT_TYPE = '';
 $PK_DOCUMENT_LIBRARY = '';
@@ -120,8 +121,6 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if(!empty($_GET['customer_id'])) {
     $PK_USER_MASTER = $_GET['customer_id'];
-}else{
-    $PK_USER_MASTER = '';
 }
 
 $SQUARE_MODE 			= 2;
@@ -509,10 +508,10 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         position: relative;
         transition: all 0.4s ease;
         box-shadow: 0 2px 4px 0 #cfd7df;
-        min-height: 60px;
+        min-height: 125px;
         padding: 13px;
-        background: #d2d4d5;
-        color: #0a0a0a;
+        background: linear-gradient(to left, #283593, #1976d2);;
+        color: #ffffff;
     }
 
     .credit-card.selectable:hover {
@@ -525,13 +524,13 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
     .credit-card-last4 {
         font-family: "PT Mono", Helvetica, sans-serif;
-        font-size: 24px;
+        font-size: 18px;
     }
 
     .credit-card-last4:before {
         content: "**** **** **** ";
         color: #4f4d4d;
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .credit-card.american-express .credit-card-last4:before,
@@ -1397,7 +1396,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                         <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
                                                         <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
                                                             <div class="row" style="margin: auto;" id="card_list">
-                                                                <a href="javascript:;">Card Number</a>
                                                             </div>
                                                             <div class="col-12">
                                                                 <div class="form-group" id="card_div">
@@ -1408,7 +1406,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
                                                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
                                                                 <div class="row" style="margin: auto;" id="card_list">
-                                                                    <a href="javascript:;">Card Number</a>
                                                                 </div>
                                                                 <div class="col-12">
                                                                     <div class="form-group" id="card-container">
@@ -1420,7 +1417,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                         <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net'){?>
                                                         <div class="payment_type_div" id="credit_card_payment" style="display: none;">
                                                             <div class="row" style="margin: auto;" id="card_list">
-                                                                <a href="javascript:;">Card Number</a>
                                                             </div>
                                                             <div class="row">
                                                                 <div class="col-12">
@@ -2246,12 +2242,11 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 break;
         }
     }
-</script>
 
-<script>
-    function myFunction() {
-        document.getElementById("plate").style.color = "red";
-    }
+    $(document).on('click', '.credit-card', function () {
+        $('.credit-card').css("opacity", "1");
+        $(this).css("opacity", "0.6");
+    });
 </script>
 
 </body>
