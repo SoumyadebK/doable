@@ -395,7 +395,7 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
                         success: function (result) {
                             $('#appointment_details_div').html(result);
                             $('#edit_appointment_half').show();
-                            $('.multi_sumo_select').SumoSelect({placeholder: 'Select Customer', selectAll: true});
+                            $('.multi_sumo_select').SumoSelect({placeholder: 'Select Customer', selectAll: true, search:true, searchText:"Search Customer"});
 
                             $('.datepicker-normal').datepicker({
                                 format: 'mm/dd/yyyy',

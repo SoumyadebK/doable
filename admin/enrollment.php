@@ -1,6 +1,21 @@
 <?php
 require_once('../global/config.php');
 
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+    header("location:../login.php");
+    exit;
+}
+
+if (empty($_GET['id']))
+    $title = "Add Enrollment";
+else
+    $title = "Edit Enrollment";
+
+
+if(!empty($_GET['customer_id'])) {
+    $PK_USER_MASTER = $_GET['customer_id'];
+}
+
 $PK_USER_MASTER = '';
 $PK_LOCATION = '';
 $PK_AGREEMENT_TYPE = '';
@@ -107,20 +122,6 @@ if($user_payment_gateway->RecordCount() > 0){
     $LOGIN_ID = $account_data->fields['LOGIN_ID'];
     $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
     $AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
-}
-
-if (empty($_GET['id']))
-    $title = "Add Enrollment";
-else
-    $title = "Edit Enrollment";
-
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
-    header("location:../login.php");
-    exit;
-}
-
-if(!empty($_GET['customer_id'])) {
-    $PK_USER_MASTER = $_GET['customer_id'];
 }
 
 $SQUARE_MODE 			= 2;
@@ -409,10 +410,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $PAYMENT_DATA['CARD_NUMBER'] = $_POST['CARD_NUMBER'];
             $PAYMENT_DATA['EXPIRATION_DATE'] = $_POST['EXPIRATION_MONTH'] . "/" . $_POST['EXPIRATION_YEAR'];
             $PAYMENT_DATA['SECURITY_CODE'] = $_POST['SECURITY_CODE'];
-        } elseif($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Square') {
-            $PAYMENT_DATA['CARD_NUMBER'] = $PAYMENT_INFO_LAST;
-            $PAYMENT_DATA['EXPIRATION_DATE'] = $PAYMENT_INFO_EXP_MONTH . "/" . $PAYMENT_INFO_EXP_YEAR;
-            $PAYMENT_DATA['CUSTOMER_ID'] = $PAYMENT_INFO_CUSTOMER_ID;
         }
 
         db_perform('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
