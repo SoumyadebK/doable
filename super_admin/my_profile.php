@@ -17,7 +17,7 @@ if(!empty($_POST)){
                 if (password_verify($_POST['OLD_PASSWORD'], $result->fields['PASSWORD'])) {
                     $USER_DATA['PASSWORD'] = password_hash($_POST['NEW_PASSWORD'], PASSWORD_DEFAULT);
                     db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
-                    $success_msg = "Password Changed Successfilly.";
+                    $success_msg = "Password Changed Successfully.";
                 }else{
                     $err_msg = 'Old Password is Wrong.';
                 }
@@ -69,10 +69,19 @@ if(!empty($_POST)){
             db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
         }
     }
+
+
+        $TEXT_DATA['SID'] = $_POST['SID'];
+        $TEXT_DATA['TOKEN'] = $_POST['TOKEN'];
+        $TEXT_DATA['FROM_NO'] = $_POST['PHONE_NO'];
+        db_perform('TEXT_SETTINGS', $TEXT_DATA, 'update', "PK_TEXT_SETTINGS = 1");
+
+
+
 }
 
 $res = $db->Execute("SELECT DOA_USERS.PK_ROLES, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES, DOA_ROLES.ROLES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES = DOA_USERS.PK_ROLES WHERE DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
-
+$text = $db->Execute( "SELECT * FROM `DOA_TEXT_SETTINGS`");
 if($res->RecordCount() == 0){
     header("location:../login.php");
     exit;
@@ -97,6 +106,9 @@ $FAX = $res->fields['FAX'];
 $WEBSITE = $res->fields['WEBSITE'];
 $NOTES = $res->fields['NOTES'];
 $ACTIVE = $res->fields['ACTIVE'];
+$SID = $text->fields['SID'];
+$TOKEN = $text->fields['TOKEN'];
+$PHONE_NO = $text->fields['FROM_NO'];
 ?>
 
 <!DOCTYPE html>
@@ -349,6 +361,32 @@ $ACTIVE = $res->fields['ACTIVE'];
                                     <label class="col-md-12">Remarks</label>
                                     <div class="col-md-12">
                                         <textarea class="form-control" rows="3" id="NOTES" name="NOTES"><?php echo $NOTES?></textarea>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">SID</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="SID" name="SID" class="form-control" placeholder="Enter SID" value="<?php echo $SID?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">Token</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="TOKEN" name="TOKEN" class="form-control" placeholder="Enter TOKEN" value="<?php echo $TOKEN?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">Phone No.</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="PHONE_NO" name="PHONE_NO" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE_NO?>">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>

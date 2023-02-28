@@ -22,12 +22,30 @@
     <list default="true" id="d5d1cba2-6524-402d-8637-121083cb70fc" name="Default Changelist" comment="">
       <change afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/service_provider/add_multiple_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/doable.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/doable.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/add_schedule.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/add_schedule.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/global/composer.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/global/composer.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/vendor/autoload.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/autoload.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/vendor/composer/ClassLoader.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/ClassLoader.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/vendor/composer/InstalledVersions.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/InstalledVersions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/vendor/composer/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/LICENSE" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/vendor/composer/autoload_classmap.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/autoload_classmap.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/vendor/composer/autoload_namespaces.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/autoload_namespaces.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/vendor/composer/autoload_psr4.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/autoload_psr4.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/vendor/composer/autoload_real.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/autoload_real.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/vendor/composer/autoload_static.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/autoload_static.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/vendor/composer/installed.json" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/installed.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/vendor/composer/installed.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/installed.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/vendor/composer/platform_check.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/platform_check.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/service_provider/add_schedule.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/add_schedule.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/service_provider/ajax/get_enrollments.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/ajax/get_enrollments.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/service_provider/ajax/get_service_provider.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/ajax/get_service_provider.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/service_provider/ajax/get_slots.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/ajax/get_slots.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/service_provider/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/my_profile.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/my_profile.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,6 +67,7 @@
       <path value="$PROJECT_DIR$/global/vendor/apimatic/core" />
       <path value="$PROJECT_DIR$/global/vendor/square/square" />
       <path value="$PROJECT_DIR$/global/vendor/composer" />
+      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
     </include_path>
   </component>
   <component name="ProjectId" id="2LETMapcRtFW5e3xsaHnMvNSLm7" />
@@ -71,6 +90,12 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\xampp\htdocs\doable\service_provider" />
     </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="ComposerRunConfigurationType" factoryName="Composer Script">
+      <option name="pathToComposerJson" value="$PROJECT_DIR$/global/composer.json" />
+      <method v="2" />
+    </configuration>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -101,6 +126,11 @@
       <workItem from="1676873562877" duration="1658000" />
       <workItem from="1676876549922" duration="5000" />
       <workItem from="1676876623296" duration="144000" />
+      <workItem from="1677041399146" duration="2564000" />
+      <workItem from="1677164041796" duration="1852000" />
+      <workItem from="1677219415250" duration="2282000" />
+      <workItem from="1677477379176" duration="16110000" />
+      <workItem from="1677564253598" duration="9758000" />
       <workItem from="1676881187895" duration="7224000" />
       <workItem from="1676962971117" duration="5608000" />
       <workItem from="1677091004106" duration="107000" />
@@ -108,6 +138,7 @@
       <workItem from="1677219563528" duration="8207000" />
       <workItem from="1677306736145" duration="2255000" />
       <workItem from="1677509021085" duration="9546000" />
+      <workItem from="1677219563528" duration="6961000" />
     </task>
     <servers />
   </component>

@@ -8,6 +8,7 @@ $baseDir = dirname($vendorDir);
 return array(
     'apimatic\\jsonmapper\\' => array($vendorDir . '/apimatic/jsonmapper/src'),
     'Unirest\\' => array($vendorDir . '/apimatic/unirest-php/src'),
+    'Twilio\\' => array($vendorDir . '/twilio/sdk/src/Twilio'),
     'Square\\' => array($vendorDir . '/square/square/src'),
     'Core\\' => array($vendorDir . '/apimatic/core/src'),
     'CoreInterfaces\\' => array($vendorDir . '/apimatic/core-interfaces/src'),

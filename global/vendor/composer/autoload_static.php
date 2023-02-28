@@ -15,6 +15,10 @@ class ComposerStaticInitdd8b324ce8120ddff820cb14ef78deb7
         array (
             'Unirest\\' => 8,
         ),
+        'T' => 
+        array (
+            'Twilio\\' => 7,
+        ),
         'S' => 
         array (
             'Square\\' => 7,
@@ -34,6 +38,10 @@ class ComposerStaticInitdd8b324ce8120ddff820cb14ef78deb7
         'Unirest\\' => 
         array (
             0 => __DIR__ . '/..' . '/apimatic/unirest-php/src',
+        ),
+        'Twilio\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/twilio/sdk/src/Twilio',
         ),
         'Square\\' => 
         array (

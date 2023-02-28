@@ -17,10 +17,22 @@ if($PAYMENT_GATEWAY == "Stripe") {
     $stripe = new \Stripe\StripeClient($SECRET_KEY);
     $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
     $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
+<<<<<<< HEAD
+
+    try {
+        $all_payment_methods = $stripe->customers->allPaymentMethods(
+            $CUSTOMER_PAYMENT_ID,
+            ['type' => 'card']
+        );
+    } catch (\Stripe\Exception\ApiErrorException $e) {
+        pre_r($e->getMessage());
+    }
+=======
     $all_payment_methods = $stripe->customers->allPaymentMethods(
         $CUSTOMER_PAYMENT_ID,
         ['type' => 'card']
     );
+>>>>>>> 0515bf487706cb8e09321eb5609e9191ebacaa8c
 
     $card_list = '';
     foreach ($all_payment_methods as $all_payment_methods_data) {
