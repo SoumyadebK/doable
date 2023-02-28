@@ -81,6 +81,10 @@ $LOGIN_ID               = $res->fields['LOGIN_ID'];
 $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
 $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
 
+$user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
+
+$ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
+
 ?>
 
 <!DOCTYPE html>
@@ -374,6 +378,8 @@ $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
                                                 </div>
                                             </div>
 
+
+                                            <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
                                             <div class="row">
                                                 <div class="col-6">
                                                     <div class="form-group">
@@ -431,6 +437,7 @@ $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
                                                     </div>
                                                 </div>
                                             </div>
+                                            <?php } ?>
 
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>

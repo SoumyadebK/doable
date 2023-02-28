@@ -102,6 +102,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
     $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_1'] = $_POST['SERVICE_PROVIDER_ID_1'];
     $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_2'] = $_POST['SERVICE_PROVIDER_ID_2'];
+    $GROUP_CLASS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
     $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
     $GROUP_CLASS_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
     $GROUP_CLASS_DATA['EDITED_ON'] = date("Y-m-d H:i");
@@ -394,7 +395,7 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
                         success: function (result) {
                             $('#appointment_details_div').html(result);
                             $('#edit_appointment_half').show();
-                            $('.multi_sumo_select').SumoSelect({placeholder: 'Select Customer', selectAll: true});
+                            $('.multi_sumo_select').SumoSelect({placeholder: 'Select Customer', selectAll: true, search:true, searchText:"Search Customer"});
 
                             $('.datepicker-normal').datepicker({
                                 format: 'mm/dd/yyyy',

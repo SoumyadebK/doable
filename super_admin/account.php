@@ -73,6 +73,7 @@ if(!empty($_POST)){
         $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
         $USER_DATA['CREATE_LOGIN'] = 1;
         $USER_DATA['ACTIVE'] = 1;
+        $USER_DATA['ABLE_TO_EDIT_PAYMENT_GATEWAY'] = isset($_POST['ABLE_TO_EDIT_PAYMENT_GATEWAY']) ? 1 : 0;
         $USER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform('DOA_USERS', $USER_DATA, 'insert');
@@ -130,6 +131,7 @@ $ACCOUNT_FAX = '';
 $ACCOUNT_EMAIL = '';
 $ACCOUNT_WEBSITE = '';
 $ACTIVE = '';
+$ABLE_TO_EDIT_PAYMENT_GATEWAY = '';
 
 $PK_USER_EDIT = '';
 $PK_ROLES = '';
@@ -170,7 +172,7 @@ if(!empty($_GET['id'])) {
     $ACCOUNT_WEBSITE = $account_res->fields['WEBSITE'];
     $ACTIVE = $account_res->fields['ACTIVE'];
 
-    $user_res = $db->Execute("SELECT DOA_USERS.PK_USER AS PK_USER_EDIT, DOA_USERS.PK_ROLES, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_ACCOUNT_MASTER = '$_GET[id]' AND DOA_USERS.CREATED_BY = '$_SESSION[PK_USER]'");
+    $user_res = $db->Execute("SELECT DOA_USERS.PK_USER AS PK_USER_EDIT, DOA_USERS.PK_ROLES, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_ACCOUNT_MASTER = '$_GET[id]' AND DOA_USERS.CREATED_BY = '$_SESSION[PK_USER]'");
 
     if($user_res->RecordCount() > 0) {
         $PK_USER_EDIT = $user_res->fields['PK_USER_EDIT'];
@@ -190,10 +192,9 @@ if(!empty($_GET['id'])) {
         $ZIP = $user_res->fields['ZIP'];
         $PHONE = $user_res->fields['PHONE'];
         $NOTES = $user_res->fields['NOTES'];
+        $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_res->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
     }
 }
-
-
 
 ?>
 
@@ -639,6 +640,13 @@ if(!empty($_GET['id'])) {
                                                         <small id="password-text"></small>
                                                     </div>
                                                 </div>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <label class="col-md-12"><input type="checkbox" id="ABLE_TO_EDIT_PAYMENT_GATEWAY" name="ABLE_TO_EDIT_PAYMENT_GATEWAY" class="form-check-inline" <?=($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1)?'checked':''?>> Able to edit payment gateway</label>
+                                                    </div>
+                                                </div>
+
                                             </div>
                                             <div class="form-group">
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>

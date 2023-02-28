@@ -134,7 +134,9 @@ if(empty($_GET['id'])){
 
 }
 
+$user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 
+$ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
 
 ?>
 
@@ -345,8 +347,9 @@ if(empty($_GET['id'])){
                                                 </div>
                                             <? } ?>
 
-
-                                                <div class="col-6" style="margin-top:50px"><div class="row">
+                                            <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
+                                            <div class="col-6" style="margin-top:50px">
+                                                <div class="row">
                                                     <div class="form-group">
                                                         <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
                                                         <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
@@ -402,6 +405,7 @@ if(empty($_GET['id'])){
                                                     </div>
                                                 </div>
                                             </div>
+                                            <?php } ?>
 
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>

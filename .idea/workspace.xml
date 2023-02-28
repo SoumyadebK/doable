@@ -20,6 +20,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d5d1cba2-6524-402d-8637-121083cb70fc" name="Default Changelist" comment="">
+<<<<<<< HEAD
       <change beforePath="$PROJECT_DIR$/.idea/doable.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/doable.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
@@ -39,6 +40,16 @@
       <change beforePath="$PROJECT_DIR$/global/vendor/composer/installed.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/installed.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/global/vendor/composer/platform_check.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/platform_check.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/super_admin/my_profile.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/my_profile.php" afterDir="false" />
+=======
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/business_profile.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/business_profile.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/enrollment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/location.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/location.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/account.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/account.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/edit_account_user.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/edit_account_user.php" afterDir="false" />
+>>>>>>> 0515bf487706cb8e09321eb5609e9191ebacaa8c
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,11 +118,19 @@
       <workItem from="1676873562877" duration="1658000" />
       <workItem from="1676876549922" duration="5000" />
       <workItem from="1676876623296" duration="144000" />
+<<<<<<< HEAD
       <workItem from="1677041399146" duration="2564000" />
       <workItem from="1677164041796" duration="1852000" />
       <workItem from="1677219415250" duration="2282000" />
       <workItem from="1677477379176" duration="16110000" />
       <workItem from="1677564253598" duration="9758000" />
+=======
+      <workItem from="1676881187895" duration="7224000" />
+      <workItem from="1676962971117" duration="5608000" />
+      <workItem from="1677091004106" duration="107000" />
+      <workItem from="1677142576644" duration="3367000" />
+      <workItem from="1677219563528" duration="6961000" />
+>>>>>>> 0515bf487706cb8e09321eb5609e9191ebacaa8c
     </task>
     <servers />
   </component>
@@ -157,9 +176,9 @@
       <screen x="0" y="0" width="2194" height="1186" />
     </state>
     <state x="809" y="328" width="576" height="530" key="find.popup/0.0.2194.1186@0.0.2194.1186" timestamp="1676446378968" />
-    <state x="754" y="247" width="672" height="676" key="search.everywhere.popup" timestamp="1676876498235">
+    <state x="754" y="247" width="672" height="676" key="search.everywhere.popup" timestamp="1676963109968">
       <screen x="0" y="0" width="2194" height="1186" />
     </state>
-    <state x="754" y="247" width="672" height="676" key="search.everywhere.popup/0.0.2194.1186@0.0.2194.1186" timestamp="1676876498235" />
+    <state x="754" y="247" width="672" height="676" key="search.everywhere.popup/0.0.2194.1186@0.0.2194.1186" timestamp="1676963109968" />
   </component>
 </project>
