@@ -20,14 +20,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d5d1cba2-6524-402d-8637-121083cb70fc" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/service_provider/add_multiple_appointment.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_schedules.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/business_profile.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/business_profile.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/enrollment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/location.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/location.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/super_admin/account.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/account.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/super_admin/edit_account_user.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/edit_account_user.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service_provider/add_schedule.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/add_schedule.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service_provider/ajax/get_enrollments.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/ajax/get_enrollments.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service_provider/ajax/get_service_provider.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/ajax/get_service_provider.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service_provider/ajax/get_slots.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/ajax/get_slots.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service_provider/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/all_schedules.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,9 +62,15 @@
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/service_provider" />
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\xampp\htdocs\doable\service_provider" />
+    </key>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -99,7 +105,9 @@
       <workItem from="1676962971117" duration="5608000" />
       <workItem from="1677091004106" duration="107000" />
       <workItem from="1677142576644" duration="3367000" />
-      <workItem from="1677219563528" duration="6961000" />
+      <workItem from="1677219563528" duration="8207000" />
+      <workItem from="1677306736145" duration="2255000" />
+      <workItem from="1677509021085" duration="9546000" />
     </task>
     <servers />
   </component>
@@ -129,6 +137,18 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="513" y="434" key="#SQL_Dialects" timestamp="1677519879625">
+      <screen x="0" y="0" width="2194" height="1186" />
+    </state>
+    <state x="513" y="434" key="#SQL_Dialects/0.0.2194.1186@0.0.2194.1186" timestamp="1677519879625" />
+    <state x="690" y="251" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1677519908245">
+      <screen x="0" y="0" width="2194" height="1186" />
+    </state>
+    <state x="690" y="251" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2194.1186@0.0.2194.1186" timestamp="1677519908245" />
+    <state x="877" y="395" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1677521637981">
+      <screen x="0" y="0" width="2194" height="1186" />
+    </state>
+    <state x="877" y="395" key="#com.intellij.fileTypes.FileTypeChooser/0.0.2194.1186@0.0.2194.1186" timestamp="1677521637981" />
     <state x="878" y="348" key="FileChooserDialogImpl" timestamp="1676876726307">
       <screen x="0" y="0" width="2194" height="1186" />
     </state>
@@ -145,9 +165,13 @@
       <screen x="0" y="0" width="2194" height="1186" />
     </state>
     <state x="809" y="328" width="576" height="530" key="find.popup/0.0.2194.1186@0.0.2194.1186" timestamp="1676446378968" />
-    <state x="754" y="247" width="672" height="676" key="search.everywhere.popup" timestamp="1676963109968">
+    <state x="754" y="277" key="run.anything.popup" timestamp="1677510258618">
       <screen x="0" y="0" width="2194" height="1186" />
     </state>
-    <state x="754" y="247" width="672" height="676" key="search.everywhere.popup/0.0.2194.1186@0.0.2194.1186" timestamp="1676963109968" />
+    <state x="754" y="277" key="run.anything.popup/0.0.2194.1186@0.0.2194.1186" timestamp="1677510258618" />
+    <state x="754" y="247" width="672" height="676" key="search.everywhere.popup" timestamp="1677521625115">
+      <screen x="0" y="0" width="2194" height="1186" />
+    </state>
+    <state x="754" y="247" width="672" height="676" key="search.everywhere.popup/0.0.2194.1186@0.0.2194.1186" timestamp="1677521625115" />
   </component>
 </project>
