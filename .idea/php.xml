@@ -8,6 +8,7 @@
       <path value="$PROJECT_DIR$/global/vendor/apimatic/core" />
       <path value="$PROJECT_DIR$/global/vendor/square/square" />
       <path value="$PROJECT_DIR$/global/vendor/composer" />
+      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
     </include_path>
   </component>
 </project>
