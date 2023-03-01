@@ -44,6 +44,12 @@
                             </a>
                         </li>
                         <li>
+                            <a class="waves-effect waves-dark" href="../admin/operations.php" aria-expanded="false">
+                                <i class="ti-layers-alt"></i>
+                                <span class="hide-menu">Operations</span>
+                            </a>
+                        </li>
+                        <li>
                             <a class="waves-effect waves-dark" href="../admin/reports.php" aria-expanded="false">
                                 <i class="ti-bar-chart"></i>
                                 <span class="hide-menu">Reports</span>

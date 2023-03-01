@@ -183,7 +183,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                     (eventType === "" || eventTypeVal.includes(eventType)) 
                     && (eventStatus === "" || eventStatusVal.includes(eventStatus))
                     && (startDate == "" || moment(startedAt).isSameOrAfter(startDate))
-                    && (endDate == "" || moment(startedAt).isSameOrBefore(endDate))
+                    && (endDate == "" || moment(endedAt).isSameOrBefore(endDate))
                   ) 
               {
                 return true;
