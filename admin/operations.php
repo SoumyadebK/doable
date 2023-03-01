@@ -99,7 +99,7 @@ if(empty($_GET['id'])){
                                     }
                                     while (!$appointment_data->EOF) { ?>
                                         <tr>
-                                            <td <label><input type="checkbox"></label> <!--onclick="editpage(<?/*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>);">--><?/*=$i;*/?></td>
+                                            <td <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" value="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"></label> <!--onclick="editpage(<?/*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>);">--><?/*=$i;*/?></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['ENROLLMENT_ID']?></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']?></td>
@@ -129,6 +129,7 @@ if(empty($_GET['id'])){
                                         $i++; } ?>
                                     </tbody>
                                 </table>
+                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='event.php'" ><i class="ti-check-box"></i> Completed</button>
                             </div>
                         </div>
                     </div>
@@ -220,7 +221,7 @@ if(empty($_GET['id'])){
             window.location=anchor.attr("href");
     }
     function editpage(id){
-        window.location.href = "operations.php?id="+id;
+        window.location.href = "add_schedule.php?id="+id;
     }
 </script>
 </body>
