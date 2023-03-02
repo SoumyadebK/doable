@@ -7,6 +7,13 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
+if (!empty($_GET['id']) && !empty($_GET['action'])){
+    if ($_GET['action'] == 'complete'){
+        $db->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$_GET['id']);
+        header("location:operations.php?view=list");
+    }
+}
+
 if(empty($_GET['id'])){
     $SERVICE_PROVIDER_ID = '';
 } else {
@@ -70,11 +77,12 @@ if(empty($_GET['id'])){
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <div id="list"  class="card-body">
+                            <div style="padding-left:12px; padding-top: 20px"><button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="markAllComplete()"><i class="ti-check-box"></i> Completed</button></div>
+                            <tr id="list"  class="card-body">
                                 <table id="myTable" class="table table-striped border">
                                     <thead>
                                     <tr>
-                                        <th>No</th>
+                                        <th><input type="checkbox" onClick="toggle(this)" /></th>
                                         <th>Customer</th>
                                         <th>Enrollment ID</th>
                                         <th>Service</th>
@@ -99,7 +107,7 @@ if(empty($_GET['id'])){
                                     }
                                     while (!$appointment_data->EOF) { ?>
                                         <tr>
-                                            <td <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" value="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"></label> <!--onclick="editpage(<?/*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>);">--><?/*=$i;*/?></td>
+                                            <td <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"></label></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['ENROLLMENT_ID']?></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']?></td>
@@ -129,7 +137,8 @@ if(empty($_GET['id'])){
                                         $i++; } ?>
                                     </tbody>
                                 </table>
-                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='event.php'" ><i class="ti-check-box"></i> Completed</button>
+
+<!--                                <div style="padding-left:41px; padding-top: 20px"><input type="checkbox" onClick="toggle(this)" />  Mark all</div>-->
                             </div>
                         </div>
                     </div>
@@ -223,6 +232,40 @@ if(empty($_GET['id'])){
     function editpage(id){
         window.location.href = "add_schedule.php?id="+id;
     }
+
+    function toggle(source) {
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i] != source)
+                checkboxes[i].checked = source.checked;
+        }
+    }
+
+    function confirmComplete(anchor)
+    {
+        let conf = confirm("Do you want to mark this appointment as completed?");
+        if(conf)
+            window.location=anchor.attr("href");
+    }
+
+    function markAllComplete()
+    {
+        let PK_APPOINTMENT_MASTER = [];
+        $(".PK_APPOINTMENT_MASTER:checked").each(function() {
+            PK_APPOINTMENT_MASTER.push($(this).val());
+        });
+
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {FUNCTION_NAME: 'markAllAppointmentCompleted', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+            success:function (data) {
+                window.location="operations.php";
+            }
+        });
+    }
+
+
 </script>
 </body>
 </html>
