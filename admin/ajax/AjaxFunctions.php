@@ -1110,3 +1110,12 @@ function markAppointmentCompleted($RESPONSE_DATA) {
     $db->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER);
     echo 1;
 }
+
+function markAllAppointmentCompleted($RESPONSE_DATA) {
+    global $db;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    for($i=0; $i < count($PK_APPOINTMENT_MASTER); $i++){
+        $db->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER[$i]);
+    }
+    echo 1;
+}
