@@ -20,32 +20,41 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d5d1cba2-6524-402d-8637-121083cb70fc" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/service_provider/add_multiple_appointment.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/doable.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/doable.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/add_schedule.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/add_schedule.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/global/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/global/composer.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/global/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/global/composer.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/vendor/autoload.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/autoload.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/vendor/composer/ClassLoader.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/ClassLoader.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/vendor/composer/InstalledVersions.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/InstalledVersions.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/vendor/composer/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/LICENSE" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/vendor/composer/autoload_classmap.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/autoload_classmap.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/vendor/composer/autoload_namespaces.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/autoload_namespaces.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/global/vendor/composer/autoload_psr4.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/autoload_psr4.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/global/vendor/composer/autoload_real.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/autoload_real.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/global/vendor/composer/autoload_static.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/autoload_static.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/global/vendor/composer/installed.json" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/installed.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/global/vendor/composer/installed.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/installed.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/vendor/composer/platform_check.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/vendor/composer/platform_check.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/service_provider/add_schedule.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/add_schedule.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/service_provider/ajax/get_enrollments.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/ajax/get_enrollments.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/service_provider/ajax/get_service_provider.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/ajax/get_service_provider.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/service_provider/ajax/get_slots.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/ajax/get_slots.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/service_provider/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/all_schedules.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/super_admin/my_profile.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/my_profile.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676056131.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676056806.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676056813.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676056918.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676057009.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676057112.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676057147.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676057164.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676057200.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676057345.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676057360.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676281822.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676284727.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676305001.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676305022.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676305027.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676439764.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676439819.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676644313.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676644332.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1676867894.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1677220200.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/uploads/enrollment_pdf/data-1677258172.pdf" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,6 +77,13 @@
       <path value="$PROJECT_DIR$/global/vendor/square/square" />
       <path value="$PROJECT_DIR$/global/vendor/composer" />
       <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
+      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
+      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
+      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
+      <path value="$PROJECT_DIR$/global/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/global/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
+      <path value="$PROJECT_DIR$/global/vendor/psr/log" />
     </include_path>
   </component>
   <component name="ProjectId" id="2LETMapcRtFW5e3xsaHnMvNSLm7" />
@@ -90,12 +106,6 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\xampp\htdocs\doable\service_provider" />
     </key>
-  </component>
-  <component name="RunManager">
-    <configuration default="true" type="ComposerRunConfigurationType" factoryName="Composer Script">
-      <option name="pathToComposerJson" value="$PROJECT_DIR$/global/composer.json" />
-      <method v="2" />
-    </configuration>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -139,6 +149,7 @@
       <workItem from="1677306736145" duration="2255000" />
       <workItem from="1677509021085" duration="9546000" />
       <workItem from="1677219563528" duration="6961000" />
+      <workItem from="1677770023310" duration="789000" />
     </task>
     <servers />
   </component>
@@ -192,9 +203,10 @@
       <screen x="0" y="0" width="2194" height="1186" />
     </state>
     <state x="606" y="238" key="SettingsEditor/0.0.2194.1186@0.0.2194.1186" timestamp="1675663520296" />
-    <state x="809" y="328" width="576" height="530" key="find.popup" timestamp="1676446378968">
-      <screen x="0" y="0" width="2194" height="1186" />
+    <state x="566" y="226" width="549" height="530" key="find.popup" timestamp="1677770091532">
+      <screen x="0" y="0" width="1536" height="816" />
     </state>
+    <state x="566" y="226" width="549" height="530" key="find.popup/0.0.1536.816@0.0.1536.816" timestamp="1677770091532" />
     <state x="809" y="328" width="576" height="530" key="find.popup/0.0.2194.1186@0.0.2194.1186" timestamp="1676446378968" />
     <state x="754" y="277" key="run.anything.popup" timestamp="1677510258618">
       <screen x="0" y="0" width="2194" height="1186" />

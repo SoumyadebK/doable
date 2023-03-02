@@ -1,6 +1,7 @@
 {
     "require": {
         "square/square": "25.1.0.20230119",
-        "twilio/sdk": "^6.44"
+        "twilio/sdk": "^6.44",
+        "mpdf/mpdf": "^8.1"
     }
 }

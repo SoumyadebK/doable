@@ -1,5 +1,7 @@
 <?php
 require_once('../global/config.php');
+
+use Twilio\Exceptions\ConfigurationException;
 use Twilio\Rest\Client;
 
 if (empty($_GET['id']))
@@ -45,30 +47,26 @@ if (isset($_POST['FUNCTION_NAME'])){
             db_perform('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
 
             require_once("../global/vendor/twilio/sdk/src/Twilio/autoload.php");
+            $text_setting = $db->Execute( "SELECT * FROM `DOA_TEXT_SETTINGS`");
+            $customer_phone_number = $db->Execute("SELECT DOA_USERS.PHONE FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[CUSTOMER_ID]'");
 
-            $text = $db->Execute( "SELECT * FROM `DOA_TEXT_SETTINGS`");
+            $sid = $text_setting->fields['SID'];
+            $token = $TOKEN = $text_setting->fields['TOKEN'];
+            try {
+                $client = new Client($sid, $token);
+                $client->messages->create(
+                    // the number you'd like to send the message to
+                    $customer_phone_number->fields['PHONE'],
+                    [
+                        // A Twilio phone number you purchased at twilio.com/console
+                        'from' => $text_setting->fields['FROM_NO'],
+                        // the body of the text message you'd like to send
+                        'body' => "An appointment is created for you."
+                    ]
+                );
+            } catch (\Twilio\Exceptions\TwilioException $e) {
 
-            // Your Account SID and Auth Token from twilio.com/console
-            $sid = $text->fields['SID'];
-            $token = $TOKEN = $text->fields['TOKEN'];
-            $client = new Client($sid, $token);
-
-            $number = $db->Execute("SELECT DOA_USERS.PHONE FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[CUSTOMER_ID]'");
-
-            // Use the client to do fun stuff like send text messages!
-            $response = $client->messages->create(
-            // the number you'd like to send the message to
-
-                $number->fields['PHONE'],
-                    //'+15005550006',
-                [
-                    // A Twilio phone number you purchased at twilio.com/console
-                    'from' => $text->fields['FROM_NO'],
-                    // the body of the text message you'd like to send
-                    'body' => "An appointment is created for you."
-                ]
-            );
-            pre_r($response);
+            }
         }
     }else{
         if($_FILES['IMAGE']['name'] != ''){

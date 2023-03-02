@@ -2,6 +2,13 @@
 <module type="WEB_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/global/vendor/mpdf/mpdf" />
+      <excludeFolder url="file://$MODULE_DIR$/global/vendor/myclabs/deep-copy" />
+      <excludeFolder url="file://$MODULE_DIR$/global/vendor/paragonie/random_compat" />
+      <excludeFolder url="file://$MODULE_DIR$/global/vendor/php-http/message-factory" />
+      <excludeFolder url="file://$MODULE_DIR$/global/vendor/psr/http-message" />
+      <excludeFolder url="file://$MODULE_DIR$/global/vendor/psr/log" />
+      <excludeFolder url="file://$MODULE_DIR$/global/vendor/setasign/fpdi" />
       <excludeFolder url="file://$MODULE_DIR$/global/vendor/twilio/sdk" />
     </content>
     <orderEntry type="inheritedJdk" />

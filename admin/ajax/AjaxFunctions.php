@@ -61,7 +61,7 @@ function saveServiceCodeData($RESPONSE_DATA){
 /*Saving Data from Enrollment Page*/
 
 function saveEnrollmentData($RESPONSE_DATA){
-    error_reporting(0);
+    //error_reporting(0);
     global $db;
     $ENROLLMENT_MASTER_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     $ENROLLMENT_MASTER_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
@@ -123,9 +123,20 @@ function saveEnrollmentData($RESPONSE_DATA){
     echo json_encode($return_data);
 }
 
-
-
 function generatePdf($html){
+    require_once('../../global/vendor/autoload.php');
+
+    $mpdf = new \Mpdf\Mpdf();
+    $mpdf->WriteHTML($html);
+
+    $file_name = "data-".time().".pdf";
+    $mpdf->Output("../../uploads/enrollment_pdf/".$file_name, 'F');
+
+    return $file_name;
+}
+
+
+function generatePdf_BACKUP($html){
     error_reporting(0);
     require_once('../../global/tcpdf/config/lang/eng.php');
     require_once('../../global/tcpdf/tcpdf.php');
