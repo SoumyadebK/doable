@@ -162,11 +162,8 @@ if (isset($_POST['submit']))
                     <div class="form-group">
                         <select class="form-control" name="TABLE_NAME" id="TABLE_NAME">
                             <option value="">Select Table Name</option>
-                            <?php
-                            $row = $db->Execute("SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA = 'doable'");
-                            while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['TABLE_NAME'];?>" ><?=$row->fields['TABLE_NAME']?></option>
-                                <?php $row->MoveNext(); } ?>
+                            <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
+                            <option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
                         </select>
                     </div>
                     </div>
