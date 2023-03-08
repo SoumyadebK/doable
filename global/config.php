@@ -9,7 +9,7 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
     $http_path = 'http://localhost/doable/';
 } else {
     $conn = $db->connect('localhost','root','b54eawxj5h8ev','doable');
-    $http_path = 'https://scan-n-order.com/';
+    $http_path = 'https://doable.net/';
 }
 if ($db->error_number){
     die("Connection Error");
