@@ -8,7 +8,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
-if (isset($_POST['submit']))
+if(!empty($_POST))
 {
     // Allowed mime types
     $fileMimes = array(
@@ -34,7 +34,6 @@ if (isset($_POST['submit']))
         // Skip the first line
         fgetcsv($csvFile);
 
-        // Parse data from CSV file line by line
         // Parse data from CSV file line by line
         while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE)
         {
@@ -76,25 +75,43 @@ if (isset($_POST['submit']))
                     break;
 
                 case 'DOA_USERS':
-                    $table_data = $db->Execute("SELECT * FROM DOA_USERS WHERE USER_ID='$getData[3]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    $table_data = $db->Execute("SELECT * FROM DOA_USERS WHERE USER_ID='$getData[0]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
                     if ($table_data->RecordCount() == 0) {
-                        $roleId = $getData[3];
+                        $roleId = $getData[1];
                         $getRole = getRole($roleId);
-                        $doableRoleId = $db->Execute("SELECT name FROM roles WHERE name='$getRole'");
+                        $doableRoleId = $db->Execute("SELECT PK_ROLES FROM DOA_ROLES WHERE ROLES='$getRole'");
                         $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $INSERT_DATA['PK_ROLES'] = $doableRoleId;
-                        $INSERT_DATA['USER_TITLE'] = $getData[0];
-                        $INSERT_DATA['FIRST_NAME'] = $getData[1];
-                        $INSERT_DATA['LAST_NAME'] = $getData[2];
-                        $INSERT_DATA['USER_ID'] = $getData[3];
-                        $INSERT_DATA['EMAIL_ID'] = $getData[4];
-                        $INSERT_DATA['PHONE'] = $getData[5];
-                        $INSERT_DATA['PASSWORD'] = $getData[6];
+                        $INSERT_DATA['PK_ROLES'] = $doableRoleId->fields['PK_ROLES'];
+                        $INSERT_DATA['PK_LOCATION'] = $getData[25];
+                        $INSERT_DATA['FIRST_NAME'] = $getData[3];
+                        $INSERT_DATA['LAST_NAME'] = $getData[4];
+                        $INSERT_DATA['USER_API_KEY'] = $getData[2];
+                        $INSERT_DATA['USER_ID'] = $getData[18];
+                        $INSERT_DATA['EMAIL_ID'] = $getData[13];
+                        $INSERT_DATA['TAX_ID'] = $getData[14];
+                        $INSERT_DATA['HOME_PHONE'] = $getData[11];
+                        $INSERT_DATA['PHONE'] = $getData[12];
+                        $INSERT_DATA['PASSWORD'] = $getData[19];
                         $INSERT_DATA['USER_IMAGE'] = $getData[7];
                         $INSERT_DATA['ACTIVE'] = 1;
                         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                         db_perform('DOA_USERS', $INSERT_DATA, 'insert');
+
+                        $PK_USER = $db->insert_ID();
+                        $USER_DATA['PK_USER'] = $PK_USER;
+                        $USER_DATA['GENDER'] = $getData[5];
+                        $USER_DATA['DOB'] = $getData[15];
+                        $USER_DATA['ADDRESS'] = $getData[6];
+                        $USER_DATA['ADDRESS_1'] = $getData[7];
+                        $USER_DATA['CITY'] = $getData[8];
+                        $USER_DATA['PK_STATES'] = $getData[9];
+                        $USER_DATA['ZIP'] = $getData[10];
+                        $USER_DATA['NOTES'] = $getData[16];
+                        $USER_DATA['ACTIVE'] = 1;
+                        $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                        $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                        db_perform('DOA_USER_PROFILE', $USER_DATA, 'insert');
                     }
                     break;
             }
