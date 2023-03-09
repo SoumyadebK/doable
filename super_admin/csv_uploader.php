@@ -64,6 +64,15 @@ if (isset($_POST['submit']))
                     db_perform('DOA_EVENT_TYPE', $INSERT_DATA, 'insert');
                 }
             }
+            else if($_POST['TABLE_NAME'] == 'DOA_HOLIDAY_LIST') {
+                $table_data = $db->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE HOLIDAY_NAME='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                if ($table_data->RecordCount() == 0) {
+                    $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                    $INSERT_DATA['HOLIDAY_DATE'] = $getData[0];
+                    $INSERT_DATA['HOLIDAY_NAME'] = $getData[1];
+                    db_perform('DOA_HOLIDAY_LIST', $INSERT_DATA, 'insert');
+                }
+            }
 
 
             /*else if($_POST['TABLE_NAME'] == 'DOA_LOCATION') {
@@ -164,6 +173,7 @@ if (isset($_POST['submit']))
                             <option value="">Select Table Name</option>
                             <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
                             <option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
+                            <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>
                         </select>
                     </div>
                     </div>
