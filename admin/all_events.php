@@ -24,7 +24,6 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                 </div>
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
-                        <a href="all_event_types.php" style="margin-right: 20px; color: #39B54A;">Event Type</a>
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>

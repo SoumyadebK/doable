@@ -58,6 +58,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <li><a href="all_currency.php">Currency</a></li>
                                         <li><a href="all_account_types.php">Account Types</a></li>
                                         <li><a href="all_business_types.php">Business Types</a></li>
+                                        <li><a href="csv_uploader.php">CSV Uploader</a></li>
                                     </ul>
                                 </div>
                             </div>
