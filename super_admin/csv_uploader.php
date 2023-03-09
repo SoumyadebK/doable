@@ -63,16 +63,37 @@ if (isset($_POST['submit']))
                         db_perform('DOA_EVENT_TYPE', $INSERT_DATA, 'insert');
                     }
                     break;
+
+                case 'DOA_HOLIDAY_LIST':
+                    $table_data = $db->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE HOLIDAY_NAME='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($table_data->RecordCount() == 0) {
+                        $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $INSERT_DATA['HOLIDAY_DATE'] = $getData[0];
+                        $INSERT_DATA['HOLIDAY_NAME'] = $getData[1];
+                        db_perform('DOA_HOLIDAY_LIST', $INSERT_DATA, 'insert');
+                    }
+                    break;
+
+                case 'DOA_USERS':
+                    $table_data = $db->Execute("SELECT * FROM DOA_USERS WHERE USER_ID='$getData[3]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($table_data->RecordCount() == 0) {
+                        $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $INSERT_DATA['USER_TITLE'] = $getData[0];
+                        $INSERT_DATA['FIRST_NAME'] = $getData[1];
+                        $INSERT_DATA['LAST_NAME'] = $getData[2];
+                        $INSERT_DATA['USER_ID'] = $getData[3];
+                        $INSERT_DATA['EMAIL_ID'] = $getData[4];
+                        $INSERT_DATA['PHONE'] = $getData[5];
+                        $INSERT_DATA['PASSWORD'] = $getData[6];
+                        $INSERT_DATA['USER_IMAGE'] = $getData[7];
+                        $INSERT_DATA['ACTIVE'] = 1;
+                        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                        db_perform('DOA_USERS', $INSERT_DATA, 'insert');
+                    }
+                    break;
             }
-            else if($_POST['TABLE_NAME'] == 'DOA_HOLIDAY_LIST') {
-                $table_data = $db->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE HOLIDAY_NAME='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
-                if ($table_data->RecordCount() == 0) {
-                    $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                    $INSERT_DATA['HOLIDAY_DATE'] = $getData[0];
-                    $INSERT_DATA['HOLIDAY_NAME'] = $getData[1];
-                    db_perform('DOA_HOLIDAY_LIST', $INSERT_DATA, 'insert');
-                }
-            }
+
 
 
             /*else if($_POST['TABLE_NAME'] == 'DOA_LOCATION') {
@@ -164,25 +185,16 @@ if (isset($_POST['submit']))
                         </div>
                     </div>
                     <div class="col-md-4">
-<<<<<<< HEAD
                     <div class="form-group">
+                        <label class="form-label">Select Table Name</label>
                         <select class="form-control" name="TABLE_NAME" id="TABLE_NAME">
                             <option value="">Select Table Name</option>
                             <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
                             <option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
                             <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>
+                            <option value="DOA_USERS">DOA_USERS</option>
                         </select>
                     </div>
-=======
-                        <div class="form-group">
-                            <label class="form-label">Table Name</label>
-                            <select class="form-control" name="TABLE_NAME" id="TABLE_NAME">
-                                <option value="">Select Table Name</option>
-                                <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
-                                <option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
-                            </select>
-                        </div>
->>>>>>> 7a904d0ae47bbd79c4bc6e370d015ed0c8feb486
                     </div>
                     <!--<div class="col-md-4">
                         <div class="form-group">
