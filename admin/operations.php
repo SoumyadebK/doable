@@ -1,6 +1,6 @@
 <?php
 require_once('../global/config.php');
-$title = "All Appointments";
+$title = "Appointments";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -45,7 +45,7 @@ if(empty($_GET['id'])){
             </div>
 
             <div class="row">
-                <div class="col-3">
+                <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">Service Provider</label>
                         <select class="form-control" name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID">
@@ -53,22 +53,22 @@ if(empty($_GET['id'])){
                             <?php
                             $selected_service_provider = '';
                             $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_ROLES.ROLES, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USERS.USER_TITLE FROM DOA_USERS LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES = DOA_USERS.PK_ROLES WHERE DOA_USERS.PK_ROLES = 5 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                            while (!$row->EOF) { if($SERVICE_PROVIDER_ID==$row->fields['PK_USER']){$selected_service_provider = $row->fields['NAME'];} ?>
-                                <option value="<?php echo $row->fields['PK_USER'];?>" <?=($SERVICE_PROVIDER_ID==$row->fields['PK_USER'])?'selected':''?>><?=$row->fields['NAME']?></option>
-                                <?php $row->MoveNext(); } ?>
+                            while (!$row->EOF) { ?>
+                                <option value="<?=$row->fields['NAME']?>"><?=$row->fields['NAME']?></option>
+                            <?php $row->MoveNext(); } ?>
                         </select>
                     </div>
                 </div>
-                <div class="col-3">
+                <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">From Date</label>
-                        <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" value="">
+                        <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal">
                     </div>
                 </div>
-                <div class="col-3">
+                <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">To Date</label>
-                        <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" required value="">
+                        <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal">
                     </div>
                 </div>
             </div>
@@ -92,7 +92,6 @@ if(empty($_GET['id'])){
                                         <th>Date</th>
                                         <th>Time</th>
                                         <th>Paid</th>
-                                        <th style="text-align: center;">Completed</th>
                                         <th>Actions</th>
                                     </tr>
                                     </thead>
@@ -117,20 +116,8 @@ if(empty($_GET['id'])){
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=($appointment_data->fields['IS_PAID'] == 0)?'Unpaid':'Paid'?></td>
-                                            <td style="text-align: center;">
-                                                <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
-                                                    <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
-                                                <?php } else { ?>
-                                                    <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>&action=complete" onclick='javascript:confirmComplete($(this));return false;'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
-                                                <?php } ?>
-                                            </td>
                                             <td>
                                                 <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <?php /*if($appointment_data->fields['ACTIVE']==1){ */?><!--
-                                                    <span class="active-box-green"></span>
-                                                <?php /*} else{ */?>
-                                                    <span class="active-box-red"></span>
-                                                --><?php /*} */?>
                                             </td>
                                         </tr>
                                         <?php $appointment_data->MoveNext();
@@ -152,58 +139,44 @@ if(empty($_GET['id'])){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 <script>
 
-
-    $(function () {
-
-        startDate = $("#START_DATE").datepicker({
+    $(document).ready(function(){
+        $("#START_DATE").datepicker({
             numberOfMonths: 1,
             onSelect: function(selected) {
                 $("#END_DATE").datepicker("option","minDate", selected);
-                $("#START_DATE, #END_DATE").trigger("change");
+                $(this).change();
             }
         });
         $("#END_DATE").datepicker({
             numberOfMonths: 1,
             onSelect: function(selected) {
-                $("#START_DATE").datepicker("option","maxDate", selected)
+                $("#START_DATE").datepicker("option","maxDate", selected);
+                $(this).change();
             }
         });
+    });
 
-        $("#myTable").dataTable({
-            "searching": true
-        });
+    $("#myTable").dataTable({
+        "searching": true
+    });
 
-        var table = $('#myTable').DataTable();
 
-        $("#filterTable_filter.dataTables_filter").append($("#SERVICE_PROVIDER_ID"));
-        var typeIndex = 2;
-        var statusIndex = 7;
-
-        /*var startDateIndex = 3;
-        var endDateIndex = 5;*/
+    $(function () {
+        let table = $('#myTable').DataTable();
 
         $.fn.dataTable.ext.search.push(
             function (settings, data, dataIndex) {
 
-                var eventType   = $('#SERVICE_PROVIDER_ID').val();
-                //var eventStatus = $('#PK_EVENT_STATUS').val();
+                let eventType   = $('#SERVICE_PROVIDER_ID').val();
+                let startDate = $('#START_DATE').val();
+                let endDate = $('#END_DATE').val();
 
-                var eventTypeVal  = data[typeIndex];
-                //var eventStatusVal  = data[statusIndex];
+                let eventTypeVal  = data[5];
+                let startedAt = data[7] || 0;
+                let endedAt = data[7] || 0;
 
-                var startDate = $('#START_DATE').val();
-                var endDate = $('#END_DATE').val();
 
-                var startedAt = data[7] || 0;
-                var endedAt = data[7] || 0;
-
-                /*var startDateVal = data[startDateIndex];
-                var endDateVal = data[endDateIndex];*/
-                if (
-                    (eventType === "" || eventTypeVal.includes(eventType))
-                    && (startDate == "" || moment(startedAt).isSameOrAfter(startDate))
-                    && (endDate == "" || moment(endedAt).isSameOrBefore(endDate))
-                )
+                if ((eventType === "" || eventTypeVal.includes(eventType)) && (startDate == "" || moment(startedAt).isSameOrAfter(startDate)) && (endDate == "" || moment(endedAt).isSameOrBefore(endDate)))
                 {
                     return true;
                 }
@@ -215,14 +188,9 @@ if(empty($_GET['id'])){
             table.draw();
         });
 
-
-        $('#START_DATE, #END_DATE').on('input', function (e) {
-            table.draw();
-        });
-
         table.draw();
-
     });
+
     function ConfirmDelete(anchor)
     {
         let conf = confirm("Are you sure you want to delete?");

@@ -21,14 +21,29 @@ if (isset($_POST['FUNCTION_NAME'])){
     $session_cost = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
     $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
     if(empty($_POST['PK_APPOINTMENT_MASTER'])){
-        $_POST['PK_APPOINTMENT_STATUS'] = 1;
-        $_POST['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-        $_POST['ACTIVE'] = 1;
-        $_POST['CREATED_BY']  = $_SESSION['PK_USER'];
-        $_POST['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_APPOINTMENT_MASTER', $_POST, 'insert');
+        $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
+        $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
+        for ($i=0; $i<count($START_TIME_ARRAY); $i++) {
+            $APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+            $APPOINTMENT_DATA['CUSTOMER_ID'] = $_POST['CUSTOMER_ID'];
+
+            $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $_POST['PK_ENROLLMENT_MASTER']);
+            $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[0];
+            $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_MASTER_ARRAY[1];
+            $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[2];
+            $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_ENROLLMENT_MASTER_ARRAY[3];
+
+            $APPOINTMENT_DATA['SERVICE_PROVIDER_ID'] = $_POST['SERVICE_PROVIDER_ID'];
+            $APPOINTMENT_DATA['DATE'] = $_POST['DATE'];
+            $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
+            $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
+            $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+            $APPOINTMENT_DATA['ACTIVE'] = 1;
+            $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+            $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+            db_perform('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+        }
     }else{
-        //$_POST['ACTIVE'] = $_POST['ACTIVE'];
         if($_FILES['IMAGE']['name'] != ''){
             $extn 			= explode(".",$_FILES['IMAGE']['name']);
             $iindex			= count($extn) - 1;
@@ -45,6 +60,16 @@ if (isset($_POST['FUNCTION_NAME'])){
         $_POST['EDITED_BY']	= $_SESSION['PK_USER'];
         $_POST['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_APPOINTMENT_MASTER', $_POST, 'update'," PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
+
+        if ($_POST['PK_APPOINTMENT_STATUS'] == 2 || ($_POST['PK_APPOINTMENT_STATUS'] == 4 && $_POST['NO_SHOW'] == 'Charge')) {
+            $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
+            if ($enrollment_balance->RecordCount() > 0) {
+                $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_USED'] = $enrollment_balance->fields['TOTAL_BALANCE_USED'] + $price_per_session;
+                $ENROLLMENT_BALANCE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+                $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
+                db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
+            }
+        }
     }
 
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
@@ -177,7 +202,7 @@ if(empty($_GET['id'])){
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-2">
+                                            <div class="col-5">
                                                 <div class="form-group">
                                                     <label class="form-label">Enrollment ID<span class="text-danger">*</span></label>
                                                     <select class="form-control" required name="PK_ENROLLMENT_MASTER" id="PK_ENROLLMENT_MASTER" onchange="selectThisEnrollment(this);">
@@ -186,7 +211,7 @@ if(empty($_GET['id'])){
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-2">
+                                            <!--<div class="col-2">
                                                 <div class="form-group">
                                                     <label class="form-label">Service<span class="text-danger">*</span></label>
                                                     <select class="form-control" required name="PK_SERVICE_MASTER" id="PK_SERVICE_MASTER" onchange="selectThisService(this);">
@@ -203,7 +228,7 @@ if(empty($_GET['id'])){
 
                                                     </select>
                                                 </div>
-                                            </div>
+                                            </div>-->
                                             <div class="col-3">
                                                 <div class="form-group">
                                                     <label class="form-label"><?=$service_provider_title?><span class="text-danger">*</span></label>
@@ -447,6 +472,7 @@ if(empty($_GET['id'])){
     <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
     <script type="text/javascript">
+        let PK_APPOINTMENT_MASTER = <?=(empty($_GET['id']))?0:$_GET['id']?>;
         $('#CUSTOMER_ID').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
         $('#SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
 
@@ -513,6 +539,37 @@ if(empty($_GET['id'])){
         function selectThisEnrollment(param) {
             let PK_ENROLLMENT_MASTER = $(param).val();
             $.ajax({
+                url: "ajax/get_service_provider.php",
+                type: "POST",
+                data: {PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#SERVICE_PROVIDER_ID').empty();
+                    $('#SERVICE_PROVIDER_ID').append(result);
+                    $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
+                }
+            });
+        }
+
+        /*function selectThisCustomer(param) {
+            let PK_USER_MASTER = $(param).val();
+            $.ajax({
+                url: "ajax/get_enrollments.php",
+                type: "POST",
+                data: {PK_USER_MASTER: PK_USER_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#PK_ENROLLMENT_MASTER').empty();
+                    $('#PK_ENROLLMENT_MASTER').append(result);
+                }
+            });
+        }
+
+        function selectThisEnrollment(param) {
+            let PK_ENROLLMENT_MASTER = $(param).val();
+            $.ajax({
                 url: "ajax/get_services.php",
                 type: "POST",
                 data: {PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER},
@@ -524,9 +581,9 @@ if(empty($_GET['id'])){
                     selectThisService($('#PK_SERVICE_MASTER'));
                 }
             });
-        }
+        }*/
 
-        function selectThisService(param) {
+        /*function selectThisService(param) {
             let PK_SERVICE_MASTER = $(param).val();
             $.ajax({
                 url: "ajax/get_service_provider.php",
@@ -555,13 +612,14 @@ if(empty($_GET['id'])){
             });
 
             getSlots();
-        }
+        }*/
 
         function getSlots(){
-            let PK_SERVICE_MASTER = $('#PK_SERVICE_MASTER').val();
-            let PK_SERVICE_CODE = $('#PK_SERVICE_CODE').val();
+            let PK_ENROLLMENT_MASTER = $('#PK_ENROLLMENT_MASTER').val();
+            /*let PK_SERVICE_MASTER = $('#PK_SERVICE_MASTER').val();
+            let PK_SERVICE_CODE = $('#PK_SERVICE_CODE').val();*/
             let SERVICE_PROVIDER_ID = $('#SERVICE_PROVIDER_ID').val();
-            let duration = $('#PK_SERVICE_CODE').find(':selected').data('duration');
+            let duration = $('#PK_ENROLLMENT_MASTER').find(':selected').data('duration');
             let selected_date  = myCalender.value.toDateString();
             let day = (selected_date.toString().split(' ')[0]).toUpperCase();
             let month = selected_date.toString().split(' ')[1];
@@ -600,8 +658,10 @@ if(empty($_GET['id'])){
                     url: "ajax/get_slots.php",
                     type: "POST",
                     data: {
-                        PK_SERVICE_MASTER: PK_SERVICE_MASTER,
-                        PK_SERVICE_CODE: PK_SERVICE_CODE,
+                        PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
+                        PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                        /*PK_SERVICE_MASTER: PK_SERVICE_MASTER,
+                        PK_SERVICE_CODE: PK_SERVICE_CODE,*/
                         SERVICE_PROVIDER_ID: SERVICE_PROVIDER_ID,
                         duration: duration,
                         day: day,

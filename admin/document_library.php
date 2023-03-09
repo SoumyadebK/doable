@@ -173,6 +173,12 @@ if(empty($_GET['id'])){
                                     </div>
                                 </div>
 
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <a href="javascript:;" onclick="viewSamplePdf()" style="float: right;">View PDF</a>
+                                    </div>
+                                </div>
+
                                 <?php if(!empty($_GET['id'])) { ?>
                                     <div class="row" style="margin-bottom: 15px;">
                                         <div class="col-6">
@@ -213,6 +219,25 @@ if(empty($_GET['id'])){
         let tag_name = $(this).data('tag');
         editor.insertText(tag_name);
     });
+
+    function viewSamplePdf() {
+        let DOCUMENT_TEMPLATE = $('#ck_editor').val();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {FUNCTION_NAME: 'viewSamplePdf', DOCUMENT_TEMPLATE: DOCUMENT_TEMPLATE},
+            success:function (data) {
+                console.log(data);
+                window.open(
+                    data,
+                    '_blank' // <- This is what makes it open in a new window.
+                );
+            },
+            error: (error) => {
+                console.log(JSON.stringify(error));
+            }
+        });
+    }
 </script>
 </body>
 </html>

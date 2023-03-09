@@ -6,7 +6,15 @@ namespace Composer\Autoload;
 
 class ComposerStaticInitdd8b324ce8120ddff820cb14ef78deb7
 {
+    public static $files = array (
+        '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
+        's' => 
+        array (
+            'setasign\\Fpdi\\' => 14,
+        ),
         'a' => 
         array (
             'apimatic\\jsonmapper\\' => 20,
@@ -23,6 +31,23 @@ class ComposerStaticInitdd8b324ce8120ddff820cb14ef78deb7
         array (
             'Square\\' => 7,
         ),
+        'P' => 
+        array (
+            'Psr\\Log\\' => 8,
+            'Psr\\Http\\Message\\' => 17,
+        ),
+        'M' => 
+        array (
+            'Mpdf\\' => 5,
+        ),
+        'H' => 
+        array (
+            'Http\\Message\\' => 13,
+        ),
+        'D' => 
+        array (
+            'DeepCopy\\' => 9,
+        ),
         'C' => 
         array (
             'Core\\' => 5,
@@ -31,6 +56,10 @@ class ComposerStaticInitdd8b324ce8120ddff820cb14ef78deb7
     );
 
     public static $prefixDirsPsr4 = array (
+        'setasign\\Fpdi\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/setasign/fpdi/src',
+        ),
         'apimatic\\jsonmapper\\' => 
         array (
             0 => __DIR__ . '/..' . '/apimatic/jsonmapper/src',
@@ -46,6 +75,26 @@ class ComposerStaticInitdd8b324ce8120ddff820cb14ef78deb7
         'Square\\' => 
         array (
             0 => __DIR__ . '/..' . '/square/square/src',
+        ),
+        'Psr\\Log\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+        ),
+        'Psr\\Http\\Message\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/http-message/src',
+        ),
+        'Mpdf\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mpdf/mpdf/src',
+        ),
+        'Http\\Message\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/php-http/message-factory/src',
+        ),
+        'DeepCopy\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy',
         ),
         'Core\\' => 
         array (

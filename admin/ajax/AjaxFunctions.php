@@ -1,4 +1,7 @@
 <?php
+
+use Mpdf\Mpdf;
+
 require_once('../../global/config.php');
 
 $RESPONSE_DATA = $_POST;
@@ -70,7 +73,15 @@ function saveEnrollmentData($RESPONSE_DATA){
     $ENROLLMENT_MASTER_DATA['PK_DOCUMENT_LIBRARY'] = $RESPONSE_DATA['PK_DOCUMENT_LIBRARY'];
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_ID'] = $RESPONSE_DATA['ENROLLMENT_BY_ID'];
 
-
+    $document_library_data = $db->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = '$RESPONSE_DATA[PK_DOCUMENT_LIBRARY]'");
+    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.ZIP FROM DOA_USERS INNER JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']);
+    $html_template = $document_library_data->fields['DOCUMENT_TEMPLATE'];
+    $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template);
+    $html_template = str_replace('{STREET_ADD}', $user_data->fields['ADDRESS'], $html_template);
+    $html_template = str_replace('{CITY}', $user_data->fields['CITY'], $html_template);
+    $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
+    $html_template = str_replace('{CELL_PHONE}', $user_data->fields['PHONE'], $html_template);
+    $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
 
     if(empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER'])){
         $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
@@ -115,93 +126,22 @@ function saveEnrollmentData($RESPONSE_DATA){
         }
     }
 
-    $document_library_data = $db->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = '$RESPONSE_DATA[PK_DOCUMENT_LIBRARY]'");
-    $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($document_library_data->fields['DOCUMENT_TEMPLATE']);
-
     $return_data['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
     $return_data['TOTAL_AMOUNT'] = $total;
     echo json_encode($return_data);
 }
 
-
-
 function generatePdf($html){
-    error_reporting(0);
-    require_once('../../global/tcpdf/config/lang/eng.php');
-    require_once('../../global/tcpdf/tcpdf.php');
+    require_once('../../global/vendor/autoload.php');
 
-    class MYPDF extends TCPDF {
-        public function Header() {
-            /*global $SITENAME, $PK_QUOTE_MASTER, $http_path;
+    $mpdf = new Mpdf();
+    $mpdf->WriteHTML($html);
 
-            $image_file = '../images/logo.png';
-            $this->Image($image_file, 10, 5, 50, '', 'PNG', '', 'T', false, 300, '', false, false, 0, false, false, false);
-            $this->SetFont('helvetica', '', 13);
-            $this->SetY(8);
-
-            $this->SetY(17);
-            $this->SetX(150);
-            $this->SetTextColor(255, 255, 255);
-            $this->SetFillColor(0, 0, 0);
-            $style = array('width' => 0.2, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(0, 0, 0));
-            $this->Line(5, 21, 205, 21, $style);
-            $this->Cell(58, 8, 'QUOTATION', 1, false, 'C', 1, '', 0, false, 'M', 'L');*/
-        }
-
-        public function Footer() {
-            /*$this->SetY(-15);
-            $style = array('width' => 0.2, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(0, 0, 0));
-            $this->Line(5, 282, 205, 282, $style);
-
-            $this->SetFont('helvetica', '', 8);
-            $this->Cell(30, 10, 'Page '.$this->getAliasNumPage().' of '.$this->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
-            */
-        }
-    }
-
-    // create new PDF document
-    //$pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-    $pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, false, 'ISO-8859-1', false);
-    //$pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, PDF_HEADER_TITLE.' 001', PDF_HEADER_STRING, array(0,64,255), array(0,64,128));
-
-    // set header and footer fonts
-    $pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
-    //$pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
-
-    // set default monospaced font
-    $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
-    //$pdf->SetDisplayMode('fullwidth','SinglePage','FullScreen');
-
-    //set margins
-    $pdf->SetMargins(3, 0, 3);
-    $pdf->SetHeaderMargin(0);
-    //$pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-
-    //set auto page breaks
-    $pdf->SetAutoPageBreak(TRUE, 0);
-
-    //set image scale factor
-    $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
-
-    //set some language-dependent strings
-    /*$pdf->setLanguageArray($l);*/
-    // ---------------------------------------------------------
-
-    // set default font subsetting mode
-    $pdf->setFontSubsetting(true);
-    $pdf->SetFont('helvetica', '', 22, '', true);
-    $pdf->AddPage();
-
-    //echo $html;exit;
-    $pdf->writeHTML($html, $ln=true, $fill=false, $reseth=true, $cell=true, $align='');
-
-    //$file_name = 'Quote-'.$PK_QUOTE_MASTER.'.pdf';
-    $file_name = "data-".time().".pdf";
-    $pdf->Output("../../uploads/enrollment_pdf/".$file_name, 'F');
+    $file_name = "enrollment_pdf_".time().".pdf";
+    $mpdf->Output("../../uploads/enrollment_pdf/".$file_name, 'F');
 
     return $file_name;
 }
-
 
 
 function saveEnrollmentBillingData($RESPONSE_DATA){
@@ -1107,4 +1047,28 @@ function markAllAppointmentCompleted($RESPONSE_DATA) {
         $db->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER[$i]);
     }
     echo 1;
+}
+
+function viewSamplePdf($RESPONSE_DATA) {
+    $files = glob('../../uploads/sample_enrollment_pdf/*'); // get all file names
+    foreach($files as $file){ // iterate files
+        if(is_file($file)) {
+            unlink($file); // delete file
+        }
+    }
+
+    global $http_path;
+    require_once('../../global/vendor/autoload.php');
+    $html = $RESPONSE_DATA['DOCUMENT_TEMPLATE'];
+
+    try {
+        $mpdf = new Mpdf();
+        $mpdf->WriteHTML($html);
+        $file_name = "sample_pdf_".time().".pdf";
+        $mpdf->Output("../../uploads/sample_enrollment_pdf/".$file_name, 'F');
+    } catch (Exception $e) {
+        echo $e->getMessage(); die;
+    }
+
+    echo $http_path."uploads/sample_enrollment_pdf/".$file_name;
 }
