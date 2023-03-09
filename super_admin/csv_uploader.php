@@ -1,6 +1,7 @@
 <?php
-$conn = require_once('../global/config.php');
+require_once('../global/config.php');
 $title = "Upload CSV";
+require_once('upload_functions.php');
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 1 ){
     header("location:../login.php");
@@ -77,7 +78,11 @@ if (isset($_POST['submit']))
                 case 'DOA_USERS':
                     $table_data = $db->Execute("SELECT * FROM DOA_USERS WHERE USER_ID='$getData[3]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
                     if ($table_data->RecordCount() == 0) {
+                        $roleId = $getData[3];
+                        $getRole = getRole($roleId);
+                        $doableRoleId = $db->Execute("SELECT name FROM roles WHERE name='$getRole'");
                         $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $INSERT_DATA['PK_ROLES'] = $doableRoleId;
                         $INSERT_DATA['USER_TITLE'] = $getData[0];
                         $INSERT_DATA['FIRST_NAME'] = $getData[1];
                         $INSERT_DATA['LAST_NAME'] = $getData[2];
