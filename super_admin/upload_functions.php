@@ -14,8 +14,8 @@ if ($db1->error_number){
     die("Connection Error");
 }
 
-function getRole($role){
+function getRole($role_id){
     global $db1;
-    $role = $db1->Execute("SELECT name FROM roles role_id = '$role'");
+    $role = $db1->Execute("SELECT name FROM roles where id = '$role_id'");
     return $role->fields['name'];
 }
