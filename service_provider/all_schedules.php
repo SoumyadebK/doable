@@ -229,11 +229,6 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
                                             </td>
                                             <td>
                                                 <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <?php /*if($appointment_data->fields['ACTIVE']==1){ */?><!--
-                                                    <span class="active-box-green"></span>
-                                                <?php /*} else{ */?>
-                                                    <span class="active-box-red"></span>
-                                                --><?php /*} */?>
                                             </td>
                                         </tr>
                                         <?php $appointment_data->MoveNext();

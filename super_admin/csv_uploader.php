@@ -207,16 +207,17 @@ if(!empty($_POST))
                         </div>
                     </div>
                     <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">Select Table Name</label>
-                        <select class="form-control" name="TABLE_NAME" id="TABLE_NAME">
-                            <option value="">Select Table Name</option>
-                            <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
-                            <option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
-                            <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>
-                            <option value="DOA_USERS">DOA_USERS</option>
-                        </select>
-                    </div>
+                        <div class="form-group">
+                            <label class="form-label">Select Table Name</label>
+                            <select class="form-control" name="TABLE_NAME" id="TABLE_NAME" onchange="viewCsvDownload(this)">
+                                <option value="">Select Table Name</option>
+                                <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
+                                <option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
+                                <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>
+                                <option value="DOA_USERS">DOA_USERS</option>
+                            </select>
+                            <div id="view_download_div" class="m-10"></div>
+                        </div>
                     </div>
                     <!--<div class="col-md-4">
                         <div class="form-group">
@@ -237,11 +238,16 @@ if(!empty($_POST))
                     </div>
                 </div>
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
-                <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_roles.php'">Cancel</button>
             </form>
         </div>
     </div>
 </div>
 <?php require_once('../includes/footer.php');?>
 </body>
+<script>
+    function viewCsvDownload(param) {
+        let table_name = $(param).val();
+        $('#view_download_div').html(`<a href="../uploads/csv_upload/${table_name}.csv" target="_blank">View Sample</a>`);
+    }
+</script>
 </html>

@@ -275,12 +275,8 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
                                                 <?php } ?>
                                             </td>
                                             <td>
-                                                <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <?php /*if($appointment_data->fields['ACTIVE']==1){ */?><!--
-                                                    <span class="active-box-green"></span>
-                                                <?php /*} else{ */?>
-                                                    <span class="active-box-red"></span>
-                                                --><?php /*} */?>
+                                                <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
                                         <?php $appointment_data->MoveNext();
@@ -308,6 +304,19 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
                                 </div>
                             </div>
                             <div class="card-body" id="appointment_details_div">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="myModal" class="modal">
+                    <!-- Modal content -->
+                    <div class="modal-content" style="width: 20%;">
+                        <span class="close" style="margin-left: 96%;">&times;</span>
+                        <div class="card" id="payment_confirmation_form_div">
+                            <div class="card-body">
+                                <a href="add_schedule.php" target="_blank">Create Appointment</a><br><br>
+                                <a href="event.php" target="_blank">Create Event</a>
                             </div>
                         </div>
                     </div>
@@ -591,7 +600,8 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    window.location.href = "add_schedule.php";
+                    //window.location.href = "add_schedule.php";
+                    openModel();
                 }
                 console.log(
                     'dayClick',
@@ -675,6 +685,31 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
         let conf = confirm("Do you want to mark this appointment as completed?");
         if(conf)
             window.location=anchor.attr("href");
+    }
+</script>
+
+<script>
+    // Get the modal
+    var modal = document.getElementById("myModal");
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks the button, open the modal
+    function openModel() {
+        modal.style.display = "block";
+    }
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
     }
 </script>
 </body>

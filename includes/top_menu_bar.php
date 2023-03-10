@@ -99,6 +99,12 @@
                                 <span class="hide-menu">Appointments</span>
                             </a>
                         </li>
+                        <li>
+                            <a class="waves-effect waves-dark" href="../service_provider/operations.php" aria-expanded="false">
+                                <i class="ti-layers-alt"></i>
+                                <span class="hide-menu">Operations</span>
+                            </a>
+                        </li>
                     <?php } ?>
                 </ul>
             </nav>
