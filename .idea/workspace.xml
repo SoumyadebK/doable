@@ -19,7 +19,12 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="13933e40-c45c-4ca4-9024-abf020b380ed" name="Default Changelist" comment="" />
+    <list default="true" id="13933e40-c45c-4ca4-9024-abf020b380ed" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/add_multiple_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/add_multiple_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/service.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/service.php" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

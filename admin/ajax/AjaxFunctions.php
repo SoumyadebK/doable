@@ -36,7 +36,10 @@ function saveServiceInfoData($RESPONSE_DATA){
 function saveServiceCodeData($RESPONSE_DATA){
     global $db;
     if (count($RESPONSE_DATA['SERVICE_CODE']) > 0) {
-        $db->Execute("DELETE FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_MASTER` = '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
+        $ALL_PK_SERVICE_CODE = $RESPONSE_DATA['ALL_PK_SERVICE_CODE'];
+        $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'];
+        $DELETED_CODE = array_diff($ALL_PK_SERVICE_CODE, $PK_SERVICE_CODE);
+        $db->Execute("DELETE FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_CODE` IN (".implode(',', $DELETED_CODE).")");
         for ($i = 0; $i < count($RESPONSE_DATA['SERVICE_CODE']); $i++) {
             $SERVICE_CODE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'];
             $SERVICE_CODE_DATA['PK_FREQUENCY'] = $RESPONSE_DATA['PK_FREQUENCY'][$i];
@@ -47,11 +50,15 @@ function saveServiceCodeData($RESPONSE_DATA){
             $SERVICE_CODE_DATA['PRICE'] = $RESPONSE_DATA['PRICE'][$i];
             $SERVICE_CODE_DATA['SERVICE_CODE'] = $RESPONSE_DATA['SERVICE_CODE'][$i];
             $SERVICE_CODE_DATA['DESCRIPTION'] = $RESPONSE_DATA['SERVICE_CODE_DESCRIPTION'][$i];
-            db_perform('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
+            if ($RESPONSE_DATA['PK_SERVICE_CODE'][$i] > 0){
+                db_perform('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'update', "PK_SERVICE_CODE = ".$RESPONSE_DATA['PK_SERVICE_CODE'][$i]);
+            } else {
+                db_perform('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
+            }
         }
     }
 
-    if (count($RESPONSE_DATA['PK_USER']) > 0) {
+    if (isset($RESPONSE_DATA['PK_USER']) && count($RESPONSE_DATA['PK_USER']) > 0) {
         $db->Execute("DELETE FROM `DOA_SERVICE_PROVIDER_SERVICE_NEW` WHERE `PK_SERVICE_MASTER` = '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
         for ($i = 0; $i < count($RESPONSE_DATA['PK_USER']); $i++) {
             $SERVICE_PROVIDER_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'][$i];
@@ -1071,4 +1078,64 @@ function viewSamplePdf($RESPONSE_DATA) {
     }
 
     echo $http_path."uploads/sample_enrollment_pdf/".$file_name;
+}
+
+function saveMultiAppointmentData($RESPONSE_DATA){
+    global $db;
+    $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+    $PK_ENROLLMENT_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[0];
+    $PK_ENROLLMENT_SERVICE = $PK_ENROLLMENT_MASTER_ARRAY[1];
+    $PK_SERVICE_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[2];
+    $PK_SERVICE_CODE = $PK_ENROLLMENT_MASTER_ARRAY[3];
+
+    $DURATION = $RESPONSE_DATA['DURATION'];
+    $NUMBER_OF_SESSION = $RESPONSE_DATA['NUMBER_OF_SESSION'];
+    $STARTING_ON = $RESPONSE_DATA['STARTING_ON'];
+    $LENGTH = $RESPONSE_DATA['LENGTH'];
+    $FREQUENCY = $RESPONSE_DATA['FREQUENCY'];
+    $END_DATE = date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
+
+    $START_TIME = $RESPONSE_DATA['START_TIME'];
+    $END_TIME = date("H:i", strtotime($START_TIME)+($DURATION*60));
+
+    $APPOINTMENT_DATE_ARRAY = [];
+    if (!empty($RESPONSE_DATA['OCCURRENCE'])){
+        $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
+        if ($RESPONSE_DATA['OCCURRENCE'] == 'WEEKLY'){
+            if (isset($RESPONSE_DATA['DAYS'])) {
+                $DAYS = $RESPONSE_DATA['DAYS'];
+            } else {
+                $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
+            }
+            while ($APPOINTMENT_DATE < $END_DATE) {
+                for ($i = 0; $i < count($DAYS); $i++) {
+                    $day = $DAYS[$i];
+                    $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
+                    if ($day == strtolower($appointment_day)){
+                        $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
+                    }
+                    $APPOINTMENT_DATE = date('Y-m-d', strtotime('next '.$day, strtotime($APPOINTMENT_DATE)));
+                    //echo $APPOINTMENT_DATE . "<br>";
+                }
+            }
+        }else {
+            $OCCURRENCE_DAYS = (empty($RESPONSE_DATA['OCCURRENCE_DAYS']))?7:$RESPONSE_DATA['OCCURRENCE_DAYS'];
+
+            while ($APPOINTMENT_DATE < $END_DATE) {
+                $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
+                $APPOINTMENT_DATE = date('Y-m-d', strtotime('+ '.$OCCURRENCE_DAYS.' day', strtotime($APPOINTMENT_DATE)));
+                //echo $APPOINTMENT_DATE . "<br>";
+            }
+        }
+    }
+
+    $session_created_data = $db->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER." AND PK_ENROLLMENT_MASTER = ".$PK_SERVICE_CODE);
+    $SESSION_CREATED = $session_created_data->fields['SESSION_COUNT'];
+    $SESSION_LEFT = $NUMBER_OF_SESSION-$SESSION_CREATED;
+
+    if (count($APPOINTMENT_DATE_ARRAY) > $SESSION_LEFT) {
+        echo $SESSION_LEFT;
+    } else {
+        echo 0;
+    }
 }

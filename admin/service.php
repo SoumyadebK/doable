@@ -230,7 +230,9 @@ if(empty($_GET['id'])){
                                                 if(!empty($_GET['id'])) { $i = 0;
                                                 $row = $db->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = '$_GET[id]'");
                                                 while (!$row->EOF) { ?>
+                                                    <input type="hidden" name="ALL_PK_SERVICE_CODE[]" value="<?=$row->fields['PK_SERVICE_CODE']?>">
                                                     <div class="row align-items-end">
+                                                        <input type="hidden" name="PK_SERVICE_CODE[]" value="<?=$row->fields['PK_SERVICE_CODE']?>">
                                                         <div class="col-2">
                                                             <div class="form-group">
                                                                 <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code" value="<?=$row->fields['SERVICE_CODE']?>">
@@ -302,6 +304,7 @@ if(empty($_GET['id'])){
                                                 <?php $row->MoveNext(); $i++;} ?>
                                                 <?php } else { $i = 1;?>
                                                     <div class="row align-items-end">
+                                                        <input type="hidden" name="PK_SERVICE_CODE[]" value="0">
                                                         <div class="col-2">
                                                             <div class="form-group">
                                                                 <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code">
@@ -520,6 +523,7 @@ if(empty($_GET['id'])){
     function addMoreServiceCode() {
         let PK_SERVICE_CLASS = ($('.PK_SERVICE_CLASS').val())?parseInt($('.PK_SERVICE_CLASS').val()):1;
         $('#append_service_code').append(`<div class="row align-items-end">
+                                            <input type="hidden" name="PK_SERVICE_CODE[]" value="0">
                                             <div class="col-2">
                                                 <div class="form-group">
                                                     <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code">
