@@ -98,20 +98,93 @@ if(!empty($_POST))
                         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                         db_perform('DOA_USERS', $INSERT_DATA, 'insert');
 
+
+                            $PK_USER = $db->insert_ID();
+                        if ($PK_USER) {
+                            $USER_DATA['PK_USER'] = $PK_USER;
+                            $USER_DATA['GENDER'] = $getData[5];
+                            $USER_DATA['DOB'] = $getData[15];
+                            $USER_DATA['ADDRESS'] = $getData[6];
+                            $USER_DATA['ADDRESS_1'] = $getData[7];
+                            $USER_DATA['CITY'] = $getData[8];
+                            $USER_DATA['PK_STATES'] = $getData[9];
+                            $USER_DATA['ZIP'] = $getData[10];
+                            $USER_DATA['NOTES'] = $getData[16];
+                            $USER_DATA['ACTIVE'] = 1;
+                            $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                            $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                            db_perform('DOA_USER_PROFILE', $USER_DATA, 'insert');
+                        }
+
+                    }
+                    break;
+
+                case 'DOA_CUSTOMER':
+                    $table_data = $db->Execute("SELECT * FROM DOA_USERS WHERE USER_ID='$getData[0]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($table_data->RecordCount() == 0) {
+                        $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $INSERT_DATA['PK_ROLES'] = 4;
+                        $INSERT_DATA['FIRST_NAME'] = $getData[2];
+                        $INSERT_DATA['LAST_NAME'] = $getData[3];
+                        $INSERT_DATA['USER_API_KEY'] = $getData[0];
+                        $INSERT_DATA['EMAIL_ID'] = $getData[13];
+                        $INSERT_DATA['HOME_PHONE'] = $getData[19];
+                        $INSERT_DATA['PHONE'] = $getData[21];
+                        $INSERT_DATA['ACTIVE'] = 1;
+                        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                        db_perform('DOA_USERS', $INSERT_DATA, 'insert');
+
                         $PK_USER = $db->insert_ID();
-                        $USER_DATA['PK_USER'] = $PK_USER;
-                        $USER_DATA['GENDER'] = $getData[5];
-                        $USER_DATA['DOB'] = $getData[15];
-                        $USER_DATA['ADDRESS'] = $getData[6];
-                        $USER_DATA['ADDRESS_1'] = $getData[7];
-                        $USER_DATA['CITY'] = $getData[8];
-                        $USER_DATA['PK_STATES'] = $getData[9];
-                        $USER_DATA['ZIP'] = $getData[10];
-                        $USER_DATA['NOTES'] = $getData[16];
-                        $USER_DATA['ACTIVE'] = 1;
-                        $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-                        $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                        db_perform('DOA_USER_PROFILE', $USER_DATA, 'insert');
+                        if ($PK_USER) {
+                            $USER_DATA['PK_USER'] = $PK_USER;
+                            $USER_DATA['GENDER'] = $getData[8];
+                            $USER_DATA['DOB'] = $getData[6];
+                            $USER_DATA['ADDRESS'] = $getData[14];
+                            $USER_DATA['ADDRESS_1'] = $getData[15];
+                            $USER_DATA['CITY'] = $getData[16];
+                            $USER_DATA['PK_STATES'] = $getData[17];
+                            $USER_DATA['ZIP'] = $getData[18];
+                            $USER_DATA['NOTES'] = $getData[16];
+                            $USER_DATA['ACTIVE'] = 1;
+                            $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                            $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                            db_perform('DOA_USER_PROFILE', $USER_DATA, 'insert');
+
+                            $USER_MASTER_DATA['PK_USER'] = $PK_USER;
+                            $USER_MASTER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                            db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
+
+                            $PK_USER_MASTER = $db->insert_ID();
+                            if($PK_USER_MASTER){
+                                $CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                                $CUSTOMER_DATA['FIRST_NAME'] = $getData[2];
+                                $CUSTOMER_DATA['LAST_NAME'] = $getData[3];
+                                $CUSTOMER_DATA['EMAIL'] = $getData[25];
+                                $CUSTOMER_DATA['PHONE'] = $getData[21];
+                                $CUSTOMER_DATA['DOB'] = $getData[6];
+                                $CUSTOMER_DATA['CALL_PREFERENCE'] = $getData[23];
+                                $CUSTOMER_DATA['REMINDER_OPTION'] = $getData[24];
+                                $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = $getData[26];
+                                $CUSTOMER_DATA['PARTNER_GENDER'] = $getData[21];
+                                $CUSTOMER_DATA['PARTNER_DOB'] = $getData[7];
+                                $CUSTOMER_DATA['IS_PRIMARY'] = 1;
+                                db_perform('DOA_CUSTOMER_DETAILS', $CUSTOMER_DATA, 'insert');
+
+                                $PK_CUSTOMER_DETAILS = $db->insert_ID();
+                                $SPECIAL_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                                $SPECIAL_DATA['SPECIAL_DATE'] =  $getData[10];
+                                $SPECIAL_DATA['DATE_NAME'] = $getData[12];
+                                db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA, 'insert');
+                                $SPECIAL_DATA_1['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                                $SPECIAL_DATA_1['SPECIAL_DATE'] =  $getData[11];
+                                $SPECIAL_DATA_1['DATE_NAME'] = $getData[13];
+                                db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA_1, 'insert');
+                            }
+                        }
+
+
+
                     }
                     break;
             }
@@ -215,6 +288,7 @@ if(!empty($_POST))
                                 <option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
                                 <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>
                                 <option value="DOA_USERS">DOA_USERS</option>
+                                <option value="DOA_CUSTOMER">DOA_CUSTOMER</option>
                             </select>
                             <div id="view_download_div" class="m-10"></div>
                         </div>
