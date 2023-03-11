@@ -122,11 +122,8 @@ if(!empty($_POST))
                 case 'DOA_CUSTOMER':
                     $table_data = $db->Execute("SELECT * FROM DOA_USERS WHERE USER_ID='$getData[0]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
                     if ($table_data->RecordCount() == 0) {
-                        $roleId = $getData[1];
-                        $getRole = getRole($roleId);
-                        $doableRoleId = $db->Execute("SELECT PK_ROLES FROM DOA_ROLES WHERE ROLES='$getRole'");
                         $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $INSERT_DATA['PK_ROLES'] = $doableRoleId->fields['PK_ROLES'];
+                        $INSERT_DATA['PK_ROLES'] = 4;
                         $INSERT_DATA['FIRST_NAME'] = $getData[2];
                         $INSERT_DATA['LAST_NAME'] = $getData[3];
                         $INSERT_DATA['USER_API_KEY'] = $getData[0];
@@ -171,6 +168,7 @@ if(!empty($_POST))
                                 $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = $getData[26];
                                 $CUSTOMER_DATA['PARTNER_GENDER'] = $getData[21];
                                 $CUSTOMER_DATA['PARTNER_DOB'] = $getData[7];
+                                $CUSTOMER_DATA['IS_PRIMARY'] = 1;
                                 db_perform('DOA_CUSTOMER_DETAILS', $CUSTOMER_DATA, 'insert');
 
                                 $PK_CUSTOMER_DETAILS = $db->insert_ID();
@@ -178,10 +176,10 @@ if(!empty($_POST))
                                 $SPECIAL_DATA['SPECIAL_DATE'] =  $getData[10];
                                 $SPECIAL_DATA['DATE_NAME'] = $getData[12];
                                 db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA, 'insert');
-                                $SPECIAL_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $SPECIAL_DATA['SPECIAL_DATE'] =  $getData[11];
-                                $SPECIAL_DATA['DATE_NAME'] = $getData[13];
-                                db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA, 'insert');
+                                $SPECIAL_DATA_1['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                                $SPECIAL_DATA_1['SPECIAL_DATE'] =  $getData[11];
+                                $SPECIAL_DATA_1['DATE_NAME'] = $getData[13];
+                                db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA_1, 'insert');
                             }
                         }
 
