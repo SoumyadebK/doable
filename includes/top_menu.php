@@ -125,11 +125,7 @@
                         <?php } else { ?>
                             <img src="<?= $res->fields[
                             "USER_IMAGE"
-                            ] ?>" alt="user-img" class="img-circle" width="35" height="35"> &nbsp;&nbsp;&nbsp;<?= $_SESSION[
-                        "FIRST_NAME"
-                        ] .
-                        " " .
-                        $_SESSION["LAST_NAME"] ?> <i class="fas fa-angle-down"></i>
+                            ] ?>" alt="user-img" class="img-circle" width="35" height="35"> &nbsp;&nbsp;&nbsp;<?= $_SESSION["FIRST_NAME"]." ".$_SESSION["LAST_NAME"] ?> <i class="fas fa-angle-down"></i>
                         <?php }
                         ?>
                     </a>

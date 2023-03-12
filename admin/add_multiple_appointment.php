@@ -41,15 +41,21 @@ if (isset($_POST['FUNCTION_NAME'])){
                     $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
                 }
                 while ($APPOINTMENT_DATE < $END_DATE) {
-                    for ($i = 0; $i < count($DAYS); $i++) {
+                    $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
+                    if (in_array(strtolower($appointment_day), $DAYS)){
+                        $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
+                    }
+                    $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
+                    /*for ($i = 0; $i < count($DAYS); $i++) {
                         $day = $DAYS[$i];
                         $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
+                        echo $appointment_day." - ".$day."<br>";
                         if ($day == strtolower($appointment_day)){
                             $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
                         }
-                        $APPOINTMENT_DATE = date('Y-m-d', strtotime('next '.$day, strtotime($APPOINTMENT_DATE)));
-                        //echo $APPOINTMENT_DATE . "<br>";
-                    }
+                        $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
+                        echo $APPOINTMENT_DATE . "<br>";
+                    }*/
                 }
             }else {
                 $OCCURRENCE_DAYS = (empty($_POST['OCCURRENCE_DAYS']))?7:$_POST['OCCURRENCE_DAYS'];
@@ -62,7 +68,7 @@ if (isset($_POST['FUNCTION_NAME'])){
             }
         }
 
-        $session_created_data = $db->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_SERVICE_MASTER` = ".$_POST['PK_SERVICE_MASTER']." AND PK_ENROLLMENT_MASTER = ".$_POST['PK_ENROLLMENT_MASTER']);
+        $session_created_data = $db->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER." AND PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
         $SESSION_CREATED = $session_created_data->fields['SESSION_COUNT'];
         $SESSION_LEFT = $NUMBER_OF_SESSION-$SESSION_CREATED;
 
@@ -86,7 +92,6 @@ if (isset($_POST['FUNCTION_NAME'])){
                 $APPOINTMENT_DATA['ACTIVE'] = 1;
                 $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                pre_r($APPOINTMENT_DATA);
                 db_perform('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
             }
         }
@@ -236,6 +241,7 @@ if(empty($_GET['id'])){
                         <div class="card-body">
                             <form id="multi_appointment_form" method="post" action="">
                                 <input type="hidden" name="FUNCTION_NAME" value="saveMultiAppointmentData">
+                                <input type="hidden" name="IS_SUBMIT" id="IS_SUBMIT" value="0">
                                 <div class="p-40" style="padding-top: 10px;">
                                     <div class="row">
                                         <div class="col-3">
@@ -417,7 +423,7 @@ if(empty($_GET['id'])){
         }
 
         $(document).on('submit', '#multi_appointment_form', function (event) {
-            // event.preventDefault();
+            event.preventDefault();
             let form_data = $('#multi_appointment_form').serialize();
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
@@ -425,14 +431,30 @@ if(empty($_GET['id'])){
                 data: form_data,
                 success:function (data) {
                     if (data > 0) {
-                        alert(data);
+                        let conf = confirm(`According to the number of classes in the enrollment, ${data} appointments were generated.`);
+                        if(conf) {
+                            submitAppointmentForm();
+                        }
                     } else {
-                        return true;
+                        submitAppointmentForm();
                     }
                     // window.location.href='all_schedules.php';
                 }
             });
         });
+
+        function submitAppointmentForm() {
+            $('#IS_SUBMIT').val(1);
+            let form_data = $('#multi_appointment_form').serialize();
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                success:function (data) {
+                    window.location.href='all_schedules.php';
+                }
+            });
+        }
     </script>
 </body>
 </html>

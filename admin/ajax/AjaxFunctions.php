@@ -1108,15 +1108,11 @@ function saveMultiAppointmentData($RESPONSE_DATA){
                 $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
             }
             while ($APPOINTMENT_DATE < $END_DATE) {
-                for ($i = 0; $i < count($DAYS); $i++) {
-                    $day = $DAYS[$i];
-                    $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
-                    if ($day == strtolower($appointment_day)){
-                        $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
-                    }
-                    $APPOINTMENT_DATE = date('Y-m-d', strtotime('next '.$day, strtotime($APPOINTMENT_DATE)));
-                    //echo $APPOINTMENT_DATE . "<br>";
+                $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
+                if (in_array(strtolower($appointment_day), $DAYS)){
+                    $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
                 }
+                $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
             }
         }else {
             $OCCURRENCE_DAYS = (empty($RESPONSE_DATA['OCCURRENCE_DAYS']))?7:$RESPONSE_DATA['OCCURRENCE_DAYS'];
@@ -1129,13 +1125,39 @@ function saveMultiAppointmentData($RESPONSE_DATA){
         }
     }
 
-    $session_created_data = $db->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER." AND PK_ENROLLMENT_MASTER = ".$PK_SERVICE_CODE);
+    $session_created_data = $db->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER." AND PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
     $SESSION_CREATED = $session_created_data->fields['SESSION_COUNT'];
     $SESSION_LEFT = $NUMBER_OF_SESSION-$SESSION_CREATED;
 
-    if (count($APPOINTMENT_DATE_ARRAY) > $SESSION_LEFT) {
-        echo $SESSION_LEFT;
+    if ($RESPONSE_DATA['IS_SUBMIT'] == 1) {
+        if (count($APPOINTMENT_DATE_ARRAY) > 0) {
+            $SESSION_WILL_CREATE = (count($APPOINTMENT_DATE_ARRAY) < $SESSION_LEFT) ? count($APPOINTMENT_DATE_ARRAY) : $SESSION_LEFT;
+            for ($i = 0; $i < $SESSION_WILL_CREATE; $i++) {
+                $APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                $APPOINTMENT_DATA['CUSTOMER_ID'] = $_POST['CUSTOMER_ID'];
+                $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
+                $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                $APPOINTMENT_DATA['SERVICE_PROVIDER_ID'] = $_POST['SERVICE_PROVIDER_ID'];
+                $APPOINTMENT_DATA['DATE'] = $APPOINTMENT_DATE_ARRAY[$i];
+                $APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
+                $APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($END_TIME));
+                $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+                $APPOINTMENT_DATA['ACTIVE'] = 1;
+                $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                db_perform('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+            }
+            $session_cost = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
+            $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
+            rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
+        }
     } else {
-        echo 0;
+        if (count($APPOINTMENT_DATE_ARRAY) > $SESSION_LEFT) {
+            echo $SESSION_LEFT;
+        } else {
+            echo 0;
+        }
     }
 }
