@@ -68,7 +68,7 @@ if(!empty($_POST))
                     $table_data = $db->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE HOLIDAY_NAME='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
                     if ($table_data->RecordCount() == 0) {
                         $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $INSERT_DATA['HOLIDAY_DATE'] = $getData[0];
+                        $INSERT_DATA['HOLIDAY_DATE'] = date("Y-m-d", strtotime($getData[0]));
                         $INSERT_DATA['HOLIDAY_NAME'] = $getData[1];
                         db_perform('DOA_HOLIDAY_LIST', $INSERT_DATA, 'insert');
                     }
@@ -103,7 +103,7 @@ if(!empty($_POST))
                         if ($PK_USER) {
                             $USER_DATA['PK_USER'] = $PK_USER;
                             $USER_DATA['GENDER'] = $getData[5];
-                            $USER_DATA['DOB'] = $getData[15];
+                            $USER_DATA['DOB'] = date("Y-m-d", strtotime($getData[15]));
                             $USER_DATA['ADDRESS'] = $getData[6];
                             $USER_DATA['ADDRESS_1'] = $getData[7];
                             $USER_DATA['CITY'] = $getData[8];
@@ -139,7 +139,7 @@ if(!empty($_POST))
                         if ($PK_USER) {
                             $USER_DATA['PK_USER'] = $PK_USER;
                             $USER_DATA['GENDER'] = $getData[7];
-                            $USER_DATA['DOB'] = $getData[5];
+                            $USER_DATA['DOB'] = date("Y-m-d", strtotime($getData[5]));
                             $USER_DATA['ADDRESS'] = $getData[13];
                             $USER_DATA['ADDRESS_1'] = $getData[14];
                             $USER_DATA['CITY'] = $getData[15];
@@ -162,22 +162,22 @@ if(!empty($_POST))
                                 $CUSTOMER_DATA['LAST_NAME'] = $getData[2];
                                 $CUSTOMER_DATA['EMAIL'] = $getData[24];
                                 $CUSTOMER_DATA['PHONE'] = $getData[20];
-                                $CUSTOMER_DATA['DOB'] = $getData[5];
+                                $CUSTOMER_DATA['DOB'] = date("Y-m-d", strtotime($getData[5]));
                                 $CUSTOMER_DATA['CALL_PREFERENCE'] = $getData[22];
                                 $CUSTOMER_DATA['REMINDER_OPTION'] = $getData[23];
                                 $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = $getData[25];
                                 $CUSTOMER_DATA['PARTNER_GENDER'] = $getData[26];
-                                $CUSTOMER_DATA['PARTNER_DOB'] = $getData[6];
+                                $CUSTOMER_DATA['PARTNER_DOB'] = date("Y-m-d", strtotime($getData[6]));
                                 $CUSTOMER_DATA['IS_PRIMARY'] = 1;
                                 db_perform('DOA_CUSTOMER_DETAILS', $CUSTOMER_DATA, 'insert');
 
                                 $PK_CUSTOMER_DETAILS = $db->insert_ID();
                                 $SPECIAL_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $SPECIAL_DATA['SPECIAL_DATE'] =  $getData[19];
+                                $SPECIAL_DATA['SPECIAL_DATE'] =  date("Y-m-d", strtotime($getData[9]));
                                 $SPECIAL_DATA['DATE_NAME'] = $getData[11];
                                 db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA, 'insert');
                                 $SPECIAL_DATA_1['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $SPECIAL_DATA_1['SPECIAL_DATE'] =  $getData[10];
+                                $SPECIAL_DATA_1['SPECIAL_DATE'] =  date("Y-m-d", strtotime($getData[10]));
                                 $SPECIAL_DATA_1['DATE_NAME'] = $getData[12];
                                 db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA_1, 'insert');
                             }
