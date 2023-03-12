@@ -172,14 +172,18 @@ if(!empty($_POST))
                                 db_perform('DOA_CUSTOMER_DETAILS', $CUSTOMER_DATA, 'insert');
 
                                 $PK_CUSTOMER_DETAILS = $db->insert_ID();
-                                $SPECIAL_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $SPECIAL_DATA['SPECIAL_DATE'] =  date("Y-m-d", strtotime($getData[9]));
-                                $SPECIAL_DATA['DATE_NAME'] = $getData[11];
-                                db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA, 'insert');
-                                $SPECIAL_DATA_1['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $SPECIAL_DATA_1['SPECIAL_DATE'] =  date("Y-m-d", strtotime($getData[10]));
-                                $SPECIAL_DATA_1['DATE_NAME'] = $getData[12];
-                                db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA_1, 'insert');
+                                if($getData[9]!="0000-00-00 00:00:00") {
+                                    $SPECIAL_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                                    $SPECIAL_DATA['SPECIAL_DATE'] =  date("Y-m-d", strtotime($getData[9]));
+                                    $SPECIAL_DATA['DATE_NAME'] = $getData[11];
+                                    db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA, 'insert');
+                                }
+                                if($getData[10]!="0000-00-00 00:00:00") {
+                                    $SPECIAL_DATA_1['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                                    $SPECIAL_DATA_1['SPECIAL_DATE'] =  date("Y-m-d", strtotime($getData[10]));
+                                    $SPECIAL_DATA_1['DATE_NAME'] = $getData[12];
+                                    db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA_1, 'insert');
+                                }
                             }
                         }
 
