@@ -91,7 +91,7 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="myTable" class="table table-striped border">
+                                <table id="myTable" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
                                         <th>No</th>

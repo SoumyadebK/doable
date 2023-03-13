@@ -129,7 +129,13 @@ if(!empty($_POST))
                         $INSERT_DATA['USER_API_KEY'] = $getData[0];
                         $INSERT_DATA['EMAIL_ID'] = $getData[24];
                         $INSERT_DATA['HOME_PHONE'] = $getData[18];
-                        $INSERT_DATA['PHONE'] = $getData[20];
+                        if (!empty($getData[20]) && $getData[20]!=null) {
+                            $INSERT_DATA['PHONE'] = $getData[20];
+                        } elseif (!empty($getData[18]) && $getData[18]!=null) {
+                            $INSERT_DATA['PHONE'] = $getData[18];
+                        } elseif (!empty($getData[19]) && $getData[19]!=null) {
+                            $INSERT_DATA['PHONE'] = $getData[19];
+                        }
                         $INSERT_DATA['ACTIVE'] = 1;
                         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -138,7 +144,12 @@ if(!empty($_POST))
                         $PK_USER = $db->insert_ID();
                         if ($PK_USER) {
                             $USER_DATA['PK_USER'] = $PK_USER;
-                            $USER_DATA['GENDER'] = $getData[7];
+                            if ($getData[7]==0) {
+                                $USER_DATA['GENDER'] = "Male";
+                            } elseif ($getData[7]==1) {
+                                $USER_DATA['GENDER'] = "Female";
+                            }
+                            //$USER_DATA['GENDER'] = $getData[7];
                             $USER_DATA['DOB'] = date("Y-m-d", strtotime($getData[5]));
                             $USER_DATA['ADDRESS'] = $getData[13];
                             $USER_DATA['ADDRESS_1'] = $getData[14];
@@ -163,8 +174,8 @@ if(!empty($_POST))
                                 $CUSTOMER_DATA['EMAIL'] = $getData[24];
                                 $CUSTOMER_DATA['PHONE'] = $getData[20];
                                 $CUSTOMER_DATA['DOB'] = date("Y-m-d", strtotime($getData[5]));
-                                $CUSTOMER_DATA['CALL_PREFERENCE'] = $getData[22];
-                                $CUSTOMER_DATA['REMINDER_OPTION'] = $getData[23];
+                                $CUSTOMER_DATA['CALL_PREFERENCE'] = $getData[23];
+                                //$CUSTOMER_DATA['REMINDER_OPTION'] = $getData[23];
                                 $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = $getData[25];
                                 $CUSTOMER_DATA['PARTNER_GENDER'] = $getData[26];
                                 $CUSTOMER_DATA['PARTNER_DOB'] = date("Y-m-d", strtotime($getData[6]));

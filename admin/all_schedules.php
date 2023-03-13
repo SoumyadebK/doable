@@ -229,7 +229,7 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
                             </div>
 
                             <div id="list"  class="card-body" style="display: none;">
-                                <table id="myTable" class="table table-striped border">
+                                <table id="myTable" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                         <tr>
                                             <th>No</th>
