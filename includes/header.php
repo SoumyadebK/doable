@@ -71,8 +71,8 @@
     <style>
         span.active-box-green {
             display: inline-block;
-            width: 22px;
-            height: 22px;
+            width: 19px;
+            height: 19px;
             background-color: #02f737;
             vertical-align: top;
             position: relative;
@@ -82,8 +82,8 @@
 
         span.active-box-red {
             display: inline-block;
-            width: 22px;
-            height: 22px;
+            width: 19px;
+            height: 19px;
             background-color: red;
             vertical-align: top;
             position: relative;

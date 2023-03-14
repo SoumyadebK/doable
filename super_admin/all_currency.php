@@ -38,7 +38,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="myTable" class="table table-striped border">
+                                <table id="myTable" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
                                         <th>No</th>
