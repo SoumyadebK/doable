@@ -17,5 +17,10 @@ if ($db1->error_number){
 function getRole($role_id){
     global $db1;
     $role = $db1->Execute("SELECT name FROM roles where id = '$role_id'");
-    return $role->fields['name'];
+    if ($role->fields['name']=="Supervisor" || $role->fields['name']=="Counselor") {
+        return "Account User";
+    } else {
+        return $role->fields['name'];
+    }
+
 }

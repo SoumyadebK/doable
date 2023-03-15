@@ -102,7 +102,12 @@ if(!empty($_POST))
                             $PK_USER = $db->insert_ID();
                         if ($PK_USER) {
                             $USER_DATA['PK_USER'] = $PK_USER;
-                            $USER_DATA['GENDER'] = $getData[5];
+                            //$USER_DATA['GENDER'] = $getData[5];
+                            if ($getData[5]==0) {
+                                $USER_DATA['GENDER'] = "Male";
+                            } elseif ($getData[5]==1) {
+                                $USER_DATA['GENDER'] = "Female";
+                            }
                             $USER_DATA['DOB'] = date("Y-m-d", strtotime($getData[15]));
                             $USER_DATA['ADDRESS'] = $getData[6];
                             $USER_DATA['ADDRESS_1'] = $getData[7];
@@ -128,7 +133,7 @@ if(!empty($_POST))
                         $INSERT_DATA['LAST_NAME'] = $getData[2];
                         $INSERT_DATA['USER_API_KEY'] = $getData[0];
                         $INSERT_DATA['EMAIL_ID'] = $getData[24];
-                        $INSERT_DATA['HOME_PHONE'] = $getData[18];
+                        //$INSERT_DATA['HOME_PHONE'] = $getData[18];
                         if (!empty($getData[20]) && $getData[20]!=null) {
                             $INSERT_DATA['PHONE'] = $getData[20];
                         } elseif (!empty($getData[18]) && $getData[18]!=null) {
@@ -151,6 +156,11 @@ if(!empty($_POST))
                             }
                             //$USER_DATA['GENDER'] = $getData[7];
                             $USER_DATA['DOB'] = date("Y-m-d", strtotime($getData[5]));
+                            if ($getData[8]==1) {
+                                $USER_DATA['MARITAL_STATUS'] = "Married";
+                            } elseif ($getData[8]==2) {
+                                $USER_DATA['MARITAL_STATUS'] = "Unmarried";
+                            }
                             $USER_DATA['ADDRESS'] = $getData[13];
                             $USER_DATA['ADDRESS_1'] = $getData[14];
                             $USER_DATA['CITY'] = $getData[15];
