@@ -1161,3 +1161,39 @@ function saveMultiAppointmentData($RESPONSE_DATA){
         }
     }
 }
+
+function getEditCommentData($RESPONSE_DATA) {
+    global $db;
+    $PK_COMMENT = $RESPONSE_DATA['PK_COMMENT'];
+    $comment_data = $db->Execute("SELECT * FROM `DOA_COMMENT` WHERE `PK_COMMENT` = ".$PK_COMMENT);
+    echo json_encode($comment_data);
+}
+
+function saveCommentData($RESPONSE_DATA){
+    global $db;
+    $COMMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    $COMMENT_DATA['COMMENT'] = $RESPONSE_DATA['COMMENT'];
+    $COMMENT_DATA['COMMENT_DATE'] = $RESPONSE_DATA['COMMENT_DATE'];
+    $COMMENT_DATA['FOR_PK_USER'] = $RESPONSE_DATA['PK_USER'];
+    $COMMENT_DATA['BY_PK_USER']  = $_SESSION['PK_USER'];
+
+    if ($RESPONSE_DATA['PK_COMMENT'] == 0) {
+        $COMMENT_DATA['ACTIVE'] = 1;
+        $COMMENT_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        $COMMENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        db_perform('DOA_COMMENT', $COMMENT_DATA, 'insert');
+    } else {
+        $COMMENT_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        $COMMENT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+        $COMMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform('DOA_COMMENT', $COMMENT_DATA, 'update', " PK_COMMENT = ".$RESPONSE_DATA['PK_COMMENT']);
+    }
+    echo 1;
+}
+
+function deleteCommentData($RESPONSE_DATA) {
+    global $db;
+    $PK_COMMENT = $RESPONSE_DATA['PK_COMMENT'];
+    $comment_data = $db->Execute("DELETE FROM `DOA_COMMENT` WHERE `PK_COMMENT` = ".$PK_COMMENT);
+    echo 1;
+}
