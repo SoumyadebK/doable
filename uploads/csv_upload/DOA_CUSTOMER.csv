@@ -1,0 +1,54 @@
+customer_api_key,customer_id,first_name,last_name,salutation,mail_name,birth_date,partner_birth_date,gender,merital_status,special_date1,special_date2,datename1,datename2,address1,address2,city,state,zip,home_phone,business_phone,cell_phone,ext_phone,phone_pref,confirmation_pref,email,partner_name,partner_gender,interviewer,specialist,counsellor,start_date,flag1,flag2,flag3,image_file,photo_ind,inquiry_taker,inquiry_type,inquiry_source,inquiry_date,inquiry_booked,inquiry_showed,quote,ad_code,ad_type,student_status,archive_flag,book_date,date_to_call,inquiry_remark,teacher2,area_of_interest,enquiry_number,web_interest_info,occupation,income,modified_date
+NULL, PAR1,William,Parisi,BJ & Helen,William Parisi & Helen Hening,0000-00-00,0000-00-00,0,1,0000-00-00 00:00:00,0000-00-00 00:00:00,NULL,NULL,3826 Coronado Cir.,,Newbury Park,CA,91320,805-558-7478*,   -   -    *,,NULL,0,phone call,BJ@servicebybill.com,Helen Henning ,NULL,,NULL,NULL,0000-00-00 00:00:00,,T,,NULL,NULL,6-elizabeth212,WIN,WEB,09-04-2010 00:00,0000-00-00 00:00:00,0000-00-00 00:00:00,,,,I,,15-01-2013 00:00,0000-00-00 00:00:00,"BIRTHDAY1 : 
+ BIRTHDAY2: 
+SPECDATE1 : 
+SPECDATE2 : 
+EXTRA1 : 
+EXTRA2 : 
+Comments : ",NULL,,Oct-97,NULL,NULL,NULL,0000-00-00 00:00:00
+,$$GODF1,Jeff,Godfrey,,,0000-00-00,0000-00-00,0,1,0000-00-00 00:00:00,0000-00-00 00:00:00,,,14194 Huron Ct,,Moorpark,CA,93021,,(805) 990-0755,,,0,phone call,unknown@unknown.com,Eleanore Godfrey,1,,,,02-01-2007 00:00,,S,,,NULL,6-elizabeth212,TEL,,07-12-2006 00:00,NULL,0000-00-00 00:00:00,,,NULL,A,NULL,02-01-2007 00:00,0000-00-00 00:00:00,"BIRTHDAY1 : 
+
+ BIRTHDAY2: 
+
+SPECDATE1 : 
+
+SPECDATE2 : 
+
+EXTRA1 : 
+
+EXTRA2 : 
+
+Comments : 2/27/13 - got a groupon for Valentine's day.  had lessons before, worked on R/W/T.  Said that she remembered me on the phone, I had taught them before.  Wednesdays after 7:30 are best (EAC)
+1/30/08 Archive letter sent
+
+DE schedule 1/5/07 at 5:30
+coming to class on January 2nd, no more twirling on curises and functions, actually know what they're doing.  start after the holidays, evenings, 15 year old twins, a boy and a girl, might want to include them as well, wants to do this, doesn't care what it costs.",NULL,,2013-3826,NULL,,,27-09-2021 20:35
+NULL,226,Joshua,Smith,Joshua & Leann,Joshua Smith & Leann Corbett,0000-00-00,0000-00-00,0,1,0000-00-00 00:00:00,0000-00-00 00:00:00,NULL,NULL,1345 Breckford Ct,,Westlake Village,CA,91361,805-807-6196,,805-443-6175,NULL,0,phone call,mrjoshuamichael@aol.com,Leann Corbett ,NULL,,NULL,NULL,27-06-2012 00:00,,S,,NULL,NULL,6-Nicole,EML,WEB,07-06-2012 00:00,0000-00-00 00:00:00,0000-00-00 00:00:00,,,,I,Y,07-06-2012 00:00,0000-00-00 00:00:00,"BIRTHDAY1 : 
+ BIRTHDAY2: 
+SPECDATE1 : 
+SPECDATE2 : 
+EXTRA1 : 
+EXTRA2 : 
+Comments : 6/13/12- He works for his family business something in plastics that make pumps for spas?? Bringing company check tomorrow. All family lives close by and helps care for her daughter. 
+
+6/5/12 - wedding is coming up August 19th. Said that he inquired and was returning Liz's phone call. Told them about introductory private lesson and they scheduled. Him and his fiance are complete beginners. Anyday after 5 is usually good. They are mostly interested in private lessons. They have a 2 year old daughter, Lindsey. 805.807.6196 - ND
+
+Name: Joshua Smith
+Phone: 805-807-6196
+Alternate Phone: 805-807-6196
+E-Mail: mrjoshuamichael@aol.com
+
+Additional Information:
+Looking to see if you offer private lessons for my upcoming wedding in august. My fience & I have no idea what were doing.. hope you can help.. thanks- JOSHUA
+",NULL,,Dec-97,NULL,NULL,NULL,0000-00-00 00:00:00
+NULL,LIKE1,Bryant,Likes,Bryant & Davida,Bryant & Davida Likes,0000-00-00,0000-00-00,0,1,0000-00-00 00:00:00,0000-00-00 00:00:00,NULL,NULL,2893 Reservoir Dr.,,Simi Valley,CA,93065,818-618-0714*,,,NULL,0,phone call,us@bryantdavida.com/me@bryantlikes.com,Davida ,NULL,,NULL,NULL,02-02-2009 00:00,,S,,NULL,NULL,THO39,GIFT,GIFT,30-01-2009 00:00,0000-00-00 00:00:00,0000-00-00 00:00:00,,,,I,Y,30-01-2009 00:00,0000-00-00 00:00:00,"BIRTHDAY1 : 
+ BIRTHDAY2: 
+SPECDATE1 : 
+SPECDATE2 : 
+EXTRA1 : 
+EXTRA2 : 
+Comments : bought for holiday
+Gift by Bryant Likes for 150
+May 8th...
+May 14th is her surgery...",NULL,,,NULL,NULL,NULL,0000-00-00 00:00:00
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

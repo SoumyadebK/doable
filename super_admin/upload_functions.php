@@ -17,5 +17,21 @@ if ($db1->error_number){
 function getRole($role_id){
     global $db1;
     $role = $db1->Execute("SELECT name FROM roles where id = '$role_id'");
-    return $role->fields['name'];
+    if ($role->fields['name']=="Supervisor" || $role->fields['name']=="Counselor") {
+        return "Account User";
+    } else {
+        return $role->fields['name'];
+    }
+}
+
+function getInquiry($inquiry_id) {
+    global $db1;
+    $inquiry = $db1->Execute("SELECT inquiry_type FROM inquiry_type where inquiry_id = '$inquiry_id'");
+    return $inquiry->fields['inquiry_type'];
+}
+
+function getTaker($taker_id) {
+    global $db1;
+    $inquiry_taker = $db1->Execute("SELECT user_name FROM users where user_id = '$taker_id'");
+    return $inquiry_taker->fields['user_name'];
 }

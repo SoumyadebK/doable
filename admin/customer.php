@@ -1424,7 +1424,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                     <div class="form-group">
                                                                         <label class="form-label">Inquiry Taker</label>
                                                                         <div class="col-md-12">
-                                                                            <select class="form-control" name="INQUIRY_TAKER_ID">
+                                                                            <select class="form-control" name="">
                                                                                 <option>Select</option>
                                                                                 <?php
                                                                                 $row = $db->Execute("SELECT PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS WHERE PK_ROLES IN(2,3,5) AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);

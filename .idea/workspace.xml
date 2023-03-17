@@ -23,6 +23,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       <change beforePath="$PROJECT_DIR$/admin/add_multiple_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/add_multiple_appointment.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/service.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/service.php" afterDir="false" />
@@ -74,6 +75,11 @@
 >>>>>>> 7d3724a68c39e1feb6bc65ab9eaabf99bb4756b0
       <change beforePath="$PROJECT_DIR$/super_admin/csv_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/csv_uploader.php" afterDir="false" />
 >>>>>>> 9c311c3dd13065bd09985e20ce6dcdc77a2be7b2
+=======
+      <change beforePath="$PROJECT_DIR$/admin/customer.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/customer.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/csv_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/csv_uploader.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/upload_functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/upload_functions.php" afterDir="false" />
+>>>>>>> c04dc6735160207d9a32325156b1485cfafb5807
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -175,7 +181,10 @@
       <workItem from="1678292727386" duration="1636000" />
       <workItem from="1678346099616" duration="9032000" />
       <workItem from="1678510612823" duration="11225000" />
-      <workItem from="1678683499068" duration="12326000" />
+      <workItem from="1678683499068" duration="12419000" />
+      <workItem from="1678772638312" duration="19207000" />
+      <workItem from="1678942824137" duration="21977000" />
+      <workItem from="1679028899518" duration="10862000" />
     </task>
     <servers />
   </component>
@@ -205,9 +214,10 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="513" y="434" key="#SQL_Dialects" timestamp="1677519879625">
-      <screen x="0" y="0" width="2194" height="1186" />
+    <state x="359" y="299" key="#SQL_Dialects" timestamp="1678947344254">
+      <screen x="0" y="0" width="1536" height="816" />
     </state>
+    <state x="359" y="299" key="#SQL_Dialects/0.0.1536.816@0.0.1536.816" timestamp="1678947344254" />
     <state x="513" y="434" key="#SQL_Dialects/0.0.2194.1186@0.0.2194.1186" timestamp="1677519879625" />
     <state x="690" y="251" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1677519908245">
       <screen x="0" y="0" width="2194" height="1186" />
