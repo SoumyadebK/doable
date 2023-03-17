@@ -22,5 +22,16 @@ function getRole($role_id){
     } else {
         return $role->fields['name'];
     }
+}
 
+function getInquiry($inquiry_id) {
+    global $db1;
+    $inquiry = $db1->Execute("SELECT inquiry_type FROM inquiry_type where inquiry_id = '$inquiry_id'");
+    return $inquiry->fields['inquiry_type'];
+}
+
+function getTaker($taker_id) {
+    global $db1;
+    $inquiry_taker = $db1->Execute("SELECT user_name FROM users where user_id = '$taker_id'");
+    return $inquiry_taker->fields['user_name'];
 }
