@@ -22,8 +22,6 @@
     <list default="true" id="13933e40-c45c-4ca4-9024-abf020b380ed" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/customer.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/customer.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/super_admin/csv_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/csv_uploader.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/super_admin/upload_functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/upload_functions.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -128,7 +126,7 @@
       <workItem from="1678683499068" duration="12419000" />
       <workItem from="1678772638312" duration="19207000" />
       <workItem from="1678942824137" duration="21977000" />
-      <workItem from="1679028899518" duration="10862000" />
+      <workItem from="1679028899518" duration="16992000" />
     </task>
     <servers />
   </component>

@@ -633,7 +633,10 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                         <label class="form-label">Call Preference</label>
                                                                         <div class="col-md-12">
                                                                             <select class="form-control" name="CALL_PREFERENCE">
-                                                                                <option>Select</option>
+                                                                                <option >Select</option>
+                                                                                <option value="email" <?php if($CALL_PREFERENCE == "email") echo 'selected = "selected"';?>>Email</option>
+                                                                                <option value="text message" <?php if($CALL_PREFERENCE == "text message") echo 'selected = "selected"';?>>Text Message</option>
+                                                                                <option value="phone call" <?php if($CALL_PREFERENCE == "phone call") echo 'selected = "selected"';?>>Phone Call</option>
                                                                             </select>
                                                                         </div>
                                                                     </div>
@@ -662,8 +665,8 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                         <label class="form-label">Gender</label>
                                                                         <select class="form-control" id="GENDER" name="GENDER">
                                                                             <option>Select Gender</option>
-                                                                            <option value="1" <?php if($GENDER == "1") echo 'selected = "selected"';?>>Male</option>
-                                                                            <option value="2" <?php if($GENDER == "2") echo 'selected = "selected"';?>>Female</option>
+                                                                            <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
+                                                                            <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
                                                                         </select>
                                                                     </div>
                                                                 </div>
