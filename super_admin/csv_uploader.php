@@ -98,7 +98,7 @@ if(!empty($_POST))
                         }
                         $INSERT_DATA['PASSWORD'] = $getData[19];
                         $INSERT_DATA['USER_IMAGE'] = $getData[7];
-                        $INSERT_DATA['ACTIVE'] = 1;
+                        $INSERT_DATA['ACTIVE'] = $getData[16];
                         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                         db_perform('DOA_USERS', $INSERT_DATA, 'insert');
@@ -114,8 +114,8 @@ if(!empty($_POST))
                             $USER_DATA['CITY'] = $getData[8];
                             $USER_DATA['PK_STATES'] = $getData[9];
                             $USER_DATA['ZIP'] = $getData[10];
-                            $USER_DATA['NOTES'] = $getData[16];
-                            $USER_DATA['ACTIVE'] = 1;
+                            $USER_DATA['NOTES'] = $getData[17];
+                            $USER_DATA['ACTIVE'] = $getData[16];
                             $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                             $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
                             db_perform('DOA_USER_PROFILE', $USER_DATA, 'insert');
@@ -146,6 +146,19 @@ if(!empty($_POST))
                         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                         db_perform('DOA_USERS', $INSERT_DATA, 'insert');
+
+                        $PK_CUSTOMER_DETAILS = $db->insert_ID();
+                        if (!empty($getData[19])) {
+                            $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                            $PHONE_DATA['PHONE'] = $getData[19];
+                            db_perform('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
+                        }
+
+                        if (!empty($getData[20])) {
+                            $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                            $PHONE_DATA['PHONE'] = $getData[20];
+                            db_perform('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
+                        }
 
                         $PK_USER = $db->insert_ID();
                         if ($PK_USER) {

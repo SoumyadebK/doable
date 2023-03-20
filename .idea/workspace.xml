@@ -24,6 +24,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       <change beforePath="$PROJECT_DIR$/admin/add_multiple_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/add_multiple_appointment.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/service.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/service.php" afterDir="false" />
@@ -83,6 +84,9 @@
 >>>>>>> c04dc6735160207d9a32325156b1485cfafb5807
 =======
 >>>>>>> 914f49bad6d592ca93b6137fa25e35f3ca23fa70
+=======
+      <change beforePath="$PROJECT_DIR$/super_admin/csv_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/csv_uploader.php" afterDir="false" />
+>>>>>>> 0bd08eab1539089fb7093ea039f4ffba4390abef
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -187,7 +191,8 @@
       <workItem from="1678683499068" duration="12419000" />
       <workItem from="1678772638312" duration="19207000" />
       <workItem from="1678942824137" duration="21977000" />
-      <workItem from="1679028899518" duration="16992000" />
+      <workItem from="1679028899518" duration="17735000" />
+      <workItem from="1679289086484" duration="4137000" />
     </task>
     <servers />
   </component>
