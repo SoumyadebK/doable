@@ -505,6 +505,9 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                     <?php if ($_GET['tab'] == 'billing') { ?>
                                                         <li> <a class="nav-link" id="billing_tab_link" data-bs-toggle="tab" href="#billing" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                                     <?php } ?>
+                                                    <?php if ($_GET['tab'] == 'comments') { ?>
+                                                        <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                                                    <?php } ?>
                                                 </ul>
                                             <?php } else { ?>
                                                 <ul class="nav nav-tabs" role="tablist">
@@ -517,7 +520,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
                                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Ledger</span></a> </li>
-                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                                                        <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                                                     <?php } ?>
                                                 </ul>
                                             <?php } ?>
@@ -1573,14 +1576,17 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                         $i=1;
                                                         $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
                                                         while (!$row->EOF) {
+                                                            $used_session_count = $db->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                                            $total_session_count = $db->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION_COUNT FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
                                                             $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
                                                             $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
                                                             ?>
                                                             <div class="row" onclick="$(this).next().slideToggle();" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
-                                                                <div class="col-3"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
-                                                                <div class="col-3">Total Billed : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>
-                                                                <div class="col-3">Total Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-                                                                <div class="col-3">Balance : <?=$total_bill_and_paid->fields['TOTAL_BILL']-$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
+                                                                <div class="col-2"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
+                                                                <div class="col-2">Total Billed : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>
+                                                                <div class="col-2">Total Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
+                                                                <div class="col-2">Balance : <?=$total_bill_and_paid->fields['TOTAL_BILL']-$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
+                                                                <div class="col-2">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count->fields['TOTAL_SESSION_COUNT'];?></div>
                                                             </div>
                                                             <table id="myTable" class="table table-striped border" style="display: none">
                                                                 <thead>
@@ -1645,7 +1651,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
 
 
                                                 <!--Payment Model-->
-                                                <div id="myModal" class="modal">
+                                                <div id="paymentModel" class="modal">
                                                     <!-- Modal content -->
                                                     <div class="modal-content" style="width: 50%;">
                                                         <span class="close" style="margin-left: 96%;">&times;</span>
@@ -1865,16 +1871,19 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                         $i=1;
                                                         $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER`   WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
                                                         while (!$row->EOF) {
+                                                            $used_session_count = $db->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                                            $total_session_count = $db->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION_COUNT FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
                                                             $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
                                                             $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
                                                             $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
                                                             $service_credit = ($enrollment_balance->RecordCount() > 0)?($total_bill_and_paid->fields['TOTAL_PAID']-$enrollment_balance->fields['TOTAL_BALANCE_USED']):'0.00';
                                                             ?>
                                                             <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
-                                                                <div class="col-3"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
-                                                                <div class="col-3">Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-                                                                <div class="col-3">Used : <?=($enrollment_balance->RecordCount() > 0)?$enrollment_balance->fields['TOTAL_BALANCE_USED']:'0.00';?></div>
-                                                                <div class="col-3" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=$service_credit?></div>
+                                                                <div class="col-2"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
+                                                                <div class="col-2">Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
+                                                                <div class="col-2">Used : <?=($enrollment_balance->RecordCount() > 0)?$enrollment_balance->fields['TOTAL_BALANCE_USED']:'0.00';?></div>
+                                                                <div class="col-2" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=$service_credit?></div>
+                                                                <div class="col-2">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count->fields['TOTAL_SESSION_COUNT'];?></div>
                                                             </div>
                                                             <table id="myTable" class="table table-striped border" style="display: none">
                                                                 <thead>
@@ -1915,7 +1924,81 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
 
                                                 <div class="tab-pane" id="comments" role="tabpanel">
                                                     <div class="p-20">
-                                                        <h3>Comments Tab Coming Soon</h3>
+                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createUserComment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
+                                                        <table id="myTable" class="table table-striped border">
+                                                            <thead>
+                                                            <tr>
+                                                                <th>Commented Date</th>
+                                                                <th>Commented User</th>
+                                                                <th>Comment</th>
+                                                                <th>Actions</th>
+                                                            </tr>
+                                                            </thead>
+
+                                                            <tbody>
+                                                                <?php
+                                                                $comment_data = $db->Execute("SELECT DOA_COMMENT.PK_COMMENT, DOA_COMMENT.COMMENT, DOA_COMMENT.COMMENT_DATE, DOA_COMMENT.ACTIVE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS FULL_NAME FROM `DOA_COMMENT` INNER JOIN DOA_USERS ON DOA_COMMENT.BY_PK_USER = DOA_USERS.PK_USER WHERE `FOR_PK_USER` = ".$PK_USER);
+                                                                $i = 1;
+                                                                while (!$comment_data->EOF) { ?>
+                                                                <tr>
+                                                                    <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=date('m/d/Y', strtotime($comment_data->fields['COMMENT_DATE']))?></td>
+                                                                    <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=$comment_data->fields['FULL_NAME']?></td>
+                                                                    <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=$comment_data->fields['COMMENT']?></td>
+                                                                    <td>
+                                                                        <a href="javascript:;" onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><i class="ti-pencil" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <a href="javascript:;" onclick='javascript:deleteComment(<?=$comment_data->fields['PK_COMMENT']?>);return false;'><i class="ti-trash" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <?php if($comment_data->fields['ACTIVE']==1){ ?>
+                                                                            <span class="active-box-green"></span>
+                                                                        <?php } else{ ?>
+                                                                            <span class="active-box-red"></span>
+                                                                        <?php } ?>
+                                                                    </td>
+                                                                </tr>
+                                                                <?php $comment_data->MoveNext();
+                                                                $i++; } ?>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+
+                                                <!--Comment Model-->
+                                                <div id="commentModel" class="modal">
+                                                    <!-- Modal content -->
+                                                    <div class="modal-content" style="width: 50%;">
+                                                        <span class="close close_comment_model" style="margin-left: 96%;">&times;</span>
+                                                        <div class="card">
+                                                            <div class="card-body">
+                                                                <h4><b id="comment_header">Add Comment</b></h4>
+                                                                <form id="comment_add_edit_form" role="form" action="" method="post">
+                                                                    <input type="hidden" name="FUNCTION_NAME" value="saveCommentData">
+                                                                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                                    <input type="hidden" name="PK_COMMENT" id="PK_COMMENT" value="0">
+                                                                    <div class="p-20">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Comments</label>
+                                                                            <textarea class="form-control" rows="10" name="COMMENT" id="COMMENT" required></textarea>
+                                                                        </div>
+
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Date</label>
+                                                                            <input type="date" class="form-control" name="COMMENT_DATE" id="COMMENT_DATE" required>
+                                                                        </div>
+
+                                                                        <div class="form-group" id="comment_active" style="display: none;">
+                                                                            <label class="form-label">Active</label>
+                                                                            <div>
+                                                                                <label><input type="radio" id="COMMENT_ACTIVE_1" name="ACTIVE" value="1">&nbsp;&nbsp;&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                                <label><input type="radio" id="COMMENT_ACTIVE_0" name="ACTIVE" value="0">&nbsp;&nbsp;&nbsp;No</label>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="form-group">
+                                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
+                                                                        </div>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -1942,31 +2025,113 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
     <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
     <script>
+        let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
+        let PK_USER_MASTER = parseInt(<?=empty($_GET['master_id'])?0:$_GET['master_id']?>);
         // Get the modal
-        var modal = document.getElementById("myModal");
+        var payment_model = document.getElementById("paymentModel");
 
-        // Get the <span> element that closes the modal
-        var span = document.getElementsByClassName("close")[0];
+        // Get the <span> element that closes the payment_model
+        var payment_span = document.getElementsByClassName("close")[0];
 
-        // When the user clicks the button, open the modal
-        function openModel() {
-            modal.style.display = "block";
+        // When the user clicks the button, open the payment_model
+        function openPaymentModel() {
+            payment_model.style.display = "block";
         }
 
-        // When the user clicks on <span> (x), close the modal
-        span.onclick = function() {
-            modal.style.display = "none";
+        // When the user clicks on <payment_span> (x), close the payment_model
+        payment_span.onclick = function() {
+            payment_model.style.display = "none";
         }
 
-        // When the user clicks anywhere outside of the modal, close it
+        // When the user clicks anywhere outside of the payment_model, close it
         window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
+            if (event.target == payment_model) {
+                payment_model.style.display = "none";
+            }
+        }
+
+
+        // Get the modal
+        var comment_model = document.getElementById("commentModel");
+
+        // Get the <span> element that closes the comment_model
+        var comment_span = document.getElementsByClassName("close_comment_model")[0];
+
+        // When the user clicks the button, open the comment_model
+        function openCommentModel() {
+            comment_model.style.display = "block";
+        }
+
+        // When the user clicks on <comment_span> (x), close the comment_model
+        comment_span.onclick = function() {
+            comment_model.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the comment_model, close it
+        window.onclick = function(event) {
+            if (event.target == comment_model) {
+                comment_model.style.display = "none";
             }
         }
     </script>
 
     <script>
+        function createUserComment() {
+            $('#comment_header').text("Add Comment");
+            $('#PK_COMMENT').val(0);
+            $('#COMMENT').val('');
+            $('#COMMENT_DATE').val('');
+            $('#comment_active').hide();
+            openCommentModel();
+        }
+
+        function editComment(PK_COMMENT) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                dataType: 'JSON',
+                data: {FUNCTION_NAME: 'getEditCommentData', PK_COMMENT: PK_COMMENT},
+                success:function (data) {
+                    $('#comment_header').text("Edit Comment");
+                    $('#PK_COMMENT').val(data.fields.PK_COMMENT);
+                    $('#COMMENT').val(data.fields.COMMENT);
+                    $('#COMMENT_DATE').val(data.fields.COMMENT_DATE);
+                    $('#COMMENT_ACTIVE_'+data.fields.ACTIVE).prop('checked', true);
+                    $('#comment_active').show();
+                    openCommentModel();
+                }
+            });
+        }
+
+        $(document).on('submit', '#comment_add_edit_form', function (event) {
+            event.preventDefault();
+            let form_data = new FormData($('#comment_add_edit_form')[0]); //$('#document_form').serialize();
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                processData: false,
+                contentType: false,
+                success:function (data) {
+                    window.location.href=`customer.php?id=${PK_USER}&master_id=${PK_USER_MASTER}&on_tab=comments`;
+                }
+            });
+        });
+
+        function deleteComment(PK_COMMENT) {
+            let conf = confirm("Are you sure you want to delete?");
+            if(conf) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {FUNCTION_NAME: 'deleteCommentData', PK_COMMENT: PK_COMMENT},
+                    success: function (data) {
+                        window.location.href = `customer.php?id=${PK_USER}&master_id=${PK_USER_MASTER}&on_tab=comments`;
+                    }
+                });
+            }
+        }
+
         $('.multi_sumo_select').SumoSelect({placeholder: 'Select Location', selectAll: true});
 
         $(document).ready(function() {
@@ -1980,6 +2145,13 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
             }
             if (tab_link.id == 'billing'){
                 $('#billing_tab_link')[0].click();
+            }
+            if (tab_link.id == 'comments'){
+                $('#comment_tab_link')[0].click();
+            }
+            let on_tab_link = <?=empty($_GET['on_tab'])?0:$_GET['on_tab']?>;
+            if (on_tab_link.id == 'comments'){
+                $('#comment_tab_link')[0].click();
             }
         });
 
@@ -2000,7 +2172,6 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
         }
     </script>
     <script>
-        let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
 
         function isGood(password) {
             let password_strength = document.getElementById("password-text");
@@ -2588,7 +2759,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
             $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
             $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
             $('#payment_confirmation_form_div').slideDown();
-            openModel();
+            openPaymentModel();
         }
 
         function selectPaymentType(param){
@@ -2672,6 +2843,8 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                 });
             }
         }
+        
+
     </script>
 
 

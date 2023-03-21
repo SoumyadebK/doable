@@ -166,7 +166,6 @@ if(empty($_GET['id'])){
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
-
                 </div>
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
@@ -231,11 +230,9 @@ if(empty($_GET['id'])){
                                             </div>-->
                                             <div class="col-3">
                                                 <div class="form-group">
-                                                    <label class="form-label"><?=$service_provider_title?><span class="text-danger">*</span></label>
-                                                    <select required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
-                                                        <option value="">Select <?=$service_provider_title?></option>
-
-                                                    </select>
+                                                    <label class="form-label"><?=$service_provider_title?></label>
+                                                    <input type="hidden" name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" value="<?=$_SESSION['PK_USER']?>">
+                                                    <p><?=$_SESSION["FIRST_NAME"]." ".$_SESSION["LAST_NAME"]?></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -339,7 +336,7 @@ if(empty($_GET['id'])){
                                                             $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS JOIN DOA_SERVICE_PROVIDER_SERVICES ON DOA_USERS.PK_USER = DOA_SERVICE_PROVIDER_SERVICES.PK_USER WHERE DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '".$PK_SERVICE_MASTER."' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER."'");
                                                             while (!$row->EOF) { if($SERVICE_PROVIDER_ID==$row->fields['PK_USER']){$selected_service_provider = $row->fields['NAME'];} ?>
                                                                 <option value="<?php echo $row->fields['PK_USER'];?>" <?=($SERVICE_PROVIDER_ID==$row->fields['PK_USER'])?'selected':''?>><?=$row->fields['NAME']?></option>
-                                                                <?php $row->MoveNext(); } ?>
+                                                            <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
                                                     <p id="service_provider_name"><?=$selected_service_provider?></p>
@@ -545,9 +542,10 @@ if(empty($_GET['id'])){
                 async: false,
                 cache: false,
                 success: function (result) {
-                    $('#SERVICE_PROVIDER_ID').empty();
+                    /*$('#SERVICE_PROVIDER_ID').empty();
                     $('#SERVICE_PROVIDER_ID').append(result);
-                    $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
+                    $('#SERVICE_PROVIDER_ID')[0].sumo.reload();*/
+                    getSlots();
                 }
             });
         }

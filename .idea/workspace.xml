@@ -22,10 +22,79 @@
     <list default="true" id="13933e40-c45c-4ca4-9024-abf020b380ed" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+<<<<<<< HEAD
       <change beforePath="$PROJECT_DIR$/admin/add_schedule.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/add_schedule.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/text_template.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/text_template.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/super_admin/csv_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/csv_uploader.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/super_admin/upload_functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/upload_functions.php" afterDir="false" />
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+      <change beforePath="$PROJECT_DIR$/admin/add_multiple_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/add_multiple_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/service.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/service.php" afterDir="false" />
+=======
+=======
+      <change beforePath="$PROJECT_DIR$/admin/all_accounts.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_accounts.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_customers.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_customers.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_document_library.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_document_library.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_email_accounts.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_email_accounts.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_email_templates.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_email_templates.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_enrollments.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_enrollments.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_event_types.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_event_types.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_events.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_events.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_inquiry_methods.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_inquiry_methods.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_locations.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_locations.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_service_providers.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_service_providers.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_services.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_services.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_special_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_special_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_text_templates.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_text_templates.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_users.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_users.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/includes/header.php" beforeDir="false" afterPath="$PROJECT_DIR$/includes/header.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_account_types.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_account_types.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_account_users.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_account_users.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_accounts.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_accounts.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_agreement_types.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_agreement_types.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_alert_messages.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_alert_messages.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_appointment_status.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_appointment_status.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_business_types.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_business_types.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_countries.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_countries.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_currency.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_currency.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_departments.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_departments.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_document_types.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_document_types.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_email_triggers.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_email_triggers.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_enrollment_types.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_enrollment_types.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_frequency.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_frequency.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_header_texts.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_header_texts.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_interests.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_interests.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_payment_types.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_payment_types.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_rate_types.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_rate_types.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_relationship.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_relationship.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_roles.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_roles.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_service_class.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_service_class.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_skill_levels.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_skill_levels.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_states.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_states.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_template_categories.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_template_categories.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_transaction_types.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_transaction_types.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/all_users.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/all_users.php" afterDir="false" />
+>>>>>>> 7d3724a68c39e1feb6bc65ab9eaabf99bb4756b0
+      <change beforePath="$PROJECT_DIR$/super_admin/csv_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/csv_uploader.php" afterDir="false" />
+>>>>>>> 9c311c3dd13065bd09985e20ce6dcdc77a2be7b2
+=======
+      <change beforePath="$PROJECT_DIR$/admin/customer.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/customer.php" afterDir="false" />
+<<<<<<< HEAD
+      <change beforePath="$PROJECT_DIR$/super_admin/csv_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/csv_uploader.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/upload_functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/upload_functions.php" afterDir="false" />
+>>>>>>> c04dc6735160207d9a32325156b1485cfafb5807
+=======
+>>>>>>> 914f49bad6d592ca93b6137fa25e35f3ca23fa70
+=======
+      <change beforePath="$PROJECT_DIR$/super_admin/csv_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/csv_uploader.php" afterDir="false" />
+>>>>>>> 0bd08eab1539089fb7093ea039f4ffba4390abef
+>>>>>>> f2d5d23360e4927d48f616a69209f6f6f014d27a
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
