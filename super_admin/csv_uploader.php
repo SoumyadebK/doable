@@ -258,6 +258,47 @@ if(!empty($_POST))
 
                     }
                     break;
+
+                case 'DOA_SERVICE_MASTER':
+                    $table_data = $db->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($table_data->RecordCount() == 0) {
+                        $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $INSERT_DATA['SERVICE_NAME'] = $getData[1];
+                        $INSERT_DATA['PK_SERVICE_CLASS'] = 2;
+                        $INSERT_DATA['IS_SCHEDULE'] = 1;
+                        $INSERT_DATA['DESCRIPTION'] = $getData[1];
+                        $INSERT_DATA['ACTIVE'] =1;
+                        db_perform('DOA_SERVICE_MASTER', $INSERT_DATA, 'insert');
+                    }
+                    break;
+
+                case 'DOA_SERVICE_CODE':
+                    $table_data = $db->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE SERVICE_CODE='$getData[3]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($table_data->RecordCount() == 0) {
+                        $serviceId = $getData[3];
+                        [$getService, $isChargable] = getService($serviceId);
+                        $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$getService'");
+                        $INSERT_DATA['PK_SERVICE_MASTER'] = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                        $INSERT_DATA['SERVICE_CODE'] = $getData[3];
+                        //$INSERT_DATA['PK_FREQUENCY'] = $getData[3];
+                        $INSERT_DATA['DESCRIPTION'] = $getData[1];
+                        $INSERT_DATA['DURATION'] = $getData[4];
+                        //$INSERT_DATA['IS_GROUP'] = $getData[3];
+                        $INSERT_DATA['CAPACITY'] = $getData[5];
+                        if ($isChargable=="Y") {
+                            $INSERT_DATA['IS_CHARGEABLE'] = 1;
+                        } elseif ($isChargable=="N") {
+                            $INSERT_DATA['IS_CHARGEABLE'] = 0;
+                        }
+                        if ($getData[13]=="Active") {
+                            $INSERT_DATA['ACTIVE'] = 1;
+                        } elseif ($getData[13]=="Not Active") {
+                            $INSERT_DATA['ACTIVE'] = 0;
+                        }
+
+                        db_perform('DOA_SERVICE_CODE', $INSERT_DATA, 'insert');
+                    }
+                    break;
             }
 
 
@@ -360,6 +401,8 @@ if(!empty($_POST))
                                 <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>
                                 <option value="DOA_USERS">DOA_USERS</option>
                                 <option value="DOA_CUSTOMER">DOA_CUSTOMER</option>
+                                <option value="DOA_SERVICE_MASTER">DOA_SERVICE_MASTER</option>
+                                <option value="DOA_SERVICE_CODE">DOA_SERVICE_CODE</option>
                             </select>
                             <div id="view_download_div" class="m-10"></div>
                         </div>

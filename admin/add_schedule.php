@@ -52,6 +52,7 @@ if (isset($_POST['FUNCTION_NAME'])){
 
             $sid = $text_setting->fields['SID'];
             $token = $TOKEN = $text_setting->fields['TOKEN'];
+            $msg = $db->Execute("SELECT CONTENT FROM DOA_TEXT_TEMPLATE WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND PK_EMAIL_TRIGGER = 1");
             try {
                 $client = new Client($sid, $token);
                 $client->messages->create(
@@ -60,13 +61,16 @@ if (isset($_POST['FUNCTION_NAME'])){
                     [
                         // A Twilio phone number you purchased at twilio.com/console
                         'from' => $text_setting->fields['FROM_NO'],
+
                         // the body of the text message you'd like to send
-                        'body' => "An appointment is created for you."
+                        'body' => $msg->fields['CONTENT']
                     ]
                 );
+
             } catch (\Twilio\Exceptions\TwilioException $e) {
 
             }
+
         }
     }else{
         if($_FILES['IMAGE']['name'] != ''){

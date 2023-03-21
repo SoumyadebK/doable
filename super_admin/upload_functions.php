@@ -35,3 +35,9 @@ function getTaker($taker_id) {
     $inquiry_taker = $db1->Execute("SELECT user_name FROM users where user_id = '$taker_id'");
     return $inquiry_taker->fields['user_name'];
 }
+
+function getService($service_id) {
+    global $db1;
+    $service_taker = $db1->Execute("SELECT service_name, chargeable FROM service_codes where service_id = '$service_id'");
+    return [$service_taker->fields['service_name'], $service_taker->fields['chargeable']];
+}
