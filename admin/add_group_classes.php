@@ -37,15 +37,11 @@ if (isset($_POST['FUNCTION_NAME'])){
                 $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
             }
             while ($SERVICE_DATE < $END_DATE) {
-                for ($i = 0; $i < count($DAYS); $i++) {
-                    $day = $DAYS[$i];
-                    $appointment_day = date('l', strtotime($SERVICE_DATE));
-                    if ($day == strtolower($appointment_day)){
-                        $GROUP_CLASS_DATE_ARRAY[] = $SERVICE_DATE;
-                    }
-                    $SERVICE_DATE = date('Y-m-d', strtotime('next '.$day, strtotime($SERVICE_DATE)));
-                    //echo $SERVICE_DATE . "<br>";
+                $appointment_day = date('l', strtotime($SERVICE_DATE));
+                if (in_array(strtolower($appointment_day), $DAYS)){
+                    $GROUP_CLASS_DATE_ARRAY[] = $SERVICE_DATE;
                 }
+                $SERVICE_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($SERVICE_DATE)));
             }
         }else {
             $OCCURRENCE_DAYS = (empty($_POST['OCCURRENCE_DAYS']))?7:$_POST['OCCURRENCE_DAYS'];
@@ -59,7 +55,15 @@ if (isset($_POST['FUNCTION_NAME'])){
     }
 
     if (count($GROUP_CLASS_DATE_ARRAY) > 0) {
+        $group_class_data = $db->Execute("SELECT GROUP_CLASS_ID FROM `DOA_GROUP_CLASS` ORDER BY GROUP_CLASS_ID DESC LIMIT 1");
+        if ($group_class_data->RecordCount() > 0) {
+            $group_class_id = $group_class_data->fields['GROUP_CLASS_ID']+1;
+        } else {
+            $group_class_id = 1;
+        }
+
         for ($i = 0; $i < count($GROUP_CLASS_DATE_ARRAY); $i++) {
+            $GROUP_CLASS_DATA['GROUP_CLASS_ID'] = $group_class_id;
             $GROUP_CLASS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
             $GROUP_CLASS_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
             $GROUP_CLASS_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;

@@ -129,9 +129,9 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 <?php require_once('../includes/footer.php');?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script src="https://cdn.datatables.net/plug-ins/1.10.11/sorting/date-eu.js"></script>
+
 <script>
-
-
     $(function () {
 
         startDate = $("#START_DATE").datepicker({
@@ -149,8 +149,9 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
         });
 
         $("#myTable").dataTable({
-            "searching": true
-          });
+            "searching": true,
+            "columnDefs" : [{"targets":[3,5], "type":"date-eu"}],
+        });
 
         var table = $('#myTable').DataTable();
 
