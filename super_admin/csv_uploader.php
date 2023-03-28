@@ -291,7 +291,7 @@ if(!empty($_POST))
                         $INSERT_DATA['DESCRIPTION'] = $getData[1];
                         $INSERT_DATA['DURATION'] = $getData[4];
                         $serviceName = $doableServiceId->fields['SERVICE_NAME'];
-                        if (str_contains($serviceName, 'Group')) {
+                        if (strpos($serviceName, 'Group')) {
                             $INSERT_DATA['IS_GROUP'] = 1;
                         } else {
                             $INSERT_DATA['IS_GROUP'] = 0;
