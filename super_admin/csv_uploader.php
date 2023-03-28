@@ -89,11 +89,9 @@ if(!empty($_POST))
                         $INSERT_DATA['USER_ID'] = $getData[18];
                         $INSERT_DATA['EMAIL_ID'] = $getData[13];
                         $INSERT_DATA['TAX_ID'] = $getData[14];
-                        //$INSERT_DATA['HOME_PHONE'] = $getData[11];
-                        //$INSERT_DATA['PHONE'] = $getData[12];
-                        if (!empty($getData[12]) && $getData[12]!=null) {
+                        if (!empty($getData[12]) && $getData[12] != null) {
                             $INSERT_DATA['PHONE'] = $getData[12];
-                        } elseif (!empty($getData[11]) && $getData[11]!=null) {
+                        } elseif (!empty($getData[11]) && $getData[11] != null) {
                             $INSERT_DATA['PHONE'] = $getData[11];
                         }
                         $INSERT_DATA['PASSWORD'] = $getData[19];
@@ -104,7 +102,7 @@ if(!empty($_POST))
                         db_perform('DOA_USERS', $INSERT_DATA, 'insert');
 
 
-                            $PK_USER = $db->insert_ID();
+                        $PK_USER = $db->insert_ID();
                         if ($PK_USER) {
                             $USER_DATA['PK_USER'] = $PK_USER;
                             $USER_DATA['GENDER'] = $getData[5];
@@ -135,50 +133,40 @@ if(!empty($_POST))
                         $INSERT_DATA['USER_API_KEY'] = $getData[0];
                         $INSERT_DATA['EMAIL_ID'] = $getData[25];
                         //$INSERT_DATA['HOME_PHONE'] = $getData[18];
-                        if (!empty($getData[21]) && $getData[21]!=null) {
+                        if (!empty($getData[21]) && $getData[21] != null && $getData[21] != "   -   -    *") {
                             $INSERT_DATA['PHONE'] = $getData[21];
-                        } elseif (!empty($getData[19]) && $getData[19]!=null) {
+                        } elseif (!empty($getData[19]) && $getData[19] != null && $getData[19] != "   -   -    *") {
                             $INSERT_DATA['PHONE'] = $getData[19];
-                        } elseif (!empty($getData[20]) && $getData[20]!=null) {
+                        } elseif (!empty($getData[20]) && $getData[20] != null && $getData[20] != "   -   -    *") {
                             $INSERT_DATA['PHONE'] = $getData[20];
                         }
                         $INSERT_DATA['ACTIVE'] = 1;
                         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                         db_perform('DOA_USERS', $INSERT_DATA, 'insert');
-
-                        $PK_CUSTOMER_DETAILS = $db->insert_ID();
-                        if (!empty($getData[19])) {
-                            $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                            $PHONE_DATA['PHONE'] = $getData[19];
-                            db_perform('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
-                        }
-
-                        if (!empty($getData[20])) {
-                            $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                            $PHONE_DATA['PHONE'] = $getData[20];
-                            db_perform('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
-                        }
-
                         $PK_USER = $db->insert_ID();
+
                         if ($PK_USER) {
                             $USER_DATA['PK_USER'] = $PK_USER;
-                            if ($getData[8]==0) {
+                            if ($getData[8] == 0) {
                                 $USER_DATA['GENDER'] = "Male";
-                            } elseif ($getData[8]==1) {
+                            } elseif ($getData[8] == 1) {
                                 $USER_DATA['GENDER'] = "Female";
                             }
 
                             $USER_DATA['DOB'] = date("Y-m-d", strtotime($getData[6]));
-                            if ($getData[9]==1) {
+                            if ($getData[9] == 1) {
                                 $USER_DATA['MARITAL_STATUS'] = "Married";
-                            } elseif ($getData[9]==0) {
+                            } elseif ($getData[9] == 0) {
                                 $USER_DATA['MARITAL_STATUS'] = "Unmarried";
                             }
                             $USER_DATA['ADDRESS'] = $getData[14];
                             $USER_DATA['ADDRESS_1'] = $getData[15];
                             $USER_DATA['CITY'] = $getData[16];
-                            $USER_DATA['PK_STATES'] = $getData[17];
+                            $state_code = $getData[17];
+                            $doableState = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE STATE_CODE='$state_code'");
+                            $USER_DATA['PK_COUNTRY'] = 1;
+                            $USER_DATA['PK_STATES'] = $doableState->fields['PK_STATES'];
                             $USER_DATA['ZIP'] = $getData[18];
                             $USER_DATA['NOTES'] = $getData[16];
                             $USER_DATA['ACTIVE'] = 1;
@@ -191,7 +179,7 @@ if(!empty($_POST))
                             db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
 
                             $PK_USER_MASTER = $db->insert_ID();
-                            if($PK_USER_MASTER){
+                            if ($PK_USER_MASTER) {
                                 $CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
                                 $CUSTOMER_DATA['FIRST_NAME'] = $getData[2];
                                 $CUSTOMER_DATA['LAST_NAME'] = $getData[3];
@@ -200,22 +188,45 @@ if(!empty($_POST))
                                 $CUSTOMER_DATA['DOB'] = date("Y-m-d", strtotime($getData[6]));
                                 $CUSTOMER_DATA['CALL_PREFERENCE'] = $getData[24];
                                 //$CUSTOMER_DATA['REMINDER_OPTION'] = $getData[23];
-                                $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = $getData[26];
-                                $CUSTOMER_DATA['PARTNER_GENDER'] = $getData[27];
+                                $partner_name = explode(" ", $getData[26]);
+                                $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = $partner_name[0];
+                                $CUSTOMER_DATA['PARTNER_LAST_NAME'] = $partner_name[1];
+                                if ($getData[27] == 0) {
+                                    $CUSTOMER_DATA['PARTNER_GENDER'] = "Male";
+                                } elseif ($getData[27] == 1) {
+                                    $CUSTOMER_DATA['PARTNER_GENDER'] = "Female";
+                                }
+                                if (!empty($getData[26])) {
+                                    $CUSTOMER_DATA['ATTENDING_WITH'] = "With a Partner";
+                                } else {
+                                    $CUSTOMER_DATA['ATTENDING_WITH'] = "Solo";
+                                }
                                 $CUSTOMER_DATA['PARTNER_DOB'] = date("Y-m-d", strtotime($getData[7]));
                                 $CUSTOMER_DATA['IS_PRIMARY'] = 1;
                                 db_perform('DOA_CUSTOMER_DETAILS', $CUSTOMER_DATA, 'insert');
 
                                 $PK_CUSTOMER_DETAILS = $db->insert_ID();
-                                if($getData[10]!="0000-00-00 00:00:00" && $getData[10]>0) {
+                                if (!empty($getData[19]) && $getData[19] != "   -   -    *") {
+                                    $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                                    $PHONE_DATA['PHONE'] = $getData[19];
+                                    db_perform('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
+                                }
+
+                                if (!empty($getData[20]) && $getData[20] != "   -   -    *") {
+                                    $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                                    $PHONE_DATA['PHONE'] = $getData[20];
+                                    db_perform('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
+                                }
+
+                                if ($getData[10] != "0000-00-00 00:00:00" && $getData[10] > 0) {
                                     $SPECIAL_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                    $SPECIAL_DATA['SPECIAL_DATE'] =  date("Y-m-d", strtotime($getData[10]));
+                                    $SPECIAL_DATA['SPECIAL_DATE'] = date("Y-m-d", strtotime($getData[10]));
                                     $SPECIAL_DATA['DATE_NAME'] = $getData[12];
                                     db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA, 'insert');
                                 }
-                                if($getData[11]!="0000-00-00 00:00:00" && $getData[11]>0) {
+                                if ($getData[11] != "0000-00-00 00:00:00" && $getData[11] > 0) {
                                     $SPECIAL_DATA_1['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                    $SPECIAL_DATA_1['SPECIAL_DATE'] =  date("Y-m-d", strtotime($getData[11]));
+                                    $SPECIAL_DATA_1['SPECIAL_DATE'] = date("Y-m-d", strtotime($getData[11]));
                                     $SPECIAL_DATA_1['DATE_NAME'] = $getData[13];
                                     db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA_1, 'insert');
                                 }
@@ -226,16 +237,15 @@ if(!empty($_POST))
                                 $INQUIRY_VALUE['PK_INQUIRY_METHOD'] = 0;
                                 $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = 0;
 
-
-                                if(!empty($getData[38])) {
+                                if (!empty($getData[38])) {
                                     $inquiryId = $getData[38];
-                                    if ($inquiryId=="TEL")  {
+                                    if ($inquiryId == "TEL") {
                                         $getInquiry = "Telephone";
-                                    } elseif ($inquiryId=="WIN") {
+                                    } elseif ($inquiryId == "WIN") {
                                         $getInquiry = "Walk In";
-                                    } elseif ($inquiryId=="GIFT") {
+                                    } elseif ($inquiryId == "GIFT") {
                                         $getInquiry = "Gift";
-                                    } elseif ($inquiryId=="EML") {
+                                    } elseif ($inquiryId == "EML") {
                                         $getInquiry = "Email Message";
                                     } else {
                                         $getInquiry = getInquiry($inquiryId);
@@ -244,7 +254,7 @@ if(!empty($_POST))
                                     $INQUIRY_VALUE['PK_INQUIRY_METHOD'] = $doableInquiryId->fields['PK_INQUIRY_METHOD'];
                                 }
 
-                                if(!empty($getData[37])) {
+                                if (!empty($getData[37])) {
                                     $takerId = $getData[37];
                                     $getTaker = getTaker($takerId);
                                     $doableTakerId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_ID='$getTaker'");
@@ -253,11 +263,128 @@ if(!empty($_POST))
                                 db_perform('DOA_USER_INTEREST_OTHER_DATA', $INQUIRY_VALUE, 'insert');
                             }
                         }
-
-
-
                     }
                     break;
+
+                case 'DOA_SERVICE_MASTER':
+                    $table_data = $db->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($table_data->RecordCount() == 0) {
+                        $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $INSERT_DATA['SERVICE_NAME'] = $getData[1];
+                        $INSERT_DATA['PK_SERVICE_CLASS'] = 2;
+                        $INSERT_DATA['IS_SCHEDULE'] = 1;
+                        $INSERT_DATA['DESCRIPTION'] = $getData[1];
+                        $INSERT_DATA['ACTIVE'] = 1;
+                        db_perform('DOA_SERVICE_MASTER', $INSERT_DATA, 'insert');
+                    }
+                    break;
+
+                case 'DOA_SERVICE_CODE':
+                    $table_data = $db->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE SERVICE_CODE='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($table_data->RecordCount() == 0) {
+                        $serviceId = $getData[3];
+                        [$getService, $isChargable] = getService($serviceId);
+                        $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$getService'");
+                        $INSERT_DATA['PK_SERVICE_MASTER'] = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                        $INSERT_DATA['SERVICE_CODE'] = $getData[1];
+                        $INSERT_DATA['PK_FREQUENCY'] = 0;
+                        $INSERT_DATA['DESCRIPTION'] = $getData[1];
+                        $INSERT_DATA['DURATION'] = $getData[4];
+                        $serviceName = $doableServiceId->fields['SERVICE_NAME'];
+                        if (str_contains($serviceName, 'Group')) {
+                            $INSERT_DATA['IS_GROUP'] = 1;
+                        } else {
+                            $INSERT_DATA['IS_GROUP'] = 0;
+                        }
+                        $INSERT_DATA['CAPACITY'] = $getData[5];
+                        if ($isChargable == "Y") {
+                            $INSERT_DATA['IS_CHARGEABLE'] = 1;
+                        } elseif ($isChargable == "N") {
+                            $INSERT_DATA['IS_CHARGEABLE'] = 0;
+                        }
+                        if ($getData[13] == "Active") {
+                            $INSERT_DATA['ACTIVE'] = 1;
+                        } elseif ($getData[13] == "Not Active") {
+                            $INSERT_DATA['ACTIVE'] = 0;
+                        }
+                        db_perform('DOA_SERVICE_CODE', $INSERT_DATA, 'insert');
+                    }
+                    break;
+
+                case "DOA_ENROLLMENT_TYPE":
+                    $table_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_TYPE WHERE ENROLLMENT_TYPE='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($table_data->RecordCount() == 0) {
+                        $INSERT_DATA['ENROLLMENT_TYPE'] = $getData[1];
+                        $INSERT_DATA['ACTIVE'] = 1;
+                        db_perform('DOA_ENROLLMENT_TYPE', $INSERT_DATA, 'insert');
+                    }
+                    break;
+
+                case "DOA_ENROLLMENT_MASTER":
+                    $table_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER WHERE ENROLLMENT_TYPE='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($table_data->RecordCount() == 0) {
+                        $INSERT_DATA['OLD_DATABASE_PK_ID'] = $getData[0];
+                        $INSERT_DATA['ENROLLMENT_NAME'] = $getData[3];
+                        $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                        $enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]' ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+                        if ($enrollment_data->RecordCount() > 0){
+                            $last_enrollment_id = str_replace($account_data->fields['ENROLLMENT_ID_CHAR'], '', $enrollment_data->fields['ENROLLMENT_ID']) ;
+                            $INSERT_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR'].(intval($last_enrollment_id)+1);
+                        }else{
+                            $INSERT_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR'].$account_data->fields['ENROLLMENT_ID_NUM'];
+                        }
+                        $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $customerId = $getData[0];
+                        $getCustomer = getCustomer($customerId);
+                        $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.EMAIL_ID='$getCustomer'");
+                        $INSERT_DATA['PK_USER_MASTER'] = $doableCustomerId->fields['PK_USER_MASTER'];
+                        $INSERT_DATA['AGREEMENT_PDF_LINK'] = $getData[41];
+                        $INSERT_DATA['ENROLLMENT_BY_ID'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $INSERT_DATA['ACTIVE'] = 1;
+                        $INSERT_DATA['STATUS'] = "A";
+                        $INSERT_DATA['CREATED_BY'] = $_POST['PK_ACCOUNT_MASTER'];
+                        db_perform('DOA_ENROLLMENT_MASTER', $INSERT_DATA, 'insert');
+                    }
+                    break;
+
+                case "DOA_ENROLLMENT_SERVICE":
+                    $table_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE ENROLLMENT_TYPE='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($table_data->RecordCount() == 0) {
+                        $enrollmentId = $getData[4];
+                        $doableEnrollmentId = $db->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_MASTER WHERE OLD_DATABASE_PK_ID = '$enrollmentId'");
+                        $SERVICE_DATA['PK_ENROLLMENT_MASTER'] =  $doableEnrollmentId->fields['PK_ENROLLMENT_MASTER'];
+                        $serviceId = $getData[2];
+                        $getServiceMaster = getServiceMaster($serviceId);
+                        $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER, DESCRIPTION FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$getServiceMaster'");
+                        $SERVICE_DATA['PK_SERVICE_MASTER'] =  $doableServiceId->fields['PK_SERVICE_MASTER'];
+                        $SERVICE_DATA['PK_SERVICE_CODE'] =  0;
+                        $SERVICE_DATA['FREQUENCY'] =  0;
+                        $SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                        [$getQuantity, $getCost] = getQuantity($enrollmentId);
+                        $SERVICE_DATA['NUMBER_OF_SESSION'] = $getQuantity;
+                        $SERVICE_DATA['PRICE_PER_SESSION'] = $getCost;
+                        [$getTotal, $getDiscount, $getFinalAmount] = getEnrollmentDetails($enrollmentId);
+                        $SERVICE_DATA['TOTAL'] = $getTotal;
+                        $SERVICE_DATA['DISCOUNT'] = $getDiscount;
+                        $SERVICE_DATA['FINAL_AMOUNT'] = $getFinalAmount;
+                        pre_r($SERVICE_DATA);
+                        db_perform('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
+                    }
+                    break;
+
+                case "DOA_APPOINTMENT_MASTER":
+                    $table_data = $db->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE ENROLLMENT_TYPE='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($table_data->RecordCount() == 0) {
+                        $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $INSERT_DATA['ENROLLMENT_ID'] = $getData[3];
+//                        $customerId = $getData[0];
+//                        $getCustomer = getCustomer($customerId);
+//                        $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.EMAIL_ID='$getCustomer'");
+//                        $INSERT_DATA['PK_USER_MASTER'] = $doableCustomerId->fields['PK_USER_MASTER'];
+                        $INSERT_DATA['AGREEMENT_PDF_LINK'] = $getData[41];
+                        $INSERT_DATA['ACTIVE'] = 1;
+                        db_perform('DOA_APPOINTMENT_MASTER', $INSERT_DATA, 'insert');
+                    }
             }
 
 
@@ -360,6 +487,10 @@ if(!empty($_POST))
                                 <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>
                                 <option value="DOA_USERS">DOA_USERS</option>
                                 <option value="DOA_CUSTOMER">DOA_CUSTOMER</option>
+                                <option value="DOA_SERVICE_MASTER">DOA_SERVICE_MASTER</option>
+                                <option value="DOA_SERVICE_CODE">DOA_SERVICE_CODE</option>
+                                <option value="DOA_ENROLLMENT_MASTER">DOA_ENROLLMENT_MASTER</option>
+                                <option value="DOA_ENROLLMENT_SERVICE">DOA_ENROLLMENT_SERVICE</option>
                             </select>
                             <div id="view_download_div" class="m-10"></div>
                         </div>

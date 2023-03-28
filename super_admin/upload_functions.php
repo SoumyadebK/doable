@@ -16,7 +16,7 @@ if ($db1->error_number){
 
 function getRole($role_id){
     global $db1;
-    $role = $db1->Execute("SELECT name FROM roles where id = '$role_id'");
+    $role = $db1->Execute("SELECT name FROM roles WHERE id = '$role_id'");
     if ($role->fields['name']=="Supervisor" || $role->fields['name']=="Counselor") {
         return "Account User";
     } else {
@@ -26,12 +26,47 @@ function getRole($role_id){
 
 function getInquiry($inquiry_id) {
     global $db1;
-    $inquiry = $db1->Execute("SELECT inquiry_type FROM inquiry_type where inquiry_id = '$inquiry_id'");
+    $inquiry = $db1->Execute("SELECT inquiry_type FROM inquiry_type WHERE inquiry_id = '$inquiry_id'");
     return $inquiry->fields['inquiry_type'];
 }
 
 function getTaker($taker_id) {
     global $db1;
-    $inquiry_taker = $db1->Execute("SELECT user_name FROM users where user_id = '$taker_id'");
+    $inquiry_taker = $db1->Execute("SELECT user_name FROM users WHERE user_id = '$taker_id'");
     return $inquiry_taker->fields['user_name'];
 }
+
+function getService($service_id) {
+    global $db1;
+    $service_taker = $db1->Execute("SELECT service_name, chargeable FROM service_codes WHERE service_id = '$service_id'");
+    return [$service_taker->fields['service_name'], $service_taker->fields['chargeable']];
+}
+
+function getCustomer($customer_id) {
+    global $db1;
+    $customer_taker = $db1->Execute("SELECT email FROM customer WHERE customer_id = '$customer_id'");
+    return $customer_taker->fields['email'];
+}
+
+function getQuantity($enrollment_id) {
+    global $db1;
+    $quantity_taker = $db1->Execute("SELECT quantity, cost FROM enrollment_services WHERE enrollment_id = '$enrollment_id'");
+    return [$quantity_taker->fields['quantity'], $quantity_taker->fields['cost']];
+}
+
+function getServiceMaster($service_id) {
+    global $db1;
+    $service_name_taker = $db1->Execute("SELECT service_name FROM service_codes WHERE service_id = '$service_id'");
+    return $service_name_taker->fields['service_name'];
+}
+
+function getEnrollmentDetails($enrollment_id) {
+    global $db1;
+    $enrollment_details = $db1->Execute("SELECT total_cost, discount, fincharge FROM enrollment WHERE enrollment_id = '$enrollment_id'");
+    return [$enrollment_details->fields['total_cost'], $enrollment_details->fields['discount'], $enrollment_details->fields['fincharge']];
+}
+
+//function getState($state_code) {
+//    global $db1;
+//    $state_taker = $db1->Execute("SELECT ")
+//}
