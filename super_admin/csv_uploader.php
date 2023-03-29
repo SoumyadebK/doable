@@ -367,7 +367,6 @@ if(!empty($_POST))
                         $SERVICE_DATA['TOTAL'] = $getTotal;
                         $SERVICE_DATA['DISCOUNT'] = $getDiscount;
                         $SERVICE_DATA['FINAL_AMOUNT'] = $getFinalAmount;
-                        pre_r($SERVICE_DATA);
                         db_perform('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
                     }
                     break;
