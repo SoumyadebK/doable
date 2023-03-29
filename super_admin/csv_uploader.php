@@ -283,14 +283,14 @@ if(!empty($_POST))
                     if ($table_data->RecordCount() == 0) {
                         $serviceId = $getData[3];
                         [$getService, $isChargable] = getService($serviceId);
-                        $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$getService'");
+                        $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$getService'");
                         $INSERT_DATA['PK_SERVICE_MASTER'] = $doableServiceId->fields['PK_SERVICE_MASTER'];
                         $INSERT_DATA['SERVICE_CODE'] = $getData[1];
                         $INSERT_DATA['PK_FREQUENCY'] = 0;
                         $INSERT_DATA['DESCRIPTION'] = $getData[1];
                         $INSERT_DATA['DURATION'] = $getData[4];
-                        $serviceName = $doableServiceId->fields['SERVICE_NAME'];
-                        if (strpos($serviceName, 'Group')) {
+                        $serviceName = $getData[1];
+                        if (strpos($serviceName, "Group")) {
                             $INSERT_DATA['IS_GROUP'] = 1;
                         } else {
                             $INSERT_DATA['IS_GROUP'] = 0;
