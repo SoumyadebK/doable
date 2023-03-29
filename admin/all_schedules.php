@@ -106,7 +106,11 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
     $GROUP_CLASS_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
     $GROUP_CLASS_DATA['EDITED_ON'] = date("Y-m-d H:i");
-    db_perform('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update'," PK_GROUP_CLASS =  '$PK_GROUP_CLASS'");
+    if (isset($_POST['GROUP_CLASS_ID'])) {
+        db_perform('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " GROUP_CLASS_ID =  '$_POST[GROUP_CLASS_ID]'");
+    } else {
+        db_perform('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " PK_GROUP_CLASS =  '$PK_GROUP_CLASS'");
+    }
 
     if (isset($_POST['PK_USER_MASTER'])) {
         $db->Execute("DELETE FROM `DOA_GROUP_CLASS_CUSTOMER` WHERE `PK_GROUP_CLASS` = '$PK_GROUP_CLASS'");
@@ -433,14 +437,14 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
         } else {
             $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS WHERE DOA_USERS.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
         }
-
-        while (!$service_provider_data->EOF) { ?>
+        $resourceIdArray = [];
+        while (!$service_provider_data->EOF) { $resourceIdArray[] = $service_provider_data->fields['PK_USER'];?>
         {
             id: <?=$service_provider_data->fields['PK_USER']?>,
             title: '<?=$service_provider_data->fields['NAME'].' - 0'?>',
         },
         <?php $service_provider_data->MoveNext();
-        } ?>
+        } $resourceIdArray = json_encode($resourceIdArray)?>
     ];
 
     let appointmentArray = [
@@ -505,15 +509,18 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
         <?php $event_data = $db->Execute("SELECT DOA_EVENT.*, DOA_EVENT_TYPE.EVENT_TYPE, DOA_EVENT_TYPE.COLOR_CODE FROM DOA_EVENT LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.ACTIVE = 1 AND DOA_EVENT.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
         while (!$event_data->EOF) {
         $END_DATE = ($event_data->fields['END_DATE'] == '0000-00-00')?$event_data->fields['START_DATE']:$event_data->fields['END_DATE'];
-        $END_TIME = ($event_data->fields['END_TIME'] == '00:00:00')?$event_data->fields['START_TIME']:$event_data->fields['END_TIME']; ?>
+        $END_TIME = ($event_data->fields['END_TIME'] == '00:00:00')?$event_data->fields['START_TIME']:$event_data->fields['END_TIME'];
+        $open_close_time_diff = strtotime($location_operational_hour->fields['CLOSE_TIME']) - strtotime($location_operational_hour->fields['OPEN_TIME']);
+        $start_end_time_diff = strtotime($END_DATE.' '.$END_TIME) - strtotime($event_data->fields['START_DATE'].' '.$event_data->fields['START_TIME']);?>
         {
             id: <?=$event_data->fields['PK_EVENT']?>,
-            resourceId: 0,
+            resourceIds: <?=$resourceIdArray?>,
             title: '<?=$event_data->fields['HEADER']?>',
             start: new Date(<?=date("Y",strtotime($event_data->fields['START_DATE']))?>,<?=intval((date("m",strtotime($event_data->fields['START_DATE'])) - 1))?>,<?=intval(date("d",strtotime($event_data->fields['START_DATE'])))?>,<?=date("H",strtotime($event_data->fields['START_TIME']))?>,<?=date("i",strtotime($event_data->fields['START_TIME']))?>,1,1),
             end: new Date(<?=date("Y",strtotime($END_DATE))?>,<?=intval((date("m",strtotime($END_DATE)) - 1))?>,<?=intval(date("d",strtotime($END_DATE)))?>,<?=date("H",strtotime($END_TIME))?>,<?=date("i",strtotime($END_TIME))?>,1,1),
             color: '<?=$event_data->fields['COLOR_CODE']?>',
             type: 'event',
+            allDay: '<?=($start_end_time_diff > $open_close_time_diff)?>'
         },
         <?php $event_data->MoveNext();
         } ?>
@@ -558,6 +565,17 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
                     titleFormat: 'dddd, MMMM Do YYYY'
                 }
             },
+            /*viewRender: function(view) {
+                if(view.type == 'agendaDay') {
+                    $('#calendar').fullCalendar( 'removeEventSource', ev1 );
+                    $('#calendar').fullCalendar( 'addEventSource', ev2 );
+                    return;
+                } else {
+                    $('#calendar').fullCalendar( 'removeEventSource', ev2 );
+                    $('#calendar').fullCalendar( 'addEventSource', ev1 );
+                    return;
+                }
+            },*/
 
             //// uncomment this line to hide the all-day slot
             //allDaySlot: false,
@@ -568,13 +586,7 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
                 { id: 'c', title: 'Room C', eventColor: 'orange' },
                 { id: 'd', title: 'Room D', eventColor: 'red' }
             ]*/,
-            events: finalArray /*[
-                { id: '1', resourceId: 'a', start: '2016-01-06', end: '2016-01-08', title: 'event 1' },
-                { id: '2', resourceId: 'a', start: '2016-01-07T09:00:00', end: '2016-01-07T14:00:00', title: 'event 2' },
-                { id: '3', resourceId: 'b', start: '2016-01-07T12:00:00', end: '2016-01-08T06:00:00', title: 'event 3' },
-                { id: '4', resourceId: 'c', start: '2016-01-07T07:30:00', end: '2016-01-07T09:30:00', title: 'event 4' },
-                { id: '5', resourceId: 'd', start: '2016-01-07T10:00:00', end: '2016-01-07T15:00:00', title: 'event 5' }
-            ]*/,
+            events: finalArray,
 
             eventClick: function(info) {
                 showAppointmentEdit(info);
