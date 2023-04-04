@@ -72,8 +72,8 @@ function getUser($user_id) {
     return $customer_taker->fields['email'];
 }
 
-//function getUsername($user_id) {
+//function getServiceCode($service_id) {
 //    global $db1;
-//    $user_taker = $db1->Execute("SELECT user_name FROM users WHERE user_id = '$user_id'");
-//    return $user_taker->fields['user_name'];
+//    $id_taker = $db1->Execute("SELECT first_name, last_name FROM users WHERE first_name = '$service_id'");
+//    return $id_taker->fields['user_name'];
 //}
