@@ -459,7 +459,6 @@ if(!empty($_POST))
                         $lastName = ($created_by[1])?:'';
                         $doableNameId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE FIRST_NAME='$firstName' AND LAST_NAME = '$lastName'");
                         $INSERT_DATA['CREATED_BY'] = $doableNameId->fields['PK_USER'];
-                        pre_r($INSERT_DATA);
                         db_perform('DOA_EVENT', $INSERT_DATA, 'insert');
                     }
                     break;
