@@ -66,7 +66,14 @@ function getEnrollmentDetails($enrollment_id) {
     return [$enrollment_details->fields['total_cost'], $enrollment_details->fields['discount'], $enrollment_details->fields['fincharge']];
 }
 
-//function getState($state_code) {
+function getUser($user_id) {
+    global $db1;
+    $customer_taker = $db1->Execute("SELECT email FROM customer WHERE customer_id = '$user_id'");
+    return $customer_taker->fields['email'];
+}
+
+//function getServiceCode($service_id) {
 //    global $db1;
-//    $state_taker = $db1->Execute("SELECT ")
+//    $id_taker = $db1->Execute("SELECT first_name, last_name FROM users WHERE first_name = '$service_id'");
+//    return $id_taker->fields['user_name'];
 //}
