@@ -26,6 +26,8 @@ if(!empty($_POST)){
             }
         }
 
+        $ACCOUNT_DATA['APPOINTMENT_REMINDER'] = $_POST['APPOINTMENT_REMINDER'];
+        $ACCOUNT_DATA['HOUR'] = $_POST['HOUR'];
         $ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
@@ -80,6 +82,7 @@ $SQUARE_LOCATION_ID     = $res->fields['LOCATION_ID'];
 $LOGIN_ID               = $res->fields['LOGIN_ID'];
 $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
 $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
+$APPOINTMENT_REMINDER = '';
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 
@@ -439,6 +442,28 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                             </div>
                                             <?php } ?>
 
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label" style="margin-bottom: 5px;">Send an Appointment Reminder Text message.</label><br>
+                                                        <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="Yes" <?=($APPOINTMENT_REMINDER=='Yes')?'checked':''?> onclick="showHourBox(this);">Yes</label>
+                                                        <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="No" <?=($APPOINTMENT_REMINDER=='No')?'checked':'checked'?> onclick="showHourBox(this);">No</label>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row hour_box" id="yes" style="display: <?=($APPOINTMENT_REMINDER=='Yes')?'':'none'?>;">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">How many hours before the appointment ?</label>
+                                                        <input type="text" class="form-control" name="HOUR" value="<?='24'?>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
                                         </div>
@@ -592,6 +617,13 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                     }
                 }
 
+            }
+        }
+
+        function showHourBox(param) {
+            $('.hour_box').slideUp();
+            if ($(param).val() === 'Yes') {
+                $('#yes').slideDown();
             }
         }
     </script>
