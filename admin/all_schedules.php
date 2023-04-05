@@ -97,7 +97,6 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAp
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClassData'){
     $PK_GROUP_CLASS = $_POST['PK_GROUP_CLASS'];
-    $GROUP_CLASS_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
     $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
     $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
     $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_1'] = $_POST['SERVICE_PROVIDER_ID_1'];
@@ -109,6 +108,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     if (isset($_POST['GROUP_CLASS_ID'])) {
         db_perform('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " GROUP_CLASS_ID =  '$_POST[GROUP_CLASS_ID]'");
     } else {
+        $GROUP_CLASS_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
         db_perform('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " PK_GROUP_CLASS =  '$PK_GROUP_CLASS'");
     }
 
@@ -510,7 +510,7 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
         while (!$event_data->EOF) {
         $END_DATE = ($event_data->fields['END_DATE'] == '0000-00-00')?$event_data->fields['START_DATE']:$event_data->fields['END_DATE'];
         $END_TIME = ($event_data->fields['END_TIME'] == '00:00:00')?$event_data->fields['START_TIME']:$event_data->fields['END_TIME'];
-        $open_close_time_diff = strtotime($location_operational_hour->fields['CLOSE_TIME']) - strtotime($location_operational_hour->fields['OPEN_TIME']);
+        $open_close_time_diff = (strtotime($location_operational_hour->fields['CLOSE_TIME']) - strtotime($location_operational_hour->fields['OPEN_TIME'])) - 1800;
         $start_end_time_diff = strtotime($END_DATE.' '.$END_TIME) - strtotime($event_data->fields['START_DATE'].' '.$event_data->fields['START_TIME']);?>
         {
             id: <?=$event_data->fields['PK_EVENT']?>,
@@ -520,7 +520,7 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
             end: new Date(<?=date("Y",strtotime($END_DATE))?>,<?=intval((date("m",strtotime($END_DATE)) - 1))?>,<?=intval(date("d",strtotime($END_DATE)))?>,<?=date("H",strtotime($END_TIME))?>,<?=date("i",strtotime($END_TIME))?>,1,1),
             color: '<?=$event_data->fields['COLOR_CODE']?>',
             type: 'event',
-            allDay: '<?=($start_end_time_diff > $open_close_time_diff)?>'
+            allDay: '<?=($start_end_time_diff >= $open_close_time_diff)?>'
         },
         <?php $event_data->MoveNext();
         } ?>

@@ -87,7 +87,7 @@ else {
                                     <label class="col-md-12" for="example-text">Color Code<span class="text-danger">*</span>
                                     </label>
                                     <div class="col-md-3">
-                                        <input type="color" id="COLOR_CODE" name="COLOR_CODE" class="form-control" value="<?php echo $COLOR_CODE?>">
+                                        <input type="color" id="COLOR_CODE" name="COLOR_CODE" value="<?php echo $COLOR_CODE?>" style="margin: 10px; width: 150px;">
                                     </div>
                                 </div>
 
