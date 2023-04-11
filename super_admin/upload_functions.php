@@ -72,8 +72,8 @@ function getUser($user_id) {
     return $customer_taker->fields['email'];
 }
 
-//function getServiceCode($service_id) {
-//    global $db1;
-//    $id_taker = $db1->Execute("SELECT first_name, last_name FROM users WHERE first_name = '$service_id'");
-//    return $id_taker->fields['user_name'];
-//}
+function getpaymentType($payment_method) {
+    global $db1;
+    $id_taker = $db1->Execute("SELECT first_name, last_name FROM users WHERE first_name = '$payment_method'");
+    return $id_taker->fields['user_name'];
+}
