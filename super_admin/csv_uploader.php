@@ -350,18 +350,18 @@ if(!empty($_POST))
                         db_perform('DOA_ENROLLMENT_MASTER', $INSERT_DATA, 'insert');
                         $PK_ENROLLMENT_MASTER = $db->insert_ID();
 
-                        $INSERT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                        $INSERT_DATA['BILLING_REF'] = '';
-                        $INSERT_DATA['BILLING_DATE'] = $getData[7];
-                        $INSERT_DATA['DOWN_PAYMENT'] = '';
-                        $INSERT_DATA['BALANCE_PAYABLE'] = $getData[33];
-                        $INSERT_DATA['TOTAL_AMOUNT'] = $getData[38];
-                        $INSERT_DATA['PAYMENT_METHOD'] = '';
-                        $INSERT_DATA['PAYMENT_TERM'] = '';
-                        $INSERT_DATA['NUMBER_OF_PAYMENT'] = '';
-                        $INSERT_DATA['FIRST_DUE_DATE'] = '';
-                        $INSERT_DATA['INSTALLMENT_AMOUNT'] = '';
-                        db_perform('DOA_ENROLLMENT_BILLING', $INSERT_DATA, 'insert');
+                        $BILLING_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                        $BILLING_DATA['BILLING_REF'] = '';
+                        $BILLING_DATA['BILLING_DATE'] = $getData[7];
+                        $BILLING_DATA['DOWN_PAYMENT'] = '';
+                        $BILLING_DATA['BALANCE_PAYABLE'] = $getData[33];
+                        $BILLING_DATA['TOTAL_AMOUNT'] = $getData[38];
+                        $BILLING_DATA['PAYMENT_METHOD'] = '';
+                        $BILLING_DATA['PAYMENT_TERM'] = '';
+                        $BILLING_DATA['NUMBER_OF_PAYMENT'] = '';
+                        $BILLING_DATA['FIRST_DUE_DATE'] = '';
+                        $BILLING_DATA['INSTALLMENT_AMOUNT'] = '';
+                        db_perform('DOA_ENROLLMENT_BILLING', $BILLING_DATA, 'insert');
                     }
                     break;
 
