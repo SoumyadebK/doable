@@ -82,7 +82,8 @@ $SQUARE_LOCATION_ID     = $res->fields['LOCATION_ID'];
 $LOGIN_ID               = $res->fields['LOGIN_ID'];
 $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
 $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
-$APPOINTMENT_REMINDER = '';
+$APPOINTMENT_REMINDER = $res->fields['APPOINTMENT_REMINDER'];
+$HOUR = $res->fields['HOUR'];
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 
@@ -447,7 +448,7 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                     <div class="form-group">
                                                         <label class="form-label" style="margin-bottom: 5px;">Send an Appointment Reminder Text message.</label><br>
                                                         <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="Yes" <?=($APPOINTMENT_REMINDER=='Yes')?'checked':''?> onclick="showHourBox(this);">Yes</label>
-                                                        <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="No" <?=($APPOINTMENT_REMINDER=='No')?'checked':'checked'?> onclick="showHourBox(this);">No</label>
+                                                        <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="No" <?=($APPOINTMENT_REMINDER=='No')?'checked':''?> onclick="showHourBox(this);">No</label>
 
                                                     </div>
                                                 </div>
@@ -457,7 +458,7 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                 <div class="col-6">
                                                     <div class="form-group">
                                                         <label class="form-label">How many hours before the appointment ?</label>
-                                                        <input type="text" class="form-control" name="HOUR" value="<?='24'?>">
+                                                        <input type="text" class="form-control" name="HOUR" value="<?=$HOUR?>">
                                                     </div>
                                                 </div>
                                             </div>
