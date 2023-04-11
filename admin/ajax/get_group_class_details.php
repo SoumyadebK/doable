@@ -106,7 +106,7 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
             <div class="row">
                 <div class="col-6">
                     <label class="form-label">Customer</label>
-                    <div style="margin-bottom: 15px; margin-top: 10px; width: 700px;">
+                    <div style="margin-bottom: 15px; margin-top: 10px; width: 480px;">
                         <select class="multi_sumo_select" name="PK_USER_MASTER[]" multiple>
                             <?php
                             $selected_customer = [];

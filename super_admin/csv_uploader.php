@@ -361,9 +361,7 @@ if(!empty($_POST))
                         $INSERT_DATA['NUMBER_OF_PAYMENT'] = '';
                         $INSERT_DATA['FIRST_DUE_DATE'] = '';
                         $INSERT_DATA['INSTALLMENT_AMOUNT'] = '';
-                        pre_r($INSERT_DATA);
                         db_perform('DOA_ENROLLMENT_BILLING', $INSERT_DATA, 'insert');
-
                     }
                     break;
 
