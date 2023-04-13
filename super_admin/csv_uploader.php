@@ -362,7 +362,6 @@ if(!empty($_POST))
                         $BILLING_DATA['FIRST_DUE_DATE'] = '';
                         $BILLING_DATA['INSTALLMENT_AMOUNT'] = '';
                         db_perform('DOA_ENROLLMENT_BILLING', $BILLING_DATA, 'insert');
-
                     }
                     break;
 
