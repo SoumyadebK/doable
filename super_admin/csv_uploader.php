@@ -374,7 +374,7 @@ if(!empty($_POST))
                         $INSERT_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING->fields['PK_ENROLLMENT_BILLING'];
                         $PK_PAYMENT_TYPE = $db->Execute("SELECT PK_PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE='$getData[5]'");
                         $INSERT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE'];
-                        $INSERT_DATA['AMOUNT'] = $getData[8];;
+                        $INSERT_DATA['AMOUNT'] = $getData[8];
                         $INSERT_DATA['REMAINING_AMOUNT'] = '';
                         $INSERT_DATA['PK_PAYMENT_TYPE_REMAINING'] = '';
                         $INSERT_DATA['NAME'] = $getData[19];
@@ -424,16 +424,10 @@ if(!empty($_POST))
                         $INSERT_DATA['CUSTOMER_ID'] = $doableUserId->fields['PK_USER_MASTER'];
                         $INSERT_DATA['SERVICE_PROVIDER_ID'] = $doableUserId->fields['PK_USER'];
 
-//                        $doableUserMaster = $db->Execute("SELECT PK_USER_MASTER FROM DOA_CUSTOMER_DETAILS WHERE FIRST_NAME='General' AND LAST_NAME = 'Customer'");
-//                        $PK_USER_MASTER = $doableUserMaster->fields['PK_USER_MASTER'];
-//                        $doableEnrollment = $db->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_MASTER WHERE PK_USER_MASTER='$PK_USER_MASTER' AND PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
-//                        $doableUserMaster = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER FROM DOA_CUSTOMER_DETAILS INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_CUSTOMER_DETAILS.PK_USER_MASTER=DOA_ENROLLMENT_MASTER.PK_USER_MASTER WHERE DOA_CUSTOMER_DETAILS.FIRST_NAME='General' AND DOA_CUSTOMER_DETAILS.LAST_NAME = 'Customer';");
                         $doableEnrollmentService = $db->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE FROM DOA_ENROLLMENT_SERVICE INNER JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER=DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.SERVICE_NAME='General' AND PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
                         $INSERT_DATA['PK_ENROLLMENT_MASTER'] = $doableEnrollmentService->fields['PK_ENROLLMENT_MASTER'];
                         $INSERT_DATA['PK_ENROLLMENT_SERVICE'] = $doableEnrollmentService->fields['PK_ENROLLMENT_SERVICE'];
-
-                        //$serviceId = $getData[9];
-                        //$getServiceMaster = getServiceMaster($serviceId);
+                        
                         $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='General'");
                         $INSERT_DATA['PK_SERVICE_MASTER'] =  $doableServiceId->fields['PK_SERVICE_MASTER'];
                         $INSERT_DATA['PK_SERVICE_CODE'] =  0;
