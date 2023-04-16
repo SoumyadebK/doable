@@ -72,8 +72,8 @@ function getUser($user_id) {
     return $customer_taker->fields['email'];
 }
 
-//function getpaymentType($payment_method) {
+//function getName($customer_id) {
 //    global $db1;
-//    $id_taker = $db1->Execute("SELECT first_name, last_name FROM users WHERE first_name = '$payment_method'");
-//    return $id_taker->fields['user_name'];
+//    $name_taker = $db1->Execute("SELECT first_name, last_name FROM customer WHERE customer_id = '$customer_id'");
+//    return [$name_taker->fields['first_name'], $name_taker->fields['last_name']];
 //}

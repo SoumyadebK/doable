@@ -117,6 +117,29 @@ if(!empty($_POST))
                             $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
                             db_perform('DOA_USER_PROFILE', $USER_DATA, 'insert');
                         }
+
+                        if ($getData[1] == 5) {
+                            $PROVIDER_DATA['PK_USER'] = $PK_USER;
+                            $service_master = $db->Execute("SELECT PK_SERVICE_MASTER FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME = 'Standard'");
+                            $PROVIDER_DATA['PK_SERVICE_MASTER'] = $service_master->fields['PK_SERVICE_MASTER'];
+                            $start_time = "00:00:00";
+                            $end_time = "23:00:00";
+                            $PROVIDER_DATA['MON_START_TIME'] = $start_time;
+                            $PROVIDER_DATA['MON_END_TIME'] = $end_time;
+                            $PROVIDER_DATA['TUE_START_TIME'] = $start_time;
+                            $PROVIDER_DATA['TUE_END_TIME'] = $end_time;
+                            $PROVIDER_DATA['WED_START_TIME'] = $start_time;
+                            $PROVIDER_DATA['WED_END_TIME'] = $end_time;
+                            $PROVIDER_DATA['THU_START_TIME'] = $start_time;
+                            $PROVIDER_DATA['THU_END_TIME'] = $end_time;
+                            $PROVIDER_DATA['FRI_START_TIME'] = $start_time;
+                            $PROVIDER_DATA['FRI_END_TIME'] = $end_time;
+                            $PROVIDER_DATA['SAT_START_TIME'] = $start_time;
+                            $PROVIDER_DATA['SAT_END_TIME'] = $end_time;
+                            $PROVIDER_DATA['SUN_START_TIME'] = $start_time;
+                            $PROVIDER_DATA['SUN_END_TIME'] = $end_time;
+                            db_perform('DOA_SERVICE_PROVIDER_SERVICES', $PROVIDER_DATA, 'insert');
+                        }
                     }
                     break;
 
@@ -389,6 +412,16 @@ if(!empty($_POST))
                         $INSERT_DATA['PAYMENT_INFO'] = $getData[20];
                         db_perform('DOA_ENROLLMENT_PAYMENT', $INSERT_DATA, 'insert');
 
+//                        $customerId = $getData[4];
+//                        [$firstName, $lastName] = getName($customerId);
+                        $doableEnrollmentService = $db->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE FROM DOA_ENROLLMENT_SERVICE INNER JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER=DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.SERVICE_NAME='Standard' AND PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
+                        $BALANCE_DATA['PK_ENROLLMENT_MASTER'] = $doableEnrollmentService->fields['PK_ENROLLMENT_MASTER'];
+                        $BALANCE_DATA['TOTAL_BALANCE_PAID'] = $getData[8];
+                        $BALANCE_DATA['TOTAL_BALANCE_USED'] = $getData[11];
+                        $BALANCE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                        db_perform('DOA_ENROLLMENT_BALANCE', $BALANCE_DATA, 'insert');
+
+
                     break;
 
                 case "DOA_ENROLLMENT_SERVICE":
@@ -416,6 +449,8 @@ if(!empty($_POST))
                     break;
 
                 case "DOA_APPOINTMENT_MASTER":
+                    $table_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER WHERE $getdata[11] != 'C' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($table_data->RecordCount() == 0) {
                         $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                         $studentId = $getData[3];
                         $getEmail = getUser($studentId);
@@ -423,18 +458,18 @@ if(!empty($_POST))
                         $INSERT_DATA['CUSTOMER_ID'] = $doableUserId->fields['PK_USER_MASTER'];
                         $INSERT_DATA['SERVICE_PROVIDER_ID'] = $doableUserId->fields['PK_USER'];
 
-                        $doableEnrollmentService = $db->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE FROM DOA_ENROLLMENT_SERVICE INNER JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER=DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.SERVICE_NAME='General' AND PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
+                        $doableEnrollmentService = $db->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE FROM DOA_ENROLLMENT_SERVICE INNER JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER=DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.SERVICE_NAME='Standard' AND PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
                         $INSERT_DATA['PK_ENROLLMENT_MASTER'] = $doableEnrollmentService->fields['PK_ENROLLMENT_MASTER'];
                         $INSERT_DATA['PK_ENROLLMENT_SERVICE'] = $doableEnrollmentService->fields['PK_ENROLLMENT_SERVICE'];
-                        
-                        $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='General'");
-                        $INSERT_DATA['PK_SERVICE_MASTER'] =  $doableServiceId->fields['PK_SERVICE_MASTER'];
-                        $INSERT_DATA['PK_SERVICE_CODE'] =  0;
+
+                        $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE FROM DOA_SERVICE_CODE WHERE SERVICE_CODE='Standard'");
+                        $INSERT_DATA['PK_SERVICE_MASTER'] = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                        $INSERT_DATA['PK_SERVICE_CODE'] = $doableServiceId->fields['PK_SERVICE_CODE'];
                         $orgDate = $getData[5];
                         $newDate = date("Y-m-d", strtotime($orgDate));
                         $INSERT_DATA['DATE'] = $newDate;
                         $INSERT_DATA['START_TIME'] = $getData[6];
-                        $endTime = strtotime($getData[6]) + $getData[8]*60;
+                        $endTime = strtotime($getData[6]) + $getData[8] * 60;
                         $convertedTime = date('H:i:s', $endTime);
                         $INSERT_DATA['END_TIME'] = $convertedTime;
 
@@ -464,6 +499,7 @@ if(!empty($_POST))
                         }
                         $INSERT_DATA['CREATED_BY'] = $_POST['PK_ACCOUNT_MASTER'];
                         db_perform('DOA_APPOINTMENT_MASTER', $INSERT_DATA, 'insert');
+                    }
 
                     break;
 
