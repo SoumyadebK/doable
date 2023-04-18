@@ -1,7 +1,10 @@
 <?
 require_once('global/config.php');
 $msg = '';
-if(!empty($_POST)){
+$success_msg = '';
+$FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
+
+if ($FUNCTION_NAME == 'loginFunction'){
     $USER_ID = trim($_POST['USER_ID']);
     $PASSWORD = trim($_POST['PASSWORD']);
 
@@ -37,18 +40,6 @@ if(!empty($_POST)){
     } else {
         $msg = "Invalid Username";
     }
-}
-
-if (isset($_POST['email'])) {
-    $email = $_POST['email'];
-    $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE EMAIL_ID = '$email'");
-    pre_r($result);
-    if ($result->RecordCount() > 0) {
-       $alert = "Email found";
-    } else {
-        $alert = "Email not found";
-    }
-
 }
 
 ?>
@@ -90,6 +81,7 @@ if (isset($_POST['email'])) {
             <div class="card-body">
 
                 <form class="form-horizontal form-material" id="loginform" action="" method="post">
+                    <input type="hidden" name="FUNCTION_NAME" value="loginFunction">
                     <?php if ($msg) {?>
                     <div class="alert alert-danger">
                         <strong><?=$msg;?></strong>
@@ -118,7 +110,7 @@ if (isset($_POST['email'])) {
                                     <label class="form-check-label" for="customCheck1">Remember me</label>
                                 </div>
                                 <div class="ms-auto">
-                                    <a href="javascript:void(0)" id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot password?</a>
+                                    <a href="forgot-password.php" id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot password?</a>
                                 </div>
                             </div>
                         </div>
@@ -126,35 +118,6 @@ if (isset($_POST['email'])) {
                     <div class="form-group text-center">
                         <div class="col-xs-12 p-b-20">
                             <button class="btn w-100 btn-lg btn-info btn-rounded text-white" type="submit">Log In</button>
-                        </div>
-                    </div>
-
-                    <!--<div class="form-group m-b-0">
-                        <div class="col-sm-12 text-center">
-                            Don't have an account? <a href="register.php" class="text-info m-l-5"><b>Sign Up</b></a>
-                        </div>
-                    </div>-->
-                </form>
-                <form class="form-horizontal" id="recoverform" action="login.php">
-                    <div class="form-group ">
-                        <div class="col-xs-12">
-                            <h3>Recover Password</h3>
-                            <p class="text-muted">Enter your Email and instructions will be sent to you! </p>
-                        </div>
-                    </div>
-                    <div class="form-group ">
-                        <div class="col-xs-12">
-                            <input class="form-control" type="text" required="" id ='email' name="email" placeholder="Email"> </div>
-                    </div>
-                    <div class="form-group text-center m-t-20">
-                        <div class="col-xs-12">
-                            <button class="btn btn-primary btn-lg w-100 text-uppercase waves-effect waves-light" type="submit" name="submit_email">Reset</button>
-                        </div>
-                    </div>
-
-                    <div class="form-group m-b-0">
-                        <div class="col-sm-12 text-center">
-                            <a href="javascript:void(0)" id="to-login" class="text-info m-l-5"><b> Go To Login Page </b></a>
                         </div>
                     </div>
                 </form>

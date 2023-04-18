@@ -1,42 +1,18 @@
 <?
 require_once('global/config.php');
 $msg = '';
-if(!empty($_POST)){
-    $USER_ID = trim($_POST['USER_ID']);
-    $PASSWORD = trim($_POST['PASSWORD']);
+$success_msg = '';
+$FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 
-    $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USERS.USER_ID = '$USER_ID'");
-    if($result->RecordCount() > 0) {
-        if (($result->fields['ACCOUNT_ACTIVE'] == 1 || $result->fields['ACCOUNT_ACTIVE'] == '' || $result->fields['ACCOUNT_ACTIVE'] == NULL) && $result->fields['ACTIVE'] == 1 && $result->fields['CREATE_LOGIN'] == 1) {
-            if (password_verify($PASSWORD, $result->fields['PASSWORD'])) {
-                $_SESSION['PK_USER'] = $result->fields['PK_USER'];
-                $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
-                $_SESSION['PK_ROLES'] = $result->fields['PK_ROLES'];
-                $_SESSION['FIRST_NAME'] = $result->fields['FIRST_NAME'];
-                $_SESSION['LAST_NAME'] = $result->fields['LAST_NAME'];
-                $_SESSION['ACCESS_TOKEN'] = $result->fields['ACCESS_TOKEN'];
-                $_SESSION['TICKET_SYSTEM_ACCESS'] = $result->fields['TICKET_SYSTEM_ACCESS'];
-
-                if ($_SESSION['PK_ROLES'] == 1) {
-                    header("location: super_admin/all_accounts.php");
-                } elseif ($_SESSION['PK_ROLES'] == 2) {
-                    header("location: admin/all_schedules.php");
-                } elseif ($_SESSION['PK_ROLES'] == 4) {
-                    $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$result->fields['PK_USER']." LIMIT 1");
-                    $_SESSION['PK_ACCOUNT_MASTER'] = $account->fields['PK_ACCOUNT_MASTER'];
-                    header("location: customer/all_schedules.php");
-                } elseif ($_SESSION['PK_ROLES'] == 5) {
-                    header("location: service_provider/all_schedules.php");
-                }
-            } else {
-                $msg = "Invalid Password";
-            }
-        }else{
-            $msg = "User is Inactive";
-        }
+if ($FUNCTION_NAME == 'resetPasswordFunction') {
+    $email = $_POST['EMAIL'];
+    $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE EMAIL_ID = '$email'");
+    if ($result->RecordCount() > 0) {
+        $success_msg = "An password reset link sent to you Mail Id";
     } else {
-        $msg = "Invalid Username";
+        $msg = "This Email Id not exist on our system";
     }
+
 }
 
 ?>
@@ -76,56 +52,36 @@ if(!empty($_POST)){
         </div>
         <div class="login-box card">
             <div class="card-body">
-
-                <form class="form-horizontal form-material" id="loginform" action="" method="post">
+                <form class="form-horizontal form-material" action="" method="post">
+                    <input type="hidden" name="FUNCTION_NAME" value="resetPasswordFunction">
                     <?php if ($msg) {?>
                         <div class="alert alert-danger">
                             <strong><?=$msg;?></strong>
                         </div>
                     <?php } ?>
-                    <h3 class="text-center m-b-20">Sign In</h3>
+                    <?php if ($success_msg) {?>
+                        <div class="alert alert-success">
+                            <strong><?=$success_msg;?></strong>
+                        </div>
+                    <?php } ?>
+                    <h3 class="text-center m-b-20">Reset Password</h3>
                     <div>
                         <img src="assets/images/background/doable_logo.png" style="margin-left: 33%; height: 60px; width: auto;">
                     </div>
 
                     <div class="form-group ">
                         <div class="col-xs-12">
-                            <input class="form-control" type="text" required="" placeholder="Email or Username" id="USER_ID" name="USER_ID">
+                            <input class="form-control" type="text" required="" placeholder="Email" id="EMAIL" name="EMAIL">
                         </div>
                     </div>
-
                     <div class="form-group text-center">
                         <div class="col-xs-12 p-b-20">
-                            <button class="btn w-100 btn-lg btn-info btn-rounded text-white" type="submit">Log In</button>
+                            <button class="btn w-100 btn-lg btn-info btn-rounded text-white" type="submit">Reset</button>
                         </div>
                     </div>
-
-                    <!--<div class="form-group m-b-0">
-                        <div class="col-sm-12 text-center">
-                            Don't have an account? <a href="register.php" class="text-info m-l-5"><b>Sign Up</b></a>
-                        </div>
-                    </div>-->
-                </form>
-                <form class="form-horizontal" id="recoverform" action="forgot-password.php">
-                    <div class="form-group ">
-                        <div class="col-xs-12">
-                            <h3>Recover Password</h3>
-                            <p class="text-muted">Enter your Email and instructions will be sent to you! </p>
-                        </div>
-                    </div>
-                    <div class="form-group ">
-                        <div class="col-xs-12">
-                            <input class="form-control" type="text" required="" name="email" placeholder="Email"> </div>
-                    </div>
-                    <div class="form-group text-center m-t-20">
-                        <div class="col-xs-12">
-                            <button class="btn btn-primary btn-lg w-100 text-uppercase waves-effect waves-light" type="submit" name="submit_email">Reset</button>
-                        </div>
-                    </div>
-
                     <div class="form-group m-b-0">
                         <div class="col-sm-12 text-center">
-                            <a href="javascript:void(0)" id="to-login" class="text-info m-l-5"><b> Go To Login Page </b></a>
+                            <a href="login.php" id="to-login" class="text-info m-l-5"><b> Go To Login Page </b></a>
                         </div>
                     </div>
                 </form>
