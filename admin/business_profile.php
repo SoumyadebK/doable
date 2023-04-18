@@ -447,14 +447,14 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                 <div class="col-6">
                                                     <div class="form-group">
                                                         <label class="form-label" style="margin-bottom: 5px;">Send an Appointment Reminder Text message.</label><br>
-                                                        <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="Yes" <?=($APPOINTMENT_REMINDER=='Yes')?'checked':''?> onclick="showHourBox(this);">Yes</label>
-                                                        <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="No" <?=($APPOINTMENT_REMINDER=='No')?'checked':''?> onclick="showHourBox(this);">No</label>
+                                                        <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?=($APPOINTMENT_REMINDER=='1')?'checked':''?> onclick="showHourBox(this);">Yes</label>
+                                                        <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?=($APPOINTMENT_REMINDER=='0')?'checked':''?> onclick="showHourBox(this);">No</label>
 
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div class="row hour_box" id="yes" style="display: <?=($APPOINTMENT_REMINDER=='Yes')?'':'none'?>;">
+                                            <div class="row hour_box" id="yes" style="display: <?=($APPOINTMENT_REMINDER=='1')?'':'none'?>;">
                                                 <div class="col-6">
                                                     <div class="form-group">
                                                         <label class="form-label">How many hours before the appointment ?</label>
@@ -623,7 +623,7 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
 
         function showHourBox(param) {
             $('.hour_box').slideUp();
-            if ($(param).val() === 'Yes') {
+            if ($(param).val() === '1') {
                 $('#yes').slideDown();
             }
         }
