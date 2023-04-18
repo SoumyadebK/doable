@@ -20,10 +20,10 @@ if(isset($_SESSION["login_sess"]))
         </div>
         <div class="col-sm-4">
             <?php
-            if(isset($_GET['token']))
-            {
-                $token= $_GET['token'];
-            }
+//            if(isset($_GET['token']))
+//            {
+//                $token= $_GET['token'];
+//            }
             //form for submit
             if(isset($_POST['sub_set'])){
                 extract($_POST);

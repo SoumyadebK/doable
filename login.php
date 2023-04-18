@@ -106,7 +106,7 @@ if(!empty($_POST)){
                                     <label class="form-check-label" for="customCheck1">Remember me</label>
                                 </div>
                                 <div class="ms-auto">
-                                    <a href="resetpassword.php" id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot password?</a>
+                                    <a href="forgot-password.php" id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot password?</a>
                                 </div>
                             </div>
                         </div>
