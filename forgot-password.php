@@ -1,62 +1,166 @@
-<!DOCTYPE html>
-<?php
+<?
 require_once('global/config.php');
-if(isset($_SESSION["login_sess"]))
-{
-    header("location:account.php");
+$msg = '';
+if(!empty($_POST)){
+    $USER_ID = trim($_POST['USER_ID']);
+    $PASSWORD = trim($_POST['PASSWORD']);
+
+    $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USERS.USER_ID = '$USER_ID'");
+    if($result->RecordCount() > 0) {
+        if (($result->fields['ACCOUNT_ACTIVE'] == 1 || $result->fields['ACCOUNT_ACTIVE'] == '' || $result->fields['ACCOUNT_ACTIVE'] == NULL) && $result->fields['ACTIVE'] == 1 && $result->fields['CREATE_LOGIN'] == 1) {
+            if (password_verify($PASSWORD, $result->fields['PASSWORD'])) {
+                $_SESSION['PK_USER'] = $result->fields['PK_USER'];
+                $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
+                $_SESSION['PK_ROLES'] = $result->fields['PK_ROLES'];
+                $_SESSION['FIRST_NAME'] = $result->fields['FIRST_NAME'];
+                $_SESSION['LAST_NAME'] = $result->fields['LAST_NAME'];
+                $_SESSION['ACCESS_TOKEN'] = $result->fields['ACCESS_TOKEN'];
+                $_SESSION['TICKET_SYSTEM_ACCESS'] = $result->fields['TICKET_SYSTEM_ACCESS'];
+
+                if ($_SESSION['PK_ROLES'] == 1) {
+                    header("location: super_admin/all_accounts.php");
+                } elseif ($_SESSION['PK_ROLES'] == 2) {
+                    header("location: admin/all_schedules.php");
+                } elseif ($_SESSION['PK_ROLES'] == 4) {
+                    $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$result->fields['PK_USER']." LIMIT 1");
+                    $_SESSION['PK_ACCOUNT_MASTER'] = $account->fields['PK_ACCOUNT_MASTER'];
+                    header("location: customer/all_schedules.php");
+                } elseif ($_SESSION['PK_ROLES'] == 5) {
+                    header("location: service_provider/all_schedules.php");
+                }
+            } else {
+                $msg = "Invalid Password";
+            }
+        }else{
+            $msg = "User is Inactive";
+        }
+    } else {
+        $msg = "Invalid Username";
+    }
 }
+
 ?>
-<html>
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-    <title></title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Tell the browser to be responsive to screen width -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!-- Favicon icon -->
+
+    <title>Doable Login</title>
+
+    <!-- page css -->
+    <link href="assets/dist/css/pages/login-register-lock.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="assets/dist/css/style.min.css" rel="stylesheet">
+
 </head>
-<body>
-<div class="container">
-    <div class="row">
-        <div class="col-sm-4">
-        </div>
-        <div class="col-sm-4">
-            <form action="forgot_process.php" method="POST">
-                <div class="login_form">
-                    <div class="form-group">
-<!--                        <img src="https://technosmarter.com/assets/images/logo.png" alt="Techno Smarter" class="img-fluid logo">-->
-                        <?php if(isset($_GET['err'])){
-                            $err=$_GET['err'];
-                            echo '<p class="errmsg">No user found. </p>';
-                        }
-                        // If server error
-                        if(isset($_GET['servererr'])){
-                            echo "<p class='errmsg'>The server failed to send the message. Please try again later.</p>";
-                        }
-                        //if other issues
-                        if(isset($_GET['somethingwrong'])){
-                            echo '<p class="errmsg">Something went wrong.  </p>';
-                        }
-                        // If Success | Link sent
-                        if(isset($_GET['sent'])){
-                            echo "<div class='successmsg'>Reset link has been sent to your registered email id . Kindly check your email. It can be taken 2 to 3 minutes to deliver on your email id . </div>";
-                        }
-                        ?>
-                        <?php if(!isset($_GET['sent'])){ ?>
-                        <label class="label_txt">Username or Email </label>
-                        <input type="text" name="login_var" value="<?php if(!empty($err)){ echo  $err; } ?>" class="form-control" required="">
-                    </div>
-                    <button type="submit" name="subforgot" class="btn btn-primary btn-group-lg form_btn">Send Link </button>
-                    <?php } ?>
-                </div>
-            </form>
-            <br>
-            <p>Have an account? <a href="login.php">Login</a> </p>
-            <p>Don't have an account? <a href="signup.php">Sign up</a> </p>
-        </div>
-        <div class="col-sm-4">
-        </div>
+
+<body class="skin-default card-no-border">
+<div class="preloader">
+    <div class="loader">
+        <div class="loader__figure"></div>
+        <p class="loader__label">Doable</p>
     </div>
 </div>
+<section id="wrapper">
+
+    <div class="login-register" style="background-image:url(assets/images/background/login_image.jpg);">
+        <div>
+            <img src="assets/images/background/doable_logo.png" style="margin-left:5%; margin-top: -150px; height: 80px; width: auto;">
+        </div>
+        <div class="login-box card">
+            <div class="card-body">
+
+                <form class="form-horizontal form-material" id="loginform" action="" method="post">
+                    <?php if ($msg) {?>
+                        <div class="alert alert-danger">
+                            <strong><?=$msg;?></strong>
+                        </div>
+                    <?php } ?>
+                    <h3 class="text-center m-b-20">Sign In</h3>
+                    <div>
+                        <img src="assets/images/background/doable_logo.png" style="margin-left: 33%; height: 60px; width: auto;">
+                    </div>
+
+                    <div class="form-group ">
+                        <div class="col-xs-12">
+                            <input class="form-control" type="text" required="" placeholder="Email or Username" id="USER_ID" name="USER_ID">
+                        </div>
+                    </div>
+
+                    <div class="form-group text-center">
+                        <div class="col-xs-12 p-b-20">
+                            <button class="btn w-100 btn-lg btn-info btn-rounded text-white" type="submit">Log In</button>
+                        </div>
+                    </div>
+
+                    <!--<div class="form-group m-b-0">
+                        <div class="col-sm-12 text-center">
+                            Don't have an account? <a href="register.php" class="text-info m-l-5"><b>Sign Up</b></a>
+                        </div>
+                    </div>-->
+                </form>
+                <form class="form-horizontal" id="recoverform" action="forgot-password.php">
+                    <div class="form-group ">
+                        <div class="col-xs-12">
+                            <h3>Recover Password</h3>
+                            <p class="text-muted">Enter your Email and instructions will be sent to you! </p>
+                        </div>
+                    </div>
+                    <div class="form-group ">
+                        <div class="col-xs-12">
+                            <input class="form-control" type="text" required="" name="email" placeholder="Email"> </div>
+                    </div>
+                    <div class="form-group text-center m-t-20">
+                        <div class="col-xs-12">
+                            <button class="btn btn-primary btn-lg w-100 text-uppercase waves-effect waves-light" type="submit" name="submit_email">Reset</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group m-b-0">
+                        <div class="col-sm-12 text-center">
+                            <a href="javascript:void(0)" id="to-login" class="text-info m-l-5"><b> Go To Login Page </b></a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- ============================================================== -->
+<!-- End Wrapper -->
+<!-- ============================================================== -->
+
+<!-- ============================================================== -->
+<!-- All Jquery -->
+<!-- ============================================================== -->
+<script src="assets/node_modules/jquery/dist/jquery.min.js"></script>
+<!-- Bootstrap tether Core JavaScript -->
+<script src="assets/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<!--Custom JavaScript -->
+<script type="text/javascript">
+    $(function() {
+        $(".preloader").fadeOut();
+    });
+    $(function() {
+        $('[data-bs-toggle="tooltip"]').tooltip()
+    });
+    $('#to-recover').on("click", function() {
+        $("#loginform").slideUp();
+        $("#recoverform").fadeIn();
+    });
+    $('#to-login').on("click", function() {
+        $("#loginform").fadeIn();
+        $("#recoverform").slideUp();
+    });
+</script>
+
 </body>
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </html>

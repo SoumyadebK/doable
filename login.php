@@ -39,6 +39,18 @@ if(!empty($_POST)){
     }
 }
 
+if (isset($_POST['email'])) {
+    $email = $_POST['email'];
+    $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE EMAIL_ID = '$email'");
+    pre_r($result);
+    if ($result->RecordCount() > 0) {
+       $alert = "Email found";
+    } else {
+        $alert = "Email not found";
+    }
+
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -106,7 +118,7 @@ if(!empty($_POST)){
                                     <label class="form-check-label" for="customCheck1">Remember me</label>
                                 </div>
                                 <div class="ms-auto">
-                                    <a href="forgot-password.php" id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot password?</a>
+                                    <a href="javascript:void(0)" id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot password?</a>
                                 </div>
                             </div>
                         </div>
@@ -123,7 +135,7 @@ if(!empty($_POST)){
                         </div>
                     </div>-->
                 </form>
-                <form class="form-horizontal" id="recoverform" action="forgot-password.php">
+                <form class="form-horizontal" id="recoverform" action="login.php">
                     <div class="form-group ">
                         <div class="col-xs-12">
                             <h3>Recover Password</h3>
@@ -132,7 +144,7 @@ if(!empty($_POST)){
                     </div>
                     <div class="form-group ">
                         <div class="col-xs-12">
-                            <input class="form-control" type="text" required="" name="email" placeholder="Email"> </div>
+                            <input class="form-control" type="text" required="" id ='email' name="email" placeholder="Email"> </div>
                     </div>
                     <div class="form-group text-center m-t-20">
                         <div class="col-xs-12">

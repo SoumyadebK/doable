@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <?php
 require_once('global/config.php');
+pre_r($msg);
 if(isset($_SESSION["login_sess"]))
 {
     header("location:account.php");
