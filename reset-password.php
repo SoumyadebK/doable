@@ -12,7 +12,7 @@ if ($FUNCTION_NAME == 'newPasswordFunction') {
         if ($result->RecordCount() == 0) {
             $USER_DATA['PASSWORD'] = password_hash($PASSWORD, PASSWORD_DEFAULT);
             db_perform('DOA_USERS', $USER_DATA, 'update', "PK_USER =  '$_SESSION[PK_USER]'");
-            pre_r($USER_DATA);
+
             $success_msg = "Your password is changed";
         } else {
             $msg = "Your password is not changed";

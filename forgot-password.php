@@ -7,7 +7,6 @@ $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 if ($FUNCTION_NAME == 'resetPasswordFunction') {
     $email = $_POST['EMAIL'];
     $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE EMAIL_ID = '$email'");
-    $_SESSION['PK_USER'] = $result->fields['PK_USER'];
     if ($result->RecordCount() > 0) {
         $success_msg = "A password reset link sent to your Mail Id";
     } else {
@@ -53,7 +52,7 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
         </div>
         <div class="login-box card">
             <div class="card-body">
-                <form class="form-horizontal form-material" action="reset-password.php" method="post">
+                <form class="form-horizontal form-material" action="" method="post">
                     <input type="hidden" name="FUNCTION_NAME" value="resetPasswordFunction">
                     <?php if ($msg) {?>
                         <div class="alert alert-danger">
