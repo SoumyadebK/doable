@@ -4,14 +4,21 @@ $msg = '';
 $success_msg = '';
 $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 
-if ($FUNCTION_NAME == 'resetPasswordFunction') {
-    $email = $_POST['EMAIL'];
-    $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE EMAIL_ID = '$email'");
-    if ($result->RecordCount() > 0) {
-        $success_msg = "A password reset link sent to your Mail Id";
-    } else {
-        $msg = "This Email Id does not exist on our system";
+if ($FUNCTION_NAME == 'newPasswordFunction') {
+    $PASSWORD = trim($_POST['PASSWORD']);
+    $CPASSWORD = trim($_POST['CPASSWORD']);
+    if($PASSWORD==$CPASSWORD){
+        $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE PASSWORD = '$PASSWORD'");
+        if ($result->RecordCount() == 0) {
+            $USER_DATA['PASSWORD'] = password_hash($PASSWORD, PASSWORD_DEFAULT);
+            db_perform('DOA_USERS', $USER_DATA, 'update', "PK_USER =  '$_SESSION[PK_USER]'");
+
+            $success_msg = "Your password is changed";
+        } else {
+            $msg = "Your password is not changed";
+        }
     }
+
 
 }
 
@@ -53,7 +60,7 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
         <div class="login-box card">
             <div class="card-body">
                 <form class="form-horizontal form-material" action="" method="post">
-                    <input type="hidden" name="FUNCTION_NAME" value="resetPasswordFunction">
+                    <input type="hidden" name="FUNCTION_NAME" value="newPasswordFunction">
                     <?php if ($msg) {?>
                         <div class="alert alert-danger">
                             <strong><?=$msg;?></strong>
@@ -64,14 +71,17 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
                             <strong><?=$success_msg;?></strong>
                         </div>
                     <?php } ?>
-                    <h3 class="text-center m-b-20">Reset Password</h3>
+                    <h3 class="text-center m-b-20">Enter New Password</h3>
                     <div>
                         <img src="assets/images/background/doable_logo.png" style="margin-left: 33%; height: 60px; width: auto;">
                     </div>
 
                     <div class="form-group ">
                         <div class="col-xs-12">
-                            <input class="form-control" type="text" required="" placeholder="Email" id="EMAIL" name="EMAIL">
+                            <input class="form-control" type="text" required="" placeholder="New Password" id="PASSWORD" name="PASSWORD">
+                        </div>
+                        <div class="col-xs-12">
+                            <input class="form-control" type="text" required="" placeholder="Confirm Password" id="CPASSWORD" name="CPASSWORD">
                         </div>
                     </div>
                     <div class="form-group text-center">
