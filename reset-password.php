@@ -1,26 +1,38 @@
 <?
 require_once('global/config.php');
+
+$id = "$_GET[id]";
+$decodeTime = base64_decode($id);
+$new = explode('_', $decodeTime);
+$sentTime = $new[1];
+$currentTime = time();
+$timeLimit = $sentTime + 240;
+
 $msg = '';
 $success_msg = '';
+$expire = '';
 $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 
-if ($FUNCTION_NAME == 'newPasswordFunction') {
-    $PASSWORD = trim($_POST['PASSWORD']);
-    $CPASSWORD = trim($_POST['CPASSWORD']);
-    if($PASSWORD==$CPASSWORD){
-        $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE PASSWORD = '$PASSWORD'");
-        if ($result->RecordCount() == 0) {
-            $USER_DATA['PASSWORD'] = password_hash($PASSWORD, PASSWORD_DEFAULT);
-            db_perform('DOA_USERS', $USER_DATA, 'update', "PK_USER =  '$_SESSION[PK_USER]'");
-
-            $success_msg = "Your password is changed";
-        } else {
-            $msg = "Your password is not changed";
+if ($currentTime <= $timeLimit) {
+    if ($FUNCTION_NAME == 'newPasswordFunction') {
+        $PASSWORD = trim($_POST['PASSWORD']);
+        $CPASSWORD = trim($_POST['CPASSWORD']);
+        if($PASSWORD==$CPASSWORD){
+            $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE PASSWORD = '$PASSWORD'");
+            if ($result->RecordCount() == 0) {
+                $USER_DATA['PASSWORD'] = password_hash($PASSWORD, PASSWORD_DEFAULT);
+                db_perform('DOA_USERS', $USER_DATA, 'update', "PK_USER =  '$_GET[id]'");
+                $success_msg = "Your password is changed";
+            } else {
+                $msg = "Your password is not changed";
+            }
         }
     }
-
-
+} else {
+    $expire = "Oops! Your link is expired";
 }
+
+
 
 ?>
 <!DOCTYPE html>
@@ -71,11 +83,18 @@ if ($FUNCTION_NAME == 'newPasswordFunction') {
                             <strong><?=$success_msg;?></strong>
                         </div>
                     <?php } ?>
-                    <h3 class="text-center m-b-20">Enter New Password</h3>
-                    <div>
-                        <img src="assets/images/background/doable_logo.png" style="margin-left: 33%; height: 60px; width: auto;">
-                    </div>
+                    <?php if ($expire) {?>
+                        <div class="alert alert-danger">
+                            <h3><?=$expire;?></h3>
+                        </div>
+                    <?php } ?>
 
+
+                    <?php if (!$expire) {?>
+                        <h3 class="text-center m-b-20">Enter New Password</h3>
+                        <div>
+                            <img src="assets/images/background/doable_logo.png" style="margin-left: 33%; height: 60px; width: auto;">
+                        </div>
                     <div class="form-group ">
                         <div class="col-xs-12">
                             <input class="form-control" type="text" required="" placeholder="New Password" id="PASSWORD" name="PASSWORD">
@@ -89,6 +108,7 @@ if ($FUNCTION_NAME == 'newPasswordFunction') {
                             <button class="btn w-100 btn-lg btn-info btn-rounded text-white" type="submit">Reset</button>
                         </div>
                     </div>
+                    <?php } ?>
                     <div class="form-group m-b-0">
                         <div class="col-sm-12 text-center">
                             <a href="login.php" id="to-login" class="text-info m-l-5"><b> Go To Login Page </b></a>

@@ -8,6 +8,14 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
     $email = $_POST['EMAIL'];
     $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE EMAIL_ID = '$email'");
     if ($result->RecordCount() > 0) {
+        $to= $result->fields['EMAIL_ID'];
+        $time = base64_encode($result->fields['PK_USER'].'_'.time());
+        $link = $http_path.'reset-password.php?id='.$time;
+        echo $link;
+
+        //mail("$to","My subject",$link);
+
+
         $success_msg = "A password reset link sent to your Mail Id";
     } else {
         $msg = "This Email Id does not exist on our system";
