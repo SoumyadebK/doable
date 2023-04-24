@@ -200,7 +200,7 @@ if(empty($_GET['id'])){
                                                     </div>
                                                     <div class="col-2" style="text-align: center;">
                                                         <div class="form-group">
-                                                            <label id="frequency_duration_label">Frequency</label>
+                                                            <label id="frequency_duration_label"><?=($PK_SERVICE_CLASS==2)?'Duration':'Frequency'?></label>
                                                         </div>
                                                     </div>
                                                     <div class="col-1" style="text-align: center;">
@@ -243,7 +243,7 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description" value="<?=$row->fields['DESCRIPTION']?>">
                                                             </div>
                                                         </div>
-                                                        <div class="col-2 frequency_div" style="display: <?=($PK_SERVICE_CLASS==1)?'':'none'?>;">
+                                                        <div class="col-2 frequency_div" style="display: <?=($PK_SERVICE_CLASS!=1)?'none':''?>;">
                                                             <div class="form-group">
                                                                 <select class="form-control PK_FREQUENCY" name="PK_FREQUENCY[]">
                                                                     <option value="">Select</option>
@@ -255,7 +255,7 @@ if(empty($_GET['id'])){
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2 duration_div" style="display: <?=($PK_SERVICE_CLASS==2)?'':'none'?>;">
+                                                        <div class="col-2 duration_div" style="display: <?=($PK_SERVICE_CLASS!=2)?'none':''?>;">
                                                             <div class="form-group">
                                                                 <div class="col-md-12">
                                                                     <input type="text" id="DURATION" name="DURATION[]" class="form-control" placeholder="Duration" value="<?=$row->fields['DURATION']?>">
@@ -263,7 +263,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
-                                                            <div class="form-group" style="margin-left: 55px;">
+                                                            <div class="form-group" style="margin-left: 30px;">
                                                                 <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="1" <?=(($row->fields['IS_GROUP'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label><br>
                                                                     <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="0"  <?=(($row->fields['IS_GROUP'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
@@ -278,7 +278,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
-                                                            <div class="form-group" style="margin-left: 55px;">
+                                                            <div class="form-group" style="margin-left: 30px;">
                                                                 <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="1" <?=(($row->fields['IS_CHARGEABLE'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label><br>
                                                                     <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="0" <?=(($row->fields['IS_CHARGEABLE'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
@@ -327,7 +327,7 @@ if(empty($_GET['id'])){
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2 duration_div">
+                                                        <div class="col-2 duration_div" style="display: none;">
                                                             <div class="form-group">
                                                                 <div class="col-md-12">
                                                                     <input type="text" id="DURATION" name="DURATION[]" class="form-control" placeholder="Duration">
@@ -335,7 +335,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
-                                                            <div class="form-group" style="margin-left: 55px;">
+                                                            <div class="form-group" style="margin-left: 30px;">
                                                                 <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="1"/>&nbsp;Yes</label><br>
                                                                     <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
@@ -343,14 +343,14 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
-                                                            <div class="form-group capacity_div" style="display: none;">
+                                                            <div class="form-group capacity_div">
                                                                 <div class="col-md-12" >
                                                                     <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY">
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
-                                                            <div class="form-group" style="margin-left: 55px;">
+                                                            <div class="form-group" style="margin-left: 30px;">
                                                                 <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_CHARGEABLE_0" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label><br>
                                                                     <label><input type="radio" name="IS_CHARGEABLE_0" class="IS_CHARGEABLE" value="0"/>&nbsp;No</label>
@@ -381,14 +381,14 @@ if(empty($_GET['id'])){
                                                 </div>
                                             </div>
 
-                                            <div class="row form-group">
+                                            <!--<div class="row form-group">
                                                 <div>
                                                     <label class="form-label">Service Providers</label>
                                                 </div>
                                                 <div class="col-6">
                                                     <select class="multi_sumo_select" name="PK_USER[]" multiple>
                                                         <?php
-                                                        $selected_service = [];
+/*                                                        $selected_service = [];
                                                         if(!empty($_GET['id'])) {
                                                             $selected_service_row = $db->Execute("SELECT `PK_USER` FROM `DOA_SERVICE_PROVIDER_SERVICE_NEW` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
                                                             while (!$selected_service_row->EOF) {
@@ -397,12 +397,12 @@ if(empty($_GET['id'])){
                                                             }
                                                         }
                                                         $row = $db->Execute("SELECT PK_USER, CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS WHERE PK_ROLES = 5 AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                                        while (!$row->EOF) { ?>
-                                                            <option value="<?php echo $row->fields['PK_USER'];?>" <?=in_array($row->fields['PK_USER'], $selected_service)?"selected":""?> ><?=$row->fields['NAME']?></option>
-                                                            <?php $row->MoveNext(); } ?>
+                                                        while (!$row->EOF) { */?>
+                                                            <option value="<?php /*echo $row->fields['PK_USER'];*/?>" <?/*=in_array($row->fields['PK_USER'], $selected_service)?"selected":""*/?> ><?/*=$row->fields['NAME']*/?></option>
+                                                            <?php /*$row->MoveNext(); } */?>
                                                     </select>
                                                 </div>
-                                            </div>
+                                            </div>-->
 
                                             <div class="form-group">
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Continue</button>
