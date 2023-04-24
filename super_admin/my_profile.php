@@ -221,8 +221,8 @@ $PHONE_NO = $text->fields['FROM_NO'];
                                             <label class="form-label">Gender</label>
                                             <select class="form-control form-select" id="GENDER" name="GENDER">
                                                 <option>Select Gender</option>
-                                                <option value="1" <?php if($GENDER == "1") echo 'selected = "selected"';?>>Male</option>
-                                                <option value="2" <?php if($GENDER == "2") echo 'selected = "selected"';?>>Female</option>
+                                                <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
+                                                <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
                                             </select>
                                         </div>
                                     </div>

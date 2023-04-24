@@ -156,6 +156,13 @@ function displayDates($date1, $date2, $format = 'm/d/Y' ) {
 }
 
 $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME, DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM DOA_OPERATIONAL_HOUR LEFT JOIN DOA_LOCATION ON DOA_OPERATIONAL_HOUR.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY DOA_LOCATION.PK_LOCATION LIMIT 1");
+if ($location_operational_hour->RecordCount() > 0) {
+    $OPEN_TIME = $location_operational_hour->fields['OPEN_TIME'];
+    $CLOSE_TIME = $location_operational_hour->fields['CLOSE_TIME'];
+} else {
+    $OPEN_TIME = '00:00:00';
+    $CLOSE_TIME = '23:59:00';
+}
 ?>
 
 <!DOCTYPE html>
@@ -507,7 +514,7 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
         while (!$event_data->EOF) {
         $END_DATE = ($event_data->fields['END_DATE'] == '0000-00-00')?$event_data->fields['START_DATE']:$event_data->fields['END_DATE'];
         $END_TIME = ($event_data->fields['END_TIME'] == '00:00:00')?$event_data->fields['START_TIME']:$event_data->fields['END_TIME'];
-        $open_close_time_diff = (strtotime($location_operational_hour->fields['CLOSE_TIME']) - strtotime($location_operational_hour->fields['OPEN_TIME'])) - 1800;
+        $open_close_time_diff = (strtotime($CLOSE_TIME) - strtotime($OPEN_TIME)) - 1800;
         $start_end_time_diff = strtotime($END_DATE.' '.$END_TIME) - strtotime($event_data->fields['START_DATE'].' '.$event_data->fields['START_TIME']);?>
         {
             id: <?=$event_data->fields['PK_EVENT']?>,
@@ -526,8 +533,8 @@ $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME
     let finalArray = appointmentArray.concat(eventArray).concat(specialAppointmentArray).concat(groupClassArray);
 
     document.addEventListener('DOMContentLoaded', function() {
-        let open_time = '<?=$location_operational_hour->fields['OPEN_TIME']?>';
-        let close_time = '<?=$location_operational_hour->fields['CLOSE_TIME']?>';
+        let open_time = '<?=$OPEN_TIME?>';
+        let close_time = '<?=$CLOSE_TIME?>';
         let clickCount = 0;
         $('#calendar').fullCalendar({
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
