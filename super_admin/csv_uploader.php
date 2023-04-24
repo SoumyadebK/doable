@@ -578,7 +578,7 @@ if(!empty($_POST))
                     }
                     $INSERT_DATA['CREATED_BY'] = $_POST['PK_ACCOUNT_MASTER'];
                     $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                    db_perform('DOA_APPOINTMENT_MASTER', $INSERT_DATA, 'insert'); die;
+                    db_perform('DOA_APPOINTMENT_MASTER', $INSERT_DATA, 'insert');
                     break;
             }
 
@@ -620,10 +620,8 @@ if(!empty($_POST))
 //
 //            }
         }
-
         // Close opened CSV file
         fclose($csvFile);
-
         header("Location: csv_uploader.php");
     }
     else
