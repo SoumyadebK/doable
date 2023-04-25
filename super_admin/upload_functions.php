@@ -48,12 +48,6 @@ function getCustomer($customer_id) {
     return $customer_taker->fields['email'];
 }
 
-function getQuantity($enrollment_id) {
-    global $db1;
-    $quantity_taker = $db1->Execute("SELECT quantity, cost FROM enrollment_services WHERE enrollment_id = '$enrollment_id'");
-    return [$quantity_taker->fields['quantity'], $quantity_taker->fields['cost']];
-}
-
 function getServiceMaster($service_id) {
     global $db1;
     $service_name_taker = $db1->Execute("SELECT service_name FROM service_codes WHERE service_id = '$service_id'");
@@ -68,7 +62,7 @@ function getEnrollmentDetails($enrollment_id) {
 
 function getUser($user_id) {
     global $db1;
-    $customer_taker = $db1->Execute("SELECT email FROM customer WHERE customer_id = '$user_id'");
+    $customer_taker = $db1->Execute("SELECT email FROM users WHERE user_id = '$user_id'");
     return $customer_taker->fields['email'];
 }
 
