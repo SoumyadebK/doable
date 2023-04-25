@@ -11,12 +11,39 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
         $to= $result->fields['EMAIL_ID'];
         $time = base64_encode($result->fields['PK_USER'].'_'.time());
         $link = $http_path.'reset-password.php?id='.$time;
-        echo $link;
+        //pre_r($link);
+        $PK_USER = $result->fields['PK_USER'];
+        $email = $db->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT LEFT JOIN DOA_USERS ON DOA_USERS.PK_ACCOUNT_MASTER=DOA_EMAIL_ACCOUNT.PK_ACCOUNT_MASTER WHERE DOA_USERS.PK_USER='$PK_USER'");
 
-        //mail("$to","My subject",$link);
-
-
-        $success_msg = "A password reset link sent to your Mail Id";
+        require_once('global/phpmailer/class.phpmailer.php');
+        $mail = new PHPMailer();
+        $mail->CharSet =  "utf-8";
+        $mail->IsSMTP();
+        // enable SMTP authentication
+        $mail->SMTPAuth = true;
+        // GMAIL username
+        $mail->Username = $email->fields['USER_NAME'];
+        // GMAIL password
+        $mail->Password = $email->fields['PASSWORD'];
+        $mail->SMTPSecure = "ssl";
+        // sets GMAIL as the SMTP server
+        $mail->Host = $email->fields['HOST'];
+        // set the SMTP port for the GMAIL server
+        $mail->Port = $email->fields['PORT'];
+        $mail->From='your_gmail_id@gmail.com';
+        $mail->FromName='your_name';
+        $mail->AddAddress('roumya.karmakar.01@gmail.com', 'reciever_name');
+        $mail->Subject  =  'Reset Password';
+        $mail->IsHTML(true);
+        $mail->Body = 'Click On This Link to Reset Password '.$link.'.';
+        if($mail->Send())
+        {
+            $success_msg = "A password reset link sent to your Mail Id";
+        }
+        else
+        {
+            echo "Mail Error - >".$mail->ErrorInfo;
+        }
     } else {
         $msg = "This Email Id does not exist on our system";
     }

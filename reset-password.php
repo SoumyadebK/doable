@@ -1,12 +1,13 @@
 <?
 require_once('global/config.php');
 
-$id = "$_GET[id]";
+$id = $_GET['id'];
 $decodeTime = base64_decode($id);
 $new = explode('_', $decodeTime);
 $sentTime = $new[1];
 $currentTime = time();
 $timeLimit = $sentTime + 240;
+$PK_USER = $new[0];
 
 $msg = '';
 $success_msg = '';
@@ -21,7 +22,7 @@ if ($currentTime <= $timeLimit) {
             $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE PASSWORD = '$PASSWORD'");
             if ($result->RecordCount() == 0) {
                 $USER_DATA['PASSWORD'] = password_hash($PASSWORD, PASSWORD_DEFAULT);
-                db_perform('DOA_USERS', $USER_DATA, 'update', "PK_USER =  '$_GET[id]'");
+                db_perform('DOA_USERS', $USER_DATA, 'update', "PK_USER =  '$PK_USER'");
                 $success_msg = "Your password is changed";
             } else {
                 $msg = "Your password is not changed";
