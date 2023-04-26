@@ -27,30 +27,32 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
                         <div class="card-body">
 
+                            <img src="assets/images/background/doable_logo.png" alt="">
 
-                            <h5 class="card-title" style="padding-left: 45%"><img src="assets/images/background/doable_logo.png"><?=$title?></h5>
+
+                            <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?=$title?></h3>
 
                             <div class="table-responsive">
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
                                     <thead>
                                     <tr>
-                                        <th style="width:50%;">Overall (PRIs)</th>
-                                        <th style="width:50%;">Open Balance Enrollments</th>
-                                        <th style="width:40%;">PaidAhead</th>
+                                        <th style="width:20%; text-align: center; font-weight: bold" rowspan="2">Student (Active)<br>
+                                            Department (All)</th>
+                                        <th style="width:20%; text-align: center; font-weight: bold" rowspan="2">Teacher(s) Split</th>
+                                        <th style="width:20%; text-align: center; font-weight: bold" colspan="3">Overall (PRIs)</th>
+                                        <th style="width:30%; text-align: center; font-weight: bold" colspan="4">Open Balance Enrollments</th>
+                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="2">PaidAhead</th>
                                     </tr>
                                     <tr>
-                                        <th style="width:15%;">Student (Active)<br>
-                                        Department (All)</th>
-                                        <th style="width:15%;">Teacher(s) Split</th>
-                                        <th style="width:10%;">Enrolled</th>
-                                        <th style="width:12%;">Used</th>
-                                        <th style="width:10%;">Remaining</th>
-                                        <th style="width:10%;">Total Cost/PRIs</th>
-                                        <th style="width:10%;">Lesson Avg</th>
-                                        <th style="width:10%;">Balance</th>
-                                        <th style="width:10%;">UnpaidPRI</th>
-                                        <th style="width:10%;">PRIs</th>
-                                        <th style="width:10%;">AMOUNT</th>
+                                        <th style="width:10%; text-align: center; font-weight: bold">Enrolled</th>
+                                        <th style="width:10%; text-align: center; font-weight: bold">Used</th>
+                                        <th style="width:10%; text-align: center; font-weight: bold">Remaining</th>
+                                        <th style="width:10%; text-align: center; font-weight: bold">Total Cost/PRIs</th>
+                                        <th style="width:10%; text-align: center; font-weight: bold">Lesson Avg</th>
+                                        <th style="width:10%; text-align: center; font-weight: bold">Balance</th>
+                                        <th style="width:10%; text-align: center; font-weight: bold">UnpaidPRI</th>
+                                        <th style="width:10%; text-align: center; font-weight: bold">PRIs</th>
+                                        <th style="width:10%; text-align: center; font-weight: bold">AMOUNT</th>
 
                                     </tr>
                                     </thead>
