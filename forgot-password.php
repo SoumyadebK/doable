@@ -41,14 +41,14 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
             if ($mail->Send()) {
                 $success_msg = "A password reset link sent to your Mail Id";
             } else {
-                pre_r($mail->ErrorInfo);
+                $msg = "Unable to send Mail";
             }
         } catch (phpmailerException $e) {
+            $msg = "Error : ".$e->getMessage();
         }
     } else {
         $msg = "This Email Id does not exist on our system";
     }
-
 }
 
 ?>
