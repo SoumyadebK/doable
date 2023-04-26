@@ -10,10 +10,11 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
     if ($result->RecordCount() > 0) {
         $to= $result->fields['EMAIL_ID'];
         $time = base64_encode($result->fields['PK_USER'].'_'.time());
-        $link = $http_path.'reset-password.php?id='.$time;
+        $link = $http_path.'reset-password.php?cmVzZXQ='.$time;
         //pre_r($link);
         $PK_USER = $result->fields['PK_USER'];
-        $email = $db->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT LEFT JOIN DOA_USERS ON DOA_USERS.PK_ACCOUNT_MASTER=DOA_EMAIL_ACCOUNT.PK_ACCOUNT_MASTER WHERE DOA_USERS.PK_USER='$PK_USER'");
+        $details = $db->Execute("SELECT DOA_EMAIL_ACCOUNT.USER_NAME, DOA_EMAIL_ACCOUNT.PASSWORD, DOA_EMAIL_ACCOUNT.HOST, DOA_EMAIL_ACCOUNT.PORT, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME FROM DOA_EMAIL_ACCOUNT LEFT JOIN DOA_USERS ON DOA_USERS.PK_ACCOUNT_MASTER=DOA_EMAIL_ACCOUNT.PK_ACCOUNT_MASTER WHERE DOA_USERS.PK_USER='$PK_USER'");
+        $receiver_name = $details->fields['FIRST_NAME'].' '.$details->fields['LAST_NAME'];
 
         require_once('global/phpmailer/class.phpmailer.php');
         $mail = new PHPMailer();
@@ -22,27 +23,27 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
         // enable SMTP authentication
         $mail->SMTPAuth = true;
         // GMAIL username
-        $mail->Username = $email->fields['USER_NAME'];
+        $mail->Username = $details->fields['USER_NAME'];
         // GMAIL password
-        $mail->Password = $email->fields['PASSWORD'];
+        $mail->Password = $details->fields['PASSWORD'];
         $mail->SMTPSecure = "ssl";
         // sets GMAIL as the SMTP server
-        $mail->Host = $email->fields['HOST'];
+        $mail->Host = $details->fields['HOST'];
         // set the SMTP port for the GMAIL server
-        $mail->Port = $email->fields['PORT'];
+        $mail->Port = $details->fields['PORT'];
         $mail->From='your_gmail_id@gmail.com';
         $mail->FromName='your_name';
-        $mail->AddAddress('roumya.karmakar.01@gmail.com', 'reciever_name');
+        $mail->AddAddress("ramesh@topcone.com", "$receiver_name");
         $mail->Subject  =  'Reset Password';
         $mail->IsHTML(true);
         $mail->Body = 'Click On This Link to Reset Password '.$link.'.';
-        if($mail->Send())
-        {
-            $success_msg = "A password reset link sent to your Mail Id";
-        }
-        else
-        {
-            echo "Mail Error - >".$mail->ErrorInfo;
+        try {
+            if ($mail->Send()) {
+                $success_msg = "A password reset link sent to your Mail Id";
+            } else {
+                pre_r($mail->ErrorInfo);
+            }
+        } catch (phpmailerException $e) {
         }
     } else {
         $msg = "This Email Id does not exist on our system";

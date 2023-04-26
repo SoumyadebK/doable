@@ -26,11 +26,10 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 
                         <div class="card-body">
-
-                            <img src="assets/images/background/doable_logo.png" alt="">
-
-
-                            <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?=$title?></h3>
+                            <div>
+                                <img src="../assets/images/background/doable_logo.png" style="margin-bottom:-35px; height: 60px; width: auto;">
+                                <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?=$title?></h3>
+                            </div>
 
                             <div class="table-responsive">
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
@@ -38,7 +37,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tr>
                                         <th style="width:20%; text-align: center; font-weight: bold" rowspan="2">Student (Active)<br>
                                             Department (All)</th>
-                                        <th style="width:20%; text-align: center; font-weight: bold" rowspan="2">Teacher(s) Split</th>
+                                        <th style="width:20%; text-align: center; font-weight: bold" rowspan="2">Teacher(s) (Split)</th>
                                         <th style="width:20%; text-align: center; font-weight: bold" colspan="3">Overall (PRIs)</th>
                                         <th style="width:30%; text-align: center; font-weight: bold" colspan="4">Open Balance Enrollments</th>
                                         <th style="width:10%; text-align: center; font-weight: bold" colspan="2">PaidAhead</th>

@@ -1,7 +1,7 @@
 <?
 require_once('global/config.php');
 
-$id = $_GET['id'];
+$id = $_GET['cmVzZXQ'];
 $decodeTime = base64_decode($id);
 $new = explode('_', $decodeTime);
 $sentTime = $new[1];
