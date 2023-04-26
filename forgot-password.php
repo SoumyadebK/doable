@@ -31,9 +31,9 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
         $mail->Host = $details->fields['HOST'];
         // set the SMTP port for the GMAIL server
         $mail->Port = $details->fields['PORT'];
-        $mail->From='your_gmail_id@gmail.com';
-        $mail->FromName='your_name';
-        $mail->AddAddress("ramesh@topcone.com", "$receiver_name");
+        $mail->From= $details->fields['USER_NAME'];
+        $mail->FromName='Doable';
+        $mail->AddAddress("$email", "$receiver_name");
         $mail->Subject  =  'Reset Password';
         $mail->IsHTML(true);
         $mail->Body = 'Click On This Link to Reset Password '.$link.'.';
