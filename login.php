@@ -110,7 +110,7 @@ if ($FUNCTION_NAME == 'loginFunction'){
                                     <label class="form-check-label" for="customCheck1">Remember me</label>
                                 </div>
                                 <div class="ms-auto">
-                                    <a href="forgot-password.php" id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot password?</a>
+                                    <a href=" " id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot password?</a>
                                 </div>
                             </div>
                         </div>
