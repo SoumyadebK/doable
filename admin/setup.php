@@ -67,6 +67,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <li><a href="all_email_accounts.php">Email Accounts</a></li>
                                         <li><a href="all_email_templates.php">Email Templates</a></li>
                                         <li><a href="all_text_templates.php">Text Templates</a></li>
+                                        <li><a href="all_booking_codes.php">Booking Codes</a></li>
                                     </ul>
                                 </div>
                             </div>
