@@ -2,6 +2,14 @@
 require_once('../global/config.php');
 $title = "All Account Users";
 
+$status_check = empty($_GET['status'])?'active':$_GET['status'];
+
+if ($status_check == 'active'){
+    $status = 1;
+} elseif ($status_check == 'inactive') {
+    $status = 0;
+}
+
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
@@ -38,6 +46,15 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                         <div class="card-body">
                             <h5 class="card-title"><?=$title?></h5>
                             <div class="table-responsive">
+                                <?php if ($status_check=='inactive') { ?>
+                                <div class="col-md-4" >
+                                    <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_users.php?status=active'"><i class="fa fa-user"></i> Active</button>
+                                </div>
+                                <?php } elseif ($status_check=='active') { ?>
+                                <div class="col-md-4" >
+                                    <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_users.php?status=inactive'"><i class="fa fa-user-times"></i> Not Active</button>
+                                </div>
+                                <?php } ?>
                                 <table id="myTable" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
@@ -52,7 +69,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                         $i=1;
-                                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_ROLES.ROLES, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USERS.USER_TITLE FROM DOA_USERS LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES = DOA_USERS.PK_ROLES WHERE DOA_USERS.PK_ROLES IN(2,3) AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_ROLES.ROLES, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USERS.USER_TITLE FROM DOA_USERS LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES = DOA_USERS.PK_ROLES WHERE DOA_USERS.PK_ROLES IN(2,3) AND DOA_USERS.ACTIVE = '$status' AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                         while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$i;?></td>
@@ -88,12 +105,14 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     $(function () {
         $('#myTable').DataTable();
     });
+
     function ConfirmDelete(anchor)
     {
         let conf = confirm("Are you sure you want to delete?");
         if(conf)
             window.location=anchor.attr("href");
     }
+
     function editpage(id){
         window.location.href = "user.php?id="+id;
     }
