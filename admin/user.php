@@ -526,6 +526,17 @@ if(!empty($_GET['id'])) {
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            <?php if(!empty($_GET['id'])) { ?>
+                                                                <div class="row <?=($INACTIVE_BY_ADMIN == 1)?'div_inactive':''?>" style="margin-bottom: 15px; margin-top: 15px;">
+                                                                    <div class="col-md-1">
+                                                                        <label class="form-label">Active : </label>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                    </div>
+                                                                </div>
+                                                            <? } ?>
                                                         </div>
                                                         <div class="form-group">
                                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -553,7 +564,7 @@ if(!empty($_GET['id'])) {
                                                             </div>
 
                                                             <div class="row">
-                                                                <div class="col-md-1">
+                                                                <div class="col-md-2">
                                                                     <label class="form-label">Can Edit Enrollment : </label>
                                                                 </div>
                                                                 <div class="col-md-4">
@@ -630,18 +641,6 @@ if(!empty($_GET['id'])) {
                                                                     <b id="password_error" style="color: red;"></b>
                                                                 </div>
                                                             <?php } ?>
-
-                                                            <?php if(!empty($_GET['id'])) { ?>
-                                                                <div class="row <?=($INACTIVE_BY_ADMIN == 1)?'div_inactive':''?>" style="margin-bottom: 15px; margin-top: 15px;">
-                                                                    <div class="col-md-1">
-                                                                        <label class="form-label">Active : </label>
-                                                                    </div>
-                                                                    <div class="col-md-4">
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                                                    </div>
-                                                                </div>
-                                                            <? } ?>
                                                         </div>
                                                         <div class="form-group">
                                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>

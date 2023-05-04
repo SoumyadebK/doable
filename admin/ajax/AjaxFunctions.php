@@ -401,9 +401,11 @@ function saveProfileData($RESPONSE_DATA){
             $PK_USER_MASTER = $db->insert_ID();
         }
     }else{
+        $USER_DATA['ACTIVE']	= $RESPONSE_DATA['ACTIVE'];
         $USER_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_USERS', $USER_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");
+        $USER_PROFILE_DATA['ACTIVE']	= $RESPONSE_DATA['ACTIVE'];
         $USER_PROFILE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");

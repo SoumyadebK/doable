@@ -517,6 +517,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                     <li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>
                                                     <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
                                                     <?php if(!empty($_GET['id'])) { ?>
+                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" role="tab" ><span class="hidden-sm-up"><i class="icon-note"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>
                                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
                                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Ledger</span></a> </li>
@@ -1519,6 +1520,127 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                         </div>
                                                     </form>
                                                 </div>
+
+                                                <div class="tab-pane" id="enrollment" role="tabpanel">
+                                                    <div class="p-20">
+                                                        <table id="myTable" class="table table-striped border" data-page-length='50'>
+                                                            <thead>
+                                                            <tr>
+                                                                <th>No</th>
+                                                                <th>Enrollment Id</th>
+                                                                <th>Customer</th>
+                                                                <th>Email ID</th>
+                                                                <th>Phone</th>
+                                                                <th>Location</th>
+                                                                <th>Actions</th>
+                                                                <th>Status</th>
+                                                                <th>Cancel</th>
+                                                            </tr>
+                                                            </thead>
+
+                                                            <tbody>
+                                                            <?php
+                                                            $i=1;
+                                                            $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED 
+                                        FROM `DOA_ENROLLMENT_MASTER` 
+                                        INNER JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER 
+                                        INNER JOIN DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER 
+                                        LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
+                                        LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER 
+                                        WHERE DOA_ENROLLMENT_MASTER.PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]' 
+                                        ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+                                                            while (!$row->EOF) {
+                                                                $total_credit_balance = ($row->fields['TOTAL_BALANCE_PAID'])?($row->fields['TOTAL_BALANCE_PAID']-$row->fields['TOTAL_BALANCE_USED']):0; ?>
+                                                                <tr>
+                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$i;?></td>
+                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['ENROLLMENT_ID']?></td>
+                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['FIRST_NAME']." ".$row->fields['LAST_NAME']?></td>
+                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['EMAIL_ID']?></td>
+                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['PHONE']?></td>
+                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['LOCATION_NAME']?></td>
+                                                                    <td>
+                                                                        <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <?php if($row->fields['ACTIVE']==1){ ?>
+                                                                            <span class="active-box-green"></span>
+                                                                        <?php } else{ ?>
+                                                                            <span class="active-box-red"></span>
+                                                                        <?php } ?>
+                                                                    </td>
+                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);">
+                                                                        <?php if ($row->fields['STATUS']=='A') { ?>
+                                                                            <span class="status-box" style="background-color: green;">ACTIVE</span>
+                                                                        <?php } else { ?>
+                                                                            <span class="status-box" style="background-color: red;">CANCELLED</span>
+                                                                        <?php } ?>
+                                                                    </td>
+                                                                    <td>
+                                                                        <?php if ($row->fields['STATUS']=='A') { ?>
+                                                                            <a href="javascript:;" onclick="cancelAppointment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>, <?=$total_credit_balance?>)">Cancel Enrollment</a>
+                                                                        <?php } else { ?>
+                                                                            <a href="all_enrollments.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>&status=active">Active Enrollment</a>
+                                                                        <?php } ?>
+                                                                    </td>
+                                                                </tr>
+                                                                <?php $row->MoveNext();
+                                                                $i++; } ?>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!--Cancel appointment model-->
+                                    <div id="myModal" class="modal">
+                                        <!-- Modal content -->
+                                        <div class="modal-content" style="width: 50%;">
+                                            <span class="close" style="margin-left: 96%;">&times;</span>
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h4><b>Cancel Enrollment</b></h4>
+                                                    <form class="p-20" action="" method="post">
+                                                        <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
+                                                        <input type="hidden" name="PK_USER_MASTER" class="PK_USER_MASTER">
+                                                        <input type="hidden" name="CREDIT_BALANCE" class="CREDIT_BALANCE">
+                                                        <div class="form-group">
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <label>Cancel Future Appointments?</label>
+                                                                </div>
+                                                                <div class="col-md-2">
+                                                                    <label><input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="1" required/>&nbsp;Yes</label>&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="0" required/>&nbsp;No</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <label>Cancel Future Billing?</label>
+                                                                </div>
+                                                                <div class="col-md-2">
+                                                                    <label><input type="radio" name="CANCEL_FUTURE_BILLING" value="1" required/>&nbsp;Yes</label>&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="CANCEL_FUTURE_BILLING" value="0" required/>&nbsp;No</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <div class="row">
+                                                                <b>Note: Credit balance $<span id="total_credit_balance"></span> will be moved  to Wallet.</b>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                                    </div>
+                                                </div>
+
 
                                                 <div class="tab-pane" id="appointment" role="tabpanel">
                                                     <div class="p-20">
