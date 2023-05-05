@@ -5,11 +5,98 @@ $title = "All Customers";
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
-} ?>
+}
+
+$results_per_page = 2;
+
+$query = $db->Execute("SELECT count(DOA_USERS.PK_USER) AS TOTAL_RECORDS FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+
+$number_of_result =  $query->fields['TOTAL_RECORDS'];
+
+$number_of_page = ceil ($number_of_result / $results_per_page);
+
+//determine which page number visitor is currently on
+if (!isset ($_GET['page']) ) {
+    $page = 1;
+} else {
+    $page = $_GET['page'];
+}
+
+//determine the sql LIMIT starting number for the results on the displaying page
+$page_first_result = ($page-1) * $results_per_page;
+
+?>
 
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
+<style>
+    body {
+        font-family: Arial;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    form.example input[type=text] {
+        padding: 10px;
+        font-size: 10px;
+        border: 1px solid grey;
+        float: left;
+        width: 60%;
+        background: #f1f1f1;
+    }
+
+    form.example button {
+        float: left;
+        width: 15%;
+        padding: 10px;
+        background: #4CAF50;
+        color: white;
+        font-size: 10px;
+        border: 1px solid grey;
+        border-left: none;
+        cursor: pointer;
+    }
+
+    form.example button:hover {
+        background: #0bda68;
+    }
+
+    form.example::after {
+        content: "";
+        clear: both;
+        display: table;
+    }
+
+    /*pagination*/
+    .center {
+        text-align: center;
+    }
+
+    .pagination {
+        display: inline-block;
+    }
+
+    .pagination a {
+        color: black;
+        float: left;
+        padding: 8px 16px;
+        text-decoration: none;
+        transition: background-color .3s;
+        border: 1px solid #ddd;
+        margin: 0 4px;
+    }
+
+    .pagination a.active {
+        background-color: #4CAF50;
+        color: white;
+        border: 1px solid #4CAF50;
+    }
+
+    .pagination a:hover:not(.active) {background-color: #ddd;}
+</style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
@@ -35,9 +122,19 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title"><?=$title?></h5>
+                            <div class="col-12">
+                                <div>
+                                    <h5 class="card-title"><?=$title?></h5>
+                                </div>
+                                <div class="center">
+                                    <form class="example" action="/action_page.php" style="margin-left:1250px; margin-bottom: 10px; max-width:200px;">
+                                        <input type="text" placeholder="Search.." name="search2">
+                                        <button type="submit"><i class="fa fa-search"></i></button>
+                                    </form>
+                                </div>
+                            </div>
                             <div class="table-responsive">
-                                <table id="myTable" class="table table-striped border" data-page-length='50'>
+                                <table  class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
                                         <th>No</th>
@@ -53,7 +150,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                    $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$row->EOF) {
                                         $balance_data = $db->Execute("SELECT SUM(TOTAL_BALANCE_PAID) AS TOTAL_PAID, SUM(TOTAL_BALANCE_USED) AS BALANCE_USED FROM `DOA_ENROLLMENT_BALANCE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_MASTER.PK_USER = ".$row->fields['PK_USER']);
                                         $total_paid = 0.00;
@@ -90,6 +187,17 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         $i++; } ?>
                                     </tbody>
                                 </table>
+                                <div class="center">
+                                    <div class="pagination">
+                                        <a href="all_customers.php">&laquo;</a>
+                                        <?php
+                                        //display the link of the pages in URL
+                                        for($page = 1; $page<= $number_of_page; $page++) {
+                                            echo '<a class="active" href = "all_customers.php?page=' . $page . '">' . $page . ' </a>';
+                                        } ?>
+                                        <a href="all_customers.php">&raquo;</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
