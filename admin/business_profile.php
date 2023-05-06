@@ -10,6 +10,10 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 if(!empty($_POST)){
     if ($_POST['FUNCTION_NAME'] == 'saveProfileData') {
         unset($_POST['FUNCTION_NAME']);
+        unset($_POST['SMTP_HOST']);
+        unset($_POST['SMTP_PORT']);
+        unset($_POST['SMTP_USERNAME']);
+        unset($_POST['SMTP_PASSWORD']);
         $ACCOUNT_DATA = $_POST;
         if ($_FILES['BUSINESS_LOGO']['name'] != '') {
             $USER_DATA = [];
@@ -91,20 +95,20 @@ $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
 $APPOINTMENT_REMINDER = $res->fields['APPOINTMENT_REMINDER'];
 $HOUR = $res->fields['HOUR'];
 
+$SMTP_HOST = '';
+$SMTP_PORT = '';
+$SMTP_USERNAME = '';
+$SMTP_PASSWORD = '';
 $email = $db->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-if($email->RecordCount() == 0){
-    header("location:login.php");
-    exit;
+if ($email->RecordCount() > 0) {
+    $SMTP_HOST = $email->fields['HOST'];
+    $SMTP_PORT = $email->fields['PORT'];
+    $SMTP_USERNAME = $email->fields['USER_NAME'];
+    $SMTP_PASSWORD = $email->fields['PASSWORD'];
 }
-$SMTP_HOST = $email->fields['HOST'];
-$SMTP_PORT = $email->fields['PORT'];
-$SMTP_USERNAME = $email->fields['USER_NAME'];
-$SMTP_PASSWORD = $email->fields['PASSWORD'];
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
-
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
-
 ?>
 
 <!DOCTYPE html>
@@ -230,15 +234,13 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                         </label>
                                                         <div class="col-md-12">
                                                             <div class="col-sm-12">
-                                                                <select class="form-select" required name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
-                                                                    <option value="">Select Country</option>
+                                                                <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
+                                                                    <option>Select Country</option>
                                                                     <?php
-                                                                    $result_dropdown_query = mysqli_query($conn,"select PK_COUNTRY,COUNTRY_NAME from DOA_COUNTRY WHERE ACTIVE='1' order by PK_COUNTRY");
-                                                                    while ($result_dropdown=mysqli_fetch_array($result_dropdown_query,MYSQLI_ASSOC)) { ?>
-                                                                        <option value="<?php echo $result_dropdown['PK_COUNTRY'];?>" <?php if($result_dropdown['PK_COUNTRY'] == $PK_COUNTRY) echo 'selected = "selected"';?> ><?=$result_dropdown['COUNTRY_NAME']?></option>
-                                                                        <?php
-                                                                    }
-                                                                    ?>
+                                                                    $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                                                                    while (!$row->EOF) { ?>
+                                                                        <option value="<?php echo $row->fields['PK_COUNTRY'];?>" <?=($row->fields['PK_COUNTRY'] == $PK_COUNTRY)?"selected":""?>><?=$row->fields['COUNTRY_NAME']?></option>
+                                                                        <?php $row->MoveNext(); } ?>
                                                                 </select>
                                                             </div>
                                                         </div>
