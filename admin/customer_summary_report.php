@@ -12,13 +12,28 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 <?php require_once('../includes/header.php');?>
 
 <body class="skin-default-dark fixed-layout">
-<?php //require_once('../includes/loader.php');?>
+<?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
-<!--    --><?php //require_once('../includes/top_menu.php');?>
+    <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
 
-<!--        --><?php //require_once('../includes/top_menu_bar.php') ?>
+        <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid">
+
+            <div class="row page-titles">
+                <div class="col-md-5 align-self-center">
+                    <h4 class="text-themecolor"><?=$title?></h4>
+                </div>
+                <div class="col-md-7 align-self-center text-end">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <ol class="breadcrumb justify-content-end">
+                            <li class="breadcrumb-item active"><a href="reports.php">Reports</a></li>
+                            <li class="breadcrumb-item active"><a href="customer_summary_report.php"><?=$title?></a></li>
+                        </ol>
+
+                    </div>
+                </div>
+            </div>
 
             <div class="row">
                 <div class="col-12">
