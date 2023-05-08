@@ -229,7 +229,7 @@ if(empty($_GET['id'])){
                                                             <label>Price</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-1" style="text-align: center; display: <?=(($IS_PACKAGE == 1) ? '' : 'none')?>">
+                                                    <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label id="number_of_sessions">Number of Sessions</label>
                                                         </div>
