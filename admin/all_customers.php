@@ -7,22 +7,26 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
-$results_per_page = 2;
+$results_per_page = 100;
 
-$query = $db->Execute("SELECT count(DOA_USERS.PK_USER) AS TOTAL_RECORDS FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+if (isset($_GET['search_text'])) {
+    $search_text = $_GET['search_text'];
+    $search = " AND DOA_USERS.USER_ID LIKE '%".$search_text."%' OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%'";
+} else {
+    $search_text = '';
+    $search = ' ';
+}
 
+$query = $db->Execute("SELECT count(DOA_USERS.PK_USER) AS TOTAL_RECORDS FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search);
 $number_of_result =  $query->fields['TOTAL_RECORDS'];
-
 $number_of_page = ceil ($number_of_result / $results_per_page);
 
-//determine which page number visitor is currently on
 if (!isset ($_GET['page']) ) {
     $page = 1;
 } else {
     $page = $_GET['page'];
 }
 
-//determine the sql LIMIT starting number for the results on the displaying page
 $page_first_result = ($page-1) * $results_per_page;
 
 ?>
@@ -31,54 +35,9 @@ $page_first_result = ($page-1) * $results_per_page;
 <html lang="en">
 <?php require_once('../includes/header.php');?>
 <style>
-    body {
-        font-family: Arial;
-    }
-
-    * {
-        box-sizing: border-box;
-    }
-
-    form.example input[type=text] {
-        padding: 10px;
-        font-size: 10px;
-        border: 1px solid grey;
-        float: left;
-        width: 60%;
-        background: #f1f1f1;
-    }
-
-    form.example button {
-        float: left;
-        width: 15%;
-        padding: 10px;
-        background: #4CAF50;
-        color: white;
-        font-size: 10px;
-        border: 1px solid grey;
-        border-left: none;
-        cursor: pointer;
-    }
-
-    form.example button:hover {
-        background: #0bda68;
-    }
-
-    form.example::after {
-        content: "";
-        clear: both;
-        display: table;
-    }
-
-    /*pagination*/
-    .center {
-        text-align: center;
-    }
-
     .pagination {
         display: inline-block;
     }
-
     .pagination a {
         color: black;
         float: left;
@@ -88,13 +47,11 @@ $page_first_result = ($page-1) * $results_per_page;
         border: 1px solid #ddd;
         margin: 0 4px;
     }
-
     .pagination a.active {
-        background-color: #4CAF50;
+        background-color: #39B54A;
         color: white;
-        border: 1px solid #4CAF50;
+        border: 1px solid #39B54A;
     }
-
     .pagination a:hover:not(.active) {background-color: #ddd;}
 </style>
 <body class="skin-default-dark fixed-layout">
@@ -122,14 +79,18 @@ $page_first_result = ($page-1) * $results_per_page;
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="col-12">
-                                <div>
-                                    <h5 class="card-title"><?=$title?></h5>
+                            <div class="col-12 row m-10">
+                                <div class="col-8">
+                                    <div>
+                                        <h5 class="card-title"><?=$title?></h5>
+                                    </div>
                                 </div>
-                                <div class="center">
-                                    <form class="example" action="/action_page.php" style="margin-left:1250px; margin-bottom: 10px; max-width:200px;">
-                                        <input type="text" placeholder="Search.." name="search2">
-                                        <button type="submit"><i class="fa fa-search"></i></button>
+                                <div class="col-4">
+                                    <form class="form-material form-horizontal" action="" method="get">
+                                        <div class="input-group">
+                                            <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
+                                            <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
@@ -149,8 +110,8 @@ $page_first_result = ($page-1) * $results_per_page;
                                     </thead>
                                     <tbody>
                                     <?php
-                                    $i=1;
-                                    $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." LIMIT " . $page_first_result . ',' . $results_per_page);
+                                    $i = $page_first_result+1;
+                                    $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search." LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$row->EOF) {
                                         $balance_data = $db->Execute("SELECT SUM(TOTAL_BALANCE_PAID) AS TOTAL_PAID, SUM(TOTAL_BALANCE_USED) AS BALANCE_USED FROM `DOA_ENROLLMENT_BALANCE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_MASTER.PK_USER = ".$row->fields['PK_USER']);
                                         $total_paid = 0.00;
@@ -189,13 +150,15 @@ $page_first_result = ($page-1) * $results_per_page;
                                 </table>
                                 <div class="center">
                                     <div class="pagination">
-                                        <a href="all_customers.php">&laquo;</a>
-                                        <?php
-                                        //display the link of the pages in URL
-                                        for($page = 1; $page<= $number_of_page; $page++) {
-                                            echo '<a class="active" href = "all_customers.php?page=' . $page . '">' . $page . ' </a>';
-                                        } ?>
-                                        <a href="all_customers.php">&raquo;</a>
+                                        <?php if ($page > 1) { ?>
+                                            <a href="all_customers.php?page=<?=($page-1)?>">&laquo;</a>
+                                        <?php }
+                                        for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
+                                            echo '<a class="'.(($page_count==$page)?"active":"").'" href="all_customers.php?page='.$page_count.(($search_text=='')?'':'&search_text='.$search_text).'">' . $page_count . ' </a>';
+                                        }
+                                        if ($page < $number_of_page) { ?>
+                                            <a href="all_customers.php?page=<?=($page+1)?>">&raquo;</a>
+                                        <?php } ?>
                                     </div>
                                 </div>
                             </div>
