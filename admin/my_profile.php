@@ -250,21 +250,16 @@ $ACTIVE = $res->fields['ACTIVE'];
                                     <div class="row">
                                         <div class="col-6">
                                             <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Country<span class="text-danger">*</span>
-                                                </label>
+                                                <label class="col-md-12" for="example-text">Country<span class="text-danger">*</span></label>
                                                 <div class="col-md-12">
-                                                    <div class="col-sm-12">
-                                                        <select class="form-control" required name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
-                                                            <option>Select Country</option>
-                                                            <?php
-                                                            $result_dropdown_query = mysqli_query($conn,"select PK_COUNTRY,COUNTRY_NAME from DOA_COUNTRY WHERE ACTIVE='1' order by PK_COUNTRY");
-                                                            while ($result_dropdown=mysqli_fetch_array($result_dropdown_query,MYSQLI_ASSOC)) { ?>
-                                                                <option value="<?php echo $result_dropdown['PK_COUNTRY'];?>" <?php if($result_dropdown['PK_COUNTRY'] == $PK_COUNTRY) echo 'selected = "selected"';?> ><?=$result_dropdown['COUNTRY_NAME']?></option>
-                                                                <?php
-                                                            }
-                                                            ?>
-                                                        </select>
-                                                    </div>
+                                                    <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
+                                                        <option>Select Country</option>
+                                                        <?php
+                                                        $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                                                        while (!$row->EOF) { ?>
+                                                            <option value="<?php echo $row->fields['PK_COUNTRY'];?>" <?=($row->fields['PK_COUNTRY'] == $PK_COUNTRY)?"selected":""?>><?=$row->fields['COUNTRY_NAME']?></option>
+                                                        <?php $row->MoveNext(); } ?>
+                                                    </select>
                                                 </div>
                                             </div>
                                         </div>
