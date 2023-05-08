@@ -40,6 +40,7 @@ $NOTES = '';
 $PASSWORD = '';
 $ACTIVE = '';
 $INACTIVE_BY_ADMIN = '';
+$IS_COUNSELLOR = '';
 
 $PK_SERVICE_MASTER = '';
 $MON_START_TIME = '';
@@ -73,7 +74,7 @@ $SUN_MIN_TIME = '';
 $SUN_MAX_TIME = '';
 
 if(!empty($_GET['id'])) {
-    $res = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.PK_ROLES, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.INACTIVE_BY_ADMIN, DOA_USERS.PK_LOCATION, DOA_USERS.USER_TITLE, DOA_USERS.CREATE_LOGIN, DOA_USERS.PASSWORD, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_GET[id]'");
+    $res = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.PK_ROLES, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.INACTIVE_BY_ADMIN, DOA_USERS.PK_LOCATION, DOA_USERS.USER_TITLE, DOA_USERS.CREATE_LOGIN, DOA_USERS.PASSWORD, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES, DOA_USERS.IS_COUNSELLOR FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_service_providers.php");
@@ -103,6 +104,7 @@ if(!empty($_GET['id'])) {
     $PASSWORD = $res->fields['PASSWORD'];
     $INACTIVE_BY_ADMIN = $res->fields['INACTIVE_BY_ADMIN'];
     $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
+    $IS_COUNSELLOR = $res->fields['IS_COUNSELLOR'];
 
     $service_data = $db->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_SERVICES` WHERE PK_USER = '$PK_USER'");
     if($service_data->RecordCount() > 0) {
@@ -244,6 +246,9 @@ if(!empty($_GET['id'])) {
                                                                             <input type="text" id="LAST_NAME" name="LAST_NAME" class="form-control" placeholder="Enter Last Name" value="<?=$LAST_NAME?>">
                                                                         </div>
                                                                     </div>
+                                                                </div>
+                                                                <div class="col-2 mt-3">
+                                                                    <label class="col-md-12"><input type="checkbox" id="IS_COUNSELLOR" name="IS_COUNSELLOR" class="form-check-inline" <?=($IS_COUNSELLOR == 1)?'checked':''?> style="margin-top: 30px;"> Is Counsellor ?</label>
                                                                 </div>
                                                                 <div class="col-md-2">
                                                                     <?php $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' ".$user_role_condition." ORDER BY PK_ROLES"); ?>

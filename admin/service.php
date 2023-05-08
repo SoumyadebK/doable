@@ -51,6 +51,7 @@ if(empty($_GET['id'])){
     $IS_SCHEDULE = 1;
     $DESCRIPTION = '';
     $ACTIVE = '';
+    $IS_PACKAGE = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
 
@@ -64,6 +65,7 @@ if(empty($_GET['id'])){
     $IS_SCHEDULE = $res->fields['IS_SCHEDULE'];
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
+    $IS_PACKAGE = $res->fields['IS_PACKAGE'];
 }
 
 ?>
@@ -121,11 +123,15 @@ if(empty($_GET['id'])){
                                         <input type="hidden" name="PK_SERVICE_MASTER" class="PK_SERVICE_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                         <div class="p-20">
                                             <div class="row">
-                                                <div class="col-12">
+                                                <div class="col-6">
                                                     <div class="form-group">
                                                         <label class="form-label">Service Name<span class="text-danger">*</span></label>
                                                         <input type="text" id="SERVICE_NAME" name="SERVICE_NAME" class="form-control" placeholder="Enter Service name" required value="<?php echo $SERVICE_NAME?>">
                                                     </div>
+                                                </div>
+
+                                                <div class="col-2">
+                                                    <label class="col-md-12 mt-3"><input type="checkbox" id="IS_PACKAGE" name="IS_PACKAGE" class="form-check-inline" <?=($IS_PACKAGE == 1)?'checked':''?> style="margin-top: 30px;" onchange="isPackage(this);"> Is Package ?</label>
                                                 </div>
 
                                                 <div class="col-6">
@@ -198,7 +204,7 @@ if(empty($_GET['id'])){
                                                             <label>Description</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-2" style="text-align: center;">
+                                                    <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label id="frequency_duration_label"><?=($PK_SERVICE_CLASS==2)?'Duration':'Frequency'?></label>
                                                         </div>
@@ -223,6 +229,11 @@ if(empty($_GET['id'])){
                                                             <label>Price</label>
                                                         </div>
                                                     </div>
+                                                    <div class="col-1" style="text-align: center; display: <?=(($IS_PACKAGE == 1) ? '' : 'none')?>">
+                                                        <div class="form-group">
+                                                            <label id="number_of_sessions">Number of Sessions</label>
+                                                        </div>
+                                                    </div>
                                                 </div>
 
 
@@ -243,7 +254,7 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description" value="<?=$row->fields['DESCRIPTION']?>">
                                                             </div>
                                                         </div>
-                                                        <div class="col-2 frequency_div" style="display: <?=($PK_SERVICE_CLASS!=1)?'none':''?>;">
+                                                        <div class="col-1 frequency_div" style="display: <?=($PK_SERVICE_CLASS!=1)?'none':''?>;">
                                                             <div class="form-group">
                                                                 <select class="form-control PK_FREQUENCY" name="PK_FREQUENCY[]">
                                                                     <option value="">Select</option>
@@ -255,7 +266,7 @@ if(empty($_GET['id'])){
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2 duration_div" style="display: <?=($PK_SERVICE_CLASS!=2)?'none':''?>;">
+                                                        <div class="col-1 duration_div" style="display: <?=($PK_SERVICE_CLASS!=2)?'none':''?>;">
                                                             <div class="form-group">
                                                                 <div class="col-md-12">
                                                                     <input type="text" id="DURATION" name="DURATION[]" class="form-control" placeholder="Duration" value="<?=$row->fields['DURATION']?>">
@@ -295,6 +306,13 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                <div class="col-1">
+                                                    <div class="form-group number_of_sessions_div" style="display: <?=(($IS_PACKAGE == 0) ? 'none' : '')?>">
+                                                        <div class="col-md-12" >
+                                                            <input type="number" class="form-control" name="NUMBER_OF_SESSIONS[]" id="NUMBER_OF_SESSIONS" value="<?=$row->fields['NUMBER_OF_SESSIONS']?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
                                                         <div class="col-1">
                                                             <div class="form-group">
                                                                 <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
@@ -315,7 +333,7 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
                                                             </div>
                                                         </div>
-                                                        <div class="col-2 frequency_div">
+                                                        <div class="col-1 frequency_div">
                                                             <div class="form-group">
                                                                 <select class="form-control PK_FREQUENCY" name="PK_FREQUENCY[]">
                                                                     <option value="">Select</option>
@@ -327,7 +345,7 @@ if(empty($_GET['id'])){
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2 duration_div" style="display: none;">
+                                                        <div class="col-1 duration_div" style="display: none;">
                                                             <div class="form-group">
                                                                 <div class="col-md-12">
                                                                     <input type="text" id="DURATION" name="DURATION[]" class="form-control" placeholder="Duration">
@@ -364,6 +382,13 @@ if(empty($_GET['id'])){
                                                                         <span class="input-group-text"><?=$currency?></span>
                                                                         <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price">
                                                                     </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="form-group number_of_sessions_div" style="display: <?=(($IS_PACKAGE == 0) ? 'none' : '')?>">
+                                                                <div class="col-md-12" >
+                                                                    <input type="number" class="form-control" name="NUMBER_OF_SESSIONS[]" id="NUMBER_OF_SESSIONS">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -534,7 +559,7 @@ if(empty($_GET['id'])){
                                                     <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
                                                 </div>
                                             </div>
-                                            <div class="col-2 frequency_div" style="display: ${(PK_SERVICE_CLASS===1)?'':'none'}">
+                                            <div class="col-1 frequency_div" style="display: ${(PK_SERVICE_CLASS===1)?'':'none'}">
                                                 <div class="form-group">
                                                     <select class="form-control PK_FREQUENCY" name="PK_FREQUENCY[]">
                                                         <option value="">Select</option>
@@ -546,7 +571,7 @@ if(empty($_GET['id'])){
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-2 duration_div" style="display: ${(PK_SERVICE_CLASS===2)?'':'none'}">
+                                            <div class="col-1 duration_div" style="display: ${(PK_SERVICE_CLASS===2)?'':'none'}">
                                                 <div class="form-group">
                                                     <div class="col-md-12">
                                                         <input type="text" id="DURATION" name="DURATION[]" class="form-control" placeholder="Duration">
@@ -554,7 +579,7 @@ if(empty($_GET['id'])){
                                                 </div>
                                             </div>
                                             <div class="col-1">
-                                                <div class="form-group" style="margin-left: 55px;">
+                                                <div class="form-group" style="margin-left: 30px;">
                                                     <div class="col-md-12">
                                                         <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="1"/>&nbsp;Yes</label><br>
                                                         <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
@@ -569,7 +594,7 @@ if(empty($_GET['id'])){
                                                 </div>
                                             </div>
                                             <div class="col-1">
-                                                <div class="form-group" style="margin-left: 55px;">
+                                                <div class="form-group" style="margin-left: 30px;">
                                                     <div class="col-md-12">
                                                         <label><input type="radio" name="IS_CHARGEABLE_${counter}" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label><br>
                                                         <label><input type="radio" name="IS_CHARGEABLE_${counter}" class="IS_CHARGEABLE" value="0"/>&nbsp;No</label>
@@ -583,6 +608,13 @@ if(empty($_GET['id'])){
                                                             <span class="input-group-text"><?=$currency?></span>
                                                             <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price">
                                                         </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-1">
+                                                <div class="form-group number_of_sessions_div" style="display: <?=(($IS_PACKAGE == 0) ? 'none' : '')?>">
+                                                    <div class="col-md-12" >
+                                                        <input type="number" class="form-control" name="NUMBER_OF_SESSIONS[]" id="NUMBER_OF_SESSIONS">
                                                     </div>
                                                 </div>
                                             </div>
@@ -688,6 +720,16 @@ if(empty($_GET['id'])){
     });
 
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Services', selectAll: true});
+
+    function isPackage(param) {
+        if ($(param).is(':checked')){
+            $('#number_of_sessions').show();
+            $('.number_of_sessions_div').show();
+        }else {
+            $('#number_of_sessions').hide();
+            $('.number_of_sessions_div').hide();
+        }
+    }
 
 </script>
 </body>
