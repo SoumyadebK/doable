@@ -199,9 +199,14 @@ if(empty($_GET['id'])){
                                                             <label>Service Code</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-2" style="text-align: center;">
+                                                    <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label>Description</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-1" style="text-align: center;">
+                                                        <div class="form-group">
+                                                            <label>Booking Code</label>
                                                         </div>
                                                     </div>
                                                     <div class="col-1" style="text-align: center;">
@@ -249,9 +254,21 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code" value="<?=$row->fields['SERVICE_CODE']?>">
                                                             </div>
                                                         </div>
-                                                        <div class="col-2">
+                                                        <div class="col-1">
                                                             <div class="form-group">
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description" value="<?=$row->fields['DESCRIPTION']?>">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="form-group">
+                                                                <select class="form-control PK_BOOKING_CODES" name="PK_BOOKING_CODES[]">
+                                                                    <option value="">Select</option>
+                                                                    <?php
+                                                                    $booking_code = $db->Execute("SELECT * FROM DOA_BOOKING_CODES WHERE ACTIVE = 1");
+                                                                    while (!$booking_code->EOF) { ?>
+                                                                        <option value="<?php echo $booking_code->fields['PK_BOOKING_CODES'];?>" <?=($booking_code->fields['PK_BOOKING_CODES'] == $row->fields['PK_BOOKING_CODES'])?'selected':''?>><?=$booking_code->fields['BOOKING_NAME']?></option>
+                                                                        <?php $booking_code->MoveNext(); } ?>
+                                                                </select>
                                                             </div>
                                                         </div>
                                                         <div class="col-1 frequency_div" style="display: <?=($PK_SERVICE_CLASS!=1)?'none':''?>;">
@@ -328,9 +345,21 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code">
                                                             </div>
                                                         </div>
-                                                        <div class="col-2">
+                                                        <div class="col-1">
                                                             <div class="form-group">
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="form-group">
+                                                                <select class="form-control PK_BOOKING_CODES" name="PK_BOOKING_CODES[]">
+                                                                    <option value="">Select</option>
+                                                                    <?php
+                                                                    $booking_code = $db->Execute("SELECT * FROM DOA_BOOKING_CODES WHERE ACTIVE = 1");
+                                                                    while (!$booking_code->EOF) { ?>
+                                                                        <option value="<?php echo $booking_code->fields['PK_BOOKING_CODES'];?>" <?=($booking_code->fields['PK_BOOKING_CODES'] == $row->fields['PK_BOOKING_CODES'])?'selected':''?>><?=$booking_code->fields['BOOKING_NAME']?></option>
+                                                                        <?php $booking_code->MoveNext(); } ?>
+                                                                </select>
                                                             </div>
                                                         </div>
                                                         <div class="col-1 frequency_div">
@@ -554,11 +583,23 @@ if(empty($_GET['id'])){
                                                     <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code">
                                                 </div>
                                             </div>
-                                            <div class="col-2">
+                                            <div class="col-1">
                                                 <div class="form-group">
                                                     <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
                                                 </div>
                                             </div>
+                                            <div class="col-1">
+                                                            <div class="form-group">
+                                                                <select class="form-control PK_BOOKING_CODES" name="PK_BOOKING_CODES[]">
+                                                                    <option value="">Select</option>
+                                                                    <?php
+                                                                        $booking_code = $db->Execute("SELECT * FROM DOA_BOOKING_CODES WHERE ACTIVE = 1");
+                                                                        while (!$booking_code->EOF) { ?>
+                                                                        <option value="<?php echo $booking_code->fields['PK_BOOKING_CODES'];?>"><?=$booking_code->fields['BOOKING_NAME']?></option>
+                                                                        <?php $booking_code->MoveNext(); } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
                                             <div class="col-1 frequency_div" style="display: ${(PK_SERVICE_CLASS===1)?'':'none'}">
                                                 <div class="form-group">
                                                     <select class="form-control PK_FREQUENCY" name="PK_FREQUENCY[]">

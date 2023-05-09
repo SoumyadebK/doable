@@ -7,6 +7,28 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
+$results_per_page = 100;
+
+if (isset($_GET['search_text'])) {
+    $search_text = $_GET['search_text'];
+    $search = " AND DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%'";
+} else {
+    $search_text = '';
+    $search = ' ';
+}
+
+$query = $db->Execute("SELECT count(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER'].$search);
+$number_of_result =  $query->fields['TOTAL_RECORDS'];
+$number_of_page = ceil ($number_of_result / $results_per_page);
+
+if (!isset ($_GET['page']) ) {
+    $page = 1;
+} else {
+    $page = $_GET['page'];
+}
+
+$page_first_result = ($page-1) * $results_per_page;
+
 if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
     $PK_ENROLLMENT_MASTER = $_POST['PK_ENROLLMENT_MASTER'];
     if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1){
@@ -65,6 +87,26 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
+<style>
+    .pagination {
+        display: inline-block;
+    }
+    .pagination a {
+        color: black;
+        float: left;
+        padding: 8px 16px;
+        text-decoration: none;
+        transition: background-color .3s;
+        border: 1px solid #ddd;
+        margin: 0 4px;
+    }
+    .pagination a.active {
+        background-color: #39B54A;
+        color: white;
+        border: 1px solid #39B54A;
+    }
+    .pagination a:hover:not(.active) {background-color: #ddd;}
+</style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
@@ -90,8 +132,23 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
+                            <div class="col-12 row m-10">
+                                <div class="col-8">
+                                    <div>
+                                        <h5 class="card-title"><?=$title?></h5>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <form class="form-material form-horizontal" action="" method="get">
+                                        <div class="input-group">
+                                            <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
+                                            <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
                             <div class="table-responsive">
-                                <table id="myTable" class="table table-striped border" data-page-length='50'>
+                                <table  class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
                                         <th>No</th>
@@ -108,15 +165,8 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
 
                                     <tbody>
                                     <?php
-                                    $i=1;
-                                    $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED 
-                                        FROM `DOA_ENROLLMENT_MASTER` 
-                                        INNER JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER 
-                                        INNER JOIN DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER 
-                                        LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
-                                        LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER 
-                                        WHERE DOA_ENROLLMENT_MASTER.PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]' 
-                                        ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+                                    $i=$page_first_result+1;
+                                    $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER'].$search." LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$row->EOF) {
                                         $total_credit_balance = ($row->fields['TOTAL_BALANCE_PAID'])?($row->fields['TOTAL_BALANCE_PAID']-$row->fields['TOTAL_BALANCE_USED']):0; ?>
                                         <tr>
@@ -153,6 +203,19 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                                         $i++; } ?>
                                     </tbody>
                                 </table>
+                                <div class="center">
+                                    <div class="pagination">
+                                        <?php if ($page > 1) { ?>
+                                            <a href="all_enrollments.php?page=<?=($page-1)?>">&laquo;</a>
+                                        <?php }
+                                        for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
+                                            echo '<a class="'.(($page_count==$page)?"active":"").'" href="all_enrollments.php?page='.$page_count.(($search_text=='')?'':'&search_text='.$search_text).'">' . $page_count . ' </a>';
+                                        }
+                                        if ($page < $number_of_page) { ?>
+                                            <a href="all_enrollments.php?page=<?=($page+1)?>">&raquo;</a>
+                                        <?php } ?>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

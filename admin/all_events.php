@@ -6,11 +6,53 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     header("location:../login.php");
     exit;
 }
+
+$results_per_page = 100;
+
+if (isset($_GET['search_text'])) {
+    $search_text = $_GET['search_text'];
+    $search = " AND DOA_EVENT.HEADER LIKE '%".$search_text."%' OR DOA_EVENT.START_DATE LIKE '%".$search_text."%' OR DOA_EVENT.START_TIME LIKE '%".$search_text."%'";
+} else {
+    $search_text = '';
+    $search = ' ';
+}
+
+$query = $db->Execute("SELECT count(DOA_EVENT.PK_EVENT) AS TOTAL_RECORDS FROM `DOA_EVENT` LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.PK_ACCOUNT_MASTER =".$_SESSION['PK_ACCOUNT_MASTER'].$search);
+$number_of_result =  $query->fields['TOTAL_RECORDS'];
+$number_of_page = ceil ($number_of_result / $results_per_page);
+
+if (!isset ($_GET['page']) ) {
+    $page = 1;
+} else {
+    $page = $_GET['page'];
+}
+
+$page_first_result = ($page-1) * $results_per_page;
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
+<style>
+    .pagination {
+        display: inline-block;
+    }
+    .pagination a {
+        color: black;
+        float: left;
+        padding: 8px 16px;
+        text-decoration: none;
+        transition: background-color .3s;
+        border: 1px solid #ddd;
+        margin: 0 4px;
+    }
+    .pagination a.active {
+        background-color: #39B54A;
+        color: white;
+        border: 1px solid #39B54A;
+    }
+    .pagination a:hover:not(.active) {background-color: #ddd;}
+</style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
@@ -75,8 +117,23 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
+                            <div class="col-12 row m-10">
+                                <div class="col-8">
+                                    <div>
+                                        <h5 class="card-title"><?=$title?></h5>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <form class="form-material form-horizontal" action="" method="get">
+                                        <div class="input-group">
+                                            <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
+                                            <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
                             <div class="table-responsive">
-                                <table id="myTable" class="table table-striped border" data-page-length='50'>
+                                <table class="table table-striped border" data-page-length='50'>
                                     <thead>
                                         <tr>
                                             <th>No</th>
@@ -92,8 +149,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
                                     <tbody>
                                     <?php
-                                    $i=1;
-                                    $row = $db->Execute("SELECT DOA_EVENT.*, DOA_EVENT_TYPE.EVENT_TYPE FROM `DOA_EVENT` LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                    $i=$page_first_result+1;
+                                    $row = $db->Execute("SELECT DOA_EVENT.*, DOA_EVENT_TYPE.EVENT_TYPE FROM `DOA_EVENT` LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.PK_ACCOUNT_MASTER =".$_SESSION['PK_ACCOUNT_MASTER'].$search." LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=$i;?></td>
@@ -118,6 +175,19 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         $i++; } ?>
                                     </tbody>
                                 </table>
+                                <div class="center">
+                                    <div class="pagination">
+                                        <?php if ($page > 1) { ?>
+                                            <a href="all_events.php?page=<?=($page-1)?>">&laquo;</a>
+                                        <?php }
+                                        for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
+                                            echo '<a class="'.(($page_count==$page)?"active":"").'" href="all_events.php?page='.$page_count.(($search_text=='')?'':'&search_text='.$search_text).'">' . $page_count . ' </a>';
+                                        }
+                                        if ($page < $number_of_page) { ?>
+                                            <a href="all_events.php?page=<?=($page+1)?>">&raquo;</a>
+                                        <?php } ?>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
