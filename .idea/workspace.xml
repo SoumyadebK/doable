@@ -10,14 +10,33 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ComposerConfigs">
+    <option name="configs">
+      <option value="$PROJECT_DIR$/global/PHPMailer-master/composer.json" />
+      <option value="$PROJECT_DIR$/global/square_old/square/connect/composer.json" />
+      <option value="$PROJECT_DIR$/assets/node_modules/dropzone-master/composer.json" />
+      <option value="$PROJECT_DIR$/global/authorizenet/composer.json" />
+      <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/composer.json" />
+      <option value="$PROJECT_DIR$/global/stripe-php-master/composer.json" />
+      <option value="$PROJECT_DIR$/assets/node_modules/Magnific-Popup-master/composer.json" />
+      <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/composer.json" />
+      <option value="$PROJECT_DIR$/assets/node_modules/select2/composer.json" />
+      <option value="$PROJECT_DIR$/global/tcpdf/composer.json" />
+      <option value="$PROJECT_DIR$/global/square_old/symfony/polyfill-ctype/composer.json" />
+      <option value="$PROJECT_DIR$/assets/node_modules/holderjs/composer.json" />
+    </option>
+  </component>
   <component name="ComposerSettings">
     <pharConfigPath>$PROJECT_DIR$/global/composer.json</pharConfigPath>
     <execution />
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="PhpWorkspaceProjectConfiguration">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="C:\xampp\php\php.exe">
     <include_path>
       <path value="$PROJECT_DIR$/global/vendor/apimatic/unirest-php" />
       <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
@@ -65,6 +84,7 @@
       <path value="$PROJECT_DIR$/global/authorizenet/vendor/psr/container" />
     </include_path>
   </component>
+  <component name="ProjectId" id="2PWV5M0ONrpPIzumAXIA1ghLisO" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -74,7 +94,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "roumya",
+    "git-widget-placeholder": "soumyadeb",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
