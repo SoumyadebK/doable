@@ -5,14 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="705f12a9-d54c-4624-a602-35c243b38dad" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/phpunit.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/phpunit.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_customers.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_customers.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_enrollments.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_enrollments.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_events.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_events.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/service.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/service.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -121,7 +115,10 @@
       <option name="presentableId" value="Default" />
       <updated>1683524242161</updated>
       <workItem from="1683524246999" duration="20342000" />
-      <workItem from="1683606665924" duration="18597000" />
+      <workItem from="1683606665924" duration="19947000" />
+      <workItem from="1683697644000" duration="1192000" />
+      <workItem from="1683724284884" duration="3726000" />
+      <workItem from="1683811513745" duration="692000" />
     </task>
     <servers />
   </component>
