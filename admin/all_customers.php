@@ -34,26 +34,6 @@ $page_first_result = ($page-1) * $results_per_page;
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
-<style>
-    .pagination {
-        display: inline-block;
-    }
-    .pagination a {
-        color: black;
-        float: left;
-        padding: 8px 16px;
-        text-decoration: none;
-        transition: background-color .3s;
-        border: 1px solid #ddd;
-        margin: 0 4px;
-    }
-    .pagination a.active {
-        background-color: #39B54A;
-        color: white;
-        border: 1px solid #39B54A;
-    }
-    .pagination a:hover:not(.active) {background-color: #ddd;}
-</style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
