@@ -517,10 +517,10 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                     <li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>
                                                     <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
                                                     <?php if(!empty($_GET['id'])) { ?>
-                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" role="tab" ><span class="hidden-sm-up"><i class="icon-note"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>
-                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
-                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
-                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Ledger</span></a> </li>
+                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Enrollments</span></a> </li>
+                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment" onclick="showListView(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
+                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Ledger</span></a> </li>
                                                         <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                                                     <?php } ?>
                                                 </ul>
@@ -1522,252 +1522,20 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                 </div>
 
                                                 <div class="tab-pane" id="enrollment" role="tabpanel">
-                                                    <div class="p-20">
-                                                        <table id="myTable" class="table table-striped border" data-page-length='50'>
-                                                            <thead>
-                                                            <tr>
-                                                                <th>No</th>
-                                                                <th>Enrollment Id</th>
-                                                                <th>Customer</th>
-                                                                <th>Email ID</th>
-                                                                <th>Phone</th>
-                                                                <th>Location</th>
-                                                                <th>Actions</th>
-                                                                <th>Status</th>
-                                                                <th>Cancel</th>
-                                                            </tr>
-                                                            </thead>
+                                                    <div id="enrollment_list" class="p-20">
 
-                                                            <tbody>
-                                                            <?php
-                                                            $i=1;
-                                                            $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED 
-                                        FROM `DOA_ENROLLMENT_MASTER` 
-                                        INNER JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER 
-                                        INNER JOIN DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER 
-                                        LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
-                                        LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER 
-                                        WHERE DOA_ENROLLMENT_MASTER.PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]' 
-                                        ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
-                                                            while (!$row->EOF) {
-                                                                $total_credit_balance = ($row->fields['TOTAL_BALANCE_PAID'])?($row->fields['TOTAL_BALANCE_PAID']-$row->fields['TOTAL_BALANCE_USED']):0; ?>
-                                                                <tr>
-                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$i;?></td>
-                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['ENROLLMENT_ID']?></td>
-                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['FIRST_NAME']." ".$row->fields['LAST_NAME']?></td>
-                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['EMAIL_ID']?></td>
-                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['PHONE']?></td>
-                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['LOCATION_NAME']?></td>
-                                                                    <td>
-                                                                        <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <?php if($row->fields['ACTIVE']==1){ ?>
-                                                                            <span class="active-box-green"></span>
-                                                                        <?php } else{ ?>
-                                                                            <span class="active-box-red"></span>
-                                                                        <?php } ?>
-                                                                    </td>
-                                                                    <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);">
-                                                                        <?php if ($row->fields['STATUS']=='A') { ?>
-                                                                            <span class="status-box" style="background-color: green;">ACTIVE</span>
-                                                                        <?php } else { ?>
-                                                                            <span class="status-box" style="background-color: red;">CANCELLED</span>
-                                                                        <?php } ?>
-                                                                    </td>
-                                                                    <td>
-                                                                        <?php if ($row->fields['STATUS']=='A') { ?>
-                                                                            <a href="javascript:;" onclick="cancelAppointment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>, <?=$total_credit_balance?>)">Cancel Enrollment</a>
-                                                                        <?php } else { ?>
-                                                                            <a href="all_enrollments.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>&status=active">Active Enrollment</a>
-                                                                        <?php } ?>
-                                                                    </td>
-                                                                </tr>
-                                                                <?php $row->MoveNext();
-                                                                $i++; } ?>
-                                                            </tbody>
-                                                        </table>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!--Cancel appointment model-->
-                                    <div id="myModal" class="modal">
-                                        <!-- Modal content -->
-                                        <div class="modal-content" style="width: 50%;">
-                                            <span class="close" style="margin-left: 96%;">&times;</span>
-                                            <div class="card">
-                                                <div class="card-body">
-                                                    <h4><b>Cancel Enrollment</b></h4>
-                                                    <form class="p-20" action="" method="post">
-                                                        <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
-                                                        <input type="hidden" name="PK_USER_MASTER" class="PK_USER_MASTER">
-                                                        <input type="hidden" name="CREDIT_BALANCE" class="CREDIT_BALANCE">
-                                                        <div class="form-group">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <label>Cancel Future Appointments?</label>
-                                                                </div>
-                                                                <div class="col-md-2">
-                                                                    <label><input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="1" required/>&nbsp;Yes</label>&nbsp;&nbsp;
-                                                                    <label><input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="0" required/>&nbsp;No</label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <label>Cancel Future Billing?</label>
-                                                                </div>
-                                                                <div class="col-md-2">
-                                                                    <label><input type="radio" name="CANCEL_FUTURE_BILLING" value="1" required/>&nbsp;Yes</label>&nbsp;&nbsp;
-                                                                    <label><input type="radio" name="CANCEL_FUTURE_BILLING" value="0" required/>&nbsp;No</label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <div class="row">
-                                                                <b>Note: Credit balance $<span id="total_credit_balance"></span> will be moved  to Wallet.</b>
-                                                            </div>
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                                    </div>
-                                                </div>
-
 
                                                 <div class="tab-pane" id="appointment" role="tabpanel">
-                                                    <div class="p-20">
-                                                        <table id="myTable" class="table table-striped border">
-                                                            <thead>
-                                                            <tr>
-                                                                <th>No</th>
-                                                                <th>Customer</th>
-                                                                <th>Enrollment - Serial</th>
-                                                                <th>Service</th>
-                                                                <th>Service Code</th>
-                                                                <th>Service Provider</th>
-                                                                <th>Date</th>
-                                                                <th>Time</th>
-                                                                <th>Status</th>
-                                                                <th>Actions</th>
-                                                            </tr>
-                                                            </thead>
+                                                    <div id="appointment_list" class="p-20">
 
-                                                            <tbody>
-                                                            <?php
-                                                            $i=1;
-                                                            $appointment_data = $db->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS  WHERE DOA_APPOINTMENT_MASTER.CUSTOMER_ID = '$_GET[master_id]' ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC");
-                                                            while (!$appointment_data->EOF) { ?>
-                                                                <tr>
-                                                                    <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$i;?></td>
-                                                                    <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
-                                                                    <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['ENROLLMENT_ID']." - ".$appointment_data->fields['SERIAL_NUMBER']?></td>
-                                                                    <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']?></td>
-                                                                    <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_CODE']?></td>
-                                                                    <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
-                                                                    <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
-                                                                    <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                                                                    <td>
-                                                                        <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 1){ ?>
-                                                                            <a class="status-box" href="javascript:;" data-id="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='confirmComplete(this);' style="background-color: <?=$appointment_data->fields['COLOR_CODE']?>"><?=$appointment_data->fields['APPOINTMENT_STATUS']?></a>
-                                                                        <?php } else { ?>
-                                                                            <span class="status-box" style="background-color: <?=$appointment_data->fields['COLOR_CODE']?>"><?=$appointment_data->fields['APPOINTMENT_STATUS']?></span>
-                                                                        <?php } ?>
-                                                                    </td>
-                                                                    <td style="text-align: center;">
-                                                                        <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                    </td>
-                                                                </tr>
-                                                                <?php $appointment_data->MoveNext();
-                                                                $i++; } ?>
-                                                            </tbody>
-                                                        </table>
                                                     </div>
                                                 </div>
 
                                                 <div class="tab-pane" id="billing" role="tabpanel">
-                                                    <div class="p-20">
-                                                        <?php
-                                                        $i=1;
-                                                        $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
-                                                        while (!$row->EOF) {
-                                                            $used_session_count = $db->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                                                            $total_session_count = $db->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION_COUNT FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                                                            $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-                                                            $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-                                                            ?>
-                                                            <div class="row" onclick="$(this).next().slideToggle();" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
-                                                                <div class="col-2"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
-                                                                <div class="col-2">Total Billed : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>
-                                                                <div class="col-2">Total Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-                                                                <div class="col-2">Balance : <?=$total_bill_and_paid->fields['TOTAL_BILL']-$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-                                                                <div class="col-2">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count->fields['TOTAL_SESSION_COUNT'];?></div>
-                                                            </div>
-                                                            <table id="myTable" class="table table-striped border" style="display: none">
-                                                                <thead>
-                                                                <tr>
-                                                                    <th>Due Date</th>
-                                                                    <th>Transaction Type</th>
-                                                                    <th>Billed Amount</th>
-                                                                    <th>Paid Amount</th>
-                                                                    <th>Payment Type</th>
-                                                                    <th>Description</th>
-                                                                    <th>Paid</th>
-                                                                    <th>Balance</th>
-                                                                    <th>Actions</th>
-                                                                </tr>
-                                                                </thead>
+                                                    <div id ="billing_list" class="p-20">
 
-                                                                <tbody>
-                                                                <?php
-                                                                $billed_amount = 0;
-                                                                $paid_amount = 0;
-                                                                $balance = 0;
-                                                                $billing_details = $db->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
-                                                                while (!$billing_details->EOF) { $billed_amount = $billing_details->fields['BILLED_AMOUNT']; $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance); ?>
-                                                                    <tr>
-                                                                        <td><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
-                                                                        <td><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
-                                                                        <td><?=$billing_details->fields['BILLED_AMOUNT']?></td>
-                                                                        <td></td>
-                                                                        <td><?=$billing_details->fields['PAYMENT_TYPE']?></td>
-                                                                        <td></td>
-                                                                        <td><?=(($billing_details->fields['TRANSACTION_TYPE']=='Billing')?(($billing_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
-                                                                        <td><?=number_format((float)$balance, 2, '.', '')?></td>
-                                                                        <td>
-                                                                            <?php if($billing_details->fields['IS_PAID']==0 && $billing_details->fields['STATUS']=='A') { ?>
-                                                                                <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</a>
-                                                                            <?php } ?>
-                                                                        </td>
-                                                                    </tr>
-                                                                    <?php
-                                                                    $payment_details = $db->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
-                                                                    if ($payment_details->RecordCount() > 0){ $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']); ?>
-                                                                        <tr>
-                                                                            <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
-                                                                            <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
-                                                                            <td></td>
-                                                                            <td><?=$payment_details->fields['PAID_AMOUNT']?></td>
-                                                                            <td><?=$payment_details->fields['PAYMENT_TYPE']?></td>
-                                                                            <td></td>
-                                                                            <td><?=(($payment_details->fields['TRANSACTION_TYPE']=='Billing')?(($payment_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
-                                                                            <td><?=number_format((float)$balance, 2, '.', '')?></td>
-                                                                            <td>
-                                                                            </td>
-                                                                        </tr>
-                                                                    <? } ?>
-                                                                    <?php $billing_details->MoveNext(); } ?>
-                                                                </tbody>
-                                                            </table>
-                                                            <?php $row->MoveNext();
-                                                            $i++; } ?>
                                                     </div>
                                                 </div>
 
@@ -1986,61 +1754,8 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                 </div>
 
                                                 <div class="tab-pane" id="accounts" role="tabpanel">
-                                                    <div class="p-20">
-                                                        <?php $wallet_data = $db->Execute("SELECT * FROM DOA_USER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_USER_WALLET DESC LIMIT 1"); ?>
-                                                        <h3 class="m-20">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></h3>
-                                                        <?php
-                                                        $i=1;
-                                                        $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER`   WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
-                                                        while (!$row->EOF) {
-                                                            $used_session_count = $db->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                                                            $total_session_count = $db->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION_COUNT FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                                                            $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-                                                            $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-                                                            $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
-                                                            $service_credit = ($enrollment_balance->RecordCount() > 0)?($total_bill_and_paid->fields['TOTAL_PAID']-$enrollment_balance->fields['TOTAL_BALANCE_USED']):'0.00';
-                                                            ?>
-                                                            <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
-                                                                <div class="col-2"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
-                                                                <div class="col-2">Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-                                                                <div class="col-2">Used : <?=($enrollment_balance->RecordCount() > 0)?$enrollment_balance->fields['TOTAL_BALANCE_USED']:'0.00';?></div>
-                                                                <div class="col-2" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=$service_credit?></div>
-                                                                <div class="col-2">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count->fields['TOTAL_SESSION_COUNT'];?></div>
-                                                            </div>
-                                                            <table id="myTable" class="table table-striped border" style="display: none">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th>Service</th>
-                                                                        <th>Apt #</th>
-                                                                        <th>Service Code</th>
-                                                                        <th>Date</th>
-                                                                        <th>Time</th>
-                                                                        <th>Session Cost</th>
-                                                                        <th>Service Credit</th>
-                                                                    </tr>
-                                                                </thead>
+                                                    <div id="ledger_list" class="p-20">
 
-                                                                <tbody>
-                                                                <?php
-                                                                $appointment_data = $db->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.PRICE AS SESSION_COST, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS  WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2");
-                                                                $total_session_cost = 0;
-                                                                while (!$appointment_data->EOF) {
-                                                                    $total_session_cost += $appointment_data->fields['SESSION_COST']?>
-                                                                    <tr>
-                                                                        <td><?=$appointment_data->fields['SERVICE_NAME']?></td>
-                                                                        <td><?=$appointment_data->fields['SERIAL_NUMBER']?></td>
-                                                                        <td><?=$appointment_data->fields['SERVICE_CODE']?></td>
-                                                                        <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
-                                                                        <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                                                                        <td><?=$appointment_data->fields['SESSION_COST']?></td>
-                                                                        <td style="color:<?=(($total_paid-$total_session_cost)<0)?'red':'black'?>;"><?=$total_paid-$total_session_cost?></td>
-                                                                    </tr>
-                                                                    <?php $appointment_data->MoveNext();
-                                                                    } ?>
-                                                                </tbody>
-                                                            </table>
-                                                            <?php $row->MoveNext();
-                                                            $i++; } ?>
                                                     </div>
                                                 </div>
 
@@ -2965,7 +2680,67 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                 });
             }
         }
-        
+
+        function showEnrollmentList(page) {
+            let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+            $.ajax({
+                url: "pagination/enrollment.php",
+                type: "GET",
+                data: {search_text:'', page:page, master_id:PK_USER_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#enrollment_list').html(result)
+                }
+            });
+            window.scrollTo(0,0);
+        }
+
+        function showListView(page) {
+            let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+            $.ajax({
+                url: "pagination/appointment.php",
+                type: "GET",
+                data: {search_text:'', page:page, master_id:PK_USER_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#appointment_list').html(result)
+                }
+            });
+            window.scrollTo(0,0);
+        }
+
+        function showBillingList(page) {
+            let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+            $.ajax({
+                url: "pagination/billing.php",
+                type: "GET",
+                data: {search_text:'', page:page, master_id:PK_USER_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#billing_list').html(result)
+                }
+            });
+            window.scrollTo(0,0);
+        }
+
+        function showLedgerList(page) {
+            let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+            $.ajax({
+                url: "pagination/ledger.php",
+                type: "GET",
+                data: {search_text:'', page:page, master_id:PK_USER_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#ledger_list').html(result)
+                }
+            });
+            window.scrollTo(0,0);
+        }
+
 
     </script>
 
