@@ -227,13 +227,18 @@ if ($location_operational_hour->RecordCount() > 0) {
                 <div id="appointment_list_half" class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-6">
+                            <div class="col-12 row m-10">
+                                <div class="col-8">
                                     <h5 class="card-title"><?=$title?></h5>
                                 </div>
-                                <!-- <div class="col-4">
-                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showCalendarView()" style="float: right;"><i class="ti-calendar"></i> Calendar</button>
-                                </div> -->
+                                <div class="col-4">
+                                    <form class="form-material form-horizontal" action="" method="get">
+                                        <div class="input-group">
+                                            <input class="form-control" type="text" id="search_text" name="search_text" placeholder="Search..">
+                                            <a class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" onclick="showListView(1)"><i class="fa fa-search"></i></a>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
 
                             <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
@@ -282,8 +287,6 @@ if ($location_operational_hour->RecordCount() > 0) {
         </div>
     </div>
 </div>
-
-
 
 <?php require_once('../includes/footer.php');?>
 
@@ -630,14 +633,15 @@ if ($location_operational_hour->RecordCount() > 0) {
     }
 
     function showListView(page) {
+        let search_text = $('#search_text').val();
         $.ajax({
             url: "pagination/appointment.php",
             type: "GET",
-            data: {search_text:'', page:page},
+            data: {search_text:search_text, page:page},
             async: false,
             cache: false,
             success: function (result) {
-                $('#appointment_list').html(result)
+                $('#appointment_list').html(result);
             }
         });
         window.scrollTo(0,0);
