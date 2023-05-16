@@ -45,7 +45,11 @@ function getService($service_id) {
 function getCustomer($customer_id) {
     global $db1;
     $customer_taker = $db1->Execute("SELECT email FROM customer WHERE customer_id = '$customer_id'");
-    return $customer_taker->fields['email'];
+    if ($customer_taker->RecordCount() > 0) {
+        return $customer_taker->fields['email'];
+    } else {
+        return 0;
+    }
 }
 
 function getServiceMaster($service_id) {
@@ -63,7 +67,11 @@ function getEnrollmentDetails($enrollment_id) {
 function getUser($user_id) {
     global $db1;
     $customer_taker = $db1->Execute("SELECT email FROM users WHERE user_id = '$user_id'");
-    return $customer_taker->fields['email'];
+    if ($customer_taker->RecordCount() > 0) {
+        return $customer_taker->fields['email'];
+    } else {
+        return 0;
+    }
 }
 
 //function getName($customer_id) {

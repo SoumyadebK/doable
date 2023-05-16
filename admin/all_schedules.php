@@ -228,12 +228,14 @@ if ($location_operational_hour->RecordCount() > 0) {
                     <div class="card">
                         <div class="card-body">
                             <div class="col-12 row m-10">
-                                <div class="col-8">
+                                <div class="col-6">
                                     <h5 class="card-title"><?=$title?></h5>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-6">
                                     <form class="form-material form-horizontal" action="" method="get">
                                         <div class="input-group">
+                                            <input type="date" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date">&nbsp;&nbsp;&nbsp;&nbsp;
+                                            <input type="date" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <input class="form-control" type="text" id="search_text" name="search_text" placeholder="Search..">
                                             <a class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" onclick="showListView(1)"><i class="fa fa-search"></i></a>
                                         </div>
@@ -298,10 +300,8 @@ if ($location_operational_hour->RecordCount() > 0) {
 
 <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
 
-
 <script>
     let view = '<?=$view?>';
-
     $(window).on('load', function () {
         if (view === 'list'){
             showListView();
@@ -634,14 +634,22 @@ if ($location_operational_hour->RecordCount() > 0) {
 
     function showListView(page) {
         let search_text = $('#search_text').val();
+        let START_DATE = $('#START_DATE').val();
+        let END_DATE = $('#END_DATE').val();
         $.ajax({
             url: "pagination/appointment.php",
             type: "GET",
-            data: {search_text:search_text, page:page},
+            data: {search_text:search_text, page:page, START_DATE:START_DATE, END_DATE:END_DATE},
             async: false,
             cache: false,
+            beforeSend: function (){
+                $('.preloader').show();
+            },
             success: function (result) {
                 $('#appointment_list').html(result);
+            },
+            complete: function () {
+                $('.preloader').hide();
             }
         });
         window.scrollTo(0,0);
@@ -683,7 +691,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         modal.style.display = "none";
     }
 
-    // When the user clicks anywhere outside of the modal, close it
+    // When the user clicks anywhere outside the modal, close it
     window.onclick = function(event) {
         if (event.target == modal) {
             modal.style.display = "none";
