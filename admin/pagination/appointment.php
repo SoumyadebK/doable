@@ -1,7 +1,7 @@
 <?php
 require_once('../../global/config.php');
 
-$results_per_page = 10;
+$results_per_page = 100;
 
 if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
     $search_text = $_GET['search_text'];

@@ -9,6 +9,16 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if(!empty($_POST)){
     if ($_POST['FUNCTION_NAME'] == 'saveProfileData') {
+        $EMAIL_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $EMAIL_DATA['HOST'] = $_POST['SMTP_HOST'];
+        $EMAIL_DATA['PORT'] = $_POST['SMTP_PORT'];
+        $EMAIL_DATA['USER_NAME'] = $_POST['SMTP_USERNAME'];
+        $EMAIL_DATA['PASSWORD'] = $_POST['SMTP_PASSWORD'];
+        $EMAIL_DATA['ACTIVE'] = 1;
+        $EMAIL_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $EMAIL_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        $EMAIL_DATA['EDITED_BY'] = 0;
+        $EMAIL_DATA['EDITED_ON'] = "0000-00-00 00:00:00";
         unset($_POST['FUNCTION_NAME']);
         unset($_POST['SMTP_HOST']);
         unset($_POST['SMTP_PORT']);
@@ -36,11 +46,13 @@ if(!empty($_POST)){
         $ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
 
-        $EMAIL_DATA['HOST'] = $_POST['SMTP_HOST'];
-        $EMAIL_DATA['PORT'] = $_POST['SMTP_PORT'];
-        $EMAIL_DATA['USER_NAME'] = $_POST['SMTP_USERNAME'];
-        $EMAIL_DATA['PASSWORD'] = $_POST['SMTP_PASSWORD'];
-        db_perform('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
+        $email = $db->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        if ($email->RecordCount() == 0) {
+            db_perform('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'insert');
+        } else {
+            db_perform('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
+        }
+
     }
 
     if ($_POST['FUNCTION_NAME'] == 'saveHolidayData') {
