@@ -490,7 +490,11 @@ function saveProfileData($RESPONSE_DATA){
     $return_data['PK_USER_MASTER'] = $PK_USER_MASTER;
     $return_data['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
     echo json_encode($return_data);
+
 }
+
+
+
 
 /*function saveLoginData($RESPONSE_DATA)
 {
@@ -531,7 +535,7 @@ function saveLoginData($RESPONSE_DATA)
 
     //$user_info = $db->Execute("SELECT * FROM `DOA_USERS` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
     // focusbiz code
-    if($RESPONSE_DATA['TICKET_SYSTEM_ACCESS'] == 1) {
+    if(isset($RESPONSE_DATA['TICKET_SYSTEM_ACCESS']) && $RESPONSE_DATA['TICKET_SYSTEM_ACCESS'] == 1) {
         $USER_DATA['TICKET_SYSTEM_ACCESS'] = $RESPONSE_DATA['TICKET_SYSTEM_ACCESS'];
 
         $res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$RESPONSE_DATA[PK_USER]' ");

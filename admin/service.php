@@ -357,7 +357,7 @@ if(empty($_GET['id'])){
                                                                     <?php
                                                                     $booking_code = $db->Execute("SELECT * FROM DOA_BOOKING_CODES WHERE ACTIVE = 1");
                                                                     while (!$booking_code->EOF) { ?>
-                                                                        <option value="<?php echo $booking_code->fields['PK_BOOKING_CODES'];?>" <?=($booking_code->fields['PK_BOOKING_CODES'] == $row->fields['PK_BOOKING_CODES'])?'selected':''?>><?=$booking_code->fields['BOOKING_NAME']?></option>
+                                                                        <option value="<?php echo $booking_code->fields['PK_BOOKING_CODES'];?> <?=($booking_code->fields['PK_BOOKING_CODES'] == $row->fields['PK_BOOKING_CODES'])?'selected':''?>"><?=$booking_code->fields['BOOKING_NAME']?></option>
                                                                         <?php $booking_code->MoveNext(); } ?>
                                                                 </select>
                                                             </div>
