@@ -171,7 +171,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                 while (!$row->EOF) {
                                     $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
                                     ?>
-                                    <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 18px; *border: 1px solid #ebe5e2; padding: 8px;">
+                                    <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
                                         <div class="col-3" style="width: 18%"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
                                         <div class="col-3" style="width: 18%"><?=$row->fields['LOCATION_NAME']?></div>
                                         <div class="col-2" style="width: 20%">Total Billed : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>
