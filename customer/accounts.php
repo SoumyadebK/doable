@@ -2,11 +2,6 @@
 require_once('../global/config.php');
 $title = "Accounts";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4){
-    header("location:../login.php");
-    exit;
-}
-
 $user_master_data = $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$_SESSION['PK_USER']);
 $PK_USER_MASTER_ARRAY = [];
 while (!$user_master_data->EOF){
@@ -14,6 +9,34 @@ while (!$user_master_data->EOF){
     $user_master_data->MoveNext();
 }
 $PK_USER_MASTERS = implode(',', $PK_USER_MASTER_ARRAY);
+
+$results_per_page = 100;
+
+if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
+    $search_text = $_GET['search_text'];
+    $search = " AND DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%'";
+} else {
+    $search_text = '';
+    $search = ' ';
+}
+
+$query = $db->Execute("SELECT count(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER IN (".$PK_USER_MASTERS.")".$search);
+$number_of_result =  $query->fields['TOTAL_RECORDS'];
+$number_of_page = ceil ($number_of_result / $results_per_page);
+
+if (!isset ($_GET['page']) ) {
+    $page = 1;
+} else {
+    $page = $_GET['page'];
+}
+$page_first_result = ($page-1) * $results_per_page;
+
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4){
+    header("location:../login.php");
+    exit;
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -52,8 +75,8 @@ $PK_USER_MASTERS = implode(',', $PK_USER_MASTER_ARRAY);
                             </div>
                             <div class="p-20">
                                 <?php
-                                $i=1;
-                                $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER IN (".$PK_USER_MASTERS.") ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+                                $i=$page_first_result+1;
+                                $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER IN (".$PK_USER_MASTERS.")".$search."ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
                                 while (!$row->EOF) {
                                     $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
                                     $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
@@ -98,6 +121,22 @@ $PK_USER_MASTERS = implode(',', $PK_USER_MASTER_ARRAY);
                                     </table>
                                     <?php $row->MoveNext();
                                     $i++; } ?>
+
+                                <div class="center">
+                                    <div class="pagination outer">
+                                        <ul>
+                                            <?php if ($page > 1) { ?>
+                                                <li><a href="javascript:;" onclick="showBillingList(<?=($page-1)?>)">&laquo;</a></li>
+                                            <?php }
+                                            for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
+                                                echo '<li><a class="'.(($page_count==$page)?"active":"").'" href="javascript:;" onclick="showBillingList('.$page_count.')">' . $page_count . ' </a></li>';
+                                            }
+                                            if ($page < $number_of_page) { ?>
+                                                <li><a href="javascript:;" onclick="showBillingList(<?=($page+1)?>)">&raquo;</a></li>
+                                            <?php } ?>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

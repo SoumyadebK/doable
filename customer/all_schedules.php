@@ -14,6 +14,12 @@ if (!empty($_GET['id']) && !empty($_GET['action'])){
     }
 }
 
+if (!empty($_GET['view'])){
+    $view = 'list';
+}else{
+    $view = 'table';
+}
+
 if (isset($_POST['FUNCTION_NAME'])){
     unset($_POST['TIME']);
     unset($_POST['FUNCTION_NAME']);
@@ -174,124 +180,18 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
                                     <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showCalendarView()" style="float: right;"><i class="ti-calendar"></i> Calendar</button>
                                 </div> -->
                                 <div class="col-6 text-right">
-                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showCompleteListView()" style="float:right;"><i class="ti-check"></i> Completed</button>
-                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showListView()" style="float:right;"><i class="ti-list"></i> List</button>
+                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showCompleteListView(1)" style="float:right;"><i class="ti-check"></i> Completed</button>
+                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showListView(1)" style="float:right;"><i class="ti-list"></i> List</button>
                                     <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showCalendarView()" style="float: right;"><i class="ti-calendar"></i> Calendar</button>
                                 </div>
                             </div>
 
-                            <div id="list"  class="card-body view_div">
-                                <table id="myTable" class="table table-striped border">
-                                    <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Customer</th>
-                                            <th>Enrollment ID</th>
-                                            <th>Service</th>
-                                            <th>Service Code</th>
-                                            <th><?=$service_provider_title?></th>
-                                            <th>Day</th>
-                                            <th>Date</th>
-                                            <th>Time</th>
-                                            <th>Paid</th>
-                                            <th style="text-align: center;">Completed</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
+                            <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
 
-                                    <tbody>
-                                    <?php
-                                    $i=1;
-                                    $appointment_data = $db->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.IS_PAID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND DOA_APPOINTMENT_MASTER.CUSTOMER_ID IN (".$PK_USER_MASTERS.") ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC");
-                                    while (!$appointment_data->EOF) { ?>
-                                        <tr>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$i;?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['ENROLLMENT_ID']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_CODE']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=($appointment_data->fields['IS_PAID'] == 0)?'Unpaid':'Paid'?></td>
-                                            <td style="text-align: center;">
-                                                <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
-                                                    <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
-                                                <?php } else { ?>
-                                                    <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>&action=complete" onclick='javascript:confirmComplete($(this));return false;'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
-                                                <?php } ?>
-                                            </td>
-                                            <td>
-                                                <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <?php /*if($appointment_data->fields['ACTIVE']==1){ */?><!--
-                                                    <span class="active-box-green"></span>
-                                                <?php /*} else{ */?>
-                                                    <span class="active-box-red"></span>
-                                                --><?php /*} */?>
-                                            </td>
-                                        </tr>
-                                        <?php $appointment_data->MoveNext();
-                                        $i++; } ?>
-                                    </tbody>
-                                </table>
                             </div>
 
-                            <div id="completed_list"  class="card-body view_div" style="display: none;">
-                                <table id="myTable" class="table table-striped border">
-                                    <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Customer</th>
-                                        <th>Enrollment ID</th>
-                                        <th>Service</th>
-                                        <th>Service Code</th>
-                                        <th><?=$service_provider_title?></th>
-                                        <th>Day</th>
-                                        <th>Date</th>
-                                        <th>Time</th>
-                                        <th>Paid</th>
-                                        <th style="text-align: center;">Completed</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                    </thead>
+                            <div id="completed_list"  class="card-body table-responsive" style="display: none;">
 
-                                    <tbody>
-                                    <?php
-                                    $i=1;
-                                    $appointment_data = $db->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.IS_PAID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 AND DOA_APPOINTMENT_MASTER.CUSTOMER_ID IN (".$PK_USER_MASTERS.") ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC");
-                                    while (!$appointment_data->EOF) { ?>
-                                        <tr>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$i;?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['ENROLLMENT_ID']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_CODE']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=($appointment_data->fields['IS_PAID'] == 0)?'Unpaid':'Paid'?></td>
-                                            <td style="text-align: center;">
-                                                <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
-                                                    <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
-                                                <?php } else { ?>
-                                                    <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>&action=complete" onclick='javascript:confirmComplete($(this));return false;'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
-                                                <?php } ?>
-                                            </td>
-                                            <td>
-                                                <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <?php /*if($appointment_data->fields['ACTIVE']==1){ */?><!--
-                                                    <span class="active-box-green"></span>
-                                                <?php /*} else{ */?>
-                                                    <span class="active-box-red"></span>
-                                                --><?php /*} */?>
-                                            </td>
-                                        </tr>
-                                        <?php $appointment_data->MoveNext();
-                                        $i++; } ?>
-                                    </tbody>
-                                </table>
                             </div>
 
                             <div id="calendar_div" class="card-body view_div b-l calender-sidebar" style="display: none;">
@@ -337,6 +237,15 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
 
 
 <script>
+    let view = '<?=$view?>';
+
+    $(window).on('load', function () {
+        if (view === 'list'){
+            showListView();
+        }else {
+            showCalendarView();
+        }
+    })
 
     function showAppointmentEdit(info) {
         if (info.resourceId > 0) {
@@ -572,18 +481,43 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
         });
     }*/
 
-    function showListView() {
-        $('.view_div').hide();
-        $('#list').show();
+    function showListView(page) {
+        $.ajax({
+            url: "pagination/appointment.php",
+            type: "GET",
+            data: {search_text:'', page:page},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#appointment_list').html(result)
+            }
+        });
+        window.scrollTo(0,0);
+        $('#appointment_list').show();
+        $('#completed_list').hide();
+        $('#calendar_div').hide();
     }
 
-    function showCompleteListView() {
-        $('.view_div').hide();
+    function showCompleteListView(page) {
+        $.ajax({
+            url: "pagination/appointment_completed.php",
+            type: "GET",
+            data: {search_text:'', page:page},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#completed_list').html(result)
+            }
+        });
+        window.scrollTo(0,0);
         $('#completed_list').show();
+        $('#appointment_list').hide();
+        $('#calendar_div').hide();
     }
 
     function showCalendarView() {
-        $('.view_div').hide();
+        $('#appointment_list').hide();
+        $('#completed_list').hide();
         $('#calendar_div').show();
         $('.fc-state-active').click();
     }
