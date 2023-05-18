@@ -51,10 +51,13 @@ while (!$booked_slot_data->EOF) {
 }
 
 $slot_data = $db->Execute("SELECT * FROM DOA_SERVICE_PROVIDER_SERVICES WHERE PK_USER = ".$SERVICE_PROVIDER_ID);
-
-$SLOT_START = $slot_data->fields[$day.'_START_TIME'];
-$SLOT_END = $slot_data->fields[$day.'_END_TIME'];
-
+if ($slot_data->RecordCount() > 0) {
+    $SLOT_START = $slot_data->fields[$day . '_START_TIME'];
+    $SLOT_END = $slot_data->fields[$day . '_END_TIME'];
+} else {
+    $SLOT_START = '00:00:00';
+    $SLOT_END = '00:00:00';
+}
 $holiday_data = $db->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND HOLIDAY_DATE = "."'".$date."'");
 if ($holiday_data->RecordCount() > 0){
     $SLOT_START = '00:00:00';
