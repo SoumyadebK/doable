@@ -476,9 +476,9 @@ function saveProfileData($RESPONSE_DATA){
         }
     }
 
+    $db->Execute("DELETE FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$PK_USER'");
     if(isset($_POST['PK_USER_LOCATION'])){
         $PK_USER_LOCATION = $_POST['PK_USER_LOCATION'];
-        $db->Execute("DELETE FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$PK_USER'");
         for($i = 0; $i < count($PK_USER_LOCATION); $i++){
             $CUSTOMER_LOCATION_DATA['PK_USER'] = $PK_USER;
             $CUSTOMER_LOCATION_DATA['PK_LOCATION'] = $PK_USER_LOCATION[$i];
