@@ -129,16 +129,18 @@ $page_first_result = ($page-1) * $results_per_page;
                                     </tbody>
                                 </table>
                                 <div class="center">
-                                    <div class="pagination">
-                                        <?php if ($page > 1) { ?>
-                                            <a href="all_customers.php?page=<?=($page-1)?>">&laquo;</a>
-                                        <?php }
-                                        for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
-                                            echo '<a class="'.(($page_count==$page)?"active":"").'" href="all_customers.php?page='.$page_count.(($search_text=='')?'':'&search_text='.$search_text).'">' . $page_count . ' </a>';
-                                        }
-                                        if ($page < $number_of_page) { ?>
-                                            <a href="all_customers.php?page=<?=($page+1)?>">&raquo;</a>
-                                        <?php } ?>
+                                    <div class="pagination outer">
+                                        <ul>
+                                            <?php if ($page > 1) { ?>
+                                                <li><a href="all_customers.php?page=<?=($page-1)?>">&laquo;</a></li>
+                                            <?php }
+                                            for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
+                                                echo '<li><a class="'.(($page_count==$page)?"active":"").'" href="all_customers.php?page='.$page_count.(($search_text=='')?'':'&search_text='.$search_text).'">' . $page_count . ' </a></li>';
+                                            }
+                                            if ($page < $number_of_page) { ?>
+                                                <li><a href="all_customers.php?page=<?=($page+1)?>">&raquo;</a></li>
+                                            <?php } ?>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>

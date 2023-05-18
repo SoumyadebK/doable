@@ -32,11 +32,17 @@ if(!empty($_POST))
         $csvFile = fopen($_FILES['file']['tmp_name'], 'r');
 
         // Skip the first line
-        fgetcsv($csvFile);
+        //fgetcsv($csvFile);
+        $lineNumber = 1;
+
+        $standardServicePkId = $db->Execute("SELECT PK_SERVICE_CODE, PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE SERVICE_CODE LIKE 'S-1'");
+        $PK_SERVICE_CODE = $standardServicePkId->fields['PK_SERVICE_CODE'];
+        $PK_SERVICE_MASTER = $standardServicePkId->fields['PK_SERVICE_MASTER'];
 
         // Parse data from CSV file line by line
         while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE)
         {
+            if ($lineNumber === 1) { $lineNumber++; continue; }
             switch ($_POST['TABLE_NAME']) {
                 case 'DOA_INQUIRY_METHOD':
                     $INQUIRY_METHOD = $getData[1];
@@ -480,17 +486,21 @@ if(!empty($_POST))
                     $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                     $studentId = $getData[3];
                     $getEmail = getCustomer($studentId);
-                    $doableUserId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.EMAIL_ID='$getEmail' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
-                    $PK_USER_MASTER = $doableUserId->fields['PK_USER_MASTER'];
-                    $INSERT_DATA['CUSTOMER_ID'] = $PK_USER_MASTER;
+                    if ($getEmail !== 0) {
+                        $doableUserId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.EMAIL_ID='$getEmail' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
+                        $PK_USER_MASTER = ($doableUserId->RecordCount() > 0) ? $doableUserId->fields['PK_USER_MASTER'] : NULL;
+                        $INSERT_DATA['CUSTOMER_ID'] = $PK_USER_MASTER;
+                    } else {
+                        $INSERT_DATA['CUSTOMER_ID'] = NULL;
+                    }
 
                     $getServiceProvider = getUser($getData[1]);
-                    $SERVICE_PROVIDER_ID = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE EMAIL_ID = '$getServiceProvider'");
-                    $INSERT_DATA['SERVICE_PROVIDER_ID'] = $SERVICE_PROVIDER_ID->fields['PK_USER'];
-
-                    $standardServicePkId = $db->Execute("SELECT PK_SERVICE_CODE, PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE SERVICE_CODE LIKE 'S-1'");
-                    $PK_SERVICE_CODE = $standardServicePkId->fields['PK_SERVICE_CODE'];
-                    $PK_SERVICE_MASTER = $standardServicePkId->fields['PK_SERVICE_MASTER'];
+                    if ($getServiceProvider !== 0) {
+                        $SERVICE_PROVIDER_ID = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE EMAIL_ID = '$getServiceProvider'");
+                        $INSERT_DATA['SERVICE_PROVIDER_ID'] = ($SERVICE_PROVIDER_ID->RecordCount() > 0) ? $SERVICE_PROVIDER_ID->fields['PK_USER'] : '';
+                    } else {
+                        $INSERT_DATA['SERVICE_PROVIDER_ID'] = NULL;
+                    }
 
                     $checkEnrollmentExist = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
                     if ($checkEnrollmentExist->RecordCount() > 0) {
@@ -580,45 +590,11 @@ if(!empty($_POST))
                     $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                     db_perform('DOA_APPOINTMENT_MASTER', $INSERT_DATA, 'insert');
                     break;
+                default:
+                    break;
             }
-
-
-
-            /*else if($_POST['TABLE_NAME'] == 'DOA_LOCATION') {
-                $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                $INSERT_DATA['LOCATION_NAME'] = $getData[0];
-                $INSERT_DATA['LOCATION_CODE'] =$getData[1];
-                $INSERT_DATA['ADDRESS'] = $getData[2];
-                $INSERT_DATA['ADDRESS_1'] = $getData[3];
-                $INSERT_DATA['CITY'] = $getData[4];
-                $INSERT_DATA['PK_STATES'] = $getData[5];
-                $INSERT_DATA['ZIP_CODE'] = $getData[6];
-                $INSERT_DATA['PK_COUNTRY'] = $getData[7];
-                $INSERT_DATA['PHONE'] = $getData[8];
-                $INSERT_DATA['EMAIL'] = $getData[9];
-                $INSERT_DATA['EMAIL'] = $getData[10];
-                $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-                $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_LOCATION', $INSERT_DATA, 'insert');
-            }*/
-
-
-
-
-//            // If user already exists in the database with the same email
-//            $query = "SELECT id FROM users WHERE email = '" . $getData[1] . "'";
-//
-//            $check = mysqli_query($conn, $query);
-//
-//            if ($check->num_rows > 0)
-//            {
-//                mysqli_query($conn, "UPDATE DOA_INQUIRY_METHOD SET PK_INQUIRY_METHOD = '" . $name . "'");
-//            }
-//            else
-//            {
-//                mysqli_query($conn, "INSERT INTO users (PK_INQUIRY_METHOD, PK_ACCOUNT_MASTER, INQUIRY_METHOD, ACTIVE, CREATED_ON, CREATED_ON, EDITED_ON, EDITED_BY) VALUES ('" . $name . "', '" . $email . "', '" . $phone . "', NOW(), NOW(), '" . $status . "')");
-//
-//            }
+            $lineNumber++;
+            var_dump($getData);
         }
         // Close opened CSV file
         fclose($csvFile);
