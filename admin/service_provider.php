@@ -225,7 +225,7 @@ if(!empty($_GET['id'])) {
                                             <div class="tab-content tabcontent-border">
 
                                                 <div class="tab-pane active" id="profile" role="tabpanel">
-                                                    <form id="profile_form">
+                                                    <form class="form-material form-horizontal" id="profile_form">
                                                         <input type="hidden" name="FUNCTION_NAME" value="saveProfileData">
                                                         <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
                                                         <input type="hidden" class="TYPE" name="TYPE" value="3">
@@ -330,7 +330,7 @@ if(!empty($_GET['id'])) {
                                                                                     $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
                                                                                     while (!$row->EOF) { ?>
                                                                                         <option value="<?php echo $row->fields['PK_COUNTRY'];?>" <?=($row->fields['PK_COUNTRY'] == $PK_COUNTRY)?"selected":""?>><?=$row->fields['COUNTRY_NAME']?></option>
-                                                                                        <?php $row->MoveNext(); } ?>
+                                                                                    <?php $row->MoveNext(); } ?>
                                                                                 </select>
                                                                             </div>
                                                                         </div>
@@ -432,7 +432,7 @@ if(!empty($_GET['id'])) {
                                                 </div>
 
                                                 <div class="tab-pane" id="login" role="tabpanel">
-                                                    <form id="login_form">
+                                                    <form class="form-material form-horizontal" id="login_form">
                                                         <input type="hidden" name="FUNCTION_NAME" value="saveLoginData">
                                                         <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
                                                         <input type="hidden" class="TYPE" name="TYPE" value="3">
@@ -455,7 +455,7 @@ if(!empty($_GET['id'])) {
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">Password</label>
                                                                             <div class="col-md-12">
-                                                                                <input type="password" required class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
+                                                                                <input type="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -463,7 +463,7 @@ if(!empty($_GET['id'])) {
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">Confirm Password</label>
                                                                             <div class="col-md-12">
-                                                                                <input type="password" required class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
+                                                                                <input type="password" class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -489,19 +489,19 @@ if(!empty($_GET['id'])) {
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Old Password</label>
                                                                                 <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?=$PASSWORD?>">
-                                                                                <input type="password" required name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
+                                                                                <input type="password" name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">New Password</label>
-                                                                                <input type="password" required name="PASSWORD" class="form-control" id="PASSWORD">
+                                                                                <input type="password" name="PASSWORD" class="form-control" id="PASSWORD">
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Confirm New Password</label>
-                                                                                <input type="password" required name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
+                                                                                <input type="password" name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -1194,11 +1194,13 @@ if(!empty($_GET['id'])) {
 
         $(document).on('submit', '#profile_form', function (event) {
             event.preventDefault();
-            let form_data = $('#profile_form').serialize();
+            let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
                 data: form_data,
+                processData: false,
+                contentType: false,
                 dataType: 'JSON',
                 success:function (data) {
                     console.log(data);
@@ -1224,7 +1226,7 @@ if(!empty($_GET['id'])) {
             if (PASSWORD === CONFIRM_PASSWORD) {
                 let SAVED_OLD_PASSWORD = $('#SAVED_OLD_PASSWORD').val();
                 let OLD_PASSWORD = $('#OLD_PASSWORD').val();
-                if (SAVED_OLD_PASSWORD)
+                if (SAVED_OLD_PASSWORD && OLD_PASSWORD)
                 {
                     $.ajax({
                         url: "ajax/check_old_password.php",
