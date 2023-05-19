@@ -2,6 +2,46 @@
 require_once('../global/config.php');
 $title = "Appointments";
 
+$location_data = $db->Execute("SELECT * FROM DOA_USER_LOCATION WHERE PK_USER = '$_SESSION[PK_USER]'");
+$LOCATION_ARRAY = [];
+if ($location_data->RecordCount() > 0) {
+    while (!$location_data->EOF) {
+        $LOCATION_ARRAY[] = $location_data->fields['PK_LOCATION'];
+        $location_data->MoveNext();
+    }
+}
+
+$SERVICE_PROVIDER_ARRAY[] = $_SESSION['PK_USER'];
+$location_data = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER) FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".implode(',', $LOCATION_ARRAY).")");
+if ($location_data->RecordCount() > 0) {
+    $SERVICE_PROVIDER_ARRAY = [];
+    while (!$location_data->EOF) {
+        $SERVICE_PROVIDER_ARRAY[] = $location_data->fields['PK_USER'];
+        $location_data->MoveNext();
+    }
+}
+
+$results_per_page = 2;
+
+if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
+    $search_text = $_GET['search_text'];
+    $search = " AND DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%'";
+} else {
+    $search_text = '';
+    $search = ' ';
+}
+
+$query = $db->Execute("SELECT count(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID IN (".implode(',', $SERVICE_PROVIDER_ARRAY).")".$search);
+$number_of_result =  $query->fields['TOTAL_RECORDS'];
+$number_of_page = ceil ($number_of_result / $results_per_page);
+
+if (!isset ($_GET['page']) ) {
+    $page = 1;
+} else {
+    $page = $_GET['page'];
+}
+$page_first_result = ($page-1) * $results_per_page;
+
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 5 ){
     header("location:../login.php");
     exit;
@@ -27,24 +67,9 @@ if(empty($_GET['id'])){
     $SERVICE_PROVIDER_ID = $res->fields['SERVICE_PROVIDER_ID'];
 }
 
-$location_data = $db->Execute("SELECT * FROM DOA_USER_LOCATION WHERE PK_USER = '$_SESSION[PK_USER]'");
-$LOCATION_ARRAY = [];
-if ($location_data->RecordCount() > 0) {
-    while (!$location_data->EOF) {
-        $LOCATION_ARRAY[] = $location_data->fields['PK_LOCATION'];
-        $location_data->MoveNext();
-    }
-}
 
-$SERVICE_PROVIDER_ARRAY[] = $_SESSION['PK_USER'];
-$location_data = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER) FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".implode(',', $LOCATION_ARRAY).")");
-if ($location_data->RecordCount() > 0) {
-    $SERVICE_PROVIDER_ARRAY = [];
-    while (!$location_data->EOF) {
-        $SERVICE_PROVIDER_ARRAY[] = $location_data->fields['PK_USER'];
-        $location_data->MoveNext();
-    }
-}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -96,9 +121,9 @@ if ($location_data->RecordCount() > 0) {
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <div style="padding-left:12px; padding-top: 20px"><button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="markAllComplete()"><i class="ti-check-box"></i> Completed</button></div>
+                            <div style="margin-left:-12px; margin-bottom: 10px "><button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="markAllComplete()"><i class="ti-check-box"></i> Completed</button></div>
                             <tr id="list"  class="card-body">
-                                <table id="myTable" class="table table-striped border" data-page-length='50'>
+                                <table id="" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
                                         <th><input type="checkbox" onClick="toggle(this)" /></th>
@@ -117,8 +142,8 @@ if ($location_data->RecordCount() > 0) {
 
                                     <tbody>
                                     <?php
-                                    $i=1;
-                                    $appointment_data = $db->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.IS_PAID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID IN (".implode(',', $SERVICE_PROVIDER_ARRAY).") ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC");
+                                    $i=$page_first_result+1;
+                                    $appointment_data = $db->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.IS_PAID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID IN (".implode(',', $SERVICE_PROVIDER_ARRAY).")".$search."ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$appointment_data->EOF) { ?>
                                         <tr>
                                             <td <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"></label></td>
@@ -139,6 +164,22 @@ if ($location_data->RecordCount() > 0) {
                                         $i++; } ?>
                                     </tbody>
                                 </table>
+
+                                <div class="center">
+                                    <div class="pagination outer">
+                                        <ul>
+                                            <?php if ($page > 1) { ?>
+                                                <li><a href="operations.php?page=<?=($page-1)?>">&laquo;</a></li>
+                                            <?php }
+                                            for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
+                                                echo '<li><a class="'.(($page_count==$page)?"active":"").'" href="operations.php?page='.$page_count.(($search_text=='')?'':'&search_text='.$search_text).'">' . $page_count . ' </a></li>';
+                                            }
+                                            if ($page < $number_of_page) { ?>
+                                                <li><a href="operations.php?page=<?=($page+1)?>">&raquo;</a></li>
+                                            <?php } ?>
+                                        </ul>
+                                    </div>
+                                </div>
 
                                 <!--                                <div style="padding-left:41px; padding-top: 20px"><input type="checkbox" onClick="toggle(this)" />  Mark all</div>-->
                         </div>

@@ -241,13 +241,13 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                     <div class="pagination outer">
                                         <ul>
                                             <?php if ($page > 1) { ?>
-                                                <li><a href="javascript:;" onclick="showBillingList(<?=($page-1)?>)">&laquo;</a></li>
+                                                <li><a href="billing.php?page=<?=($page-1)?>">&laquo;</a></li>
                                             <?php }
                                             for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
-                                                echo '<li><a class="'.(($page_count==$page)?"active":"").'" href="javascript:;" onclick="showBillingList('.$page_count.')">' . $page_count . ' </a></li>';
+                                                echo '<li><a class="'.(($page_count==$page)?"active":"").'" href="billing.php?page='.$page_count.(($search_text=='')?'':'&search_text='.$search_text).'">' . $page_count . ' </a></li>';
                                             }
                                             if ($page < $number_of_page) { ?>
-                                                <li><a href="javascript:;" onclick="showBillingList(<?=($page+1)?>)">&raquo;</a></li>
+                                                <li><a href="billing.php?page=<?=($page+1)?>">&raquo;</a></li>
                                             <?php } ?>
                                         </ul>
                                     </div>
