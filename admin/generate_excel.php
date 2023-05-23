@@ -7,8 +7,8 @@ if ($row->fields['ACTIVE']==1) {
 }
 while (!$row->EOF) {
     $tasks[] =[
-        'FIRST_NAME'=>$row->fields['FIRST_NAME'],
         'LAST_NAME'=>$row->fields['LAST_NAME'],
+        'FIRST_NAME'=>$row->fields['FIRST_NAME'],
         'PARTNER_NAME'=>$row->fields['PARTNER_NAME'],
         'ADDRESS'=>$row->fields['ADDRESS'],
         'CITY'=>$row->fields['CITY'],
