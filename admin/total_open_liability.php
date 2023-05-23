@@ -40,19 +40,21 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-4">
-                                    <img src="../assets/images/background/doable_logo.png" style="margin-bottom:15px;  height: 60px; width: auto;">
+                                <div class="col-3">
+                                    <img src="../assets/images/background/doable_logo.png" style="margin-top:15px; margin-bottom:15px;  height: 60px; width: auto;">
                                 </div>
-                                <div class="col-4">
+                                <div class="col-6">
                                     <?php
-                                    $name=$db->Execute("SELECT FIRST_NAME, CREATED_ON FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
+                                    $name=$db->Execute("SELECT CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME, CREATED_ON FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
+                                    $originalDate = $name->fields['CREATED_ON'];
+                                    $newDate = date("m/d/Y H:i:s", strtotime($originalDate));
                                     ?>
-                                    <h2 class="card-title" style="text-align: center; font-weight: bold"><?= $name->fields['FIRST_NAME'] ?> </h2>
-                                    <h3 class="card-title" style="text-align: center; font-weight: bold"><?=$title?></h3>
-                                    <h4 class="card-title" style="text-align: center; font-weight: bold"><?=$name->fields['CREATED_ON']?></h4>
+                                    <h3 class="card-title" style="text-align: center; font-weight: bold"><?= $name->fields['NAME'] ?> </h3>
+                                    <h2 class="card-title" style="text-align: center; font-weight: bold"><?=$title?></h2>
 
+                                    <h5 class="card-title" style="text-align: center; font-weight: bold">(<?=$newDate.' - '.$date = date('m/d/Y H:i:s', time());?>)</h5>
                                 </div>
-                                <div class="btn col-4" >
+                                <div class="btn col-3" style="margin-top:20px">
                                     <form action="generate_pdf.php" method="post" >
                                         <button  type="submit" id="export-to-pdf" name="ExportType"
                                                  value="Export to PDF" class="btn btn-info">Export
