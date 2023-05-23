@@ -82,8 +82,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     while (!$row->EOF) {
                                         ?>
                                         <tr>
-                                            <td ><?=$row->fields['FIRST_NAME']?></td>
                                             <td ><?=$row->fields['LAST_NAME']?></td>
+                                            <td ><?=$row->fields['FIRST_NAME']?></td>
                                             <td ><?=$row->fields['PARTNER_NAME']?></td>
                                             <td ><?=$row->fields['ADDRESS']?></td>
                                             <td ><?=$row->fields['CITY']?></td>
