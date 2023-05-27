@@ -55,11 +55,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <h5 class="card-title" style="text-align: center; font-weight: bold">(<?=$newDate.' - '.$date = date('m/d/Y H:i:s', time());?>)</h5>
                                 </div>
                                 <div class="btn col-3" style="margin-top:20px">
-                                    <form action="generate_pdf.php" method="post" >
-                                        <button  type="submit" id="export-to-pdf" name="ExportType"
-                                                 value="Export to PDF" class="btn btn-info">Export
+                                        <button  id="export-to-pdf" class="btn btn-info" onclick="viewSamplePdf()">Export
                                             to PDF</button>
-                                    </form>
                                 </div>
                             </div>
 
@@ -135,6 +132,36 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     //     window.location.href = "customer.php?id="+id+"&master_id="+master_id;
     //
     // }
+
+    // function viewSamplePdf() {
+    //     let DOCUMENT_TEMPLATE = "asldjal"//$('#myTable').html();
+    //     $.ajax({
+    //         url: "ajax/AjaxFunctions.php",
+    //         type: 'POST',
+    //         data: {FUNCTION_NAME: 'viewSamplePdf', DOCUMENT_TEMPLATE: DOCUMENT_TEMPLATE},
+    //         success:function (data) {
+    //             console.log(data);
+    //             window.open(
+    //                 data,
+    //                 '_blank' // <- This is what makes it open in a new window.
+    //             );
+    //         },
+    //         error: (error) => {
+    //             console.log(JSON.stringify(error));
+    //         }
+    //     });
+    // }
+
+    var buttonElement = document.querySelector("#myTable");
+    buttonElement.addEventListener('click', function() {
+        var pdfContent = document.getElementById("pdf-content").innerHTML;
+        var windowObject = window.open();
+
+        windowObject.document.write(pdfContent);
+
+        windowObject.print();
+        windowObject.close();
+    });
 
 </script>
 

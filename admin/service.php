@@ -293,7 +293,7 @@ if(empty($_GET['id'])){
                                                         <div class="col-1">
                                                             <div class="form-group" style="margin-left: 30px;">
                                                                 <div class="col-md-12">
-                                                                    <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="1" <?=(($row->fields['IS_GROUP'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label><br>
+                                                                    <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="1" <?=(($row->fields['IS_GROUP'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>
                                                                     <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="0"  <?=(($row->fields['IS_GROUP'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
                                                                 </div>
                                                             </div>
@@ -308,7 +308,7 @@ if(empty($_GET['id'])){
                                                         <div class="col-1">
                                                             <div class="form-group" style="margin-left: 30px;">
                                                                 <div class="col-md-12">
-                                                                    <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="1" <?=(($row->fields['IS_CHARGEABLE'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label><br>
+                                                                    <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="1" <?=(($row->fields['IS_CHARGEABLE'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>
                                                                     <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="0" <?=(($row->fields['IS_CHARGEABLE'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
                                                                 </div>
                                                             </div>
@@ -384,7 +384,7 @@ if(empty($_GET['id'])){
                                                         <div class="col-1">
                                                             <div class="form-group" style="margin-left: 30px;">
                                                                 <div class="col-md-12">
-                                                                    <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="1"/>&nbsp;Yes</label><br>
+                                                                    <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="1"/>&nbsp;Yes</label>
                                                                     <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
                                                                 </div>
                                                             </div>
@@ -399,7 +399,7 @@ if(empty($_GET['id'])){
                                                         <div class="col-1">
                                                             <div class="form-group" style="margin-left: 30px;">
                                                                 <div class="col-md-12">
-                                                                    <label><input type="radio" name="IS_CHARGEABLE_0" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label><br>
+                                                                    <label><input type="radio" name="IS_CHARGEABLE_0" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label>
                                                                     <label><input type="radio" name="IS_CHARGEABLE_0" class="IS_CHARGEABLE" value="0"/>&nbsp;No</label>
                                                                 </div>
                                                             </div>
@@ -622,7 +622,7 @@ if(empty($_GET['id'])){
                                             <div class="col-1">
                                                 <div class="form-group" style="margin-left: 30px;">
                                                     <div class="col-md-12">
-                                                        <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="1"/>&nbsp;Yes</label><br>
+                                                        <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="1"/>&nbsp;Yes</label>
                                                         <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
                                                     </div>
                                                 </div>
@@ -637,7 +637,7 @@ if(empty($_GET['id'])){
                                             <div class="col-1">
                                                 <div class="form-group" style="margin-left: 30px;">
                                                     <div class="col-md-12">
-                                                        <label><input type="radio" name="IS_CHARGEABLE_${counter}" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label><br>
+                                                        <label><input type="radio" name="IS_CHARGEABLE_${counter}" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label>
                                                         <label><input type="radio" name="IS_CHARGEABLE_${counter}" class="IS_CHARGEABLE" value="0"/>&nbsp;No</label>
                                                     </div>
                                                 </div>
