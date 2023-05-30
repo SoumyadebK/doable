@@ -218,7 +218,7 @@ $CLOSE_TIME = '22:00:00';
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
-                        <button id="createBtn" class="btn btn-info d-none d-lg-block m-l-10 text-white" ><i class="fa fa-plus-circle"></i> Create New</button>
+                        <a class="btn btn-info d-none d-lg-block m-l-10 text-white" href="create_appointment.php" ><i class="fa fa-plus-circle"></i> Create New</a>
                         <button class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="showListView(1)" style="float:right;"><i class="ti-list"></i> List</button>
                         <button class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="showCalendarView()" style="float: right;"><i class="ti-calendar"></i> Calendar</button>
                     </div>
