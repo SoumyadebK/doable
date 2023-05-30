@@ -12,7 +12,6 @@ else
 
 if(!empty($_POST)){
     $USER_DATA['PK_ACCOUNT_MASTER'] = 0;
-    $USER_DATA['PK_ROLES'] = $_POST['PK_ROLES'];
     $USER_DATA['USER_ID'] = $_POST['USER_ID'];
     $USER_DATA['FIRST_NAME'] = $_POST['FIRST_NAME'];
     $USER_DATA['LAST_NAME'] = $_POST['LAST_NAME'];
@@ -60,6 +59,9 @@ if(!empty($_POST)){
         $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
+        $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+        $USER_ROLE_DATA['PK_ROLES'] = 1;
+        db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
     }else{
         $USER_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $USER_DATA['EDITED_BY']	= $_SESSION['PK_USER'];

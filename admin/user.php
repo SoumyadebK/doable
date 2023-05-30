@@ -1,7 +1,7 @@
 <?php
 require_once('../global/config.php');
 $userType = "Users";
-$user_role_condition = " AND PK_ROLES IN(2,3)";
+$user_role_condition = " AND PK_ROLES IN(2,3,5,6,7,8)";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -218,7 +218,6 @@ $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 }*/
 
 $PK_USER = '';
-$PK_ROLES = '';
 $USER_ID = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
@@ -243,14 +242,13 @@ $CAN_EDIT_ENROLLMENT = '';
 $TICKET_SYSTEM_ACCESS = '';
 $IS_COUNSELLOR = '';
 if(!empty($_GET['id'])) {
-    $res = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.PK_ROLES, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.INACTIVE_BY_ADMIN, DOA_USERS.CAN_EDIT_ENROLLMENT, DOA_USERS.PK_LOCATION, DOA_USERS.USER_TITLE, DOA_USERS.CREATE_LOGIN, DOA_USERS.IS_COUNSELLOR, DOA_USERS.PASSWORD, DOA_USERS.TICKET_SYSTEM_ACCESS, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_GET[id]'");
+    $res = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.INACTIVE_BY_ADMIN, DOA_USERS.CAN_EDIT_ENROLLMENT, DOA_USERS.PK_LOCATION, DOA_USERS.USER_TITLE, DOA_USERS.CREATE_LOGIN, DOA_USERS.IS_COUNSELLOR, DOA_USERS.PASSWORD, DOA_USERS.TICKET_SYSTEM_ACCESS, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_users.php");
         exit;
     }
     $PK_USER = $res->fields['PK_USER'];
-    $PK_ROLES = $res->fields['PK_ROLES'];
     $USER_ID = $res->fields['USER_ID'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
@@ -359,13 +357,24 @@ if(!empty($_GET['id'])) {
                                                                 </div>
                                                                 <div class="col-md-2">
                                                                     <label class="form-label">Roles<span class="text-danger">*</span></label>
-                                                                    <select class="form-control" name="PK_ROLES" id="PK_ROLES" required>
-                                                                        <?php
-                                                                        $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' ".$user_role_condition." ORDER BY PK_ROLES");
-                                                                        while (!$row->EOF) { ?>
-                                                                            <option value="<?php echo $row->fields['PK_ROLES'];?>"><?=$row->fields['ROLES']?></option>
+                                                                    <div class="col-md-12 multiselect-box">
+                                                                        <select class="multi_sumo_select" name="PK_ROLES[]" id="PK_ROLES" required multiple>
+                                                                            <?php
+                                                                            $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' ".$user_role_condition." ORDER BY PK_ROLES");
+                                                                            $selected_roles = [];
+                                                                            if(!empty($_GET['id'])) {
+                                                                                $PK_USER = $_GET['id'];
+                                                                                $selected_roles_row = $db->Execute("SELECT PK_ROLES FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
+                                                                                while (!$selected_roles_row->EOF) {
+                                                                                    $selected_roles[] = $selected_roles_row->fields['PK_ROLES'];
+                                                                                    $selected_roles_row->MoveNext();
+                                                                                }
+                                                                            }
+                                                                            while (!$row->EOF) { ?>
+                                                                                <option value="<?php echo $row->fields['PK_ROLES'];?>" <?=in_array($row->fields['PK_ROLES'], $selected_roles)?"selected":""?>><?=$row->fields['ROLES']?></option>
                                                                             <?php $row->MoveNext(); } ?>
-                                                                    </select>
+                                                                        </select>
+                                                                    </div>
                                                                 </div>
                                                             </div>
 
@@ -487,7 +496,7 @@ if(!empty($_GET['id'])) {
                                                             <div class="row">
                                                                 <div class="col-6">
                                                                     <label class="form-label">Location</label>
-                                                                    <div class="col-md-12" style="margin-bottom: 15px;">
+                                                                    <div class="col-md-12 multiselect-box">
                                                                         <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
                                                                             <?php
                                                                             $selected_location = [];

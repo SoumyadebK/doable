@@ -13,7 +13,7 @@ require_once('../../global/config.php');
                     <select required name="CUSTOMER_ID" id="CUSTOMER_ID" onchange="selectThisCustomer(this);">
                         <option value="">Select Customer</option>
                         <?php
-                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 ORDER BY FIRST_NAME");
+                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 ORDER BY FIRST_NAME");
                         while (!$row->EOF) { ?>
                             <option value="<?php echo $row->fields['PK_USER_MASTER'];?>"><?=$row->fields['NAME'].' ('.$row->fields['PHONE'].')'?></option>
                             <?php $row->MoveNext(); } ?>
@@ -85,20 +85,16 @@ require_once('../../global/config.php');
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
 <script type="text/javascript">
-    let PK_APPOINTMENT_MASTER = 0;
     $('#CUSTOMER_ID').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
     $('#SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
 
     $(document).ready(function () {
         getSlots();
     });
-    const nextYear 	= new Date().getFullYear() + 2;
-    const month 	= new Date().getMonth();
-    var def_date 	= new Date();
     <? if(!empty($DATE_ARR)) { ?>
     def_date = new Date(<?=$DATE_ARR[0]?>,<?=$DATE_ARR[1]?>,<?=$DATE_ARR[2]?>);
     <? } ?>
-    const myCalender = new CalendarPicker('#myCalendarWrapper', {
+    myCalender = new CalendarPicker('#myCalendarWrapper', {
         // If max < min or min > max then the only available day will be today.
         default_date: def_date,
         //min: new Date(),
@@ -118,8 +114,6 @@ require_once('../../global/config.php');
         getSlots();
     });
 
-    let start_time_array = [];
-    let end_time_array = [];
     function set_time(id, start_time, end_time, PK_APPOINTMENT_MASTER){
         start_time_array.push(start_time);
         end_time_array.push(end_time);
