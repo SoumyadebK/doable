@@ -216,7 +216,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
+                        <button id="createBtn" class="btn btn-info d-none d-lg-block m-l-10 text-white" ><i class="fa fa-plus-circle"></i> Create New</button>
                         <button class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="showListView(1)" style="float:right;"><i class="ti-list"></i> List</button>
                         <button class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="showCalendarView()" style="float: right;"><i class="ti-calendar"></i> Calendar</button>
                     </div>
@@ -279,6 +279,23 @@ if ($location_operational_hour->RecordCount() > 0) {
                             <div class="card-body">
                                 <a href="add_schedule.php" target="_blank">Create Appointment</a><br><br>
                                 <a href="event.php" target="_blank">Create Event</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="createModal" class="modal">
+                    <!-- Modal content -->
+                    <div class="modal-content" style="width: 40%">
+                        <span class="close" style="margin-left: 96%;">&times;</span>
+                        <div class="card" id="">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('group_class', this);"><i class="fa fa-plus-circle"></i> Group Class</button>
+                                    <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('int_app', this);"><i class="fa fa-plus-circle"></i> INT APP</button>
+                                    <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('appointment', this);"><i class="fa fa-plus-circle"></i> Appointment</button>
+                                    <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('standing', this);"><i class="fa fa-plus-circle"></i> Standing</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -696,6 +713,60 @@ if ($location_operational_hour->RecordCount() > 0) {
         if (event.target == modal) {
             modal.style.display = "none";
         }
+    }
+</script>
+
+<script>
+    // Get the modal
+    var createModal = document.getElementById("createModal");
+
+    // Get the button that opens the modal
+    var btn = document.getElementById("createBtn");
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[1];
+
+    // When the user clicks on the button, open the modal
+    btn.onclick = function() {
+        createModal.style.display = "block";
+    }
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+        createModal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside the modal, close it
+    window.onclick = function(event) {
+        if (event.target == createModal) {
+            createModal.style.display = "none";
+        }
+    }
+</script>
+<script>
+    function createAppointment(type, param) {
+        $('.btn').removeClass('button-selected');
+        $(param).addClass('button-selected');
+        let url = '';
+        if (type === 'group_class') {
+            url = "ajax/add_group_classes.php";
+        }
+        if (type === 'int_app') {
+            url = "ajax/add_special_appointment.php";
+        }
+        if (type === 'appointment') {
+            url = "ajax/add_appointment.php";
+        }
+        if (type === 'standing') {
+            url = "ajax/add_multiple_appointment.php";
+        }
+        $.ajax({
+            url: url,
+            type: "POST",
+            success: function (data) {
+                $('#create_form_div').html(data);
+            }
+        });
     }
 </script>
 </body>
