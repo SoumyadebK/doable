@@ -177,15 +177,15 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['PHONE']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['LOCATION_NAME']?></td>
                                             <td>
-                                                <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>" title="Edit"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
-                                                    <span class="active-box-green"></span>
+                                                    <span class="active-box-green"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php } else{ ?>
-                                                    <span class="active-box-red"></span>
+                                                    <span class="active-box-red"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php } ?>
 
-                                                <a href="enrollment.php?id=<?=$row->fields['PK_USER_MASTER']?>"><img src="../assets/images/edit.png" title="Add" style="padding-top:5px; padding-left: 20px"></a>
+                                                <a href="enrollment.php?customer_id=<?=$row->fields['PK_USER_MASTER']?>" title="Add Enrollment"><i class="fa fa-plus-circle"></i></a>
                                             </td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);">
                                                 <?php if ($row->fields['STATUS']=='A') { ?>

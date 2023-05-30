@@ -11,12 +11,11 @@ if (empty($_GET['id']))
 else
     $title = "Edit Enrollment";
 
-
+$PK_USER_MASTER = '';
 if(!empty($_GET['customer_id'])) {
     $PK_USER_MASTER = $_GET['customer_id'];
 }
 
-$PK_USER_MASTER = '';
 $PK_LOCATION = '';
 $PK_AGREEMENT_TYPE = '';
 $PK_DOCUMENT_LIBRARY = '';
