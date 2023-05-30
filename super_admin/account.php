@@ -32,7 +32,6 @@ if(!empty($_POST)){
     $ACCOUNT_DATA['EMAIL'] = $_POST['ACCOUNT_EMAIL'];
     $ACCOUNT_DATA['WEBSITE'] = $_POST['ACCOUNT_WEBSITE'];
 
-    $USER_DATA['PK_ROLES'] = $_POST['PK_ROLES'];
     $USER_DATA['USER_ID'] = $_POST['USER_ID'];
     $USER_DATA['FIRST_NAME'] = $_POST['FIRST_NAME'];
     $USER_DATA['LAST_NAME'] = $_POST['LAST_NAME'];
@@ -83,6 +82,9 @@ if(!empty($_POST)){
         $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
+        $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+        $USER_ROLE_DATA['PK_ROLES'] = 2;
+        db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
     }else{
         $ACCOUNT_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $ACCOUNT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
@@ -134,7 +136,6 @@ $ACTIVE = '';
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = '';
 
 $PK_USER_EDIT = '';
-$PK_ROLES = '';
 $USER_ID = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
@@ -172,11 +173,10 @@ if(!empty($_GET['id'])) {
     $ACCOUNT_WEBSITE = $account_res->fields['WEBSITE'];
     $ACTIVE = $account_res->fields['ACTIVE'];
 
-    $user_res = $db->Execute("SELECT DOA_USERS.PK_USER AS PK_USER_EDIT, DOA_USERS.PK_ROLES, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_ACCOUNT_MASTER = '$_GET[id]' AND DOA_USERS.CREATED_BY = '$_SESSION[PK_USER]'");
+    $user_res = $db->Execute("SELECT DOA_USERS.PK_USER AS PK_USER_EDIT, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_ACCOUNT_MASTER = '$_GET[id]' AND DOA_USERS.CREATED_BY = '$_SESSION[PK_USER]'");
 
     if($user_res->RecordCount() > 0) {
         $PK_USER_EDIT = $user_res->fields['PK_USER_EDIT'];
-        $PK_ROLES = $user_res->fields['PK_ROLES'];
         $USER_ID = $user_res->fields['USER_ID'];
         $FIRST_NAME = $user_res->fields['FIRST_NAME'];
         $LAST_NAME = $user_res->fields['LAST_NAME'];
@@ -430,9 +430,8 @@ if(!empty($_GET['id'])) {
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <label class="form-label mb-0">Roles</label>
-                                                        <?php $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' AND PK_ROLES = 2"); ?>
-                                                        <input type="hidden" name="PK_ROLES" value="<?php echo $row->fields['PK_ROLES'];?>">
-                                                        <input type="text" class="form-control" value="<?=$row->fields['ROLES']?>" readonly>
+                                                        <input type="hidden" name="PK_ROLES" value="2">
+                                                        <input type="text" class="form-control" value="Account Admin" readonly>
                                                     </div>
                                                     <div class="col-6">
                                                         <div class="form-group">
@@ -672,13 +671,22 @@ if(!empty($_GET['id'])) {
                                             <tbody>
                                             <?php
                                             $i=1;
-                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_ROLES.ROLES, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES = DOA_USERS.PK_ROLES WHERE DOA_USERS.PK_ROLES IN(2,3) AND DOA_USERS.PK_ACCOUNT_MASTER='$_GET[id]'");
-                                            while (!$row->EOF) { ?>
+                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7,8) AND DOA_USERS.PK_ACCOUNT_MASTER='$_GET[id]'");
+                                            while (!$row->EOF) {
+                                                $selected_roles = [];
+                                                if(!empty($row->fields['PK_USER'])) {
+                                                    $PK_USER = $row->fields['PK_USER'];
+                                                    $selected_roles_row = $db->Execute("SELECT DOA_ROLES.ROLES FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER'");
+                                                    while (!$selected_roles_row->EOF) {
+                                                        $selected_roles[] = $selected_roles_row->fields['ROLES'];
+                                                        $selected_roles_row->MoveNext();
+                                                    }
+                                                } ?>
                                                 <tr>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$i;?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['NAME']?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['USER_ID']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['ROLES']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=implode(', ', $selected_roles)?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['EMAIL_ID']?></td>
                                                     <td style="padding: 10px 0px 0px 0px;font-size: 20px;">
                                                         <a href="edit_account_user.php?id=<?=$row->fields['PK_USER']?>&ac_id=<?=$_GET['id']?>" title="Reset Password" style="color: #03a9f3;"><i class="ti-lock"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;

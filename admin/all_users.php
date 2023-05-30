@@ -69,13 +69,22 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                         $i=1;
-                                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_ROLES.ROLES, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USERS.USER_TITLE FROM DOA_USERS LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES = DOA_USERS.PK_ROLES WHERE DOA_USERS.PK_ROLES IN(2,3) AND DOA_USERS.ACTIVE = '$status' AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                        while (!$row->EOF) { ?>
+                                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USERS.USER_TITLE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7,8) AND DOA_USERS.ACTIVE = '$status' AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                        while (!$row->EOF) {
+                                            $selected_roles = [];
+                                            if(!empty($row->fields['PK_USER'])) {
+                                                $PK_USER = $row->fields['PK_USER'];
+                                                $selected_roles_row = $db->Execute("SELECT DOA_ROLES.ROLES FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER'");
+                                                while (!$selected_roles_row->EOF) {
+                                                    $selected_roles[] = $selected_roles_row->fields['ROLES'];
+                                                    $selected_roles_row->MoveNext();
+                                                }
+                                            } ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$i;?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$row->fields['NAME']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$row->fields['USER_ID']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$row->fields['ROLES']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=implode(', ', $selected_roles)?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$row->fields['EMAIL_ID']?></td>
                                             <td>
                                                 <a href="user.php?id=<?=$row->fields['PK_USER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;

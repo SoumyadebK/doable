@@ -15,7 +15,13 @@
 
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
 
-
+    <style>
+        .multiselect-box {
+            margin-bottom: 15px;
+            margin-top: 6px;
+            width: 149%;
+        }
+    </style>
 
     <style>
         body {font-family: Arial, Helvetica, sans-serif;}

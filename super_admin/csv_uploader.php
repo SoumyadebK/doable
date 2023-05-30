@@ -87,8 +87,7 @@ if(!empty($_POST))
                         $getRole = getRole($roleId);
                         $doableRoleId = $db->Execute("SELECT PK_ROLES FROM DOA_ROLES WHERE ROLES='$getRole'");
                         $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $USER_DATA['PK_ROLES'] = $doableRoleId->fields['PK_ROLES'];
-                        $USER_DATA['PK_LOCATION'] = 0; // Need to check for further upload
+                        $USER_DATA['PK_LOCATION'] = 1; // Need to check for further upload
                         $USER_DATA['FIRST_NAME'] = $getData[3];
                         $USER_DATA['LAST_NAME'] = $getData[4];
                         $USER_DATA['USER_API_KEY'] = $getData[2];
@@ -108,6 +107,10 @@ if(!empty($_POST))
                         $PK_USER = $db->insert_ID();
 
                         if ($PK_USER) {
+                            $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+                            $USER_ROLE_DATA['PK_ROLES'] = $doableRoleId->fields['PK_ROLES'];
+                            db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
+
                             $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
                             $USER_PROFILE_DATA['GENDER'] = ($getData[5] == 'M') ? 'Male' : 'Female';
                             $USER_PROFILE_DATA['DOB'] = date("Y-m-d", strtotime($getData[16]));
@@ -131,7 +134,6 @@ if(!empty($_POST))
                     $table_data = $db->Execute("SELECT * FROM DOA_USERS WHERE USER_ID='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
                     if ($table_data->RecordCount() == 0 && $getData[25] != '') {
                         $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $USER_DATA['PK_ROLES'] = 4;
                         $USER_DATA['USER_ID'] = $getData[1];
                         $USER_DATA['FIRST_NAME'] = $getData[2];
                         $USER_DATA['LAST_NAME'] = $getData[3];
@@ -145,13 +147,17 @@ if(!empty($_POST))
                         } elseif (!empty($getData[20]) && $getData[20] != null && $getData[20] != "   -   -    *") {
                             $USER_DATA['PHONE'] = $getData[20];
                         }
-                        $USER_DATA['ACTIVE'] = 1;
+                        $USER_DATA['ACTIVE'] = ($getData[46] == 'A') ? 1 : 0;
                         $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                         $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
                         db_perform('DOA_USERS', $USER_DATA, 'insert');
                         $PK_USER = $db->insert_ID();
 
                         if ($PK_USER) {
+                            $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+                            $USER_ROLE_DATA['PK_ROLES'] = 4;
+                            db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
+
                             $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
                             if ($getData[8] == 0) {
                                 $USER_PROFILE_DATA['GENDER'] = 'Male';
@@ -174,7 +180,7 @@ if(!empty($_POST))
                             $USER_PROFILE_DATA['PK_STATES'] = ($state_data->RecordCount() > 0) ? $state_data->fields['PK_STATES'] : 0;
                             $USER_PROFILE_DATA['ZIP'] = $getData[18];
                             $USER_PROFILE_DATA['NOTES'] = $getData[43];
-                            $USER_PROFILE_DATA['ACTIVE'] = 1;
+                            $USER_PROFILE_DATA['ACTIVE'] = ($getData[46] == 'A') ? 1 : 0;
                             $USER_PROFILE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                             $USER_PROFILE_DATA['CREATED_ON'] = date("Y-m-d H:i");
                             db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
@@ -334,8 +340,10 @@ if(!empty($_POST))
                     $table_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER WHERE OTHER_DATABASE_PK_ID='$getData[0]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
                     if ($table_data->RecordCount() == 0) {
                         $INSERT_DATA['OTHER_DATABASE_PK_ID'] = $getData[0];
+                        $INSERT_DATA['ENROLLMENT_ID'] = $getData[0];
                         $INSERT_DATA['ENROLLMENT_NAME'] = $getData[3];
-                        $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_POST[PK_ACCOUNT_MASTER]'");
+
+                        /*$account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_POST[PK_ACCOUNT_MASTER]'");
                         if ($account_data->RecordCount() > 0){
                             $enrollment_char = $account_data->fields['ENROLLMENT_ID_CHAR'];
                         } else {
@@ -347,7 +355,7 @@ if(!empty($_POST))
                             $INSERT_DATA['ENROLLMENT_ID'] = $enrollment_char.(intval($last_enrollment_id)+1);
                         }else{
                             $INSERT_DATA['ENROLLMENT_ID'] = $enrollment_char.$account_data->fields['ENROLLMENT_ID_NUM'];
-                        }
+                        }*/
 
                         $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                         $customerId = $getData[4];

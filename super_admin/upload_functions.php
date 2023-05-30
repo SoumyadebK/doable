@@ -19,6 +19,8 @@ function getRole($role_id){
     $role = $db1->Execute("SELECT name FROM roles WHERE id = '$role_id'");
     if ($role->fields['name']=="Supervisor" || $role->fields['name']=="Counselor") {
         return "Account User";
+    } elseif ($role->fields['name']=="Instructor") {
+        return "Service Provider";
     } else {
         return $role->fields['name'];
     }

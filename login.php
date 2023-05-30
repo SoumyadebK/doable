@@ -12,9 +12,27 @@ if ($FUNCTION_NAME == 'loginFunction'){
     if($result->RecordCount() > 0) {
         if (($result->fields['ACCOUNT_ACTIVE'] == 1 || $result->fields['ACCOUNT_ACTIVE'] == '' || $result->fields['ACCOUNT_ACTIVE'] == NULL) && $result->fields['ACTIVE'] == 1 && $result->fields['CREATE_LOGIN'] == 1) {
             if (password_verify($PASSWORD, $result->fields['PASSWORD'])) {
+                $selected_roles = [];
+                $PK_USER = $result->fields['PK_USER'];
+                $selected_roles_row = $db->Execute("SELECT PK_ROLES FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
+                while (!$selected_roles_row->EOF) {
+                    $selected_roles[] = $selected_roles_row->fields['PK_ROLES'];
+                    $selected_roles_row->MoveNext();
+                }
+
                 $_SESSION['PK_USER'] = $result->fields['PK_USER'];
                 $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
-                $_SESSION['PK_ROLES'] = $result->fields['PK_ROLES'];
+
+                if (in_array(1, $selected_roles)) {
+                    $_SESSION['PK_ROLES'] = 1;
+                } elseif (in_array(2, $selected_roles)) {
+                    $_SESSION['PK_ROLES'] = 2;
+                } elseif (in_array(4, $selected_roles)) {
+                    $_SESSION['PK_ROLES'] = 4;
+                } elseif (in_array(5, $selected_roles)) {
+                    $_SESSION['PK_ROLES'] = 5;
+                }
+
                 $_SESSION['FIRST_NAME'] = $result->fields['FIRST_NAME'];
                 $_SESSION['LAST_NAME'] = $result->fields['LAST_NAME'];
                 $_SESSION['ACCESS_TOKEN'] = $result->fields['ACCESS_TOKEN'];

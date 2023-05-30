@@ -246,6 +246,14 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
     </div>
     <?php require_once('../includes/footer.php');?>
     <script>
+        let PK_APPOINTMENT_MASTER = 0;
+        const nextYear 	= new Date().getFullYear() + 2;
+        const month 	= new Date().getMonth();
+        var def_date 	= new Date();
+        let start_time_array = [];
+        let end_time_array = [];
+        var myCalender;
+
         function createAppointment(type, param) {
             $('.btn').removeClass('button-selected');
             $(param).addClass('button-selected');
