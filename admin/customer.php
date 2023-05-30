@@ -481,6 +481,19 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
+                                <div class="col-3" style="margin: auto; padding-top: 10px">
+                                    <div>
+                                        <select required name="NAME" id="NAME" onchange="editpage(this);">
+                                            <option value="">Select Customer</option>
+                                            <?php
+                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                            while (!$row->EOF) {?>
+                                                <option value="<?php echo $row->fields['PK_USER'];?>" data-master_id="<?php echo $row->fields['PK_USER_MASTER'];?>" ><?=$row->fields['NAME']?></option>
+                                                <?php $row->MoveNext(); } ?>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div class="col-md-12">
                                     <div class="card">
                                         <div class="card-title">
@@ -929,6 +942,18 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                     </div>
                                                                 </div>
                                                             </div>
+
+                                                            <?php if(!empty($_GET['id'])) { ?>
+                                                                <div class="row <?=($INACTIVE_BY_ADMIN == 1)?'div_inactive':''?>" style="margin-bottom: 15px; margin-top: 15px;">
+                                                                    <div class="col-md-1">
+                                                                        <label class="form-label">Active : </label>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                    </div>
+                                                                </div>
+                                                            <? } ?>
                                                         </div>
                                                         <div class="form-group">
                                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -2578,6 +2603,8 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
 
     </script>
     <script>
+        $('#NAME').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
+
         $('.datepicker-normal').datepicker({
             format: 'mm/dd/yyyy',
         });
@@ -2736,6 +2763,13 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                 }
             });
             window.scrollTo(0,0);
+        }
+
+        function editpage(param){
+            var id = $(param).val();
+            var master_id = $(param).find(':selected').data('master_id');
+            window.location.href = "customer.php?id="+id+"&master_id="+master_id;
+
         }
 
 
