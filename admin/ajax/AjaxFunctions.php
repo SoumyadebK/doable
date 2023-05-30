@@ -476,8 +476,8 @@ function saveProfileData($RESPONSE_DATA){
         }
     }
 
-    $db->Execute("DELETE FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
     if (isset($RESPONSE_DATA['PK_ROLES'])) {
+        $db->Execute("DELETE FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
         $PK_ROLE = $RESPONSE_DATA['PK_ROLES'];
         for($i = 0; $i < count($PK_ROLE); $i++){
             $USER_ROLE_DATA['PK_USER'] = $PK_USER;

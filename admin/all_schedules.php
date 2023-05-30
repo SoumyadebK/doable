@@ -163,6 +163,8 @@ if ($location_operational_hour->RecordCount() > 0) {
     $OPEN_TIME = '00:00:00';
     $CLOSE_TIME = '23:59:00';
 }
+$OPEN_TIME = '09:00:00';
+$CLOSE_TIME = '22:00:00';
 ?>
 
 <!DOCTYPE html>
