@@ -268,7 +268,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         }
 
         if (isset($_POST['DOCUMENT_NAME'])){
-            $res = $db->Execute("DELETE FROM `DOA_USER_DOCUMENT` WHERE `PK_USER` = '$PK_USER'");
+            $res = $db->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER` = '$PK_USER'");
             for($i = 0; $i < count($_POST['DOCUMENT_NAME']); $i++){
                 $USER_DOCUMENT_DATA['PK_USER'] = $PK_USER;
                 $USER_DOCUMENT_DATA['DOCUMENT_NAME'] = $_POST['DOCUMENT_NAME'][$i];
@@ -285,7 +285,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 } else {
                     $USER_DOCUMENT_DATA['FILE_PATH'] = $_POST['FILE_PATH_URL'][$i];
                 }
-                db_perform('DOA_USER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
+                db_perform('DOA_CUSTOMER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
             }
         }
         if (isset($_POST['PK_INTERESTS'])){
@@ -486,7 +486,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                         <select required name="NAME" id="NAME" onchange="editpage(this);">
                                             <option value="">Select Customer</option>
                                             <?php
-                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                             while (!$row->EOF) {?>
                                                 <option value="<?php echo $row->fields['PK_USER'];?>" data-master_id="<?php echo $row->fields['PK_USER_MASTER'];?>" ><?=$row->fields['NAME']?></option>
                                                 <?php $row->MoveNext(); } ?>
@@ -1482,7 +1482,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                             <div class="card-body" id="append_user_document">
                                                                 <?php
                                                                 if(!empty($_GET['id'])) { $user_doc_count = 0;
-                                                                    $row = $db->Execute("SELECT * FROM DOA_USER_DOCUMENT WHERE PK_USER_MASTER = '$PK_USER_MASTER'");
+                                                                    $row = $db->Execute("SELECT * FROM DOA_CUSTOMER_DOCUMENT WHERE PK_USER_MASTER = '$PK_USER_MASTER'");
                                                                     while (!$row->EOF) { ?>
                                                                         <div class="row">
                                                                             <div class="col-5">

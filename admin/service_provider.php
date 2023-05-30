@@ -18,6 +18,8 @@ else
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
 $PK_USER = '';
+$PK_USER_MASTER = '';
+$PK_CUSTOMER_DETAILS = '';
 $USER_ID = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
@@ -199,6 +201,18 @@ if(!empty($_GET['id'])) {
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
+                                <div class="col-3" style="margin: auto; padding-top: 10px">
+                                    <div>
+                                        <select required name="NAME" id="NAME" onchange="editpage(this);">
+                                            <option value="">Select Service Provider</option>
+                                            <?php
+                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                            while (!$row->EOF) {?>
+                                                <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
+                                                <?php $row->MoveNext(); } ?>
+                                        </select>
+                                    </div>
+                                </div>
                                 <div class="col-md-12">
                                     <div class="card">
                                         <div class="card-title">
@@ -419,6 +433,18 @@ if(!empty($_GET['id'])) {
                                                                     </div>
                                                                 </div>
                                                             </div>
+
+                                                            <?php if(!empty($_GET['id'])) { ?>
+                                                                <div class="row <?=($INACTIVE_BY_ADMIN == 1)?'div_inactive':''?>" style="margin-bottom: 15px; margin-top: 15px;">
+                                                                    <div class="col-md-1">
+                                                                        <label class="form-label">Active : </label>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                    </div>
+                                                                </div>
+                                                            <? } ?>
                                                         </div>
                                                         <div class="form-group">
                                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -504,18 +530,6 @@ if(!empty($_GET['id'])) {
                                                                     <b id="password_error" style="color: red;"></b>
                                                                 </div>
                                                             <?php } ?>
-
-                                                            <?php if(!empty($_GET['id'])) { ?>
-                                                                <div class="row <?=($INACTIVE_BY_ADMIN == 1)?'div_inactive':''?>" style="margin-bottom: 15px; margin-top: 15px;">
-                                                                    <div class="col-md-1">
-                                                                        <label class="form-label">Active : </label>
-                                                                    </div>
-                                                                    <div class="col-md-4">
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                                                    </div>
-                                                                </div>
-                                                            <? } ?>
                                                         </div>
                                                         <div class="form-group">
                                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -814,9 +828,74 @@ if(!empty($_GET['id'])) {
                                                 </div>
 
                                                 <div class="tab-pane" id="documents" role="tabpanel">
-                                                    <div class="p-20">
-                                                        <h3>Documents Tab Coming Soon</h3>
-                                                    </div>
+                                                    <form id="document_form">
+                                                        <input type="hidden" name="FUNCTION_NAME" value="saveUserDocumentData">
+                                                        <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                        <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?=$PK_CUSTOMER_DETAILS?>">
+                                                        <input type="hidden" class="TYPE" name="TYPE" value="2">
+                                                        <div>
+                                                            <div class="card-body" id="append_user_document">
+                                                                <?php
+                                                                if(!empty($_GET['id'])) { $user_doc_count = 0;
+                                                                    $row = $db->Execute("SELECT * FROM DOA_USER_DOCUMENT WHERE PK_USER = '$PK_USER'");
+                                                                    while (!$row->EOF) { ?>
+                                                                        <div class="row">
+                                                                            <div class="col-5">
+                                                                                <div class="form-group">
+                                                                                    <label class="form-label">Document Name</label>
+                                                                                    <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name" value="<?=$row->fields['DOCUMENT_NAME']?>">
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-5">
+                                                                                <div class="form-group">
+                                                                                    <label class="form-label">Document File</label>
+                                                                                    <input type="file" name="FILE_PATH[]" class="form-control">
+                                                                                    <a target="_blank" href="<?=$row->fields['FILE_PATH']?>">View</a>
+                                                                                    <input type="hidden" name="FILE_PATH_URL[]" value="<?=$row->fields['FILE_PATH']?>">
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-2">
+                                                                                <div class="form-group" style="margin-top: 30px;">
+                                                                                    <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <?php $row->MoveNext(); $user_doc_count++;} ?>
+                                                                <?php } else { $user_doc_count = 1;?>
+                                                                    <div class="row">
+                                                                        <div class="col-5">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Document Name</label>
+                                                                                <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-5">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Document File</label>
+                                                                                <input type="file" name="FILE_PATH[]" class="form-control">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-2">
+                                                                            <div class="form-group" style="margin-top: 30px;">
+                                                                                <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                <?php } ?>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-11">
+                                                                <div class="form-group">
+                                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreUserDocument();"><i class="ti-plus"></i> New</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                                                            <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                        </div>
+                                                    </form>
                                                 </div>
 
                                                 <div class="tab-pane" id="comments" role="tabpanel">
@@ -1003,6 +1082,8 @@ if(!empty($_GET['id'])) {
             }
         }
 
+        $('#NAME').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
+
 
         $('.datepicker-past').datepicker({
             format: 'mm/dd/yyyy',
@@ -1152,6 +1233,35 @@ if(!empty($_GET['id'])) {
                 $('#next_button_interest').show();
                 $('#next_button').hide();
             }
+        }
+
+        let counter = parseInt(<?=$user_doc_count?>);
+        function addMoreUserDocument() {
+            $('#append_user_document').append(`<div class="row">
+                                                <div class="col-5">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Document Name</label>
+                                                        <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name">
+                                                    </div>
+                                                </div>
+                                                <div class="col-5">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Document File</label>
+                                                        <input type="file" name="FILE_PATH[]" class="form-control">
+                                                    </div>
+                                                </div>
+                                                <div class="col-2">
+                                                    <div class="form-group" style="margin-top: 30px;">
+                                                        <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
+                                                    </div>
+                                                </div>
+                                              </div>`);
+            counter++;
+        }
+
+        function removeUserDocument(param) {
+            $(param).closest('.row').remove();
+            counter--;
         }
 
         function goLoginInfo() {
@@ -1324,6 +1434,27 @@ if(!empty($_GET['id'])) {
                 }
             });
         });
+
+        $(document).on('submit', '#document_form', function (event) {
+            event.preventDefault();
+            let form_data = new FormData($('#document_form')[0]); //$('#document_form').serialize();
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                processData: false,
+                contentType: false,
+                success:function (data) {
+                    window.location.href='all_service_providers.php';
+                }
+            });
+        });
+
+        function editpage(param){
+            var id = $(param).val();
+            window.location.href = "service_provider.php?id="+id;
+
+        }
     </script>
 
 

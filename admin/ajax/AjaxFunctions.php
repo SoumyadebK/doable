@@ -746,10 +746,36 @@ function saveDocumentData($RESPONSE_DATA)
 {
     global $db;
     if (isset($RESPONSE_DATA['DOCUMENT_NAME'])){
-        $db->Execute("DELETE FROM `DOA_USER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
+        $db->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
         for($i = 0; $i < count($RESPONSE_DATA['DOCUMENT_NAME']); $i++){
-            //$USER_DOCUMENT_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
             $USER_DOCUMENT_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
+            $USER_DOCUMENT_DATA['DOCUMENT_NAME'] = $RESPONSE_DATA['DOCUMENT_NAME'][$i];
+            if(!empty($_FILES['FILE_PATH']['name'][$i])){
+                $extn 			= explode(".",$_FILES['FILE_PATH']['name'][$i]);
+                $iindex			= count($extn) - 1;
+                $rand_string 	= time()."-".rand(100000,999999);
+                $file11			= 'user_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
+                $extension   	= strtolower($extn[$iindex]);
+
+                $upload_path    = '../../uploads/user_doc/'.$file11;
+                $image_path    = '../uploads/user_doc/'.$file11;
+                move_uploaded_file($_FILES['FILE_PATH']['tmp_name'][$i], $upload_path);
+                $USER_DOCUMENT_DATA['FILE_PATH'] = $image_path;
+            } else {
+                $USER_DOCUMENT_DATA['FILE_PATH'] = $RESPONSE_DATA['FILE_PATH_URL'][$i];
+            }
+            db_perform('DOA_CUSTOMER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
+        }
+    }
+}
+
+function saveUserDocumentData($RESPONSE_DATA)
+{
+    global $db;
+    if (isset($RESPONSE_DATA['DOCUMENT_NAME'])){
+        $db->Execute("DELETE FROM `DOA_USER_DOCUMENT` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
+        for($i = 0; $i < count($RESPONSE_DATA['DOCUMENT_NAME']); $i++){
+            $USER_DOCUMENT_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
             $USER_DOCUMENT_DATA['DOCUMENT_NAME'] = $RESPONSE_DATA['DOCUMENT_NAME'][$i];
             if(!empty($_FILES['FILE_PATH']['name'][$i])){
                 $extn 			= explode(".",$_FILES['FILE_PATH']['name'][$i]);

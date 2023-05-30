@@ -129,7 +129,7 @@ $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
         }
 
         if (isset($_POST['DOCUMENT_NAME'])){
-            $res = $db->Execute("DELETE FROM `DOA_USER_DOCUMENT` WHERE `PK_USER` = '$PK_USER'");
+            $res = $db->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER` = '$PK_USER'");
             for($i = 0; $i < count($_POST['DOCUMENT_NAME']); $i++){
                 $USER_DOCUMENT_DATA['PK_USER'] = $PK_USER;
                 $USER_DOCUMENT_DATA['DOCUMENT_NAME'] = $_POST['DOCUMENT_NAME'][$i];
@@ -146,7 +146,7 @@ $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
                 } else {
                     $USER_DOCUMENT_DATA['FILE_PATH'] = $_POST['FILE_PATH_URL'][$i];
                 }
-                db_perform('DOA_USER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
+                db_perform('DOA_CUSTOMER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
             }
         }
         if (isset($_POST['PK_INTERESTS'])){
@@ -218,6 +218,7 @@ $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 }*/
 
 $PK_USER = '';
+$PK_CUSTOMER_DETAILS = '';
 $USER_ID = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
@@ -326,6 +327,8 @@ if(!empty($_GET['id'])) {
                                             <ul class="nav nav-tabs" role="tablist">
                                                 <li> <a class="nav-link active" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                                                 <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
+                                                <li> <a class="nav-link" id="rates_tab_link" data-bs-toggle="tab" href="#rates" role="tab" ><span class="hidden-sm-up"><i class="ti-money"></i></span> <span class="hidden-xs-down">Rates</span></a> </li>
+                                                <li> <a class="nav-link" data-bs-toggle="tab" href="#documents" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
                                             </ul>
                                             <!-- Tab panes -->
                                             <div class="tab-content tabcontent-border">
@@ -650,6 +653,220 @@ if(!empty($_GET['id'])) {
                                                                 </div>
                                                             <?php } ?>
                                                         </div>
+
+                                                        <div class="tab-pane card-body" id="rates" role="tabpanel">
+                                                            <h4 class="card-title">Engagement Terms</h4>
+                                                            <form id="engagement_form">
+                                                                <input type="hidden" name="FUNCTION_NAME" value="saveEngagementData">
+                                                                <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                                <input type="hidden" class="TYPE" name="TYPE" value="3">
+                                                                <div class="p-20">
+                                                                    <div class="row">
+                                                                        <?php
+                                                                        $i = 0;
+                                                                        if(!empty($_GET['id'])) {
+                                                                            $row = $db->Execute("SELECT DOA_RATE_TYPE.PK_RATE_TYPE, DOA_RATE_TYPE.RATE_NAME, DOA_RATE_TYPE.PRICE_TYPE, DOA_USER_RATE.RATE, DOA_USER_RATE.ACTIVE FROM DOA_RATE_TYPE LEFT JOIN DOA_USER_RATE ON DOA_RATE_TYPE.PK_RATE_TYPE = DOA_USER_RATE.PK_RATE_TYPE WHERE DOA_RATE_TYPE.ACTIVE = 1 AND DOA_USER_RATE.PK_USER = '$_GET[id]' ORDER BY DOA_RATE_TYPE.PK_RATE_TYPE ASC");
+                                                                            while (!$row->EOF) { ?>
+                                                                                <div class="col-12">
+                                                                                    <div class="row form-group" style="margin-bottom: 10px;">
+                                                                                        <div class="col-2" style="margin-top: 10px;">
+                                                                                            <label class="form-label" for="<?=$row->fields['PK_RATE_TYPE']?>"><?=$row->fields['RATE_NAME']?></label>
+                                                                                        </div>
+                                                                                        <div class="col-1" style="width: 4.5%; margin-top: 7px;">
+                                                                                            <input type="hidden" name="PK_RATE_TYPE[]" value="<?=$row->fields['PK_RATE_TYPE']?>">
+                                                                                            <input type="checkbox" class="form-check-input engagement_terms" name="PK_RATE_TYPE_ACTIVE[<?=$i?>]" id="<?=$row->fields['PK_RATE_TYPE']?>" value="1" <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'':'checked'?>>
+                                                                                        </div>
+                                                                                        <div class="col-4" style="*display: <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'none':''?>;">
+                                                                                            <div class="col-md-6">
+                                                                                                <div class="input-group">
+                                                                                                    <?php if ($row->fields['PRICE_TYPE'] == 1){ ?>
+                                                                                                        <span class="input-group-text"><?=$currency?></span>
+                                                                                                    <?php } else { ?>
+                                                                                                        <span class="input-group-text">%</span>
+                                                                                                    <?php } ?>
+                                                                                                    <input type="text" class="form-control" oninput="setFormat(this)" name="RATE[]" value="<?=$row->fields['RATE']?>" style="text-align: right; width: 25%;">
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <?php
+                                                                                $i++;
+                                                                                $row->MoveNext();
+                                                                            }
+                                                                        }else {
+                                                                            $row = $db->Execute("SELECT DOA_RATE_TYPE.PK_RATE_TYPE, DOA_RATE_TYPE.RATE_NAME, DOA_RATE_TYPE.PRICE_TYPE FROM DOA_RATE_TYPE WHERE DOA_RATE_TYPE.ACTIVE = 1 ORDER BY DOA_RATE_TYPE.PK_RATE_TYPE ASC");
+                                                                            while (!$row->EOF) { ?>
+                                                                                <div class="col-12">
+                                                                                    <div class="row form-group" style="margin-bottom: 10px;">
+                                                                                        <div class="col-2" style="margin-top: 10px;">
+                                                                                            <label class="form-label" for="<?=$row->fields['PK_RATE_TYPE']?>"><?=$row->fields['RATE_NAME']?></label>
+                                                                                        </div>
+                                                                                        <div class="col-1" style="width: 4.5%; margin-top: 7px;">
+                                                                                            <input type="hidden" name="PK_RATE_TYPE[]" value="<?=$row->fields['PK_RATE_TYPE']?>">
+                                                                                            <input type="checkbox" class="form-check-input engagement_terms" oninput="setFormat(this)" name="PK_RATE_TYPE_ACTIVE[<?=$i?>]" id="<?=$row->fields['PK_RATE_TYPE']?>" value="1">
+                                                                                        </div>
+                                                                                        <div class="col-4" style="display: <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'none':''?>;">
+                                                                                            <div class="col-md-6">
+                                                                                                <div class="input-group">
+                                                                                                    <?php if ($row->fields['PRICE_TYPE'] == 1){ ?>
+                                                                                                        <span class="input-group-text"><?=$currency?></span>
+                                                                                                    <?php } else { ?>
+                                                                                                        <span class="input-group-text">%</span>
+                                                                                                    <?php } ?>
+                                                                                                    <input type="text" class="form-control" name="RATE[]" style="text-align: right; width: 25%;">
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <?php
+                                                                                $i++;
+                                                                                $row->MoveNext();
+                                                                            }
+                                                                        } ?>
+                                                                    </div>
+                                                                </div>
+
+                                                                <h4 class="card-title">Service Based Terms</h4>
+                                                                <div class="p-20">
+                                                                    <div class="row">
+                                                                        <div class="col-md-3">
+                                                                            <label class="form-label">Service</label>
+                                                                        </div>
+                                                                        <div class="col-md-3">
+                                                                            <label class="form-label">Amount</label>
+                                                                        </div>
+                                                                        <div class="col-md-3">
+                                                                            <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" onclick="addMoreCodeCommission()"><i class="ti-plus"></i> New</a>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <?php
+                                                                    if(!empty($_GET['id'])) {
+                                                                        $code_commission_data = $db->Execute("SELECT * FROM DOA_SERVICE_COMMISSION WHERE PK_USER = ".$_GET['id']);
+                                                                        while (!$code_commission_data->EOF) { ?>
+                                                                            <div class="row m-t-10">
+                                                                                <div class="col-md-3">
+                                                                                    <select class="form-control" name="PK_SERVICE_MASTER[]">
+                                                                                        <option value="">Select Service</option>
+                                                                                        <?php
+                                                                                        $row = $db->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                                                        while (!$row->EOF) { ?>
+                                                                                            <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($code_commission_data->fields['PK_SERVICE_MASTER']==$row->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
+                                                                                            <?php $row->MoveNext(); } ?>
+                                                                                    </select>
+                                                                                </div>
+                                                                                <div class="col-md-3">
+                                                                                    <input type="text" class="form-control" name="COMMISSION_AMOUNT[]" value="<?=$code_commission_data->fields['COMMISSION_AMOUNT']?>">
+                                                                                </div>
+                                                                                <div class="col-2 m-t-5">
+                                                                                    <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                                </div>
+                                                                            </div>
+                                                                            <?php $code_commission_data->MoveNext(); } ?>
+                                                                    <?php } else { ?>
+                                                                        <div class="row m-t-10">
+                                                                            <div class="col-md-3">
+                                                                                <select class="form-control" name="PK_SERVICE_MASTER[]">
+                                                                                    <option value="">Select Service</option>
+                                                                                    <?php
+                                                                                    $row = $db->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                                                    while (!$row->EOF) { ?>
+                                                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>"><?=$row->fields['SERVICE_NAME']?></option>
+                                                                                        <?php $row->MoveNext(); } ?>
+                                                                                </select>
+                                                                            </div>
+                                                                            <div class="col-md-3">
+                                                                                <input type="text" class="form-control" name="COMMISSION_AMOUNT[]">
+                                                                            </div>
+                                                                            <div class="col-2 m-t-5">
+                                                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php } ?>
+
+                                                                    <div id="add_more_code_commission"></div>
+                                                                </div>
+
+
+                                                                <div class="form-group">
+                                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                                                                    <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+
+                                                        <div class="tab-pane" id="documents" role="tabpanel">
+                                                            <form id="document_form">
+                                                                <input type="hidden" name="FUNCTION_NAME" value="saveUserDocumentData">
+                                                                <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                                <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?=$PK_CUSTOMER_DETAILS?>">
+                                                                <input type="hidden" class="TYPE" name="TYPE" value="2">
+                                                                <div>
+                                                                    <div class="card-body" id="append_user_document">
+                                                                        <?php
+                                                                        if(!empty($_GET['id'])) { $user_doc_count = 0;
+                                                                            $row = $db->Execute("SELECT * FROM DOA_USER_DOCUMENT WHERE PK_USER = '$PK_USER'");
+                                                                            while (!$row->EOF) { ?>
+                                                                                <div class="row">
+                                                                                    <div class="col-5">
+                                                                                        <div class="form-group">
+                                                                                            <label class="form-label">Document Name</label>
+                                                                                            <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name" value="<?=$row->fields['DOCUMENT_NAME']?>">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="col-5">
+                                                                                        <div class="form-group">
+                                                                                            <label class="form-label">Document File</label>
+                                                                                            <input type="file" name="FILE_PATH[]" class="form-control">
+                                                                                            <a target="_blank" href="<?=$row->fields['FILE_PATH']?>">View</a>
+                                                                                            <input type="hidden" name="FILE_PATH_URL[]" value="<?=$row->fields['FILE_PATH']?>">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="col-2">
+                                                                                        <div class="form-group" style="margin-top: 30px;">
+                                                                                            <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <?php $row->MoveNext(); $user_doc_count++;} ?>
+                                                                        <?php } else { $user_doc_count = 1;?>
+                                                                            <div class="row">
+                                                                                <div class="col-5">
+                                                                                    <div class="form-group">
+                                                                                        <label class="form-label">Document Name</label>
+                                                                                        <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name">
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="col-5">
+                                                                                    <div class="form-group">
+                                                                                        <label class="form-label">Document File</label>
+                                                                                        <input type="file" name="FILE_PATH[]" class="form-control">
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="col-2">
+                                                                                    <div class="form-group" style="margin-top: 30px;">
+                                                                                        <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        <?php } ?>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row">
+                                                                    <div class="col-11">
+                                                                        <div class="form-group">
+                                                                            <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreUserDocument();"><i class="ti-plus"></i> New</a>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                                                                    <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
                                                         <div class="form-group">
                                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
                                                             <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="$('#change_password_div').slideToggle();">Change Password</a>
@@ -768,6 +985,35 @@ if(!empty($_GET['id'])) {
             }
         }
 
+        let counter = parseInt(<?=$user_doc_count?>);
+        function addMoreUserDocument() {
+            $('#append_user_document').append(`<div class="row">
+                                                <div class="col-5">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Document Name</label>
+                                                        <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name">
+                                                    </div>
+                                                </div>
+                                                <div class="col-5">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Document File</label>
+                                                        <input type="file" name="FILE_PATH[]" class="form-control">
+                                                    </div>
+                                                </div>
+                                                <div class="col-2">
+                                                    <div class="form-group" style="margin-top: 30px;">
+                                                        <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
+                                                    </div>
+                                                </div>
+                                              </div>`);
+            counter++;
+        }
+
+        function removeUserDocument(param) {
+            $(param).closest('.row').remove();
+            counter--;
+        }
+
         $(document).on('submit', '#profile_form', function (event) {
             event.preventDefault();
             let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
@@ -784,6 +1030,8 @@ if(!empty($_GET['id'])) {
                     if (PK_USER == 0) {
                         if ($('#CREATE_LOGIN').is(':checked')) {
                             $('#login_info_tab_link')[0].click();
+                        }else {
+                            $('#rates_tab_link')[0].click();
                         }
                     }else{
                         window.location.href='all_users.php';
@@ -835,6 +1083,38 @@ if(!empty($_GET['id'])) {
             }else{
                 $('#password_error').text('Password and Confirm Password not matched');
             }
+        });
+
+        $(document).on('submit', '#engagement_form', function (event) {
+            event.preventDefault();
+            let form_data = $('#engagement_form').serialize();
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                success:function (data) {
+                    if (PK_USER == 0) {
+                        $('#service_tab_link')[0].click();
+                    }else{
+                        window.location.href='all_users.php';
+                    }
+                }
+            });
+        });
+
+        $(document).on('submit', '#document_form', function (event) {
+            event.preventDefault();
+            let form_data = new FormData($('#document_form')[0]); //$('#document_form').serialize();
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                processData: false,
+                contentType: false,
+                success:function (data) {
+                    window.location.href='all_users.php';
+                }
+            });
         });
     </script>
 </body>
