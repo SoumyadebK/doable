@@ -42,7 +42,16 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
+<style>
+    .menu-list{
+        list-style-type: none;
+        margin-left: -30px;
+    }
 
+    .menu-list li{
+        margin: 10px;
+    }
+</style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
@@ -59,86 +68,30 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
-                        <!--<button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='add_schedule.php'" ><i class="fa fa-plus-circle"></i> Create New</button>-->
                     </div>
                 </div>
             </div>
 
             <div class="row">
-                <div id="appointment_list_half" class="col-12">
+                <div class="col-12">
                     <div class="card">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-6">
-                                    <h5 class="card-title"><?=$title?></h5>
+                        <div class="row" style="padding: 15px 35px 35px 35px;">
+                            <div class="col-md-3 col-sm-3 mt-3">
+                                <!--<h4 class="card-title">General</h4>-->
+                                <div>
+                                    <ul class="menu-list">
+                                        <li><a href="all_gift_certificates.php">Gift Certificate</a></li>
+                                    </ul>
                                 </div>
                             </div>
-                            <div class="p-20">
-                                <?php
-                                $i=$page_first_result+1;
-                                $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER IN (".$PK_USER_MASTERS.")".$search."ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
-                                while (!$row->EOF) {
-                                    $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-                                    $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-                                    $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
-                                    ?>
-                                    <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
-                                        <div class="col-3" style="width: 20%;"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
-                                        <div class="col-3" style="width: 20%;"><?=$row->fields['LOCATION_NAME']?></div>
-                                        <div class="col-2" style="width: 18%;">Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-                                        <div class="col-2" style="width: 18%;">Used : <?=($enrollment_balance->RecordCount() > 0)?$enrollment_balance->fields['TOTAL_BALANCE_USED']:'0.00';?></div>
-                                        <div class="col-2" style="width: 18%;">Balance : <?=($enrollment_balance->RecordCount() > 0)?($total_bill_and_paid->fields['TOTAL_PAID']-$enrollment_balance->fields['TOTAL_BALANCE_USED']):'0.00';?></div>
-                                    </div>
-                                    <table id="myTable" class="table table-striped border" style="display: none">
-                                        <thead>
-                                        <tr>
-                                            <th>Service</th>
-                                            <th>Service Code</th>
-                                            <th>Date</th>
-                                            <th>Time</th>
-                                            <th>Session Cost</th>
-                                            <th>Balance</th>
-                                        </tr>
-                                        </thead>
-
-                                        <tbody>
-                                        <?php
-                                        $appointment_data = $db->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.PRICE AS SESSION_COST, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS  WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2");
-                                        $total_session_cost = 0;
-                                        while (!$appointment_data->EOF) {
-                                            $total_session_cost += $appointment_data->fields['SESSION_COST']?>
-                                            <tr>
-                                                <td><?=$appointment_data->fields['SERVICE_NAME']?></td>
-                                                <td><?=$appointment_data->fields['SERVICE_CODE']?></td>
-                                                <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
-                                                <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                                                <td><?=$appointment_data->fields['SESSION_COST']?></td>
-                                                <td><?=$total_paid-$total_session_cost?></td>
-                                            </tr>
-                                            <?php $appointment_data->MoveNext();
-                                        } ?>
-                                        </tbody>
-                                    </table>
-                                    <?php $row->MoveNext();
-                                    $i++; } ?>
-
-                                <div class="center">
-                                    <div class="pagination outer">
-                                        <ul>
-                                            <?php if ($page > 1) { ?>
-                                                <li><a href="accounts.php?page=<?=($page-1)?>">&laquo;</a></li>
-                                            <?php }
-                                            for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
-                                                echo '<li><a class="'.(($page_count==$page)?"active":"").'" href="accounts.php?page='.$page_count.(($search_text=='')?'':'&search_text='.$search_text).'">' . $page_count . ' </a></li>';
-                                            }
-                                            if ($page < $number_of_page) { ?>
-                                                <li><a href="accounts.php?page=<?=($page+1)?>">&raquo;</a></li>
-                                            <?php } ?>
-                                        </ul>
-                                    </div>
+                            <!--<div class="col-md-3 col-sm-3 mt-3">
+                                <h4 class="card-title">Communications</h4>
+                                <div>
+                                    <ul class="menu-list">
+                                        <li><a href="all_email_accounts.php">Email Accounts</a></li>
+                                    </ul>
                                 </div>
-
-                            </div>
+                            </div>-->
                         </div>
                     </div>
                 </div>
@@ -146,8 +99,6 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
         </div>
     </div>
 </div>
-
 <?php require_once('../includes/footer.php');?>
-
 </body>
 </html>

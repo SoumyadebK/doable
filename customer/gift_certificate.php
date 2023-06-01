@@ -1,43 +1,15 @@
 <?php
 require_once('../global/config.php');
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ) {
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4 ){
     header("location:../login.php");
     exit;
 }
 
-if (empty($_GET['id'])) {
+if (empty($_GET['id']))
     $title = "Add Gift Certificate";
-} else {
+else
     $title = "Edit Gift Certificate";
-}
-
-if (!empty($_POST)) {
-    $GIFT_CERTIFICATE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    if (empty($_GET['id'])) {
-        $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_CODE'] = $_POST['GIFT_CERTIFICATE_CODE'];
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_NAME'] = $_POST['GIFT_CERTIFICATE_NAME'];
-        $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
-        $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
-        $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
-        db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
-        header("location:all_gift_certificates.php");
-    } else {
-        $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_CODE'] = $_POST['GIFT_CERTIFICATE_CODE'];
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_NAME'] = $_POST['GIFT_CERTIFICATE_NAME'];
-        $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
-        $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
-        $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
-        header("location:all_gift_certificates.php");
-    }
-}
 
 if (empty($_GET['id'])) {
     $PK_USER_MASTER = '';
@@ -58,6 +30,35 @@ if (empty($_GET['id'])) {
     $DATE_OF_PURCHASE = $res->fields['DATE_OF_PURCHASE'];
     $AMOUNT = $res->fields['AMOUNT'];
     $ACTIVE = $res->fields['ACTIVE'];
+}
+
+if (!empty($_POST)) {
+    $GIFT_CERTIFICATE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    $row = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']);
+    $PK_USER_MASTER = $row->fields['PK_USER_MASTER'];
+    if (empty($_GET['id'])) {
+        $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_CODE'] = $_POST['GIFT_CERTIFICATE_CODE'];
+        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_NAME'] = $_POST['GIFT_CERTIFICATE_NAME'];
+        $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
+        $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
+        $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
+        db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
+        header("location:all_gift_certificates.php");
+    } else {
+        $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_CODE'] = $_POST['GIFT_CERTIFICATE_CODE'];
+        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_NAME'] = $_POST['GIFT_CERTIFICATE_NAME'];
+        $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
+        $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
+        $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+        $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
+        db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
+        header("location:all_gift_certificates.php");
+    }
 }
 
 ?>
@@ -319,36 +320,38 @@ if (empty($_GET['id'])) {
                                             <div class="row">
                                                 <div class="col-3">
                                                     <div class="form-group">
-                                                        <label class="form-label" for="PK_USER_MASTER">Customer</label>
-                                                        <select id="PK_USER_MASTER" name="PK_USER_MASTER" class="form-control">
-                                                            <option disabled selected>Select Customer</option>
+                                                        <label class="form-label" for="GIFT_CERTIFICATE_CODE">Gift Certificate Code</label>
+                                                        <select id="GIFT_CERTIFICATE_CODE" name="GIFT_CERTIFICATE_CODE" class="form-control">
+                                                            <option disabled selected>Select Gift Certificate Code</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                            $row = $db->Execute("SELECT DOA_GIFT_CERTIFICATE_MASTER.GIFT_CERTIFICATE_CODE FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_GIFT_CERTIFICATE_MASTER ON DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']);
                                                             while (!$row->EOF) {
                                                                 $selected = '';
-                                                                if($PK_USER_MASTER!='' && $PK_USER_MASTER == $row->fields['PK_USER_MASTER']){
+                                                                if($GIFT_CERTIFICATE_CODE!='' && $GIFT_CERTIFICATE_CODE == $row->fields['GIFT_CERTIFICATE_CODE']){
                                                                     $selected = 'selected';
                                                                 }
                                                                 ?>
-                                                                <option value="<?php echo $row->fields['PK_USER_MASTER']; ?>" <?php echo $selected ;?>><?php echo $row->fields['NAME']; ?></option>
+                                                                <option value="<?php echo $row->fields['GIFT_CERTIFICATE_CODE']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE_CODE']; ?></option>
                                                                 <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
                                                 </div>
                                                 <div class="col-3">
                                                     <div class="form-group">
-                                                        <label class="form-label">Gift Certificate Code<span class="text-danger">*</span></label>
-                                                        <div>
-                                                            <input type="text" id="GIFT_CERTIFICATE_CODE" name="GIFT_CERTIFICATE_CODE" class="form-control" placeholder="Enter Gift Certificate Code" required value="<?php echo $GIFT_CERTIFICATE_CODE?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Gift Certificate Name</label>
-                                                        <div>
-                                                            <input type="text" id="GIFT_CERTIFICATE_NAME" name="GIFT_CERTIFICATE_NAME" class="form-control" placeholder="Enter Gift Certificate Name" required value="<?php echo $GIFT_CERTIFICATE_NAME?>">
-                                                        </div>
+                                                        <label class="form-label" for="GIFT_CERTIFICATE_NAME">Gift Certificate Name</label>
+                                                        <select id="GIFT_CERTIFICATE_NAME" name="GIFT_CERTIFICATE_NAME" class="form-control">
+                                                            <option disabled selected>Select Gift Certificate Name</option>
+                                                            <?php
+                                                            $row = $db->Execute("SELECT DOA_GIFT_CERTIFICATE_MASTER.GIFT_CERTIFICATE_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_GIFT_CERTIFICATE_MASTER ON DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']);
+                                                            while (!$row->EOF) {
+                                                                $selected = '';
+                                                                if($GIFT_CERTIFICATE_NAME!='' && $GIFT_CERTIFICATE_NAME == $row->fields['GIFT_CERTIFICATE_NAME']){
+                                                                    $selected = 'selected';
+                                                                }
+                                                                ?>
+                                                                <option value="<?php echo $row->fields['GIFT_CERTIFICATE_NAME']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE_NAME']; ?></option>
+                                                                <?php $row->MoveNext(); } ?>
+                                                        </select>
                                                     </div>
                                                 </div>
                                                 <div class="col-3">

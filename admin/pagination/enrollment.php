@@ -68,7 +68,7 @@ $page_first_result = ($page-1) * $results_per_page;
             </td>
             <td>
                 <?php if ($row->fields['STATUS']=='A') { ?>
-                    <a href="javascript:;" onclick="cancelAppointment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>, <?=$total_credit_balance?>)">Cancel Enrollment</a>
+                    <a href="javascript:;" onclick="cancelAppointment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>, <?=$total_credit_balance?>)"><img src="../assets/images/cancel.png" title="Cancel" style="block-size: 30px; padding-top:5px"></a>
                 <?php } else { ?>
                     <a href="all_enrollments.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>&status=active">Active Enrollment</a>
                 <?php } ?>

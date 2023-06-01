@@ -1783,7 +1783,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
 
                                                 <div class="tab-pane" id="comments" role="tabpanel">
                                                     <div class="p-20">
-                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createUserComment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
+                                                            <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createUserComment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
                                                         <table id="myTable" class="table table-striped border">
                                                             <thead>
                                                             <tr>
