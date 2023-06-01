@@ -239,7 +239,7 @@ $CLOSE_TIME = '22:00:00';
                                             <input type="date" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <input type="date" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <input class="form-control" type="text" id="search_text" name="search_text" placeholder="Search..">
-                                            <a class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" onclick="showListView(1)"><i class="fa fa-search"></i></a>
+                                            <a class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onclick="showListView(1)"><i class="fa fa-search"></i></a>
                                         </div>
                                     </form>
                                 </div>
