@@ -111,6 +111,10 @@ if(!empty($_POST))
                             $USER_ROLE_DATA['PK_ROLES'] = $doableRoleId->fields['PK_ROLES'];
                             db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
 
+                            $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
+                            $USER_LOCATION_DATA['PK_LOCATION'] = 1;
+                            db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+
                             $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
                             $USER_PROFILE_DATA['GENDER'] = ($getData[5] == 'M') ? 'Male' : 'Female';
                             $USER_PROFILE_DATA['DOB'] = date("Y-m-d", strtotime($getData[16]));
@@ -158,6 +162,10 @@ if(!empty($_POST))
                             $USER_ROLE_DATA['PK_ROLES'] = 4;
                             db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
 
+                            $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
+                            $USER_LOCATION_DATA['PK_LOCATION'] = 1;
+                            db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+
                             $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
                             if ($getData[8] == 0) {
                                 $USER_PROFILE_DATA['GENDER'] = 'Male';
@@ -187,6 +195,7 @@ if(!empty($_POST))
 
                             $USER_MASTER_DATA['PK_USER'] = $PK_USER;
                             $USER_MASTER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                            $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = 1;
                             db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
                             $PK_USER_MASTER = $db->insert_ID();
 

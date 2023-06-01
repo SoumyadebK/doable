@@ -66,49 +66,59 @@ $page_first_result = ($page-1) * $results_per_page;
                 </div>
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='event.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
+                        <button type="button" style="margin-right: 78%;" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='event.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
                     </div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-3">
-                    <div class="form-group">
-                        <label class="form-label">Event Type</label>
-                        <select class="form-control" name="PK_EVENT_TYPE" id="PK_EVENT_TYPE">
-                            <option value="">Select Event Type</option>
-                            <?php
-                            $row = $db->Execute("SELECT * FROM `DOA_EVENT_TYPE` WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." AND `ACTIVE` = 1");
-                            while (!$row->EOF) {?>
-                                <option value="<?php echo $row->fields['EVENT_TYPE'];?>"><?=$row->fields['EVENT_TYPE']?></option>
-                            <?php $row->MoveNext(); } ?>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="form-group">
-                        <label class="form-label">Event Status</label>
-                        <select class="form-control" name="PK_EVENT_STATUS" id="PK_EVENT_STATUS">
-                            <option value="">Select Event Status</option>
-                            <option value="1">Active</option>
-                            <option value="0">Inactive</option>
-                        </select>
-                    </div>
-                </div>
+            <div class="card">
+                <div class="card-body" style="height: 100px">
+                    <div class="row">
+                        <div class="col-2">
+                            <div class="form-group">
+                                <label class="form-label">Event Type</label>
+                                <select class="form-control" name="PK_EVENT_TYPE" id="PK_EVENT_TYPE">
+                                    <option value="">Select Event Type</option>
+                                    <?php
+                                    $row = $db->Execute("SELECT * FROM `DOA_EVENT_TYPE` WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." AND `ACTIVE` = 1");
+                                    while (!$row->EOF) {?>
+                                        <option value="<?php echo $row->fields['EVENT_TYPE'];?>"><?=$row->fields['EVENT_TYPE']?></option>
+                                        <?php $row->MoveNext(); } ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-group">
+                                <label class="form-label">Event Status</label>
+                                <select class="form-control" name="PK_EVENT_STATUS" id="PK_EVENT_STATUS">
+                                    <option value="">Select Event Status</option>
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
 
-                <div class="col-3">
-                    <div class="form-group">
-                        <label class="form-label">From Date</label>
-                        <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" value="">
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="form-group">
-                        <label class="form-label">To Date</label>
-                        <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" required value="">
+                        <div class="col-2">
+                            <div class="form-group">
+                                <label class="form-label">From Date</label>
+                                <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" value="">
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-group">
+                                <label class="form-label">To Date</label>
+                                <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" required value="">
+                            </div>
+                        </div>
+                        <div class="col-4" >
+                            <form class="form-material form-horizontal" action="" method="get">
+                                <label class="form-label">Search</label>
+                                <div class="input-group" style="margin-top: 6px">
+                                    <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
+                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -117,21 +127,6 @@ $page_first_result = ($page-1) * $results_per_page;
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="col-12 row m-10">
-                                <div class="col-8">
-                                    <div>
-                                        <h5 class="card-title"><?=$title?></h5>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <form class="form-material form-horizontal" action="" method="get">
-                                        <div class="input-group">
-                                            <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
-                                            <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
                             <div class="table-responsive">
                                 <table class="table table-striped border" data-page-length='50'>
                                     <thead>

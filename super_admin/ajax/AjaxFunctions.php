@@ -43,7 +43,7 @@ function saveAccountInfoData($RESPONSE_DATA){
 function saveProfileInfoData($RESPONSE_DATA)
 {
     global $db;
-    $USER_DATA['PK_ROLES'] = $RESPONSE_DATA['PK_ROLES'];
+    //$USER_DATA['PK_ROLES'] = $RESPONSE_DATA['PK_ROLES'];
     $USER_DATA['USER_ID'] = $RESPONSE_DATA['USER_ID'];
     $USER_DATA['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
     $USER_DATA['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
@@ -76,6 +76,9 @@ function saveProfileInfoData($RESPONSE_DATA)
         $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
+        $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+        $USER_ROLE_DATA['PK_ROLES'] = 2;
+        db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
     }else{
         if (empty($RESPONSE_DATA['PK_USER_EDIT'])){
             $USER_DATA['PK_ACCOUNT_MASTER'] = $_GET[id];
