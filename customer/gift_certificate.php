@@ -388,7 +388,7 @@ if (!empty($_POST)) {
                                             <? } ?>
 
                                             <div class="form-group">
-                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Save'; } else { echo 'Update'; }?></button>
+                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Purchase'; } else { echo 'Update'; }?></button>
                                                 <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_gift_certificates.php'" >Cancel</button>
                                             </div>
                                         </div>
