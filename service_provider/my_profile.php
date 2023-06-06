@@ -70,14 +70,13 @@ if(!empty($_POST)){
     }
 }
 
-$res = $db->Execute("SELECT DOA_USERS.PK_ROLES, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES, DOA_ROLES.ROLES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES = DOA_USERS.PK_ROLES WHERE DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
+$res = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
 
 if($res->RecordCount() == 0){
     header("location:../login.php");
     exit;
 }
 
-$ROLES = $res->fields['ROLES'];
 $USER_ID = $res->fields['USER_ID'];
 $FIRST_NAME = $res->fields['FIRST_NAME'];
 $LAST_NAME = $res->fields['LAST_NAME'];
@@ -145,7 +144,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                         <label class="col-md-12" for="example-text">Role : </label>
                                     </div>
                                     <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $ROLES?></label>
+                                        <label style="color: #ff9800; ">Service Provider</label>
                                     </div>
 
                                     <div class="col-1">

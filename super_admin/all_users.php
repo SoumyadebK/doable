@@ -53,12 +53,12 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                             <tbody>
                                             <?php
                                             $i=1;
-                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_ROLES.ROLES, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES = DOA_USERS.PK_ROLES WHERE DOA_USERS.PK_ROLES='$_SESSION[PK_ROLES]'");
+                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES='$_SESSION[PK_ROLES]'");
                                             while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$i;?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$row->fields['NAME']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$row->fields['ROLES']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>);">Super Admin</td>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$row->fields['EMAIL_ID']?></td>
                                                     <td>
                                                         <a href="add_user.php?id=<?=$row->fields['PK_USER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;

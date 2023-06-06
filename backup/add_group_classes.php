@@ -119,7 +119,7 @@ if (isset($_POST['FUNCTION_NAME'])){
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="all_schedules.php">All Appointment</a></li>
+                            <li class="breadcrumb-item"><a href="../admin/all_schedules.php">All Appointment</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
 

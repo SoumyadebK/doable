@@ -63,7 +63,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                             <td onclick="editpage(<?=$row->fields['PK_SPECIAL_APPOINTMENT']?>);"><?=date('h:i A', strtotime($row->fields['END_TIME']))?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_SPECIAL_APPOINTMENT']?>);"><span class="status-box" style="background-color: <?=$row->fields['COLOR_CODE']?>"><?=$row->fields['APPOINTMENT_STATUS']?></span></td>
                                             <td>
-                                                <a href="add_special_appointment.php?id=<?=$row->fields['PK_SPECIAL_APPOINTMENT']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="../backup/add_special_appointment.php?id=<?=$row->fields['PK_SPECIAL_APPOINTMENT']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
                                         <?php $row->MoveNext();
