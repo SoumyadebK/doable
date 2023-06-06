@@ -60,6 +60,12 @@ function getServiceMaster($service_id) {
     return $service_name_taker->fields['service_name'];
 }
 
+function getEnrollmentType($enrollmentTypeId) {
+    global $db1;
+    $enrollmentTypeData = $db1->Execute("SELECT enrollment_type FROM enrollment_type WHERE enrollment_type_id = '$enrollmentTypeId'");
+    return $enrollmentTypeData->fields['enrollment_type'];
+}
+
 function getEnrollmentDetails($enrollment_id) {
     global $db1;
     $enrollment_details = $db1->Execute("SELECT total_cost, discount, fincharge FROM enrollment WHERE enrollment_id = '$enrollment_id'");
