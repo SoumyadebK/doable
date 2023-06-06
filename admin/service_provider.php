@@ -201,6 +201,7 @@ if(!empty($_GET['id'])) {
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
+                                <?php if(!empty($_GET['id'])) { ?>
                                 <div class="col-3" style="margin: auto; padding-top: 10px">
                                     <div>
                                         <select required name="NAME" id="NAME" onchange="editpage(this);">
@@ -213,6 +214,7 @@ if(!empty($_GET['id'])) {
                                         </select>
                                     </div>
                                 </div>
+                                <?php } ?>
                                 <div class="col-md-12">
                                     <div class="card">
                                         <div class="card-title">
