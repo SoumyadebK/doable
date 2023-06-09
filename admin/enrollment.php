@@ -16,6 +16,9 @@ if(!empty($_GET['customer_id'])) {
     $PK_USER_MASTER = $_GET['customer_id'];
 }
 
+$package = $db->Execute("SELECT IS_PACKAGE FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+$IS_PACKAGE = $package->fields['IS_PACKAGE'];
+
 $PK_LOCATION = '';
 $PK_AGREEMENT_TYPE = '';
 $PK_DOCUMENT_LIBRARY = '';
@@ -805,7 +808,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                                     <?php
                                                                     $row = $db->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME, PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
                                                                     while (!$row->EOF) { ?>
-                                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>" data-service_code="<?=$enrollment_service_data->fields['PK_SERVICE_CODE']?>" <?=($row->fields['PK_SERVICE_MASTER'] == $enrollment_service_data->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
+                                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>" data-service_code="<?=$enrollment_service_data->fields['PK_SERVICE_CODE']?>" data-is_package="<?=$row->fields['IS_PACKAGE']?>" <?=($row->fields['PK_SERVICE_MASTER'] == $enrollment_service_data->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
                                                                     <?php $row->MoveNext(); } ?>
                                                                 </select>
                                                             </div>
@@ -865,46 +868,46 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                                 <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
                                                                     <option>Select</option>
                                                                     <?php
-                                                                    $row = $db->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME, PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+                                                                    $row = $db->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME, PK_SERVICE_CLASS, IS_PACKAGE FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
                                                                     while (!$row->EOF) { ?>
-                                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>"><?=$row->fields['SERVICE_NAME']?></option>
+                                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>" data-is_package="<?=$row->fields['IS_PACKAGE']?>"><?=$row->fields['SERVICE_NAME']?></option>
                                                                     <?php $row->MoveNext(); } ?>
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2">
+                                                        <div class="col-2 service_div" style="display: none;">
                                                             <div class="form-group">
                                                                 <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
                                                                     <option value="">Select</option>
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2">
+                                                        <div class="col-2 service_div" style="display: none;">
                                                             <div class="form-group">
                                                                 <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" >
                                                             </div>
                                                         </div>
-                                                        <div class="col-4 frequency_div" style="display: none;">
+                                                        <div class="col-4 frequency_div " style="display: none;">
                                                             <div class="form-group">
                                                                 <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" readonly>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2 session_div">
+                                                        <div class="col-2 session_div service_div" style="display: none;">
                                                             <div class="form-group">
                                                                 <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)">
                                                             </div>
                                                         </div>
-                                                        <div class="col-2 session_div">
+                                                        <div class="col-2 session_div service_div" style="display: none;">
                                                             <div class="form-group">
                                                                 <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);">
                                                             </div>
                                                         </div>
-                                                        <div class="col-1" style="width: 11%;">
+                                                        <div class="col-1 service_div" style="width: 11%; display: none">
                                                             <div class="form-group">
                                                                 <input type="text" class="form-control TOTAL" name="TOTAL[]">
                                                             </div>
                                                         </div>
-                                                        <div class="col-1" style="width: 5%;">
+                                                        <div class="col-1 service_div" style="width: 5%; display:none">
                                                             <div class="form-group">
                                                                 <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                             </div>
@@ -913,13 +916,18 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                 <?php } ?>
                                             </div>
 
-                                            <div class="row">
+                                            <div id="package_services" style="margin-top: -30px">
+
+                                            </div>
+
+                                            <div class="row" id="add_more">
                                                 <div class="col-12">
                                                     <div class="form-group" style="float: right;">
                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServices();">Add More</a>
                                                     </div>
                                                 </div>
                                             </div>
+
 
                                             <div class="row">
                                                 <div class="col-4">
@@ -1670,6 +1678,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     function selectThisService(param) {
         let PK_SERVICE_MASTER = $(param).val();
         PK_SERVICE_CLASS = $(param).find(':selected').data('service_class');
+        let IS_PACKAGE = $(param).find(':selected').data('is_package');
         let SERVICE_CODE = ($(param).find(':selected').data('service_code'))?$(param).find(':selected').data('service_code'):0;
         $('.PK_SERVICE_CLASS').val(PK_SERVICE_CLASS);
         if (PK_SERVICE_CLASS === 1){
@@ -1695,7 +1704,28 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 }
             });
         }
+
+        $('#package_services').html('');
+
+        if (IS_PACKAGE == 1){
+            $.ajax({
+                url: "ajax/get_package_service_codes.php",
+                type: "POST",
+                data: {PK_SERVICE_MASTER: PK_SERVICE_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('.service_div').hide();
+                    $('#add_more').hide();
+                    $('#package_services').html(result);
+                }
+            });
+        } else {
+            $('.service_div').show();
+            $('#add_more').show();
+        }
     }
+
 
     function selectThisServiceCode(param) {
         let service_details = $(param).find(':selected').data('service_details');
