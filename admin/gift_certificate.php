@@ -12,6 +12,16 @@ if (empty($_GET['id'])) {
     $title = "Edit Gift Certificate";
 }
 
+$PAYMENT_GATEWAY = '';
+$PK_PAYMENT_TYPE = '';
+$AMOUNT = '';
+$NAME = '';
+$CARD_NUMBER = '';
+$SECURITY_CODE = '';
+$EXPIRATION_DATE = '';
+$CHECK_NUMBER = '';
+$CHECK_DATE = '';
+
 if (!empty($_POST)) {
     $GIFT_CERTIFICATE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     if (empty($_GET['id'])) {
@@ -20,6 +30,7 @@ if (!empty($_POST)) {
         $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_NAME'] = $_POST['GIFT_CERTIFICATE_NAME'];
         $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
         $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
+        $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
         $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
         $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
@@ -31,6 +42,7 @@ if (!empty($_POST)) {
         $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_NAME'] = $_POST['GIFT_CERTIFICATE_NAME'];
         $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
         $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
+        $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
         $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
         $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
@@ -58,6 +70,370 @@ if (empty($_GET['id'])) {
     $DATE_OF_PURCHASE = $res->fields['DATE_OF_PURCHASE'];
     $AMOUNT = $res->fields['AMOUNT'];
     $ACTIVE = $res->fields['ACTIVE'];
+}
+
+use net\authorize\api\contract\v1 as AnetAPI;
+use net\authorize\api\controller as AnetController;
+
+use Square\SquareClient;
+use Square\Environment;
+
+$user_payment_gateway = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER, DOA_LOCATION.PAYMENT_GATEWAY_TYPE, DOA_LOCATION.SECRET_KEY, DOA_LOCATION.PUBLISHABLE_KEY, DOA_LOCATION.ACCESS_TOKEN, DOA_LOCATION.APP_ID, DOA_LOCATION.LOCATION_ID, DOA_LOCATION.LOGIN_ID, DOA_LOCATION.TRANSACTION_KEY, DOA_LOCATION.AUTHORIZE_CLIENT_KEY FROM DOA_LOCATION INNER JOIN DOA_USER_MASTER ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
+if($user_payment_gateway->RecordCount() > 0){
+    $PAYMENT_GATEWAY = $user_payment_gateway->fields['PAYMENT_GATEWAY_TYPE'];
+    $SQUARE_APP_ID = $user_payment_gateway->fields['APP_ID'];
+    $SQUARE_LOCATION_ID = $user_payment_gateway->fields['LOCATION_ID'];
+    $ACCESS_TOKEN = $user_payment_gateway->fields['ACCESS_TOKEN'];
+    $PUBLISHABLE_KEY = $user_payment_gateway->fields['PUBLISHABLE_KEY'];
+    $SECRET_KEY = $user_payment_gateway->fields['SECRET_KEY'];
+    $LOGIN_ID = $user_payment_gateway->fields['LOGIN_ID'];
+    $TRANSACTION_KEY = $user_payment_gateway->fields['TRANSACTION_KEY'];
+    $AUTHORIZE_CLIENT_KEY = $user_payment_gateway->fields['AUTHORIZE_CLIENT_KEY'];
+} else {
+    $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+    $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
+    $SQUARE_APP_ID 			= $account_data->fields['APP_ID'];
+    $SQUARE_LOCATION_ID 	= $account_data->fields['LOCATION_ID'];
+    $ACCESS_TOKEN 			= $account_data->fields['ACCESS_TOKEN'];
+    $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
+    $SECRET_KEY = $account_data->fields['SECRET_KEY'];
+    $LOGIN_ID = $account_data->fields['LOGIN_ID'];
+    $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
+    $AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
+}
+
+$SQUARE_MODE 			= 2;
+if ($SQUARE_MODE == 1)
+    $SQ_URL = "https://connect.squareup.com";
+else if ($SQUARE_MODE == 2)
+    $SQ_URL = "https://connect.squareupsandbox.com";
+
+if ($SQUARE_MODE == 1)
+    $URL = "https://web.squarecdn.com/v1/square.js";
+else if ($SQUARE_MODE == 2)
+    $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
+
+if(!empty($_POST['PK_PAYMENT_TYPE'])){
+
+    $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
+
+    unset($_POST['PK_ENROLLMENT_LEDGER']);
+    if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
+        if ($_POST['PK_PAYMENT_TYPE'] == 1) {
+            if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
+                require_once("../global/stripe-php-master/init.php");
+                $stripe = new \Stripe\StripeClient($SECRET_KEY);
+                $STRIPE_TOKEN = $_POST['token'];
+
+                $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+                if ($user_payment_info_data->RecordCount() > 0) {
+                    $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
+                } else {
+                    $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+
+                    try {
+                        $customer = $stripe->customers->create([
+                            'email' => $user_master->fields['EMAIL_ID'],
+                            'name' => $user_master->fields['FIRST_NAME']." ".$user_master->fields['LAST_NAME'],
+                            'phone' => $user_master->fields['PHONE'],
+                            'description' => $user_master->fields['PK_USER'],
+                        ]);
+                    } catch (\Stripe\Exception\ApiErrorException $e) {
+                        pre_r($e->getMessage());
+                    }
+
+                    $CUSTOMER_PAYMENT_ID = $customer->id;
+                    $STRIPE_DETAILS['PK_USER']  = $user_master->fields['PK_USER'];
+                    $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                    $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
+                    $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform('DOA_CUSTOMER_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
+                }
+
+                $PAYMENT_METHOD_ID = '';
+                if (isset($_POST['PAYMENT_METHOD_ID'])) {
+                    $PAYMENT_METHOD_ID = $_POST['PAYMENT_METHOD_ID'];
+                } else {
+                    try {
+                        $payment_method = $stripe->paymentMethods->create([
+                            'type' => 'card',
+                            'card' => [
+                                'token' => $STRIPE_TOKEN
+                            ],
+                        ]);
+
+                        $stripe->paymentMethods->attach(
+                            $payment_method->id,
+                            ['customer' => $CUSTOMER_PAYMENT_ID]
+                        );
+
+                        $PAYMENT_METHOD_ID = $payment_method->id;
+                    } catch (\Stripe\Exception\ApiErrorException $e) {
+                        pre_r($e->getMessage());
+                    }
+                }
+
+                $AMOUNT = $_POST['AMOUNT']*100;
+                try {\Stripe\Stripe::setApiKey($SECRET_KEY);
+                    $payment_intent = \Stripe\PaymentIntent::create([
+                        'amount' => $AMOUNT,
+                        'currency' => 'USD',
+                        'customer' => $CUSTOMER_PAYMENT_ID,
+                        'payment_method' => $PAYMENT_METHOD_ID,
+                    ]);
+                } catch (Exception $e) {
+                    pre_r($e->getMessage());
+                }
+
+                //pre_r($payment_intent);
+
+            } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
+
+                require_once("../global/vendor/autoload.php");
+
+                $AMOUNT = $_POST['AMOUNT'];
+
+                $client = new SquareClient([
+                    'accessToken' => $ACCESS_TOKEN,
+                    'environment' => Environment::SANDBOX,
+                ]);
+
+                $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Square' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+                if ($user_payment_info_data->RecordCount() > 0) {
+                    $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
+                } else {
+                    $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+
+                    $address = new \Square\Models\Address();
+                    $address->setAddressLine1('500 Electric Ave');
+                    $address->setAddressLine2('Suite 600');
+                    $address->setLocality('New York');
+                    $address->setAdministrativeDistrictLevel1('NY');
+                    $address->setPostalCode('10003');
+                    $address->setCountry('US');
+
+                    $body = new \Square\Models\CreateCustomerRequest();
+                    $body->setGivenName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
+                    $body->setFamilyName('Earhart');
+                    $body->setEmailAddress($user_master->fields['EMAIL_ID']);
+                    $body->setAddress($address);
+                    $body->setPhoneNumber($user_master->fields['PHONE']);
+                    $body->setReferenceId('YOUR_REFERENCE_ID');
+                    $body->setNote('a customer');
+
+                    try {
+                        $api_response = $client->getCustomersApi()->createCustomer($body);
+                    } catch (\Square\Exceptions\ApiException $e) {
+                        pre_r($e->getMessage());
+                    }
+
+                    $CUSTOMER_PAYMENT_ID = json_decode($api_response->getBody())->customer->id;
+                    $SQUARE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+                    $SQUARE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                    $SQUARE_DETAILS['PAYMENT_TYPE'] = 'Square';
+                    $SQUARE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
+
+                }
+
+                $card = new \Square\Models\Card();
+                $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
+                //$card->setBillingAddress($billing_address);
+                $card->setCustomerId($CUSTOMER_PAYMENT_ID);
+                //$card->setReferenceId('user-id-1');
+
+                $body = new \Square\Models\CreateCardRequest(
+                    uniqid(),
+                    $_POST['sourceId'],
+                    $card
+                );
+
+                $api_response = $client->getCardsApi()->createCard($body);
+
+                if ($api_response->isSuccess()) {
+                    $result = $api_response->getResult();
+                } else {
+                    $errors = $api_response->getErrors();
+                }
+
+            } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
+
+                require_once('../global/authorizenet/vendor/autoload.php');
+
+                $LOGIN_ID = $account_data->fields['LOGIN_ID'];
+                $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
+
+                // Product Details
+                $itemName = $_POST['PK_ENROLLMENT_MASTER'];
+                $itemNumber = $_POST['PK_ENROLLMENT_BILLING'];
+                $itemPrice = $_POST['AMOUNT'];
+                $currency = "USD";
+
+                // Retrieve card and user info from the submitted form data
+                $name = $_POST['NAME'];
+                $email = $_POST['EMAIL'];
+                $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
+                $card_exp_month = $_POST['EXPIRATION_MONTH'];
+                $card_exp_year = $_POST['EXPIRATION_YEAR'];
+                $card_exp_year_month = $card_exp_year . '-' . $card_exp_month;
+                $card_cvc = $_POST['SECURITY_CODE'];
+
+                $refID = 'ref' . time();
+
+                $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+                $merchantAuthentication->setName($LOGIN_ID);
+                $merchantAuthentication->setTransactionKey($TRANSACTION_KEY);
+
+                // Create the payment data for a credit card
+                $creditCard = new AnetAPI\CreditCardType();
+                $creditCard->setCardNumber($card_number);
+                $creditCard->setExpirationDate($card_exp_year_month);
+                $creditCard->setCardCode($card_cvc);
+
+                // Add the payment data to a paymentType object
+                $paymentOne = new AnetAPI\PaymentType();
+                $paymentOne->setCreditCard($creditCard);
+
+                // Create order information
+                $order = new AnetAPI\OrderType();
+                $order->setDescription($itemName);
+
+                // Set the customer's identifying information
+                $customerData = new AnetAPI\CustomerDataType();
+                $customerData->setType("individual");
+                $customerData->setEmail($email);
+
+                $ANET_ENV = 'SANDBOX';
+
+                // Create a transaction
+                $transactionRequestType = new AnetAPI\TransactionRequestType();
+                $transactionRequestType->setTransactionType("authCaptureTransaction");
+                $transactionRequestType->setAmount($itemPrice);
+                $transactionRequestType->setOrder($order);
+                $transactionRequestType->setPayment($paymentOne);
+                $transactionRequestType->setCustomer($customerData);
+                $request = new AnetAPI\CreateTransactionRequest();
+                $request->setMerchantAuthentication($merchantAuthentication);
+                $request->setRefId($refID);
+                $request->setTransactionRequest($transactionRequestType);
+                $controller = new AnetController\CreateTransactionController($request);
+                $response = $controller->executeWithApiResponse(constant("\\net\authorize\api\constants\ANetEnvironment::$ANET_ENV"));
+
+                if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+                    $tresponse = $response->getTransactionResponse();
+                    $PAYMENT_INFO = $tresponse->getTransId();
+                } else {
+                    $PAYMENT_INFO = 'Payment Unsuccessful.';
+                }
+                pre_r($response);
+            }
+        } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
+            $AMOUNT = $_POST['AMOUNT'];
+            $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
+            $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
+
+            if ($_POST['PK_PAYMENT_TYPE_REMAINING'] == 1) {
+                require_once("../global/stripe/init.php");
+                \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
+                $STRIPE_TOKEN = $_POST['token'];
+                $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
+                try {
+                    $charge = \Stripe\Charge::create([
+                        'amount' => ($REMAINING_AMOUNT * 100),
+                        'currency' => 'usd',
+                        'description' => $_POST['NOTE'],
+                        'source' => $STRIPE_TOKEN
+                    ]);
+                } catch (Exception $e) {
+
+                }
+                if($charge->paid == 1){
+                    $PAYMENT_INFO = $charge->id;
+                }else{
+                    $PAYMENT_INFO = 'Payment Unsuccessful.';
+                }
+            }
+
+            $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
+            $wallet_data = $db->Execute("SELECT * FROM DOA_USER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_USER_WALLET DESC LIMIT 1");
+            $DEBIT_AMOUNT = ($WALLET_BALANCE>$AMOUNT)?$AMOUNT:$WALLET_BALANCE;
+            if ($wallet_data->RecordCount() > 0) {
+                $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
+            }
+            $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+            $INSERT_DATA['DEBIT'] = $DEBIT_AMOUNT;
+            $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment ".$_POST['PK_ENROLLMENT_MASTER'];
+            $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+            $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+            db_perform('DOA_USER_WALLET', $INSERT_DATA, 'insert');
+
+        }else{
+            $PAYMENT_INFO = 'Payment Done.';
+        }
+
+        $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
+        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
+        $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+        $PAYMENT_DATA['AMOUNT'] = $_POST['AMOUNT'];
+        if ($_POST['PK_PAYMENT_TYPE'] == 7) {
+            $PAYMENT_DATA['REMAINING_AMOUNT'] = $_POST['REMAINING_AMOUNT'];
+            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER_REMAINING'];
+            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE_REMAINING']));
+        } elseif($_POST['PK_PAYMENT_TYPE'] == 2) {
+            $PAYMENT_DATA['REMAINING_AMOUNT'] = 0.00;
+            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
+            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));
+        }
+
+        $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
+        $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+        $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+
+        if($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
+            $PAYMENT_DATA['NAME'] = $_POST['NAME'];
+            $PAYMENT_DATA['CARD_NUMBER'] = $_POST['CARD_NUMBER'];
+            $PAYMENT_DATA['EXPIRATION_DATE'] = $_POST['EXPIRATION_MONTH'] . "/" . $_POST['EXPIRATION_YEAR'];
+            $PAYMENT_DATA['SECURITY_CODE'] = $_POST['SECURITY_CODE'];
+        }
+
+        db_perform('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+
+        $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
+        if ($enrollment_balance->RecordCount() > 0){
+            $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $enrollment_balance->fields['TOTAL_BALANCE_PAID']+$_POST['AMOUNT'];
+            $ENROLLMENT_BALANCE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+            $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
+            db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
+        }else{
+            $ENROLLMENT_BALANCE_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
+            $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $_POST['AMOUNT'];
+            $ENROLLMENT_BALANCE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+            $ENROLLMENT_BALANCE_DATA['CREATED_ON']  = date("Y-m-d H:i");
+            db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
+        }
+
+        $PK_ENROLLMENT_PAYMENT = $db->insert_ID();
+        $ledger_record = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+        $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
+        $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $PK_ENROLLMENT_LEDGER;
+        $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
+        $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
+        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
+        $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
+        $LEDGER_DATA['PAID_AMOUNT'] = $ledger_record->fields['BILLED_AMOUNT'];
+        $LEDGER_DATA['BALANCE'] = 0.00;
+        $LEDGER_DATA['IS_PAID'] = 1;
+        $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+        $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
+        db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+        $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
+        db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+    }else{
+        db_perform('DOA_ENROLLMENT_PAYMENT', $_POST, 'update'," PK_ENROLLMENT_PAYMENT =  '$_POST[PK_ENROLLMENT_PAYMENT]'");
+        $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
+    }
+
+    header('location:all_gift_certificates.php');
 }
 
 ?>
@@ -367,6 +743,184 @@ if (empty($_GET['id'])) {
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Payment Type</label>
+                                                        <div class="col-md-12">
+                                                            <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)">
+                                                                <option value="">Select</option>
+                                                                <?php
+                                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                                                while (!$row->EOF) { ?>
+                                                                    <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
+                                                                    <?php $row->MoveNext(); } ?>
+                                                            </select>
+                                                        </div>
+                                                        <div id="wallet_balance_div">
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row" id="remaining_amount_div" style="display: none;">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Remaining Amount</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" name="REMAINING_AMOUNT" id="REMAINING_AMOUNT" class="form-control" readonly>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Payment Type</label>
+                                                        <div class="col-md-12">
+                                                            <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING" onchange="selectRemainingPaymentType(this)">
+                                                                <option value="">Select</option>
+                                                                <?php
+                                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
+                                                                while (!$row->EOF) { ?>
+                                                                    <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
+                                                                    <?php $row->MoveNext(); } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row remaining_payment_type_div" id="remaining_credit_card_payment" style="display: none;">
+                                                <div class="col-12">
+                                                    <div class="form-group" id="remaining_card_div">
+
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row remaining_payment_type_div" id="remaining_check_payment" style="display: none;">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Check Number</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" name="CHECK_NUMBER_REMAINING" class="form-control">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Check Date</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" name="CHECK_DATE_REMAINING" class="form-control datepicker-normal">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
+                                                <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                                                    <div class="row" style="margin: auto;" id="card_list">
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="form-group" id="card_div">
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
+                                                <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                                                    <div class="row" style="margin: auto;" id="card_list">
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="form-group" id="card-container">
+
+                                                        </div>
+                                                    </div>
+                                                    <div id="payment-status-container"></div>
+                                                </div>
+                                            <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net'){?>
+                                                <div class="payment_type_div" id="credit_card_payment" style="display: none;">
+                                                    <div class="row" style="margin: auto;" id="card_list">
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Name (As it appears on your card)</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$NAME?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Email (For receiving payment confirmation mail)</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="email" name="EMAIL" id="EMAIL" class="form-control">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Card Number</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?=$CARD_NUMBER?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-4">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Expiration Month</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control" >
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Expiration Year</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control" >
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Security Code</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?=$SECURITY_CODE?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php } ?>
+
+
+                                            <div class="row payment_type_div" id="check_payment" style="display: none;">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Check Number</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" name="CHECK_NUMBER" class="form-control">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Check Date</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" name="CHECK_DATE" class="form-control datepicker-normal">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
                                             </div>
 
@@ -385,7 +939,7 @@ if (empty($_GET['id'])) {
                                             <? } ?>
 
                                             <div class="form-group">
-                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Save'; } else { echo 'Update'; }?></button>
+                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Purchase'; } else { echo 'Update'; }?></button>
                                                 <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_gift_certificates.php'" >Cancel</button>
                                             </div>
                                         </div>
@@ -402,6 +956,8 @@ if (empty($_GET['id'])) {
 
 <?php require_once('../includes/footer.php');?>
 
+<script src="https://js.stripe.com/v3/"></script>
+
 <script>
     $('.datepicker-future').datepicker({
         format: 'mm/dd/yyyy',
@@ -411,7 +967,313 @@ if (empty($_GET['id'])) {
     $('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
     });
+
+    function selectPaymentType(param){
+        let paymentType = $("#PK_PAYMENT_TYPE option:selected").text();
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+        $('.payment_type_div').slideUp();
+        $('#card-element').remove();
+        switch (paymentType) {
+            case 'Credit Card':
+                if (PAYMENT_GATEWAY == 'Stripe') {
+                    $('#card_div').html(`<div id="card-element"></div>`);
+                    stripePaymentFunction();
+                }
+
+                //getCreditCardList();
+                $('#credit_card_payment').slideDown();
+                break;
+
+            case 'Check':
+                $('#check_payment').slideDown();
+                break;
+
+            case 'Wallet':
+                let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+                $.ajax({
+                    url: "ajax/wallet_balance.php",
+                    type: 'POST',
+                    data: {PK_USER_MASTER: PK_USER_MASTER},
+                    success: function (data) {
+                        $('#wallet_balance_div').html(data);
+                        $('#wallet_balance_div').slideDown();
+
+                        let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
+                        let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
+
+                        if (AMOUNT_TO_PAY > WALLET_BALANCE) {
+                            $('#REMAINING_AMOUNT').val(AMOUNT_TO_PAY - WALLET_BALANCE);
+                            $('#remaining_amount_div').slideDown();
+                            $('#PK_PAYMENT_TYPE_REMAINING').prop('required', true);
+                        } else {
+                            $('#remaining_amount_div').slideUp();
+                            $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                        }
+                    }
+                });
+                break;
+
+            case 'Cash':
+            default:
+                $('.payment_type_div').slideUp();
+                $('#wallet_balance_div').slideUp();
+                $('#remaining_amount_div').slideUp();
+                $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                break;
+        }
+    }
+
+/*    function getCreditCardList() {
+        let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+        $.ajax({
+            url: "ajax/get_credit_card_list.php",
+            type: 'POST',
+            data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
+            success: function (data) {
+                $('#card_list').html(data);
+            }
+        });
+    }*/
+
+    function selectRemainingPaymentType(param){
+        let paymentType = $("#PK_PAYMENT_TYPE_REMAINING option:selected").text();
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+        $('.remaining_payment_type_div').slideUp();
+        $('#card-element').remove();
+        switch (paymentType) {
+            case 'Credit Card':
+                if (PAYMENT_GATEWAY == 'Stripe') {
+                    $('#card_div').html(`<div id="card-element"></div>`);
+                    stripePaymentFunction();
+                }
+                $('#remaining_credit_card_payment').slideDown();
+                break;
+
+            case 'Check':
+                $('#remaining_check_payment').slideDown();
+                break;
+
+            case 'Cash':
+            default:
+                $('.remaining_payment_type_div').slideUp();
+                break;
+        }
+    }
+
+    $(document).on('click', '.credit-card', function () {
+        $('.credit-card').css("opacity", "1");
+        $(this).css("opacity", "0.6");
+    });
+
+    function getPaymentMethodId(param) {
+        $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
+    }
 </script>
 
+<script type="text/javascript">
+    function stripePaymentFunction() {
+
+        // Create a Stripe client.
+        var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
+
+        // Create an instance of Elements.
+        var elements = stripe.elements();
+
+        // Custom styling can be passed to options when creating an Element.
+        // (Note that this demo uses a wider set of styles than the guide below.)
+        var style = {
+            base: {
+                height: '34px',
+                padding: '6px 12px',
+                fontSize: '14px',
+                lineHeight: '1.42857143',
+                color: '#555',
+                backgroundColor: '#fff',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                '::placeholder': {
+                    color: '#ddd'
+                }
+            },
+            invalid: {
+                color: '#fa755a',
+                iconColor: '#fa755a'
+            }
+        };
+
+        // Create an instance of the card Element.
+        var card = elements.create('card', {style: style});
+
+        // Add an instance of the card Element into the `card-element` <div>.
+        if (($('#card-element')).length > 0) {
+            card.mount('#card-element');
+        }
+
+        // Handle real-time validation errors from the card Element.
+        card.addEventListener('change', function (event) {
+            var displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+
+        // Handle form submission.
+        var form = document.getElementById('payment_confirmation_form');
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            stripe.createToken(card).then(function (result) {
+                if (result.error) {
+                    // Inform the user if there was an error.
+                    var errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    // Send the token to your server.
+                    stripeTokenHandler(result.token);
+                }
+            });
+        });
+
+        // Submit the form with the token ID.
+        function stripeTokenHandler(token) {
+            // Insert the token ID into the form so it gets submitted to the server
+            var form = document.getElementById('payment_confirmation_form');
+            var hiddenInput = document.createElement('input');
+            hiddenInput.setAttribute('type', 'hidden');
+            hiddenInput.setAttribute('name', 'token');
+            hiddenInput.setAttribute('value', token.id);
+            form.appendChild(hiddenInput);
+
+            //ACCEPT_HANDLING_ERROR
+            // Submit the form
+            form.submit();
+        }
+    }
+
+</script>
+
+<script type="text/javascript" src="<?=$URL?>"></script>
+<script>
+    const appId = '<?=$SQUARE_APP_ID ?>';
+    const locationId = '<?=$SQUARE_LOCATION_ID ?>';
+
+    async function initializeCard(payments) {
+        const card = await payments.card();
+        await card.attach('#card-container');
+
+        return card;
+    }
+
+    async function createPayment(token) {
+        document.getElementById('sourceId').value = token;
+        $('#payment_confirmation_form').submit();
+
+        /*const body = JSON.stringify({
+          locationId,
+          sourceId: token,
+        });
+
+        const paymentResponse = await fetch('payment.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body,
+        });
+
+        if (paymentResponse.ok) {
+          return paymentResponse.json();
+        }
+
+        const errorBody = await paymentResponse.text();
+        throw new Error(errorBody);*/
+
+        token
+    }
+
+    async function tokenize(paymentMethod) {
+        const tokenResult = await paymentMethod.tokenize();
+        if (tokenResult.status === 'OK') {
+            return tokenResult.token;
+        } else {
+            let errorMessage = `Tokenization failed with status: ${tokenResult.status}`;
+            if (tokenResult.errors) {
+                errorMessage += ` and errors: ${JSON.stringify(
+                    tokenResult.errors
+                )}`;
+            }
+
+            throw new Error(errorMessage);
+        }
+    }
+
+    // status is either SUCCESS or FAILURE;
+    function displayPaymentResults(status) {
+        const statusContainer = document.getElementById(
+            'payment-status-container'
+        );
+        if (status === 'SUCCESS') {
+            statusContainer.classList.remove('is-failure');
+            statusContainer.classList.add('is-success');
+        } else {
+            statusContainer.classList.remove('is-success');
+            statusContainer.classList.add('is-failure');
+        }
+
+        statusContainer.style.visibility = 'visible';
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        if (!window.Square) {
+            throw new Error('Square.js failed to load properly');
+        }
+
+        let payments;
+        try {
+            payments = window.Square.payments(appId, locationId);
+        } catch {
+            const statusContainer = document.getElementById(
+                'payment-status-container'
+            );
+            statusContainer.className = 'missing-credentials';
+            statusContainer.style.visibility = 'visible';
+            return;
+        }
+
+        let card;
+        try {
+            card = await initializeCard(payments);
+        } catch (e) {
+            console.error('Initializing Card failed', e);
+            return;
+        }
+
+        // Checkpoint 2.
+        async function handlePaymentMethodSubmission(event, paymentMethod) {
+            event.preventDefault();
+
+            try {
+                // disable the submit button as we await tokenization and make a payment request.
+                cardButton.disabled = true;
+                const token = await tokenize(paymentMethod);
+                const paymentResults = await createPayment(token);
+                displayPaymentResults('SUCCESS');
+
+                console.debug('Payment Success', paymentResults);
+            } catch (e) {
+                cardButton.disabled = false;
+                displayPaymentResults('FAILURE');
+                console.error(e.message);
+            }
+        }
+
+        const cardButton = document.getElementById('card-button');
+        cardButton.addEventListener('click', async function (event) {
+            await handlePaymentMethodSubmission(event, card);
+        });
+    });
+</script>
 </body>
 </html>
