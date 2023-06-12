@@ -9,7 +9,12 @@ if (empty($_GET['id']))
 else
     $title = "Edit Appointment";
 
-$type = 'appointment';
+if (!empty($_GET['type'])) {
+    $type = $_GET['type'];
+} else {
+    $type = 'appointment';
+}
+
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -218,15 +223,15 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid">
             <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
+                <div class="col-md-4 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
 
                 </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
+                <div class="col-md-4 align-self-center text-center">
+                    <div class="d-flex justify-content-center align-items-center">
+                        <!--<ol class="breadcrumb justify-content-center">
                             <li class="breadcrumb-item"><a href="all_schedules.php">All Appointment</a></li>
-                        </ol>
+                        </ol>-->
                         <button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('group_class', this);"><i class="fa fa-plus-circle"></i> Group Class</button>
                         <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('int_app', this);"><i class="fa fa-plus-circle"></i> INT APP</button>
                         <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('appointment', this);"><i class="fa fa-plus-circle"></i> Appointment</button>

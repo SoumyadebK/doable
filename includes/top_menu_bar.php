@@ -1,3 +1,11 @@
+<?php
+if (!empty($_GET['view'])) {
+    $view = $_GET['view'];
+} else {
+    $view = 'table';
+}
+?>
+
 <div class="container-fluid p-0 nav-top-new">
     <div class="row">
         <div class="d-flex flex-column flex-md-row align-items-center py-2 px-4 bg-white border-bottomm box-shadow justify-content-end">
@@ -20,10 +28,17 @@
 
                     <?php if($_SESSION['PK_ROLES'] == 2) { ?>
                         <li>
-                            <a class="waves-effect waves-dark" href="../admin/all_schedules.php" aria-expanded="false">
+                            <?php if ($view=='list') { ?>
+                            <a class="waves-effect waves-dark" href="../admin/all_schedules.php?view=table" aria-expanded="false">
                                 <i class="icon-calender"></i>
                                 <span class="hide-menu">Calendar</span>
                             </a>
+                            <?php } elseif ($view=='table') { ?>
+                            <a class="waves-effect waves-dark" href="../admin/all_schedules.php?view=list" aria-expanded="false">
+                                <i class="icon-list"></i>
+                                <span class="hide-menu">List</span>
+                            </a>
+                            <?php } ?>
                         </li>
                         <li>
                             <a class="waves-effect waves-dark" href="../admin/all_customers.php" aria-expanded="false">

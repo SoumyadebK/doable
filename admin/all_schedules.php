@@ -1,5 +1,6 @@
 <?php
 require_once('../global/config.php');
+
 $title = "All Appointments";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
@@ -210,17 +211,21 @@ $CLOSE_TIME = '22:00:00';
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid">
             <div class="row page-titles navbar-fixed-top">
-                <div class="col-md-5 align-self-center">
+                <div class="col-md-4 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item active"><?=$title?></li>
+                <div class="col-md-4 align-self-center text-center">
+                    <div class="d-flex justify-content-center align-items-center">
+                        <button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=group_class'"><i class="fa fa-plus-circle"></i> Group Class</button>
+                        <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=int_app'"><i class="fa fa-plus-circle"></i> INT APP</button>
+                        <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=appointment'"><i class="fa fa-plus-circle"></i> Appointment</button>
+                        <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=standing'"><i class="fa fa-plus-circle"></i> Standing</button>
+                        <!--<ol class="breadcrumb justify-content-end">
+                            <li class="breadcrumb-item active"><?php /*=$title*/?></li>
                         </ol>
                         <a class="btn btn-info d-none d-lg-block m-l-10 text-white" href="create_appointment.php" ><i class="fa fa-plus-circle"></i> Create New</a>
                         <button class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="showListView(1)" style="float:right;"><i class="ti-list"></i> List</button>
-                        <button class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="showCalendarView()" style="float: right;"><i class="ti-calendar"></i> Calendar</button>
+                        <button class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="showCalendarView()" style="float: right;"><i class="ti-calendar"></i> Calendar</button>-->
                     </div>
                 </div>
             </div>
