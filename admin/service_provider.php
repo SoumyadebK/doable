@@ -182,9 +182,25 @@ if(!empty($_GET['id'])) {
         <div class="container-fluid">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+                    <h4 class="text-themecolor"><?php if(!empty($_GET['id'])) {
+                            echo "Edit ".$FIRST_NAME." ".$LAST_NAME;
+                        }?></h4>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
+                <?php if(!empty($_GET['id'])) { ?>
+                    <div class="col-3 align-self-center">
+                        <div>
+                            <select required name="NAME" id="NAME" onchange="editpage(this);">
+                                <option value="">Select Service Provider</option>
+                                <?php
+                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                while (!$row->EOF) {?>
+                                    <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
+                                    <?php $row->MoveNext(); } ?>
+                            </select>
+                        </div>
+                    </div>
+                <?php } ?>
+                <div class="col-md-4 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
@@ -201,29 +217,8 @@ if(!empty($_GET['id'])) {
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
-                                <?php if(!empty($_GET['id'])) { ?>
-                                <div class="col-3" style="margin: auto; padding-top: 10px">
-                                    <div>
-                                        <select required name="NAME" id="NAME" onchange="editpage(this);">
-                                            <option value="">Select Service Provider</option>
-                                            <?php
-                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                            while (!$row->EOF) {?>
-                                                <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
-                                                <?php $row->MoveNext(); } ?>
-                                        </select>
-                                    </div>
-                                </div>
-                                <?php } ?>
                                 <div class="col-md-12">
                                     <div class="card">
-                                        <div class="card-title">
-                                            <?php
-                                            if(!empty($_GET['id'])) {
-                                                echo $FIRST_NAME." ".$LAST_NAME;
-                                            }
-                                            ?>
-                                        </div>
                                         <div class="card-body">
                                             <!-- Nav tabs -->
                                             <ul class="nav nav-tabs" role="tablist">

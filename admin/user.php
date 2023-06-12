@@ -294,7 +294,13 @@ if(!empty($_GET['id'])) {
         <div class="container-fluid">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+                    <h4 class="text-themecolor"><div class="card-title">
+                            <?php
+                            if(!empty($_GET['id'])) {
+                                echo "Edit ".$FIRST_NAME." ".$LAST_NAME;
+                            }
+                            ?>
+                        </div></h4>
                 </div>
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
@@ -315,13 +321,6 @@ if(!empty($_GET['id'])) {
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="card">
-                                        <div class="card-title">
-                                            <?php
-                                            if(!empty($_GET['id'])) {
-                                                echo $FIRST_NAME." ".$LAST_NAME;
-                                            }
-                                            ?>
-                                        </div>
                                         <div class="card-body">
                                             <!-- Nav tabs -->
                                             <ul class="nav nav-tabs" role="tablist">
