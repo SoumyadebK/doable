@@ -1,6 +1,3 @@
-<?php
-?>
-
 <div id="myModal" class="modal">
     <!-- Modal content -->
     <div class="modal-content" style="width: 50%;">

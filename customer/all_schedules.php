@@ -272,7 +272,7 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
     }
 
     var defaultResources = [
-        <?php $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS WHERE DOA_USERS.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']);
+        <?php $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']);
         while (!$service_provider_data->EOF) { ?>
         {
             id: <?=$service_provider_data->fields['PK_USER']?>,

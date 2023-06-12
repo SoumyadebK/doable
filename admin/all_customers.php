@@ -19,13 +19,13 @@ $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = " AND DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%'";
+    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.USER_ID LIKE '%".$search_text."%' OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%')";
 } else {
     $search_text = '';
     $search = ' ';
 }
 
-$query = $db->Execute("SELECT count(DOA_USERS.PK_USER) AS TOTAL_RECORDS FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search);
+$query = $db->Execute("SELECT count(DOA_USERS.PK_USER) AS TOTAL_RECORDS FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = '$status' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search);
 $number_of_result =  $query->fields['TOTAL_RECORDS'];
 $number_of_page = ceil ($number_of_result / $results_per_page);
 
@@ -102,7 +102,6 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <?php
                                     $i = $page_first_result+1;
                                     $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = '$status' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search." LIMIT " . $page_first_result . ',' . $results_per_page);
-                                    echo "SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = '$status' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search." LIMIT " . $page_first_result . ',' . $results_per_page;
                                     while (!$row->EOF) {
                                         $balance_data = $db->Execute("SELECT SUM(TOTAL_BALANCE_PAID) AS TOTAL_PAID, SUM(TOTAL_BALANCE_USED) AS BALANCE_USED FROM `DOA_ENROLLMENT_BALANCE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_MASTER.PK_USER = ".$row->fields['PK_USER']);
                                         $total_paid = 0.00;
@@ -143,13 +142,13 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <div class="pagination outer">
                                         <ul>
                                             <?php if ($page > 1) { ?>
-                                                <li><a href="all_customers.php?page=<?=($page-1)?>">&laquo;</a></li>
+                                                <li><a href="all_customers.php?status=<?=$status_check?>&page=<?=($page-1)?>">&laquo;</a></li>
                                             <?php }
                                             for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
-                                                echo '<li><a class="'.(($page_count==$page)?"active":"").'" href="all_customers.php?page='.$page_count.(($search_text=='')?'':'&search_text='.$search_text).'">' . $page_count . ' </a></li>';
+                                                echo '<li><a class="'.(($page_count==$page)?"active":"").'" href="all_customers.php?status='.$status_check.'&page='.$page_count.(($search_text=='')?'':'&search_text='.$search_text).'">' . $page_count . ' </a></li>';
                                             }
                                             if ($page < $number_of_page) { ?>
-                                                <li><a href="all_customers.php?page=<?=($page+1)?>">&raquo;</a></li>
+                                                <li><a href="all_customers.php?status=<?=$status_check?>&page=<?=($page+1)?>">&raquo;</a></li>
                                             <?php } ?>
                                         </ul>
                                     </div>

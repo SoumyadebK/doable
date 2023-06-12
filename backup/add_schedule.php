@@ -200,7 +200,7 @@ if(empty($_GET['id'])){
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="all_schedules.php">All Appointment</a></li>
+                            <li class="breadcrumb-item"><a href="../admin/all_schedules.php">All Appointment</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
 
@@ -286,7 +286,7 @@ if(empty($_GET['id'])){
                                                             <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
-                                                    <p><a href="customer.php?id=<?=$selected_customer_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank"><?=$selected_customer?></a></p>
+                                                    <p><a href="../admin/customer.php?id=<?=$selected_customer_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank"><?=$selected_customer?></a></p>
                                                 </div>
                                             </div>
                                             <div class="col-2">
@@ -487,9 +487,9 @@ if(empty($_GET['id'])){
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
                                             <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                             <?php if(!empty($_GET['id'])) { ?>
-                                                <a href="enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
-                                                <a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
-                                                <a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>
+                                                <a href="../admin/enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
+                                                <a href="../admin/customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
+                                                <a href="../admin/customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>
                                             <?php } ?>
 
                                         </div>
