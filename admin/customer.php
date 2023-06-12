@@ -498,13 +498,6 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="card">
-                                        <div class="card-title">
-                                            <?php
-                                            if(!empty($_GET['id'])) {
-                                                echo $FIRST_NAME." ".$LAST_NAME;
-                                            }
-                                            ?>
-                                        </div>
                                         <div class="card-body">
                                             <!-- Nav tabs -->
                                             <?php if(!empty($_GET['tab'])) { ?>

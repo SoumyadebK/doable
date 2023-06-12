@@ -29,7 +29,16 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
+                <?php if ($status_check=='inactive') { ?>
+                    <div class="col-md-3" >
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_users.php?status=active'"><i class="fa fa-user"></i> Active</button>
+                    </div>
+                <?php } elseif ($status_check=='active') { ?>
+                    <div class="col-md-3" >
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_users.php?status=inactive'"><i class="fa fa-user-times"></i> Not Active</button>
+                    </div>
+                <?php } ?>
+                <div class="col-md-4 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
@@ -44,17 +53,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title"><?=$title?></h5>
                             <div class="table-responsive">
-                                <?php if ($status_check=='inactive') { ?>
-                                <div class="col-md-4" >
-                                    <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_customers.php?status=active'"><i class="fa fa-user"></i> Active</button>
-                                </div>
-                                <?php } elseif ($status_check=='active') { ?>
-                                <div class="col-md-4" >
-                                    <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_customers.php?status=inactive'"><i class="fa fa-user-times"></i> Not Active</button>
-                                </div>
-                                <?php } ?>
                                 <table id="myTable" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
