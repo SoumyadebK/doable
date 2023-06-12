@@ -22,7 +22,7 @@
                         <li>
                             <a class="waves-effect waves-dark" href="../admin/all_schedules.php" aria-expanded="false">
                                 <i class="icon-calender"></i>
-                                <span class="hide-menu">Appointments</span>
+                                <span class="hide-menu">Calendar</span>
                             </a>
                         </li>
                         <li>

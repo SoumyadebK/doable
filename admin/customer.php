@@ -463,15 +463,30 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
         <div class="container-fluid">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+                    <h4 class="text-themecolor"><?php if(!empty($_GET['id'])) {
+                            echo "Edit ".$FIRST_NAME." ".$LAST_NAME;
+                        }?></h4>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
+                <?php if(!empty($_GET['id'])) { ?>
+                    <div class="col-md-3 align-self-center" ">
+                        <div>
+                            <select required name="NAME" id="NAME" onchange="editpage(this);">
+                                <option value="">Select Customer</option>
+                                <?php
+                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                while (!$row->EOF) {?>
+                                    <option value="<?php echo $row->fields['PK_USER'];?>" data-master_id="<?php echo $row->fields['PK_USER_MASTER'];?>" ><?=$row->fields['NAME']?></option>
+                                    <?php $row->MoveNext(); } ?>
+                            </select>
+                        </div>
+                    </div>
+                <?php } ?>
+                <div class="col-md-4 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item active"><a href="all_customers.php">All Customers</a></li>
                             <li class="breadcrumb-item active"><a href="customer.php"><?=$title?></a></li>
                         </ol>
-
                     </div>
                 </div>
             </div>
@@ -481,20 +496,6 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
-                                <?php if(!empty($_GET['id'])) { ?>
-                                <div class="col-3" style="margin: auto; padding-top: 10px">
-                                    <div>
-                                        <select required name="NAME" id="NAME" onchange="editpage(this);">
-                                            <option value="">Select Customer</option>
-                                            <?php
-                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                            while (!$row->EOF) {?>
-                                                <option value="<?php echo $row->fields['PK_USER'];?>" data-master_id="<?php echo $row->fields['PK_USER_MASTER'];?>" ><?=$row->fields['NAME']?></option>
-                                                <?php $row->MoveNext(); } ?>
-                                        </select>
-                                    </div>
-                                </div>
-                                <?php } ?>
                                 <div class="col-md-12">
                                     <div class="card">
                                         <div class="card-title">

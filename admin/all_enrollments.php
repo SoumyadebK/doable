@@ -177,7 +177,7 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['PHONE']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['LOCATION_NAME']?></td>
                                             <td>
-                                                <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>" title="Edit"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -185,18 +185,18 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                                                     <span class="active-box-red"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php } ?>
 
-                                                <a href="enrollment.php?customer_id=<?=$row->fields['PK_USER_MASTER']?>" title="Add Enrollment"><i class="fa fa-plus-circle"></i></a>
+                                                <a href="enrollment.php?customer_id=<?=$row->fields['PK_USER_MASTER']?>" title="Add Enrollment" style="font-size:18px"><i class="fa fa-plus-circle"></i></a>
                                             </td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);">
                                                 <?php if ($row->fields['STATUS']=='A') { ?>
-                                                    <span class="status-box" style="background-color: green;">ACTIVE</span>
+                                                    <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
                                                 <?php } else { ?>
-                                                    <span class="status-box" style="background-color: red;">CANCELLED</span>
+                                                    <span class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></span>
                                                 <?php } ?>
                                             </td>
                                             <td>
                                                 <?php if ($row->fields['STATUS']=='A') { ?>
-                                                    <a href="javascript:;" onclick="cancelAppointment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>, <?=$total_credit_balance?>)">Cancel Enrollment</a>
+                                                    <a href="javascript:;" onclick="cancelAppointment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>, <?=$total_credit_balance?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px;"></a>
                                                 <?php } else { ?>
                                                     <a href="all_enrollments.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>&status=active">Active Enrollment</a>
                                                 <?php } ?>

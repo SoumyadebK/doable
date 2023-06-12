@@ -279,7 +279,7 @@ $CLOSE_TIME = '22:00:00';
                         <span class="close" style="margin-left: 96%;">&times;</span>
                         <div class="card" id="payment_confirmation_form_div">
                             <div class="card-body">
-                                <a href="add_schedule.php" target="_blank">Create Appointment</a><br><br>
+                                <a href="create_appointment.php" target="_blank">Create Appointment</a><br><br>
                                 <a href="event.php" target="_blank">Create Event</a>
                             </div>
                         </div>
