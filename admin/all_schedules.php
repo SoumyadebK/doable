@@ -15,7 +15,7 @@ if (!empty($_GET['id']) && !empty($_GET['action'])){
 }
 
 if (!empty($_GET['view'])){
-    $view = 'list';
+    $view = $_GET['view'];
 }else{
     $view = 'table';
 }

@@ -9,6 +9,8 @@ if (empty($_GET['id']))
 else
     $title = "Edit Appointment";
 
+$type = 'appointment';
+
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
@@ -225,10 +227,10 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="all_schedules.php">All Appointment</a></li>
                         </ol>
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('group_class', this);"><i class="fa fa-plus-circle"></i> Group Class</button>
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('int_app', this);"><i class="fa fa-plus-circle"></i> INT APP</button>
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('appointment', this);"><i class="fa fa-plus-circle"></i> Appointment</button>
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('standing', this);"><i class="fa fa-plus-circle"></i> Standing</button>
+                        <button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('group_class', this);"><i class="fa fa-plus-circle"></i> Group Class</button>
+                        <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('int_app', this);"><i class="fa fa-plus-circle"></i> INT APP</button>
+                        <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('appointment', this);"><i class="fa fa-plus-circle"></i> Appointment</button>
+                        <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('standing', this);"><i class="fa fa-plus-circle"></i> Standing</button>
                     </div>
                 </div>
             </div>
@@ -246,6 +248,12 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
     </div>
     <?php require_once('../includes/footer.php');?>
     <script>
+        let type = '<?=$type?>';
+        $(window).on('load', function () {
+            let param = $('#'+type);
+            createAppointment(type, param)
+        })
+
         let PK_APPOINTMENT_MASTER = 0;
         const nextYear 	= new Date().getFullYear() + 2;
         const month 	= new Date().getMonth();
