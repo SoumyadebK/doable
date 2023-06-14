@@ -361,6 +361,7 @@ $PK_USER_MASTER = '';
 $USER_ID = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
+$CUSTOMER_ID = '';
 $EMAIL_ID = '';
 $USER_IMAGE = '';
 $GENDER = '';
@@ -406,6 +407,7 @@ if(!empty($_GET['id'])) {
     $USER_ID = $res->fields['USER_ID'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
+    $CUSTOMER_ID = $res->fields['USER_ID'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $USER_IMAGE = $res->fields['USER_IMAGE'];
     $GENDER = $res->fields['GENDER'];
@@ -542,7 +544,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                         <input type="hidden" class="TYPE" name="TYPE" value="2">
                                                         <div class="p-20">
                                                             <div class="row">
-                                                                <div class="col-5">
+                                                                <div class="col-4">
                                                                     <div class="form-group">
                                                                         <label class="form-label">First Name<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
@@ -550,11 +552,19 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-5">
+                                                                <div class="col-4">
                                                                     <div class="form-group">
                                                                         <label class="form-label">Last Name</label>
                                                                         <div class="col-md-12">
                                                                             <input type="text" id="LAST_NAME" name="LAST_NAME" class="form-control" placeholder="Enter Last Name" value="<?=$LAST_NAME?>">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Customer ID</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control" placeholder="Enter Last Name" value="<?=$CUSTOMER_ID?>">
                                                                         </div>
                                                                     </div>
                                                                 </div>
