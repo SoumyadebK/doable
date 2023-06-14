@@ -26,22 +26,19 @@ if (!empty($_POST)) {
     $GIFT_CERTIFICATE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     if (empty($_GET['id'])) {
         $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
-        $gift_certificate = explode("-", $_POST['GIFT_CERTIFICATE']);
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_NAME'] = ($gift_certificate[0])?:'';
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_CODE'] = ($gift_certificate[1])?:'';
+        $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
         $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
         $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
         $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
         $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
         $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
+        //pre_r($GIFT_CERTIFICATE_DATA);
         db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
         header("location:all_gift_certificates.php");
     } else {
         $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
-        $gift_certificate = explode("-", $_POST['GIFT_CERTIFICATE']);
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_NAME'] = ($gift_certificate[0])?:'';
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_CODE'] = ($gift_certificate[1])?:'';
+        $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
         $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
         $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
         $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
@@ -724,7 +721,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                                     $selected = 'selected';
                                                                 }
                                                                 ?>
-                                                                <option data-minimum="<?=$row->fields['MINIMUM_AMOUNT']?>" data-maximum="<?=$row->fields['MAXIMUM_AMOUNT']?>" value="<?php echo $row->fields['GIFT_CERTIFICATE']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
+                                                                <option data-minimum="<?=$row->fields['MINIMUM_AMOUNT']?>" data-maximum="<?=$row->fields['MAXIMUM_AMOUNT']?>" value="<?php echo $row->fields['PK_GIFT_CERTIFICATE_SETUP']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
                                                                 <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
