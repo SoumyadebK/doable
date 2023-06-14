@@ -35,7 +35,6 @@ if (!empty($_POST)) {
         $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
         $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
-        pre_r($GIFT_CERTIFICATE_DATA);
         db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
         header("location:all_gift_certificates.php");
     } else {
@@ -718,14 +717,14 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                         <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" class="form-control">
                                                             <option disabled selected>Select Gift Certificate Name</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>EFFECTIVE_DATE AND CURRENT_DATE()<END_DATE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                            $row = $db->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>EFFECTIVE_DATE AND CURRENT_DATE()<END_DATE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                                             while (!$row->EOF) {
                                                                 $selected = '';
                                                                 if($GIFT_CERTIFICATE!='' && $GIFT_CERTIFICATE== $row->fields['GIFT_CERTIFICATE']){
                                                                     $selected = 'selected';
                                                                 }
                                                                 ?>
-                                                                <option data-minimum="<?=$row->fields['MINIMUM_AMOUNT']?>" data-maximum="<?=$row->fields['MAXIMUM_AMOUNT']?>" value="<?php echo $row->fields['PK_GIFT_CERTIFICATE_SETUP']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
+                                                                <option data-minimum="<?=$row->fields['MINIMUM_AMOUNT']?>" data-maximum="<?=$row->fields['MAXIMUM_AMOUNT']?>" value="<?php echo $row->fields['GIFT_CERTIFICATE']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
                                                                 <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
