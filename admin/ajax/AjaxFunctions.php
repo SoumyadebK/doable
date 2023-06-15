@@ -55,8 +55,18 @@ function saveServiceCodeData($RESPONSE_DATA){
             $SERVICE_CODE_DATA['DESCRIPTION'] = $RESPONSE_DATA['SERVICE_CODE_DESCRIPTION'][$i];
             if ($RESPONSE_DATA['PK_SERVICE_CODE'][$i] > 0){
                 db_perform('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'update', "PK_SERVICE_CODE = ".$RESPONSE_DATA['PK_SERVICE_CODE'][$i]);
+                $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'][$i];
             } else {
                 db_perform('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
+                $PK_SERVICE_CODE = $db->insert_ID();
+            }
+
+            $db->Execute("DELETE FROM `DOA_SERVICE_BOOKING_CODE` WHERE `PK_SERVICE_CODE` = '$PK_SERVICE_CODE'");
+            for ($j = 0; $j < count($RESPONSE_DATA['PK_BOOKING_CODES'][$i]); $j++) {
+                $SERVICE_BOOKING_CODE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'];
+                $SERVICE_BOOKING_CODE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                $SERVICE_BOOKING_CODE_DATA['PK_BOOKING_CODES'] = $RESPONSE_DATA['PK_BOOKING_CODES'][$i][$j];
+                db_perform('DOA_SERVICE_BOOKING_CODE', $SERVICE_BOOKING_CODE_DATA, 'insert');
             }
         }
     }
