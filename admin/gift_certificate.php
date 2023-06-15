@@ -52,7 +52,7 @@ if (!empty($_POST)) {
 
 if (empty($_GET['id'])) {
     $PK_USER_MASTER = '';
-    $GIFT_CERTIFICATE ='';
+    $PK_GIFT_CERTIFICATE_SETUP ='';
     $DATE_OF_PURCHASE = '';
     $AMOUNT = '';
     $ACTIVE = '';
@@ -63,7 +63,7 @@ if (empty($_GET['id'])) {
         exit;
     }
     $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
-    $GIFT_CERTIFICATE = $res->fields['GIFT_CERTIFICATE_NAME'].'-'.$res->fields['GIFT_CERTIFICATE_CODE'];
+    $PK_GIFT_CERTIFICATE_SETUP = $res->fields['PK_GIFT_CERTIFICATE_SETUP'];
     $DATE_OF_PURCHASE = $res->fields['DATE_OF_PURCHASE'];
     $AMOUNT = $res->fields['AMOUNT'];
     $ACTIVE = $res->fields['ACTIVE'];
@@ -696,7 +696,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                         <select id="PK_USER_MASTER" name="PK_USER_MASTER" class="form-control">
                                                             <option disabled selected>Select Customer</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                                             while (!$row->EOF) {
                                                                 $selected = '';
                                                                 if($PK_USER_MASTER!='' && $PK_USER_MASTER == $row->fields['PK_USER_MASTER']){
@@ -714,10 +714,10 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                         <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" class="form-control">
                                                             <option disabled selected>Select Gift Certificate Name</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>EFFECTIVE_DATE AND CURRENT_DATE()<END_DATE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                            $row = $db->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>=EFFECTIVE_DATE AND CURRENT_DATE()<=END_DATE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                                             while (!$row->EOF) {
                                                                 $selected = '';
-                                                                if($GIFT_CERTIFICATE!='' && $GIFT_CERTIFICATE== $row->fields['GIFT_CERTIFICATE']){
+                                                                if($PK_GIFT_CERTIFICATE_SETUP != '' && $PK_GIFT_CERTIFICATE_SETUP == $row->fields['PK_GIFT_CERTIFICATE_SETUP']){
                                                                     $selected = 'selected';
                                                                 }
                                                                 ?>
