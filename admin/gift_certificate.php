@@ -21,34 +21,7 @@ $SECURITY_CODE = '';
 $EXPIRATION_DATE = '';
 $CHECK_NUMBER = '';
 $CHECK_DATE = '';
-
-if (!empty($_POST)) {
-    $GIFT_CERTIFICATE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    if (empty($_GET['id'])) {
-        $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
-        $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
-        $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
-        $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
-        $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-        $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
-        //pre_r($GIFT_CERTIFICATE_DATA);
-        db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
-        header("location:all_gift_certificates.php");
-    } else {
-        $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
-        $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
-        $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
-        $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
-        $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-        $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
-        header("location:all_gift_certificates.php");
-    }
-}
+$PAYMENT_INFO = '';
 
 if (empty($_GET['id'])) {
     $PK_USER_MASTER = '';
@@ -76,7 +49,7 @@ use Square\SquareClient;
 use Square\Environment;
 
 $user_payment_gateway = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER, DOA_LOCATION.PAYMENT_GATEWAY_TYPE, DOA_LOCATION.SECRET_KEY, DOA_LOCATION.PUBLISHABLE_KEY, DOA_LOCATION.ACCESS_TOKEN, DOA_LOCATION.APP_ID, DOA_LOCATION.LOCATION_ID, DOA_LOCATION.LOGIN_ID, DOA_LOCATION.TRANSACTION_KEY, DOA_LOCATION.AUTHORIZE_CLIENT_KEY FROM DOA_LOCATION INNER JOIN DOA_USER_MASTER ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
-if($user_payment_gateway->fields['PAYMENT_GATEWAY_TYPE']){
+if($user_payment_gateway->RecordCount() > 0){
     $PAYMENT_GATEWAY = $user_payment_gateway->fields['PAYMENT_GATEWAY_TYPE'];
     $SQUARE_APP_ID = $user_payment_gateway->fields['APP_ID'];
     $SQUARE_LOCATION_ID = $user_payment_gateway->fields['LOCATION_ID'];
@@ -115,7 +88,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
 
     unset($_POST['PK_ENROLLMENT_LEDGER']);
-    if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
+    if(empty($_POST['PK_ENROLLMENT_PAYMENT'])) {
         if ($_POST['PK_PAYMENT_TYPE'] == 1) {
             if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
                 require_once("../global/stripe-php-master/init.php");
@@ -131,7 +104,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     try {
                         $customer = $stripe->customers->create([
                             'email' => $user_master->fields['EMAIL_ID'],
-                            'name' => $user_master->fields['FIRST_NAME']." ".$user_master->fields['LAST_NAME'],
+                            'name' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
                             'phone' => $user_master->fields['PHONE'],
                             'description' => $user_master->fields['PK_USER'],
                         ]);
@@ -140,7 +113,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     }
 
                     $CUSTOMER_PAYMENT_ID = $customer->id;
-                    $STRIPE_DETAILS['PK_USER']  = $user_master->fields['PK_USER'];
+                    $STRIPE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
                     $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
                     $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
                     $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
@@ -170,8 +143,9 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     }
                 }
 
-                $AMOUNT = $_POST['AMOUNT']*100;
-                try {\Stripe\Stripe::setApiKey($SECRET_KEY);
+                $AMOUNT = $_POST['AMOUNT'] * 100;
+                try {
+                    \Stripe\Stripe::setApiKey($SECRET_KEY);
                     $payment_intent = \Stripe\PaymentIntent::create([
                         'amount' => $AMOUNT,
                         'currency' => 'USD',
@@ -344,91 +318,92 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 } catch (Exception $e) {
 
                 }
-                if($charge->paid == 1){
+                if ($charge->paid == 1) {
                     $PAYMENT_INFO = $charge->id;
-                }else{
+                } else {
                     $PAYMENT_INFO = 'Payment Unsuccessful.';
                 }
             }
 
             $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
             $wallet_data = $db->Execute("SELECT * FROM DOA_USER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_USER_WALLET DESC LIMIT 1");
-            $DEBIT_AMOUNT = ($WALLET_BALANCE>$AMOUNT)?$AMOUNT:$WALLET_BALANCE;
+            $DEBIT_AMOUNT = ($WALLET_BALANCE > $AMOUNT) ? $AMOUNT : $WALLET_BALANCE;
             if ($wallet_data->RecordCount() > 0) {
                 $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
             }
             $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
             $INSERT_DATA['DEBIT'] = $DEBIT_AMOUNT;
-            $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment ".$_POST['PK_ENROLLMENT_MASTER'];
+            $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment " . $_POST['PK_ENROLLMENT_MASTER'];
             $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
             db_perform('DOA_USER_WALLET', $INSERT_DATA, 'insert');
 
-        }else{
+        } else {
             $PAYMENT_INFO = 'Payment Done.';
         }
 
-        $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
-        $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-        $PAYMENT_DATA['AMOUNT'] = $_POST['AMOUNT'];
-        if ($_POST['PK_PAYMENT_TYPE'] == 7) {
-            $PAYMENT_DATA['REMAINING_AMOUNT'] = $_POST['REMAINING_AMOUNT'];
-            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER_REMAINING'];
-            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE_REMAINING']));
-        } elseif($_POST['PK_PAYMENT_TYPE'] == 2) {
-            $PAYMENT_DATA['REMAINING_AMOUNT'] = 0.00;
-            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
-            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));
+        if (!empty($_POST)) {
+            $GIFT_CERTIFICATE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+            if (empty($_GET['id'])) {
+                $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
+                $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
+                $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
+                $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
+                $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+                $GIFT_CERTIFICATE_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
+                $GIFT_CERTIFICATE_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));
+                $GIFT_CERTIFICATE_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
+                //pre_r($GIFT_CERTIFICATE_DATA);
+                db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
+                header("location:all_gift_certificates.php");
+            } else {
+                $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
+                $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
+                $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
+                $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
+                $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+                $GIFT_CERTIFICATE_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
+                $GIFT_CERTIFICATE_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));
+                $GIFT_CERTIFICATE_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+                $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
+                $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
+                db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
+                header("location:all_gift_certificates.php");
+            }
         }
-
-        $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
-        $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-        $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-
-        if($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-            $PAYMENT_DATA['NAME'] = $_POST['NAME'];
-            $PAYMENT_DATA['CARD_NUMBER'] = $_POST['CARD_NUMBER'];
-            $PAYMENT_DATA['EXPIRATION_DATE'] = $_POST['EXPIRATION_MONTH'] . "/" . $_POST['EXPIRATION_YEAR'];
-            $PAYMENT_DATA['SECURITY_CODE'] = $_POST['SECURITY_CODE'];
-        }
-
-        db_perform('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
-
-        $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
-        if ($enrollment_balance->RecordCount() > 0){
-            $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $enrollment_balance->fields['TOTAL_BALANCE_PAID']+$_POST['AMOUNT'];
-            $ENROLLMENT_BALANCE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-            $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
-        }else{
-            $ENROLLMENT_BALANCE_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-            $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $_POST['AMOUNT'];
-            $ENROLLMENT_BALANCE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-            $ENROLLMENT_BALANCE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-            db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
-        }
-
-        $PK_ENROLLMENT_PAYMENT = $db->insert_ID();
-        $ledger_record = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
-        $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
-        $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $PK_ENROLLMENT_LEDGER;
-        $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-        $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
-        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
-        $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
-        $LEDGER_DATA['PAID_AMOUNT'] = $ledger_record->fields['BILLED_AMOUNT'];
-        $LEDGER_DATA['BALANCE'] = 0.00;
-        $LEDGER_DATA['IS_PAID'] = 1;
-        $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-        $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
-        db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-        $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
-        db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
-    }else{
-        db_perform('DOA_ENROLLMENT_PAYMENT', $_POST, 'update'," PK_ENROLLMENT_PAYMENT =  '$_POST[PK_ENROLLMENT_PAYMENT]'");
-        $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
     }
+
+
+//        $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
+//        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
+//        $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+//        $PAYMENT_DATA['AMOUNT'] = $_POST['AMOUNT'];
+//        if ($_POST['PK_PAYMENT_TYPE'] == 7) {
+//            $PAYMENT_DATA['REMAINING_AMOUNT'] = $_POST['REMAINING_AMOUNT'];
+//            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER_REMAINING'];
+//            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE_REMAINING']));
+//        } elseif($_POST['PK_PAYMENT_TYPE'] == 2) {
+//            $PAYMENT_DATA['REMAINING_AMOUNT'] = 0.00;
+//            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
+//            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));
+//        }
+//
+//        $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
+//        $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+//        $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+
+//        if($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
+//            $PAYMENT_DATA['NAME'] = $_POST['NAME'];
+//            $PAYMENT_DATA['CARD_NUMBER'] = $_POST['CARD_NUMBER'];
+//            $PAYMENT_DATA['EXPIRATION_DATE'] = $_POST['EXPIRATION_MONTH'] . "/" . $_POST['EXPIRATION_YEAR'];
+//            $PAYMENT_DATA['SECURITY_CODE'] = $_POST['SECURITY_CODE'];
+//        }
+
+//        db_perform('DOA_GIFT_CERTIFICATE_MASTER', $PAYMENT_DATA, 'insert');
 
     header('location:all_gift_certificates.php');
 }
