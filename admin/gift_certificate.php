@@ -76,7 +76,7 @@ use Square\SquareClient;
 use Square\Environment;
 
 $user_payment_gateway = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER, DOA_LOCATION.PAYMENT_GATEWAY_TYPE, DOA_LOCATION.SECRET_KEY, DOA_LOCATION.PUBLISHABLE_KEY, DOA_LOCATION.ACCESS_TOKEN, DOA_LOCATION.APP_ID, DOA_LOCATION.LOCATION_ID, DOA_LOCATION.LOGIN_ID, DOA_LOCATION.TRANSACTION_KEY, DOA_LOCATION.AUTHORIZE_CLIENT_KEY FROM DOA_LOCATION INNER JOIN DOA_USER_MASTER ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
-if($user_payment_gateway->RecordCount() > 0){
+if($user_payment_gateway->fields['PAYMENT_GATEWAY_TYPE']){
     $PAYMENT_GATEWAY = $user_payment_gateway->fields['PAYMENT_GATEWAY_TYPE'];
     $SQUARE_APP_ID = $user_payment_gateway->fields['APP_ID'];
     $SQUARE_LOCATION_ID = $user_payment_gateway->fields['LOCATION_ID'];
@@ -687,7 +687,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
                             <div class="tab-content tabcontent-border">
                                 <div class="tab-pane active" id="gift_certificate" role="tabpanel">
-                                    <form id="gift_certificate_form" action="" method="post" enctype="multipart/form-data">
+                                    <form id="payment_confirmation_form" action="" method="post" enctype="multipart/form-data">
                                         <div class="p-20">
                                             <div class="row">
                                                 <div class="col-3">
@@ -763,60 +763,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                 </div>
                                             </div>
 
-                                            <div class="row" id="remaining_amount_div" style="display: none;">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Remaining Amount</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="REMAINING_AMOUNT" id="REMAINING_AMOUNT" class="form-control" readonly>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Payment Type</label>
-                                                        <div class="col-md-12">
-                                                            <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING" onchange="selectRemainingPaymentType(this)">
-                                                                <option value="">Select</option>
-                                                                <?php
-                                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
-                                                                while (!$row->EOF) { ?>
-                                                                    <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                                    <?php $row->MoveNext(); } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row remaining_payment_type_div" id="remaining_credit_card_payment" style="display: none;">
-                                                <div class="col-12">
-                                                    <div class="form-group" id="remaining_card_div">
-
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row remaining_payment_type_div" id="remaining_check_payment" style="display: none;">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Check Number</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="CHECK_NUMBER_REMAINING" class="form-control">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Check Date</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="CHECK_DATE_REMAINING" class="form-control datepicker-normal">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-
+                                            <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
                                             <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
                                                 <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
                                                     <div class="row" style="margin: auto;" id="card_list">
@@ -919,9 +866,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-
                                             </div>
 
                                             <?php if(!empty($_GET['id'])) { ?>
