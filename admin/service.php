@@ -290,7 +290,7 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 120px;">
+                                                        <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 5%;">
                                                             <div class="form-group justify-content-center">
                                                                 <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="1" <?=(($row->fields['IS_GROUP'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -305,7 +305,7 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 90px;">
+                                                        <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 5%;">
                                                             <div class="form-group" >
                                                                 <div class="col-md-12" style="margin-bottom: 10px">
                                                                     <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="1" <?=(($row->fields['IS_CHARGEABLE'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -381,7 +381,7 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 120px;">
+                                                        <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 5%;">
                                                             <div class="form-group">
                                                                 <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -396,7 +396,7 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 35px;">
+                                                        <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 5%;">
                                                             <div class="form-group" >
                                                                 <div class="col-md-12" style="height: 20px;margin-bottom: 35px;padding-left: 90px;">
                                                                     <label><input type="radio" name="IS_CHARGEABLE_0" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -619,7 +619,7 @@ if(empty($_GET['id'])){
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 120px;">
+                                            <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 5%;">
                                                 <div class="form-group">
                                                     <div class="col-md-12">
                                                         <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -634,7 +634,7 @@ if(empty($_GET['id'])){
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 90px;">
+                                            <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 5%;">
                                                 <div class="form-group" >
                                                     <div class="col-md-12" style="margin-bottom: 10px">
                                                         <label><input type="radio" name="IS_CHARGEABLE_${counter}" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
