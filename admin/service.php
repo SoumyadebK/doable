@@ -259,15 +259,22 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description" value="<?=$row->fields['DESCRIPTION']?>">
                                                             </div>
                                                         </div>
-                                                        <div class="col-1">
-                                                            <div class="form-group">
-                                                                <select class="form-control PK_BOOKING_CODES" name="PK_BOOKING_CODES[]">
-                                                                    <option value="">Select</option>
+                                                        <div class="col-1" style=" margin-bottom: auto">
+                                                            <div class="form-group multiselect-box">
+                                                                <select class="multi_sumo_select PK_BOOKING_CODES" name="PK_BOOKING_CODES[<?=$i?>][]" multiple>
                                                                     <?php
-                                                                    $booking_code = $db->Execute("SELECT * FROM DOA_BOOKING_CODES WHERE ACTIVE = 1");
-                                                                    while (!$booking_code->EOF) { ?>
-                                                                        <option value="<?php echo $booking_code->fields['PK_BOOKING_CODES'];?>" <?=($booking_code->fields['PK_BOOKING_CODES'] == $row->fields['PK_BOOKING_CODES'])?'selected':''?>><?=$booking_code->fields['BOOKING_NAME']?></option>
-                                                                        <?php $booking_code->MoveNext(); } ?>
+                                                                    $selected_booking_code = [];
+                                                                    if(!empty($_GET['id'])) {
+                                                                        $selected_booking_code_row = $db->Execute("SELECT `PK_BOOKING_CODES` FROM `DOA_SERVICE_BOOKING_CODE` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
+                                                                        while (!$selected_booking_code_row->EOF) {
+                                                                            $selected_booking_code[] = $selected_booking_code_row->fields['PK_BOOKING_CODES'];
+                                                                            $selected_booking_code_row->MoveNext();
+                                                                        }
+                                                                    }
+                                                                    $booking_row = $db->Execute("SELECT PK_BOOKING_CODES, BOOKING_NAME FROM DOA_BOOKING_CODES WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                    while (!$booking_row->EOF) { ?>
+                                                                        <option value="<?php echo $booking_row->fields['PK_BOOKING_CODES'];?>" <?=in_array($booking_row->fields['PK_BOOKING_CODES'], $selected_booking_code)?"selected":""?>><?=$booking_row->fields['BOOKING_NAME']?></option>
+                                                                        <?php $booking_row->MoveNext(); } ?>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -350,10 +357,9 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
                                                             </div>
                                                         </div>
-                                                        <div class="col-1">
-                                                            <div class="form-group">
-                                                                <select class="form-control PK_BOOKING_CODES" name="PK_BOOKING_CODES[]">
-                                                                    <option value="">Select</option>
+                                                        <div class="col-1" style="margin-bottom: auto">
+                                                            <div class="form-group multiselect-box">
+                                                                <select class="multi_sumo_select PK_BOOKING_CODES" name="PK_BOOKING_CODES[0][]" multiple>
                                                                     <?php
                                                                     $booking_code = $db->Execute("SELECT * FROM DOA_BOOKING_CODES WHERE ACTIVE = 1");
                                                                     while (!$booking_code->EOF) { ?>
@@ -588,10 +594,9 @@ if(empty($_GET['id'])){
                                                     <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
                                                 </div>
                                             </div>
-                                            <div class="col-1">
-                                                            <div class="form-group">
-                                                                <select class="form-control PK_BOOKING_CODES" name="PK_BOOKING_CODES[]">
-                                                                    <option value="">Select</option>
+                                            <div class="col-1" style="margin-bottom: auto">
+                                                            <div class="form-group multiselect-box">
+                                                                <select class="multi_sumo_select PK_BOOKING_CODES" name="PK_BOOKING_CODES[${counter}][]" multiple>
                                                                     <?php
                                                                         $booking_code = $db->Execute("SELECT * FROM DOA_BOOKING_CODES WHERE ACTIVE = 1");
                                                                         while (!$booking_code->EOF) { ?>
@@ -666,6 +671,7 @@ if(empty($_GET['id'])){
                                             </div>
                                         </div>`);
         counter++;
+        $('.multi_sumo_select').SumoSelect({placeholder: 'Select Services', selectAll: true});
     }
 
     function removeServiceCode(param) {
