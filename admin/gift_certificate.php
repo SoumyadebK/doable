@@ -26,20 +26,19 @@ if (!empty($_POST)) {
     $GIFT_CERTIFICATE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     if (empty($_GET['id'])) {
         $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_CODE'] = $_POST['GIFT_CERTIFICATE_CODE'];
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_NAME'] = $_POST['GIFT_CERTIFICATE_NAME'];
+        $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
         $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
         $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
         $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
         $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
         $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
+        //pre_r($GIFT_CERTIFICATE_DATA);
         db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
         header("location:all_gift_certificates.php");
     } else {
         $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_CODE'] = $_POST['GIFT_CERTIFICATE_CODE'];
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_NAME'] = $_POST['GIFT_CERTIFICATE_NAME'];
+        $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
         $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
         $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
         $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
@@ -53,8 +52,7 @@ if (!empty($_POST)) {
 
 if (empty($_GET['id'])) {
     $PK_USER_MASTER = '';
-    $GIFT_CERTIFICATE_CODE ='';
-    $GIFT_CERTIFICATE_NAME ='';
+    $GIFT_CERTIFICATE ='';
     $DATE_OF_PURCHASE = '';
     $AMOUNT = '';
     $ACTIVE = '';
@@ -65,8 +63,7 @@ if (empty($_GET['id'])) {
         exit;
     }
     $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
-    $GIFT_CERTIFICATE_CODE = $res->fields['GIFT_CERTIFICATE_CODE'];
-    $GIFT_CERTIFICATE_NAME = $res->fields['GIFT_CERTIFICATE_NAME'];
+    $GIFT_CERTIFICATE = $res->fields['GIFT_CERTIFICATE_NAME'].'-'.$res->fields['GIFT_CERTIFICATE_CODE'];
     $DATE_OF_PURCHASE = $res->fields['DATE_OF_PURCHASE'];
     $AMOUNT = $res->fields['AMOUNT'];
     $ACTIVE = $res->fields['ACTIVE'];
@@ -713,18 +710,20 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                 </div>
                                                 <div class="col-3">
                                                     <div class="form-group">
-                                                        <label class="form-label">Gift Certificate Code<span class="text-danger">*</span></label>
-                                                        <div>
-                                                            <input type="text" id="GIFT_CERTIFICATE_CODE" name="GIFT_CERTIFICATE_CODE" class="form-control" placeholder="Enter Gift Certificate Code" required value="<?php echo $GIFT_CERTIFICATE_CODE?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Gift Certificate Name</label>
-                                                        <div>
-                                                            <input type="text" id="GIFT_CERTIFICATE_NAME" name="GIFT_CERTIFICATE_NAME" class="form-control" placeholder="Enter Gift Certificate Name" required value="<?php echo $GIFT_CERTIFICATE_NAME?>">
-                                                        </div>
+                                                        <label class="form-label" for="GIFT_CERTIFICATE">Gift Certificate</label>
+                                                        <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" class="form-control">
+                                                            <option disabled selected>Select Gift Certificate Name</option>
+                                                            <?php
+                                                            $row = $db->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>EFFECTIVE_DATE AND CURRENT_DATE()<END_DATE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                            while (!$row->EOF) {
+                                                                $selected = '';
+                                                                if($GIFT_CERTIFICATE!='' && $GIFT_CERTIFICATE== $row->fields['GIFT_CERTIFICATE']){
+                                                                    $selected = 'selected';
+                                                                }
+                                                                ?>
+                                                                <option data-minimum="<?=$row->fields['MINIMUM_AMOUNT']?>" data-maximum="<?=$row->fields['MAXIMUM_AMOUNT']?>" value="<?php echo $row->fields['PK_GIFT_CERTIFICATE_SETUP']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
+                                                                <?php $row->MoveNext(); } ?>
+                                                        </select>
                                                     </div>
                                                 </div>
                                                 <div class="col-3">
@@ -739,8 +738,9 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                     <div class="form-group">
                                                         <label class="form-label">Amount</label>
                                                         <div class="col-md-12">
-                                                            <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT?>">
+                                                            <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT?>" onkeyup="calculateAmount(this)">
                                                         </div>
+                                                        <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;"></p>
                                                     </div>
                                                 </div>
                                                 <div class="col-3">
@@ -967,6 +967,19 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     $('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
     });
+
+    function calculateAmount(param) {
+        let MINIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('minimum');
+        let MAXIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('maximum');
+        let entered_amount = $(param).val();
+
+        if (parseFloat(entered_amount)>=parseFloat(MINIMUM) && parseFloat(entered_amount)<=parseFloat(MAXIMUM)) {
+            $('#number_of_payment_error').hide();
+        } else {
+            $('#number_of_payment_error').show();
+            $('#number_of_payment_error').text("Minimum Amount = "+MINIMUM+", Maximum Amount = "+MAXIMUM);
+        }
+    }
 
     function selectPaymentType(param){
         let paymentType = $("#PK_PAYMENT_TYPE option:selected").text();

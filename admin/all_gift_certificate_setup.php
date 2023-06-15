@@ -28,7 +28,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='gift_certificate.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='gift_certificate_setup.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
                     </div>
                 </div>
             </div>
@@ -41,11 +41,12 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                 <table id="myTable" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
-                                        <th>Customer</th>
-                                        <th>Gift Certificate Code</th>
                                         <th>Gift Certificate Name</th>
-                                        <th>Date of Purchase</th>
-                                        <th>Amount</th>
+                                        <th>Gift Certificate Code</th>
+                                        <th>Minimum Amount</th>
+                                        <th>Maximum Amount</th>
+                                        <th>Effective Date</th>
+                                        <th>End Date</th>
                                         <th>Action</th>
                                     </tr>
                                     </thead>
@@ -53,16 +54,17 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_CODE, DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_NAME, DOA_GIFT_CERTIFICATE_MASTER.DATE_OF_PURCHASE, DOA_GIFT_CERTIFICATE_MASTER.AMOUNT, DOA_GIFT_CERTIFICATE_MASTER.ACTIVE FROM `DOA_GIFT_CERTIFICATE_MASTER` INNER JOIN `DOA_GIFT_CERTIFICATE_SETUP` ON DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_SETUP=DOA_GIFT_CERTIFICATE_SETUP.PK_GIFT_CERTIFICATE_SETUP INNER JOIN `DOA_USER_MASTER` ON DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN `DOA_USERS` ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_GIFT_CERTIFICATE_MASTER.PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
+                                    $row = $db->Execute("SELECT PK_GIFT_CERTIFICATE_SETUP, GIFT_CERTIFICATE_CODE, GIFT_CERTIFICATE_NAME, EFFECTIVE_DATE, END_DATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, ACTIVE FROM `DOA_GIFT_CERTIFICATE_SETUP` WHERE PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
                                     while (!$row->EOF) { ?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=$row->fields['NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=$row->fields['GIFT_CERTIFICATE_CODE']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=$row->fields['GIFT_CERTIFICATE_NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=$row->fields['DATE_OF_PURCHASE']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=$row->fields['AMOUNT']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_SETUP']?>);"><?=$row->fields['GIFT_CERTIFICATE_NAME']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_SETUP']?>);"><?=$row->fields['GIFT_CERTIFICATE_CODE']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_SETUP']?>);"><?=$row->fields['MINIMUM_AMOUNT']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_SETUP']?>);"><?=$row->fields['MAXIMUM_AMOUNT']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_SETUP']?>);"><?=$row->fields['EFFECTIVE_DATE']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_SETUP']?>);"><?=$row->fields['END_DATE']?></td>
                                             <td>
-                                                <a href="gift_certificate.php?id=<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="gift_certificate_setup.php?id=<?=$row->fields['PK_GIFT_CERTIFICATE_SETUP']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
@@ -95,7 +97,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     }
     function editpage(id){
         //alert(i);
-        window.location.href = "gift_certificate.php?id="+id;
+        window.location.href = "gift_certificate_setup.php?id="+id;
     }
 </script>
 </body>
