@@ -44,7 +44,7 @@ function saveServiceCodeData($RESPONSE_DATA){
         for ($i = 0; $i < count($RESPONSE_DATA['SERVICE_CODE']); $i++) {
             $SERVICE_CODE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'];
             $SERVICE_CODE_DATA['PK_FREQUENCY'] = $RESPONSE_DATA['PK_FREQUENCY'][$i];
-            $SERVICE_CODE_DATA['PK_BOOKING_CODES'] = $RESPONSE_DATA['PK_BOOKING_CODES'][$i];
+            $SERVICE_CODE_DATA['PK_SCHEDULING_CODE'] = $RESPONSE_DATA['PK_SCHEDULING_CODE'][$i];
             $SERVICE_CODE_DATA['DURATION'] = $RESPONSE_DATA['DURATION'][$i];
             $SERVICE_CODE_DATA['IS_GROUP'] = $RESPONSE_DATA['IS_GROUP_'.$i];
             $SERVICE_CODE_DATA['CAPACITY'] = $RESPONSE_DATA['CAPACITY'][$i];
@@ -62,10 +62,10 @@ function saveServiceCodeData($RESPONSE_DATA){
             }
 
             $db->Execute("DELETE FROM `DOA_SERVICE_BOOKING_CODE` WHERE `PK_SERVICE_CODE` = '$PK_SERVICE_CODE'");
-            for ($j = 0; $j < count($RESPONSE_DATA['PK_BOOKING_CODES'][$i]); $j++) {
+            for ($j = 0; $j < count($RESPONSE_DATA['PK_SCHEDULING_CODE'][$i]); $j++) {
                 $SERVICE_BOOKING_CODE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'];
                 $SERVICE_BOOKING_CODE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
-                $SERVICE_BOOKING_CODE_DATA['PK_BOOKING_CODES'] = $RESPONSE_DATA['PK_BOOKING_CODES'][$i][$j];
+                $SERVICE_BOOKING_CODE_DATA['PK_SCHEDULING_CODE'] = $RESPONSE_DATA['PK_SCHEDULING_CODE'][$i][$j];
                 db_perform('DOA_SERVICE_BOOKING_CODE', $SERVICE_BOOKING_CODE_DATA, 'insert');
             }
         }

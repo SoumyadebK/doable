@@ -2,9 +2,9 @@
 require_once('../global/config.php');
 
 if (empty($_GET['id']))
-    $title = "Add Booking Events";
+    $title = "Add Scheduling Events";
 else
-    $title = "Edit Booking Events";
+    $title = "Edit Scheduling Events";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 1 ){
     header("location:../login.php");
@@ -13,19 +13,19 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if(!empty($_POST)){
     if(empty($_GET['id'])){
-        $EVENT_DATA['BOOKING_EVENT']  = $_POST['BOOKING_EVENT'];
+        $EVENT_DATA['SCHEDULING_EVENT']  = $_POST['SCHEDULING_EVENT'];
         $EVENT_DATA['ACTIVE'] = 1;
         $EVENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $EVENT_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_BOOKING_EVENT', $EVENT_DATA, 'insert');
+        db_perform('DOA_SCHEDULING_EVENT', $EVENT_DATA, 'insert');
     }else{
-        $EVENT_DATA['BOOKING_EVENT']  = $_POST['BOOKING_EVENT'];
+        $EVENT_DATA['SCHEDULING_EVENT']  = $_POST['SCHEDULING_EVENT'];
         $EVENT_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $EVENT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $EVENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_BOOKING_EVENT', $EVENT_DATA, 'update'," PK_BOOKING_EVENT =  '$_GET[id]'");
+        db_perform('DOA_SCHEDULING_EVENT', $EVENT_DATA, 'update'," PK_SCHEDULING_EVENT =  '$_GET[id]'");
     }
-    header("location:all_booking_events.php");
+    header("location:all_scheduling_events.php");
 }
 
 $ROLES	       = '';
@@ -34,12 +34,12 @@ if(empty($_GET['id'])){
     $ROLES = '';
     $ACTIVE = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_BOOKING_EVENT` WHERE PK_BOOKING_EVENT = '$_GET[id]'");
+    $res = $db->Execute("SELECT * FROM `DOA_SCHEDULING_EVENT` WHERE PK_SCHEDULING_EVENT = '$_GET[id]'");
     if($res->RecordCount() == 0){
-        header("location:all_booking_events.php");
+        header("location:all_scheduling_events.php");
         exit;
     }
-    $ROLES = $res->fields['BOOKING_EVENT'];
+    $ROLES = $res->fields['SCHEDULING_EVENT'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
 ?>
@@ -61,7 +61,7 @@ if(empty($_GET['id'])){
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item"><a href="all_booking.php">All Booking Events</a></li>
+                            <li class="breadcrumb-item"><a href="all_scheduling_events.php">All Scheduling Events</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
 
@@ -78,9 +78,9 @@ if(empty($_GET['id'])){
                                 <div class="row">
                                     <div class="col-6">
                                         <div class="form-group">
-                                            <label class="col-md-12" for="example-text">Booking Event<span class="text-danger">*</span></label>
+                                            <label class="col-md-12" for="example-text">Scheduling Event<span class="text-danger">*</span></label>
                                             <div class="col-md-12">
-                                                <input type="text" id="BOOKING_EVENT" name="BOOKING_EVENT" class="form-control" placeholder="Enter Booking Event" required value="<?php echo $ROLES?>">
+                                                <input type="text" id="SCHEDULING_EVENT" name="SCHEDULING_EVENT" class="form-control" placeholder="Enter Scheduling Event" required value="<?php echo $SCHEDULING_EVENT?>">
                                             </div>
                                         </div>
                                     </div>
@@ -101,7 +101,7 @@ if(empty($_GET['id'])){
                                 <? } ?>
 
                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
-                                <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_booking_events.php'">Cancel</button>
+                                <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_scheduling_events.php'">Cancel</button>
                             </form>
                         </div>
                     </div>

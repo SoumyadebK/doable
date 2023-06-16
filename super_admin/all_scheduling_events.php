@@ -1,6 +1,6 @@
 <?php
 require_once('../global/config.php');
-$title = "All Booking Events";
+$title = "All Scheduling Events";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 1 ){
     header("location:../login.php");
@@ -27,7 +27,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='add_booking_events.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='add_scheduling_events.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
                     </div>
                 </div>
             </div>
@@ -42,7 +42,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <thead>
                                     <tr>
                                         <th>No</th>
-                                        <th>Booking Event</th>
+                                        <th>Scheduling Event</th>
                                         <th>Actions</th>
                                     </tr>
                                     </thead>
@@ -50,13 +50,13 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT * FROM `DOA_BOOKING_EVENT`");
+                                    $row = $db->Execute("SELECT * FROM `DOA_SCHEDULING_EVENT`");
                                     while (!$row->EOF) { ?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_BOOKING_EVENT']?>);"><?=$i;?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_BOOKING_EVENT']?>);"><?=$row->fields['BOOKING_EVENT']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_EVENT']?>);"><?=$i;?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_EVENT']?>);"><?=$row->fields['SCHEDULING_EVENT']?></td>
                                             <td>
-                                                <a href="add_booking_events.php?id=<?=$row->fields['PK_BOOKING_EVENT']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="add_scheduling_events.php?id=<?=$row->fields['PK_SCHEDULING_EVENT']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
@@ -82,7 +82,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
         $('#myTable').DataTable();
     });
     function editpage(id){
-        window.location.href = "add_booking_events.php?id="+id;
+        window.location.href = "add_scheduling_events.php?id="+id;
     }
 </script>
 </body>

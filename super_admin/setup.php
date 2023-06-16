@@ -59,7 +59,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <li><a href="all_account_types.php">Account Types</a></li>
                                         <li><a href="all_business_types.php">Business Types</a></li>
                                         <li><a href="csv_uploader.php">CSV Uploader</a></li>
-                                        <li><a href="all_booking_events.php">Booking Event</a></li>
+                                        <li><a href="all_scheduling_events.php">Scheduling Event</a></li>
                                         <li><a href="all_event_actions.php">Event Action</a></li>
                                     </ul>
                                 </div>
