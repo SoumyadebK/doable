@@ -2,7 +2,7 @@
 if (!empty($_GET['view'])) {
     $view = $_GET['view'];
 } else {
-    $view = 'table';
+    $view = 'list';
 }
 ?>
 

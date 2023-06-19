@@ -51,7 +51,11 @@ $page_first_result = ($page-1) * $results_per_page;
         <div class="container-fluid">
             <div class="row page-titles">
                 <div class="col-md-2 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+                    <?php if ($status_check=='inactive') { ?>
+                    <h4 class="text-themecolor">Not Active Customers</h4>
+                    <?php } elseif ($status_check=='active') { ?>
+                    <h4 class="text-themecolor">Active Customers</h4>
+                    <?php } ?>
                 </div>
 
                 <?php if ($status_check=='inactive') { ?>

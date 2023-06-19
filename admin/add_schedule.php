@@ -356,6 +356,22 @@ if(empty($_GET['id'])){
                                                     <p><?=$selected_service_code?></p>
                                                 </div>
                                             </div>
+                                            <div class="col-3">
+                                                <div class="form-group">
+                                                    <label class="form-label">Scheduling Code : <span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>
+                                                        <span id="cancel_scheduling_code" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelSchedulingCode()">Cancel</a></span></label><br>
+                                                    <select class="form-control" name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" style="display: none;" onchange="changeAppointmentSchedulingCode(this)">
+                                                        <option value="">Select Scheduling Code</option>
+                                                        <?php
+                                                        $selected_scheduling_code = '';
+                                                        $row = $db->Execute("SELECT DOA_SERVICE_SCHEDULING_CODE.PK_SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_NAME FROM `DOA_SERVICE_SCHEDULING_CODE` INNER JOIN DOA_SCHEDULING_CODE ON DOA_SERVICE_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE WHERE `ACTIVE` = 1 AND PK_SERVICE_MASTER = ".$PK_SERVICE_MASTER);
+                                                        while (!$row->EOF) { if($PK_APPOINTMENT_STATUS==$row->fields['PK_SCHEDULING_CODE']){$selected_scheduling_code=$row->fields['SCHEDULING_NAME'];}?>
+                                                            <option value="<?php echo $row->fields['PK_SCHEDULING_CODE'];?>" <?=($PK_APPOINTMENT_STATUS==$row->fields['PK_SCHEDULING_CODE'])?'selected':''?>><?=$row->fields['SCHEDULING_NAME']?></option>
+                                                            <?php $row->MoveNext(); } ?>
+                                                    </select>
+                                                    <p id="appointment_scheduling_code"><?=$selected_scheduling_code?></p>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-3">

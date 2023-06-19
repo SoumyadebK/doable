@@ -61,12 +61,12 @@ function saveServiceCodeData($RESPONSE_DATA){
                 $PK_SERVICE_CODE = $db->insert_ID();
             }
 
-            $db->Execute("DELETE FROM `DOA_SERVICE_BOOKING_CODE` WHERE `PK_SERVICE_CODE` = '$PK_SERVICE_CODE'");
+            $db->Execute("DELETE FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_CODE` = '$PK_SERVICE_CODE'");
             for ($j = 0; $j < count($RESPONSE_DATA['PK_SCHEDULING_CODE'][$i]); $j++) {
                 $SERVICE_BOOKING_CODE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'];
                 $SERVICE_BOOKING_CODE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
                 $SERVICE_BOOKING_CODE_DATA['PK_SCHEDULING_CODE'] = $RESPONSE_DATA['PK_SCHEDULING_CODE'][$i][$j];
-                db_perform('DOA_SERVICE_BOOKING_CODE', $SERVICE_BOOKING_CODE_DATA, 'insert');
+                db_perform('DOA_SERVICE_SCHEDULING_CODE', $SERVICE_BOOKING_CODE_DATA, 'insert');
             }
         }
     }
@@ -1249,7 +1249,7 @@ function saveCommentData($RESPONSE_DATA){
     global $db;
     $COMMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     $COMMENT_DATA['COMMENT'] = $RESPONSE_DATA['COMMENT'];
-    $COMMENT_DATA['COMMENT_DATE'] = $RESPONSE_DATA['COMMENT_DATE'];
+    $COMMENT_DATA['COMMENT_DATE'] = date("Y-m-d");
     $COMMENT_DATA['FOR_PK_USER'] = $RESPONSE_DATA['PK_USER'];
     $COMMENT_DATA['BY_PK_USER']  = $_SESSION['PK_USER'];
 

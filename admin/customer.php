@@ -1842,12 +1842,6 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                             <label class="form-label">Comments</label>
                                                                             <textarea class="form-control" rows="10" name="COMMENT" id="COMMENT" required></textarea>
                                                                         </div>
-
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Date</label>
-                                                                            <input type="date" class="form-control" name="COMMENT_DATE" id="COMMENT_DATE" required>
-                                                                        </div>
-
                                                                         <div class="form-group" id="comment_active" style="display: none;">
                                                                             <label class="form-label">Active</label>
                                                                             <div>
