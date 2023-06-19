@@ -650,6 +650,7 @@ if(!empty($_POST))
                     $PK_ENROLLMENT_SERVICE = ($enrollment_data->RecordCount() > 0) ? $enrollment_data->fields['PK_ENROLLMENT_SERVICE'] : 0;
 
                     if ($PK_SERVICE_MASTER == 0 && $PK_SERVICE_CODE == 0 && $PK_ENROLLMENT_MASTER == 0 && $PK_ENROLLMENT_SERVICE) {
+
                         $PK_SERVICE_MASTER = $PK_SERVICE_MASTER_STANDARD;
                         $PK_SERVICE_CODE = $PK_SERVICE_CODE_STANDARD;
                         $checkEnrollmentExist = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
@@ -745,7 +746,6 @@ if(!empty($_POST))
                     break;
             }
             $lineNumber++;
-            var_dump($getData);
         }
         // Close opened CSV file
         fclose($csvFile);
