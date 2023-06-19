@@ -214,7 +214,7 @@ $CLOSE_TIME = '22:00:00';
                 <div class="col-md-4 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
-                <div class="col-md-4 align-self-center text-center">
+                <div class="col-md-4 align-self-center text-center" >
                     <div class="d-flex justify-content-center align-items-center">
                         <button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=group_class'"><i class="fa fa-plus-circle"></i> Group Class</button>
                         <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=int_app'"><i class="fa fa-plus-circle"></i> INT APP</button>

@@ -31,11 +31,11 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                 </div>
                 <?php if ($status_check=='inactive') { ?>
                     <div class="col-md-3" >
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_users.php?status=active'"><i class="fa fa-user"></i> Active</button>
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_users.php?status=active'"><i class="fa fa-user"></i> Show Active</button>
                     </div>
                 <?php } elseif ($status_check=='active') { ?>
                     <div class="col-md-3" >
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_users.php?status=inactive'"><i class="fa fa-user-times"></i> Not Active</button>
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_users.php?status=inactive'"><i class="fa fa-user-times"></i> Show Not Active</button>
                     </div>
                 <?php } ?>
                 <div class="col-md-4 align-self-center text-end">
