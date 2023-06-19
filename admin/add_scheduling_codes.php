@@ -2,9 +2,9 @@
 require_once('../global/config.php');
 
 if (empty($_GET['id']))
-    $title = "Add Booking Codes";
+    $title = "Add Scheduling Codes";
 else
-    $title = "Edit Booking Codes";
+    $title = "Edit Scheduling Codes";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -12,47 +12,47 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 }
 
 if (!empty($_POST)) {
-    //$BOOKING_DATA = $_POST;
-    $BOOKING_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    //$SCHEDULING_DATA = $_POST;
+    $SCHEDULING_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     if ($_GET['id'] == '') {
-        $BOOKING_DATA['BOOKING_CODE'] = $_POST['BOOKING_CODE'];
-        $BOOKING_DATA['BOOKING_NAME'] = $_POST['BOOKING_NAME'];
-        $BOOKING_DATA['PK_BOOKING_EVENT'] = $_POST['PK_BOOKING_EVENT'];
-        $BOOKING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
-        $BOOKING_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $BOOKING_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        $BOOKING_DATA['ACTIVE'] = 1;
-        db_perform('DOA_BOOKING_CODES', $BOOKING_DATA, 'insert');
-        header("location:all_booking_codes.php");
+        $SCHEDULING_DATA['SCHEDULING_CODE'] = $_POST['SCHEDULING_CODE'];
+        $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
+        $SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
+        $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
+        $SCHEDULING_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $SCHEDULING_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        $SCHEDULING_DATA['ACTIVE'] = 1;
+        db_perform('DOA_SCHEDULING_CODE', $SCHEDULING_DATA, 'insert');
+        header("location:all_scheduling_codes.php");
     } else {
-        $BOOKING_DATA['BOOKING_CODE'] = $_POST['BOOKING_CODE'];
-        $BOOKING_DATA['BOOKING_NAME'] = $_POST['BOOKING_NAME'];
-        $BOOKING_DATA['PK_BOOKING_EVENT'] = $_POST['PK_BOOKING_EVENT'];
-        $BOOKING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
-        $BOOKING_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        $BOOKING_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $BOOKING_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_BOOKING_CODES', $BOOKING_DATA, 'update', " PK_BOOKING_CODES = '$_GET[id]'");
-        header("location:all_booking_codes.php");
+        $SCHEDULING_DATA['SCHEDULING_CODE'] = $_POST['SCHEDULING_CODE'];
+        $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
+        $SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
+        $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
+        $SCHEDULING_DATA['ACTIVE'] = $_POST['ACTIVE'];
+        $SCHEDULING_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+        $SCHEDULING_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform('DOA_SCHEDULING_CODE', $SCHEDULING_DATA, 'update', " PK_SCHEDULING_CODE = '$_GET[id]'");
+        header("location:all_scheduling_codes.php");
     }
 
 }
 
 if (empty($_GET['id'])) {
-    $BOOKING_CODE      = '';
-    $BOOKING_NAME            = '';
-    $PK_BOOKING_EVENT     = '';
+    $SCHEDULING_CODE      = '';
+    $SCHEDULING_NAME            = '';
+    $PK_SCHEDULING_EVENT     = '';
     $PK_EVENT_ACTION            = '';
     $ACTIVE             = '';
 } else {
-    $res = $db->Execute("SELECT * FROM DOA_BOOKING_CODES WHERE PK_BOOKING_CODES = '$_GET[id]'");
+    $res = $db->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
-        header("location:all_booking_codes.php");
+        header("location:all_scheduling_codes.php");
         exit;
     }
-    $BOOKING_CODE      = $res->fields['BOOKING_CODE'];
-    $BOOKING_NAME      = $res->fields['BOOKING_NAME'];
-    $PK_BOOKING_EVENT  = $res->fields['PK_BOOKING_EVENT'];
+    $SCHEDULING_CODE      = $res->fields['SCHEDULING_CODE'];
+    $SCHEDULING_NAME      = $res->fields['SCHEDULING_NAME'];
+    $PK_SCHEDULING_EVENT  = $res->fields['PK_SCHEDULING_EVENT'];
     $PK_EVENT_ACTION   = $res->fields['PK_EVENT_ACTION'];
     $ACTIVE            = $res->fields['ACTIVE'];
 }
@@ -76,7 +76,7 @@ if (empty($_GET['id'])) {
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item"><a href="all_booking_codes.php">All Booking Codes</a></li>
+                            <li class="breadcrumb-item"><a href="all_scheduling_codes.php">All Scheduling Codes</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
 
@@ -91,34 +91,34 @@ if (empty($_GET['id'])) {
                             <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
 
                                 <div class="col-md-12 mb-3">
-                                    <label for="BOOKING_CODE">Booking Code</label>
-                                    <input type="text" class="form-control" id="BOOKING_CODE" name="BOOKING_CODE" value="<?php echo $BOOKING_CODE ?>" required>
+                                    <label for="SCHEDULING_CODE">Scheduling Code</label>
+                                    <input type="text" class="form-control" id="SCHEDULING_CODE" name="SCHEDULING_CODE" value="<?php echo $SCHEDULING_CODE ?>" required>
                                     <div class="invalid-feedback">
-                                        Enter Booking Code
+                                        Enter Scheduling Code
                                     </div>
                                 </div>
 
                                 <div class="col-md-12 mb-3">
-                                    <label for="BOOKING_NAME">Booking Name</label>
-                                    <input type="text" class="form-control" id="BOOKING_NAME" name="BOOKING_NAME" value="<?php echo $BOOKING_NAME ?>" required>
+                                    <label for="SCHEDULING_NAME">Scheduling Name</label>
+                                    <input type="text" class="form-control" id="SCHEDULING_NAME" name="SCHEDULING_NAME" value="<?php echo $SCHEDULING_NAME ?>" required>
                                     <div class="invalid-feedback">
-                                        Enter Booking Name
+                                        Enter Scheduling Name
                                     </div>
                                 </div>
 
                                 <div class="col-md-12 mb-3">
-                                    <label for="PK_BOOKING_EVENT">Booking Event</label>
-                                    <select id="PK_BOOKING_EVENT" name="PK_BOOKING_EVENT" class="form-control">
-                                        <option disabled selected>Select Booking Event</option>
+                                    <label for="PK_SCHEDULING_EVENT">Scheduling Event</label>
+                                    <select id="PK_SCHEDULING_EVENT" name="PK_SCHEDULING_EVENT" class="form-control">
+                                        <option disabled selected>Select Scheduling Event</option>
                                         <?php
-                                        $row = $db->Execute("SELECT PK_BOOKING_EVENT, BOOKING_EVENT FROM DOA_BOOKING_EVENT WHERE ACTIVE = 1");
+                                        $row = $db->Execute("SELECT PK_SCHEDULING_EVENT, SCHEDULING_EVENT FROM DOA_SCHEDULING_EVENT WHERE ACTIVE = 1");
                                         while (!$row->EOF) {
                                             $selected = '';
-                                            if($PK_BOOKING_EVENT!='' && $PK_BOOKING_EVENT == $row->fields['PK_BOOKING_EVENT']){
+                                            if($PK_SCHEDULING_EVENT!='' && $PK_SCHEDULING_EVENT == $row->fields['PK_SCHEDULING_EVENT']){
                                                 $selected = 'selected';
                                             }
                                             ?>
-                                            <option value="<?php echo $row->fields['PK_BOOKING_EVENT']; ?>" <?php echo $selected ;?>><?php echo $row->fields['BOOKING_EVENT']; ?></option>
+                                            <option value="<?php echo $row->fields['PK_SCHEDULING_EVENT']; ?>" <?php echo $selected ;?>><?php echo $row->fields['SCHEDULING_EVENT']; ?></option>
                                             <?php $row->MoveNext(); } ?>
                                     </select>
                                 </div>
@@ -157,7 +157,7 @@ if (empty($_GET['id'])) {
 
 
                                 <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Save'; } else { echo 'Update'; }?></button>
-                                <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_booking_codes.php'" >Cancel</button>
+                                <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_scheduling_codes.php'" >Cancel</button>
                             </form>
                         </div>
                     </div>
