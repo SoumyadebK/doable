@@ -57,7 +57,21 @@ function getCustomer($customer_id) {
 function getServiceMaster($service_id) {
     global $db1;
     $service_name_taker = $db1->Execute("SELECT service_name FROM service_codes WHERE service_id = '$service_id'");
-    return $service_name_taker->fields['service_name'];
+    if ($service_name_taker->RecordCount() > 0) {
+        return $service_name_taker->fields['service_name'];
+    } else {
+        return 0;
+    }
+}
+
+function getBookingCode($booking_code) {
+    global $db1;
+    $result = $db1->Execute("SELECT booking_name FROM booking_codes WHERE booking_code = '$booking_code'");
+    if ($result->RecordCount() > 0) {
+        return $result->fields['booking_name'];
+    } else {
+        return 0;
+    }
 }
 
 function getEnrollmentType($enrollmentTypeId) {

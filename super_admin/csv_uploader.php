@@ -36,8 +36,8 @@ if(!empty($_POST))
         $lineNumber = 1;
 
         $standardServicePkId = $db->Execute("SELECT PK_SERVICE_CODE, PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE SERVICE_CODE LIKE 'S-1'");
-        $PK_SERVICE_CODE = $standardServicePkId->fields['PK_SERVICE_CODE'];
-        $PK_SERVICE_MASTER = $standardServicePkId->fields['PK_SERVICE_MASTER'];
+        $PK_SERVICE_CODE_STANDARD = $standardServicePkId->fields['PK_SERVICE_CODE'];
+        $PK_SERVICE_MASTER_STANDARD = $standardServicePkId->fields['PK_SERVICE_MASTER'];
 
         // Parse data from CSV file line by line
         while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE)
@@ -620,6 +620,7 @@ if(!empty($_POST))
                     $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                     $studentId = $getData[3];
                     $getEmail = getCustomer($studentId);
+                    $PK_USER_MASTER = 0;
                     if ($getEmail !== 0) {
                         $doableUserId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.EMAIL_ID='$getEmail' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
                         $PK_USER_MASTER = ($doableUserId->RecordCount() > 0) ? $doableUserId->fields['PK_USER_MASTER'] : NULL;
@@ -636,52 +637,69 @@ if(!empty($_POST))
                         $INSERT_DATA['SERVICE_PROVIDER_ID'] = NULL;
                     }
 
-                    $checkEnrollmentExist = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
-                    if ($checkEnrollmentExist->RecordCount() > 0) {
-                        $PK_ENROLLMENT_MASTER = $checkEnrollmentExist->fields['PK_ENROLLMENT_MASTER'];
-                        $PK_ENROLLMENT_SERVICE = $checkEnrollmentExist->fields['PK_ENROLLMENT_SERVICE'];
-                    } else {
-                        $ENROLLMENT_DATA['ENROLLMENT_ID'] = 0;
-                        $ENROLLMENT_DATA['ENROLLMENT_NAME'] = 'Standard (S-1)';
-                        $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_POST[PK_ACCOUNT_MASTER]'");
-                        if ($account_data->RecordCount() > 0) {
-                            $enrollment_char = $account_data->fields['ENROLLMENT_ID_CHAR'];
-                        } else {
-                            $enrollment_char = 'ENR';
-                        }
-                        $enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_POST[PK_ACCOUNT_MASTER]' ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-                        if ($enrollment_data->RecordCount() > 0) {
-                            $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']);
-                            $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . (intval($last_enrollment_id) + 1);
-                        } else {
-                            $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . $account_data->fields['ENROLLMENT_ID_NUM'];
-                        }
+                    $getService = getServiceMaster($getData[9]);
+                    $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$getService'");
+                    $PK_SERVICE_MASTER = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_MASTER'] : 0;
 
-                        $ENROLLMENT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $customerId = $getData[4];
-                        $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID='$customerId' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
-                        $ENROLLMENT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-                        $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = '';
-                        $ENROLLMENT_DATA['ENROLLMENT_BY_ID'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $ENROLLMENT_DATA['ACTIVE'] = 1;
-                        $ENROLLMENT_DATA['STATUS'] = "A";
-                        $ENROLLMENT_DATA['CREATED_BY'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $ENROLLMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                        db_perform('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'insert');
-                        $PK_ENROLLMENT_MASTER = $db->insert_ID();
+                    $getServiceCode = getBookingCode($getData[14]);
+                    $doableServiceCode = $db->Execute("SELECT PK_SERVICE_CODE FROM DOA_SERVICE_CODE WHERE SERVICE_CODE='$getServiceCode'");
+                    $PK_SERVICE_CODE = ($doableServiceCode->RecordCount() > 0) ? $doableServiceCode->fields['PK_SERVICE_CODE'] : 0;
 
-                        $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                        $SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
-                        $SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
-                        $SERVICE_DATA['FREQUENCY'] = 0;
-                        $SERVICE_DATA['SERVICE_DETAILS'] = 'Standard Enrollment';
-                        $SERVICE_DATA['NUMBER_OF_SESSION'] = 100;
-                        $SERVICE_DATA['PRICE_PER_SESSION'] = 0;
-                        $SERVICE_DATA['TOTAL'] = 0;
-                        $SERVICE_DATA['DISCOUNT'] = 0;
-                        $SERVICE_DATA['FINAL_AMOUNT'] = 0;
-                        db_perform('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
-                        $PK_ENROLLMENT_SERVICE = $db->insert_ID();
+                    $enrollment_data = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER'");
+                    $PK_ENROLLMENT_MASTER = ($enrollment_data->RecordCount() > 0) ? $enrollment_data->fields['PK_ENROLLMENT_MASTER'] : 0;
+                    $PK_ENROLLMENT_SERVICE = ($enrollment_data->RecordCount() > 0) ? $enrollment_data->fields['PK_ENROLLMENT_SERVICE'] : 0;
+
+                    if ($PK_SERVICE_MASTER == 0 && $PK_SERVICE_CODE == 0 && $PK_ENROLLMENT_MASTER == 0 && $PK_ENROLLMENT_SERVICE) {
+
+                        $PK_SERVICE_MASTER = $PK_SERVICE_MASTER_STANDARD;
+                        $PK_SERVICE_CODE = $PK_SERVICE_CODE_STANDARD;
+                        $checkEnrollmentExist = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
+                        if ($checkEnrollmentExist->RecordCount() > 0) {
+                            $PK_ENROLLMENT_MASTER = $checkEnrollmentExist->fields['PK_ENROLLMENT_MASTER'];
+                            $PK_ENROLLMENT_SERVICE = $checkEnrollmentExist->fields['PK_ENROLLMENT_SERVICE'];
+                        } else {
+                            $ENROLLMENT_DATA['ENROLLMENT_ID'] = 0;
+                            $ENROLLMENT_DATA['ENROLLMENT_NAME'] = 'Standard (S-1)';
+                            $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_POST[PK_ACCOUNT_MASTER]'");
+                            if ($account_data->RecordCount() > 0) {
+                                $enrollment_char = $account_data->fields['ENROLLMENT_ID_CHAR'];
+                            } else {
+                                $enrollment_char = 'ENR';
+                            }
+                            $enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_POST[PK_ACCOUNT_MASTER]' ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+                            if ($enrollment_data->RecordCount() > 0) {
+                                $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']);
+                                $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . (intval($last_enrollment_id) + 1);
+                            } else {
+                                $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . $account_data->fields['ENROLLMENT_ID_NUM'];
+                            }
+
+                            $ENROLLMENT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                            $customerId = $getData[4];
+                            $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID='$customerId' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
+                            $ENROLLMENT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                            $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = '';
+                            $ENROLLMENT_DATA['ENROLLMENT_BY_ID'] = $_POST['PK_ACCOUNT_MASTER'];
+                            $ENROLLMENT_DATA['ACTIVE'] = 1;
+                            $ENROLLMENT_DATA['STATUS'] = "A";
+                            $ENROLLMENT_DATA['CREATED_BY'] = $_POST['PK_ACCOUNT_MASTER'];
+                            $ENROLLMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                            db_perform('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'insert');
+                            $PK_ENROLLMENT_MASTER = $db->insert_ID();
+
+                            $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                            $SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                            $SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                            $SERVICE_DATA['FREQUENCY'] = 0;
+                            $SERVICE_DATA['SERVICE_DETAILS'] = 'Standard Enrollment';
+                            $SERVICE_DATA['NUMBER_OF_SESSION'] = 100;
+                            $SERVICE_DATA['PRICE_PER_SESSION'] = 0;
+                            $SERVICE_DATA['TOTAL'] = 0;
+                            $SERVICE_DATA['DISCOUNT'] = 0;
+                            $SERVICE_DATA['FINAL_AMOUNT'] = 0;
+                            db_perform('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
+                            $PK_ENROLLMENT_SERVICE = $db->insert_ID();
+                        }
                     }
 
                     $INSERT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
@@ -728,7 +746,6 @@ if(!empty($_POST))
                     break;
             }
             $lineNumber++;
-            var_dump($getData);
         }
         // Close opened CSV file
         fclose($csvFile);

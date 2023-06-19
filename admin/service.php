@@ -204,7 +204,7 @@ if(empty($_GET['id'])){
                                                             <label>Description</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-1" style="text-align: center;">
+                                                    <div class="col-2" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label>Scheduling Code</label>
                                                         </div>
@@ -234,11 +234,11 @@ if(empty($_GET['id'])){
                                                             <label>Price</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-1" style="text-align: center;">
+                                                    <!--<div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label id="number_of_sessions">Number of Sessions</label>
                                                         </div>
-                                                    </div>
+                                                    </div>-->
                                                 </div>
 
 
@@ -259,7 +259,7 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description" value="<?=$row->fields['DESCRIPTION']?>">
                                                             </div>
                                                         </div>
-                                                        <div class="col-1" style=" margin-bottom: auto">
+                                                        <div class="col-2" style=" margin-bottom: auto">
                                                             <div class="form-group multiselect-box">
                                                                 <select class="multi_sumo_select PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[<?=$i?>][]" multiple>
                                                                     <?php
@@ -274,7 +274,7 @@ if(empty($_GET['id'])){
                                                                     $booking_row = $db->Execute("SELECT PK_SCHEDULING_CODE, SCHEDULING_NAME FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                                     while (!$booking_row->EOF) { ?>
                                                                         <option value="<?php echo $booking_row->fields['PK_SCHEDULING_CODE'];?>" <?=in_array($booking_row->fields['PK_SCHEDULING_CODE'], $selected_booking_code)?"selected":""?>><?=$booking_row->fields['SCHEDULING_NAME']?></option>
-                                                                        <?php $booking_row->MoveNext(); } ?>
+                                                                    <?php $booking_row->MoveNext(); } ?>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -330,13 +330,13 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                <div class="col-1">
-                                                    <div class="form-group number_of_sessions_div" style="display: <?=(($IS_PACKAGE == 0) ? 'none' : '')?>">
-                                                        <div class="col-md-12" >
-                                                            <input type="number" class="form-control" name="NUMBER_OF_SESSIONS[]" id="NUMBER_OF_SESSIONS" value="<?=$row->fields['NUMBER_OF_SESSIONS']?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                        <!--<div class="col-1">
+                                                            <div class="form-group number_of_sessions_div" style="display: <?php /*=(($IS_PACKAGE == 0) ? 'none' : '')*/?>">
+                                                                <div class="col-md-12" >
+                                                                    <input type="number" class="form-control" name="NUMBER_OF_SESSIONS[]" id="NUMBER_OF_SESSIONS" value="<?php /*=$row->fields['NUMBER_OF_SESSIONS']*/?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>-->
                                                         <div class="col-1">
                                                             <div class="form-group">
                                                                 <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
@@ -357,7 +357,7 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
                                                             </div>
                                                         </div>
-                                                        <div class="col-1" style="margin-bottom: auto">
+                                                        <div class="col-2" style="margin-bottom: auto">
                                                             <div class="form-group multiselect-box">
                                                                 <select class="multi_sumo_select PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[0][]" multiple>
                                                                     <?php
@@ -420,13 +420,13 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-1">
-                                                            <div class="form-group number_of_sessions_div" style="display: <?=(($IS_PACKAGE == 0) ? 'none' : '')?>">
+                                                        <!--<div class="col-1">
+                                                            <div class="form-group number_of_sessions_div" style="display: <?php /*=(($IS_PACKAGE == 0) ? 'none' : '')*/?>">
                                                                 <div class="col-md-12" >
                                                                     <input type="number" class="form-control" name="NUMBER_OF_SESSIONS[]" id="NUMBER_OF_SESSIONS">
                                                                 </div>
                                                             </div>
-                                                        </div>
+                                                        </div>-->
                                                         <div class="col-1">
                                                             <div class="form-group">
                                                                 <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
@@ -594,7 +594,7 @@ if(empty($_GET['id'])){
                                                     <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
                                                 </div>
                                             </div>
-                                            <div class="col-1" style="margin-bottom: auto">
+                                            <div class="col-2" style="margin-bottom: auto">
                                                             <div class="form-group multiselect-box">
                                                                 <select class="multi_sumo_select PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[${counter}][]" multiple>
                                                                     <?php
@@ -654,13 +654,6 @@ if(empty($_GET['id'])){
                                                             <span class="input-group-text"><?=$currency?></span>
                                                             <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price">
                                                         </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-1">
-                                                <div class="form-group number_of_sessions_div" style="display: <?=(($IS_PACKAGE == 0) ? 'none' : '')?>">
-                                                    <div class="col-md-12" >
-                                                        <input type="number" class="form-control" name="NUMBER_OF_SESSIONS[]" id="NUMBER_OF_SESSIONS">
                                                     </div>
                                                 </div>
                                             </div>
@@ -768,7 +761,7 @@ if(empty($_GET['id'])){
 
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Services', selectAll: true});
 
-    function isPackage(param) {
+    /*function isPackage(param) {
         if ($(param).is(':checked')){
             $('#number_of_sessions').show();
             $('.number_of_sessions_div').show();
@@ -776,7 +769,7 @@ if(empty($_GET['id'])){
             $('#number_of_sessions').hide();
             $('.number_of_sessions_div').hide();
         }
-    }
+    }*/
 
 </script>
 </body>
