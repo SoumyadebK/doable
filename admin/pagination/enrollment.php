@@ -51,23 +51,24 @@ $page_first_result = ($page-1) * $results_per_page;
             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['PHONE']?></td>
             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['LOCATION_NAME']?></td>
             <td>
-                <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>" target="_blank" title="Edit Enrollment" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
                 <?php if($row->fields['ACTIVE']==1){ ?>
-                    <span class="active-box-green"></span>
+                    <span class="active-box-green"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <?php } else{ ?>
-                    <span class="active-box-red"></span>
+                    <span class="active-box-red"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <?php } ?>
             </td>
             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);">
                 <?php if ($row->fields['STATUS']=='A') { ?>
-                    <span class="status-box" style="background-color: green;">ACTIVE</span>
+                    <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
                 <?php } else { ?>
-                    <span class="status-box" style="background-color: red;">CANCELLED</span>
+                    <span class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></span>
                 <?php } ?>
             </td>
             <td>
                 <?php if ($row->fields['STATUS']=='A') { ?>
-                    <a href="javascript:;" onclick="cancelAppointment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>)">Cancel Enrollment</a>
+                    <a href="javascript:;" onclick="cancelAppointment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>, 0)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px;"></a>
                 <?php } else { ?>
                     <a href="all_enrollments.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>&status=active">Active Enrollment</a>
                 <?php } ?>

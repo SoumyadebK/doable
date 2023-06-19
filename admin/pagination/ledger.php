@@ -33,14 +33,16 @@ while (!$row->EOF) {
     $used_session_count = $db->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
     $total_session_count = $db->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION_COUNT FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
     $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-    $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
+    $price_per_session = ($total_session_count->fields['TOTAL_SESSION_COUNT'] > 0) ? $total_bill_and_paid->fields['TOTAL_PAID']/$total_session_count->fields['TOTAL_SESSION_COUNT'] : 0.00;
+    //$enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
     $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
-    $service_credit = ($enrollment_balance->RecordCount() > 0)?($total_bill_and_paid->fields['TOTAL_PAID']-$enrollment_balance->fields['TOTAL_BALANCE_USED']):'0.00';
+    $total_used = $used_session_count->fields['USED_SESSION_COUNT']*$price_per_session;
+    $service_credit = $total_bill_and_paid->fields['TOTAL_PAID']-$total_used;
     ?>
     <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
         <div class="col-2"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
         <div class="col-2">Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-        <div class="col-2">Used : <?=($enrollment_balance->RecordCount() > 0)?$enrollment_balance->fields['TOTAL_BALANCE_USED']:'0.00';?></div>
+        <div class="col-2">Used : <?=$total_used?></div>
         <div class="col-2" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=$service_credit?></div>
         <div class="col-2">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count->fields['TOTAL_SESSION_COUNT'];?></div>
     </div>
@@ -59,17 +61,17 @@ while (!$row->EOF) {
 
         <tbody>
         <?php
-        $appointment_data = $db->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.PRICE AS SESSION_COST, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS  WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2");
+        $appointment_data = $db->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.PRICE AS SESSION_COST, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS  WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']."");
         $total_session_cost = 0;
         while (!$appointment_data->EOF) {
-            $total_session_cost += $appointment_data->fields['SESSION_COST']?>
+            $total_session_cost += $price_per_session?>
             <tr>
                 <td><?=$appointment_data->fields['SERVICE_NAME']?></td>
                 <td><?=$appointment_data->fields['SERIAL_NUMBER']?></td>
                 <td><?=$appointment_data->fields['SERVICE_CODE']?></td>
                 <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
                 <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                <td><?=$appointment_data->fields['SESSION_COST']?></td>
+                <td><?=$price_per_session?></td>
                 <td style="color:<?=(($total_paid-$total_session_cost)<0)?'red':'black'?>;"><?=$total_paid-$total_session_cost?></td>
             </tr>
             <?php $appointment_data->MoveNext();
