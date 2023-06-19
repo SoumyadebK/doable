@@ -265,7 +265,7 @@ if(empty($_GET['id'])){
                                                                     <?php
                                                                     $selected_booking_code = [];
                                                                     if(!empty($_GET['id'])) {
-                                                                        $selected_booking_code_row = $db->Execute("SELECT `PK_SCHEDULING_CODE` FROM `DOA_SERVICE_BOOKING_CODE` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
+                                                                        $selected_booking_code_row = $db->Execute("SELECT `PK_SCHEDULING_CODE` FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
                                                                         while (!$selected_booking_code_row->EOF) {
                                                                             $selected_booking_code[] = $selected_booking_code_row->fields['PK_SCHEDULING_CODE'];
                                                                             $selected_booking_code_row->MoveNext();
