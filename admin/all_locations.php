@@ -63,7 +63,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                                     <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['EMAIL']?></td>
                                                     <td>
                                                         <a href="location.php?id=<?=$row->fields['PK_LOCATION']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <a href="all_locations.php?type=del&id=<?=$row->fields['PK_LOCATION']?>" onclick='javascript:ConfirmDelete($(this));return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <a href="all_locations.php?type=del&id=<?=$row->fields['PK_LOCATION']?>" onclick='javascript:ConfirmDelete(<?=$row->fields['PK_LOCATION']?>);return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php if($row->fields['ACTIVE']==1){ ?>
                                                             <span class="active-box-green"></span>
                                                         <?php } else{ ?>
@@ -88,12 +88,22 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
             $(function () {
                 $('#myTable').DataTable();
             });
-            function ConfirmDelete(anchor)
+
+            function ConfirmDelete(PK_LOCATION)
             {
                 var conf = confirm("Are you sure you want to delete?");
-                if(conf)
-                window.location=anchor.attr("href");
+                if(conf) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {FUNCTION_NAME: 'deleteLocationData', PK_LOCATION: PK_LOCATION},
+                        success: function (data) {
+                            window.location.href = `all_locations.php`;
+                        }
+                    });
+                }
             }
+
             function editpage(id){
                 //alert(i);
                 window.location.href = "location.php?id="+id;

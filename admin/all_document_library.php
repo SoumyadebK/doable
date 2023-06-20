@@ -57,7 +57,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                             <td onclick="editpage(<?=$row->fields['PK_DOCUMENT_LIBRARY']?>);"><?=$row->fields['DOCUMENT_NAME']?></td>
                                             <td>
                                                 <a href="document_library.php?id=<?=$row->fields['PK_DOCUMENT_LIBRARY']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="all_document_library.php?type=del&id=<?=$row->fields['PK_DOCUMENT_LIBRARY']?>" onclick='javascript:ConfirmDelete($(this));return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="all_document_library.php?type=del&id=<?=$row->fields['PK_DOCUMENT_LIBRARY']?>" onclick='javascript:ConfirmDelete(<?=$row->fields['PK_DOCUMENT_LIBRARY']?>);return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
@@ -82,11 +82,19 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     $(function () {
         $('#myTable').DataTable();
     });
-    function ConfirmDelete(anchor)
+    function ConfirmDelete(PK_DOCUMENT_LIBRARY)
     {
         var conf = confirm("Are you sure you want to delete?");
-        if(conf)
-            window.location=anchor.attr("href");
+        if(conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {FUNCTION_NAME: 'deleteDocumentLibraryData', PK_DOCUMENT_LIBRARY: PK_DOCUMENT_LIBRARY},
+                success: function (data) {
+                    window.location.href = `all_document_library.php`;
+                }
+            });
+        }
     }
     function editpage(id){
         //alert(i);

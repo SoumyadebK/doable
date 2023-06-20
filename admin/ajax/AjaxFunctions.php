@@ -1273,3 +1273,24 @@ function deleteCommentData($RESPONSE_DATA) {
     $comment_data = $db->Execute("DELETE FROM `DOA_COMMENT` WHERE `PK_COMMENT` = ".$PK_COMMENT);
     echo 1;
 }
+
+function deleteDocumentLibraryData($RESPONSE_DATA) {
+    global $db;
+    $PK_DOCUMENT_LIBRARY = $RESPONSE_DATA['PK_DOCUMENT_LIBRARY'];
+    $document_library_data = $db->Execute("DELETE FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = ".$PK_DOCUMENT_LIBRARY);
+    echo 1;
+}
+
+function deleteServiceData($RESPONSE_DATA) {
+    global $db;
+    $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
+    $service_data = $db->Execute("DELETE FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER);
+    echo 1;
+}
+
+function deleteLocationData($RESPONSE_DATA) {
+    global $db;
+    $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
+    $location_data = $db->Execute("DELETE FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$PK_LOCATION);
+    echo 1;
+}
