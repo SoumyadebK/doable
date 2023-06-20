@@ -265,7 +265,7 @@ if(empty($_GET['id'])){
                                                                     <?php
                                                                     $selected_booking_code = [];
                                                                     if(!empty($_GET['id'])) {
-                                                                        $selected_booking_code_row = $db->Execute("SELECT `PK_SCHEDULING_CODE` FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
+                                                                        $selected_booking_code_row = $db->Execute("SELECT `PK_SCHEDULING_CODE` FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_CODE` = ".$row->fields['PK_SERVICE_CODE']);
                                                                         while (!$selected_booking_code_row->EOF) {
                                                                             $selected_booking_code[] = $selected_booking_code_row->fields['PK_SCHEDULING_CODE'];
                                                                             $selected_booking_code_row->MoveNext();
@@ -363,8 +363,8 @@ if(empty($_GET['id'])){
                                                                     <?php
                                                                     $booking_code = $db->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
                                                                     while (!$booking_code->EOF) { ?>
-                                                                        <option value="<?php echo $booking_code->fields['PK_SCHEDULING_CODE'];?> <?=($booking_code->fields['PK_SCHEDULING_CODE'] == $row->fields['PK_SCHEDULING_CODE'])?'selected':''?>"><?=$booking_code->fields['SCHEDULING_NAME']?></option>
-                                                                        <?php $booking_code->MoveNext(); } ?>
+                                                                        <option value="<?php echo $booking_code->fields['PK_SCHEDULING_CODE'];?>"><?=$booking_code->fields['SCHEDULING_NAME']?></option>
+                                                                    <?php $booking_code->MoveNext(); } ?>
                                                                 </select>
                                                             </div>
                                                         </div>

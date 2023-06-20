@@ -721,9 +721,9 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                     <div class="form-group">
                                                         <label class="form-label">Amount</label>
                                                         <div class="col-md-12">
-                                                            <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" onkeyup="this.value = minmax(this.value, 0, 100)" required value="<?php echo $AMOUNT?>">
+                                                            <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT?>">
                                                         </div>
-                                                        <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;"></p>
+                                                        <p id="number_of_payment_error" style="color: red; display: none; font-size: 12px; margin: 5px;"></p>
                                                     </div>
                                                 </div>
                                                 <div class="col-3">
@@ -915,15 +915,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $('#number_of_payment_error').text("Minimum Amount = "+MINIMUM+", Maximum Amount = "+MAXIMUM);
     }
 
-    function minmax(value, min, max)
-    {
-        if(parseInt(value) < min || isNaN(parseInt(value)))
-            return min;
-        else if(parseInt(value) > max)
-            return max;
-        else return value;
-    }
-
     function selectPaymentType(param){
         let paymentType = $("#PK_PAYMENT_TYPE option:selected").text();
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
@@ -992,30 +983,21 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         });
     }*/
 
-    function selectRemainingPaymentType(param){
-        let paymentType = $("#PK_PAYMENT_TYPE_REMAINING option:selected").text();
-        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $('.remaining_payment_type_div').slideUp();
-        $('#card-element').remove();
-        switch (paymentType) {
-            case 'Credit Card':
-                if (PAYMENT_GATEWAY == 'Stripe') {
-                    $('#card_div').html(`<div id="card-element"></div>`);
-                    stripePaymentFunction();
-                }
-                $('#remaining_credit_card_payment').slideDown();
-                break;
+    $(document).on('submit', '#payment_confirmation_form', function (event) {
+        //event.preventDefault();
+        let MINIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('minimum');
+        let MAXIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('maximum');
+        let entered_amount = $('#AMOUNT').val();
 
-            case 'Check':
-                $('#remaining_check_payment').slideDown();
-                break;
-
-            case 'Cash':
-            default:
-                $('.remaining_payment_type_div').slideUp();
-                break;
+        if (parseFloat(entered_amount)>=parseFloat(MINIMUM) && parseFloat(entered_amount)<=parseFloat(MAXIMUM)) {
+            return true;
+        } else {
+            $('#number_of_payment_error').show();
+            $('#number_of_payment_error').text("Minimum Amount = "+MINIMUM+", Maximum Amount = "+MAXIMUM);
+            $('#number_of_payment_error').effect('shake');
+            return false;
         }
-    }
+    });
 
     $(document).on('click', '.credit-card', function () {
         $('.credit-card').css("opacity", "1");
