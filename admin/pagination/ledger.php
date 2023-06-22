@@ -44,8 +44,8 @@ while (!$row->EOF) {
     <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
         <div class="col-2"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
         <div class="col-2">Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-        <div class="col-2">Used : <?=$total_used?></div>
-        <div class="col-2" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=$service_credit?></div>
+        <div class="col-2">Used : <?=number_format((float)$total_used, 2, '.', ',');?></div>
+        <div class="col-2" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=number_format((float)$service_credit, 2, '.', ',');?></div>
         <div class="col-2">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count;?></div>
     </div>
     <table id="myTable" class="table table-striped border" style="display: none">
@@ -73,8 +73,8 @@ while (!$row->EOF) {
                 <td><?=$appointment_data->fields['SERVICE_CODE']?></td>
                 <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
                 <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                <td><?=$price_per_session?></td>
-                <td style="color:<?=(($total_paid-$total_session_cost)<0)?'red':'black'?>;"><?=$total_paid-$total_session_cost?></td>
+                <td><?=number_format((float)$price_per_session, 2, '.', ',');?></td>
+                <td style="color:<?=(($total_paid-$total_session_cost)<0)?'red':'black'?>;"><?=number_format((float)($total_paid-$total_session_cost), 2, '.', ',');?></td>
             </tr>
             <?php $appointment_data->MoveNext();
         } ?>
