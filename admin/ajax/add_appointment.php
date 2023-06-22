@@ -202,6 +202,8 @@ require_once('../../global/config.php');
         let START_TIME = '';
         let END_TIME = '';
 
+        duration = (duration > 0) ?duration: 30;
+
         console.log(SERVICE_PROVIDER_ID,duration,day);
 
         if (SERVICE_PROVIDER_ID > 0 && duration > 0) {
