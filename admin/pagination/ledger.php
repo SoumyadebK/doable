@@ -65,11 +65,12 @@ while (!$row->EOF) {
         <?php
         $appointment_data = $db->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.PRICE AS SESSION_COST, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS  WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']."");
         $total_session_cost = 0;
+        $j=1;
         while (!$appointment_data->EOF) {
             $total_session_cost += $price_per_session?>
             <tr>
                 <td><?=$appointment_data->fields['SERVICE_NAME']?></td>
-                <td><?=$appointment_data->fields['SERIAL_NUMBER']?></td>
+                <td><?=$j.'/'.$total_session_count?></td>
                 <td><?=$appointment_data->fields['SERVICE_CODE']?></td>
                 <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
                 <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
@@ -77,7 +78,7 @@ while (!$row->EOF) {
                 <td style="color:<?=(($total_paid-$total_session_cost)<0)?'red':'black'?>;"><?=number_format((float)($total_paid-$total_session_cost), 2, '.', ',');?></td>
             </tr>
             <?php $appointment_data->MoveNext();
-        } ?>
+            $j++; } ?>
         </tbody>
     </table>
     <?php $row->MoveNext();
