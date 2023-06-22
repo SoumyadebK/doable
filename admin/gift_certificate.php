@@ -793,7 +793,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                             </div>
                                             <div class="col-3 align-self-center">
                                                 <label class="form-label">Gift Note</label>
-                                                <textarea class="form-control" rows="3" name="GIFT_NOTE" id="GIFT_NOTE"><?php echo $GIFT_NOTE ?></textarea>git
+                                                <textarea class="form-control" rows="3" name="GIFT_NOTE" id="GIFT_NOTE"><?php echo $GIFT_NOTE ?></textarea>
                                             </div>
                                             <div class="col-3">
                                                 <div class="form-group">
