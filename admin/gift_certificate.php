@@ -669,6 +669,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                     <form id="payment_confirmation_form" action="" method="post" enctype="multipart/form-data">
                                         <div class="p-20">
                                             <div class="row">
+                                                <?php if (empty($_GET['id'])) { ?>
                                                 <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label" for="PK_USER_MASTER">Customer</label>
@@ -721,7 +722,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                     <div class="form-group">
                                                         <label class="form-label">Amount</label>
                                                         <div class="col-md-12">
-                                                            <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" onkeyup="this.value = minmax(this.value, 0, 100)" required value="<?php echo $AMOUNT?>">
+                                                            <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT?>">
                                                         </div>
                                                         <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;"></p>
                                                     </div>
@@ -745,111 +746,192 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
-                                            <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
-                                                <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                                    <div class="row" style="margin: auto;" id="card_list">
+                                            <?php } else { ?>
+                                            <div class="col-3">
+                                                <div class="form-group">
+                                                    <label class="form-label" for="PK_USER_MASTER">Customer</label>
+                                                    <select id="PK_USER_MASTER" name="PK_USER_MASTER" class="form-control">
+                                                        <option>Select Customer</option>
+                                                        <?php
+                                                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                        while (!$row->EOF) {
+                                                            $selected = '';
+                                                            if($PK_USER_MASTER!='' && $PK_USER_MASTER == $row->fields['PK_USER_MASTER']){
+                                                                $selected = 'selected';
+                                                            }
+                                                            ?>
+                                                            <option value="<?php echo $row->fields['PK_USER_MASTER']; ?>" <?php echo $selected ;?>><?php echo $row->fields['NAME']; ?></option>
+                                                            <?php $row->MoveNext(); } ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-3">
+                                                <div class="form-group">
+                                                    <label class="form-label" for="GIFT_CERTIFICATE">Gift Certificate</label>
+                                                    <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" onchange="showMinMaxAmount()" class="form-control" disabled>
+                                                        <option disabled selected>Select Gift Certificate Name</option>
+                                                        <?php
+                                                        $row = $db->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>=EFFECTIVE_DATE AND CURRENT_DATE()<=END_DATE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                        while (!$row->EOF) {
+                                                            $selected = '';
+                                                            if($PK_GIFT_CERTIFICATE_SETUP != '' && $PK_GIFT_CERTIFICATE_SETUP == $row->fields['PK_GIFT_CERTIFICATE_SETUP']){
+                                                                $selected = 'selected';
+                                                            }
+                                                            ?>
+                                                            <option data-minimum="<?=$row->fields['MINIMUM_AMOUNT']?>" data-maximum="<?=$row->fields['MAXIMUM_AMOUNT']?>" value="<?php echo $row->fields['PK_GIFT_CERTIFICATE_SETUP']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
+                                                            <?php $row->MoveNext(); } ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-3">
+                                                <div class="form-group">
+                                                    <label class="form-label">Date of Purchase</label>
+                                                    <div class="col-md-12">
+                                                        <input type="text" name="DATE_OF_PURCHASE" id="DATE_OF_PURCHASE" value="<?=($DATE_OF_PURCHASE == '')?date('m/d/Y'):date('m/d/Y', strtotime($DATE_OF_PURCHASE))?>" class="form-control datepicker-normal" disabled>
                                                     </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-3 align-self-center">
+                                                <label class="form-label">Gift Note</label>
+                                                <textarea class="form-control" rows="3" name="GIFT_NOTE" id="GIFT_NOTE"><?php echo $GIFT_NOTE ?></textarea>
+                                            </div>
+                                            <div class="col-3">
+                                                <div class="form-group">
+                                                    <label class="form-label">Amount</label>
+                                                    <div class="col-md-12">
+                                                        <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT?>" disabled>
+                                                    </div>
+                                                    <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;"></p>
+                                                </div>
+                                            </div>
+                                            <div class="col-3">
+                                                <div class="form-group">
+                                                    <label class="form-label">Payment Type</label>
+                                                    <div class="col-md-12">
+                                                        <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)" disabled>
+                                                            <?php
+                                                            $row = $db->Execute("SELECT DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_GIFT_CERTIFICATE_MASTER.CHECK_NUMBER, DOA_GIFT_CERTIFICATE_MASTER.CHECK_DATE FROM DOA_PAYMENT_TYPE INNER JOIN DOA_GIFT_CERTIFICATE_MASTER ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE=DOA_GIFT_CERTIFICATE_MASTER.PK_PAYMENT_TYPE WHERE DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER='$_GET[id]'");
+                                                            while (!$row->EOF) { ?>
+                                                                <?php if ($row->fields['PAYMENT_TYPE'] == "Check") { ?>
+                                                                <option value=""><?=$row->fields['PAYMENT_TYPE'].' Number: '.$row->fields['CHECK_NUMBER'].', Date: '.$row->fields['CHECK_DATE']?></option>
+                                                                <?php } else { ?>
+                                                                <option value=""><?=$row->fields['PAYMENT_TYPE']?></option>
+                                                                <?php } ?>
+                                                                <?php $row->MoveNext(); } ?>
+                                                        </select>
+                                                    </div>
+                                                    <div id="wallet_balance_div">
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <?php } ?>
+
+                                        <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
+                                        <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
+                                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                                                <div class="row" style="margin: auto;" id="card_list">
+                                                </div>
+                                                <div class="col-12">
+                                                    <div class="form-group" id="card_div">
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
+                                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                                                <div class="row" style="margin: auto;" id="card_list">
+                                                </div>
+                                                <div class="col-12">
+                                                    <div class="form-group" id="card-container">
+
+                                                    </div>
+                                                </div>
+                                                <div id="payment-status-container"></div>
+                                            </div>
+                                        <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net'){?>
+                                            <div class="payment_type_div" id="credit_card_payment" style="display: none;">
+                                                <div class="row" style="margin: auto;" id="card_list">
+                                                </div>
+                                                <div class="row">
                                                     <div class="col-12">
-                                                        <div class="form-group" id="card_div">
-
+                                                        <div class="form-group">
+                                                            <label class="form-label">Name (As it appears on your card)</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$NAME?>">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
-                                                <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                                    <div class="row" style="margin: auto;" id="card_list">
-                                                    </div>
+                                                <div class="row">
                                                     <div class="col-12">
-                                                        <div class="form-group" id="card-container">
-
-                                                        </div>
-                                                    </div>
-                                                    <div id="payment-status-container"></div>
-                                                </div>
-                                            <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net'){?>
-                                                <div class="payment_type_div" id="credit_card_payment" style="display: none;">
-                                                    <div class="row" style="margin: auto;" id="card_list">
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Name (As it appears on your card)</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$NAME?>">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Email (For receiving payment confirmation mail)</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="email" name="EMAIL" id="EMAIL" class="form-control">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Card Number</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?=$CARD_NUMBER?>">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-4">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Expiration Month</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control" >
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-4">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Expiration Year</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control" >
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-4">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Security Code</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?=$SECURITY_CODE?>">
-                                                                </div>
+                                                        <div class="form-group">
+                                                            <label class="form-label">Email (For receiving payment confirmation mail)</label>
+                                                            <div class="col-md-12">
+                                                                <input type="email" name="EMAIL" id="EMAIL" class="form-control">
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <?php } ?>
-
-
-                                            <div class="row payment_type_div" id="check_payment" style="display: none;">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Check Number</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="CHECK_NUMBER" class="form-control">
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Card Number</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?=$CARD_NUMBER?>">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Check Date</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="CHECK_DATE" class="form-control datepicker-normal">
+                                                <div class="row">
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Expiration Month</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control" >
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Expiration Year</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control" >
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Security Code</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?=$SECURITY_CODE?>">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                        <?php } ?>
+
+
+                                        <div class="row payment_type_div" id="check_payment" style="display: none;">
+                                            <div class="col-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Check Number<span class="text-danger">*</span></label>
+                                                    <div class="col-md-12">
+                                                        <input type="text" name="CHECK_NUMBER" id="CHECK_NUMBER" class="form-control"="">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Check Date<span class="text-danger">*</span></label>
+                                                    <div class="col-md-12">
+                                                        <input type="text" name="CHECK_DATE" id="CHECK_DATE" class="form-control datepicker-normal">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
                                             <?php if(!empty($_GET['id'])) { ?>
                                                 <div class="row" style="margin-bottom: 15px;">
@@ -866,7 +948,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                             <? } ?>
 
                                             <div class="form-group">
-                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Purchase'; } else { echo 'Update'; }?></button>
+                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Purchase'; } else { echo 'Pay'; }?></button>
                                                 <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_gift_certificates.php'" >Cancel</button>
                                             </div>
                                         </div>
@@ -894,19 +976,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     $('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
     });
-
-    /*function calculateAmount(param) {
-        let MINIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('minimum');
-        let MAXIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('maximum');
-        let entered_amount = $(param).val();
-
-        if (parseFloat(entered_amount)>=parseFloat(MINIMUM) && parseFloat(entered_amount)<=parseFloat(MAXIMUM)) {
-            $('#number_of_payment_error').hide();
-        } else {
-            $('#number_of_payment_error').show();
-            $('#number_of_payment_error').text("Minimum Amount = "+MINIMUM+", Maximum Amount = "+MAXIMUM);
-        }
-    }*/
 
     function showMinMaxAmount() {
         let MINIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('minimum');
@@ -941,6 +1010,8 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 break;
 
             case 'Check':
+                $('#CHECK_NUMBER').prop('required', true);
+                $('#CHECK_DATE').prop('required', true);
                 $('#check_payment').slideDown();
                 break;
 
@@ -971,6 +1042,8 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
             case 'Cash':
             default:
+                $('#CHECK_NUMBER').prop('required', false);
+                $('#CHECK_DATE').prop('required', false);
                 $('.payment_type_div').slideUp();
                 $('#wallet_balance_div').slideUp();
                 $('#remaining_amount_div').slideUp();

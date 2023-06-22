@@ -94,7 +94,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <tr>
                                         <th>No</th>
                                         <th style="width:20%;">Name</th>
-                                        <th style="width:10%;">Username</th>
+                                        <th style="width:10%;">Customer ID</th>
                                         <th style="width:20%;">Email Id</th>
                                         <th style="width:12%;">Phone</th>
                                         <th style="width:10%;">Total Paid</th>

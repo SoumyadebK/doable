@@ -4,6 +4,18 @@
     <option name="directories">
       <list>
         <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
+        <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
+        <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
+        <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
+        <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
+        <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
+        <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
+        <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
+        <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
+        <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
+        <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
+        <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
+        <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
         <option value="$PROJECT_DIR$/global/authorizenet/tests" />
         <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
         <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
