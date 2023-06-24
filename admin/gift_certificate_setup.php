@@ -176,7 +176,7 @@ if (empty($_GET['id'])) {
 
                                 <div class="form-group">
                                     <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Save'; } else { echo 'Update'; }?></button>
-                                    <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_gift_certificates.php'" >Cancel</button>
+                                    <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_gift_certificate_setup.php'" >Cancel</button>
                                 </div>
                             </div>
                             </form>

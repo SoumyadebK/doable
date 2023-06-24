@@ -375,6 +375,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
                 $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
                 $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
+                pre_r($GIFT_CERTIFICATE_DATA);
                 db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
                 header("location:all_gift_certificates.php");
             }
@@ -948,7 +949,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                             <? } ?>
 
                                             <div class="form-group">
-                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Purchase'; } else { echo 'Pay'; }?></button>
+                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit" onclick="window.location.href='all_gift_certificates.php'"  > <?php if(empty($_GET['id'])){ echo 'Purchase'; } else { echo 'Pay'; }?></button>
                                                 <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_gift_certificates.php'" >Cancel</button>
                                             </div>
                                         </div>
