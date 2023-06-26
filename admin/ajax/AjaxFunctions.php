@@ -1156,6 +1156,30 @@ function viewSamplePdf($RESPONSE_DATA) {
     echo $http_path."uploads/sample_enrollment_pdf/".$file_name;
 }
 
+function viewGiftCertificatePdf($RESPONSE_DATA) {
+    $files = glob('../../uploads/sample_enrollment_pdf/*'); // get all file names
+    foreach($files as $file){ // iterate files
+        if(is_file($file)) {
+            unlink($file); // delete file
+        }
+    }
+
+    global $http_path;
+    require_once('../../global/vendor/autoload.php');
+    $html = $RESPONSE_DATA['DOCUMENT_TEMPLATE'];
+
+    try {
+        $mpdf = new Mpdf();
+        $mpdf->WriteHTML($html);
+        $file_name = "sample_pdf_".time().".pdf";
+        $mpdf->Output("../../uploads/sample_enrollment_pdf/".$file_name, 'F');
+    } catch (Exception $e) {
+        echo $e->getMessage(); die;
+    }
+
+    echo $http_path."uploads/sample_enrollment_pdf/".$file_name;
+}
+
 function saveMultiAppointmentData($RESPONSE_DATA){
     global $db;
     $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
