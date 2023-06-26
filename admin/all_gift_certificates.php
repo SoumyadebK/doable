@@ -68,7 +68,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                                 <?php } else{ ?>
                                                     <span class="active-box-red"></span>
                                                 <?php } ?>
-                                                <a href="gift_certificate.php?id=<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>"><i class="fa fa-download" title="Download" style="font-size:21px; padding-left: 15px"></i></a>
+                                                <a href="gift_certificate.php?id=<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>" onclick="viewGiftCertificatePdf()"><i class="fa fa-download" title="Download" style="font-size:21px; padding-left: 15px"></i></a>
                                             </td>
                                         </tr>
                                         <?php $row->MoveNext();
@@ -88,15 +88,36 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     $(function () {
         $('#myTable').DataTable();
     });
+
     function ConfirmDelete(anchor)
     {
         var conf = confirm("Are you sure you want to delete?");
         if(conf)
             window.location=anchor.attr("href");
     }
+
     function editpage(id){
         //alert(i);
         window.location.href = "gift_certificate.php?id="+id;
+    }
+
+    function viewGiftCertificatePdf() {
+        let DOCUMENT_TEMPLATE = $('#ck_editor').val();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {FUNCTION_NAME: 'viewGiftCertificatePdf', DOCUMENT_TEMPLATE: DOCUMENT_TEMPLATE},
+            success:function (data) {
+                console.log(data);
+                window.open(
+                    data,
+                    '_blank' // <- This is what makes it open in a new window.
+                );
+            },
+            error: (error) => {
+                console.log(JSON.stringify(error));
+            }
+        });
     }
 </script>
 </body>
