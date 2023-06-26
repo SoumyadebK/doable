@@ -807,7 +807,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                             </div>
                                             <div class="col-3">
                                                 <div class="form-group">
-                                                    <label class="form-label">Payment Type</label>
+                                                    <label class="form-label">Payment Details</label>
                                                     <div class="col-md-12">
                                                         <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)" disabled>
                                                             <?php
