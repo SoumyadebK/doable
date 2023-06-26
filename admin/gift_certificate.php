@@ -799,7 +799,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                             <div class="col-3">
                                                 <div class="form-group">
                                                     <label class="form-label">Amount</label>
-                                                    <div class="col-md-12">git
+                                                    <div class="col-md-12">
                                                         <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT?>" disabled>
                                                     </div>
                                                     <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;"></p>
