@@ -85,7 +85,7 @@ if ($SQUARE_MODE == 1)
 else if ($SQUARE_MODE == 2)
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
 
-if(!empty($_POST['PK_PAYMENT_TYPE'])){
+if(!empty($_POST)){
 
     $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
 
@@ -361,53 +361,23 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
                 //pre_r($GIFT_CERTIFICATE_DATA);
                 db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
-                header("location:all_gift_certificates.php");
             } else {
                 $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
-                $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
-                $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
+                /*$GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
+                $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));*/
                 $GIFT_CERTIFICATE_DATA['GIFT_NOTE'] = $_POST['GIFT_NOTE'];
-                $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
-                $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-                $GIFT_CERTIFICATE_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
-                $GIFT_CERTIFICATE_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));
-                $GIFT_CERTIFICATE_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                //$GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
+                //$GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+                //$GIFT_CERTIFICATE_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
+                //$GIFT_CERTIFICATE_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));
+                //$GIFT_CERTIFICATE_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
                 $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
                 $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
                 $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
                 db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
-                header("location:all_gift_certificates.php");
             }
         }
     }
-
-
-//        $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-//        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
-//        $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-//        $PAYMENT_DATA['AMOUNT'] = $_POST['AMOUNT'];
-//        if ($_POST['PK_PAYMENT_TYPE'] == 7) {
-//            $PAYMENT_DATA['REMAINING_AMOUNT'] = $_POST['REMAINING_AMOUNT'];
-//            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER_REMAINING'];
-//            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE_REMAINING']));
-//        } elseif($_POST['PK_PAYMENT_TYPE'] == 2) {
-//            $PAYMENT_DATA['REMAINING_AMOUNT'] = 0.00;
-//            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
-//            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));
-//        }
-//
-//        $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
-//        $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-//        $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-
-//        if($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-//            $PAYMENT_DATA['NAME'] = $_POST['NAME'];
-//            $PAYMENT_DATA['CARD_NUMBER'] = $_POST['CARD_NUMBER'];
-//            $PAYMENT_DATA['EXPIRATION_DATE'] = $_POST['EXPIRATION_MONTH'] . "/" . $_POST['EXPIRATION_YEAR'];
-//            $PAYMENT_DATA['SECURITY_CODE'] = $_POST['SECURITY_CODE'];
-//        }
-
-//        db_perform('DOA_GIFT_CERTIFICATE_MASTER', $PAYMENT_DATA, 'insert');
 
     header('location:all_gift_certificates.php');
 }
