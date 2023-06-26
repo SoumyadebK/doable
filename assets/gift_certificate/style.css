@@ -1,0 +1,77 @@
+body {
+    background-image: url("bg-body.png");
+    height: 860px;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+  .main-content {
+    /*padding: 90px 0px 0;*/
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    flex-direction: column;
+    position: relative;
+    right: 0;
+    left: 0; 
+    color: #626262;
+  }
+  .row {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+    width: 100%;
+}
+.container {
+    max-width: 960px;
+}
+.font-custom {
+    font-family: 'Comic Neue', cursive;
+}
+.top-row .top1 {
+        min-width: 150px;
+    flex: 0 0 0;
+}
+.d-block {
+    display: block;
+}
+.justify-content-end {
+    justify-content: end;
+}
+.container {
+    width: 90% !important;
+    max-width: 100%;
+}
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+.font20 {
+    font-size: 20px;
+}
+.font24 {
+    font-size: 24px;
+}
+.font44 {
+    font-size: 44px;
+}
+.font-normal {
+    font-weight: 500;
+}
+.font-bold {
+    font-weight: 600;
+}
+.font-700 {
+    font-weight: 700;
+}
+.font-800 {
+    font-weight: 800;
+}
+.h4, .h5, .h6, h4, h5, h6 {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+}

@@ -374,6 +374,7 @@ if(!empty($_POST)){
                 $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
                 $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
                 $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
+                pre_r($GIFT_CERTIFICATE_DATA);
                 db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
             }
         }
@@ -776,7 +777,7 @@ if(!empty($_POST)){
                                             </div>
                                             <div class="col-3">
                                                 <div class="form-group">
-                                                    <label class="form-label">Payment Type</label>
+                                                    <label class="form-label">Payment Details</label>
                                                     <div class="col-md-12">
                                                         <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)" disabled>
                                                             <?php
@@ -918,7 +919,7 @@ if(!empty($_POST)){
                                             <? } ?>
 
                                             <div class="form-group">
-                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Purchase'; } else { echo 'Pay'; }?></button>
+                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit" onclick="window.location.href='all_gift_certificates.php'"  > <?php if(empty($_GET['id'])){ echo 'Purchase'; } else { echo 'Pay'; }?></button>
                                                 <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_gift_certificates.php'" >Cancel</button>
                                             </div>
                                         </div>

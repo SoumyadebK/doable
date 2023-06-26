@@ -62,12 +62,13 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                             <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=$row->fields['DATE_OF_PURCHASE']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=$row->fields['AMOUNT']?></td>
                                             <td>
-                                                <a href="gift_certificate.php?id=<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="gift_certificate.php?id=<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>"><i class="fa fa-edit" title="Edit" style="font-size:21px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
                                                     <span class="active-box-red"></span>
                                                 <?php } ?>
+                                                <a href="gift_certificate.php?id=<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>"><i class="fa fa-download" title="Download" style="font-size:21px; padding-left: 15px"></i></a>
                                             </td>
                                         </tr>
                                         <?php $row->MoveNext();
