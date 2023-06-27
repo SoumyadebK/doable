@@ -88,10 +88,17 @@ if (!empty($_GET['view'])) {
 
                     <?php if($_SESSION['PK_ROLES'] == 4) { ?>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/all_schedules.php" aria-expanded="false">
-                                <i class="icon-calender"></i>
-                                <span class="hide-menu">Appointments</span>
-                            </a>
+                            <?php if ($view=='list') { ?>
+                                <a class="waves-effect waves-dark" href="../customer/all_schedules.php?view=table" aria-expanded="false">
+                                    <i class="icon-calender"></i>
+                                    <span class="hide-menu">Calendar</span>
+                                </a>
+                            <?php } elseif ($view=='table') { ?>
+                                <a class="waves-effect waves-dark" href="../customer/all_schedules.php?view=list" aria-expanded="false">
+                                    <i class="icon-list"></i>
+                                    <span class="hide-menu">List</span>
+                                </a>
+                            <?php } ?>
                         </li>
                         <li>
                             <a class="waves-effect waves-dark" href="../customer/billing.php" aria-expanded="false">

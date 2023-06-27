@@ -41,13 +41,13 @@ if ($FUNCTION_NAME == 'loginFunction'){
                 if ($_SESSION['PK_ROLES'] == 1) {
                     header("location: super_admin/all_accounts.php");
                 } elseif ($_SESSION['PK_ROLES'] == 2) {
-                    header("location: admin/all_schedules.php");
+                    header("location: admin/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 4) {
                     $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$result->fields['PK_USER']." LIMIT 1");
                     $_SESSION['PK_ACCOUNT_MASTER'] = $account->fields['PK_ACCOUNT_MASTER'];
-                    header("location: customer/all_schedules.php");
+                    header("location: customer/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 5) {
-                    header("location: service_provider/all_schedules.php");
+                    header("location: service_provider/all_schedules.php?view=table");
                 }
             } else {
                 $msg = "Invalid Password";
