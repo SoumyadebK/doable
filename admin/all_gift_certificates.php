@@ -104,38 +104,10 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     function giftCertificate(PK_GIFT_CERTIFICATE_MASTER) {
         //alert(PK_GIFT_CERTIFICATE_MASTER)
         $.ajax({
-            url: "gift_certificate_pdf.php",
-            type: 'GET',
-            data: {id: PK_GIFT_CERTIFICATE_MASTER},
-            success: function (data) {
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    data: {FUNCTION_NAME: 'viewGiftCertificatePdf', DOCUMENT_TEMPLATE: data},
-                    success:function (data) {
-                        console.log(data);
-                        window.open(
-                            data,
-                            '_blank' // <- This is what makes it open in a new window.
-                        );
-                    },
-                    error: (error) => {
-                        console.log(JSON.stringify(error));
-                    }
-                });
-
-            }
-        });
-    }
-
-    function viewGiftCertificatePdf() {
-        let PK_GIFT_CERTIFICATE_MASTER = $('#ck_editor').val();
-        $.ajax({
             url: "ajax/AjaxFunctions.php",
             type: 'POST',
-            data: {FUNCTION_NAME: 'viewGiftCertificatePdf', DOCUMENT_TEMPLATE: DOCUMENT_TEMPLATE},
+            data: {FUNCTION_NAME: 'viewGiftCertificatePdf', PK_GIFT_CERTIFICATE_MASTER: PK_GIFT_CERTIFICATE_MASTER},
             success:function (data) {
-                console.log(data);
                 window.open(
                     data,
                     '_blank' // <- This is what makes it open in a new window.
@@ -145,6 +117,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                 console.log(JSON.stringify(error));
             }
         });
+
     }
 </script>
 </body>

@@ -915,6 +915,14 @@ if(!empty($_GET['id'])) {
                 }).responseText;
             });
         }
+
+        function setFormat(param) {
+            if ($(param).val() != "") {
+                $(param).val(parseFloat($(param).val().replace(/,/g, ""))
+                    .toString()
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+            }
+        }
     </script>
     <script>
         let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
