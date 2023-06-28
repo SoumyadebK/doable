@@ -1189,7 +1189,7 @@ function viewGiftCertificatePdf($RESPONSE_DATA) {
             $mpdf = new Mpdf();
             $html = file_get_contents($http_path . 'admin/gift_certificate_pdf.php?id=' . $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']);
             $mpdf->WriteHTML($html);
-            $file_name = "gift_certificate_" . time() . ".pdf";
+            $file_name = "gift_certificate_" . $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER'] . ".pdf";
             $mpdf->Output('../../uploads/gift_certificate_pdf/'.$file_name, 'F');
         } catch (Exception $e) {
             echo $e->getMessage(); die;
