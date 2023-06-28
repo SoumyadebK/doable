@@ -359,7 +359,6 @@ if(!empty($_POST)){
                 $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
                 $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
-                //pre_r($GIFT_CERTIFICATE_DATA);
                 db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
             } else {
                 $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
@@ -374,7 +373,7 @@ if(!empty($_POST)){
                 $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
                 $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
                 $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-                //pre_r($GIFT_CERTIFICATE_DATA);
+
                 db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
             }
         }
