@@ -1092,7 +1092,11 @@ if(!empty($_GET['id'])) {
                         type: 'POST',
                         data: form_data,
                         success: function (data) {
-                            window.location.href = 'all_users.php';
+                            if (PK_USER == 0) {
+                                $('#rates_tab_link')[0].click();
+                            }else{
+                                window.location.href='all_users.php';
+                            }
                         }
                     });
                 }
