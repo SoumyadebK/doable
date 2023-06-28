@@ -46,7 +46,7 @@ if (empty($_GET['id'])) {
                 <h6 class="text-capitalize font-normal">Thousand Oaks</h6>
             </div>
             <div class="top1 text-center">
-                <img src="<?php echo $BUSINESS_LOGO?>" style="height: 75px; width: auto;"/>
+                <img src="<?php echo str_replace('../', $http_path, $BUSINESS_LOGO) ?>" style="height: 75px; width: auto;"/>
             </div>
         </div>
         <div class="row" style="margin-bottom: 4rem;">
