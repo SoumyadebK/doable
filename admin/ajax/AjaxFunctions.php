@@ -1,5 +1,6 @@
 <?php
 
+use Dompdf\Dompdf;
 use Mpdf\Mpdf;
 
 require_once('../../global/config.php');
@@ -1156,7 +1157,7 @@ function viewSamplePdf($RESPONSE_DATA) {
     echo $http_path."uploads/sample_enrollment_pdf/".$file_name;
 }
 
-function viewGiftCertificatePdf($RESPONSE_DATA) {
+/*function viewGiftCertificatePdf($RESPONSE_DATA) {
     $files = glob('../../uploads/sample_enrollment_pdf/*'); // get all file names
     foreach($files as $file){ // iterate files
         if(is_file($file)) {
@@ -1178,6 +1179,42 @@ function viewGiftCertificatePdf($RESPONSE_DATA) {
     }
 
     echo $http_path."uploads/sample_enrollment_pdf/".$file_name;
+}*/
+
+function viewGiftCertificatePdf($RESPONSE_DATA) {
+    // Include autoloader
+    require_once ('../../global/dompdf/autoload.inc.php');
+
+    // Instantiate and use the dompdf class
+    $dompdf = new Dompdf();
+
+    // Load content from html file
+    $html = $RESPONSE_DATA['DOCUMENT_TEMPLATE'];
+    $dompdf->loadHtml($html);
+
+    // (Optional) Setup the paper size and orientation
+    $dompdf->setPaper('A4', 'landscape');
+
+    // Render the HTML as PDF
+    $dompdf->render();
+
+/*    $file_name = "sample_pdf_".time().".pdf";
+    $dompdf->Output("../../uploads/sample_enrollment_pdf/".$file_name, 'F');*/
+
+    $file_to_save = '../../uploads/sample_enrollment_pdf/certificate.pdf';
+//save the pdf file on the server
+    file_put_contents($file_to_save, $dompdf->output());
+//print the pdf file to the screen for saving
+    header('Content-type: application/pdf');
+    header('Content-Disposition: inline; filename="file.pdf"');
+    header('Content-Transfer-Encoding: binary');
+    header('Content-Length: ' . filesize($file_to_save));
+    header('Accept-Ranges: bytes');
+    readfile($file_to_save);
+
+    // Output the generated PDF (1 = download and 0 = preview)
+    $dompdf->stream("certificate.pdf", array("Attachment" => 1));
+
 }
 
 function saveMultiAppointmentData($RESPONSE_DATA){

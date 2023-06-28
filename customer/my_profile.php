@@ -224,7 +224,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                     <div class="col-md-6">
                                                         <div class="form-group">
                                                             <label class="form-label">Date of Birth</label>
-                                                            <input type="text" class="form-control datepicker-past"  id="DOB" name="DOB" value="<?($DOB)?date('m/d/Y', strtotime($DOB)):''?>">
+                                                            <input type="text" class="form-control datepicker-past"  id="DOB" name="DOB" value="<?php echo ($DOB)?date('m/d/Y', strtotime($DOB)):''?>">
                                                         </div>
                                                     </div>
                                                 </div>

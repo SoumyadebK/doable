@@ -160,9 +160,7 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
                 </div>
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
+                        <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showCompleteListView(1)"><i class="ti-check"></i> Completed</button>
                         <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='add_schedule.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
                     </div>
                 </div>
@@ -172,20 +170,6 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
                 <div id="appointment_list_half" class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-6">
-                                    <h5 class="card-title"><?=$title?></h5>
-                                </div>
-                                <!-- <div class="col-4">
-                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showCalendarView()" style="float: right;"><i class="ti-calendar"></i> Calendar</button>
-                                </div> -->
-                                <div class="col-6 text-right">
-                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showCompleteListView(1)" style="float:right;"><i class="ti-check"></i> Completed</button>
-                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showListView(1)" style="float:right;"><i class="ti-list"></i> List</button>
-                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showCalendarView()" style="float: right;"><i class="ti-calendar"></i> Calendar</button>
-                                </div>
-                            </div>
-
                             <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
 
                             </div>
