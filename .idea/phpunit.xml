@@ -3,53 +3,11 @@
   <component name="PHPUnit">
     <option name="directories">
       <list>
-<<<<<<< HEAD
-=======
-        <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
-<<<<<<< HEAD
-=======
         <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
-        <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
         <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
+        <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
         <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
-        <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
         <option value="$PROJECT_DIR$/global/authorizenet/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
-        <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
-<<<<<<< HEAD
-=======
-=======
-        <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
-        <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
->>>>>>> 2a06690cb5d6d7c8982ba79510064eb8d3bb40e2
-        <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
-        <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
-        <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
->>>>>>> 14dd3d901397ab6cc9c146cc8392637c3613a8f9
-        <option value="$PROJECT_DIR$/global/authorizenet/tests" />
-        <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
-        <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
-<<<<<<< HEAD
-        <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 49c0c321cf23085abc0a3ec3119ad6f20d715442
->>>>>>> a23ba262b20e042a5da043f8478e8daaa5010766
->>>>>>> 2a06690cb5d6d7c8982ba79510064eb8d3bb40e2
->>>>>>> 14dd3d901397ab6cc9c146cc8392637c3613a8f9
       </list>
     </option>
   </component>

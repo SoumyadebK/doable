@@ -8,7 +8,7 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
     $http_path = 'http://localhost/doable/';
 } else {
     $conn1 = $db1->connect('localhost','root','b54eawxj5h8ev','amto');
-    $http_path = 'https://doable.net/';
+    $http_path = 'http://allonehub.com/';
 }
 if ($db1->error_number){
     die("Connection Error");

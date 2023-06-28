@@ -583,37 +583,40 @@ if(!empty($_POST))
                     break;
 
                 case "DOA_EVENT":
-                    $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                    $INSERT_DATA['HEADER'] = $getData[4];
-                    if ($getData[9] == "G") {
-                        $pk_event_type = $db->Execute("SELECT PK_EVENT_TYPE FROM DOA_EVENT_TYPE WHERE EVENT_TYPE='General' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
-                        $INSERT_DATA['PK_EVENT_TYPE'] = $pk_event_type->fields['PK_EVENT_TYPE'];
-                    } else {
-                        $INSERT_DATA['PK_EVENT_TYPE'] = 0;
+                    $table_data = $db->Execute("SELECT * FROM DOA_EVENT WHERE HEADER = '$getData[4]' AND START_DATE = '$getData[5]' AND START_TIME = '$getData[6]'");
+                    if ($table_data->RecordCount() == 0) {
+                        $INSERT_DATA['HEADER'] = $getData[4];
+                        if ($getData[9] == "G") {
+                            $pk_event_type = $db->Execute("SELECT PK_EVENT_TYPE FROM DOA_EVENT_TYPE WHERE EVENT_TYPE='General' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                            $INSERT_DATA['PK_EVENT_TYPE'] = $pk_event_type->fields['PK_EVENT_TYPE'];
+                        } else {
+                            $INSERT_DATA['PK_EVENT_TYPE'] = 0;
+                        }
+                        $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $INSERT_DATA['START_DATE'] = $getData[5];
+                        $INSERT_DATA['START_TIME'] = $getData[6];
+                        $endDateTime = strtotime($getData[5] . ' ' . $getData[6]) + $getData[8] * 60;
+                        $convertedDate = date('Y-m-d', $endDateTime);
+                        $convertedTime = date('H:i:s', $endDateTime);
+                        $INSERT_DATA['END_DATE'] = $convertedDate;
+                        $INSERT_DATA['END_TIME'] = $convertedTime;
+                        $INSERT_DATA['DESCRIPTION'] = $getData[15];
+                        $INSERT_DATA['SHARE_WITH_CUSTOMERS'] = 0;
+                        $INSERT_DATA['SHARE_WITH_SERVICE_PROVIDERS'] = 0;
+                        $INSERT_DATA['SHARE_WITH_EMPLOYEES'] = 1;
+                        if ($getData[10] == "A") {
+                            $INSERT_DATA['ACTIVE'] = 1;
+                        } else {
+                            $INSERT_DATA['ACTIVE'] = 0;
+                        }
+                        $created_by = explode(" ", $getData[2]);
+                        $firstName = ($created_by[0]) ?: '';
+                        $lastName = ($created_by[1]) ?: '';
+                        $doableNameId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE FIRST_NAME='$firstName' AND LAST_NAME = '$lastName'");
+                        $INSERT_DATA['CREATED_BY'] = $doableNameId->fields['PK_USER'];
+                        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                        db_perform('DOA_EVENT', $INSERT_DATA, 'insert');
                     }
-                    $INSERT_DATA['START_DATE'] = $getData[5];
-                    $INSERT_DATA['START_TIME'] = $getData[6];
-                    $endDateTime = strtotime($getData[5].' '.$getData[6]) + $getData[8] * 60;
-                    $convertedDate = date('Y-m-d', $endDateTime);
-                    $convertedTime = date('H:i:s', $endDateTime);
-                    $INSERT_DATA['END_DATE'] = $convertedDate;
-                    $INSERT_DATA['END_TIME'] = $convertedTime;
-                    $INSERT_DATA['DESCRIPTION'] = $getData[15];
-                    $INSERT_DATA['SHARE_WITH_CUSTOMERS'] = 0;
-                    $INSERT_DATA['SHARE_WITH_SERVICE_PROVIDERS'] = 1;
-                    $INSERT_DATA['SHARE_WITH_EMPLOYEES'] = 1;
-                    if ($getData[10] == "A") {
-                        $INSERT_DATA['ACTIVE'] = 1;
-                    } else {
-                        $INSERT_DATA['ACTIVE'] = 0;
-                    }
-                    $created_by = explode(" ", $getData[2]);
-                    $firstName = ($created_by[0])?:'';
-                    $lastName = ($created_by[1])?:'';
-                    $doableNameId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE FIRST_NAME='$firstName' AND LAST_NAME = '$lastName'");
-                    $INSERT_DATA['CREATED_BY'] = $doableNameId->fields['PK_USER'];
-                    $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                    db_perform('DOA_EVENT', $INSERT_DATA, 'insert');
                     break;
 
                 case "DOA_APPOINTMENT_MASTER":
