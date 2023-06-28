@@ -963,6 +963,14 @@ if(!empty($_GET['id'])) {
             window.location.href='all_users.php';
         });
 
+        function setFormat(param) {
+            if ($(param).val() != "") {
+                $(param).val(parseFloat($(param).val().replace(/,/g, ""))
+                    .toString()
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+            }
+        }
+
         function createLogin(param) {
             if ($(param).is(':checked')){
                 $('#login_info_tab').show();
@@ -1115,7 +1123,7 @@ if(!empty($_GET['id'])) {
                 data: form_data,
                 success:function (data) {
                     if (PK_USER == 0) {
-                        $('#service_tab_link')[0].click();
+                        $('#document_tab_link')[0].click();
                     }else{
                         window.location.href='all_users.php';
                     }
