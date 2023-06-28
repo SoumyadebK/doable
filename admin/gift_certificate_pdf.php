@@ -30,8 +30,8 @@ if (empty($_GET['id'])) {
 <!DOCTYPE html>
 <html lang="">
 <head>
-    <link href="../assets/gift_certificate/style.css" rel="stylesheet">
-    <link href="../assets/gift_certificate/bootstrap.min.css" rel="stylesheet">
+    <link href="http://localhost/doable/assets/gift_certificate/style.css" rel="stylesheet">
+    <link href="http://localhost/doable/assets/gift_certificate/bootstrap.min.css" rel="stylesheet">
     <title>Gift Certificate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

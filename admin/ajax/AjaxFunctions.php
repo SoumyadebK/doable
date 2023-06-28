@@ -1182,39 +1182,22 @@ function viewSamplePdf($RESPONSE_DATA) {
 }*/
 
 function viewGiftCertificatePdf($RESPONSE_DATA) {
-    // Include autoloader
-    require_once ('../../global/dompdf/autoload.inc.php');
-
-    // Instantiate and use the dompdf class
-    $dompdf = new Dompdf();
-
-    // Load content from html file
-    $html = $RESPONSE_DATA['DOCUMENT_TEMPLATE'];
-    $dompdf->loadHtml($html);
-
-    // (Optional) Setup the paper size and orientation
-    $dompdf->setPaper('A4', 'landscape');
-
-    // Render the HTML as PDF
-    $dompdf->render();
-
-/*    $file_name = "sample_pdf_".time().".pdf";
-    $dompdf->Output("../../uploads/sample_enrollment_pdf/".$file_name, 'F');*/
-
-    $file_to_save = '../../uploads/sample_enrollment_pdf/certificate.pdf';
-//save the pdf file on the server
-    file_put_contents($file_to_save, $dompdf->output());
-//print the pdf file to the screen for saving
-    header('Content-type: application/pdf');
-    header('Content-Disposition: inline; filename="file.pdf"');
-    header('Content-Transfer-Encoding: binary');
-    header('Content-Length: ' . filesize($file_to_save));
-    header('Accept-Ranges: bytes');
-    readfile($file_to_save);
-
-    // Output the generated PDF (1 = download and 0 = preview)
-    $dompdf->stream("certificate.pdf", array("Attachment" => 1));
-
+    try {
+        global $http_path;
+        require_once('../../global/vendor/autoload.php');
+        try {
+            $mpdf = new Mpdf();
+            $html = file_get_contents($http_path . 'admin/gift_certificate_pdf.php?id=' . $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']);
+            $mpdf->WriteHTML($html);
+            $file_name = "gift_certificate_" . time() . ".pdf";
+            $mpdf->Output('../../uploads/gift_certificate_pdf/'.$file_name, 'F');
+        } catch (Exception $e) {
+            echo $e->getMessage(); die;
+        }
+        echo $http_path."uploads/gift_certificate_pdf/".$file_name;
+    } catch (Exception $exception) {
+        echo $exception->getMessage();
+    }
 }
 
 function saveMultiAppointmentData($RESPONSE_DATA){
