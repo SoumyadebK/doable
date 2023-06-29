@@ -259,7 +259,16 @@ if(!empty($_GET['id'])) {
                                                                     <label class="col-md-12"><input type="checkbox" id="IS_COUNSELLOR" name="IS_COUNSELLOR" class="form-check-inline" <?=($IS_COUNSELLOR == 1)?'checked':''?> style="margin-top: 30px;"> Is Counsellor ?</label>
                                                                 </div>
                                                                 <div class="col-md-2">
-                                                                    <input type="hidden" name="PK_ROLES[]">
+                                                                    <?php
+                                                                    if(!empty($_GET['id'])) {
+                                                                    $PK_USER = $_GET['id'];
+                                                                        $selected_roles_row = $db->Execute("SELECT PK_ROLES FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
+                                                                        while (!$selected_roles_row->EOF) { ?>
+                                                                            <input type="hidden" name="PK_ROLES[]" value="<?=$selected_roles_row->fields['PK_ROLES']?>">
+                                                                    <?php $selected_roles_row->MoveNext(); }
+                                                                    } else { ?>
+                                                                        <input type="hidden" name="PK_ROLES[]" value="5">
+                                                                    <?php } ?>
                                                                 </div>
                                                             </div>
 
