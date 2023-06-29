@@ -186,8 +186,8 @@ if(!empty($_GET['id'])) {
                             echo "Edit ".$FIRST_NAME." ".$LAST_NAME;
                         }?></h4>
                 </div>
+                <div class="col-3 align-self-center">
                 <?php if(!empty($_GET['id'])) { ?>
-                    <div class="col-3 align-self-center">
                         <div>
                             <select required name="NAME" id="NAME" onchange="editpage(this);">
                                 <option value="">Select Service Provider</option>
@@ -198,8 +198,8 @@ if(!empty($_GET['id'])) {
                                     <?php $row->MoveNext(); } ?>
                             </select>
                         </div>
-                    </div>
                 <?php } ?>
+                </div>
                 <div class="col-md-4 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">

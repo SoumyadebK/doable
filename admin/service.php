@@ -92,7 +92,6 @@ if(empty($_GET['id'])){
                             <li class="breadcrumb-item"><a href="all_services.php">All Services</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
-
                     </div>
                 </div>
             </div>
