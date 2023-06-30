@@ -151,7 +151,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
     }
 
-    header('location:customer.php?id='.$_GET['id']);
+    header('location:customer.php?id='.$_GET['id'].'&master_id='.$_GET['master_id']);
 }
 
 
@@ -564,7 +564,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                     <div class="form-group">
                                                                         <label class="form-label">Customer ID</label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control" placeholder="Enter Last Name" value="<?=$CUSTOMER_ID?>">
+                                                                            <input type="text" id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control" placeholder="Enter User Name" value="<?=$CUSTOMER_ID?>">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1458,7 +1458,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                             <select class="form-control" name="INQUIRY_TAKER_ID">
                                                                                 <option>Select</option>
                                                                                 <?php
-                                                                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN(2,3,5) AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN(2,3,5) AND DOA_USERS.ACTIVE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                                                                 while (!$row->EOF) { ?>
                                                                                     <option value="<?php echo $row->fields['PK_USER'];?>" <?=($row->fields['PK_USER'] == $INQUIRY_TAKER_ID)?'selected':''?>><?=$row->fields['NAME']?></option>
                                                                                 <?php $row->MoveNext(); } ?>
@@ -1549,10 +1549,14 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                 </div>
 
                                                 <div class="tab-pane" id="enrollment" role="tabpanel">
+                                                    <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createEnrollment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
                                                     <div id="enrollment_list" class="p-20">
 
                                                     </div>
                                                 </div>
+
+                                                <!--Enrollment Model-->
+
 
                                                 <div class="tab-pane" id="appointment" role="tabpanel">
                                                     <div id="appointment_list" class="p-20">
@@ -1934,6 +1938,31 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
     </script>
 
     <script>
+        // Get the modal
+        var enrollment_model = document.getElementById("enrollmentModel");
+
+        // Get the <span> element that closes the enrollment_model
+        var enrollment_span = document.getElementsByClassName("close_enrollment_model")[0];
+
+        // When the user clicks the button, open the enrollment_model
+        function openEnrollmentModel() {
+            enrollment_model.style.display = "block";
+        }
+
+        // When the user clicks on <enrollment_span> (x), close the enrollment_model
+        enrollment_span.onclick = function() {
+            enrollment_model.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the enrollment_model, close it
+        window.onclick = function(event) {
+            if (event.target == enrollment_model) {
+                enrollment_model.style.display = "none";
+            }
+        }
+    </script>
+
+    <script>
         function createUserComment() {
             $('#comment_header').text("Add Comment");
             $('#PK_COMMENT').val(0);
@@ -1941,6 +1970,15 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
             $('#COMMENT_DATE').val('');
             $('#comment_active').hide();
             openCommentModel();
+        }
+
+        function createEnrollment() {
+            $('#enrollment_header').text("Add Enrollment");
+            $('#PK_COMMENT').val(0);
+            $('#COMMENT').val('');
+            $('#COMMENT_DATE').val('');
+            $('#comment_active').hide();
+            openEnrollmentModel();
         }
 
         function editComment(PK_COMMENT) {

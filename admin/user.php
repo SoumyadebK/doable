@@ -241,8 +241,42 @@ $ACTIVE = '';
 $INACTIVE_BY_ADMIN = '';
 $CAN_EDIT_ENROLLMENT = '';
 $TICKET_SYSTEM_ACCESS = '';
+
+//for service provider
+$IS_COUNSELLOR = '';
+$PK_SERVICE_MASTER = '';
+$MON_START_TIME = '';
+$MON_END_TIME = '';
+$TUE_START_TIME = '';
+$TUE_END_TIME = '';
+$WED_START_TIME = '';
+$WED_END_TIME = '';
+$THU_START_TIME = '';
+$THU_END_TIME = '';
+$FRI_START_TIME = '';
+$FRI_END_TIME = '';
+$SAT_START_TIME = '';
+$SAT_END_TIME = '';
+$SUN_START_TIME = '';
+$SUN_END_TIME = '';
+
+$MON_MIN_TIME = '';
+$MON_MAX_TIME = '';
+$TUE_MIN_TIME = '';
+$TUE_MAX_TIME = '';
+$WED_MIN_TIME = '';
+$WED_MAX_TIME = '';
+$THU_MIN_TIME = '';
+$THU_MAX_TIME = '';
+$FRI_MIN_TIME = '';
+$FRI_MAX_TIME = '';
+$SAT_MIN_TIME = '';
+$SAT_MAX_TIME = '';
+$SUN_MIN_TIME = '';
+$SUN_MAX_TIME = '';
+//end
 if(!empty($_GET['id'])) {
-    $res = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.INACTIVE_BY_ADMIN, DOA_USERS.CAN_EDIT_ENROLLMENT, DOA_USERS.PK_LOCATION, DOA_USERS.USER_TITLE, DOA_USERS.CREATE_LOGIN, DOA_USERS.PASSWORD, DOA_USERS.TICKET_SYSTEM_ACCESS, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_GET[id]'");
+    $res = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.INACTIVE_BY_ADMIN, DOA_USERS.CAN_EDIT_ENROLLMENT, DOA_USERS.PK_LOCATION, DOA_USERS.USER_TITLE, DOA_USERS.CREATE_LOGIN, DOA_USERS.PASSWORD, DOA_USERS.TICKET_SYSTEM_ACCESS, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES, DOA_USERS.IS_COUNSELLOR  FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_GET[id]'");
     if($res->RecordCount() == 0){
         header("location:all_users.php");
         exit;
@@ -272,6 +306,69 @@ if(!empty($_GET['id'])) {
     $CAN_EDIT_ENROLLMENT = $res->fields['CAN_EDIT_ENROLLMENT'];
     $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
     $TICKET_SYSTEM_ACCESS = $res->fields['TICKET_SYSTEM_ACCESS'];
+    $IS_COUNSELLOR = $res->fields['IS_COUNSELLOR'];
+
+    $service_data = $db->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_SERVICES` WHERE PK_USER = '$PK_USER'");
+    if($service_data->RecordCount() > 0) {
+        $PK_SERVICE_MASTER = $service_data->fields['PK_SERVICE_MASTER'];
+        $MON_START_TIME = $service_data->fields['MON_START_TIME'];
+        $MON_END_TIME = $service_data->fields['MON_END_TIME'];
+        $TUE_START_TIME = $service_data->fields['TUE_START_TIME'];
+        $TUE_END_TIME = $service_data->fields['TUE_END_TIME'];
+        $WED_START_TIME = $service_data->fields['WED_START_TIME'];
+        $WED_END_TIME = $service_data->fields['WED_END_TIME'];
+        $THU_START_TIME = $service_data->fields['THU_START_TIME'];
+        $THU_END_TIME = $service_data->fields['THU_END_TIME'];
+        $FRI_START_TIME = $service_data->fields['FRI_START_TIME'];
+        $FRI_END_TIME = $service_data->fields['FRI_END_TIME'];
+        $SAT_START_TIME = $service_data->fields['SAT_START_TIME'];
+        $SAT_END_TIME = $service_data->fields['SAT_END_TIME'];
+        $SUN_START_TIME = $service_data->fields['SUN_START_TIME'];
+        $SUN_END_TIME = $service_data->fields['SUN_END_TIME'];
+    }
+    $operational_hours_res = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.DAY_NUMBER, MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DOA_OPERATIONAL_HOUR.CLOSED FROM `DOA_OPERATIONAL_HOUR` LEFT JOIN DOA_USER_LOCATION ON DOA_OPERATIONAL_HOUR.PK_LOCATION = DOA_USER_LOCATION.PK_LOCATION WHERE DOA_USER_LOCATION.PK_USER = '$_GET[id]' GROUP BY DOA_OPERATIONAL_HOUR.DAY_NUMBER");
+    while (!$operational_hours_res->EOF) {
+
+        switch ($operational_hours_res->fields['DAY_NUMBER']){
+            case 1:
+                $MON_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
+                $MON_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
+                $MON_CLOSED = $operational_hours_res->fields['CLOSED'];
+                break;
+            case 2:
+                $TUE_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
+                $TUE_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
+                $TUE_CLOSED = $operational_hours_res->fields['CLOSED'];
+                break;
+            case 3:
+                $WED_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
+                $WED_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
+                $WED_CLOSED = $operational_hours_res->fields['CLOSED'];
+                break;
+            case 4:
+                $THU_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
+                $THU_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
+                $THU_CLOSED = $operational_hours_res->fields['CLOSED'];
+                break;
+            case 5:
+                $FRI_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
+                $FRI_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
+                $FRI_CLOSED = $operational_hours_res->fields['CLOSED'];
+                break;
+            case 6:
+                $SAT_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
+                $SAT_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
+                $SAT_CLOSED = $operational_hours_res->fields['CLOSED'];
+                break;
+            case 7:
+                $SUN_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
+                $SUN_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
+                $SUN_CLOSED = $operational_hours_res->fields['CLOSED'];
+                break;
+        }
+
+        $operational_hours_res->MoveNext();
+    }
 }
 
 ?>
@@ -327,7 +424,9 @@ if(!empty($_GET['id'])) {
                                                 <li> <a class="nav-link active" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                                                 <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
                                                 <li> <a class="nav-link" id="rates_tab_link" data-bs-toggle="tab" href="#rates" role="tab" ><span class="hidden-sm-up"><i class="ti-money"></i></span> <span class="hidden-xs-down">Rates</span></a> </li>
+                                                <li> <a class="nav-link" id="service_tab_link" data-bs-toggle="tab" href="#service" role="tab" ><span class="hidden-sm-up"><i class="ti-server"></i></span> <span class="hidden-xs-down">Service</span></a> </li>
                                                 <li> <a class="nav-link" data-bs-toggle="tab" href="#documents" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
+                                                <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                                             </ul>
                                             <!-- Tab panes -->
                                             <div class="tab-content tabcontent-border">
@@ -803,6 +902,151 @@ if(!empty($_GET['id'])) {
                                                     </form>
                                                 </div>
 
+                                                <div class="tab-pane card-body" id="service" role="tabpanel">
+                                                    <form id="service_form">
+                                                        <input type="hidden" name="FUNCTION_NAME" value="saveServiceData">
+                                                        <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                        <input type="hidden" class="TYPE" name="TYPE" value="3">
+                                                        <div class="p-20">
+                                                            <div class="row form-group">
+                                                                <div class="col-1">
+                                                                    <label class="form-label">Services</label>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <select class="multi_sumo_select" name="PK_SERVICE_MASTER[]" multiple>
+                                                                        <?php
+                                                                        $row = $db->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+                                                                        while (!$row->EOF) { ?>
+                                                                            <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=(in_array($row->fields['PK_SERVICE_MASTER'], explode(',', $PK_SERVICE_MASTER))?'selected':'')?> ><?=$row->fields['SERVICE_NAME']?></option>
+                                                                            <?php $row->MoveNext(); } ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row">
+                                                                <div class="col-1">
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label class="form-label">Start Time</label>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label class="form-label">End Time</label>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row form-group">
+                                                                <div class="col-1">
+                                                                    <label class="form-label">Monday</label>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="MON_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$MON_MIN_TIME?>" data-max_time="<?=$MON_MAX_TIME?>" placeholder="Start Time" value="<?=($MON_START_TIME=='00:00:00' || $MON_START_TIME=='')?'':date('h:i A', strtotime($MON_START_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="MON_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$MON_MIN_TIME?>" data-max_time="<?=$MON_MAX_TIME?>" placeholder="End Time" value="<?=($MON_END_TIME=='00:00:00' || $MON_END_TIME=='')?'':date('h:i A', strtotime($MON_END_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($MON_START_TIME=='00:00:00'&&$MON_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row form-group">
+                                                                <div class="col-1">
+                                                                    <label class="form-label">Tuesday</label>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="TUE_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$TUE_MIN_TIME?>" data-max_time="<?=$TUE_MAX_TIME?>" placeholder="Start Time" value="<?=($TUE_START_TIME=='00:00:00' || $TUE_START_TIME=='')?'':date('h:i A', strtotime($TUE_START_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="TUE_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$TUE_MIN_TIME?>" data-max_time="<?=$TUE_MAX_TIME?>" placeholder="End Time" value="<?=($TUE_END_TIME=='00:00:00' || $TUE_END_TIME=='')?'':date('h:i A', strtotime($TUE_END_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($TUE_START_TIME=='00:00:00'&&$TUE_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row form-group">
+                                                                <div class="col-1">
+                                                                    <label class="form-label">Wednesday</label>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="WED_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$WED_MIN_TIME?>" data-max_time="<?=$WED_MAX_TIME?>" placeholder="Start Time" value="<?=($WED_START_TIME=='00:00:00' || $WED_START_TIME=='')?'':date('h:i A', strtotime($WED_START_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="WED_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$WED_MIN_TIME?>" data-max_time="<?=$WED_MAX_TIME?>" placeholder="End Time" value="<?=($WED_END_TIME=='00:00:00' || $WED_END_TIME=='')?'':date('h:i A', strtotime($WED_END_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($WED_START_TIME=='00:00:00'&&$WED_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row form-group">
+                                                                <div class="col-1">
+                                                                    <label class="form-label">Thursday</label>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="THU_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$THU_MIN_TIME?>" data-max_time="<?=$THU_MAX_TIME?>" placeholder="Start Time" value="<?=($THU_START_TIME=='00:00:00' || $THU_START_TIME=='')?'':date('h:i A', strtotime($THU_START_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="THU_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$THU_MIN_TIME?>" data-max_time="<?=$THU_MAX_TIME?>" placeholder="End Time" value="<?=($THU_END_TIME=='00:00:00' || $THU_END_TIME=='')?'':date('h:i A', strtotime($THU_END_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($THU_START_TIME=='00:00:00'&&$THU_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row form-group">
+                                                                <div class="col-1">
+                                                                    <label class="form-label">Friday</label>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="FRI_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$FRI_MIN_TIME?>" data-max_time="<?=$FRI_MAX_TIME?>" placeholder="Start Time" value="<?=($FRI_START_TIME=='00:00:00' || $FRI_START_TIME=='')?'':date('h:i A', strtotime($FRI_START_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="FRI_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$FRI_MIN_TIME?>" data-max_time="<?=$FRI_MAX_TIME?>" placeholder="End Time" value="<?=($FRI_END_TIME=='00:00:00' || $FRI_END_TIME=='')?'':date('h:i A', strtotime($FRI_END_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($FRI_START_TIME=='00:00:00'&&$FRI_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row form-group">
+                                                                <div class="col-1">
+                                                                    <label class="form-label">Saturday</label>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="SAT_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$SAT_MIN_TIME?>" data-max_time="<?=$SAT_MAX_TIME?>" placeholder="Start Time" value="<?=($SAT_START_TIME=='00:00:00' || $SAT_START_TIME=='')?'':date('h:i A', strtotime($SAT_START_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="SAT_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$SAT_MIN_TIME?>" data-max_time="<?=$SAT_MAX_TIME?>" placeholder="End Time" value="<?=($SAT_END_TIME=='00:00:00' || $SAT_END_TIME=='')?'':date('h:i A', strtotime($SAT_END_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($SAT_START_TIME=='00:00:00'&&$SAT_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row form-group">
+                                                                <div class="col-1">
+                                                                    <label class="form-label">Sunday</label>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="SUN_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$SUN_MIN_TIME?>" data-max_time="<?=$SUN_MAX_TIME?>" placeholder="Start Time" value="<?=($SUN_START_TIME=='00:00:00' || $SUN_START_TIME=='')?'':date('h:i A', strtotime($SUN_START_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <input type="text" name="SUN_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$SUN_MIN_TIME?>" data-max_time="<?=$SUN_MAX_TIME?>" placeholder="End Time" value="<?=($SUN_END_TIME=='00:00:00' || $SUN_END_TIME=='')?'':date('h:i A', strtotime($SUN_END_TIME))?>" readonly>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($SUN_START_TIME=='00:00:00'&&$SUN_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                                                            <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+
                                                 <div class="tab-pane" id="documents" role="tabpanel">
                                                     <form id="document_form">
                                                         <input type="hidden" name="FUNCTION_NAME" value="saveUserDocumentData">
@@ -872,6 +1116,86 @@ if(!empty($_GET['id'])) {
                                                             <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                                         </div>
                                                     </form>
+                                                </div>
+
+                                                <div class="tab-pane" id="comments" role="tabpanel">
+                                                    <div class="p-20">
+                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createUserComment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
+                                                        <table id="myTable" class="table table-striped border">
+                                                            <thead>
+                                                            <tr>
+                                                                <th>Commented Date</th>
+                                                                <th>Commented User</th>
+                                                                <th>Comment</th>
+                                                                <th>Actions</th>
+                                                            </tr>
+                                                            </thead>
+
+                                                            <tbody>
+                                                            <?php
+                                                            $comment_data = $db->Execute("SELECT DOA_COMMENT.PK_COMMENT, DOA_COMMENT.COMMENT, DOA_COMMENT.COMMENT_DATE, DOA_COMMENT.ACTIVE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS FULL_NAME FROM `DOA_COMMENT` INNER JOIN DOA_USERS ON DOA_COMMENT.BY_PK_USER = DOA_USERS.PK_USER WHERE `FOR_PK_USER` = ".$PK_USER);
+                                                            $i = 1;
+                                                            while (!$comment_data->EOF) { ?>
+                                                                <tr>
+                                                                    <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=date('m/d/Y', strtotime($comment_data->fields['COMMENT_DATE']))?></td>
+                                                                    <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=$comment_data->fields['FULL_NAME']?></td>
+                                                                    <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=$comment_data->fields['COMMENT']?></td>
+                                                                    <td>
+                                                                        <a href="javascript:;" onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><i class="ti-pencil" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <a href="javascript:;" onclick='javascript:deleteComment(<?=$comment_data->fields['PK_COMMENT']?>);return false;'><i class="ti-trash" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <?php if($comment_data->fields['ACTIVE']==1){ ?>
+                                                                            <span class="active-box-green"></span>
+                                                                        <?php } else{ ?>
+                                                                            <span class="active-box-red"></span>
+                                                                        <?php } ?>
+                                                                    </td>
+                                                                </tr>
+                                                                <?php $comment_data->MoveNext();
+                                                                $i++; } ?>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+
+                                                <!--Comment Model-->
+                                                <div id="commentModel" class="modal">
+                                                    <!-- Modal content -->
+                                                    <div class="modal-content" style="width: 50%;">
+                                                        <span class="close close_comment_model" style="margin-left: 96%;">&times;</span>
+                                                        <div class="card">
+                                                            <div class="card-body">
+                                                                <h4><b id="comment_header">Add Comment</b></h4>
+                                                                <form id="comment_add_edit_form" role="form" action="" method="post">
+                                                                    <input type="hidden" name="FUNCTION_NAME" value="saveCommentData">
+                                                                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                                    <input type="hidden" name="PK_COMMENT" id="PK_COMMENT" value="0">
+                                                                    <div class="p-20">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Comments</label>
+                                                                            <textarea class="form-control" rows="10" name="COMMENT" id="COMMENT" required></textarea>
+                                                                        </div>
+
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Date</label>
+                                                                            <input type="date" class="form-control" name="COMMENT_DATE" id="COMMENT_DATE" required>
+                                                                        </div>
+
+                                                                        <div class="form-group" id="comment_active" style="display: none;">
+                                                                            <label class="form-label">Active</label>
+                                                                            <div>
+                                                                                <label><input type="radio" id="COMMENT_ACTIVE_1" name="ACTIVE" value="1">&nbsp;&nbsp;&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                                <label><input type="radio" id="COMMENT_ACTIVE_0" name="ACTIVE" value="0">&nbsp;&nbsp;&nbsp;No</label>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="form-group">
+                                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
+                                                                        </div>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
 
                                             </div>
@@ -1143,6 +1467,19 @@ if(!empty($_GET['id'])) {
             });
         });
 
+        $(document).on('submit', '#service_form', function (event) {
+            event.preventDefault();
+            let form_data = $('#service_form').serialize();
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                success:function (data) {
+                    window.location.href='all_users.php';
+                }
+            });
+        });
+
         $(document).on('submit', '#document_form', function (event) {
             event.preventDefault();
             let form_data = new FormData($('#document_form')[0]); //$('#document_form').serialize();
@@ -1157,6 +1494,89 @@ if(!empty($_GET['id'])) {
                 }
             });
         });
+    </script>
+
+    <script>
+        //let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
+
+        // Get the modal
+        var comment_model = document.getElementById("commentModel");
+
+        // Get the <span> element that closes the comment_model
+        var comment_span = document.getElementsByClassName("close_comment_model")[0];
+
+        // When the user clicks the button, open the comment_model
+        function openCommentModel() {
+            comment_model.style.display = "block";
+        }
+
+        // When the user clicks on <comment_span> (x), close the comment_model
+        comment_span.onclick = function() {
+            comment_model.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the comment_model, close it
+        window.onclick = function(event) {
+            if (event.target == comment_model) {
+                comment_model.style.display = "none";
+            }
+        }
+
+        function createUserComment() {
+            $('#comment_header').text("Add Comment");
+            $('#PK_COMMENT').val(0);
+            $('#COMMENT').val('');
+            $('#COMMENT_DATE').val('');
+            $('#comment_active').hide();
+            openCommentModel();
+        }
+
+        function editComment(PK_COMMENT) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                dataType: 'JSON',
+                data: {FUNCTION_NAME: 'getEditCommentData', PK_COMMENT: PK_COMMENT},
+                success:function (data) {
+                    $('#comment_header').text("Edit Comment");
+                    $('#PK_COMMENT').val(data.fields.PK_COMMENT);
+                    $('#COMMENT').val(data.fields.COMMENT);
+                    $('#COMMENT_DATE').val(data.fields.COMMENT_DATE);
+                    $('#COMMENT_ACTIVE_'+data.fields.ACTIVE).prop('checked', true);
+                    $('#comment_active').show();
+                    openCommentModel();
+                }
+            });
+        }
+
+        $(document).on('submit', '#comment_add_edit_form', function (event) {
+            event.preventDefault();
+            let form_data = new FormData($('#comment_add_edit_form')[0]); //$('#document_form').serialize();
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                processData: false,
+                contentType: false,
+                success:function (data) {
+                    window.location.href=`service_provider.php?id=${PK_USER}&on_tab=comments`;
+                }
+            });
+        });
+
+        function deleteComment(PK_COMMENT) {
+            let conf = confirm("Are you sure you want to delete?");
+            if(conf) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {FUNCTION_NAME: 'deleteCommentData', PK_COMMENT: PK_COMMENT},
+                    success: function (data) {
+                        window.location.href=`service_provider.php?id=${PK_USER}&on_tab=comments`;
+                    }
+                });
+            }
+        }
     </script>
 </body>
 </html>
