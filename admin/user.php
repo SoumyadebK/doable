@@ -272,6 +272,16 @@ if(!empty($_GET['id'])) {
     $CAN_EDIT_ENROLLMENT = $res->fields['CAN_EDIT_ENROLLMENT'];
     $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
     $TICKET_SYSTEM_ACCESS = $res->fields['TICKET_SYSTEM_ACCESS'];
+
+    $selected_roles = [];
+    if(!empty($_GET['id'])) {
+        $PK_USER = $_GET['id'];
+        $selected_roles_row = $db->Execute("SELECT PK_ROLES FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
+        while (!$selected_roles_row->EOF) {
+            $selected_roles[] = $selected_roles_row->fields['PK_ROLES'];
+            $selected_roles_row->MoveNext();
+        }
+    }
 }
 
 ?>
@@ -360,15 +370,6 @@ if(!empty($_GET['id'])) {
                                                                         <select class="multi_sumo_select" name="PK_ROLES[]" id="PK_ROLES" required multiple>
                                                                             <?php
                                                                             $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' ".$user_role_condition." ORDER BY PK_ROLES");
-                                                                            $selected_roles = [];
-                                                                            if(!empty($_GET['id'])) {
-                                                                                $PK_USER = $_GET['id'];
-                                                                                $selected_roles_row = $db->Execute("SELECT PK_ROLES FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
-                                                                                while (!$selected_roles_row->EOF) {
-                                                                                    $selected_roles[] = $selected_roles_row->fields['PK_ROLES'];
-                                                                                    $selected_roles_row->MoveNext();
-                                                                                }
-                                                                            }
                                                                             while (!$row->EOF) { ?>
                                                                                 <option value="<?php echo $row->fields['PK_ROLES'];?>" <?=in_array($row->fields['PK_ROLES'], $selected_roles)?"selected":""?>><?=$row->fields['ROLES']?></option>
                                                                             <?php $row->MoveNext(); } ?>
