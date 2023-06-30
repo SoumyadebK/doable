@@ -115,11 +115,15 @@
             transition: background-color .3s;
             border: 1px solid #ddd;
             margin: 0 4px;
+            border-radius: 5px;
         }
         .pagination a.active {
             background-color: #39B54A;
             color: white;
             border: 1px solid #39B54A;
+        }
+        .pagination a.hidden {
+            display: none;
         }
         .pagination a:hover:not(.active) {background-color: #ddd;}
 

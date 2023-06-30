@@ -306,6 +306,7 @@ if(!empty($_GET['id'])) {
     $CAN_EDIT_ENROLLMENT = $res->fields['CAN_EDIT_ENROLLMENT'];
     $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
     $TICKET_SYSTEM_ACCESS = $res->fields['TICKET_SYSTEM_ACCESS'];
+
     $IS_COUNSELLOR = $res->fields['IS_COUNSELLOR'];
 
     $service_data = $db->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_SERVICES` WHERE PK_USER = '$PK_USER'");
@@ -329,7 +330,7 @@ if(!empty($_GET['id'])) {
     $operational_hours_res = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.DAY_NUMBER, MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DOA_OPERATIONAL_HOUR.CLOSED FROM `DOA_OPERATIONAL_HOUR` LEFT JOIN DOA_USER_LOCATION ON DOA_OPERATIONAL_HOUR.PK_LOCATION = DOA_USER_LOCATION.PK_LOCATION WHERE DOA_USER_LOCATION.PK_USER = '$_GET[id]' GROUP BY DOA_OPERATIONAL_HOUR.DAY_NUMBER");
     while (!$operational_hours_res->EOF) {
 
-        switch ($operational_hours_res->fields['DAY_NUMBER']){
+        switch ($operational_hours_res->fields['DAY_NUMBER']) {
             case 1:
                 $MON_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
                 $MON_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
@@ -368,6 +369,18 @@ if(!empty($_GET['id'])) {
         }
 
         $operational_hours_res->MoveNext();
+
+    }
+
+    $selected_roles = [];
+    if(!empty($_GET['id'])) {
+        $PK_USER = $_GET['id'];
+        $selected_roles_row = $db->Execute("SELECT PK_ROLES FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
+        while (!$selected_roles_row->EOF) {
+            $selected_roles[] = $selected_roles_row->fields['PK_ROLES'];
+            $selected_roles_row->MoveNext();
+        }
+
     }
 }
 
@@ -423,10 +436,16 @@ if(!empty($_GET['id'])) {
                                             <ul class="nav nav-tabs" role="tablist">
                                                 <li> <a class="nav-link active" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                                                 <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
+                                                <?php if (in_array(5, $selected_roles)) { ?>
                                                 <li> <a class="nav-link" id="rates_tab_link" data-bs-toggle="tab" href="#rates" role="tab" ><span class="hidden-sm-up"><i class="ti-money"></i></span> <span class="hidden-xs-down">Rates</span></a> </li>
+                                                <?php } ?>
+                                                <?php if (in_array(5, $selected_roles)) { ?>
                                                 <li> <a class="nav-link" id="service_tab_link" data-bs-toggle="tab" href="#service" role="tab" ><span class="hidden-sm-up"><i class="ti-server"></i></span> <span class="hidden-xs-down">Service</span></a> </li>
+                                                <?php } ?>
                                                 <li> <a class="nav-link" data-bs-toggle="tab" href="#documents" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
+                                                <?php if (in_array(5, $selected_roles)) { ?>
                                                 <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                                                <?php } ?>
                                             </ul>
                                             <!-- Tab panes -->
                                             <div class="tab-content tabcontent-border">
@@ -459,15 +478,6 @@ if(!empty($_GET['id'])) {
                                                                         <select class="multi_sumo_select" name="PK_ROLES[]" id="PK_ROLES" required multiple>
                                                                             <?php
                                                                             $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' ".$user_role_condition." ORDER BY PK_ROLES");
-                                                                            $selected_roles = [];
-                                                                            if(!empty($_GET['id'])) {
-                                                                                $PK_USER = $_GET['id'];
-                                                                                $selected_roles_row = $db->Execute("SELECT PK_ROLES FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
-                                                                                while (!$selected_roles_row->EOF) {
-                                                                                    $selected_roles[] = $selected_roles_row->fields['PK_ROLES'];
-                                                                                    $selected_roles_row->MoveNext();
-                                                                                }
-                                                                            }
                                                                             while (!$row->EOF) { ?>
                                                                                 <option value="<?php echo $row->fields['PK_ROLES'];?>" <?=in_array($row->fields['PK_ROLES'], $selected_roles)?"selected":""?>><?=$row->fields['ROLES']?></option>
                                                                             <?php $row->MoveNext(); } ?>
