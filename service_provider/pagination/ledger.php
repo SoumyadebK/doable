@@ -27,7 +27,7 @@ $page_first_result = ($page-1) * $results_per_page;
 <?php $wallet_data = $db->Execute("SELECT * FROM DOA_USER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_USER_WALLET DESC LIMIT 1"); ?>
 <h3 class="m-20">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></h3>
 <?php
-$i=$page_first_result+1;
+$i=$page_first_result+1;s
 $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]'".$search."ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
 while (!$row->EOF) {
     $used_session_count = $db->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
@@ -83,13 +83,21 @@ while (!$row->EOF) {
     <div class="pagination outer">
         <ul>
             <?php if ($page > 1) { ?>
-                <li><a href="javascript:;" onclick="showLedgerList(<?=($page-1)?>)">&laquo;</a></li>
+                <li><a href="javascript:;" onclick="showLedgerList(1)">&laquo;</a></li>
+                <li><a href="javascript:;" onclick="showLedgerList(<?=($page-1)?>)">&lsaquo;</a></li>
             <?php }
             for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
-                echo '<li><a class="'.(($page_count==$page)?"active":"").'" href="javascript:;" onclick="showLedgerList('.$page_count.')">' . $page_count . ' </a></li>';
+                if ($page_count == $page || $page_count == ($page+1) || $page_count == ($page-1) || $page_count == $number_of_page) {
+                    echo '<li><a class="'.(($page_count==$page)?"active":"").'" href="javascript:;" onclick="showLedgerList('.$page_count.')">' . $page_count . ' </a></li>';
+                } elseif ($page_count == ($number_of_page-1)){
+                    echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
+                } else {
+                    echo '<li><a class="hidden" href="javascript:;" onclick="showLedgerList('.$page_count.')">' . $page_count . ' </a></li>';
+                }
             }
             if ($page < $number_of_page) { ?>
-                <li><a href="javascript:;" onclick="showLedgerList(<?=($page+1)?>)">&raquo;</a></li>
+                <li><a href="javascript:;" onclick="showLedgerList(<?=($page+1)?>)">&rsaquo;</a></li>
+                <li><a href="javascript:;" onclick="showLedgerList(<?=$number_of_page?>)">&raquo;</a></li>
             <?php } ?>
         </ul>
     </div>

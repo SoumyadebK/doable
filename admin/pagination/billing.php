@@ -105,13 +105,21 @@ while (!$row->EOF) {
     <div class="pagination outer">
         <ul>
             <?php if ($page > 1) { ?>
-                <li><a href="javascript:;" onclick="showBillingList(<?=($page-1)?>)">&laquo;</a></li>
+                <li><a href="javascript:;" onclick="showBillingList(1)">&laquo;</a></li>
+                <li><a href="javascript:;" onclick="showBillingList(<?=($page-1)?>)">&lsaquo;</a></li>
             <?php }
             for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
-                echo '<li><a class="'.(($page_count==$page)?"active":"").'" href="javascript:;" onclick="showBillingList('.$page_count.')">' . $page_count . ' </a></li>';
+                if ($page_count == $page || $page_count == ($page+1) || $page_count == ($page-1) || $page_count == $number_of_page) {
+                    echo '<li><a class="'.(($page_count==$page)?"active":"").'" href="javascript:;" onclick="showBillingList('.$page_count.')">' . $page_count . ' </a></li>';
+                } elseif ($page_count == ($number_of_page-1)){
+                    echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
+                } else {
+                    echo '<li><a class="hidden" href="javascript:;" onclick="showBillingList('.$page_count.')">' . $page_count . ' </a></li>';
+                }
             }
             if ($page < $number_of_page) { ?>
-                <li><a href="javascript:;" onclick="showBillingList(<?=($page+1)?>)">&raquo;</a></li>
+                <li><a href="javascript:;" onclick="showBillingList(<?=($page+1)?>)">&rsaquo;</a></li>
+                <li><a href="javascript:;" onclick="showBillingList(<?=$number_of_page?>)">&raquo;</a></li>
             <?php } ?>
         </ul>
     </div>
