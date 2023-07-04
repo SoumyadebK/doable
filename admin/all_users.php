@@ -28,9 +28,9 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <?php if ($status_check=='inactive') { ?>
-                        <h4 class="text-themecolor">Not Active Customers</h4>
+                        <h4 class="text-themecolor">Not Active Users</h4>
                     <?php } elseif ($status_check=='active') { ?>
-                        <h4 class="text-themecolor">Active Customers</h4>
+                        <h4 class="text-themecolor">Active Users</h4>
                     <?php } ?>
                 </div>
                 <?php if ($status_check=='inactive') { ?>
