@@ -1974,10 +1974,6 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
 
         function createEnrollment() {
             $('#enrollment_header').text("Add Enrollment");
-            $('#PK_COMMENT').val(0);
-            $('#COMMENT').val('');
-            $('#COMMENT_DATE').val('');
-            $('#comment_active').hide();
             openEnrollmentModel();
         }
 
