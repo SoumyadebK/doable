@@ -274,6 +274,8 @@ $SAT_MIN_TIME = '';
 $SAT_MAX_TIME = '';
 $SUN_MIN_TIME = '';
 $SUN_MAX_TIME = '';
+
+$selected_roles = array();
 //end
 if(!empty($_GET['id'])) {
     $res = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.INACTIVE_BY_ADMIN, DOA_USERS.CAN_EDIT_ENROLLMENT, DOA_USERS.PK_LOCATION, DOA_USERS.USER_TITLE, DOA_USERS.CREATE_LOGIN, DOA_USERS.PASSWORD, DOA_USERS.TICKET_SYSTEM_ACCESS, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES, DOA_USERS.IS_COUNSELLOR  FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_GET[id]'");
@@ -372,7 +374,7 @@ if(!empty($_GET['id'])) {
 
     }
 
-    $selected_roles = [];
+
     if(!empty($_GET['id'])) {
         $PK_USER = $_GET['id'];
         $selected_roles_row = $db->Execute("SELECT PK_ROLES FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
@@ -436,16 +438,10 @@ if(!empty($_GET['id'])) {
                                             <ul class="nav nav-tabs" role="tablist">
                                                 <li> <a class="nav-link active" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                                                 <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-                                                <?php if (in_array(5, $selected_roles)) { ?>
-                                                <li> <a class="nav-link" id="rates_tab_link" data-bs-toggle="tab" href="#rates" role="tab" ><span class="hidden-sm-up"><i class="ti-money"></i></span> <span class="hidden-xs-down">Rates</span></a> </li>
-                                                <?php } ?>
-                                                <?php if (in_array(5, $selected_roles)) { ?>
-                                                <li> <a class="nav-link" id="service_tab_link" data-bs-toggle="tab" href="#service" role="tab" ><span class="hidden-sm-up"><i class="ti-server"></i></span> <span class="hidden-xs-down">Service</span></a> </li>
-                                                <?php } ?>
+                                                <li id="rates_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="rates_tab_link" data-bs-toggle="tab" href="#rates" role="tab" ><span class="hidden-sm-up"><i class="ti-money"></i></span> <span class="hidden-xs-down">Rates</span></a> </li>
+                                                <li id="service_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="service_tab_link" data-bs-toggle="tab" href="#service" role="tab" ><span class="hidden-sm-up"><i class="ti-server"></i></span> <span class="hidden-xs-down">Service</span></a> </li>
                                                 <li> <a class="nav-link" data-bs-toggle="tab" href="#documents" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                                                <?php if (in_array(5, $selected_roles)) { ?>
-                                                <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
-                                                <?php } ?>
+                                                <li id="comment_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                                             </ul>
                                             <!-- Tab panes -->
                                             <div class="tab-content tabcontent-border">
@@ -475,7 +471,7 @@ if(!empty($_GET['id'])) {
                                                                 <div class="col-md-2">
                                                                     <label class="form-label">Roles<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12 multiselect-box">
-                                                                        <select class="multi_sumo_select" name="PK_ROLES[]" id="PK_ROLES" required multiple>
+                                                                        <select class="multi_sumo_select" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
                                                                             <?php
                                                                             $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' ".$user_role_condition." ORDER BY PK_ROLES");
                                                                             while (!$row->EOF) { ?>
@@ -1257,6 +1253,42 @@ if(!empty($_GET['id'])) {
                     .replace(/\B(?=(\d{3})+(?!\d))/g, ","));
             }
         }
+
+        $(document).on('focus', '.time-picker', function () {
+            let day_min = $(this).data('min_time');
+            let day_max = $(this).data('max_time');
+            console.log(day_min, day_max);
+            if (day_min && day_max) {
+                $(this).timepicker({
+                    timeFormat: 'hh:mm p',
+                    interval: 30,
+                    minTime: day_min,
+                    maxTime: day_max,
+                    defaultTime: day_min,
+                    startTime: day_min,
+                    dynamic: false,
+                    dropdown: true,
+                    scrollbar: true
+                });
+            }else {
+                $(this).timepicker({
+                    timeFormat: 'hh:mm p',
+                    interval: 30,
+                    dynamic: false,
+                    dropdown: true,
+                    scrollbar: true
+                });
+            }
+        });
+
+        function closeThisDay(param){
+            if ($(param).is(':checked')){
+                $(param).closest('.row').find('.time-input').val('');
+                $(param).closest('.row').find('.time-input').css('pointer-events', 'none');
+            }else {
+                $(param).closest('.row').find('.time-input').css('pointer-events', '');
+            }
+        }
     </script>
     <script>
         let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
@@ -1335,6 +1367,19 @@ if(!empty($_GET['id'])) {
             }
         }
 
+        function showServiceProviderTabs(param) {
+            let pk_role = $(param).val();
+            if (pk_role.indexOf('5') !== -1){
+                $('#rates_tab').show();
+                $('#service_tab').show();
+                $('#comment_tab').show();
+            }else {
+                $('#rates_tab').hide();
+                $('#service_tab').hide();
+                $('#comment_tab').hide();
+            }
+        }
+
         let counter = parseInt(<?=$user_doc_count?>);
         function addMoreUserDocument() {
             $('#append_user_document').append(`<div class="row">
@@ -1381,7 +1426,11 @@ if(!empty($_GET['id'])) {
                         if ($('#CREATE_LOGIN').is(':checked')) {
                             $('#login_info_tab_link')[0].click();
                         }else {
-                            $('#rates_tab_link')[0].click();
+                            if ($('#PK_ROLES').val().indexOf('5') !== -1) {
+                                $('#rates_tab_link')[0].click();
+                            } else {
+                                $('#document_tab_link')[0].click();
+                            }
                         }
                     }else{
                         window.location.href='all_users.php';
@@ -1427,7 +1476,11 @@ if(!empty($_GET['id'])) {
                         data: form_data,
                         success: function (data) {
                             if (PK_USER == 0) {
-                                $('#rates_tab_link')[0].click();
+                                if ($('#PK_ROLES').val().indexOf('5') !== -1) {
+                                    $('#rates_tab_link')[0].click();
+                                } else {
+                                    $('#document_tab_link')[0].click();
+                                }
                             }else{
                                 window.location.href='all_users.php';
                             }
@@ -1469,7 +1522,11 @@ if(!empty($_GET['id'])) {
                 data: form_data,
                 success:function (data) {
                     if (PK_USER == 0) {
-                        $('#document_tab_link')[0].click();
+                        if ($('#PK_ROLES').val().indexOf('5') !== -1) {
+                            $('#service_tab_link')[0].click();
+                        } else {
+                            $('#document_tab_link')[0].click();
+                        }
                     }else{
                         window.location.href='all_users.php';
                     }
@@ -1485,7 +1542,13 @@ if(!empty($_GET['id'])) {
                 type: 'POST',
                 data: form_data,
                 success:function (data) {
-                    window.location.href='all_users.php';
+                    if (PK_USER == 0) {
+                        if ($('#PK_ROLES').val().indexOf('5') !== -1) {
+                            $('#document_tab_link')[0].click();
+                        } else {
+                            window.location.href='all_users.php';
+                        }
+                    }
                 }
             });
         });
