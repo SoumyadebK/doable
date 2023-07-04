@@ -806,7 +806,7 @@ if(!empty($_GET['id'])) {
                                                                         $row->MoveNext();
                                                                     }
                                                                 }else {
-                                                                    $row = $db->Execute("SELECT DOA_RATE_TYPE.PK_RATE_TYPE, DOA_RATE_TYPE.RATE_NAME, DOA_RATE_TYPE.PRICE_TYPE FROM DOA_RATE_TYPE WHERE DOA_RATE_TYPE.ACTIVE = 1 ORDER BY DOA_RATE_TYPE.PK_RATE_TYPE ASC");
+                                                                    $row = $db->Execute("SELECT * FROM DOA_RATE_TYPE WHERE ACTIVE = 1 ORDER BY PK_RATE_TYPE ASC");
                                                                     while (!$row->EOF) { ?>
                                                                         <div class="col-12">
                                                                             <div class="row form-group" style="margin-bottom: 10px;">

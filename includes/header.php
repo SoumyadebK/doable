@@ -132,6 +132,9 @@
             overflow:auto;
             white-space:nowrap;
         }
+        .outer ul{
+            text-align: center;
+        }
         .outer li{
             display: inline-block;
             *display: inline;/*For IE7*/
