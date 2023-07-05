@@ -954,8 +954,8 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                         <label class="form-label">Active : </label>
                                                                     </div>
                                                                     <div class="col-md-4">
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                     </div>
                                                                 </div>
                                                             <? } ?>
@@ -1051,8 +1051,8 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                         <label class="form-label">Active : </label>
                                                                     </div>
                                                                     <div class="col-md-4">
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                     </div>
                                                                 </div>
                                                             <? } ?>
@@ -1577,11 +1577,11 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                     <div class="modal-content" style="width: 50%;">
                                                         <span class="close" style="margin-left: 96%;">&times;</span>
 
-                                                        <div class="card" id="payment_confirmation_form_div" style="display: none;">
+                                                        <div class="card" id="payment_confirmation_form_div_customer" style="display: none;">
                                                             <div class="card-body">
                                                                 <h4><b>Payment</b></h4>
 
-                                                                <form id="payment_confirmation_form" role="form" action="" method="post">
+                                                                <form id="payment_confirmation_form_customer" role="form" action="" method="post">
                                                                     <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
                                                                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
                                                                     <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING">
@@ -1612,7 +1612,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                 <div class="form-group">
                                                                                     <label class="form-label">Amount</label>
                                                                                     <div class="col-md-12">
-                                                                                        <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY" class="form-control" readonly>
+                                                                                        <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY_CUSTOMER" class="form-control" readonly>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -1620,7 +1620,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                 <div class="form-group">
                                                                                     <label class="form-label">Payment Type</label>
                                                                                     <div class="col-md-12">
-                                                                                        <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)">
+                                                                                        <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE_CUSTOMER" onchange="selectPaymentType(this)">
                                                                                             <option value="">Select</option>
                                                                                             <?php
                                                                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
@@ -1642,7 +1642,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                 <div class="form-group">
                                                                                     <label class="form-label">Remaining Amount</label>
                                                                                     <div class="col-md-12">
-                                                                                        <input type="text" name="REMAINING_AMOUNT" id="REMAINING_AMOUNT" class="form-control" readonly>
+                                                                                        <input type="text" name="REMAINING_AMOUNT" id="REMAINING_AMOUNT_CUSTOMER" class="form-control" readonly>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -1650,7 +1650,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                 <div class="form-group">
                                                                                     <label class="form-label">Payment Type</label>
                                                                                     <div class="col-md-12">
-                                                                                        <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING" onchange="selectRemainingPaymentType(this)">
+                                                                                        <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING_CUSTOMER" onchange="selectRemainingPaymentType(this)">
                                                                                             <option value="">Select</option>
                                                                                             <?php
                                                                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
@@ -1884,6 +1884,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
         }
     </style>
     <?php require_once('../includes/footer.php');?>
+    <?php require_once('../admin/includes/enrollment_model.php');?>
     <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
     <script>
@@ -2603,7 +2604,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
             });
 
             // Handle form submission.
-            var form = document.getElementById('payment_confirmation_form');
+            var form = document.getElementById('payment_confirmation_form_customer');
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
                 stripe.createToken(card).then(function (result) {
@@ -2621,7 +2622,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
             // Submit the form with the token ID.
             function stripeTokenHandler(token) {
                 // Insert the token ID into the form so it gets submitted to the server
-                var form = document.getElementById('payment_confirmation_form');
+                var form = document.getElementById('payment_confirmation_form_customer');
                 var hiddenInput = document.createElement('input');
                 hiddenInput.setAttribute('type', 'hidden');
                 hiddenInput.setAttribute('name', 'token');
@@ -2651,13 +2652,13 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
             $('#enrollment_number').text(ENROLLMENT_ID);
             $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
             $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
-            $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
-            $('#payment_confirmation_form_div').slideDown();
+            $('#AMOUNT_TO_PAY_CUSTOMER').val(BILLED_AMOUNT);
+            $('#payment_confirmation_form_div_customer').slideDown();
             openPaymentModel();
         }
 
         function selectPaymentType(param){
-            let paymentType = $("#PK_PAYMENT_TYPE option:selected").text();
+            let paymentType = $("#PK_PAYMENT_TYPE_CUSTOMER option:selected").text();
             $('.payment_type_div').slideUp();
             $('#card-element').remove();
             switch (paymentType) {
@@ -2673,16 +2674,16 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
 
                 case 'Wallet':
                     $('#wallet_balance_span').slideDown();
-                    let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
+                    let AMOUNT_TO_PAY_CUSTOMER = parseFloat($('#AMOUNT_TO_PAY_CUSTOMER').val());
                     let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
 
-                    if(AMOUNT_TO_PAY > WALLET_BALANCE){
-                        $('#REMAINING_AMOUNT').val(AMOUNT_TO_PAY-WALLET_BALANCE);
+                    if(AMOUNT_TO_PAY_CUSTOMER > WALLET_BALANCE){
+                        $('#REMAINING_AMOUNT_CUSTOMER').val(AMOUNT_TO_PAY_CUSTOMER-WALLET_BALANCE);
                         $('#remaining_amount_div').slideDown();
-                        $('#PK_PAYMENT_TYPE_REMAINING').prop('required', true);
+                        $('#PK_PAYMENT_TYPE_REMAINING_CUSTOMER').prop('required', true);
                     } else {
                         $('#remaining_amount_div').slideUp();
-                        $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                        $('#PK_PAYMENT_TYPE_REMAINING_CUSTOMER').prop('required', false);
                     }
                     break;
 
@@ -2691,13 +2692,13 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                     $('.payment_type_div').slideUp();
                     $('#wallet_balance_span').slideUp();
                     $('#remaining_amount_div').slideUp();
-                    $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                    $('#PK_PAYMENT_TYPE_REMAINING_CUSTOMER').prop('required', false);
                     break;
             }
         }
 
         function selectRemainingPaymentType(param){
-            let paymentType = $("#PK_PAYMENT_TYPE_REMAINING option:selected").text();
+            let paymentType = $("#PK_PAYMENT_TYPE_REMAINING_CUSTOMER option:selected").text();
             $('.remaining_payment_type_div').slideUp();
             $('#card-element').remove();
             switch (paymentType) {

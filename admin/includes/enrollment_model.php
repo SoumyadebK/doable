@@ -32,55 +32,11 @@ $EXPIRATION_DATE = '';
 $CHECK_NUMBER = '';
 $CHECK_DATE = '';
 $NOTE = '';
-
-if(empty($_GET['id'])) {
-    $res = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
-
-    if($res->RecordCount() == 0){
-        header("location:all_enrollments.php");
-        exit;
-    }
-
-    $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
-    $PK_LOCATION = $res->fields['PK_LOCATION'];
-    $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
-    $PK_DOCUMENT_LIBRARY = $res->fields['PK_DOCUMENT_LIBRARY'];
-    $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
-    $ENROLLMENT_BY_ID = $res->fields['ENROLLMENT_BY_ID'];
-    $ACTIVE = $res->fields['ACTIVE'];
-
-    $billing_data = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
-
-    if($billing_data->RecordCount() > 0){
-        $PK_ENROLLMENT_BILLING = $billing_data->fields['PK_ENROLLMENT_BILLING'];
-        $BILLING_REF = $billing_data->fields['BILLING_REF'];
-        $BILLING_DATE = $billing_data->fields['BILLING_DATE'];
-        $DOWN_PAYMENT = $billing_data->fields['DOWN_PAYMENT'];
-        $BALANCE_PAYABLE = $billing_data->fields['BALANCE_PAYABLE'];
-        $PAYMENT_METHOD = $billing_data->fields['PAYMENT_METHOD'];
-        $PAYMENT_TERM = $billing_data->fields['PAYMENT_TERM'];
-        $NUMBER_OF_PAYMENT = $billing_data->fields['NUMBER_OF_PAYMENT'];
-        $FIRST_DUE_DATE = $billing_data->fields['FIRST_DUE_DATE'];
-        $INSTALLMENT_AMOUNT = $billing_data->fields['INSTALLMENT_AMOUNT'];
-    }
-
-    $payment_data = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_PAYMENT` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
-
-    if($payment_data->RecordCount() > 0){
-        $PK_ENROLLMENT_PAYMENT = $payment_data->fields['PK_ENROLLMENT_PAYMENT'];
-        $PK_PAYMENT_TYPE = $payment_data->fields['PK_PAYMENT_TYPE'];
-        $AMOUNT = $payment_data->fields['AMOUNT'];
-        $NAME = $payment_data->fields['NAME'];
-        $CARD_NUMBER = $payment_data->fields['CARD_NUMBER'];
-        $SECURITY_CODE = $payment_data->fields['SECURITY_CODE'];
-        $EXPIRATION_DATE = $payment_data->fields['EXPIRATION_DATE'];
-        $CHECK_NUMBER = $payment_data->fields['CHECK_NUMBER'];
-        $CHECK_DATE = $payment_data->fields['CHECK_DATE'];
-        $NOTE = $payment_data->fields['NOTE'];
-    }
-}
 ?>
 
+<!DOCTYPE html>
+<html lang="en">
+<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 <div id="enrollmentModel" class="modal">
     <!-- Modal content -->
     <div class="modal-content" style="width: 100%;">
@@ -89,15 +45,15 @@ if(empty($_GET['id'])) {
             <div class="card-body">
                 <!-- Nav tabs -->
                 <ul class="nav nav-tabs" role="tablist">
-                    <li class="active"> <a class="nav-link active" data-bs-toggle="tab" id="enrollment_link" href="#enrollment" role="tab"><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>
-                    <li> <a class="nav-link" data-bs-toggle="tab" id="billing_link" href="#billing" role="tab" onclick="goToPaymentTab()"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                    <li class="active"> <a class="nav-link active" data-bs-toggle="tab" id="enrollment_tab_link" href="#enrollment_tab" role="tab"><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>
+                    <li> <a class="nav-link" data-bs-toggle="tab" id="billing_tab_link" href="#billing_tab" role="tab" onclick="goToPaymentTab()"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                 </ul>
 
 
                 <!-- Enrollment Tab panes -->
                 <div class="tab-content tabcontent-border">
-                    <div class="tab-pane active" id="enrollment" role="tabpanel">
-                        <form id="enrollment_form">
+                    <div class="tab-pane active" id="enrollment_tab" role="tabpanel">
+                        <form id="enrollment_tab_form">
                             <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentData">
                             <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                             <div class="p-20">
@@ -375,10 +331,10 @@ if(empty($_GET['id'])) {
                     </div>
 
                     <!--Billing Tab-->
-                    <div class="tab-pane" id="enrollment_billing" role="tabpanel" style="pointer-events: <?=($PK_ENROLLMENT_BILLING>0)?'none':''?>; opacity: <?=($PK_ENROLLMENT_BILLING>0)?'60%':''?>">
+                    <div class="tab-pane" id="billing_tab" role="tabpanel" style="pointer-events: <?=($PK_ENROLLMENT_BILLING>0)?'none':''?>; opacity: <?=($PK_ENROLLMENT_BILLING>0)?'60%':''?>">
                         <div class="card">
                             <div class="card-body">
-                                <form id="billing_form">
+                                <form id="billing_tab_form">
                                     <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
                                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                     <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=$PK_ENROLLMENT_BILLING?>">
@@ -581,14 +537,43 @@ if(empty($_GET['id'])) {
                     </div>
 
                     <!--Payment Model-->
-                    <?php include('includes/payment.php'); ?>
+                    <?php include('payment.php'); ?>
 
                 </div>
             </div>
         </div>
     </div>
 </div>
+<script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
+<script>
+    // Get the modal
+    var modal = document.getElementById("myModal");
 
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks the button, open the modal
+    function openModel() {
+        $('#PK_PAYMENT_TYPE').val('');
+        $('.payment_type_div').slideUp();
+        $('#wallet_balance_div').slideUp();
+        $('#remaining_amount_div').slideUp();
+        $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+        modal.style.display = "block";
+    }
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
 <script>
     let PK_ENROLLMENT_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
     var PK_SERVICE_CLASS = parseInt(<?=empty($PK_SERVICE_CLASS)?0:$PK_SERVICE_CLASS?>);
@@ -785,9 +770,9 @@ if(empty($_GET['id'])) {
         window.location.href='all_enrollments.php'
     });
 
-    $(document).on('submit', '#enrollment_form', function (event) {
+    $(document).on('submit', '#enrollment_tab_form', function (event) {
         event.preventDefault();
-        let form_data = $('#enrollment_form').serialize();
+        let form_data = $('#enrollment_tab_form').serialize();
         $.ajax({
             url: "ajax/AjaxFunctions.php",
             type: 'POST',
@@ -796,7 +781,7 @@ if(empty($_GET['id'])) {
             success:function (data) {
                 $('.PK_ENROLLMENT_MASTER').val(data.PK_ENROLLMENT_MASTER);
                 $('#MEMBERSHIP_PAYMENT_AMOUNT').val(parseFloat(data.TOTAL_AMOUNT).toFixed(2));
-                $('#billing_link')[0].click();
+                $('#billing_tab_link')[0].click();
             }
         });
     });
@@ -815,7 +800,7 @@ if(empty($_GET['id'])) {
             });
         }else{
             alert('Please fill up the enrollment form first');
-            $('#enrollment_link')[0].click();
+            $('#enrollment_tab_link')[0].click();
         }
     }
 
@@ -823,7 +808,7 @@ if(empty($_GET['id'])) {
         let PK_ENROLLMENT_MASTER = $('.PK_ENROLLMENT_MASTER').val();
         if (!PK_ENROLLMENT_MASTER) {
             alert('Please fill up the enrollment form first');
-            $('#enrollment_link')[0].click();
+            $('#enrollment_tab_link')[0].click();
         }
     }
 
