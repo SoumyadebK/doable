@@ -4,19 +4,30 @@
     <option name="directories">
       <list>
 <<<<<<< HEAD
+<<<<<<< HEAD
         <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
 =======
 >>>>>>> dfe40295d2b2b53b1ac8162815d6ee3a7fa4e788
+=======
+>>>>>>> 5d492ac981abd80c18fbdae71897f2e2156206fd
         <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
+        <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
+=======
+        <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
+        <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
+>>>>>>> 98537512148975f1c853a79100e03a8cc732a60b
         <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
         <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
         <option value="$PROJECT_DIR$/global/authorizenet/tests" />
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
         <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
         <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
         <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
 >>>>>>> dfe40295d2b2b53b1ac8162815d6ee3a7fa4e788
+=======
+>>>>>>> 5d492ac981abd80c18fbdae71897f2e2156206fd
       </list>
     </option>
   </component>

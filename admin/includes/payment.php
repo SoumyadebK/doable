@@ -229,4 +229,59 @@
     function getPaymentMethodId(param) {
         $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
     }
+
+    function selectPaymentType(param){
+        let paymentType = $("#PK_PAYMENT_TYPE option:selected").text();
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+        $('.payment_type_div').slideUp();
+        $('#card-element').remove();
+        switch (paymentType) {
+            case 'Credit Card':
+                if (PAYMENT_GATEWAY == 'Stripe') {
+                    $('#card_div').html(`<div id="card-element"></div>`);
+                    stripePaymentFunction();
+                }
+
+                getCreditCardList();
+                $('#credit_card_payment').slideDown();
+                break;
+
+            case 'Check':
+                $('#check_payment').slideDown();
+                break;
+
+            case 'Wallet':
+                let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+                $.ajax({
+                    url: "ajax/wallet_balance.php",
+                    type: 'POST',
+                    data: {PK_USER_MASTER: PK_USER_MASTER},
+                    success: function (data) {
+                        $('#wallet_balance_div').html(data);
+                        $('#wallet_balance_div').slideDown();
+
+                        let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
+                        let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
+
+                        if (AMOUNT_TO_PAY > WALLET_BALANCE) {
+                            $('#REMAINING_AMOUNT').val(AMOUNT_TO_PAY - WALLET_BALANCE);
+                            $('#remaining_amount_div').slideDown();
+                            $('#PK_PAYMENT_TYPE_REMAINING').prop('required', true);
+                        } else {
+                            $('#remaining_amount_div').slideUp();
+                            $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                        }
+                    }
+                });
+                break;
+
+            case 'Cash':
+            default:
+                $('.payment_type_div').slideUp();
+                $('#wallet_balance_div').slideUp();
+                $('#remaining_amount_div').slideUp();
+                $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                break;
+        }
+    }
 </script>

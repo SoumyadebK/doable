@@ -1184,12 +1184,14 @@ function viewSamplePdf($RESPONSE_DATA) {
 }*/
 
 function viewGiftCertificatePdf($RESPONSE_DATA) {
+    error_reporting(0);
     try {
         global $http_path;
         require_once('../../global/vendor/autoload.php');
         try {
             $mpdf = new Mpdf();
             $html = file_get_contents($http_path . 'admin/gift_certificate_pdf.php?id=' . $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']);
+            $mpdf->SetFont('calibri');
             $mpdf->WriteHTML($html);
             $file_name = "gift_certificate_" . $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER'] . ".pdf";
             $mpdf->Output('../../uploads/gift_certificate_pdf/'.$file_name, 'F');

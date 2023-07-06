@@ -39,7 +39,7 @@ if (empty($_GET['id'])) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
 </head>
-<style type="text/css">
+<style>
     body {
         /*background-image: url('bg-body.png');
         height: 860px;
@@ -118,7 +118,8 @@ if (empty($_GET['id'])) {
         margin-bottom: 0px !important;
     }
 </style>
-<body style="margin:0;">
+<body style="margin:0; font-family: calibri,serif;">
+
 <table style="width:100%;">
     <tr>
         <td style="width=100%">
@@ -128,7 +129,7 @@ if (empty($_GET['id'])) {
 </table>
 
 
-<div style="margin:50px 50px;height: 600px;font-family: calibri;">
+<div style="margin:50px 50px;height: 600px;">
     <table style="width:100%;">
         <tr>
             <td style="text-align:right;margin-right: 10px;width=100%">
@@ -136,7 +137,7 @@ if (empty($_GET['id'])) {
                 <h6 class="text-capitalize font-normal">(thousand oaks)</h6>
             </td>
             <td style="width=10%">
-                <img src="<?=$http_path?>assets/images/logo.JPG"/>
+                <img src="<?php echo str_replace('../', $http_path, $BUSINESS_LOGO) ?>" style="height: 75px; width: auto;" alt="logo"/>
             </td>
         </tr>
     </table>

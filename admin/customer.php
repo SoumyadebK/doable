@@ -464,385 +464,152 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid">
             <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
+                <div class="col-md-4 align-self-center">
                     <h4 class="text-themecolor"><?php if(!empty($_GET['id'])) {
                             echo "Edit ".$FIRST_NAME." ".$LAST_NAME;
                         }?></h4>
                 </div>
-                <div class="col-md-3 align-self-center" ">
+                <div class="col-md-4 align-self-center">
                 <?php if(!empty($_GET['id'])) { ?>
-                        <div>
-                            <select required name="NAME" id="NAME" onchange="editpage(this);">
-                                <option value="">Select Customer</option>
-                                <?php
-                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USERS.ACTIVE=1 AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                while (!$row->EOF) {?>
-                                    <option value="<?php echo $row->fields['PK_USER'];?>" data-master_id="<?php echo $row->fields['PK_USER_MASTER'];?>" ><?=$row->fields['NAME']?></option>
-                                    <?php $row->MoveNext(); } ?>
-                            </select>
-                        </div>
+                    <select required name="NAME" id="NAME" onchange="editpage(this);">
+                        <option value="">Select Customer</option>
+                        <?php
+                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USERS.ACTIVE=1 AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                        while (!$row->EOF) {?>
+                            <option value="<?php echo $row->fields['PK_USER'];?>" data-master_id="<?php echo $row->fields['PK_USER_MASTER'];?>" ><?=$row->fields['NAME']?></option>
+                        <?php $row->MoveNext(); } ?>
+                    </select>
                 <?php } ?>
             </div>
-                <div class="col-md-4 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item active"><a href="all_customers.php">All Customers</a></li>
-                            <li class="breadcrumb-item active"><a href="customer.php"><?=$title?></a></li>
-                        </ol>
-                    </div>
+            <div class="col-md-4 align-self-center text-end">
+                <div class="d-flex justify-content-end align-items-center">
+                    <ol class="breadcrumb justify-content-end">
+                        <li class="breadcrumb-item active"><a href="all_customers.php">All Customers</a></li>
+                        <li class="breadcrumb-item active"><a href="customer.php"><?=$title?></a></li>
+                    </ol>
                 </div>
             </div>
+        </div>
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <!-- Nav tabs -->
-                                            <?php if(!empty($_GET['tab'])) { ?>
-                                                <ul class="nav nav-tabs" role="tablist">
-                                                    <?php if ($_GET['tab'] == 'profile') { ?>
-                                                        <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
-                                                    <?php } ?>
-                                                    <?php if ($_GET['tab'] == 'appointment') { ?>
-                                                        <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
-                                                    <?php } ?>
-                                                    <?php if ($_GET['tab'] == 'billing') { ?>
-                                                        <li> <a class="nav-link" id="billing_tab_link" data-bs-toggle="tab" href="#billing" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
-                                                    <?php } ?>
-                                                    <?php if ($_GET['tab'] == 'comments') { ?>
-                                                        <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
-                                                    <?php } ?>
-                                                </ul>
-                                            <?php } else { ?>
-                                                <ul class="nav nav-tabs" role="tablist">
-                                                    <li> <a class="nav-link active" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
-                                                    <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-                                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
-                                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>
-                                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                                                    <?php if(!empty($_GET['id'])) { ?>
-                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Enrollments</span></a> </li>
-                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment" onclick="showListView(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
-                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
-                                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Ledger</span></a> </li>
-                                                        <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
-                                                    <?php } ?>
-                                                </ul>
-                                            <?php } ?>
-                                            <!-- Tab panes -->
-                                            <div class="tab-content tabcontent-border">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <!-- Nav tabs -->
+                                        <?php if(!empty($_GET['tab'])) { ?>
+                                            <ul class="nav nav-tabs" role="tablist">
+                                                <?php if ($_GET['tab'] == 'profile') { ?>
+                                                    <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+                                                <?php } ?>
+                                                <?php if ($_GET['tab'] == 'appointment') { ?>
+                                                    <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
+                                                <?php } ?>
+                                                <?php if ($_GET['tab'] == 'billing') { ?>
+                                                    <li> <a class="nav-link" id="billing_tab_link" data-bs-toggle="tab" href="#billing" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                                <?php } ?>
+                                                <?php if ($_GET['tab'] == 'comments') { ?>
+                                                    <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                                                <?php } ?>
+                                            </ul>
+                                        <?php } else { ?>
+                                            <ul class="nav nav-tabs" role="tablist">
+                                                <li> <a class="nav-link active" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+                                                <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
+                                                <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
+                                                <li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>
+                                                <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
+                                                <?php if(!empty($_GET['id'])) { ?>
+                                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Enrollments</span></a> </li>
+                                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment" onclick="showListView(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
+                                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Ledger</span></a> </li>
+                                                    <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                                                <?php } ?>
+                                            </ul>
+                                        <?php } ?>
+                                        <!-- Tab panes -->
+                                        <div class="tab-content tabcontent-border">
 
-                                                <div class="tab-pane active" id="profile" role="tabpanel">
-                                                    <form class="form-material form-horizontal" id="profile_form">
-                                                        <input type="hidden" name="FUNCTION_NAME" value="saveProfileData">
-                                                        <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
-                                                        <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
-                                                        <input type="hidden" class="TYPE" name="TYPE" value="2">
-                                                        <div class="p-20">
-                                                            <div class="row">
-                                                                <div class="col-4">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">First Name<span class="text-danger">*</span></label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" id="FIRST_NAME" name="FIRST_NAME" class="form-control" placeholder="Enter First Name" required value="<?=$FIRST_NAME?>">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-4">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Last Name</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" id="LAST_NAME" name="LAST_NAME" class="form-control" placeholder="Enter Last Name" value="<?=$LAST_NAME?>">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Customer ID</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control" placeholder="Enter User Name" value="<?=$CUSTOMER_ID?>">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-2">
-                                                                    <input type="hidden" name="PK_ROLES[]" value="4">
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row">
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Phone<span class="text-danger" id="phone_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMorePhone();"><i class="ti-plus"></i> New</a>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Email<span class="text-danger" id="email_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?=$EMAIL_ID?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreEmail();"><i class="ti-plus"></i> New</a>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?=($CREATE_LOGIN == 1)?'checked':''?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
-                                                                </div>
-                                                            </div>
-                                                            <div class="row">
-                                                                <div class="col-5" id="add_more_phone">
-                                                                    <?php
-                                                                    if(!empty($_GET['id'])) {
-                                                                        $customer_phone = $db->Execute("SELECT * FROM DOA_CUSTOMER_PHONE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
-                                                                        while (!$customer_phone->EOF) { ?>
-                                                                            <div class="row">
-                                                                                <div class="col-9">
-                                                                                    <div class="form-group">
-                                                                                        <label class="form-label">Phone</label>
-                                                                                        <div class="col-md-12">
-                                                                                            <input type="text" name="CUSTOMER_PHONE[]" class="form-control" placeholder="Enter Phone Number" value="<?=$customer_phone->fields['PHONE']?>">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="col-2" style="padding-top: 25px;">
-                                                                                    <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                </div>
-                                                                            </div>
-                                                                            <?php $customer_phone->MoveNext(); } ?>
-                                                                    <?php } ?>
-                                                                </div>
-                                                                <div class="col-5" id="add_more_email">
-                                                                    <?php
-                                                                    if(!empty($_GET['id'])) {
-                                                                        $customer_email = $db->Execute("SELECT * FROM DOA_CUSTOMER_EMAIL WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
-                                                                        while (!$customer_email->EOF) { ?>
-                                                                            <div class="row">
-                                                                                <div class="col-9">
-                                                                                    <div class="form-group">
-                                                                                        <label class="col-md-12">Email</label>
-                                                                                        <div class="col-md-12">
-                                                                                            <input type="email" name="CUSTOMER_EMAIL[]" class="form-control" placeholder="Enter Email Address" value="<?=$customer_email->fields['EMAIL']?>">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="col-2" style="padding-top: 25px;">
-                                                                                    <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                </div>
-                                                                            </div>
-                                                                            <?php $customer_email->MoveNext(); } ?>
-                                                                    <?php } ?>
-                                                                </div>
-                                                            </div>
-
-                                                            <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?=$PK_CUSTOMER_DETAILS?>">
-                                                            <div class="row">
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Call Preference</label>
-                                                                        <div class="col-md-12">
-                                                                            <select class="form-control" name="CALL_PREFERENCE">
-                                                                                <option >Select</option>
-                                                                                <option value="email" <?php if($CALL_PREFERENCE == "email") echo 'selected = "selected"';?>>Email</option>
-                                                                                <option value="text message" <?php if($CALL_PREFERENCE == "text message") echo 'selected = "selected"';?>>Text Message</option>
-                                                                                <option value="phone call" <?php if($CALL_PREFERENCE == "phone call") echo 'selected = "selected"';?>>Phone Call</option>
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-9">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Reminder Options</label>
-                                                                        <div class="row m-t-10">
-                                                                            <div class="col-md-4">
-                                                                                <label><input type="checkbox" class="form-check-inline" name="REMINDER_OPTION[]" <?=in_array('Email', explode(',', $REMINDER_OPTION))?'checked':''?> value="Email"> Email</label>
-                                                                            </div>
-                                                                            <div class="col-md-4">
-                                                                                <label><input type="checkbox" class="form-check-inline" name="REMINDER_OPTION[]" <?=in_array('Text Message', explode(',', $REMINDER_OPTION))?'checked':''?> value="Text Message"> Text Message</label>
-                                                                            </div>
-                                                                            <div class="col-md-4">
-                                                                                <label><input type="checkbox" class="form-check-inline" name="REMINDER_OPTION[]" <?=in_array('Phone Call', explode(',', $REMINDER_OPTION))?'checked':''?> value="Phone Call"> Phone Call</label>
-                                                                            </div>
-                                                                        </div>
+                                            <div class="tab-pane active" id="profile" role="tabpanel">
+                                                <form class="form-material form-horizontal" id="profile_form">
+                                                    <input type="hidden" name="FUNCTION_NAME" value="saveProfileData">
+                                                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                    <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
+                                                    <input type="hidden" class="TYPE" name="TYPE" value="2">
+                                                    <div class="p-20">
+                                                        <div class="row">
+                                                            <div class="col-4">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">First Name<span class="text-danger">*</span></label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" id="FIRST_NAME" name="FIRST_NAME" class="form-control" placeholder="Enter First Name" required value="<?=$FIRST_NAME?>">
                                                                     </div>
                                                                 </div>
                                                             </div>
-
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Gender</label>
-                                                                        <select class="form-control" id="GENDER" name="GENDER">
-                                                                            <option>Select Gender</option>
-                                                                            <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
-                                                                            <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Date of Birth</label>
-                                                                        <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?=($DOB == '' || $DOB == '0000-00-00')?'':date('m/d/Y', strtotime($DOB))?>">
+                                                            <div class="col-4">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Last Name</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" id="LAST_NAME" name="LAST_NAME" class="form-control" placeholder="Enter Last Name" value="<?=$LAST_NAME?>">
                                                                     </div>
                                                                 </div>
                                                             </div>
-
-                                                            <div class="row">
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="col-md-12">Address</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS?>">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="col-md-12">Apt/Ste</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS_1?>">
-
-                                                                        </div>
-                                                                    </div>
-
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row">
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="col-md-12">Country</label>
-                                                                        <div class="col-md-12">
-                                                                            <div class="col-sm-12">
-                                                                                <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
-                                                                                    <option>Select Country</option>
-                                                                                    <?php
-                                                                                    $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
-                                                                                    while (!$row->EOF) { ?>
-                                                                                        <option value="<?php echo $row->fields['PK_COUNTRY'];?>" <?=($row->fields['PK_COUNTRY'] == $PK_COUNTRY)?"selected":""?>><?=$row->fields['COUNTRY_NAME']?></option>
-                                                                                        <?php $row->MoveNext(); } ?>
-                                                                                </select>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="col-md-12">State</label>
-                                                                        <div class="col-md-12">
-                                                                            <div class="col-sm-12">
-                                                                                <div id="State_div"></div>
-                                                                            </div>
-                                                                        </div>
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Customer ID</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control" placeholder="Enter User Name" value="<?=$CUSTOMER_ID?>">
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            <div class="col-md-2">
+                                                                <input type="hidden" name="PK_ROLES[]" value="4">
+                                                            </div>
+                                                        </div>
 
-                                                            <div class="row">
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="col-md-12">City</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter your city" value="<?php echo $CITY?>">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="col-md-12">Zip Code</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Zip Code" value="<?php echo $ZIP?>">
-                                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Phone<span class="text-danger" id="phone_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
                                                                     </div>
                                                                 </div>
                                                             </div>
-
-                                                            <div class="row">
-                                                                <div class="col-6">
-                                                                    <label class="col-md-12">Preferred Location</label>
-                                                                    <div class="col-md-12 multiselect-box">
-                                                                        <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
-                                                                            <?php
-                                                                            $selected_location = [];
-                                                                            if(!empty($_GET['id'])) {
-                                                                                $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$_GET[id]'");
-                                                                                while (!$selected_location_row->EOF) {
-                                                                                    $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
-                                                                                    $selected_location_row->MoveNext();
-                                                                                }
-                                                                            }
-                                                                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                                            while (!$row->EOF) { ?>
-                                                                                <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
-                                                                                <?php $row->MoveNext(); } ?>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="col-6">
-                                                                    <label class="col-md-12">Primary Location</label>
-                                                                    <div class="form-group" style="margin-bottom: 15px;">
-                                                                        <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" >
-                                                                            <option value="">Select Primary Location</option>
-                                                                            <?php
-                                                                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                                            while (!$row->EOF) { ?>
-                                                                                <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($selected_primary_location->fields['PRIMARY_LOCATION_ID'] == $row->fields['PK_LOCATION'])?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
-                                                                                <?php $row->MoveNext(); } ?>
-                                                                        </select>
+                                                            <div class="col-2">
+                                                                <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMorePhone();"><i class="ti-plus"></i> New</a>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Email<span class="text-danger" id="email_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?=$EMAIL_ID?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
                                                                     </div>
                                                                 </div>
                                                             </div>
-
-                                                            <div class="row">
-                                                                <div class="col-12">
-                                                                    <div class="form-group">
-                                                                        <label class="col-md-12">Remarks</label>
-                                                                        <div class="col-md-12">
-                                                                            <textarea class="form-control" rows="3" id="NOTES" name="NOTES"><?php echo $NOTES?></textarea>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
+                                                            <div class="col-2">
+                                                                <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreEmail();"><i class="ti-plus"></i> New</a>
                                                             </div>
-
-                                                            <hr>
-                                                            <div class="row">
-                                                                <div class="col-2" style="margin-left: 80%">
-                                                                    <div class="form-group">
-                                                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 15px;" onclick="addMoreSpecialDays(this);"><i class="ti-plus"></i> New</a>
-                                                                    </div>
-                                                                </div>
+                                                            <div class="col-2">
+                                                                <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?=($CREATE_LOGIN == 1)?'checked':''?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
                                                             </div>
-                                                            <div class="add_more_special_days">
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-5" id="add_more_phone">
                                                                 <?php
-                                                                $customer_special_date = $db->Execute("SELECT * FROM DOA_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
-                                                                if($customer_special_date->RecordCount() > 0) {
-                                                                    while (!$customer_special_date->EOF) { ?>
+                                                                if(!empty($_GET['id'])) {
+                                                                    $customer_phone = $db->Execute("SELECT * FROM DOA_CUSTOMER_PHONE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
+                                                                    while (!$customer_phone->EOF) { ?>
                                                                         <div class="row">
-                                                                            <div class="col-5">
+                                                                            <div class="col-9">
                                                                                 <div class="form-group">
-                                                                                    <label class="form-label">Special Date</label>
+                                                                                    <label class="form-label">Phone</label>
                                                                                     <div class="col-md-12">
-                                                                                        <input type="text" placeholder="mm/dd" class="form-control" name="CUSTOMER_SPECIAL_DATE[]" value="<?=$customer_special_date->fields['SPECIAL_DATE']?>">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-5">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Date Name</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" class="form-control" name="CUSTOMER_SPECIAL_DATE_NAME[]" value="<?=$customer_special_date->fields['DATE_NAME']?>">
+                                                                                        <input type="text" name="CUSTOMER_PHONE[]" class="form-control" placeholder="Enter Phone Number" value="<?=$customer_phone->fields['PHONE']?>">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -850,14 +617,222 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                 <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                             </div>
                                                                         </div>
-                                                                        <?php $customer_special_date->MoveNext(); } ?>
-                                                                <?php } else { ?>
+                                                                        <?php $customer_phone->MoveNext(); } ?>
+                                                                <?php } ?>
+                                                            </div>
+                                                            <div class="col-5" id="add_more_email">
+                                                                <?php
+                                                                if(!empty($_GET['id'])) {
+                                                                    $customer_email = $db->Execute("SELECT * FROM DOA_CUSTOMER_EMAIL WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
+                                                                    while (!$customer_email->EOF) { ?>
+                                                                        <div class="row">
+                                                                            <div class="col-9">
+                                                                                <div class="form-group">
+                                                                                    <label class="col-md-12">Email</label>
+                                                                                    <div class="col-md-12">
+                                                                                        <input type="email" name="CUSTOMER_EMAIL[]" class="form-control" placeholder="Enter Email Address" value="<?=$customer_email->fields['EMAIL']?>">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-2" style="padding-top: 25px;">
+                                                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                            </div>
+                                                                        </div>
+                                                                        <?php $customer_email->MoveNext(); } ?>
+                                                                <?php } ?>
+                                                            </div>
+                                                        </div>
+
+                                                        <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?=$PK_CUSTOMER_DETAILS?>">
+                                                        <div class="row">
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Call Preference</label>
+                                                                    <div class="col-md-12">
+                                                                        <select class="form-control" name="CALL_PREFERENCE">
+                                                                            <option >Select</option>
+                                                                            <option value="email" <?php if($CALL_PREFERENCE == "email") echo 'selected = "selected"';?>>Email</option>
+                                                                            <option value="text message" <?php if($CALL_PREFERENCE == "text message") echo 'selected = "selected"';?>>Text Message</option>
+                                                                            <option value="phone call" <?php if($CALL_PREFERENCE == "phone call") echo 'selected = "selected"';?>>Phone Call</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-9">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Reminder Options</label>
+                                                                    <div class="row m-t-10">
+                                                                        <div class="col-md-4">
+                                                                            <label><input type="checkbox" class="form-check-inline" name="REMINDER_OPTION[]" <?=in_array('Email', explode(',', $REMINDER_OPTION))?'checked':''?> value="Email"> Email</label>
+                                                                        </div>
+                                                                        <div class="col-md-4">
+                                                                            <label><input type="checkbox" class="form-check-inline" name="REMINDER_OPTION[]" <?=in_array('Text Message', explode(',', $REMINDER_OPTION))?'checked':''?> value="Text Message"> Text Message</label>
+                                                                        </div>
+                                                                        <div class="col-md-4">
+                                                                            <label><input type="checkbox" class="form-check-inline" name="REMINDER_OPTION[]" <?=in_array('Phone Call', explode(',', $REMINDER_OPTION))?'checked':''?> value="Phone Call"> Phone Call</label>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Gender</label>
+                                                                    <select class="form-control" id="GENDER" name="GENDER">
+                                                                        <option>Select Gender</option>
+                                                                        <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
+                                                                        <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Date of Birth</label>
+                                                                    <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?=($DOB == '' || $DOB == '0000-00-00')?'':date('m/d/Y', strtotime($DOB))?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="col-md-12">Address</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS?>">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="col-md-12">Apt/Ste</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS_1?>">
+
+                                                                    </div>
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="col-md-12">Country</label>
+                                                                    <div class="col-md-12">
+                                                                        <div class="col-sm-12">
+                                                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
+                                                                                <option>Select Country</option>
+                                                                                <?php
+                                                                                $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                                                                                while (!$row->EOF) { ?>
+                                                                                    <option value="<?php echo $row->fields['PK_COUNTRY'];?>" <?=($row->fields['PK_COUNTRY'] == $PK_COUNTRY)?"selected":""?>><?=$row->fields['COUNTRY_NAME']?></option>
+                                                                                    <?php $row->MoveNext(); } ?>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="col-md-12">State</label>
+                                                                    <div class="col-md-12">
+                                                                        <div class="col-sm-12">
+                                                                            <div id="State_div"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="col-md-12">City</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter your city" value="<?php echo $CITY?>">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="col-md-12">Zip Code</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Zip Code" value="<?php echo $ZIP?>">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <label class="col-md-12">Preferred Location</label>
+                                                                <div class="col-md-12 multiselect-box">
+                                                                    <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
+                                                                        <?php
+                                                                        $selected_location = [];
+                                                                        if(!empty($_GET['id'])) {
+                                                                            $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$_GET[id]'");
+                                                                            while (!$selected_location_row->EOF) {
+                                                                                $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                                                                $selected_location_row->MoveNext();
+                                                                            }
+                                                                        }
+                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                        while (!$row->EOF) { ?>
+                                                                            <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                                            <?php $row->MoveNext(); } ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-6">
+                                                                <label class="col-md-12">Primary Location</label>
+                                                                <div class="form-group" style="margin-bottom: 15px;">
+                                                                    <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" >
+                                                                        <option value="">Select Primary Location</option>
+                                                                        <?php
+                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                        while (!$row->EOF) { ?>
+                                                                            <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($selected_primary_location->fields['PRIMARY_LOCATION_ID'] == $row->fields['PK_LOCATION'])?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                                            <?php $row->MoveNext(); } ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <div class="form-group">
+                                                                    <label class="col-md-12">Remarks</label>
+                                                                    <div class="col-md-12">
+                                                                        <textarea class="form-control" rows="3" id="NOTES" name="NOTES"><?php echo $NOTES?></textarea>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <hr>
+                                                        <div class="row">
+                                                            <div class="col-2" style="margin-left: 80%">
+                                                                <div class="form-group">
+                                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 15px;" onclick="addMoreSpecialDays(this);"><i class="ti-plus"></i> New</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="add_more_special_days">
+                                                            <?php
+                                                            $customer_special_date = $db->Execute("SELECT * FROM DOA_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
+                                                            if($customer_special_date->RecordCount() > 0) {
+                                                                while (!$customer_special_date->EOF) { ?>
                                                                     <div class="row">
                                                                         <div class="col-5">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Special Date</label>
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" placeholder="mm/dd" class="form-control" name="CUSTOMER_SPECIAL_DATE[]">
+                                                                                    <input type="text" placeholder="mm/dd" class="form-control" name="CUSTOMER_SPECIAL_DATE[]" value="<?=$customer_special_date->fields['SPECIAL_DATE']?>">
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -865,7 +840,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Date Name</label>
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" class="form-control" name="CUSTOMER_SPECIAL_DATE_NAME[]">
+                                                                                    <input type="text" class="form-control" name="CUSTOMER_SPECIAL_DATE_NAME[]" value="<?=$customer_special_date->fields['DATE_NAME']?>">
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -873,363 +848,243 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                             <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                         </div>
                                                                     </div>
-                                                                <?php } ?>
-                                                            </div>
-                                                            <hr>
-
-                                                            <div class="row">
-                                                                <div class="col-8">
-                                                                    <div class="form-group">
-                                                                        <div class="row m-t-10">
-                                                                            <div class="col-md-4">
-                                                                                <label class="form-label">Will you be attending your lessons</label>
-                                                                            </div>
-                                                                            <div class="col-md-2">
-                                                                                <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="($(this).is(':checked'))?$('#partner_details').slideUp():$('#partner_details').slideDown()" value="Solo" <?=(($ATTENDING_WITH == '')?'checked':(($ATTENDING_WITH=='Solo')?'checked':''))?>> Solo</label>
-                                                                            </div>
-                                                                            <div class="col-md-3">
-                                                                                <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="($(this).is(':checked'))?$('#partner_details').slideDown():$('#partner_details').slideUp()" value="With a Partner" <?=(($ATTENDING_WITH=='With a Partner')?'checked':'')?>> With a Partner</label>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div id="partner_details" style="display: <?=(($ATTENDING_WITH=='With a Partner')?'':'none')?>;">
+                                                                    <?php $customer_special_date->MoveNext(); } ?>
+                                                            <?php } else { ?>
                                                                 <div class="row">
-                                                                    <div class="col-6">
+                                                                    <div class="col-5">
                                                                         <div class="form-group">
-                                                                            <label class="form-label">Partner's First Name<span class="text-danger">*</span></label>
+                                                                            <label class="form-label">Special Date</label>
                                                                             <div class="col-md-12">
-                                                                                <input type="text" class="form-control" placeholder="Enter Partner's First Name" name="PARTNER_FIRST_NAME" value="<?=$PARTNER_FIRST_NAME?>">
+                                                                                <input type="text" placeholder="mm/dd" class="form-control" name="CUSTOMER_SPECIAL_DATE[]">
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="col-6">
+                                                                    <div class="col-5">
                                                                         <div class="form-group">
-                                                                            <label class="form-label">Partner's Last Name</label>
+                                                                            <label class="form-label">Date Name</label>
                                                                             <div class="col-md-12">
-                                                                                <input type="text" class="form-control" placeholder="Enter Partner's Last Name" name="PARTNER_LAST_NAME" value="<?=$PARTNER_LAST_NAME?>">
+                                                                                <input type="text" class="form-control" name="CUSTOMER_SPECIAL_DATE_NAME[]">
                                                                             </div>
                                                                         </div>
+                                                                    </div>
+                                                                    <div class="col-2" style="padding-top: 25px;">
+                                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                     </div>
                                                                 </div>
-                                                                <div class="row">
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Partner's Gender</label>
-                                                                            <select class="form-control" id="PARTNER_GENDER" name="PARTNER_GENDER">
-                                                                                <option value="">Select Gender</option>
-                                                                                <option value="Male" <?=(($PARTNER_GENDER=='Male')?'selected':'')?>>Male</option>
-                                                                                <option value="Female" <?=(($PARTNER_GENDER=='Female')?'selected':'')?>>Female</option>
-                                                                            </select>
+                                                            <?php } ?>
+                                                        </div>
+                                                        <hr>
+
+                                                        <div class="row">
+                                                            <div class="col-8">
+                                                                <div class="form-group">
+                                                                    <div class="row m-t-10">
+                                                                        <div class="col-md-4">
+                                                                            <label class="form-label">Will you be attending your lessons</label>
                                                                         </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Partner's Date of Birth</label>
-                                                                            <input type="text" class="form-control datepicker-past" name="PARTNER_DOB" value="<?=($PARTNER_DOB=='' || $PARTNER_DOB == '0000-00-00')?'':date('m/d/Y', strtotime($PARTNER_DOB))?>">
+                                                                        <div class="col-md-2">
+                                                                            <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="($(this).is(':checked'))?$('#partner_details').slideUp():$('#partner_details').slideDown()" value="Solo" <?=(($ATTENDING_WITH == '')?'checked':(($ATTENDING_WITH=='Solo')?'checked':''))?>> Solo</label>
+                                                                        </div>
+                                                                        <div class="col-md-3">
+                                                                            <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="($(this).is(':checked'))?$('#partner_details').slideDown():$('#partner_details').slideUp()" value="With a Partner" <?=(($ATTENDING_WITH=='With a Partner')?'checked':'')?>> With a Partner</label>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                        </div>
 
+                                                        <div id="partner_details" style="display: <?=(($ATTENDING_WITH=='With a Partner')?'':'none')?>;">
                                                             <div class="row">
                                                                 <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <label class="col-md-12">Image Upload</label>
+                                                                        <label class="form-label">Partner's First Name<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
-                                                                            <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control">
+                                                                            <input type="text" class="form-control" placeholder="Enter Partner's First Name" name="PARTNER_FIRST_NAME" value="<?=$PARTNER_FIRST_NAME?>">
                                                                         </div>
                                                                     </div>
+                                                                </div>
+                                                                <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <?php if($USER_IMAGE!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery"><img src = "<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a></div><?php } ?>
+                                                                        <label class="form-label">Partner's Last Name</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" placeholder="Enter Partner's Last Name" name="PARTNER_LAST_NAME" value="<?=$PARTNER_LAST_NAME?>">
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
-
-                                                            <?php if(!empty($_GET['id'])) { ?>
-                                                                <div class="row <?=($INACTIVE_BY_ADMIN == 1)?'div_inactive':''?>" style="margin-bottom: 15px; margin-top: 15px;">
-                                                                    <div class="col-md-1">
-                                                                        <label class="form-label">Active : </label>
-                                                                    </div>
-                                                                    <div class="col-md-4">
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Partner's Gender</label>
+                                                                        <select class="form-control" id="PARTNER_GENDER" name="PARTNER_GENDER">
+                                                                            <option value="">Select Gender</option>
+                                                                            <option value="Male" <?=(($PARTNER_GENDER=='Male')?'selected':'')?>>Male</option>
+                                                                            <option value="Female" <?=(($PARTNER_GENDER=='Female')?'selected':'')?>>Female</option>
+                                                                        </select>
                                                                     </div>
                                                                 </div>
-                                                            <? } ?>
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Partner's Date of Birth</label>
+                                                                        <input type="text" class="form-control datepicker-past" name="PARTNER_DOB" value="<?=($PARTNER_DOB=='' || $PARTNER_DOB == '0000-00-00')?'':date('m/d/Y', strtotime($PARTNER_DOB))?>">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div class="form-group">
-                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
-                                                            <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
 
-                                                <div class="tab-pane" id="login" role="tabpanel">
-                                                    <form id="login_form">
-                                                        <input type="hidden" name="FUNCTION_NAME" value="saveLoginData">
-                                                        <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
-                                                        <input type="hidden" class="TYPE" name="TYPE" value="2">
-                                                        <div class="p-20">
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="col-md-12">Image Upload</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <?php if($USER_IMAGE!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery"><img src = "<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a></div><?php } ?>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <?php if(!empty($_GET['id'])) { ?>
+                                                            <div class="row <?=($INACTIVE_BY_ADMIN == 1)?'div_inactive':''?>" style="margin-bottom: 15px; margin-top: 15px;">
+                                                                <div class="col-md-1">
+                                                                    <label class="form-label">Active : </label>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                </div>
+                                                            </div>
+                                                        <? } ?>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                                                        <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+
+                                            <div class="tab-pane" id="login" role="tabpanel">
+                                                <form id="login_form">
+                                                    <input type="hidden" name="FUNCTION_NAME" value="saveLoginData">
+                                                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                    <input type="hidden" class="TYPE" name="TYPE" value="2">
+                                                    <div class="p-20">
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="col-md-12">User Name</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" id="USER_ID" name="USER_ID" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_ID?>">
+                                                                    </div>
+                                                                </div>
+                                                                <span id="lblError" style="color: red"></span>
+                                                            </div>
+                                                        </div>
+
+                                                        <?php if(empty($_GET['id']) || $PASSWORD == '') { ?>
                                                             <div class="row">
                                                                 <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <label class="col-md-12">User Name</label>
+                                                                        <label class="col-md-12">Password</label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" id="USER_ID" name="USER_ID" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_ID?>">
+                                                                            <input type="password" required class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
                                                                         </div>
                                                                     </div>
-                                                                    <span id="lblError" style="color: red"></span>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <div class="form-group">
+                                                                        <label class="col-md-12">Confirm Password</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="password" required class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-
-                                                            <?php if(empty($_GET['id']) || $PASSWORD == '') { ?>
-                                                                <div class="row">
-                                                                    <div class="col-6">
+                                                            <b id="password_error" style="color: red;"></b>
+                                                            <div class="row">
+                                                                <div class="col-12">
+                                                                    <span style="color: orange;">Note  : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-2">
+                                                                    Password Strength:
+                                                                </div>
+                                                                <div class="col-3">
+                                                                    <small id="password-text"></small>
+                                                                </div>
+                                                            </div>
+                                                        <?php } else { ?>
+                                                            <div class="row">
+                                                                <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: none;">
+                                                                    <!--<div class="col-3">
                                                                         <div class="form-group">
-                                                                            <label class="col-md-12">Password</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="password" required class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
-                                                                            </div>
+                                                                            <label class="form-label">Old Password</label>
+                                                                            <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?/*=$PASSWORD*/?>">
+                                                                            <input type="password" required name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
+                                                                        </div>
+                                                                    </div>-->
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">New Password</label>
+                                                                            <input type="password" required name="PASSWORD" class="form-control" id="PASSWORD">
                                                                         </div>
                                                                     </div>
-                                                                    <div class="col-6">
+                                                                    <div class="col-3">
                                                                         <div class="form-group">
-                                                                            <label class="col-md-12">Confirm Password</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="password" required class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
-                                                                            </div>
+                                                                            <label class="form-label">Confirm New Password</label>
+                                                                            <input type="password" required name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                                 <b id="password_error" style="color: red;"></b>
-                                                                <div class="row">
-                                                                    <div class="col-12">
-                                                                        <span style="color: orange;">Note  : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="row">
-                                                                    <div class="col-2">
-                                                                        Password Strength:
-                                                                    </div>
-                                                                    <div class="col-3">
-                                                                        <small id="password-text"></small>
-                                                                    </div>
-                                                                </div>
-                                                            <?php } else { ?>
-                                                                <div class="row">
-                                                                    <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: none;">
-                                                                        <!--<div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Old Password</label>
-                                                                                <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?/*=$PASSWORD*/?>">
-                                                                                <input type="password" required name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
-                                                                            </div>
-                                                                        </div>-->
-                                                                        <div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">New Password</label>
-                                                                                <input type="password" required name="PASSWORD" class="form-control" id="PASSWORD">
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Confirm New Password</label>
-                                                                                <input type="password" required name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <b id="password_error" style="color: red;"></b>
-                                                                </div>
-                                                            <?php } ?>
+                                                            </div>
+                                                        <?php } ?>
 
-                                                            <?php if(!empty($_GET['id'])) { ?>
-                                                                <div class="row <?=($INACTIVE_BY_ADMIN == 1)?'div_inactive':''?>" style="margin-bottom: 15px; margin-top: 15px;">
-                                                                    <div class="col-md-1">
-                                                                        <label class="form-label">Active : </label>
-                                                                    </div>
-                                                                    <div class="col-md-4">
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                                                    </div>
+                                                        <?php if(!empty($_GET['id'])) { ?>
+                                                            <div class="row <?=($INACTIVE_BY_ADMIN == 1)?'div_inactive':''?>" style="margin-bottom: 15px; margin-top: 15px;">
+                                                                <div class="col-md-1">
+                                                                    <label class="form-label">Active : </label>
                                                                 </div>
-                                                            <? } ?>
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
-                                                            <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="$('#change_password_div').slideToggle();">Change Password</a>
-                                                            <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-
-                                                <?php $family_member_count = 0;?>
-                                                <div class="tab-pane" id="family" role="tabpanel">
-                                                    <form id="family_form">
-                                                        <input type="hidden" name="FUNCTION_NAME" value="saveFamilyData">
-                                                        <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
-                                                        <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
-                                                        <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?=$PK_CUSTOMER_DETAILS?>">
-                                                        <input type="hidden" class="TYPE" name="TYPE" value="2">
-                                                        <div class="row" style="margin-bottom: 25px;">
-                                                            <a href="javascript:;" style="float: right; margin-left: 91%; margin-top: 10px; color: green;" onclick="addMoreFamilyMember();"><b><i class="ti-plus"></i> New</b></a>
-                                                        </div>
-                                                        <?php
-                                                        $family_member_details = $db->Execute("SELECT * FROM DOA_CUSTOMER_DETAILS WHERE PK_CUSTOMER_PRIMARY = '$PK_CUSTOMER_DETAILS' AND IS_PRIMARY = 0");
-                                                        if($PK_CUSTOMER_DETAILS > 0 && $family_member_details->RecordCount() > 0) {
-                                                            while (!$family_member_details->EOF) { ?>
-                                                                <div class="row family_member" style="padding: 35px; margin-top: -60px;">
-                                                                    <div class="row">
-                                                                        <div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">First Name<span class="text-danger">*</span></label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="FAMILY_FIRST_NAME[]" class="form-control" placeholder="Enter First Name" value="<?=$family_member_details->fields['FIRST_NAME']?>">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Last Name</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="FAMILY_LAST_NAME[]" class="form-control" placeholder="Enter Last Name" value="<?=$family_member_details->fields['LAST_NAME']?>">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Relationship</label>
-                                                                                <div class="col-md-12">
-                                                                                    <select class="form-control" name="PK_RELATIONSHIP[]">
-                                                                                        <option>Select Relationship</option>
-                                                                                        <?php
-                                                                                        $row = $db->Execute("SELECT * FROM DOA_RELATIONSHIP WHERE ACTIVE = 1");
-                                                                                        while (!$row->EOF) { ?>
-                                                                                            <option value="<?php echo $row->fields['PK_RELATIONSHIP'];?>" <?=($family_member_details->fields['PK_RELATIONSHIP']==$row->fields['PK_RELATIONSHIP'])?'selected':''?> ><?=$row->fields['RELATIONSHIP']?></option>
-                                                                                            <?php $row->MoveNext(); } ?>
-                                                                                    </select>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-2">
-                                                                            <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="$(this).closest('.row').next().slideToggle();"><i class="ti-arrow-circle-down"></i> More Info</a>
-                                                                        </div>
-                                                                        <div class="col-1">
-                                                                            <a href="javascript:;" class="btn btn-danger waves-effect waves-light text-white" style="margin-top: 30px;" onclick="removeThisFamilyMember(this);"><b><i class="ti-trash"></i></b></a>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div style="display: none;">
-                                                                        <div class="row">
-                                                                            <div class="col-5">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Phone</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="FAMILY_PHONE[]" class="form-control" placeholder="Enter Phone Number" value="<?=$family_member_details->fields['PHONE']?>">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-5">
-                                                                                <div class="form-group">
-                                                                                    <label class="col-md-12">Email</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="email" name="FAMILY_EMAIL[]" class="form-control" placeholder="Enter Email Address" value="<?=$family_member_details->fields['EMAIL']?>">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="row">
-                                                                            <div class="col-md-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Gender</label>
-                                                                                    <select class="form-control" name="FAMILY_GENDER[]">
-                                                                                        <option>Select Gender</option>
-                                                                                        <option value="Male" <?php if($family_member_details->fields['GENDER'] == "Male") echo 'selected = "selected"';?>>Male</option>
-                                                                                        <option value="Female" <?php if($family_member_details->fields['GENDER'] == "Female") echo 'selected = "selected"';?>>Female</option>
-                                                                                    </select>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-md-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Date of Birth</label>
-                                                                                    <input type="text" class="form-control datepicker-past" name="FAMILY_DOB[]" value="<?=($family_member_details->fields['DOB']=='' || $family_member_details->fields['DOB']=='0000-00-00')?'':date('m/d/Y', strtotime($family_member_details->fields['DOB']))?>">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="row">
-                                                                            <div class="col-2" style="margin-left: 80%">
-                                                                                <div class="form-group">
-                                                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 15px;" data-counter="<?=$family_member_count?>" onclick="addMoreSpecialDaysFamily(this);"><i class="ti-plus"></i> New</a>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="add_more_special_days">
-                                                                            <?php
-                                                                            $family_special_date = $db->Execute("SELECT * FROM DOA_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = ".$family_member_details->fields['PK_CUSTOMER_DETAILS']);
-                                                                            if($family_special_date->RecordCount() > 0) {
-                                                                                while (!$family_special_date->EOF) { ?>
-                                                                                    <div class="row">
-                                                                                        <div class="col-5">
-                                                                                            <div class="form-group">
-                                                                                                <label class="form-label">Special Date</label>
-                                                                                                <div class="col-md-12">
-                                                                                                    <input type="text" placeholder="mm/dd" class="form-control" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]" value="<?=$family_special_date->fields['SPECIAL_DATE']?>">
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div class="col-5">
-                                                                                            <div class="form-group">
-                                                                                                <label class="form-label">Date Name</label>
-                                                                                                <div class="col-md-12">
-                                                                                                    <input type="text" class="form-control" name="FAMILY_SPECIAL_DATE_NAME[<?=$family_member_count?>][]" value="<?=$family_special_date->fields['DATE_NAME']?>">
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div class="col-2" style="padding-top: 25px;">
-                                                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <?php $family_special_date->MoveNext();} ?>
-                                                                            <?php } else { ?>
-                                                                                <div class="row">
-                                                                                    <div class="col-5">
-                                                                                        <div class="form-group">
-                                                                                            <label class="form-label">Special Date</label>
-                                                                                            <div class="col-md-12">
-                                                                                                <input type="text" placeholder="mm/dd" class="form-control" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]">
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-5">
-                                                                                        <div class="form-group">
-                                                                                            <label class="form-label">Date Name</label>
-                                                                                            <div class="col-md-12">
-                                                                                                <input type="text" class="form-control" name="FAMILY_SPECIAL_DATE_NAME[<?=$family_member_count?>][]">
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-2" style="padding-top: 25px;">
-                                                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            <?php } ?>
-                                                                        </div>
-                                                                    </div>
+                                                                <div class="col-md-4">
+                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                 </div>
-                                                                <?php $family_member_details->MoveNext();
-                                                                $family_member_count++; } ?>
-                                                        <?php } elseif(empty($_GET['id'])) { ?>
-                                                            <div class="rom family_member" style="padding: 35px; margin-top: -60px;">
+                                                            </div>
+                                                        <? } ?>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                                                        <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="$('#change_password_div').slideToggle();">Change Password</a>
+                                                        <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+
+                                            <?php $family_member_count = 0;?>
+                                            <div class="tab-pane" id="family" role="tabpanel">
+                                                <form id="family_form">
+                                                    <input type="hidden" name="FUNCTION_NAME" value="saveFamilyData">
+                                                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                    <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
+                                                    <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?=$PK_CUSTOMER_DETAILS?>">
+                                                    <input type="hidden" class="TYPE" name="TYPE" value="2">
+                                                    <div class="row" style="margin-bottom: 25px;">
+                                                        <a href="javascript:;" style="float: right; margin-left: 91%; margin-top: 10px; color: green;" onclick="addMoreFamilyMember();"><b><i class="ti-plus"></i> New</b></a>
+                                                    </div>
+                                                    <?php
+                                                    $family_member_details = $db->Execute("SELECT * FROM DOA_CUSTOMER_DETAILS WHERE PK_CUSTOMER_PRIMARY = '$PK_CUSTOMER_DETAILS' AND IS_PRIMARY = 0");
+                                                    if($PK_CUSTOMER_DETAILS > 0 && $family_member_details->RecordCount() > 0) {
+                                                        while (!$family_member_details->EOF) { ?>
+                                                            <div class="row family_member" style="padding: 35px; margin-top: -60px;">
                                                                 <div class="row">
                                                                     <div class="col-3">
                                                                         <div class="form-group">
                                                                             <label class="form-label">First Name<span class="text-danger">*</span></label>
                                                                             <div class="col-md-12">
-                                                                                <input type="text" name="FAMILY_FIRST_NAME[]" class="form-control" placeholder="Enter First Name">
+                                                                                <input type="text" name="FAMILY_FIRST_NAME[]" class="form-control" placeholder="Enter First Name" value="<?=$family_member_details->fields['FIRST_NAME']?>">
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -1237,7 +1092,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                         <div class="form-group">
                                                                             <label class="form-label">Last Name</label>
                                                                             <div class="col-md-12">
-                                                                                <input type="text" name="FAMILY_LAST_NAME[]" class="form-control" placeholder="Enter Last Name">
+                                                                                <input type="text" name="FAMILY_LAST_NAME[]" class="form-control" placeholder="Enter Last Name" value="<?=$family_member_details->fields['LAST_NAME']?>">
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -1250,7 +1105,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                     <?php
                                                                                     $row = $db->Execute("SELECT * FROM DOA_RELATIONSHIP WHERE ACTIVE = 1");
                                                                                     while (!$row->EOF) { ?>
-                                                                                        <option value="<?php echo $row->fields['PK_RELATIONSHIP'];?>"><?=$row->fields['RELATIONSHIP']?></option>
+                                                                                        <option value="<?php echo $row->fields['PK_RELATIONSHIP'];?>" <?=($family_member_details->fields['PK_RELATIONSHIP']==$row->fields['PK_RELATIONSHIP'])?'selected':''?> ><?=$row->fields['RELATIONSHIP']?></option>
                                                                                         <?php $row->MoveNext(); } ?>
                                                                                 </select>
                                                                             </div>
@@ -1270,15 +1125,15 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Phone</label>
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" name="FAMILY_PHONE[]" class="form-control" placeholder="Enter Phone Number">
+                                                                                    <input type="text" name="FAMILY_PHONE[]" class="form-control" placeholder="Enter Phone Number" value="<?=$family_member_details->fields['PHONE']?>">
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-5">
                                                                             <div class="form-group">
-                                                                                <label class="form-label">Email</label>
+                                                                                <label class="col-md-12">Email</label>
                                                                                 <div class="col-md-12">
-                                                                                    <input type="email" name="FAMILY_EMAIL[]" class="form-control" placeholder="Enter Email Address">
+                                                                                    <input type="email" name="FAMILY_EMAIL[]" class="form-control" placeholder="Enter Email Address" value="<?=$family_member_details->fields['EMAIL']?>">
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -1290,20 +1145,20 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                 <label class="form-label">Gender</label>
                                                                                 <select class="form-control" name="FAMILY_GENDER[]">
                                                                                     <option>Select Gender</option>
-                                                                                    <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
-                                                                                    <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
+                                                                                    <option value="Male" <?php if($family_member_details->fields['GENDER'] == "Male") echo 'selected = "selected"';?>>Male</option>
+                                                                                    <option value="Female" <?php if($family_member_details->fields['GENDER'] == "Female") echo 'selected = "selected"';?>>Female</option>
                                                                                 </select>
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-md-6">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Date of Birth</label>
-                                                                                <input type="text" class="form-control datepicker-past" name="FAMILY_DOB[]">
+                                                                                <input type="text" class="form-control datepicker-past" name="FAMILY_DOB[]" value="<?=($family_member_details->fields['DOB']=='' || $family_member_details->fields['DOB']=='0000-00-00')?'':date('m/d/Y', strtotime($family_member_details->fields['DOB']))?>">
                                                                             </div>
                                                                         </div>
                                                                     </div>
 
-                                                                    <div class="row border-top">
+                                                                    <div class="row">
                                                                         <div class="col-2" style="margin-left: 80%">
                                                                             <div class="form-group">
                                                                                 <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 15px;" data-counter="<?=$family_member_count?>" onclick="addMoreSpecialDaysFamily(this);"><i class="ti-plus"></i> New</a>
@@ -1312,15 +1167,15 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                     </div>
                                                                     <div class="add_more_special_days">
                                                                         <?php
-                                                                        $customer_special_date = $db->Execute("SELECT * FROM DOA_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
-                                                                        if($customer_special_date->RecordCount() > 0) {
-                                                                            while (!$customer_special_date->EOF) { ?>
+                                                                        $family_special_date = $db->Execute("SELECT * FROM DOA_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = ".$family_member_details->fields['PK_CUSTOMER_DETAILS']);
+                                                                        if($family_special_date->RecordCount() > 0) {
+                                                                            while (!$family_special_date->EOF) { ?>
                                                                                 <div class="row">
                                                                                     <div class="col-5">
                                                                                         <div class="form-group">
                                                                                             <label class="form-label">Special Date</label>
                                                                                             <div class="col-md-12">
-                                                                                                <input type="text" placeholder="mm/dd" class="form-control" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]" value="<?=$customer_special_date->fields['SPECIAL_DATE']?>">
+                                                                                                <input type="text" placeholder="mm/dd" class="form-control" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]" value="<?=$family_special_date->fields['SPECIAL_DATE']?>">
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
@@ -1328,7 +1183,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                         <div class="form-group">
                                                                                             <label class="form-label">Date Name</label>
                                                                                             <div class="col-md-12">
-                                                                                                <input type="text" class="form-control" name="FAMILY_SPECIAL_DATE_NAME[<?=$family_member_count?>][]" value="<?=$customer_special_date->fields['DATE_NAME']?>">
+                                                                                                <input type="text" class="form-control" name="FAMILY_SPECIAL_DATE_NAME[<?=$family_member_count?>][]" value="<?=$family_special_date->fields['DATE_NAME']?>">
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
@@ -1336,7 +1191,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                         <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                                     </div>
                                                                                 </div>
-                                                                                <?php $customer_special_date->MoveNext();} ?>
+                                                                                <?php $family_special_date->MoveNext();} ?>
                                                                         <?php } else { ?>
                                                                             <div class="row">
                                                                                 <div class="col-5">
@@ -1363,166 +1218,288 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        <?php } ?>
-
-                                                        <div id="add_more_family_member"></div>
-                                                        <div class="form-group">
-                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
-                                                            <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-
-
-
-                                                <div class="tab-pane" id="interest" role="tabpanel">
-                                                    <form id="interest_form">
-                                                        <input type="hidden" name="FUNCTION_NAME" value="saveInterestData">
-                                                        <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
-                                                        <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
-                                                        <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?=$PK_CUSTOMER_DETAILS?>">
-                                                        <input type="hidden" class="TYPE" name="TYPE" value="2">
-                                                        <div class="p-20">
+                                                            <?php $family_member_details->MoveNext();
+                                                            $family_member_count++; } ?>
+                                                    <?php } elseif(empty($_GET['id'])) { ?>
+                                                        <div class="rom family_member" style="padding: 35px; margin-top: -60px;">
                                                             <div class="row">
-                                                                <div class="col-12 mb-3 pb-3 border-bottom">
-                                                                    <label class="form-label">Interests</label>
-                                                                    <div class="col-md-12" style="margin-bottom: 0px;">
+                                                                <div class="col-3">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">First Name<span class="text-danger">*</span></label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" name="FAMILY_FIRST_NAME[]" class="form-control" placeholder="Enter First Name">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-3">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Last Name</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" name="FAMILY_LAST_NAME[]" class="form-control" placeholder="Enter Last Name">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-3">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Relationship</label>
+                                                                        <div class="col-md-12">
+                                                                            <select class="form-control" name="PK_RELATIONSHIP[]">
+                                                                                <option>Select Relationship</option>
+                                                                                <?php
+                                                                                $row = $db->Execute("SELECT * FROM DOA_RELATIONSHIP WHERE ACTIVE = 1");
+                                                                                while (!$row->EOF) { ?>
+                                                                                    <option value="<?php echo $row->fields['PK_RELATIONSHIP'];?>"><?=$row->fields['RELATIONSHIP']?></option>
+                                                                                    <?php $row->MoveNext(); } ?>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="$(this).closest('.row').next().slideToggle();"><i class="ti-arrow-circle-down"></i> More Info</a>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <a href="javascript:;" class="btn btn-danger waves-effect waves-light text-white" style="margin-top: 30px;" onclick="removeThisFamilyMember(this);"><b><i class="ti-trash"></i></b></a>
+                                                                </div>
+                                                            </div>
+
+                                                            <div style="display: none;">
+                                                                <div class="row">
+                                                                    <div class="col-5">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Phone</label>
+                                                                            <div class="col-md-12">
+                                                                                <input type="text" name="FAMILY_PHONE[]" class="form-control" placeholder="Enter Phone Number">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-5">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Email</label>
+                                                                            <div class="col-md-12">
+                                                                                <input type="email" name="FAMILY_EMAIL[]" class="form-control" placeholder="Enter Email Address">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="row">
+                                                                    <div class="col-md-6">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Gender</label>
+                                                                            <select class="form-control" name="FAMILY_GENDER[]">
+                                                                                <option>Select Gender</option>
+                                                                                <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
+                                                                                <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Date of Birth</label>
+                                                                            <input type="text" class="form-control datepicker-past" name="FAMILY_DOB[]">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="row border-top">
+                                                                    <div class="col-2" style="margin-left: 80%">
+                                                                        <div class="form-group">
+                                                                            <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 15px;" data-counter="<?=$family_member_count?>" onclick="addMoreSpecialDaysFamily(this);"><i class="ti-plus"></i> New</a>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="add_more_special_days">
+                                                                    <?php
+                                                                    $customer_special_date = $db->Execute("SELECT * FROM DOA_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
+                                                                    if($customer_special_date->RecordCount() > 0) {
+                                                                        while (!$customer_special_date->EOF) { ?>
+                                                                            <div class="row">
+                                                                                <div class="col-5">
+                                                                                    <div class="form-group">
+                                                                                        <label class="form-label">Special Date</label>
+                                                                                        <div class="col-md-12">
+                                                                                            <input type="text" placeholder="mm/dd" class="form-control" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]" value="<?=$customer_special_date->fields['SPECIAL_DATE']?>">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="col-5">
+                                                                                    <div class="form-group">
+                                                                                        <label class="form-label">Date Name</label>
+                                                                                        <div class="col-md-12">
+                                                                                            <input type="text" class="form-control" name="FAMILY_SPECIAL_DATE_NAME[<?=$family_member_count?>][]" value="<?=$customer_special_date->fields['DATE_NAME']?>">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="col-2" style="padding-top: 25px;">
+                                                                                    <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                                </div>
+                                                                            </div>
+                                                                            <?php $customer_special_date->MoveNext();} ?>
+                                                                    <?php } else { ?>
                                                                         <div class="row">
-                                                                            <?php
-                                                                            $PK_USER = empty($_GET['id'])?0:$_GET['id'];
-                                                                            $user_interest = $db->Execute("SELECT PK_INTERESTS FROM `DOA_USER_INTEREST` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
-                                                                            $user_interest_array = [];
-                                                                            if ($user_interest->RecordCount() > 0){
-                                                                                while (!$user_interest->EOF){
-                                                                                    $user_interest_array[] = $user_interest->fields['PK_INTERESTS'];
-                                                                                    $user_interest->MoveNext();
-                                                                                }
+                                                                            <div class="col-5">
+                                                                                <div class="form-group">
+                                                                                    <label class="form-label">Special Date</label>
+                                                                                    <div class="col-md-12">
+                                                                                        <input type="text" placeholder="mm/dd" class="form-control" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-5">
+                                                                                <div class="form-group">
+                                                                                    <label class="form-label">Date Name</label>
+                                                                                    <div class="col-md-12">
+                                                                                        <input type="text" class="form-control" name="FAMILY_SPECIAL_DATE_NAME[<?=$family_member_count?>][]">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-2" style="padding-top: 25px;">
+                                                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php } ?>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php } ?>
+
+                                                    <div id="add_more_family_member"></div>
+                                                    <div class="form-group">
+                                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                                                        <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+
+
+
+                                            <div class="tab-pane" id="interest" role="tabpanel">
+                                                <form id="interest_form">
+                                                    <input type="hidden" name="FUNCTION_NAME" value="saveInterestData">
+                                                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                    <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
+                                                    <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?=$PK_CUSTOMER_DETAILS?>">
+                                                    <input type="hidden" class="TYPE" name="TYPE" value="2">
+                                                    <div class="p-20">
+                                                        <div class="row">
+                                                            <div class="col-12 mb-3 pb-3 border-bottom">
+                                                                <label class="form-label">Interests</label>
+                                                                <div class="col-md-12" style="margin-bottom: 0px;">
+                                                                    <div class="row">
+                                                                        <?php
+                                                                        $PK_USER = empty($_GET['id'])?0:$_GET['id'];
+                                                                        $user_interest = $db->Execute("SELECT PK_INTERESTS FROM `DOA_USER_INTEREST` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
+                                                                        $user_interest_array = [];
+                                                                        if ($user_interest->RecordCount() > 0){
+                                                                            while (!$user_interest->EOF){
+                                                                                $user_interest_array[] = $user_interest->fields['PK_INTERESTS'];
+                                                                                $user_interest->MoveNext();
                                                                             }
-                                                                            $account_business_type = $db->Execute("SELECT PK_BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                                            $row = $db->Execute("SELECT * FROM DOA_INTERESTS WHERE ACTIVE = 1 AND PK_BUSINESS_TYPE = ".$account_business_type->fields['PK_BUSINESS_TYPE']);
+                                                                        }
+                                                                        $account_business_type = $db->Execute("SELECT PK_BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                        $row = $db->Execute("SELECT * FROM DOA_INTERESTS WHERE ACTIVE = 1 AND PK_BUSINESS_TYPE = ".$account_business_type->fields['PK_BUSINESS_TYPE']);
+                                                                        while (!$row->EOF) { ?>
+                                                                            <div class="col-3 mt-3">
+                                                                                <label><input type="checkbox" name="PK_INTERESTS[]" value="<?php echo $row->fields['PK_INTERESTS'];?>" <?=(in_array($row->fields['PK_INTERESTS'], $user_interest_array))?'checked':''?> > <?=$row->fields['INTERESTS']?></label>
+                                                                            </div>
+                                                                            <?php $row->MoveNext(); } ?>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">What promoted you to inquire with us ?</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" class="form-control" name="WHAT_PROMPTED_YOU_TO_INQUIRE" value="<?=$WHAT_PROMPTED_YOU_TO_INQUIRE?>">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">How will you grade your present skills ?</label>
+                                                                    <div class="col-md-12">
+                                                                        <select class="form-control" name="PK_SKILL_LEVEL">
+                                                                            <option value="">Select</option>
+                                                                            <?php
+                                                                            $row = $db->Execute("SELECT * FROM DOA_SKILL_LEVEL WHERE ACTIVE = 1");
                                                                             while (!$row->EOF) { ?>
-                                                                                <div class="col-3 mt-3">
-                                                                                    <label><input type="checkbox" name="PK_INTERESTS[]" value="<?php echo $row->fields['PK_INTERESTS'];?>" <?=(in_array($row->fields['PK_INTERESTS'], $user_interest_array))?'checked':''?> > <?=$row->fields['INTERESTS']?></label>
-                                                                                </div>
+                                                                                <option value="<?php echo $row->fields['PK_SKILL_LEVEL'];?>" <?=($row->fields['PK_SKILL_LEVEL'] == $PK_SKILL_LEVEL)?'selected':''?>><?=$row->fields['SKILL_LEVEL']?></option>
                                                                                 <?php $row->MoveNext(); } ?>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="row">
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">What promoted you to inquire with us ?</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" class="form-control" name="WHAT_PROMPTED_YOU_TO_INQUIRE" value="<?=$WHAT_PROMPTED_YOU_TO_INQUIRE?>">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">How will you grade your present skills ?</label>
-                                                                        <div class="col-md-12">
-                                                                            <select class="form-control" name="PK_SKILL_LEVEL">
-                                                                                <option value="">Select</option>
-                                                                                <?php
-                                                                                $row = $db->Execute("SELECT * FROM DOA_SKILL_LEVEL WHERE ACTIVE = 1");
-                                                                                while (!$row->EOF) { ?>
-                                                                                    <option value="<?php echo $row->fields['PK_SKILL_LEVEL'];?>" <?=($row->fields['PK_SKILL_LEVEL'] == $PK_SKILL_LEVEL)?'selected':''?>><?=$row->fields['SKILL_LEVEL']?></option>
-                                                                                    <?php $row->MoveNext(); } ?>
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row">
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Inquiry Method</label>
-                                                                        <div class="col-md-12">
-                                                                            <select class="form-control" name="PK_INQUIRY_METHOD">
-                                                                                <option value="">Select</option>
-                                                                                <?php
-                                                                                $row = $db->Execute("SELECT * FROM DOA_INQUIRY_METHOD WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                                                while (!$row->EOF) { ?>
-                                                                                    <option value="<?php echo $row->fields['PK_INQUIRY_METHOD'];?>" <?=($row->fields['PK_INQUIRY_METHOD'] == $PK_INQUIRY_METHOD)?'selected':''?>><?=$row->fields['INQUIRY_METHOD']?></option>
-                                                                                    <?php $row->MoveNext(); } ?>
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Inquiry Taker</label>
-                                                                        <div class="col-md-12">
-                                                                            <select class="form-control" name="INQUIRY_TAKER_ID">
-                                                                                <option>Select</option>
-                                                                                <?php
-                                                                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN(2,3,5) AND DOA_USERS.ACTIVE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                                                                while (!$row->EOF) { ?>
-                                                                                    <option value="<?php echo $row->fields['PK_USER'];?>" <?=($row->fields['PK_USER'] == $INQUIRY_TAKER_ID)?'selected':''?>><?=$row->fields['NAME']?></option>
-                                                                                <?php $row->MoveNext(); } ?>
-                                                                            </select>
-                                                                        </div>
+                                                                        </select>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
 
-                                                        <div class="form-group">
-                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
-                                                            <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Inquiry Method</label>
+                                                                    <div class="col-md-12">
+                                                                        <select class="form-control" name="PK_INQUIRY_METHOD">
+                                                                            <option value="">Select</option>
+                                                                            <?php
+                                                                            $row = $db->Execute("SELECT * FROM DOA_INQUIRY_METHOD WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                            while (!$row->EOF) { ?>
+                                                                                <option value="<?php echo $row->fields['PK_INQUIRY_METHOD'];?>" <?=($row->fields['PK_INQUIRY_METHOD'] == $PK_INQUIRY_METHOD)?'selected':''?>><?=$row->fields['INQUIRY_METHOD']?></option>
+                                                                                <?php $row->MoveNext(); } ?>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Inquiry Taker</label>
+                                                                    <div class="col-md-12">
+                                                                        <select class="form-control" name="INQUIRY_TAKER_ID">
+                                                                            <option>Select</option>
+                                                                            <?php
+                                                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN(2,3,5) AND DOA_USERS.ACTIVE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                                            while (!$row->EOF) { ?>
+                                                                                <option value="<?php echo $row->fields['PK_USER'];?>" <?=($row->fields['PK_USER'] == $INQUIRY_TAKER_ID)?'selected':''?>><?=$row->fields['NAME']?></option>
+                                                                            <?php $row->MoveNext(); } ?>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </form>
-                                                </div>
+                                                    </div>
 
-                                                <div class="tab-pane" id="document" role="tabpanel">
-                                                    <form id="document_form">
-                                                        <input type="hidden" name="FUNCTION_NAME" value="saveDocumentData">
-                                                        <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
-                                                        <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
-                                                        <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?=$PK_CUSTOMER_DETAILS?>">
-                                                        <input type="hidden" class="TYPE" name="TYPE" value="2">
-                                                        <div>
-                                                            <div class="card-body" id="append_user_document">
-                                                                <?php
-                                                                if(!empty($_GET['id'])) { $user_doc_count = 0;
-                                                                    $row = $db->Execute("SELECT * FROM DOA_CUSTOMER_DOCUMENT WHERE PK_USER_MASTER = '$PK_USER_MASTER'");
-                                                                    while (!$row->EOF) { ?>
-                                                                        <div class="row">
-                                                                            <div class="col-5">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Document Name</label>
-                                                                                    <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name" value="<?=$row->fields['DOCUMENT_NAME']?>">
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-5">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Document File</label>
-                                                                                    <input type="file" name="FILE_PATH[]" class="form-control">
-                                                                                    <a target="_blank" href="<?=$row->fields['FILE_PATH']?>">View</a>
-                                                                                    <input type="hidden" name="FILE_PATH_URL[]" value="<?=$row->fields['FILE_PATH']?>">
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-2">
-                                                                                <div class="form-group" style="margin-top: 30px;">
-                                                                                    <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <?php $row->MoveNext(); $user_doc_count++;} ?>
-                                                                <?php } else { $user_doc_count = 1;?>
+                                                    <div class="form-group">
+                                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                                                        <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+
+                                            <div class="tab-pane" id="document" role="tabpanel">
+                                                <form id="document_form">
+                                                    <input type="hidden" name="FUNCTION_NAME" value="saveDocumentData">
+                                                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                    <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
+                                                    <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?=$PK_CUSTOMER_DETAILS?>">
+                                                    <input type="hidden" class="TYPE" name="TYPE" value="2">
+                                                    <div>
+                                                        <div class="card-body" id="append_user_document">
+                                                            <?php
+                                                            if(!empty($_GET['id'])) { $user_doc_count = 0;
+                                                                $row = $db->Execute("SELECT * FROM DOA_CUSTOMER_DOCUMENT WHERE PK_USER_MASTER = '$PK_USER_MASTER'");
+                                                                while (!$row->EOF) { ?>
                                                                     <div class="row">
                                                                         <div class="col-5">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Document Name</label>
-                                                                                <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name">
+                                                                                <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name" value="<?=$row->fields['DOCUMENT_NAME']?>">
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-5">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Document File</label>
                                                                                 <input type="file" name="FILE_PATH[]" class="form-control">
+                                                                                <a target="_blank" href="<?=$row->fields['FILE_PATH']?>">View</a>
+                                                                                <input type="hidden" name="FILE_PATH_URL[]" value="<?=$row->fields['FILE_PATH']?>">
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-2">
@@ -1531,340 +1508,362 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                <?php } ?>
-                                                            </div>
-                                                        </div>
-                                                        <div class="row">
-                                                            <div class="col-11">
-                                                                <div class="form-group">
-                                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreUserDocument();"><i class="ti-plus"></i> New</a>
+                                                                    <?php $row->MoveNext(); $user_doc_count++;} ?>
+                                                            <?php } else { $user_doc_count = 1;?>
+                                                                <div class="row">
+                                                                    <div class="col-5">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Document Name</label>
+                                                                            <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-5">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Document File</label>
+                                                                            <input type="file" name="FILE_PATH[]" class="form-control">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-2">
+                                                                        <div class="form-group" style="margin-top: 30px;">
+                                                                            <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            <?php } ?>
                                                         </div>
-                                                        <div class="form-group">
-                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
-                                                            <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-
-                                                <div class="tab-pane" id="enrollment" role="tabpanel">
-                                                    <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createEnrollment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
-                                                    <div id="enrollment_list" class="p-20">
-
                                                     </div>
-                                                </div>
-
-                                                <!--Enrollment Model-->
-
-
-                                                <div class="tab-pane" id="appointment" role="tabpanel">
-                                                    <div id="appointment_list" class="p-20">
-
-                                                    </div>
-                                                </div>
-
-                                                <div class="tab-pane" id="billing" role="tabpanel">
-                                                    <div id ="billing_list" class="p-20">
-
-                                                    </div>
-                                                </div>
-
-
-                                                <!--Payment Model-->
-                                                <div id="paymentModel" class="modal">
-                                                    <!-- Modal content -->
-                                                    <div class="modal-content" style="width: 50%;">
-                                                        <span class="close" style="margin-left: 96%;">&times;</span>
-
-                                                        <div class="card" id="payment_confirmation_form_div_customer" style="display: none;">
-                                                            <div class="card-body">
-                                                                <h4><b>Payment</b></h4>
-
-                                                                <form id="payment_confirmation_form_customer" role="form" action="" method="post">
-                                                                    <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
-                                                                    <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
-                                                                    <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING">
-                                                                    <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
-                                                                    <input type="hidden" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
-                                                                    <input type="hidden" name="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
-                                                                    <div class="p-20">
-                                                                        <div class="row">
-                                                                            <div class="col-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Customer Name</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <p><?=$FIRST_NAME." ".$LAST_NAME?></p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Enrollment Number</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <p id="enrollment_number"></p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="row">
-                                                                            <div class="col-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Amount</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY_CUSTOMER" class="form-control" readonly>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Payment Type</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE_CUSTOMER" onchange="selectPaymentType(this)">
-                                                                                            <option value="">Select</option>
-                                                                                            <?php
-                                                                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
-                                                                                            while (!$row->EOF) { ?>
-                                                                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                                                                <?php $row->MoveNext(); } ?>
-                                                                                        </select>
-                                                                                    </div>
-                                                                                    <?php $wallet_data = $db->Execute("SELECT * FROM DOA_USER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_USER_WALLET DESC LIMIT 1"); ?>
-                                                                                    <span id="wallet_balance_span" style="font-size: 10px;color: green; display: none;">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></span>
-                                                                                    <input type="hidden" id="WALLET_BALANCE" name="WALLET_BALANCE" value="<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?>">
-                                                                                    <input type="hidden" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="row" id="remaining_amount_div" style="display: none;">
-                                                                            <div class="col-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Remaining Amount</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="REMAINING_AMOUNT" id="REMAINING_AMOUNT_CUSTOMER" class="form-control" readonly>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Payment Type</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING_CUSTOMER" onchange="selectRemainingPaymentType(this)">
-                                                                                            <option value="">Select</option>
-                                                                                            <?php
-                                                                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
-                                                                                            while (!$row->EOF) { ?>
-                                                                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                                                                <?php $row->MoveNext(); } ?>
-                                                                                        </select>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="row remaining_payment_type_div" id="remaining_credit_card_payment" style="display: none;">
-                                                                            <div class="col-12">
-                                                                                <div class="form-group" id="remaining_card_div">
-
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="row remaining_payment_type_div" id="remaining_check_payment" style="display: none;">
-                                                                            <div class="col-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Check Number</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="CHECK_NUMBER_REMAINING" class="form-control">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Check Date</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="CHECK_DATE_REMAINING" class="form-control datepicker-normal">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-
-                                                                        <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
-                                                                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                                                                <div class="col-12">
-                                                                                    <div class="form-group" id="card_div">
-
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        <?php } elseif ($PAYMENT_GATEWAY == 'Square'){?>
-                                                                            <div class="payment_type_div" id="credit_card_payment" style="display: none;">
-                                                                                <div class="row">
-                                                                                    <div class="col-12">
-                                                                                        <div class="form-group">
-                                                                                            <label class="form-label">Name (As it appears on your card)</label>
-                                                                                            <div class="col-md-12">
-                                                                                                <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$NAME?>">
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="row">
-                                                                                    <div class="col-12">
-                                                                                        <div class="form-group">
-                                                                                            <label class="form-label">Card Number</label>
-                                                                                            <div class="col-md-12">
-                                                                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?=$CARD_NUMBER?>">
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="row">
-                                                                                    <div class="col-6">
-                                                                                        <div class="form-group">
-                                                                                            <label class="form-label">Expiration Date</label>
-                                                                                            <div class="col-md-12">
-                                                                                                <input type="text" name="EXPIRATION_DATE" id="EXPIRATION_DATE" class="form-control" value="<?=$EXPIRATION_DATE?>" placeholder="MM/YYYY">
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-6">
-                                                                                        <div class="form-group">
-                                                                                            <label class="form-label">Security Code</label>
-                                                                                            <div class="col-md-12">
-                                                                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?=$SECURITY_CODE?>">
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        <?php } ?>
-
-
-                                                                        <div class="row payment_type_div" id="check_payment" style="display: none;">
-                                                                            <div class="col-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Check Number</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="CHECK_NUMBER" class="form-control">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Check Date</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="CHECK_DATE" class="form-control datepicker-normal">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-
-                                                                        <div class="row">
-                                                                            <div class="col-12">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Notes</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <textarea class="form-control" name="NOTE" rows="3"></textarea>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
-                                                                        </div>
-                                                                    </div>
-                                                                </form>
-
+                                                    <div class="row">
+                                                        <div class="col-11">
+                                                            <div class="form-group">
+                                                                <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreUserDocument();"><i class="ti-plus"></i> New</a>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-
-                                                <div class="tab-pane" id="accounts" role="tabpanel">
-                                                    <div id="ledger_list" class="p-20">
-
+                                                    <div class="form-group">
+                                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                                                        <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                                     </div>
-                                                </div>
-
-                                                <div class="tab-pane" id="comments" role="tabpanel">
-                                                    <div class="p-20">
-                                                            <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createUserComment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
-                                                        <table id="myTable" class="table table-striped border">
-                                                            <thead>
-                                                            <tr>
-                                                                <th>Commented Date</th>
-                                                                <th>Commented User</th>
-                                                                <th>Comment</th>
-                                                                <th>Actions</th>
-                                                            </tr>
-                                                            </thead>
-
-                                                            <tbody>
-                                                                <?php
-                                                                $comment_data = $db->Execute("SELECT DOA_COMMENT.PK_COMMENT, DOA_COMMENT.COMMENT, DOA_COMMENT.COMMENT_DATE, DOA_COMMENT.ACTIVE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS FULL_NAME FROM `DOA_COMMENT` INNER JOIN DOA_USERS ON DOA_COMMENT.BY_PK_USER = DOA_USERS.PK_USER WHERE `FOR_PK_USER` = ".$PK_USER);
-                                                                $i = 1;
-                                                                while (!$comment_data->EOF) { ?>
-                                                                <tr>
-                                                                    <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=date('m/d/Y', strtotime($comment_data->fields['COMMENT_DATE']))?></td>
-                                                                    <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=$comment_data->fields['FULL_NAME']?></td>
-                                                                    <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=$comment_data->fields['COMMENT']?></td>
-                                                                    <td>
-                                                                        <a href="javascript:;" onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><i class="ti-pencil" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <a href="javascript:;" onclick='javascript:deleteComment(<?=$comment_data->fields['PK_COMMENT']?>);return false;'><i class="ti-trash" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <?php if($comment_data->fields['ACTIVE']==1){ ?>
-                                                                            <span class="active-box-green"></span>
-                                                                        <?php } else{ ?>
-                                                                            <span class="active-box-red"></span>
-                                                                        <?php } ?>
-                                                                    </td>
-                                                                </tr>
-                                                                <?php $comment_data->MoveNext();
-                                                                $i++; } ?>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-
-                                                <!--Comment Model-->
-                                                <div id="commentModel" class="modal">
-                                                    <!-- Modal content -->
-                                                    <div class="modal-content" style="width: 50%;">
-                                                        <span class="close close_comment_model" style="margin-left: 96%;">&times;</span>
-                                                        <div class="card">
-                                                            <div class="card-body">
-                                                                <h4><b id="comment_header">Add Comment</b></h4>
-                                                                <form id="comment_add_edit_form" role="form" action="" method="post">
-                                                                    <input type="hidden" name="FUNCTION_NAME" value="saveCommentData">
-                                                                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
-                                                                    <input type="hidden" name="PK_COMMENT" id="PK_COMMENT" value="0">
-                                                                    <div class="p-20">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Comments</label>
-                                                                            <textarea class="form-control" rows="10" name="COMMENT" id="COMMENT" required></textarea>
-                                                                        </div>
-                                                                        <div class="form-group" id="comment_active" style="display: none;">
-                                                                            <label class="form-label">Active</label>
-                                                                            <div>
-                                                                                <label><input type="radio" id="COMMENT_ACTIVE_1" name="ACTIVE" value="1">&nbsp;&nbsp;&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                                <label><input type="radio" id="COMMENT_ACTIVE_0" name="ACTIVE" value="0">&nbsp;&nbsp;&nbsp;No</label>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="form-group">
-                                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
-                                                                        </div>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
+                                                </form>
                                             </div>
+
+                                            <div class="tab-pane" id="enrollment" role="tabpanel">
+                                                <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createEnrollment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
+                                                <div id="enrollment_list" class="p-20">
+
+                                                </div>
+                                            </div>
+
+                                            <!--Enrollment Model-->
+
+
+                                            <div class="tab-pane" id="appointment" role="tabpanel">
+                                                <div id="appointment_list" class="p-20">
+
+                                                </div>
+                                            </div>
+
+                                            <div class="tab-pane" id="billing" role="tabpanel">
+                                                <div id ="billing_list" class="p-20">
+
+                                                </div>
+                                            </div>
+
+
+                                            <!--Payment Model-->
+                                            <div id="paymentModel" class="modal">
+                                                <!-- Modal content -->
+                                                <div class="modal-content" style="width: 50%;">
+                                                    <span class="close" style="margin-left: 96%;">&times;</span>
+
+                                                    <div class="card" id="payment_confirmation_form_div_customer" style="display: none;">
+                                                        <div class="card-body">
+                                                            <h4><b>Payment</b></h4>
+
+                                                            <form id="payment_confirmation_form_customer" role="form" action="" method="post">
+                                                                <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
+                                                                <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
+                                                                <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING">
+                                                                <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
+                                                                <input type="hidden" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
+                                                                <input type="hidden" name="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
+                                                                <div class="p-20">
+                                                                    <div class="row">
+                                                                        <div class="col-6">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Customer Name</label>
+                                                                                <div class="col-md-12">
+                                                                                    <p><?=$FIRST_NAME." ".$LAST_NAME?></p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-6">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Enrollment Number</label>
+                                                                                <div class="col-md-12">
+                                                                                    <p id="enrollment_number"></p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class="col-6">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Amount</label>
+                                                                                <div class="col-md-12">
+                                                                                    <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY_CUSTOMER" class="form-control" readonly>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-6">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Payment Type</label>
+                                                                                <div class="col-md-12">
+                                                                                    <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE_CUSTOMER" onchange="selectPaymentTypeCustomer(this)">
+                                                                                        <option value="">Select</option>
+                                                                                        <?php
+                                                                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                                                                        while (!$row->EOF) { ?>
+                                                                                            <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
+                                                                                            <?php $row->MoveNext(); } ?>
+                                                                                    </select>
+                                                                                </div>
+                                                                                <?php $wallet_data = $db->Execute("SELECT * FROM DOA_USER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_USER_WALLET DESC LIMIT 1"); ?>
+                                                                                <span id="wallet_balance_span" style="font-size: 10px;color: green; display: none;">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></span>
+                                                                                <input type="hidden" id="WALLET_BALANCE" name="WALLET_BALANCE" value="<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?>">
+                                                                                <input type="hidden" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+
+
+                                                                    <!--<div class="row" id="remaining_amount_div" style="display: none;">
+                                                                        <div class="col-6">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Remaining Amount</label>
+                                                                                <div class="col-md-12">
+                                                                                    <input type="text" name="REMAINING_AMOUNT" id="REMAINING_AMOUNT_CUSTOMER" class="form-control" readonly>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-6">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Payment Type</label>
+                                                                                <div class="col-md-12">
+                                                                                    <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING_CUSTOMER" onchange="selectRemainingPaymentType(this)">
+                                                                                        <option value="">Select</option>
+                                                                                        <?php
+/*                                                                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
+                                                                                        while (!$row->EOF) { */?>
+                                                                                            <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/?>"><?php /*=$row->fields['PAYMENT_TYPE']*/?></option>
+                                                                                            <?php /*$row->MoveNext(); } */?>
+                                                                                    </select>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div class="row remaining_payment_type_div" id="remaining_credit_card_payment" style="display: none;">
+                                                                        <div class="col-12">
+                                                                            <div class="form-group" id="remaining_card_div">
+
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div class="row remaining_payment_type_div" id="remaining_check_payment" style="display: none;">
+                                                                        <div class="col-6">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Check Number</label>
+                                                                                <div class="col-md-12">
+                                                                                    <input type="text" name="CHECK_NUMBER_REMAINING" class="form-control">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-6">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Check Date</label>
+                                                                                <div class="col-md-12">
+                                                                                    <input type="text" name="CHECK_DATE_REMAINING" class="form-control datepicker-normal">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+
+                                                                    <?php /*if ($PAYMENT_GATEWAY == 'Stripe'){ */?>
+                                                                        <div class="row payment_type_div" id="credit_card_payment_customer" style="display: none;">
+                                                                            <div class="col-12">
+                                                                                <div class="form-group" id="card_div">
+
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php /*} elseif ($PAYMENT_GATEWAY == 'Square'){*/?>
+                                                                        <div class="payment_type_div" id="credit_card_payment_customer" style="display: none;">
+                                                                            <div class="row">
+                                                                                <div class="col-12">
+                                                                                    <div class="form-group">
+                                                                                        <label class="form-label">Name (As it appears on your card)</label>
+                                                                                        <div class="col-md-12">
+                                                                                            <input type="text" name="NAME" id="NAME" class="form-control" value="<?php /*=$NAME*/?>">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="row">
+                                                                                <div class="col-12">
+                                                                                    <div class="form-group">
+                                                                                        <label class="form-label">Card Number</label>
+                                                                                        <div class="col-md-12">
+                                                                                            <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?php /*=$CARD_NUMBER*/?>">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="row">
+                                                                                <div class="col-6">
+                                                                                    <div class="form-group">
+                                                                                        <label class="form-label">Expiration Date</label>
+                                                                                        <div class="col-md-12">
+                                                                                            <input type="text" name="EXPIRATION_DATE" id="EXPIRATION_DATE" class="form-control" value="<?php /*=$EXPIRATION_DATE*/?>" placeholder="MM/YYYY">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="col-6">
+                                                                                    <div class="form-group">
+                                                                                        <label class="form-label">Security Code</label>
+                                                                                        <div class="col-md-12">
+                                                                                            <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?php /*=$SECURITY_CODE*/?>">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    --><?php /*} */?>
+
+
+                                                                    <div class="row payment_type_div" id="check_payment_customer" style="display: none;">
+                                                                        <div class="col-6">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Check Number</label>
+                                                                                <div class="col-md-12">
+                                                                                    <input type="text" name="CHECK_NUMBER" class="form-control">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-6">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Check Date</label>
+                                                                                <div class="col-md-12">
+                                                                                    <input type="text" name="CHECK_DATE" class="form-control datepicker-normal">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+
+                                                                    <div class="row">
+                                                                        <div class="col-12">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Notes</label>
+                                                                                <div class="col-md-12">
+                                                                                    <textarea class="form-control" name="NOTE" rows="3"></textarea>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                                                                    </div>
+                                                                </div>
+                                                            </form>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="tab-pane" id="accounts" role="tabpanel">
+                                                <div id="ledger_list" class="p-20">
+
+                                                </div>
+                                            </div>
+
+                                            <div class="tab-pane" id="comments" role="tabpanel">
+                                                <div class="p-20">
+                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createUserComment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
+                                                    <table id="myTable" class="table table-striped border">
+                                                        <thead>
+                                                        <tr>
+                                                            <th>Commented Date</th>
+                                                            <th>Commented User</th>
+                                                            <th>Comment</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                        </thead>
+
+                                                        <tbody>
+                                                            <?php
+                                                            $comment_data = $db->Execute("SELECT DOA_COMMENT.PK_COMMENT, DOA_COMMENT.COMMENT, DOA_COMMENT.COMMENT_DATE, DOA_COMMENT.ACTIVE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS FULL_NAME FROM `DOA_COMMENT` INNER JOIN DOA_USERS ON DOA_COMMENT.BY_PK_USER = DOA_USERS.PK_USER WHERE `FOR_PK_USER` = ".$PK_USER);
+                                                            $i = 1;
+                                                            while (!$comment_data->EOF) { ?>
+                                                            <tr>
+                                                                <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=date('m/d/Y', strtotime($comment_data->fields['COMMENT_DATE']))?></td>
+                                                                <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=$comment_data->fields['FULL_NAME']?></td>
+                                                                <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=$comment_data->fields['COMMENT']?></td>
+                                                                <td>
+                                                                    <a href="javascript:;" onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><i class="ti-pencil" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <a href="javascript:;" onclick='javascript:deleteComment(<?=$comment_data->fields['PK_COMMENT']?>);return false;'><i class="ti-trash" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <?php if($comment_data->fields['ACTIVE']==1){ ?>
+                                                                        <span class="active-box-green"></span>
+                                                                    <?php } else{ ?>
+                                                                        <span class="active-box-red"></span>
+                                                                    <?php } ?>
+                                                                </td>
+                                                            </tr>
+                                                            <?php $comment_data->MoveNext();
+                                                            $i++; } ?>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <!--Comment Model-->
+                                            <div id="commentModel" class="modal">
+                                                <!-- Modal content -->
+                                                <div class="modal-content" style="width: 50%;">
+                                                    <span class="close close_comment_model" style="margin-left: 96%;">&times;</span>
+                                                    <div class="card">
+                                                        <div class="card-body">
+                                                            <h4><b id="comment_header">Add Comment</b></h4>
+                                                            <form id="comment_add_edit_form" role="form" action="" method="post">
+                                                                <input type="hidden" name="FUNCTION_NAME" value="saveCommentData">
+                                                                <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                                <input type="hidden" name="PK_COMMENT" id="PK_COMMENT" value="0">
+                                                                <div class="p-20">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Comments</label>
+                                                                        <textarea class="form-control" rows="10" name="COMMENT" id="COMMENT" required></textarea>
+                                                                    </div>
+                                                                    <div class="form-group" id="comment_active" style="display: none;">
+                                                                        <label class="form-label">Active</label>
+                                                                        <div>
+                                                                            <label><input type="radio" id="COMMENT_ACTIVE_1" name="ACTIVE" value="1">&nbsp;&nbsp;&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                            <label><input type="radio" id="COMMENT_ACTIVE_0" name="ACTIVE" value="0">&nbsp;&nbsp;&nbsp;No</label>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div class="form-group">
+                                                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
+                                                                    </div>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                         </div>
                                     </div>
                                 </div>
@@ -1877,7 +1876,6 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
     </div>
 
     <style>
-
         .progress-bar {
             border-radius: 5px;
             height:18px !important;
@@ -2441,7 +2439,9 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                             $('#family_tab_link')[0].click();
                         }
                     }else{
-                        window.location.href='all_customers.php';
+                        let PK_USER = $('.PK_USER').val();
+                        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                        window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
                     }
                 }
             });
@@ -2474,7 +2474,9 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                         if (PK_USER == 0) {
                                             $('#family_tab_link')[0].click();
                                         } else {
-                                            window.location.href = 'all_customers.php';
+                                            let PK_USER = $('.PK_USER').val();
+                                            let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                                            window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
                                         }
                                     }
                                 });
@@ -2492,7 +2494,9 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                             if (PK_USER == 0) {
                                 $('#family_tab_link')[0].click();
                             } else {
-                                window.location.href = 'all_customers.php';
+                                let PK_USER = $('.PK_USER').val();
+                                let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                                window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
                             }
                         }
                     });
@@ -2513,7 +2517,9 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                     if (PK_USER == 0) {
                         $('#interest_tab_link')[0].click();
                     }else{
-                        window.location.href='all_customers.php';
+                        let PK_USER = $('.PK_USER').val();
+                        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                        window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
                     }
                 }
             });
@@ -2530,7 +2536,9 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                     if (PK_USER == 0) {
                         $('#document_tab_link')[0].click();
                     }else{
-                        window.location.href='all_customers.php';
+                        let PK_USER = $('.PK_USER').val();
+                        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                        window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
                     }
                 }
             });
@@ -2546,7 +2554,9 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                 processData: false,
                 contentType: false,
                 success:function (data) {
-                    window.location.href='all_customers.php';
+                    let PK_USER = $('.PK_USER').val();
+                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                    window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
                 }
             });
         });
@@ -2657,7 +2667,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
             openPaymentModel();
         }
 
-        function selectPaymentType(param){
+        function selectPaymentTypeCustomer(param){
             let paymentType = $("#PK_PAYMENT_TYPE_CUSTOMER option:selected").text();
             $('.payment_type_div').slideUp();
             $('#card-element').remove();
@@ -2665,11 +2675,11 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                 case 'Credit Card':
                     $('#card_div').html(`<div id="card-element"></div>`);
                     stripePaymentFunction();
-                    $('#credit_card_payment').slideDown();
+                    $('#credit_card_payment_customer').slideDown();
                     break;
 
                 case 'Check':
-                    $('#check_payment').slideDown();
+                    $('#check_payment_customer').slideDown();
                     break;
 
                 case 'Wallet':
