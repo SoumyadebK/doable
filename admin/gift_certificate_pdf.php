@@ -137,7 +137,7 @@ if (empty($_GET['id'])) {
                 <h6 class="text-capitalize font-normal">(thousand oaks)</h6>
             </td>
             <td style="width=10%">
-                <img src="<?=$http_path?>assets/images/logo.JPG" alt="logo"/>
+                <img src="<?php echo str_replace('../', $http_path, $BUSINESS_LOGO) ?>" style="height: 75px; width: auto;" alt="logo"/>
             </td>
         </tr>
     </table>
