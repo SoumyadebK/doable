@@ -308,20 +308,6 @@ $NOTE = '';
                                     </div>
                                 </div>
 
-                                <?php if(!empty($_GET['id'])) { ?>
-                                    <div class="row" style="margin-bottom: 15px;">
-                                        <div class="col-6">
-                                            <div class="col-md-2">
-                                                <label>Active</label>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <? } ?>
-
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Continue</button>
                                     <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
@@ -974,61 +960,6 @@ $NOTE = '';
         $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
         $('#payment_confirmation_form_div').slideDown();
         openModel();
-    }
-
-    function selectPaymentType(param){
-        let paymentType = $("#PK_PAYMENT_TYPE option:selected").text();
-        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $('.payment_type_div').slideUp();
-        $('#card-element').remove();
-        switch (paymentType) {
-            case 'Credit Card':
-                if (PAYMENT_GATEWAY == 'Stripe') {
-                    $('#card_div').html(`<div id="card-element"></div>`);
-                    stripePaymentFunction();
-                }
-
-                getCreditCardList();
-                $('#credit_card_payment').slideDown();
-                break;
-
-            case 'Check':
-                $('#check_payment').slideDown();
-                break;
-
-            case 'Wallet':
-                let PK_USER_MASTER = $('#PK_USER_MASTER').val();
-                $.ajax({
-                    url: "ajax/wallet_balance.php",
-                    type: 'POST',
-                    data: {PK_USER_MASTER: PK_USER_MASTER},
-                    success: function (data) {
-                        $('#wallet_balance_div').html(data);
-                        $('#wallet_balance_div').slideDown();
-
-                        let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
-                        let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
-
-                        if (AMOUNT_TO_PAY > WALLET_BALANCE) {
-                            $('#REMAINING_AMOUNT').val(AMOUNT_TO_PAY - WALLET_BALANCE);
-                            $('#remaining_amount_div').slideDown();
-                            $('#PK_PAYMENT_TYPE_REMAINING').prop('required', true);
-                        } else {
-                            $('#remaining_amount_div').slideUp();
-                            $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
-                        }
-                    }
-                });
-                break;
-
-            case 'Cash':
-            default:
-                $('.payment_type_div').slideUp();
-                $('#wallet_balance_div').slideUp();
-                $('#remaining_amount_div').slideUp();
-                $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
-                break;
-        }
     }
 
     function getCreditCardList() {
