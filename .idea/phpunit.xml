@@ -3,11 +3,20 @@
   <component name="PHPUnit">
     <option name="directories">
       <list>
+<<<<<<< HEAD
         <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
+=======
+>>>>>>> dfe40295d2b2b53b1ac8162815d6ee3a7fa4e788
         <option value="$PROJECT_DIR$/global/stripe-php-master/tests" />
         <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
         <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
         <option value="$PROJECT_DIR$/global/authorizenet/tests" />
+<<<<<<< HEAD
+=======
+        <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/tests" />
+        <option value="$PROJECT_DIR$/global/square_old/square/connect/tests" />
+        <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/tests" />
+>>>>>>> dfe40295d2b2b53b1ac8162815d6ee3a7fa4e788
       </list>
     </option>
   </component>

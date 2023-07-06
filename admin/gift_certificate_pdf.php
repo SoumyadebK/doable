@@ -132,7 +132,7 @@ if (empty($_GET['id'])) {
     <table style="width:100%;">
         <tr>
             <td style="text-align:right;margin-right: 10px;width=100%">
-                <h2 class="text-uppercase" style="margin-bottom:0px;margin-top:0px;margin-right: 10px;text-transform: uppercase;"><?=$BUSINESS_NAME?></h2>
+                <h2 class="text-uppercase" style="margin-bottom:0px;margin-top:0px;margin-right: 10px;text-transform: uppercase;"><?php echo $BUSINESS_NAME?></h2>
                 <h6 class="text-capitalize font-normal">(thousand oaks)</h6>
             </td>
             <td style="width=10%">
@@ -142,20 +142,20 @@ if (empty($_GET['id'])) {
     </table>
     <table style="width:100%;">
         <tr>
-            <td><h1 style="font-size: 44px; font-weight: 700; text-transform: capitalize;"><?=$GIFT_CERTIFICATE_NAME.'-'.$GIFT_CERTIFICATE_CODE?></h1></td>
+            <td><h1 style="font-size: 44px; font-weight: 700; text-transform: capitalize;"><?php echo $GIFT_CERTIFICATE_NAME.'-'.$GIFT_CERTIFICATE_CODE?></h1></td>
         </tr>
     </table>
     <table style="width:100%;margin: 20px 0;">
         <tr>
             <td style="width=20%"><h1 style="font-size: 20px; display: block; text-transform: capitalize;">Amount : </h1></td>
-            <td><h4 style="font-size: 24px; display: block; text-transform: capitalize;font-weight: 700;"><?=$AMOUNT?></h4></td>
+            <td><h4 style="font-size: 24px; display: block; text-transform: capitalize;font-weight: 700;"><?php echo $AMOUNT?></h4></td>
         </tr>
     </table>
     <table style="width:100%;margin: 20px 0;">
         <tr style="vertical-align: top;">
             <td style="width=30%">
                 <label style="font-size: 20px; display: block; text-transform: capitalize;margin: 0 0 10px;">Name : </label>
-                <label style="font-size: 20px; display: block; text-transform: capitalize;"><?=$NAME?></label>
+                <label style="font-size: 20px; display: block; text-transform: capitalize;"><?php echo $NAME?></label>
             </td>
             <td>
                 <label>
@@ -164,7 +164,7 @@ if (empty($_GET['id'])) {
             </td>
             <td style="text-align:center;">
                 <label style="font-size: 20px; display: block; text-transform: uppercase;margin: 0 0 10px;">Purchase Date : </label>
-                <label style="font-size: 20px; display: block; text-transform: capitalize;"><?=$DATE_OF_PURCHASE?></label>
+                <label style="font-size: 20px; display: block; text-transform: capitalize;"><?php echo $DATE_OF_PURCHASE?></label>
             </td>
         </tr>
     </table>
