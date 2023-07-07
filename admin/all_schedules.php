@@ -144,18 +144,6 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
     }
 }
 
-function displayDates($date1, $date2, $format = 'm/d/Y' ) {
-    $dates = array();
-    $current = strtotime($date1);
-    $date2 	 = strtotime($date2);
-    $stepVal = '+1 day';
-    while( $current <= $date2 ) {
-        $dates[] = date($format, $current);
-        $current = strtotime($stepVal, $current);
-    }
-    return $dates;
-}
-
 $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME, DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM DOA_OPERATIONAL_HOUR LEFT JOIN DOA_LOCATION ON DOA_OPERATIONAL_HOUR.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY DOA_LOCATION.PK_LOCATION LIMIT 1");
 if ($location_operational_hour->RecordCount() > 0) {
     $OPEN_TIME = $location_operational_hour->fields['OPEN_TIME'];

@@ -38,6 +38,7 @@ if(!empty($_POST))
         $standardServicePkId = $db->Execute("SELECT PK_SERVICE_CODE, PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE SERVICE_CODE LIKE 'S-1'");
         $PK_SERVICE_CODE_STANDARD = $standardServicePkId->fields['PK_SERVICE_CODE'];
         $PK_SERVICE_MASTER_STANDARD = $standardServicePkId->fields['PK_SERVICE_MASTER'];
+        $PK_LOCATION = $_POST['PK_LOCATION'];
 
         // Parse data from CSV file line by line
         while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE)
@@ -87,7 +88,7 @@ if(!empty($_POST))
                         $getRole = getRole($roleId);
                         $doableRoleId = $db->Execute("SELECT PK_ROLES FROM DOA_ROLES WHERE ROLES='$getRole'");
                         $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $USER_DATA['PK_LOCATION'] = 1; // Need to check for further upload
+                        $USER_DATA['PK_LOCATION'] = $PK_LOCATION; // Need to check for further upload
                         $USER_DATA['FIRST_NAME'] = $getData[3];
                         $USER_DATA['LAST_NAME'] = $getData[4];
                         $USER_DATA['USER_API_KEY'] = $getData[2];
@@ -112,7 +113,7 @@ if(!empty($_POST))
                             db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
 
                             $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
-                            $USER_LOCATION_DATA['PK_LOCATION'] = 1;
+                            $USER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
                             db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
 
                             $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
@@ -163,7 +164,7 @@ if(!empty($_POST))
                             db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
 
                             $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
-                            $USER_LOCATION_DATA['PK_LOCATION'] = 1;
+                            $USER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
                             db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
 
                             $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
@@ -195,7 +196,7 @@ if(!empty($_POST))
 
                             $USER_MASTER_DATA['PK_USER'] = $PK_USER;
                             $USER_MASTER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                            $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = 1;
+                            $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = $PK_LOCATION;
                             db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
                             $PK_USER_MASTER = $db->insert_ID();
 
@@ -351,7 +352,7 @@ if(!empty($_POST))
                         $INSERT_DATA['ENROLLMENT_ID'] = $getData[0];
                         $INSERT_DATA['ENROLLMENT_NAME'] = $getData[3];
 
-                        $enrollment_type = getEnrollmentType($getData[2]);
+                        [$enrollment_type, $code] = getEnrollmentType($getData[2]);
                         $enrollment_type_data = $db->Execute("SELECT PK_ENROLLMENT_TYPE FROM `DOA_ENROLLMENT_TYPE` WHERE ENROLLMENT_TYPE = '$enrollment_type'");
                         if ($enrollment_type_data->RecordCount() > 0){
                             $INSERT_DATA['PK_ENROLLMENT_TYPE'] = $enrollment_type_data->fields['PK_ENROLLMENT_TYPE'];
@@ -377,14 +378,35 @@ if(!empty($_POST))
                         $customerId = $getData[4];
                         $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID='$customerId' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
                         $INSERT_DATA['PK_USER_MASTER'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
-                        $INSERT_DATA['PK_LOCATION'] = 1;
+                        $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
                         $INSERT_DATA['ENROLLMENT_BY_ID'] = $_POST['PK_ACCOUNT_MASTER'];
                         $INSERT_DATA['ACTIVE'] = 1;
                         $INSERT_DATA['STATUS'] = "A";
+                        $INSERT_DATA['EXPIRY_DATE'] = $getData[22];
                         $INSERT_DATA['CREATED_BY'] = $_POST['PK_ACCOUNT_MASTER'];
                         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                         db_perform('DOA_ENROLLMENT_MASTER', $INSERT_DATA, 'insert');
                         $PK_ENROLLMENT_MASTER = $db->insert_ID();
+
+                        if ($code == 'MISC' && date('Y-m-d') > $getData[22]) {
+                            $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                            $INSERT_DATA['CUSTOMER_ID'] = $INSERT_DATA['PK_USER_MASTER'];
+                            $INSERT_DATA['SERVICE_PROVIDER_ID'] = NULL;
+                            $INSERT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                            $INSERT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
+                            $INSERT_DATA['PK_SERVICE_MASTER'] = 0;
+                            $INSERT_DATA['PK_SERVICE_CODE'] = 0;
+                            $INSERT_DATA['DATE'] = date("Y-m-d");
+                            $INSERT_DATA['START_TIME'] = date('H:i:s');
+                            $INSERT_DATA['END_TIME'] = date('H:i:s');
+                            $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 2;
+                            $INSERT_DATA['COMMENT'] = 'Miscellaneous type enrollment';
+                            $INSERT_DATA['ACTIVE'] = 1;
+                            $INSERT_DATA['IS_PAID'] = 1;
+                            $INSERT_DATA['CREATED_BY'] = $_POST['PK_ACCOUNT_MASTER'];
+                            $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                            db_perform('DOA_APPOINTMENT_MASTER', $INSERT_DATA, 'insert');
+                        }
 
                         $ACTUAL_AMOUNT = $getData[8];
                         $DISCOUNT = $getData[28];
@@ -811,7 +833,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
             </div>
             <form action="" method="post" enctype="multipart/form-data">
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label class="form-label">Business Name</label>
                             <select class="form-control" name="PK_ACCOUNT_MASTER" id="PK_ACCOUNT_MASTER">
@@ -824,7 +846,29 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="form-label">Select Location</label>
+                            <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
+                                <?php
+                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1");
+                                while (!$row->EOF) { ?>
+                                    <option value="<?php echo $row->fields['PK_LOCATION'];?>"><?=$row->fields['LOCATION_NAME']?></option>
+                                <?php $row->MoveNext(); } ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="form-label">Select Database Name</label>
+                            <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
+                                <option value="">Select Database Name</option>
+                                <option value="amto">AMTO</option>
+                                <option value="amdh">AMWH</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label class="form-label">Select Table Name</label>
                             <select class="form-control" name="TABLE_NAME" id="TABLE_NAME" onchange="viewCsvDownload(this)">
@@ -846,18 +890,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                             <div id="view_download_div" class="m-10"></div>
                         </div>
                     </div>
-                    <!--<div class="col-md-4">
-                        <div class="form-group">
-                            <select class="form-control" name="TABLE_NAME" id="TABLE_NAME">
-                                <option value="">Select Table Name</option>
-                                <?php
-/*                                for($i=1; $i<=100; $i++){ */?>
-                                <option value="<?/*=$i*/?>" <?/*=($i==5)?"selected":""*/?>><?/*=$i*/?></option>
-                                <?php /*} */?>
-                            </select>
-                        </div>
-                    </div>-->
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <div class="form-group">
                             <label class="form-label">Select CSV</label>
                             <input type="file" class="form-control" name="file">
