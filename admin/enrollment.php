@@ -1350,6 +1350,13 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             modal.style.display = "none";
         }
     }
+
+    $(document).keydown(function(e) {
+        // ESCAPE key pressed
+        if (e.keyCode == 27) {
+            modal.style.display = "none";
+        }
+    });
 </script>
 
 <script type="text/javascript">

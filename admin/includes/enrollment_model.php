@@ -512,8 +512,8 @@ $NOTE = '';
 
                                         <?php if($PK_ENROLLMENT_BILLING == '') {?>
                                             <div class="form-group">
-                                                <a class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: none;" onclick="$('#enrollment_link')[0].click();">Back</a>
-                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: none;">Save & Continue</button>
+                                                <a class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: none;" onclick="$('#enrollment_tab_link')[0].click();">Back</a>
+                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: none;">Save</button>
                                             </div>
                                         <?php } ?>
                                     </div>

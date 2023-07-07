@@ -709,6 +709,13 @@ $CLOSE_TIME = '22:00:00';
             modal.style.display = "none";
         }
     }
+
+    $(document).keydown(function(e) {
+        // ESCAPE key pressed
+        if (e.keyCode == 27) {
+            modal.style.display = "none";
+        }
+    });
 </script>
 
 <script>
@@ -737,6 +744,13 @@ $CLOSE_TIME = '22:00:00';
             createModal.style.display = "none";
         }
     }
+
+    $(document).keydown(function(e) {
+        // ESCAPE key pressed
+        if (e.keyCode == 27) {
+            createModal.style.display = "none";
+        }
+    });
 </script>
 <script>
     function createAppointment(type, param) {

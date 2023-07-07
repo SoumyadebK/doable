@@ -47,7 +47,7 @@ require_once('../../global/config.php');
 
             <div class="row">
                 <div class="col-6">
-                    <label class="form-label">Service Provider</label>
+                    <label class="form-label"><?=$service_provider_title?></label>
                     <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
                         <select class="multi_sumo_select" name="PK_USER[]" multiple>
                             <?php
@@ -75,5 +75,5 @@ require_once('../../global/config.php');
         timeFormat: 'hh:mm p',
     });
 
-    $('.multi_sumo_select').SumoSelect({placeholder: 'Select Location', selectAll: true});
+    $('.multi_sumo_select').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', selectAll: true});
 </script>

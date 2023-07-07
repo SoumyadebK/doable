@@ -757,7 +757,7 @@ if(!empty($_POST)){
                                                         <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;"></p>
                                                     </div>
                                                 </div>
-                                                <div class="col-3">
+                                                <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Payment Details</label>
                                                         <div class="col-md-12">
@@ -768,7 +768,7 @@ if(!empty($_POST)){
                                                                     <?php if ($row->fields['PAYMENT_TYPE'] == "Check") { ?>
                                                                     <option value=""><?=$row->fields['PAYMENT_TYPE'].' Number: '.$row->fields['CHECK_NUMBER'].', Date: '.$row->fields['CHECK_DATE']?></option>
                                                                     <?php } else if ($row->fields['PAYMENT_TYPE'] == "Credit Card") { ?>
-                                                                    <option value=""><?='Confirmation Number: '.$row->fields['PAYMENT_INFO']?></option>
+                                                                    <option value=""><?='CC-Confirmation Number: '.$row->fields['PAYMENT_INFO']?></option>
                                                                     <?php } else { ?>
                                                                     <option value=""><?=$row->fields['PAYMENT_TYPE']?></option>
                                                                     <?php } ?>
