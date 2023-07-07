@@ -1557,6 +1557,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
 
 
                                             <div class="tab-pane" id="appointment" role="tabpanel">
+                                                <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createNewAppointment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
                                                 <div id="appointment_list" class="p-20">
 
                                                 </div>
@@ -1785,6 +1786,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                             </div>
 
                                             <div class="tab-pane" id="accounts" role="tabpanel">
+                                                <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="viewPaymentList();" style="width: 150px; float: right;"><i class="fa fa-plus-circle"></i> Create Payment</a>
                                                 <div id="ledger_list" class="p-20">
 
                                                 </div>
@@ -1883,6 +1885,8 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
     </style>
     <?php require_once('../includes/footer.php');?>
     <?php require_once('../admin/includes/enrollment_model.php');?>
+    <?php require_once('../admin/includes/appointment_model.php');?>
+    <?php require_once('../admin/includes/payment_list_model.php');?>
     <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
     <script>
@@ -1959,7 +1963,78 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                 enrollment_model.style.display = "none";
             }
         }
+
+        $(document).keydown(function(e) {
+            // ESCAPE key pressed
+            if (e.keyCode == 27) {
+                enrollment_model.style.display = "none";
+            }
+        });
     </script>
+
+        <script>
+            // Get the modal
+            var appointment_model = document.getElementById("appointmentModel");
+
+            // Get the <span> element that closes the enrollment_model
+            var appointment_span = document.getElementsByClassName("close_appointment_model")[0];
+
+            // When the user clicks the button, open the enrollment_model
+            function openAppointmentModel() {
+                appointment_model.style.display = "block";
+            }
+
+            // When the user clicks on <appointment_span> (x), close the appointment_model
+            appointment_span.onclick = function() {
+                appointment_model.style.display = "none";
+            }
+
+            // When the user clicks anywhere outside of the appointment_model, close it
+            window.onclick = function(event) {
+                if (event.target == appointment_model) {
+                    appointment_model.style.display = "none";
+                }
+            }
+
+            $(document).keydown(function(e) {
+                // ESCAPE key pressed
+                if (e.keyCode == 27) {
+                    appointment_model.style.display = "none";
+                }
+            });
+        </script>
+
+        <script>
+            // Get the modal
+            var payment_list_model = document.getElementById("paymentListModel");
+
+            // Get the <span> element that closes the enrollment_model
+            var payment_list_span = document.getElementsByClassName("close_payment_list_model")[0];
+
+            // When the user clicks the button, open the payment_list_model
+            function openPaymentListModel() {
+                payment_list_model.style.display = "block";
+            }
+
+            // When the user clicks on <new_payment_span> (x), close the payment_list_model
+            payment_list_span.onclick = function() {
+                payment_list_model.style.display = "none";
+            }
+
+            // When the user clicks anywhere outside of the payment_list_model, close it
+            window.onclick = function(event) {
+                if (event.target == payment_list_model) {
+                    payment_list_model.style.display = "none";
+                }
+            }
+
+            $(document).keydown(function(e) {
+                // ESCAPE key pressed
+                if (e.keyCode == 27) {
+                    payment_list_model.style.display = "none";
+                }
+            });
+        </script>
 
     <script>
         function createUserComment() {
@@ -1974,6 +2049,16 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
         function createEnrollment() {
             $('#enrollment_header').text("Add Enrollment");
             openEnrollmentModel();
+        }
+
+        function createNewAppointment() {
+            $('#appointment_header').text("Add Appointment");
+            openAppointmentModel();
+        }
+
+        function viewPaymentList() {
+            $('#payment_header').text("Add Payment");
+            openPaymentListModel();
         }
 
         function editComment(PK_COMMENT) {
