@@ -19,14 +19,14 @@ $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%' OR DOA_GIFT_CERTIFICATE_MASTER.GIFT_CERTIFICATE_NAME LIKE '%".$search_text."%' OR DOA_GIFT_CERTIFICATE_MASTER.GIFT_CERTIFICATE_CODE LIKE '%".$search_text."%' OR DOA_GIFT_CERTIFICATE_MASTER.AMOUNT LIKE '%".$search_text."%')";
+    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%' OR DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_NAME LIKE '%".$search_text."%' OR DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_CODE LIKE '%".$search_text."%' OR DOA_GIFT_CERTIFICATE_MASTER.AMOUNT LIKE '%".$search_text."%')";
 } else {
     $search_text = '';
     $search = ' ';
 }
 
-$query = $db->Execute("SELECT count(DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER) AS TOTAL_GIFT_CERTIFICATE_RECORDS FROM `DOA_GIFT_CERTIFICATE_MASTER` INNER JOIN `DOA_GIFT_CERTIFICATE_SETUP` ON DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_SETUP=DOA_GIFT_CERTIFICATE_SETUP.PK_GIFT_CERTIFICATE_SETUP LEFT JOIN `DOA_USER_MASTER` ON DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN `DOA_USERS` ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_GIFT_CERTIFICATE_MASTER.ACTIVE = '$status' AND DOA_GIFT_CERTIFICATE_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search);
-$number_of_result =  $query->fields['TOTAL_GIFT_CERTIFICATE_RECORDS'];
+$query = $db->Execute("SELECT count(DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER) AS TOTAL_RECORDS FROM `DOA_GIFT_CERTIFICATE_MASTER` INNER JOIN `DOA_GIFT_CERTIFICATE_SETUP` ON DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_SETUP=DOA_GIFT_CERTIFICATE_SETUP.PK_GIFT_CERTIFICATE_SETUP LEFT JOIN `DOA_USER_MASTER` ON DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN `DOA_USERS` ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_GIFT_CERTIFICATE_MASTER.ACTIVE = '$status' AND DOA_GIFT_CERTIFICATE_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search);
+$number_of_result =  $query->fields['TOTAL_RECORDS'];
 $number_of_page = ceil ($number_of_result / $results_per_page);
 
 if (!isset ($_GET['page']) ) {
@@ -50,10 +50,25 @@ $page_first_result = ($page-1) * $results_per_page;
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid">
             <div class="row page-titles">
-                <div class="col-md-4 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+                <div class="col-md-3 align-self-center">
+                    <?php if ($status_check=='inactive') { ?>
+                        <h4 class="text-themecolor">Not Active Gift Certificates</h4>
+                    <?php } elseif ($status_check=='active') { ?>
+                        <h4 class="text-themecolor">Active Gift Certificates</h4>
+                    <?php } ?>
                 </div>
-                <div class="col-md-4 align-self-center text-end">
+
+                <?php if ($status_check=='inactive') { ?>
+                    <div class="col-md-2 align-self-center">
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_gift_certificates.php?status=active'"><i class="fa fa-user"></i> Show Active</button>
+                    </div>
+                <?php } elseif ($status_check=='active') { ?>
+                    <div class="col-md-2 align-self-center">
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_gift_certificates.php?status=inactive'"><i class="fa fa-user-times"></i> Show Not Active</button>
+                    </div>
+                <?php } ?>
+
+                <div class="col-md-3 align-self-center text-end">
                     <form class="form-material form-horizontal" action="" method="get">
                         <input type="hidden" name="status" value="<?=$status_check?>" >
                         <div class="input-group">
