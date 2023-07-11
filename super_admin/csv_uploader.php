@@ -347,156 +347,154 @@ if(!empty($_POST))
                     break;
 
                 case "DOA_ENROLLMENT_MASTER":
-                    $table_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER WHERE ENROLLMENT_ID='$getData[0]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
-                    if ($table_data->RecordCount() == 0) {
-                        $INSERT_DATA['ENROLLMENT_ID'] = $getData[0];
-                        $INSERT_DATA['ENROLLMENT_NAME'] = $getData[3];
+                    $ENROLLMENT_DATA['ENROLLMENT_ID'] = $getData[0];
+                    $ENROLLMENT_DATA['ENROLLMENT_NAME'] = $getData[3];
 
-                        [$enrollment_type, $code] = getEnrollmentType($getData[2]);
-                        $enrollment_type_data = $db->Execute("SELECT PK_ENROLLMENT_TYPE FROM `DOA_ENROLLMENT_TYPE` WHERE ENROLLMENT_TYPE = '$enrollment_type'");
-                        if ($enrollment_type_data->RecordCount() > 0){
-                            $INSERT_DATA['PK_ENROLLMENT_TYPE'] = $enrollment_type_data->fields['PK_ENROLLMENT_TYPE'];
-                        } else {
-                            $INSERT_DATA['PK_ENROLLMENT_TYPE'] = 0;
-                        }
+                    [$enrollment_type, $code] = getEnrollmentType($getData[2]);
+                    $enrollment_type_data = $db->Execute("SELECT PK_ENROLLMENT_TYPE FROM `DOA_ENROLLMENT_TYPE` WHERE ENROLLMENT_TYPE = '$enrollment_type'");
+                    if ($enrollment_type_data->RecordCount() > 0){
+                        $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = $enrollment_type_data->fields['PK_ENROLLMENT_TYPE'];
+                    } else {
+                        $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 0;
+                    }
 
-                        /*$account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_POST[PK_ACCOUNT_MASTER]'");
-                        if ($account_data->RecordCount() > 0){
-                            $enrollment_char = $account_data->fields['ENROLLMENT_ID_CHAR'];
-                        } else {
-                            $enrollment_char = 'ENR';
-                        }
-                        $enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_POST[PK_ACCOUNT_MASTER]' ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-                        if ($enrollment_data->RecordCount() > 0){
-                            $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']) ;
-                            $INSERT_DATA['ENROLLMENT_ID'] = $enrollment_char.(intval($last_enrollment_id)+1);
-                        }else{
-                            $INSERT_DATA['ENROLLMENT_ID'] = $enrollment_char.$account_data->fields['ENROLLMENT_ID_NUM'];
-                        }*/
+                    /*$account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_POST[PK_ACCOUNT_MASTER]'");
+                    if ($account_data->RecordCount() > 0){
+                        $enrollment_char = $account_data->fields['ENROLLMENT_ID_CHAR'];
+                    } else {
+                        $enrollment_char = 'ENR';
+                    }
+                    $enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_POST[PK_ACCOUNT_MASTER]' ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+                    if ($enrollment_data->RecordCount() > 0){
+                        $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']) ;
+                        $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char.(intval($last_enrollment_id)+1);
+                    }else{
+                        $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char.$account_data->fields['ENROLLMENT_ID_NUM'];
+                    }*/
 
-                        $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $customerId = $getData[4];
-                        $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID='$customerId' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
-                        $INSERT_DATA['PK_USER_MASTER'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
-                        $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
-                        $INSERT_DATA['ENROLLMENT_BY_ID'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $INSERT_DATA['ACTIVE'] = 1;
-                        $INSERT_DATA['STATUS'] = "A";
-                        $INSERT_DATA['EXPIRY_DATE'] = $getData[22];
-                        $INSERT_DATA['CREATED_BY'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                        db_perform('DOA_ENROLLMENT_MASTER', $INSERT_DATA, 'insert');
-                        $PK_ENROLLMENT_MASTER = $db->insert_ID();
+                    $ENROLLMENT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                    $customerId = $getData[4];
+                    $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID='$customerId' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
+                    $ENROLLMENT_DATA['PK_USER_MASTER'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
+                    $ENROLLMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
+                    $ENROLLMENT_DATA['ENROLLMENT_BY_ID'] = $_POST['PK_ACCOUNT_MASTER'];
+                    $ENROLLMENT_DATA['ACTIVE'] = 1;
+                    $ENROLLMENT_DATA['STATUS'] = "A";
+                    $ENROLLMENT_DATA['EXPIRY_DATE'] = $getData[22];
+                    $ENROLLMENT_DATA['CREATED_BY'] = $_POST['PK_ACCOUNT_MASTER'];
+                    $ENROLLMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'insert');
+                    $PK_ENROLLMENT_MASTER = $db->insert_ID();
 
-                        if ($code == 'MISC' && date('Y-m-d') > $getData[22]) {
-                            $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                            $INSERT_DATA['CUSTOMER_ID'] = $INSERT_DATA['PK_USER_MASTER'];
-                            $INSERT_DATA['SERVICE_PROVIDER_ID'] = NULL;
-                            $INSERT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                            $INSERT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
-                            $INSERT_DATA['PK_SERVICE_MASTER'] = 0;
-                            $INSERT_DATA['PK_SERVICE_CODE'] = 0;
-                            $INSERT_DATA['DATE'] = date("Y-m-d");
-                            $INSERT_DATA['START_TIME'] = date('H:i:s');
-                            $INSERT_DATA['END_TIME'] = date('H:i:s');
-                            $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 2;
-                            $INSERT_DATA['COMMENT'] = 'Miscellaneous type enrollment';
-                            $INSERT_DATA['ACTIVE'] = 1;
-                            $INSERT_DATA['IS_PAID'] = 1;
-                            $INSERT_DATA['CREATED_BY'] = $_POST['PK_ACCOUNT_MASTER'];
-                            $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                            db_perform('DOA_APPOINTMENT_MASTER', $INSERT_DATA, 'insert');
-                        }
+                    if ($code == 'MISC' && date('Y-m-d') > $getData[22]) {
+                        $APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $APPOINTMENT_DATA['CUSTOMER_ID'] = $ENROLLMENT_DATA['PK_USER_MASTER'];
+                        $APPOINTMENT_DATA['SERVICE_PROVIDER_ID'] = NULL;
+                        $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                        $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
+                        $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = 0;
+                        $APPOINTMENT_DATA['PK_SERVICE_CODE'] = 0;
+                        $APPOINTMENT_DATA['DATE'] = date("Y-m-d");
+                        $APPOINTMENT_DATA['START_TIME'] = date('H:i:s');
+                        $APPOINTMENT_DATA['END_TIME'] = date('H:i:s');
+                        $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 2;
+                        $APPOINTMENT_DATA['COMMENT'] = 'Miscellaneous type enrollment';
+                        $APPOINTMENT_DATA['ACTIVE'] = 1;
+                        $APPOINTMENT_DATA['IS_PAID'] = 1;
+                        $APPOINTMENT_DATA['CREATED_BY'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                        db_perform('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+                    }
 
-                        $ACTUAL_AMOUNT = $getData[8];
-                        $DISCOUNT = $getData[28];
-                        $TOTAL_AMOUNT = $getData[38];
-                        $DOWN_PAYMENT = 0;
-                        $BALANCE_PAYABLE = 0;
-                        $PAYMENT_METHOD = 'One Time';
-                        $PAYMENT_TERM = '';
-                        $NUMBER_OF_PAYMENT = 0;
-                        $FIRST_DUE_DATE = date('Y-m-d');
-                        $INSTALLMENT_AMOUNT = 0;
-                        if (strpos($getData[23], "C")  !== false) {
-                            $info = str_replace('  ', ' ', $getData[23]);
-                            $paymentInfo = explode(' ', $info);
-                            $NUMBER_OF_PAYMENT = is_int($paymentInfo[2])?$paymentInfo[2]:0;
-                            $INSTALLMENT_AMOUNT = (float)$paymentInfo[1];
-                            $DOWN_PAYMENT = $TOTAL_AMOUNT-($NUMBER_OF_PAYMENT*$INSTALLMENT_AMOUNT);
-                            $BALANCE_PAYABLE = ($NUMBER_OF_PAYMENT*$INSTALLMENT_AMOUNT);
-                            $PAYMENT_METHOD = 'Flexible Payments';
-                            $PAYMENT_TERM = 'Monthly';
-                            $FIRST_DUE_DATE = date('Y-m-d', strtotime($getData[7]));
-                        }
+                    $ACTUAL_AMOUNT = $getData[8];
+                    $DISCOUNT = $getData[28];
+                    $TOTAL_AMOUNT = $getData[38];
+                    $DOWN_PAYMENT = 0;
+                    $BALANCE_PAYABLE = 0;
+                    $PAYMENT_METHOD = 'One Time';
+                    $PAYMENT_TERM = '';
+                    $NUMBER_OF_PAYMENT = 0;
+                    $FIRST_DUE_DATE = date('Y-m-d');
+                    $INSTALLMENT_AMOUNT = 0;
+                    if (strpos($getData[23], "C")  !== false) {
+                        $info = str_replace('  ', ' ', $getData[23]);
+                        $paymentInfo = explode(' ', $info);
+                        $NUMBER_OF_PAYMENT = (is_array($paymentInfo) && is_int($paymentInfo[2]))?$paymentInfo[2]:0;
+                        $INSTALLMENT_AMOUNT = (float)$paymentInfo[1];
+                        $DOWN_PAYMENT = $TOTAL_AMOUNT-($NUMBER_OF_PAYMENT*$INSTALLMENT_AMOUNT);
+                        $BALANCE_PAYABLE = ($NUMBER_OF_PAYMENT*$INSTALLMENT_AMOUNT);
+                        $PAYMENT_METHOD = 'Flexible Payments';
+                        $PAYMENT_TERM = 'Monthly';
+                        $FIRST_DUE_DATE = date('Y-m-d', strtotime($getData[7]));
+                    }
 
-                        $BILLING_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                        $BILLING_DATA['BILLING_REF'] = '';
-                        $BILLING_DATA['BILLING_DATE'] = date('Y-m-d', strtotime($getData[7]));
-                        $BILLING_DATA['ACTUAL_AMOUNT'] = $ACTUAL_AMOUNT;
-                        $BILLING_DATA['DISCOUNT'] = $DISCOUNT;
-                        $BILLING_DATA['DOWN_PAYMENT'] = $DOWN_PAYMENT;
-                        $BILLING_DATA['BALANCE_PAYABLE'] = $BALANCE_PAYABLE;
-                        $BILLING_DATA['TOTAL_AMOUNT'] = $TOTAL_AMOUNT;
-                        $BILLING_DATA['PAYMENT_METHOD'] = $PAYMENT_METHOD;
-                        $BILLING_DATA['PAYMENT_TERM'] = $PAYMENT_TERM;
-                        $BILLING_DATA['NUMBER_OF_PAYMENT'] = $NUMBER_OF_PAYMENT;
-                        $BILLING_DATA['FIRST_DUE_DATE'] = $FIRST_DUE_DATE;
-                        $BILLING_DATA['INSTALLMENT_AMOUNT'] = $INSTALLMENT_AMOUNT;
-                        db_perform('DOA_ENROLLMENT_BILLING', $BILLING_DATA, 'insert');
-                        $PK_ENROLLMENT_BILLING = $db->insert_ID();
+                    $BILLING_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                    $BILLING_DATA['BILLING_REF'] = '';
+                    $BILLING_DATA['BILLING_DATE'] = date('Y-m-d', strtotime($getData[7]));
+                    $BILLING_DATA['ACTUAL_AMOUNT'] = $ACTUAL_AMOUNT;
+                    $BILLING_DATA['DISCOUNT'] = $DISCOUNT;
+                    $BILLING_DATA['DOWN_PAYMENT'] = $DOWN_PAYMENT;
+                    $BILLING_DATA['BALANCE_PAYABLE'] = $BALANCE_PAYABLE;
+                    $BILLING_DATA['TOTAL_AMOUNT'] = $TOTAL_AMOUNT;
+                    $BILLING_DATA['PAYMENT_METHOD'] = $PAYMENT_METHOD;
+                    $BILLING_DATA['PAYMENT_TERM'] = $PAYMENT_TERM;
+                    $BILLING_DATA['NUMBER_OF_PAYMENT'] = $NUMBER_OF_PAYMENT;
+                    $BILLING_DATA['FIRST_DUE_DATE'] = $FIRST_DUE_DATE;
+                    $BILLING_DATA['INSTALLMENT_AMOUNT'] = $INSTALLMENT_AMOUNT;
+                    db_perform('DOA_ENROLLMENT_BILLING', $BILLING_DATA, 'insert');
+                    $PK_ENROLLMENT_BILLING = $db->insert_ID();
 
-                        /*if ($NUMBER_OF_PAYMENT == 0) {
+                    /*if ($NUMBER_OF_PAYMENT == 0) {
+                        $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                        $LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
+                        $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
+                        $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
+                        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($getData[7]));
+                        $LEDGER_DATA['BILLED_AMOUNT'] = $TOTAL_AMOUNT;
+                        $LEDGER_DATA['PAID_AMOUNT'] = 0;
+                        $LEDGER_DATA['BALANCE'] = $TOTAL_AMOUNT;
+                        $LEDGER_DATA['IS_PAID'] = 0;
+                        $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = 0;
+                        $LEDGER_DATA['PK_PAYMENT_TYPE'] = 0;
+                        $LEDGER_DATA['STATUS'] = 'A';
+                        db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+                    } else {
+                        pre_r($BILLING_DATA);
+                        $TOTAL_INSTALLMENT = 0;
+                        for ($i = 0; $i < $NUMBER_OF_PAYMENT; $i++) {
                             $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                             $LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
                             $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
                             $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
                             $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($getData[7]));
-                            $LEDGER_DATA['BILLED_AMOUNT'] = $TOTAL_AMOUNT;
+                            $LEDGER_DATA['BILLED_AMOUNT'] = $INSTALLMENT_AMOUNT;
                             $LEDGER_DATA['PAID_AMOUNT'] = 0;
-                            $LEDGER_DATA['BALANCE'] = $TOTAL_AMOUNT;
+                            $LEDGER_DATA['BALANCE'] = $INSTALLMENT_AMOUNT;
                             $LEDGER_DATA['IS_PAID'] = 0;
                             $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = 0;
                             $LEDGER_DATA['PK_PAYMENT_TYPE'] = 0;
                             $LEDGER_DATA['STATUS'] = 'A';
                             db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                        } else {
-                            pre_r($BILLING_DATA);
-                            $TOTAL_INSTALLMENT = 0;
-                            for ($i = 0; $i < $NUMBER_OF_PAYMENT; $i++) {
-                                $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                                $LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
-                                $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
-                                $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-                                $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($getData[7]));
-                                $LEDGER_DATA['BILLED_AMOUNT'] = $INSTALLMENT_AMOUNT;
-                                $LEDGER_DATA['PAID_AMOUNT'] = 0;
-                                $LEDGER_DATA['BALANCE'] = $INSTALLMENT_AMOUNT;
-                                $LEDGER_DATA['IS_PAID'] = 0;
-                                $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = 0;
-                                $LEDGER_DATA['PK_PAYMENT_TYPE'] = 0;
-                                $LEDGER_DATA['STATUS'] = 'A';
-                                db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                                $TOTAL_INSTALLMENT += $INSTALLMENT_AMOUNT;
-                            }
-                            if ($TOTAL_INSTALLMENT < $TOTAL_AMOUNT) {
-                                $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                                $LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
-                                $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
-                                $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-                                $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($getData[7]));
-                                $LEDGER_DATA['BILLED_AMOUNT'] = $TOTAL_AMOUNT - $TOTAL_INSTALLMENT;
-                                $LEDGER_DATA['PAID_AMOUNT'] = 0;
-                                $LEDGER_DATA['BALANCE'] = $TOTAL_AMOUNT - $TOTAL_INSTALLMENT;
-                                $LEDGER_DATA['IS_PAID'] = 0;
-                                $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = 0;
-                                $LEDGER_DATA['PK_PAYMENT_TYPE'] = 0;
-                                $LEDGER_DATA['STATUS'] = 'A';
-                                db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                                $TOTAL_INSTALLMENT += $INSTALLMENT_AMOUNT;
-                            }
-                        }*/
-                    }
+                            $TOTAL_INSTALLMENT += $INSTALLMENT_AMOUNT;
+                        }
+                        if ($TOTAL_INSTALLMENT < $TOTAL_AMOUNT) {
+                            $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                            $LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
+                            $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
+                            $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
+                            $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($getData[7]));
+                            $LEDGER_DATA['BILLED_AMOUNT'] = $TOTAL_AMOUNT - $TOTAL_INSTALLMENT;
+                            $LEDGER_DATA['PAID_AMOUNT'] = 0;
+                            $LEDGER_DATA['BALANCE'] = $TOTAL_AMOUNT - $TOTAL_INSTALLMENT;
+                            $LEDGER_DATA['IS_PAID'] = 0;
+                            $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = 0;
+                            $LEDGER_DATA['PK_PAYMENT_TYPE'] = 0;
+                            $LEDGER_DATA['STATUS'] = 'A';
+                            db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+                            $TOTAL_INSTALLMENT += $INSTALLMENT_AMOUNT;
+                        }
+                    }*/
+
                     break;
 
                 case "DOA_ENROLLMENT_SERVICE":

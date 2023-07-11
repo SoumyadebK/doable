@@ -105,7 +105,7 @@
 
     <style>
         .pagination {
-            display: inline-block;
+            *display: inline-block;
         }
         .pagination a {
             color: black;
