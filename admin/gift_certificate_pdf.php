@@ -134,7 +134,7 @@ if (empty($_GET['id'])) {
         <tr>
             <td style="text-align:right;margin-right: 10px;width=100%">
                 <h2 class="text-uppercase" style="margin-bottom:0px;margin-top:0px;margin-right: 10px;text-transform: uppercase;"><?php echo $BUSINESS_NAME?></h2>
-                <h6 class="text-capitalize font-normal">(thousand oaks)</h6>
+                <h6 class="text-capitalize font-normal">(Thousand Oaks)</h6>
             </td>
             <td style="width=10%">
                 <img src="<?php echo str_replace('../', $http_path, $BUSINESS_LOGO) ?>" style="height: 75px; width: auto;" alt="logo"/>

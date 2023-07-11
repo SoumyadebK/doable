@@ -559,6 +559,13 @@ $NOTE = '';
             modal.style.display = "none";
         }
     }
+
+    $(document).keydown(function(e) {
+        // ESCAPE key pressed
+        if (e.keyCode == 27) {
+            modal.style.display = "none";
+        }
+    });
 </script>
 <script>
     let PK_ENROLLMENT_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);

@@ -270,9 +270,13 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
         if (type === 'standing') {
             url = "ajax/add_multiple_appointment.php";
         }
+
+        let PK_USER_MASTER = parseInt(<?=empty($_GET['master_id'])?0:$_GET['master_id']?>);
+
         $.ajax({
             url: url,
-            type: "POST",
+            type: "GET",
+            data: {PK_USER_MASTER: PK_USER_MASTER},
             success: function (data) {
                 $('#create_form_div').html(data);
             }
