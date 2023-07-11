@@ -1547,7 +1547,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                             </div>
 
                                             <div class="tab-pane" id="enrollment" role="tabpanel">
-                                                <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createEnrollment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
+                                                <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createEnrollment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Enrollment</a>
                                                 <div id="enrollment_list" class="p-20">
 
                                                 </div>
@@ -1557,7 +1557,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
 
 
                                             <div class="tab-pane" id="appointment" role="tabpanel">
-                                                <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createNewAppointment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
+                                                <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createNewAppointment();" style="width: 125px; float: right;"><i class="fa fa-plus-circle"></i> Appointment</a>
                                                 <div id="appointment_list" class="p-20">
 
                                                 </div>
@@ -1915,6 +1915,13 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
             }
         }
 
+        $(document).keydown(function(e) {
+            // ESCAPE key pressed
+            if (e.keyCode == 27) {
+                payment_model.style.display = "none";
+            }
+        });
+
 
         // Get the modal
         var comment_model = document.getElementById("commentModel");
@@ -1938,6 +1945,13 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                 comment_model.style.display = "none";
             }
         }
+
+        $(document).keydown(function(e) {
+            // ESCAPE key pressed
+            if (e.keyCode == 27) {
+                comment_model.style.display = "none";
+            }
+        });
     </script>
 
     <script>
