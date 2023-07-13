@@ -356,7 +356,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
 
             if ($_POST['PK_PAYMENT_TYPE_REMAINING'] == 1) {
-                require_once("../global/stripe/init.php");
+                require_once("../global/stripe-php-master/init.php");
                 \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
                 $STRIPE_TOKEN = $_POST['token'];
                 $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];

@@ -53,7 +53,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
         if ($_POST['PK_PAYMENT_TYPE'] == 1) {
             if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
-                require_once("../global/stripe/init.php");
+                require_once("../global/stripe-php-master/init.php");
                 \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
                 $STRIPE_TOKEN = $_POST['token'];
                 $AMOUNT = $_POST['AMOUNT'];
