@@ -769,7 +769,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                         <div class="row">
                                                             <div class="col-6">
                                                                 <label class="col-md-12">Preferred Location</label>
-                                                                <div class="col-md-12 multiselect-box">
+                                                                <div class="col-md-12 multiselect-box" style="width: 100%;">
                                                                     <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
                                                                         <?php
                                                                         $selected_location = [];
