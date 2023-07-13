@@ -162,7 +162,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
-    header("location:all_schedules.php");
+    header("location:customer.php?id=".$_POST['PK_USER']."&master_id=".$_POST['CUSTOMER_ID']);
 }
 
 function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
@@ -271,12 +271,13 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
             url = "ajax/add_multiple_appointment.php";
         }
 
+        let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
         let PK_USER_MASTER = parseInt(<?=empty($_GET['master_id'])?0:$_GET['master_id']?>);
 
         $.ajax({
             url: url,
             type: "GET",
-            data: {PK_USER_MASTER: PK_USER_MASTER},
+            data: {PK_USER: PK_USER, PK_USER_MASTER: PK_USER_MASTER},
             success: function (data) {
                 $('#create_form_div').html(data);
             }

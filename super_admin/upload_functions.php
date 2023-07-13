@@ -4,10 +4,10 @@ require_once('../global/common_functions.php');
 
 $db1 = new queryFactory();
 if($_SERVER['HTTP_HOST'] == 'localhost' ) {
-    $conn1 = $db1->connect('localhost','root','','amto');
+    $conn1 = $db1->connect('localhost','root','','amwh');
     $http_path = 'http://localhost/doable/';
 } else {
-    $conn1 = $db1->connect('localhost','root','b54eawxj5h8ev','amto');
+    $conn1 = $db1->connect('localhost','root','b54eawxj5h8ev','amwh');
     $http_path = 'http://allonehub.com/';
 }
 if ($db1->error_number){

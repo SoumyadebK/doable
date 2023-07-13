@@ -320,7 +320,7 @@ $NOTE = '';
                     <div class="tab-pane" id="billing_tab" role="tabpanel" style="pointer-events: <?=($PK_ENROLLMENT_BILLING>0)?'none':''?>; opacity: <?=($PK_ENROLLMENT_BILLING>0)?'60%':''?>">
                         <div class="card">
                             <div class="card-body">
-                                <form id="billing_tab_form">
+                                <form id="billing_form">
                                     <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
                                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                     <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=$PK_ENROLLMENT_BILLING?>">
@@ -760,7 +760,7 @@ $NOTE = '';
     }
 
     $(document).on('click', '#cancel_button', function () {
-        window.location.href='all_enrollments.php'
+        window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
     });
 
     $(document).on('submit', '#enrollment_tab_form', function (event) {
@@ -913,7 +913,7 @@ $NOTE = '';
                                 $('#AMOUNT_TO_PAY').val(balance_payable.toFixed(2));
                                 $('#payment_confirmation_form_div').slideDown();
                             } else {
-                                window.location.href = 'all_enrollments.php';
+                                window.location.href = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
                             }
                         } else {
                             if (($('.PAYMENT_METHOD:checked').val() === 'One Time') || (parseFloat($('#DOWN_PAYMENT').val()) > 0) || ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() === firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth()))) {
@@ -935,7 +935,7 @@ $NOTE = '';
                                 openModel();
 
                             } else {
-                                window.location.href = 'all_enrollments.php';
+                                window.location.href = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
                             }
                         }
                     }
@@ -957,7 +957,7 @@ $NOTE = '';
             type: 'POST',
             data: form_data,
             success:function (data) {
-                //window.location.href='all_enrollments.php';
+                //window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
             }
         });
     });*/

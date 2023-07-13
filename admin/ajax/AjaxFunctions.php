@@ -120,7 +120,7 @@ function saveEnrollmentData($RESPONSE_DATA){
         $PK_ENROLLMENT_MASTER = $db->insert_ID();
         createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER,'DOA_ENROLLMENT_MASTER', 'PK_ENROLLMENT_MASTER', $PK_ENROLLMENT_MASTER, $ENROLLMENT_MASTER_DATA, 'insert');
     }else{
-        $ENROLLMENT_MASTER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        $ENROLLMENT_MASTER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'] ?? 0;
         $ENROLLMENT_MASTER_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $ENROLLMENT_MASTER_DATA['EDITED_ON'] = date("Y-m-d H:i");
         createUpdateHistory('enrollment', $RESPONSE_DATA['PK_ENROLLMENT_MASTER'],'DOA_ENROLLMENT_MASTER', 'PK_ENROLLMENT_MASTER', $RESPONSE_DATA['PK_ENROLLMENT_MASTER'], $ENROLLMENT_MASTER_DATA, 'update');
@@ -131,7 +131,7 @@ function saveEnrollmentData($RESPONSE_DATA){
     $total = 0;
     if (isset($RESPONSE_DATA['PK_SERVICE_MASTER']) && count($RESPONSE_DATA['PK_SERVICE_MASTER']) > 0){
         $db->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
-        if ($RESPONSE_DATA['IS_PACKAGE'] == 1 ) {
+        /*if ($RESPONSE_DATA['IS_PACKAGE'] == 1 ) {
             for ($i = 0; $i < count($RESPONSE_DATA['PK_SERVICE_CODE']); $i++) {
                 if (!empty($RESPONSE_DATA['PK_SERVICE_CODE'][$i])) {
                     $ENROLLMENT_SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
@@ -149,7 +149,7 @@ function saveEnrollmentData($RESPONSE_DATA){
                     $total += $RESPONSE_DATA['TOTAL'][$i];
                 }
             }
-        } else {
+        } else {*/
             for ($i = 0; $i < count($RESPONSE_DATA['PK_SERVICE_MASTER']); $i++) {
                 $ENROLLMENT_SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                 $ENROLLMENT_SERVICE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'][$i];
@@ -164,7 +164,7 @@ function saveEnrollmentData($RESPONSE_DATA){
                 createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER, 'DOA_ENROLLMENT_SERVICE', 'PK_ENROLLMENT_SERVICE', $PK_ENROLLMENT_SERVICE, $ENROLLMENT_SERVICE_DATA, 'insert');
                 $total += $RESPONSE_DATA['TOTAL'][$i];
             }
-        }
+        //}
     }
 
     $return_data['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
@@ -186,7 +186,7 @@ function generatePdf($html){
 
 
 function saveEnrollmentBillingData($RESPONSE_DATA){
-    error_reporting(0);
+    //error_reporting(0);
     global $db;
     $PK_ENROLLMENT_SERVICE = $RESPONSE_DATA['PK_ENROLLMENT_SERVICE'];
     $FLEXIBLE_PAYMENT_DATE = isset($RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE'])?$RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE']:[];

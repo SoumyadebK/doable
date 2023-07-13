@@ -1,4 +1,5 @@
 <?php
+error_reporting(0);
 require_once('../global/config.php');
 $title = "Upload CSV";
 require_once('upload_functions.php');
@@ -603,7 +604,7 @@ if(!empty($_POST))
                     break;
 
                 case "DOA_EVENT":
-                    $table_data = $db->Execute("SELECT * FROM DOA_EVENT WHERE HEADER = '$getData[4]' AND START_DATE = '$getData[5]' AND START_TIME = '$getData[6]'");
+                    $table_data = $db->Execute("SELECT * FROM DOA_EVENT WHERE PK_LOCATION = '$PK_LOCATION' AND HEADER = '$getData[4]' AND START_DATE = '$getData[5]' AND START_TIME = '$getData[6]'");
                     if ($table_data->RecordCount() == 0) {
                         $INSERT_DATA['HEADER'] = $getData[4];
                         if ($getData[9] == "G") {
@@ -613,6 +614,7 @@ if(!empty($_POST))
                             $INSERT_DATA['PK_EVENT_TYPE'] = 0;
                         }
                         $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
                         $INSERT_DATA['START_DATE'] = $getData[5];
                         $INSERT_DATA['START_TIME'] = $getData[6];
                         $endDateTime = strtotime($getData[5] . ' ' . $getData[6]) + $getData[8] * 60;
