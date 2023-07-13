@@ -186,7 +186,7 @@ function generatePdf($html){
 
 
 function saveEnrollmentBillingData($RESPONSE_DATA){
-    //error_reporting(0);
+    error_reporting(0);
     global $db;
     $PK_ENROLLMENT_SERVICE = $RESPONSE_DATA['PK_ENROLLMENT_SERVICE'];
     $FLEXIBLE_PAYMENT_DATE = isset($RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE'])?$RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE']:[];
