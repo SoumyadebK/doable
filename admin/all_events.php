@@ -25,7 +25,7 @@ if (isset($_GET['search_text'])) {
     $search = ' ';
 }
 
-$query = $db->Execute("SELECT count(DOA_EVENT.PK_EVENT) AS TOTAL_RECORDS FROM `DOA_EVENT` LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.PK_ACCOUNT_MASTER =".$_SESSION['PK_ACCOUNT_MASTER'].$search);
+$query = $db->Execute("SELECT count(DOA_EVENT.PK_EVENT) AS TOTAL_RECORDS FROM `DOA_EVENT` LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_EVENT.PK_ACCOUNT_MASTER =".$_SESSION['PK_ACCOUNT_MASTER'].$search);
 $number_of_result =  $query->fields['TOTAL_RECORDS'];
 $number_of_page = ceil ($number_of_result / $results_per_page);
 
@@ -157,6 +157,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <th>No</th>
                                             <th>Event Name</th>
                                             <th>Type</th>
+                                            <th>Location</th>
                                             <th>Start Date</th>
                                             <th>Start Time</th>
                                             <th>End Date</th>
@@ -168,12 +169,13 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <tbody>
                                     <?php
                                     $i=$page_first_result+1;
-                                    $row = $db->Execute("SELECT DOA_EVENT.*, DOA_EVENT_TYPE.EVENT_TYPE FROM `DOA_EVENT` LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.ACTIVE='$status' AND DOA_EVENT.PK_ACCOUNT_MASTER =".$_SESSION['PK_ACCOUNT_MASTER'].$search." ORDER BY DOA_EVENT.START_DATE DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
+                                    $row = $db->Execute("SELECT DOA_EVENT.*, DOA_EVENT_TYPE.EVENT_TYPE, DOA_LOCATION.LOCATION_NAME FROM `DOA_EVENT` LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE LEFT JOIN DOA_LOCATION ON DOA_EVENT.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE DOA_EVENT.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_EVENT.ACTIVE='$status' AND DOA_EVENT.PK_ACCOUNT_MASTER =".$_SESSION['PK_ACCOUNT_MASTER'].$search." ORDER BY DOA_EVENT.START_DATE DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=$i;?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=$row->fields['HEADER']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=$row->fields['EVENT_TYPE']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=$row->fields['LOCATION_NAME']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=date('m/d/Y',strtotime($row->fields['START_DATE']))?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=date('h:i A', strtotime($row->fields['START_TIME']))?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=($row->fields['END_DATE'] == '0000-00-00')?'':date('m/d/Y',strtotime($row->fields['END_DATE']))?></td>
