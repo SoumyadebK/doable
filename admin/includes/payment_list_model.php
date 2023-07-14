@@ -63,7 +63,11 @@ $page_first_result = ($page-1) * $results_per_page;
             $total_bill = $db->Execute("SELECT TOTAL_AMOUNT AS TOTAL_BILL FROM DOA_ENROLLMENT_BILLING WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
             $total_paid = $db->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
             $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-            $main_balance = $total_bill->fields['TOTAL_BILL']-$total_paid->fields['TOTAL_PAID'];
+            if ($total_paid->RecordCount()>0 && $total_bill->RecordCount()>0) {
+                $main_balance = $total_bill->fields['TOTAL_BILL']-$total_paid->fields['TOTAL_PAID'];
+            } else {
+                $main_balance = 0;
+            }
             ?>
                 <?php if ($main_balance!=0) { ?>
             <div class="row" onclick="$(this).next().slideToggle();" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
