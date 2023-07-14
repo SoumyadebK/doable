@@ -996,7 +996,7 @@ function getServiceProviderCount($RESPONSE_DATA){
 function selectDefaultLocation($RESPONSE_DATA){
     global $db;
     if (empty($RESPONSE_DATA['DEFAULT_LOCATION_ID'])) {
-        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        $row = $db->Execute("SELECT PK_LOCATION FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
         $LOCATION_ARRAY = [];
         while (!$row->EOF) {
             $LOCATION_ARRAY[] = $row->fields['PK_LOCATION'];
