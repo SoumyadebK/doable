@@ -31,16 +31,16 @@ $ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
 $APP_ID = $account_data->fields['APP_ID'];
 $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
-if(!empty($_POST['PK_PAYMENT_TYPE'])){
+if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
     $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
     unset($_POST['PK_ENROLLMENT_LEDGER']);
+    $AMOUNT = $_POST['AMOUNT'];
     if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
         if ($_POST['PK_PAYMENT_TYPE'] == 1) {
             if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
                 require_once("../global/stripe-php-master/init.php");
                 \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
                 $STRIPE_TOKEN = $_POST['token'];
-                $AMOUNT = $_POST['AMOUNT'];
                 try {
                     $charge = \Stripe\Charge::create([
                         'amount' => ($AMOUNT * 100),
@@ -58,7 +58,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 }
             }
         } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
-            $AMOUNT = $_POST['AMOUNT'];
             $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
             $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
 
@@ -100,8 +99,10 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         }
 
         $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
+        $BILLING_DATA = $db->Execute("SELECT PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_BILLING WHERE `PK_ENROLLMENT_MASTER`=".$_POST['PK_ENROLLMENT_MASTER']);
+        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = ($BILLING_DATA->RecordCount() > 0) ? $BILLING_DATA->fields['PK_ENROLLMENT_BILLING'] : 0;
         $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+        $PAYMENT_DATA['AMOUNT'] = $AMOUNT;
         if ($_POST['PK_PAYMENT_TYPE'] == 7) {
             $PAYMENT_DATA['REMAINING_AMOUNT'] = $_POST['REMAINING_AMOUNT'];
             $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER_REMAINING'];
@@ -1637,7 +1638,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
 
 
 
-                                                                    <!--<div class="row" id="remaining_amount_div" style="display: none;">
+                                                                    <div class="row" id="remaining_amount_div" style="display: none;">
                                                                         <div class="col-6">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Remaining Amount</label>
@@ -1653,10 +1654,10 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                     <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING_CUSTOMER" onchange="selectRemainingPaymentType(this)">
                                                                                         <option value="">Select</option>
                                                                                         <?php
-/*                                                                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
-                                                                                        while (!$row->EOF) { */?>
-                                                                                            <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/?>"><?php /*=$row->fields['PAYMENT_TYPE']*/?></option>
-                                                                                            <?php /*$row->MoveNext(); } */?>
+                                                                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
+                                                                                        while (!$row->EOF) { ?>
+                                                                                            <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
+                                                                                            <?php $row->MoveNext(); } ?>
                                                                                     </select>
                                                                                 </div>
                                                                             </div>
@@ -1691,22 +1692,22 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                     </div>
 
 
-                                                                    <?php /*if ($PAYMENT_GATEWAY == 'Stripe'){ */?>
+                                                                    <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
                                                                         <div class="row payment_type_div" id="credit_card_payment_customer" style="display: none;">
                                                                             <div class="col-12">
-                                                                                <div class="form-group" id="card_div">
+                                                                                <div class="form-group" id="customer_card_div">
 
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                    <?php /*} elseif ($PAYMENT_GATEWAY == 'Square'){*/?>
+                                                                    <?php } elseif ($PAYMENT_GATEWAY == 'Square'){?>
                                                                         <div class="payment_type_div" id="credit_card_payment_customer" style="display: none;">
                                                                             <div class="row">
                                                                                 <div class="col-12">
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Name (As it appears on your card)</label>
                                                                                         <div class="col-md-12">
-                                                                                            <input type="text" name="NAME" id="NAME" class="form-control" value="<?php /*=$NAME*/?>">
+                                                                                            <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$NAME?>">
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -1716,7 +1717,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Card Number</label>
                                                                                         <div class="col-md-12">
-                                                                                            <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?php /*=$CARD_NUMBER*/?>">
+                                                                                            <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?=$CARD_NUMBER?>">
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -1726,7 +1727,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Expiration Date</label>
                                                                                         <div class="col-md-12">
-                                                                                            <input type="text" name="EXPIRATION_DATE" id="EXPIRATION_DATE" class="form-control" value="<?php /*=$EXPIRATION_DATE*/?>" placeholder="MM/YYYY">
+                                                                                            <input type="text" name="EXPIRATION_DATE" id="EXPIRATION_DATE" class="form-control" value="<?=$EXPIRATION_DATE?>" placeholder="MM/YYYY">
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -1734,13 +1735,13 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Security Code</label>
                                                                                         <div class="col-md-12">
-                                                                                            <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?php /*=$SECURITY_CODE*/?>">
+                                                                                            <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?=$SECURITY_CODE?>">
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                    --><?php /*} */?>
+                                                                    <?php } ?>
 
 
                                                                     <div class="row payment_type_div" id="check_payment_customer" style="display: none;">
@@ -2771,7 +2772,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
             $('#card-element').remove();
             switch (paymentType) {
                 case 'Credit Card':
-                    $('#card_div').html(`<div id="card-element"></div>`);
+                    $('#customer_card_div').html(`<div id="card-element"></div>`);
                     stripePaymentFunction();
                     $('#credit_card_payment_customer').slideDown();
                     break;
