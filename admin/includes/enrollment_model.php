@@ -55,7 +55,7 @@ $NOTE = '';
                     <div class="tab-pane active" id="enrollment_tab" role="tabpanel">
                         <form id="enrollment_tab_form">
                             <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentData">
-                            <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
+                            <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['enrollment_id']))?'':$_GET['enrollment_id']?>">
                             <div class="p-20">
                                 <div class="row">
                                     <div class="col-6">
@@ -127,8 +127,8 @@ $NOTE = '';
 
                                     <?php
                                     $PK_SERVICE_CLASS = 0;
-                                    if(empty($_GET['id'])) {
-                                        $enrollment_service_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
+                                    if(!empty($_GET['enrollment_id'])) {
+                                        $enrollment_service_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$_GET[enrollment_id]'");
 
                                         while (!$enrollment_service_data->EOF) {
                                             $service_class = $db->Execute("SELECT PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = ".$enrollment_service_data->fields['PK_SERVICE_MASTER']);
@@ -322,7 +322,7 @@ $NOTE = '';
                             <div class="card-body">
                                 <form id="billing_form">
                                     <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
-                                    <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
+                                    <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['enrollment_id']))?'':$_GET['enrollment_id']?>">
                                     <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=$PK_ENROLLMENT_BILLING?>">
                                     <input type="hidden" name="PK_SERVICE_CLASS" class="PK_SERVICE_CLASS" value="<?=$PK_SERVICE_CLASS?>">
                                     <div class="p-20">
@@ -461,8 +461,8 @@ $NOTE = '';
                                                         </div>
                                                     </div>
                                                     <?php
-                                                    if(!empty($_GET['id'])) {
-                                                        $flexible_payment_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_FLEXIBLE_PAYMENT_DETAILS WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
+                                                    if(!empty($_GET['enrollment_id'])) {
+                                                        $flexible_payment_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_FLEXIBLE_PAYMENT_DETAILS WHERE PK_ENROLLMENT_MASTER = '$_GET[enrollment_id]'");
                                                         while (!$flexible_payment_data->EOF) { ?>
                                                             <div class="row">
                                                                 <div class="col-3">
@@ -568,7 +568,7 @@ $NOTE = '';
     });
 </script>
 <script>
-    let PK_ENROLLMENT_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
+    let PK_ENROLLMENT_MASTER = parseInt(<?=empty($_GET['enrollment_id'])?0:$_GET['enrollment_id']?>);
     var PK_SERVICE_CLASS = parseInt(<?=empty($PK_SERVICE_CLASS)?0:$PK_SERVICE_CLASS?>);
     if (PK_ENROLLMENT_MASTER > 0){
         selectThisService($('.PK_SERVICE_MASTER'));
