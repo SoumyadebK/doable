@@ -38,6 +38,14 @@ if ($FUNCTION_NAME == 'loginFunction'){
                 $_SESSION['ACCESS_TOKEN'] = $result->fields['ACCESS_TOKEN'];
                 $_SESSION['TICKET_SYSTEM_ACCESS'] = $result->fields['TICKET_SYSTEM_ACCESS'];
 
+                $row = $db->Execute("SELECT PK_LOCATION FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                $LOCATION_ARRAY = [];
+                while (!$row->EOF) {
+                    $LOCATION_ARRAY[] = $row->fields['PK_LOCATION'];
+                    $row->MoveNext();
+                }
+                $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
+
                 if ($_SESSION['PK_ROLES'] == 1) {
                     header("location: super_admin/all_accounts.php");
                 } elseif ($_SESSION['PK_ROLES'] == 2) {
