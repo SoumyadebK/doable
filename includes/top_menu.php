@@ -73,15 +73,16 @@
             <!-- ============================================================== -->
             <ul class="navbar-nav my-lg-0">
                 <?php if ($_SESSION["PK_ROLES"] == 2) { ?>
-                    <li class="nav-item m-r-40 m-t-15">
-                        <select class="form-control" onchange="selectDefaultLocation(this);">
-                            <option value="0">Select Location</option>
-                            <?php
-                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                            while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=(!empty($_SESSION['DEFAULT_LOCATION_ID']) && $_SESSION['DEFAULT_LOCATION_ID'] == $row->fields['PK_LOCATION'])?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
+                    <li class="nav-item m-t-15" style="margin-right: 60px;">
+                        <div class="multiselect-box" style="width: 175%;">
+                            <select class="multi_select_location" onchange="selectDefaultLocation(this);" multiple>
+                                <?php
+                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                while (!$row->EOF) { ?>
+                                    <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=(!empty($_SESSION['DEFAULT_LOCATION_ID']) && in_array($row->fields['PK_LOCATION'], explode(',', $_SESSION['DEFAULT_LOCATION_ID'])))?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
                                 <?php $row->MoveNext(); } ?>
-                        </select>
+                            </select>
+                        </div>
                     </li>
                 <?php } ?>
 

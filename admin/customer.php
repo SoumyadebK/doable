@@ -455,7 +455,6 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
-<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
@@ -1887,7 +1886,7 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
     <?php require_once('../admin/includes/enrollment_model.php');?>
     <?php require_once('../admin/includes/appointment_model.php');?>
     <?php require_once('../admin/includes/payment_list_model.php');?>
-    <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
+
 
     <script>
         let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);

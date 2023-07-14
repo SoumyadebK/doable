@@ -15,6 +15,8 @@
 
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
 
+    <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
+
     <style>
         .multiselect-box {
             margin-bottom: 15px;

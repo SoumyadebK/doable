@@ -994,7 +994,18 @@ function getServiceProviderCount($RESPONSE_DATA){
 }
 
 function selectDefaultLocation($RESPONSE_DATA){
-    $_SESSION['DEFAULT_LOCATION_ID'] = $RESPONSE_DATA['DEFAULT_LOCATION_ID'];
+    global $db;
+    if (empty($RESPONSE_DATA['DEFAULT_LOCATION_ID'])) {
+        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        $LOCATION_ARRAY = [];
+        while (!$row->EOF) {
+            $LOCATION_ARRAY[] = $row->fields['PK_LOCATION'];
+            $row->MoveNext();
+        }
+        $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
+    } else {
+        $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $RESPONSE_DATA['DEFAULT_LOCATION_ID']);
+    }
 }
 
 function createUpdateHistory($class, $update_table_primary_key, $table_name, $primary_key_name, $primary_key, $data, $type) {
