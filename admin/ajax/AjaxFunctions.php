@@ -299,6 +299,13 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                         $PK_ENROLLMENT_LEDGER = $db->insert_ID();
                     }
                 }
+                if ($BALANCE < $RESPONSE_DATA['TOTAL_AMOUNT']) {
+                    $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
+                    $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
+                    $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
+                    db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+                    $PK_ENROLLMENT_LEDGER = $db->insert_ID();
+                }
             }
         }
     }else{

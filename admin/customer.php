@@ -1978,12 +1978,12 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
             }
         }
 
-        $(document).keydown(function(e) {
+        /*$(document).keydown(function(e) {
             // ESCAPE key pressed
             if (e.keyCode == 27) {
                 enrollment_model.style.display = "none";
             }
-        });
+        });*/
     </script>
 
         <script>
@@ -2042,12 +2042,12 @@ $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_
                 }
             }
 
-            $(document).keydown(function(e) {
+            /*$(document).keydown(function(e) {
                 // ESCAPE key pressed
                 if (e.keyCode == 27) {
                     payment_list_model.style.display = "none";
                 }
-            });
+            });*/
         </script>
 
     <script>
