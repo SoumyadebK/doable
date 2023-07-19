@@ -70,9 +70,8 @@ if(empty($_GET['id'])){
             </div>
 
             <div class="row">
-                <div class="col-4">
+                <div class="col-3">
                     <div class="form-group">
-                        <label class="form-label">Service Provider</label>
                         <select class="form-control" name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID">
                             <option value="">Select <?=$service_provider_title?></option>
                             <?php
@@ -84,17 +83,18 @@ if(empty($_GET['id'])){
                         </select>
                     </div>
                 </div>
-                <div class="col-4">
+                <div class="col-3">
                     <div class="form-group">
-                        <label class="form-label">From Date</label>
-                        <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal">
+                        <input type="text" id="START_DATE" name="START_DATE" placeholder="From Date" class="form-control datepicker-normal">
                     </div>
                 </div>
-                <div class="col-4">
+                <div class="col-3">
                     <div class="form-group">
-                        <label class="form-label">To Date</label>
-                        <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal">
+                        <input type="text" id="END_DATE" name="END_DATE" placeholder="To Date" class="form-control datepicker-normal">
                     </div>
+                </div>
+                <div class="col-2">
+                <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
                 </div>
             </div>
 

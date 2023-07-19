@@ -1142,20 +1142,20 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                                 </div>
                                                                 <?php
                                                                 if(!empty($_GET['id'])) {
-                                                                $flexible_payment_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_FLEXIBLE_PAYMENT_DETAILS WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
+                                                                $flexible_payment_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
                                                                 while (!$flexible_payment_data->EOF) { ?>
                                                                     <div class="row">
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" value="<?=($flexible_payment_data->fields['PAYMENT_DATE'])?date('m/d/Y', strtotime($flexible_payment_data->fields['PAYMENT_DATE'])):''?>">
+                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" value="<?=($flexible_payment_data->fields['DUE_DATE'])?date('m/d/Y', strtotime($flexible_payment_data->fields['DUE_DATE'])):''?>">
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" value="<?=$flexible_payment_data->fields['AMOUNT']?>">
+                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" value="<?=$flexible_payment_data->fields['BALANCE']?>">
                                                                                 </div>
                                                                             </div>
                                                                         </div>
