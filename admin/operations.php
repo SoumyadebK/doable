@@ -103,7 +103,7 @@ if(empty($_GET['id'])){
                     <div class="card">
                         <div class="card-body">
                             <div style="margin-left: -12px; margin-bottom: 10px"><button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="markAllComplete()"><i class="ti-check-box"></i> Completed</button></div>
-                            <tr id="list"  class="card-body">
+                            <div id="list"  class="card-body">
                                 <table id="" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
