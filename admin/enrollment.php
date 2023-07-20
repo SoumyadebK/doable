@@ -1330,7 +1330,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     var span = document.getElementsByClassName("close")[0];
 
     // When the user clicks the button, open the modal
-    function openModel() {
+    function qopenModel() {
         $('#PK_PAYMENT_TYPE').val('');
         $('.payment_type_div').slideUp();
         $('#wallet_balance_div').slideUp();

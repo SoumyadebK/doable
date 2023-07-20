@@ -58,7 +58,8 @@ $page_first_result = ($page-1) * $results_per_page;
             <table id="myTable" class="table table-striped border">
                 <thead>
                 <tr>
-                    <th><input type="checkbox" onClick="toggle(this)" /></th>
+                    <!--<th><input type="checkbox" onClick="toggle(this)" /></th>-->
+                    <th></th>
                     <th>Enrollment ID</th>
                     <th>Total Billed</th>
                     <th>Total Paid</th>
@@ -170,14 +171,13 @@ $page_first_result = ($page-1) * $results_per_page;
 
     function payNow() {
         let MAIN_BALANCE = [];
-        $(".PK_ENROLLMENT_MASTER:checked").each(function() {
-            PK_ENROLLMENT_MASTER.push($(this).val());
-            MAIN_BALANCE.push($(this).data('balance'));
-        });
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: "GET",
+            data: {PK_ENROLLMENT_MASTER:PK_ENROLLMENT_MASTER},
+            success: function (result) {
 
-        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
-        $('#AMOUNT_TO_PAY').val(MAIN_BALANCE);
-        $('#payment_confirmation_form_div').slideDown();
-        openModel();
+            }
+        });
     }
 </script>
