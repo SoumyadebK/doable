@@ -51,92 +51,53 @@ $page_first_result = ($page-1) * $results_per_page;
     <!-- Modal content -->
     <div class="modal-content" style="width: 100%;">
         <span class="close close_payment_list_model" style="margin-left: 96%;">&times;</span>
-
-        <?php
-        $i=$page_first_result+1;
-        $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$master_id'".$search."ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
-        while (!$row->EOF) {
-            $used_session_count = $db->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT, PK_SERVICE_MASTER FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
-            $PK_SERVICE_MASTER = ($used_session_count->RecordCount() > 0) ? $used_session_count->fields['PK_SERVICE_MASTER'] : 0;
-            $total_session = $db->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION_COUNT FROM `DOA_ENROLLMENT_SERVICE` WHERE  `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER);
-            $total_session_count = ($total_session->RecordCount() > 0) ? $total_session->fields['TOTAL_SESSION_COUNT'] : 0;
-            $total_bill = $db->Execute("SELECT TOTAL_AMOUNT AS TOTAL_BILL FROM DOA_ENROLLMENT_BILLING WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-            $total_paid = $db->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-            $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-            if ($total_paid->RecordCount()>0 && $total_bill->RecordCount()>0) {
-                $main_balance = $total_bill->fields['TOTAL_BILL']-$total_paid->fields['TOTAL_PAID'];
-            } else {
-                $main_balance = 0;
-            }
-            ?>
-                <?php if ($main_balance!=0) { ?>
-            <div class="row" onclick="$(this).next().slideToggle();" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
-                <th><input type="checkbox" onClick="toggle(this)" /></th>
-                <div class="col-2"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
-                <div class="col-2">Total Billed : <?=$total_bill->fields['TOTAL_BILL'];?></div>
-                <div class="col-2">Total Paid : <?=$total_paid->fields['TOTAL_PAID'];?></div>
-                <div class="col-2">Balance : <?=$total_bill->fields['TOTAL_BILL']-$total_paid->fields['TOTAL_PAID'];?></div>
-                <div class="col-2">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count;?></div>
-            </div>
-                    <?php } ?>
-            <table id="myTable" class="table table-striped border" style="display: ">
+        <div class="row" style="padding-bottom: 10px">
+            <div class="col-md-2"><input type="text" id="BALANCE" class="form-control"></div>
+            <a href="javascript:;" class="col-md-1 btn btn-info waves-effect waves-light m-r-10 text-white" onclick="payNow();">Pay Now</a>
+        </div>
+            <table id="myTable" class="table table-striped border">
                 <thead>
                 <tr>
-                    <th>Due Date</th>
-                    <th>Transaction Type</th>
-                    <th>Billed Amount</th>
-                    <th>Paid Amount</th>
-                    <th>Payment Type</th>
-                    <th>Description</th>
-                    <th>Paid</th>
+                    <th><input type="checkbox" onClick="toggle(this)" /></th>
+                    <th>Enrollment ID</th>
+                    <th>Total Billed</th>
+                    <th>Total Paid</th>
                     <th>Balance</th>
-                    <th>Actions</th>
                 </tr>
                 </thead>
 
                 <tbody>
                 <?php
-                $billed_amount = 0;
-                $paid_amount = 0;
-                $balance = 0;
-                $billing_details = $db->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.IS_PAID=0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
-                while (!$billing_details->EOF) { $billed_amount = $billing_details->fields['BILLED_AMOUNT']; $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance); ?>
+                $i=$page_first_result+1;
+                $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$master_id'".$search."ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
+                while (!$row->EOF) {
+                $used_session_count = $db->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT, PK_SERVICE_MASTER FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                $PK_SERVICE_MASTER = ($used_session_count->RecordCount() > 0) ? $used_session_count->fields['PK_SERVICE_MASTER'] : 0;
+                $total_session = $db->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION_COUNT FROM `DOA_ENROLLMENT_SERVICE` WHERE  `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER);
+                $total_session_count = ($total_session->RecordCount() > 0) ? $total_session->fields['TOTAL_SESSION_COUNT'] : 0;
+                $total_bill = $db->Execute("SELECT TOTAL_AMOUNT AS TOTAL_BILL FROM DOA_ENROLLMENT_BILLING WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
+                $total_paid = $db->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
+                $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
+                if ($total_paid->RecordCount()>0 && $total_bill->RecordCount()>0) {
+                    $main_balance = $total_bill->fields['TOTAL_BILL']-$total_paid->fields['TOTAL_PAID'];
+                } else {
+                    $main_balance = 0;
+                }
+                ?>
+                <?php if ($main_balance!=0) { ?>
                     <tr>
-                        <td><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
-                        <td><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
-                        <td><?=$billing_details->fields['BILLED_AMOUNT']?></td>
-                        <td></td>
-                        <td><?=$billing_details->fields['PAYMENT_TYPE']?></td>
-                        <td></td>
-                        <td><?=(($billing_details->fields['TRANSACTION_TYPE']=='Billing')?(($billing_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
-                        <td><?=number_format((float)$balance, 2, '.', '')?></td>
-                        <td>
-                            <?php if($billing_details->fields['IS_PAID']==0 && $billing_details->fields['STATUS']=='A') { ?>
-                                <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</a>
-                            <?php } ?>
-                        </td>
+                        <td <label><input type="checkbox" name="PK_ENROLLMENT_MASTER[]" class="PK_ENROLLMENT_MASTER" onclick="showBalance(this)" data-balance="<?=$main_balance?>" value="<?=$row->fields['PK_ENROLLMENT_MASTER']?>"></label></td>
+                        <td><?=$row->fields['ENROLLMENT_ID']?></td>
+                        <td><?=$total_bill->fields['TOTAL_BILL'];?></td>
+                        <td><?=$total_paid->fields['TOTAL_PAID'];?></td>
+                        <td><?=$main_balance?></td>
                     </tr>
-                    <?php
-                    $payment_details = $db->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
-                    if ($payment_details->RecordCount() > 0){ $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']); ?>
-                        <tr>
-                            <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
-                            <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
-                            <td></td>
-                            <td><?=$payment_details->fields['PAID_AMOUNT']?></td>
-                            <td><?=$payment_details->fields['PAYMENT_TYPE']?></td>
-                            <td></td>
-                            <td><?=(($payment_details->fields['TRANSACTION_TYPE']=='Billing')?(($payment_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
-                            <td><?=number_format((float)$balance, 2, '.', '')?></td>
-                            <td>
-                            </td>
-                        </tr>
-                    <? } ?>
-                    <?php $billing_details->MoveNext(); } ?>
+                <?php } ?>
                 </tbody>
+                <?php $row->MoveNext();
+                $i++; } ?>
             </table>
-            <?php $row->MoveNext();
-            $i++; } ?>
+
 
         <div class="center">
             <div class="pagination outer">
@@ -161,14 +122,13 @@ $page_first_result = ($page-1) * $results_per_page;
                 </ul>
             </div>
         </div>
-
-
-
     </div>
 </div>
 </html>
 
 <script>
+
+
     function showBillingList(page) {
         let PK_USER_MASTER=$('.PK_USER_MASTER').val();
         $.ajax({
@@ -182,5 +142,42 @@ $page_first_result = ($page-1) * $results_per_page;
             }
         });
         window.scrollTo(0,0);
+    }
+
+    function toggle(source) {
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i] != source)
+                checkboxes[i].checked = source.checked;
+        }
+    }
+
+    function showBalance(param) {
+        let PK_ENROLLMENT_MASTER = [];
+        let MAIN_BALANCE = [];
+
+        $(".PK_ENROLLMENT_MASTER:checked").each(function() {
+            PK_ENROLLMENT_MASTER.push($(this).val());
+            MAIN_BALANCE.push($(this).data('balance'));
+        });
+
+        let TOTAL = 0;
+        for (let i = 0; i < MAIN_BALANCE.length; i++) {
+            TOTAL += MAIN_BALANCE[i]
+        }
+        $('#BALANCE').val(parseFloat(TOTAL).toFixed(2));
+    }
+
+    function payNow() {
+        let MAIN_BALANCE = [];
+        $(".PK_ENROLLMENT_MASTER:checked").each(function() {
+            PK_ENROLLMENT_MASTER.push($(this).val());
+            MAIN_BALANCE.push($(this).data('balance'));
+        });
+
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('#AMOUNT_TO_PAY').val(MAIN_BALANCE);
+        $('#payment_confirmation_form_div').slideDown();
+        openModel();
     }
 </script>

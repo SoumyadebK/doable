@@ -536,7 +536,7 @@ $NOTE = '';
     var modal = document.getElementById("myModal");
 
     // Get the <span> element that closes the modal
-    var span = document.getElementsByClassName("close")[0];
+    var modal_span = document.getElementsByClassName("close")[0];
 
     // When the user clicks the button, open the modal
     function openModel() {
@@ -549,7 +549,7 @@ $NOTE = '';
     }
 
     // When the user clicks on <span> (x), close the modal
-    span.onclick = function() {
+    modal_span.onclick = function() {
         modal.style.display = "none";
     }
 
