@@ -36,6 +36,15 @@ $NOTE = '';
 
 <!DOCTYPE html>
 <html lang="en">
+<style>
+    #enrollmentModel {
+        z-index: 1;
+    }
+
+    #myModal {
+        z-index: 2; // This will come above popup1
+    }
+</style>
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 <div id="enrollmentModel" class="modal">
     <!-- Modal content -->
