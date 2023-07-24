@@ -4,10 +4,10 @@ require_once('../global/common_functions.php');
 
 $db1 = new queryFactory();
 if($_SERVER['HTTP_HOST'] == 'localhost' ) {
-    $conn1 = $db1->connect('localhost','root','','amwh');
+    $conn1 = $db1->connect('localhost','root','','amto');
     $http_path = 'http://localhost/doable/';
 } else {
-    $conn1 = $db1->connect('localhost','root','b54eawxj5h8ev','amwh');
+    $conn1 = $db1->connect('localhost','root','b54eawxj5h8ev','amto');
     $http_path = 'http://allonehub.com/';
 }
 if ($db1->error_number){
@@ -59,6 +59,16 @@ function getServiceMaster($service_id) {
     $service_name_taker = $db1->Execute("SELECT service_name FROM service_codes WHERE service_id = '$service_id'");
     if ($service_name_taker->RecordCount() > 0) {
         return $service_name_taker->fields['service_name'];
+    } else {
+        return 0;
+    }
+}
+
+function getServiceCode($service_id) {
+    global $db1;
+    $service_name_taker = $db1->Execute("SELECT service_id FROM service_codes WHERE service_id = '$service_id'");
+    if ($service_name_taker->RecordCount() > 0) {
+        return $service_name_taker->fields['service_id'];
     } else {
         return 0;
     }

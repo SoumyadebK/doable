@@ -90,8 +90,8 @@ if(!empty($_POST))
                         $doableRoleId = $db->Execute("SELECT PK_ROLES FROM DOA_ROLES WHERE ROLES='$getRole'");
                         $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                         $USER_DATA['PK_LOCATION'] = $PK_LOCATION; // Need to check for further upload
-                        $USER_DATA['FIRST_NAME'] = $getData[3];
-                        $USER_DATA['LAST_NAME'] = $getData[4];
+                        $USER_DATA['FIRST_NAME'] = trim($getData[3]);
+                        $USER_DATA['LAST_NAME'] = trim($getData[4]);
                         $USER_DATA['USER_API_KEY'] = $getData[2];
                         $USER_DATA['USER_ID'] = $getData[19];
                         $USER_DATA['EMAIL_ID'] = $getData[14];
@@ -141,8 +141,8 @@ if(!empty($_POST))
                     if ($table_data->RecordCount() == 0) {
                         $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                         $USER_DATA['USER_ID'] = $getData[1];
-                        $USER_DATA['FIRST_NAME'] = $getData[2];
-                        $USER_DATA['LAST_NAME'] = $getData[3];
+                        $USER_DATA['FIRST_NAME'] = trim($getData[2]);
+                        $USER_DATA['LAST_NAME'] = trim($getData[3]);
                         $USER_DATA['USER_API_KEY'] = $getData[0];
                         $USER_DATA['EMAIL_ID'] = $getData[25];
                         //$USER_DATA['HOME_PHONE'] = $getData[18];
@@ -291,47 +291,62 @@ if(!empty($_POST))
                 case 'DOA_SERVICE_MASTER':
                     $table_data = $db->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
                     if ($table_data->RecordCount() == 0) {
-                        $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $INSERT_DATA['SERVICE_NAME'] = $getData[1];
-                        $INSERT_DATA['PK_SERVICE_CLASS'] = 2;
-                        $INSERT_DATA['IS_SCHEDULE'] = 1;
-                        $INSERT_DATA['DESCRIPTION'] = $getData[1];
-                        $INSERT_DATA['ACTIVE'] = 1;
-                        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-                        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                        db_perform('DOA_SERVICE_MASTER', $INSERT_DATA, 'insert');
+                        $SERVICE['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $SERVICE['SERVICE_NAME'] = $getData[1];
+                        $SERVICE['PK_SERVICE_CLASS'] = 2;
+                        $SERVICE['IS_SCHEDULE'] = 1;
+                        $SERVICE['DESCRIPTION'] = $getData[1];
+                        $SERVICE['ACTIVE'] = 1;
+                        $SERVICE['CREATED_BY'] = $_SESSION['PK_USER'];
+                        $SERVICE['CREATED_ON'] = date("Y-m-d H:i");
+                        db_perform('DOA_SERVICE_MASTER', $SERVICE, 'insert');
+                        $PK_SERVICE_MASTER = $db->insert_ID();
+
+                        $SERVICE_CODE['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                        $SERVICE_CODE['SERVICE_CODE'] = $getData[0];
+                        $SERVICE_CODE['PK_FREQUENCY'] = 0;
+                        $SERVICE_CODE['DESCRIPTION'] = $getData[1];
+                        $SERVICE_CODE['DURATION'] = 0;
+                        $serviceName = $getData[1];
+                        if (strpos($serviceName, "Group")) {
+                            $SERVICE_CODE['IS_GROUP'] = 1;
+                        } else {
+                            $SERVICE_CODE['IS_GROUP'] = 0;
+                        }
+                        $SERVICE_CODE['CAPACITY'] = 0;
+                        if ($getData[3] == "Y") {
+                            $SERVICE_CODE['IS_CHARGEABLE'] = 1;
+                        } elseif ($getData[3] == "N") {
+                            $SERVICE_CODE['IS_CHARGEABLE'] = 0;
+                        }
+                        $SERVICE_CODE['ACTIVE'] = 1;
+                        db_perform('DOA_SERVICE_CODE', $SERVICE_CODE, 'insert');
                     }
                     break;
 
-                case 'DOA_SERVICE_CODE':
-                    $table_data = $db->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE SERVICE_CODE='$getData[1]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
+                case 'DOA_SCHEDULING_CODE':
+                    $table_data = $db->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$getData[0]' AND PK_ACCOUNT_MASTER='$_POST[PK_ACCOUNT_MASTER]'");
                     if ($table_data->RecordCount() == 0) {
-                        $serviceId = $getData[3];
-                        [$getService, $isChargable] = getService($serviceId);
-                        $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$getService'");
-                        $INSERT_DATA['PK_SERVICE_MASTER'] = $doableServiceId->fields['PK_SERVICE_MASTER'];
-                        $INSERT_DATA['SERVICE_CODE'] = $getData[1];
-                        $INSERT_DATA['PK_FREQUENCY'] = 0;
-                        $INSERT_DATA['DESCRIPTION'] = $getData[1];
-                        $INSERT_DATA['DURATION'] = $getData[4];
-                        $serviceName = $getData[1];
-                        if (strpos($serviceName, "Group")) {
-                            $INSERT_DATA['IS_GROUP'] = 1;
-                        } else {
-                            $INSERT_DATA['IS_GROUP'] = 0;
-                        }
-                        $INSERT_DATA['CAPACITY'] = 0;
-                        if ($isChargable == "Y") {
-                            $INSERT_DATA['IS_CHARGEABLE'] = 1;
-                        } elseif ($isChargable == "N") {
-                            $INSERT_DATA['IS_CHARGEABLE'] = 0;
-                        }
+                        $SCHEDULING_CODE['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $SCHEDULING_CODE['SCHEDULING_CODE'] = $getData[0];
+                        $SCHEDULING_CODE['SCHEDULING_NAME'] = $getData[1];
+                        $SCHEDULING_CODE['PK_SCHEDULING_EVENT'] = 1;
+                        $SCHEDULING_CODE['PK_EVENT_ACTION'] = 2;
                         if ($getData[13] == "Active") {
-                            $INSERT_DATA['ACTIVE'] = 1;
+                            $SCHEDULING_CODE['ACTIVE'] = 1;
                         } elseif ($getData[13] == "Not Active") {
-                            $INSERT_DATA['ACTIVE'] = 0;
+                            $SCHEDULING_CODE['ACTIVE'] = 0;
                         }
-                        db_perform('DOA_SERVICE_CODE', $INSERT_DATA, 'insert');
+                        $SCHEDULING_CODE['CREATED_BY'] = $_SESSION['PK_USER'];
+                        $SCHEDULING_CODE['CREATED_ON'] = date("Y-m-d H:i");
+                        db_perform('DOA_SCHEDULING_CODE', $SCHEDULING_CODE, 'insert');
+                        $PK_SCHEDULING_CODE = $db->insert_ID();
+
+                        $serviceCodeData = $db->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE FROM DOA_SERVICE_CODE WHERE SERVICE_CODE = '$getData[3]'");
+                        $SERVICE_SCHEDULING_CODE['PK_SERVICE_MASTER'] = $serviceCodeData->fields['PK_SERVICE_MASTER'];
+                        $SERVICE_SCHEDULING_CODE['PK_SERVICE_CODE'] = $serviceCodeData->fields['PK_SERVICE_CODE'];
+                        $SERVICE_SCHEDULING_CODE['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
+                        db_perform('DOA_SERVICE_SCHEDULING_CODE', $SERVICE_SCHEDULING_CODE, 'insert');
                     }
                     break;
 
@@ -504,17 +519,17 @@ if(!empty($_POST))
                     $PK_ENROLLMENT_MASTER = $doableEnrollmentId->fields['PK_ENROLLMENT_MASTER'];
                     $ENROLLMENT_NAME = $doableEnrollmentId->fields['ENROLLMENT_NAME'];
 
-                    $getServiceMaster = getServiceMaster($getData[2]);
-                    $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER, DESCRIPTION FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$getServiceMaster'");
+                    $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$getData[2]'");
                     $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                    $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
 
                     preg_match('#\((.*?)\)#', $ENROLLMENT_NAME, $match);
                     $serviceCode = $match[1];
-                    $getServiceCodeId = $db->Execute("SELECT PK_SERVICE_CODE FROM DOA_SERVICE_CODE WHERE SERVICE_CODE LIKE '$serviceCode'");
+                    $getServiceCodeId = $db->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_NAME LIKE '%".$serviceCode."%'");
                     if ($getServiceCodeId->RecordCount() > 0) {
-                        $PK_SERVICE_CODE = $getServiceCodeId->fields['PK_SERVICE_CODE'];
+                        $PK_SCHEDULING_CODE = $getServiceCodeId->fields['PK_SCHEDULING_CODE'];
                     } else {
-                        $PK_SERVICE_CODE = 0;
+                        $PK_SCHEDULING_CODE = 0;
                     }
 
                     $table_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE  PK_ENROLLMENT_MASTER='$PK_ENROLLMENT_MASTER' AND PK_SERVICE_MASTER='$PK_SERVICE_MASTER'");
@@ -522,6 +537,7 @@ if(!empty($_POST))
                         $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                         $SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
                         $SERVICE_DATA['PK_SERVICE_CODE'] =  $PK_SERVICE_CODE;
+                        $SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
                         $SERVICE_DATA['FREQUENCY'] =  0;
                         $SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
                         $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[3];
@@ -662,13 +678,16 @@ if(!empty($_POST))
                         $INSERT_DATA['SERVICE_PROVIDER_ID'] = NULL;
                     }
 
-                    $getService = getServiceMaster($getData[9]);
-                    $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$getService'");
-                    $PK_SERVICE_MASTER = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_MASTER'] : 0;
+                    $doableServiceId = $db->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$getData[9]'");
+                    $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                    $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
 
-                    $getServiceCode = getBookingCode($getData[14]);
-                    $doableServiceCode = $db->Execute("SELECT PK_SERVICE_CODE FROM DOA_SERVICE_CODE WHERE SERVICE_CODE='$getServiceCode'");
-                    $PK_SERVICE_CODE = ($doableServiceCode->RecordCount() > 0) ? $doableServiceCode->fields['PK_SERVICE_CODE'] : 0;
+                    $getServiceCodeId = $db->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$getData[14]'");
+                    if ($getServiceCodeId->RecordCount() > 0) {
+                        $PK_SCHEDULING_CODE = $getServiceCodeId->fields['PK_SCHEDULING_CODE'];
+                    } else {
+                        $PK_SCHEDULING_CODE = 0;
+                    }
 
                     $enrollment_data = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ORDER BY PK_ENROLLMENT_MASTER ASC LIMIT 1");
                     $PK_ENROLLMENT_MASTER_CHECK = ($enrollment_data->RecordCount() > 0) ? $enrollment_data->fields['PK_ENROLLMENT_MASTER'] : 0;
@@ -738,6 +757,7 @@ if(!empty($_POST))
                     $INSERT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
                     $INSERT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
                     $INSERT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                    $INSERT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
                     $orgDate = $getData[5];
                     $newDate = date("Y-m-d", strtotime($orgDate));
                     $INSERT_DATA['DATE'] = $newDate;
@@ -850,6 +870,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                         <div class="form-group">
                             <label class="form-label">Select Location</label>
                             <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
+                                <option value="">Select Location</option>
                                 <?php
                                 $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1");
                                 while (!$row->EOF) { ?>
@@ -879,7 +900,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                                 <option value="DOA_USERS">DOA_USERS</option>
                                 <option value="DOA_CUSTOMER">DOA_CUSTOMER</option>
                                 <option value="DOA_SERVICE_MASTER">DOA_SERVICE_MASTER</option>
-                                <option value="DOA_SERVICE_CODE">DOA_SERVICE_CODE</option>
+                                <option value="DOA_SCHEDULING_CODE">DOA_SCHEDULING_CODE</option>
                                 <option value="DOA_ENROLLMENT_TYPE">DOA_ENROLLMENT_TYPE</option>
                                 <option value="DOA_ENROLLMENT_MASTER">DOA_ENROLLMENT_MASTER</option>
                                 <option value="DOA_ENROLLMENT_SERVICE">DOA_ENROLLMENT_SERVICE</option>
