@@ -471,7 +471,7 @@ if(!empty($_GET['id'])) {
                                                                 <div class="col-md-2">
                                                                     <label class="form-label">Roles<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12 multiselect-box">
-                                                                        <select class="multi_sumo_select" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
+                                                                        <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
                                                                             <?php
                                                                             $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' ".$user_role_condition." ORDER BY PK_ROLES");
                                                                             while (!$row->EOF) { ?>
@@ -598,7 +598,7 @@ if(!empty($_GET['id'])) {
                                                                 <div class="col-6">
                                                                     <label class="form-label">Location</label>
                                                                     <div class="col-md-12 multiselect-box">
-                                                                        <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
+                                                                        <select class="multi_sumo_select_location" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
                                                                             <?php
                                                                             $selected_location = [];
                                                                             if(!empty($_GET['id'])) {
@@ -919,7 +919,7 @@ if(!empty($_GET['id'])) {
                                                                     <label class="form-label">Services</label>
                                                                 </div>
                                                                 <div class="col-6">
-                                                                    <select class="multi_sumo_select" name="PK_SERVICE_MASTER[]" multiple>
+                                                                    <select class="multi_sumo_select_services" name="PK_SERVICE_MASTER[]" multiple>
                                                                         <?php
                                                                         $row = $db->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
                                                                         while (!$row->EOF) { ?>
@@ -1224,7 +1224,9 @@ if(!empty($_GET['id'])) {
             maxDate: 0
         });
 
-        $('.multi_sumo_select').SumoSelect({placeholder: 'Select Location', selectAll: true});
+        $('.multi_sumo_select_location').SumoSelect({placeholder: 'Select Location', selectAll: true});
+        $('.multi_sumo_select_roles').SumoSelect({placeholder: 'Select Roles', selectAll: true});
+        $('.multi_sumo_select_services').SumoSelect({placeholder: 'Select Services', selectAll: true});
 
         $(document).ready(function() {
             fetch_state(<?php  echo $PK_COUNTRY; ?>);

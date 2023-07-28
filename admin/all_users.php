@@ -65,6 +65,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <th>Name</th>
                                         <th>Username</th>
                                         <th>Roles</th>
+                                        <th>Location</th>
                                         <th>Email Id</th>
                                         <th>Actions</th>
                                     </tr>
@@ -72,7 +73,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                         $i=1;
-                                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USERS.USER_TITLE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7,8) AND DOA_USERS.ACTIVE = '$status' AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USERS.USER_TITLE, DOA_LOCATION.LOCATION_NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER INNER JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION=DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7,8) AND DOA_USERS.ACTIVE = '$status' AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                        echo ($row);
                                         while (!$row->EOF) {
                                             $selected_roles = [];
                                             if(!empty($row->fields['PK_USER'])) {
@@ -88,6 +90,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$row->fields['NAME']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$row->fields['USER_ID']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=implode(', ', $selected_roles)?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$row->fields['LOCATION_NAME']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>);"><?=$row->fields['EMAIL_ID']?></td>
                                             <td>
                                                 <a href="user.php?id=<?=$row->fields['PK_USER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
