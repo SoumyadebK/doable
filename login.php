@@ -8,7 +8,7 @@ if ($FUNCTION_NAME == 'loginFunction'){
     $USER_ID = trim($_POST['USER_ID']);
     $PASSWORD = trim($_POST['PASSWORD']);
 
-    $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USERS.USER_ID = '$USER_ID'");
+    $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.DB_NAME, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USERS.USER_ID = '$USER_ID'");
     if($result->RecordCount() > 0) {
         if (($result->fields['ACCOUNT_ACTIVE'] == 1 || $result->fields['ACCOUNT_ACTIVE'] == '' || $result->fields['ACCOUNT_ACTIVE'] == NULL) && $result->fields['ACTIVE'] == 1 && $result->fields['CREATE_LOGIN'] == 1) {
             if (password_verify($PASSWORD, $result->fields['PASSWORD'])) {
@@ -22,6 +22,7 @@ if ($FUNCTION_NAME == 'loginFunction'){
 
                 $_SESSION['PK_USER'] = $result->fields['PK_USER'];
                 $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
+                $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
 
                 if (in_array(1, $selected_roles)) {
                     $_SESSION['PK_ROLES'] = 1;

@@ -1,4 +1,4 @@
-<? require_once("../global/config.php"); 
+<? require_once("../global/config.php");
 $INTERNAL_ID = $_REQUEST['id'];
 $res = $db->Execute("select * from DOA_EMAIL_STARRED WHERE INTERNAL_ID = '$INTERNAL_ID' AND PK_USER = '$_SESSION[PK_USER]' ");
 if($res->RecordCount() == 0){
