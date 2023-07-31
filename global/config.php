@@ -12,17 +12,19 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
     $http_path = 'http://allonehub.com/';
 }
 
-$db_account = new queryFactory();
-if($_SERVER['HTTP_HOST'] == 'localhost' ) {
-    $conn_account = $db_account->connect('localhost','root','',$_SESSION['DB_NAME']);
-    $http_path = 'http://localhost/doable/';
-} else {
-    $conn_account = $db_account->connect('localhost','root','b54eawxj5h8ev','doable');
-    $http_path = 'http://allonehub.com/';
+if (!empty($_SESSION['DB_NAME'])) {
+    $db_account = new queryFactory();
+    if ($_SERVER['HTTP_HOST'] == 'localhost') {
+        $conn_account = $db_account->connect('localhost', 'root', '', $_SESSION['DB_NAME']);
+    } else {
+        $conn_account = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', 'doable');
+    }
+    if ($db_account->error_number)
+        die("Account Database Connection Error");
 }
 
-if ($db->error_number || $db_account->error_number){
-    die("Connection Error");
+if ($db->error_number){
+    die("Master Database Connection Error");
 }else{
     if (!empty($_SESSION['PK_ACCOUNT_MASTER'])){
         $account_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.SERVICE_PROVIDER_TITLE, DOA_ACCOUNT_MASTER.BUSINESS_NAME, DOA_ACCOUNT_MASTER.BUSINESS_LOGO, DOA_TIMEZONE.TIMEZONE, DOA_CURRENCY.CURRENCY_SYMBOL FROM DOA_TIMEZONE RIGHT JOIN DOA_ACCOUNT_MASTER ON DOA_TIMEZONE.PK_TIMEZONE = DOA_ACCOUNT_MASTER.PK_TIMEZONE LEFT JOIN DOA_CURRENCY ON DOA_CURRENCY.PK_CURRENCY = DOA_ACCOUNT_MASTER.PK_CURRENCY WHERE DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
