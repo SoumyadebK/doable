@@ -9,6 +9,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 $err_msg = '';
 $success_msg = '';
+$PK_USER = $_SESSION['PK_USER'];
 if(!empty($_POST)){
     if ($_POST['FORM_TYPE'] == 'change_password_form'){
         if ($_POST['NEW_PASSWORD'] == $_POST['CONFIRM_NEW_PASSWORD']){
@@ -26,7 +27,6 @@ if(!empty($_POST)){
            $err_msg = 'Password and Confirm Password Not Matched.';
         }
     }else {
-        $USER_DATA['PHONE'] = $_POST['PHONE'];
         if ($_FILES['USER_IMAGE']['name'] != '') {
             $USER_DATA = [];
             $extn = explode(".", $_FILES['USER_IMAGE']['name']);
@@ -41,44 +41,30 @@ if(!empty($_POST)){
                 $USER_DATA['USER_IMAGE'] = $image_path;
             }
         }
-        db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
+        $USER_DATA['PHONE'] = $_POST['PHONE'];
+        $USER_DATA['GENDER'] = $_POST['GENDER'];
+        $USER_DATA['DOB'] = date('Y-m-d', strtotime($_POST['DOB']));
+        $USER_DATA['ADDRESS'] = $_POST['ADDRESS'];
+        $USER_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
+        $USER_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
+        $USER_DATA['PK_STATES'] = $_POST['PK_STATES'];
+        $USER_DATA['CITY'] = $_POST['CITY'];
+        $USER_DATA['ZIP'] = $_POST['ZIP'];
+        $USER_DATA['NOTES'] = $_POST['NOTES'];
+        db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER = ".$PK_USER);
 
-        $USER_PROFILE_DATA['GENDER'] = $_POST['GENDER'];
-        $USER_PROFILE_DATA['DOB'] = date('Y-m-d', strtotime($_POST['DOB']));
-        $USER_PROFILE_DATA['ADDRESS'] = $_POST['ADDRESS'];
-        $USER_PROFILE_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
-        $USER_PROFILE_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
-        $USER_PROFILE_DATA['PK_STATES'] = $_POST['PK_STATES'];
-        $USER_PROFILE_DATA['CITY'] = $_POST['CITY'];
-        $USER_PROFILE_DATA['ZIP'] = $_POST['ZIP'];
-        /*$USER_PROFILE_DATA['FAX'] = $_POST['FAX'];
-        $USER_PROFILE_DATA['WEBSITE'] = $_POST['WEBSITE'];*/
-        $USER_PROFILE_DATA['NOTES'] = $_POST['NOTES'];
-
-        $res = $db->Execute("SELECT `PK_USER_PROFILE` FROM `DOA_USER_PROFILE` WHERE PK_USER = '$_SESSION[PK_USER]'");
-
-        if ($res->RecordCount() == 0) {
-            $USER_PROFILE_DATA['PK_USER'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['ACTIVE'] = 1;
-            $USER_PROFILE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
-        } else {
-            $USER_PROFILE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
-        }
+        $USER_DATA_ACCOUNT['PHONE'] = $_POST['PHONE'];
+        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = ".$PK_USER);
     }
 }
 
-$res = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
+$res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = ".$PK_USER);
 
 if($res->RecordCount() == 0){
     header("location:../login.php");
     exit;
 }
 
-$PK_USER = $_SESSION['PK_USER'];
 $selected_roles_row = $db->Execute("SELECT DOA_ROLES.ROLES FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER'");
 while (!$selected_roles_row->EOF) {
     $selected_roles[] = $selected_roles_row->fields['ROLES'];
@@ -99,8 +85,6 @@ $PK_STATES = $res->fields['PK_STATES'];
 $CITY = $res->fields['CITY'];
 $ZIP = $res->fields['ZIP'];
 $PHONE = $res->fields['PHONE'];
-/*$FAX = $res->fields['FAX'];
-$WEBSITE = $res->fields['WEBSITE'];*/
 $NOTES = $res->fields['NOTES'];
 $ACTIVE = $res->fields['ACTIVE'];
 ?>

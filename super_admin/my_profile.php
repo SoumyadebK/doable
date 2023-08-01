@@ -12,9 +12,9 @@ $success_msg = '';
 if(!empty($_POST)){
     if ($_POST['FORM_TYPE'] == 'change_password_form'){
         if ($_POST['NEW_PASSWORD'] == $_POST['CONFIRM_NEW_PASSWORD']){
-            $result = $db->Execute("SELECT PASSWORD FROM `DOA_USERS` WHERE PK_USER = '$_SESSION[PK_USER]'");
-            if($result->RecordCount() > 0) {
-                if (password_verify($_POST['OLD_PASSWORD'], $result->fields['PASSWORD'])) {
+            $user_default = $db->Execute("SELECT PASSWORD FROM `DOA_USERS` WHERE PK_USER = '$_SESSION[PK_USER]'");
+            if($user_default->RecordCount() > 0) {
+                if (password_verify($_POST['OLD_PASSWORD'], $user_default->fields['PASSWORD'])) {
                     $USER_DATA['PASSWORD'] = password_hash($_POST['NEW_PASSWORD'], PASSWORD_DEFAULT);
                     db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
                     $success_msg = "Password Changed Successfully.";
@@ -26,7 +26,6 @@ if(!empty($_POST)){
             $err_msg = 'Password and Confirm Password Not Matched.';
         }
     }else {
-        $USER_DATA['PHONE'] = $_POST['PHONE'];
         if ($_FILES['USER_IMAGE']['name'] != '') {
             $USER_DATA = [];
             $extn = explode(".", $_FILES['USER_IMAGE']['name']);
@@ -41,70 +40,50 @@ if(!empty($_POST)){
                 $USER_DATA['USER_IMAGE'] = $image_path;
             }
         }
+        $USER_DATA['PHONE'] = $_POST['PHONE'];
+        $USER_DATA['GENDER'] = $_POST['GENDER'];
+        $USER_DATA['DOB'] = $_POST['DOB'];
+        $USER_DATA['ADDRESS'] = $_POST['ADDRESS'];
+        $USER_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
+        $USER_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
+        $USER_DATA['PK_STATES'] = $_POST['PK_STATES'];
+        $USER_DATA['CITY'] = $_POST['CITY'];
+        $USER_DATA['ZIP'] = $_POST['ZIP'];
+        $USER_DATA['NOTES'] = $_POST['NOTES'];
         db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
-
-        $USER_PROFILE_DATA['GENDER'] = $_POST['GENDER'];
-        $USER_PROFILE_DATA['DOB'] = $_POST['DOB'];
-        $USER_PROFILE_DATA['ADDRESS'] = $_POST['ADDRESS'];
-        $USER_PROFILE_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
-        $USER_PROFILE_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
-        $USER_PROFILE_DATA['PK_STATES'] = $_POST['PK_STATES'];
-        $USER_PROFILE_DATA['CITY'] = $_POST['CITY'];
-        $USER_PROFILE_DATA['ZIP'] = $_POST['ZIP'];
-        $USER_PROFILE_DATA['FAX'] = $_POST['FAX'];
-        $USER_PROFILE_DATA['WEBSITE'] = $_POST['WEBSITE'];
-        $USER_PROFILE_DATA['NOTES'] = $_POST['NOTES'];
-
-        $res = $db->Execute("SELECT `PK_USER_PROFILE` FROM `DOA_USER_PROFILE` WHERE PK_USER = '$_SESSION[PK_USER]'");
-
-        if ($res->RecordCount() == 0) {
-            $USER_PROFILE_DATA['PK_USER'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['ACTIVE'] = 1;
-            $USER_PROFILE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
-        } else {
-            $USER_PROFILE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
-        }
-    }
-
 
         $TEXT_DATA['SID'] = $_POST['SID'];
         $TEXT_DATA['TOKEN'] = $_POST['TOKEN'];
         $TEXT_DATA['FROM_NO'] = $_POST['PHONE_NO'];
         db_perform('TEXT_SETTINGS', $TEXT_DATA, 'update', "PK_TEXT_SETTINGS = 1");
-
+    }
 
 
 }
 
-$res = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
+$user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = ".$_SESSION['PK_USER']);
 $text = $db->Execute( "SELECT * FROM `DOA_TEXT_SETTINGS`");
-if($res->RecordCount() == 0){
+if($user_data->RecordCount() == 0){
     header("location:../login.php");
     exit;
 }
 
-$USER_ID = $res->fields['USER_ID'];
-$FIRST_NAME = $res->fields['FIRST_NAME'];
-$LAST_NAME = $res->fields['LAST_NAME'];
-$EMAIL_ID = $res->fields['EMAIL_ID'];
-$USER_IMAGE = $res->fields['USER_IMAGE'];
-$GENDER = $res->fields['GENDER'];
-$DOB = $res->fields['DOB'];
-$ADDRESS = $res->fields['ADDRESS'];
-$ADDRESS_1 = $res->fields['ADDRESS_1'];
-$PK_COUNTRY = $res->fields['PK_COUNTRY'];
-$PK_STATES = $res->fields['PK_STATES'];
-$CITY = $res->fields['CITY'];
-$ZIP = $res->fields['ZIP'];
-$PHONE = $res->fields['PHONE'];
-$FAX = $res->fields['FAX'];
-$WEBSITE = $res->fields['WEBSITE'];
-$NOTES = $res->fields['NOTES'];
-$ACTIVE = $res->fields['ACTIVE'];
+$USER_ID = $user_data->fields['USER_ID'];
+$FIRST_NAME = $user_data->fields['FIRST_NAME'];
+$LAST_NAME = $user_data->fields['LAST_NAME'];
+$EMAIL_ID = $user_data->fields['EMAIL_ID'];
+$USER_IMAGE = $user_data->fields['USER_IMAGE'];
+$GENDER = $user_data->fields['GENDER'];
+$DOB = $user_data->fields['DOB'];
+$ADDRESS = $user_data->fields['ADDRESS'];
+$ADDRESS_1 = $user_data->fields['ADDRESS_1'];
+$PK_COUNTRY = $user_data->fields['PK_COUNTRY'];
+$PK_STATES = $user_data->fields['PK_STATES'];
+$CITY = $user_data->fields['CITY'];
+$ZIP = $user_data->fields['ZIP'];
+$PHONE = $user_data->fields['PHONE'];
+$NOTES = $user_data->fields['NOTES'];
+$ACTIVE = $user_data->fields['ACTIVE'];
 $SID = $text->fields['SID'];
 $TOKEN = $text->fields['TOKEN'];
 $PHONE_NO = $text->fields['FROM_NO'];
@@ -259,11 +238,10 @@ $PHONE_NO = $text->fields['FROM_NO'];
                                 <div class="row">
                                     <div class="col-6">
                                         <div class="form-group">
-                                            <label class="col-md-12" for="example-text">Country<span class="text-danger">*</span>
-                                            </label>
+                                            <label class="col-md-12" for="example-text">Country<span class="text-danger">*</span></label>
                                             <div class="col-md-12">
                                                 <div class="col-sm-12">
-                                                    <select class="form-select" required name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
+                                                    <select class="form-control" required name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
                                                         <option>Select Country</option>
                                                         <?php
                                                         $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
@@ -323,38 +301,17 @@ $PHONE_NO = $text->fields['FROM_NO'];
                                     </div>
                                     <div class="col-6">
                                         <div class="form-group">
-                                            <label class="col-md-12" for="example-text">Fax
-                                            </label>
-                                            <div class="col-md-12">
-                                                <input type="text" id="FAX" name="FAX" class="form-control" placeholder="Enter Fax" value="<?php echo $FAX;?>">
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            <label class="col-md-12" for="example-text">Website
-                                            </label>
-                                            <div class="col-md-12">
-                                                <input type="text" id="WEBSITE" name="WEBSITE" class="form-control" placeholder="Enter Website" value="<?php echo $WEBSITE?>">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-6">
-                                        <div class="form-group">
                                             <label class="col-md-12" for="example-text">Image Upload
                                             </label>
                                             <div class="col-md-12">
-                                                <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control" > </div>
+                                                <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control" onchange="previewFile(this)">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+
                                 <div class="form-group">
-                                    <?php if($USER_IMAGE!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery"><img src = "<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a></div><?php } ?>
+                                    <?php if($USER_IMAGE!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery"><img id="profile-img" alt="user-img" src = "<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a></div><?php } ?>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-md-12">Remarks</label>
@@ -397,7 +354,6 @@ $PHONE_NO = $text->fields['FROM_NO'];
         </div>
     </div>
     <style>
-
         .progress-bar {
             border-radius: 5px;
             height:18px !important;
@@ -415,7 +371,6 @@ $PHONE_NO = $text->fields['FROM_NO'];
         });
 
         function fetch_state(PK_COUNTRY){
-
             jQuery(document).ready(function($) {
                 var data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
 
@@ -431,6 +386,17 @@ $PHONE_NO = $text->fields['FROM_NO'];
                     }
                 }).responseText;
             });
+        }
+
+        function previewFile(input){
+            let file = $("#USER_IMAGE").get(0).files[0];
+            if(file){
+                let reader = new FileReader();
+                reader.onload = function(){
+                    $("#profile-img").attr("src", reader.result);
+                }
+                reader.readAsDataURL(file);
+            }
         }
     </script>
     <script>
