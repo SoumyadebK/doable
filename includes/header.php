@@ -106,10 +106,10 @@
     </style>
 
     <style>
-        .pagination {
+        .center .pagination {
             display: inline-block;
         }
-        .pagination a {
+        .center .pagination a {
             color: black;
             float: left;
             padding: 8px 16px;
@@ -119,15 +119,15 @@
             margin: 0 4px;
             border-radius: 5px;
         }
-        .pagination a.active {
+        .center .pagination a.active {
             background-color: #39B54A;
             color: white;
             border: 1px solid #39B54A;
         }
-        .pagination a.hidden {
+        .center .pagination a.hidden {
             display: none;
         }
-        .pagination a:hover:not(.active) {background-color: #ddd;}
+        .center .pagination a:hover:not(.active) {background-color: #ddd;}
 
         .outer{
             width:100%;

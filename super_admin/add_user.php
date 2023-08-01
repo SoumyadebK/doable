@@ -36,17 +36,15 @@ if(!empty($_POST)){
         }
     }
 
-    $USER_PROFILE_DATA['GENDER'] = $_POST['GENDER'];
-    $USER_PROFILE_DATA['DOB'] = date('Y-m-d', strtotime($_POST['DOB']));
-    $USER_PROFILE_DATA['ADDRESS'] = $_POST['ADDRESS'];
-    $USER_PROFILE_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
-    $USER_PROFILE_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
-    $USER_PROFILE_DATA['PK_STATES'] = $_POST['PK_STATES'];
-    $USER_PROFILE_DATA['CITY'] = $_POST['CITY'];
-    $USER_PROFILE_DATA['ZIP'] = $_POST['ZIP'];
-    /*$USER_PROFILE_DATA['FAX'] = $_POST['FAX'];
-    $USER_PROFILE_DATA['WEBSITE'] = $_POST['WEBSITE'];*/
-    $USER_PROFILE_DATA['NOTES'] = $_POST['NOTES'];
+    $USER_DATA['GENDER'] = $_POST['GENDER'];
+    $USER_DATA['DOB'] = date('Y-m-d', strtotime($_POST['DOB']));
+    $USER_DATA['ADDRESS'] = $_POST['ADDRESS'];
+    $USER_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
+    $USER_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
+    $USER_DATA['PK_STATES'] = $_POST['PK_STATES'];
+    $USER_DATA['CITY'] = $_POST['CITY'];
+    $USER_DATA['ZIP'] = $_POST['ZIP'];
+    $USER_DATA['NOTES'] = $_POST['NOTES'];
 
     if(empty($_GET['id'])){
         $USER_DATA['ACTIVE'] = 1;
@@ -54,11 +52,6 @@ if(!empty($_POST)){
         $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform('DOA_USERS', $USER_DATA, 'insert');
         $PK_USER = $db->insert_ID();
-        $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
-        $USER_PROFILE_DATA['ACTIVE'] = 1;
-        $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
         $USER_ROLE_DATA['PK_USER'] = $PK_USER;
         $USER_ROLE_DATA['PK_ROLES'] = 1;
         db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
@@ -67,10 +60,6 @@ if(!empty($_POST)){
         $USER_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_USERS', $USER_DATA, 'update'," PK_USER =  '$_GET[id]'");
-        $USER_PROFILE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        $USER_PROFILE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-        $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update'," PK_USER =  '$_GET[id]'");
     }
     header("location:all_users.php");
 }
@@ -91,19 +80,15 @@ if(empty($_GET['id'])){
     $CITY = '';
     $ZIP = '';
     $PHONE = '';
-    $FAX = '';
-    $WEBSITE = '';
     $NOTES = '';
     $ACTIVE = '';
 }
 else {
-    $res = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.PASSWORD, DOA_USERS.ACTIVE, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_GET[id]'");
-
+    $res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = ".$_GET['id']);
     if($res->RecordCount() == 0){
         header("location:all_users.php");
         exit;
     }
-
     $USER_ID = $res->fields['USER_ID'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
@@ -119,8 +104,6 @@ else {
     $CITY = $res->fields['CITY'];
     $ZIP = $res->fields['ZIP'];
     $PHONE = $res->fields['PHONE'];
-    $FAX = $res->fields['FAX'];
-    $WEBSITE = $res->fields['WEBSITE'];
     $NOTES = $res->fields['NOTES'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
@@ -421,40 +404,22 @@ else {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <!--<div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="col-md-12" for="example-text">Fax
-                                                                        </label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" id="FAX" name="FAX" class="form-control" placeholder="Enter Fax" value="<?php /*echo $FAX;*/?>">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>-->
                                                             </div>
 
 
                                                             <div class="row">
-                                                                <!--<div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="col-md-12" for="example-text">Website
-                                                                        </label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" id="WEBSITE" name="WEBSITE" class="form-control" placeholder="Enter Website" value="<?php /*echo $WEBSITE*/?>">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>-->
                                                                 <div class="col-6">
                                                                     <div class="form-group">
                                                                         <label class="col-md-12" for="example-text">Image Upload
                                                                         </label>
                                                                         <div class="col-md-12">
-                                                                            <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control">
+                                                                            <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control" onchange="previewFile(this)">
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div class="form-group">
-                                                                <?php if($USER_IMAGE!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery"><img src = "<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a></div><?php } ?>
+                                                                <?php if($USER_IMAGE!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery"><img id="profile-img" src = "<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a></div><?php } ?>
                                                             </div>
 
                                                         </div>
@@ -475,7 +440,6 @@ else {
     </div>
 
     <style>
-
         .progress-bar {
             border-radius: 5px;
             height:18px !important;
@@ -494,11 +458,8 @@ else {
         });
 
         function fetch_state(PK_COUNTRY){
-
             jQuery(document).ready(function($) {
-
                 var data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
-
                 var value = $.ajax({
                     url: "ajax/state.php",
                     type: "POST",
@@ -513,7 +474,16 @@ else {
             });
         }
 
-
+        function previewFile(input){
+            let file = $("#USER_IMAGE").get(0).files[0];
+            if(file){
+                let reader = new FileReader();
+                reader.onload = function(){
+                    $("#profile-img").attr("src", reader.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
     </script>
     <script>
         function isGood(password) {
