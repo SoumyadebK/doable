@@ -6,7 +6,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' ){
 }
 
 if (empty($_GET['id']))
-    $title = "Help Subcategory";
+    $title = "All Help Subcategory";
 else
     $title = "Help Subcategory";
 
@@ -30,6 +30,7 @@ if($_GET['act'] == 'del')	{
 <div id="main-wrapper">
 	<?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
+        <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid">
                  <div class="row page-titles">
                     <div class="col-md-7 align-self-center">
@@ -37,7 +38,11 @@ if($_GET['act'] == 'del')	{
                     </div>
                     <div class="col-md-5 align-self-right text-right">
                         <div class="d-flex justify-content-end align-items-right">
-                            <a href="help_sub_category.php" class="btn btn-info d-none d-lg-block m-l-15"><i class="fa fa-plus-circle"></i> Create New</a>
+                            <ol class="breadcrumb justify-content-end">
+                                <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
+                                <li class="breadcrumb-item active"><?=$title?></li>
+                            </ol>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='help_sub_category.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
                         </div>
                     </div>
                 </div>
@@ -73,7 +78,7 @@ if($_GET['act'] == 'del')	{
 									                      <td onclick="editpage(<?=$res_type->fields['PK_HELP_SUB_CATEGORY'];?>);"><?php echo $res_type->fields['HELP_SUB_CATEGORY']; ?></td>
 									                      <td onclick="editpage(<?=$res_type->fields['PK_HELP_SUB_CATEGORY'];?>);"><?php echo $res_type->fields['HELP_CATEGORY']; ?></td>
 									                      <td onclick="editpage(<?=$res_type->fields['PK_HELP_SUB_CATEGORY'];?>);"><?php echo $res_type->fields['DISPLAY_ORDER']; ?></td>
-			                                              <td style="text-align: center;padding: 10px 0px 0px 0px;font-size: 25px;">
+			                                              <td>
 			                                                 <a href="help_sub_category.php?id=<?=$res_type->fields['PK_HELP_SUB_CATEGORY']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 			                                                  <a href="" onclick='javascript:delete_row(<?=$res_type->fields['PK_HELP_SUB_CATEGORY']?>);return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>
 			                                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
