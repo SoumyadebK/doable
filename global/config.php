@@ -13,6 +13,7 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
 }
 
 if (!empty($_SESSION['DB_NAME'])) {
+    require_once('common_functions_account.php');
     $db_account = new queryFactory();
     if ($_SERVER['HTTP_HOST'] == 'localhost') {
         $conn_account = $db_account->connect('localhost', 'root', '', $_SESSION['DB_NAME']);
