@@ -22,7 +22,7 @@ if (!empty($_POST)) {
         $SCHEDULING_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $SCHEDULING_DATA['CREATED_ON'] = date("Y-m-d H:i");
         $SCHEDULING_DATA['ACTIVE'] = 1;
-        db_perform('DOA_SCHEDULING_CODE', $SCHEDULING_DATA, 'insert');
+        db_perform_account('DOA_SCHEDULING_CODE', $SCHEDULING_DATA, 'insert');
         header("location:all_scheduling_codes.php");
     } else {
         $SCHEDULING_DATA['SCHEDULING_CODE'] = $_POST['SCHEDULING_CODE'];
@@ -32,7 +32,7 @@ if (!empty($_POST)) {
         $SCHEDULING_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $SCHEDULING_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $SCHEDULING_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_SCHEDULING_CODE', $SCHEDULING_DATA, 'update', " PK_SCHEDULING_CODE = '$_GET[id]'");
+        db_perform_account('DOA_SCHEDULING_CODE', $SCHEDULING_DATA, 'update', " PK_SCHEDULING_CODE = '$_GET[id]'");
         header("location:all_scheduling_codes.php");
     }
 
@@ -45,7 +45,7 @@ if (empty($_GET['id'])) {
     $PK_EVENT_ACTION            = '';
     $ACTIVE             = '';
 } else {
-    $res = $db->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
         header("location:all_scheduling_codes.php");
         exit;

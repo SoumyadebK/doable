@@ -54,7 +54,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT PK_GIFT_CERTIFICATE_SETUP, GIFT_CERTIFICATE_CODE, GIFT_CERTIFICATE_NAME, EFFECTIVE_DATE, END_DATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, ACTIVE FROM `DOA_GIFT_CERTIFICATE_SETUP` WHERE PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
+                                    $row = $db_account->Execute("SELECT PK_GIFT_CERTIFICATE_SETUP, GIFT_CERTIFICATE_CODE, GIFT_CERTIFICATE_NAME, EFFECTIVE_DATE, END_DATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, ACTIVE FROM `DOA_GIFT_CERTIFICATE_SETUP` WHERE PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_SETUP']?>);"><?=$row->fields['GIFT_CERTIFICATE_NAME']?></td>

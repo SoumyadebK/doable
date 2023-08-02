@@ -12,8 +12,11 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
     $http_path = 'http://allonehub.com/';
 }
 
+
 if (!empty($_SESSION['DB_NAME'])) {
     require_once('common_functions_account.php');
+    $account_database = $_SESSION['DB_NAME'];
+    $master_database = 'doable_master';
     $db_account = new queryFactory();
     if ($_SERVER['HTTP_HOST'] == 'localhost') {
         $conn_account = $db_account->connect('localhost', 'root', '', $_SESSION['DB_NAME']);

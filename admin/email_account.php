@@ -19,12 +19,12 @@ if (!empty($_POST)) {
         $EMAIL_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $EMAIL_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         
-        db_perform('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'insert');
+        db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'insert');
         header("location:all_email_accounts.php");
     } else {
         $EMAIL_ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $EMAIL_ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'update', " PK_EMAIL_ACCOUNT = '$_GET[id]'");
+        db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'update', " PK_EMAIL_ACCOUNT = '$_GET[id]'");
         header("location:all_email_accounts.php");
     }
     
@@ -37,7 +37,7 @@ if (empty($_GET['id'])) {
     $PASSWORD       = '';
     $ACTIVE         = '';
 } else {
-    $res = $db->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_EMAIL_ACCOUNT = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_EMAIL_ACCOUNT = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
         header("location:all_email_accounts.php");
         exit;

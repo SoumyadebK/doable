@@ -18,12 +18,12 @@ if(!empty($_POST)){
         $EVENT_TYPE_DATA['ACTIVE'] = 1;
         $EVENT_TYPE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $EVENT_TYPE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_EVENT_TYPE', $EVENT_TYPE_DATA, 'insert');
+        db_perform_account('DOA_EVENT_TYPE', $EVENT_TYPE_DATA, 'insert');
     }else{
         $EVENT_TYPE_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $EVENT_TYPE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $EVENT_TYPE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_EVENT_TYPE', $EVENT_TYPE_DATA, 'update'," PK_EVENT_TYPE =  '$_GET[id]'");
+        db_perform_account('DOA_EVENT_TYPE', $EVENT_TYPE_DATA, 'update'," PK_EVENT_TYPE =  '$_GET[id]'");
     }
     header("location:all_event_types.php");
 }
@@ -34,7 +34,7 @@ if(empty($_GET['id'])){
     $ACTIVE = '';
 }
 else {
-    $res = $db->Execute("SELECT * FROM `DOA_EVENT_TYPE` WHERE PK_EVENT_TYPE = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_EVENT_TYPE` WHERE PK_EVENT_TYPE = '$_GET[id]'");
     if($res->RecordCount() == 0){
         header("location:all_event_types.php");
         exit;
