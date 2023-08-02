@@ -370,26 +370,23 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
 }*/
 
 function saveProfileData($RESPONSE_DATA){
-    error_reporting(0);
+    //error_reporting(0);
     global $db;
+    global $db_account;
 
     if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
-        $USER_DATA['PK_ACCOUNT_MASTER'] = 0;
+        $USER_DATA['PK_ACCOUNT_MASTER'] = $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = 0;
     }else{
-        $USER_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $USER_DATA['PK_ACCOUNT_MASTER'] = $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     }
 
-    //$USER_DATA['PK_ROLES'] = $RESPONSE_DATA['PK_ROLES'];
-    $USER_DATA['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
-    $USER_DATA['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
+    $USER_DATA['FIRST_NAME'] = $USER_DATA_ACCOUNT['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
+    $USER_DATA['LAST_NAME'] = $USER_DATA_ACCOUNT['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
     if (isset($RESPONSE_DATA['CUSTOMER_ID'])) {
-        $USER_DATA['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
+        $USER_DATA['USER_ID'] = $USER_DATA_ACCOUNT['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
     }
-    $USER_DATA['IS_COUNSELLOR'] = isset($RESPONSE_DATA['IS_COUNSELLOR'])?1:0;
-    $USER_DATA['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
-    $USER_DATA['PHONE'] = $RESPONSE_DATA['PHONE'];
-    $USER_DATA['PK_LOCATION'] = $RESPONSE_DATA['PK_LOCATION'];
-    $USER_DATA['USER_TITLE'] = $RESPONSE_DATA['USER_TITLE'];
+    $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
+    $USER_DATA['PHONE'] = $USER_DATA_ACCOUNT['PHONE'] = $RESPONSE_DATA['PHONE'];
     $USER_DATA['CREATE_LOGIN'] = isset($RESPONSE_DATA['CREATE_LOGIN'])?1:0;
 
     if ($USER_DATA['CREATE_LOGIN'] == 1) {
@@ -414,15 +411,15 @@ function saveProfileData($RESPONSE_DATA){
         }
     }
 
-    $USER_PROFILE_DATA['GENDER'] = $RESPONSE_DATA['GENDER'];
-    $USER_PROFILE_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['DOB']));
-    $USER_PROFILE_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'];
-    $USER_PROFILE_DATA['ADDRESS_1'] = $RESPONSE_DATA['ADDRESS_1'];
-    $USER_PROFILE_DATA['PK_COUNTRY'] = $RESPONSE_DATA['PK_COUNTRY'];
-    $USER_PROFILE_DATA['PK_STATES'] = $RESPONSE_DATA['PK_STATES'];
-    $USER_PROFILE_DATA['CITY'] = $RESPONSE_DATA['CITY'];
-    $USER_PROFILE_DATA['ZIP'] = $RESPONSE_DATA['ZIP'];
-    $USER_PROFILE_DATA['NOTES'] = $RESPONSE_DATA['NOTES'];
+    $USER_DATA['GENDER'] = $RESPONSE_DATA['GENDER'];
+    $USER_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['DOB']));
+    $USER_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'];
+    $USER_DATA['ADDRESS_1'] = $RESPONSE_DATA['ADDRESS_1'];
+    $USER_DATA['PK_COUNTRY'] = $RESPONSE_DATA['PK_COUNTRY'];
+    $USER_DATA['PK_STATES'] = $RESPONSE_DATA['PK_STATES'];
+    $USER_DATA['CITY'] = $RESPONSE_DATA['CITY'];
+    $USER_DATA['ZIP'] = $RESPONSE_DATA['ZIP'];
+    $USER_DATA['NOTES'] = $RESPONSE_DATA['NOTES'];
 
     $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];;
     $PK_CUSTOMER_DETAILS = 0;
@@ -432,11 +429,6 @@ function saveProfileData($RESPONSE_DATA){
         $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform('DOA_USERS', $USER_DATA, 'insert');
         $PK_USER = $db->insert_ID();
-        $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
-        $USER_PROFILE_DATA['ACTIVE'] = 1;
-        $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
         if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
             $USER_MASTER_DATE['PK_USER'] = $PK_USER;
             $USER_MASTER_DATE['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
@@ -445,24 +437,23 @@ function saveProfileData($RESPONSE_DATA){
             db_perform('DOA_USER_MASTER', $USER_MASTER_DATE, 'insert');
             $PK_USER_MASTER = $db->insert_ID();
         }
+        $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
+        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
     }else{
+        $PK_USER = $RESPONSE_DATA['PK_USER'];
         $USER_DATA['ACTIVE']	= $RESPONSE_DATA['ACTIVE'];
         $USER_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_USERS', $USER_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");
-        $USER_PROFILE_DATA['ACTIVE']	= $RESPONSE_DATA['ACTIVE'];
-        $USER_PROFILE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-        $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");
-        $PK_USER = $RESPONSE_DATA['PK_USER'];
+        db_perform('DOA_USERS', $USER_DATA, 'update'," PK_USER = ".$PK_USER);
+        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = ".$PK_USER);
         if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
             $USER_MASTER_DATE['PRIMARY_LOCATION_ID'] = $RESPONSE_DATA['PRIMARY_LOCATION_ID'];
-            db_perform('DOA_USER_MASTER', $USER_MASTER_DATE, 'update', " PK_USER_MASTER = '$RESPONSE_DATA[PK_USER_MASTER]'");
+            db_perform('DOA_USER_MASTER', $USER_MASTER_DATE, 'update', " PK_USER_MASTER = ".$PK_USER_MASTER);
 
         }
     }
 
-    if ($RESPONSE_DATA['TYPE'] == 2) {
+    if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
         $CUSTOMER_USER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $CUSTOMER_USER_DATA['IS_PRIMARY'] = 1;
         $CUSTOMER_USER_DATA['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
