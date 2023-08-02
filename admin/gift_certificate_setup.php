@@ -24,7 +24,7 @@ if (!empty($_POST)) {
         $GIFT_CERTIFICATE_SETUP_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $GIFT_CERTIFICATE_SETUP_DATA['CREATED_ON'] = date("Y-m-d H:i");
         $GIFT_CERTIFICATE_SETUP_DATA['ACTIVE'] = 1;
-        db_perform('DOA_GIFT_CERTIFICATE_SETUP', $GIFT_CERTIFICATE_SETUP_DATA, 'insert');
+        db_perform_account('DOA_GIFT_CERTIFICATE_SETUP', $GIFT_CERTIFICATE_SETUP_DATA, 'insert');
         header("location:all_gift_certificate_setup.php");
     } else {
         $GIFT_CERTIFICATE_SETUP_DATA['GIFT_CERTIFICATE_CODE'] = $_POST['GIFT_CERTIFICATE_CODE'];
@@ -36,7 +36,7 @@ if (!empty($_POST)) {
         $GIFT_CERTIFICATE_SETUP_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $GIFT_CERTIFICATE_SETUP_DATA['EDITED_ON'] = date("Y-m-d H:i");
         $GIFT_CERTIFICATE_SETUP_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        db_perform('DOA_GIFT_CERTIFICATE_SETUP', $GIFT_CERTIFICATE_SETUP_DATA, 'update', "PK_GIFT_CERTIFICATE_SETUP = '$_GET[id]'");
+        db_perform_account('DOA_GIFT_CERTIFICATE_SETUP', $GIFT_CERTIFICATE_SETUP_DATA, 'update', "PK_GIFT_CERTIFICATE_SETUP = '$_GET[id]'");
         header("location:all_gift_certificate_setup.php");
     }
 }
@@ -51,7 +51,7 @@ if (empty($_GET['id'])) {
     $END_DATE = '';
     $ACTIVE = '';
 } else {
-    $res = $db->Execute("SELECT * FROM DOA_GIFT_CERTIFICATE_SETUP WHERE PK_GIFT_CERTIFICATE_SETUP = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM DOA_GIFT_CERTIFICATE_SETUP WHERE PK_GIFT_CERTIFICATE_SETUP = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
         header("location:all_gift_certificate_setup.php");
         exit;

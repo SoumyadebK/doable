@@ -35,18 +35,18 @@ if(!empty($_POST)){
             $LOCATION_DATA['ACTIVE'] = 1;
             $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $LOCATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
+            db_perform_account('DOA_LOCATION', $LOCATION_DATA, 'insert');
         } else {
             $LOCATION_DATA['ACTIVE'] = $_POST['ACTIVE'];
             $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_GET[id]'");
+            db_perform_account('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_GET[id]'");
         }
     }
 
     if ($_POST['FUNCTION_NAME'] == 'saveOperationalHours') {
         $ALL_DAYS = isset($_POST['ALL_DAYS'])?1:0;
-        $operational_hours = $db->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$_GET[id]'");
+        $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$_GET[id]'");
         if($operational_hours->RecordCount() > 0){
             for ($i = 0; $i < count($_POST['OPEN_TIME']); $i++) {
                 $PK_LOCATION = (int)$_GET['id'];
@@ -56,7 +56,7 @@ if(!empty($_POST)){
                 $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = ($ALL_DAYS == 0) ? (($_POST['OPEN_TIME'][$i])?date('H:i', strtotime($_POST['OPEN_TIME'][$i])):'') : date('H:i', strtotime($_POST['OPEN_TIME'][0]));
                 $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = ($ALL_DAYS == 0) ? (($_POST['CLOSE_TIME'][$i])?date('H:i', strtotime($_POST['CLOSE_TIME'][$i])):'') : date('H:i', strtotime($_POST['CLOSE_TIME'][0]));
                 $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_'.$i])?1:0;
-                db_perform('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'update', " PK_LOCATION =  $PK_LOCATION AND DAY_NUMBER = $DAY_NUMBER");
+                db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'update', " PK_LOCATION =  $PK_LOCATION AND DAY_NUMBER = $DAY_NUMBER");
             }
         }else {
             if (count($_POST['OPEN_TIME']) > 0) {
@@ -66,7 +66,7 @@ if(!empty($_POST)){
                     $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = ($ALL_DAYS == 0) ? (($_POST['OPEN_TIME'][$i]) ? date('H:i', strtotime($_POST['OPEN_TIME'][$i])) : '') : date('H:i', strtotime($_POST['OPEN_TIME'][0]));
                     $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = ($ALL_DAYS == 0) ? (($_POST['CLOSE_TIME'][$i]) ? date('H:i', strtotime($_POST['CLOSE_TIME'][$i])) : '') : date('H:i', strtotime($_POST['CLOSE_TIME'][0]));
                     $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_' . $i]) ? 1 : 0;
-                    db_perform('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'insert');
+                    db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'insert');
                 }
             }
         }
@@ -101,7 +101,7 @@ if(empty($_GET['id'])){
     $TRANSACTION_KEY = '';
     $AUTHORIZE_CLIENT_KEY = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_locations.php");
@@ -440,7 +440,7 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                 </div>
                                             </div>
                                             <?php
-                                            $operational_hours = $db->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$PK_LOCATION'");
+                                            $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$PK_LOCATION'");
                                             if($operational_hours->RecordCount() > 0) {
                                                 $i = 0;
                                                 while (!$operational_hours->EOF) { ?>

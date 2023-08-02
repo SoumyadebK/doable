@@ -5,7 +5,6 @@ if (!empty($_GET['view'])) {
     $view = 'list';
 }
 ?>
-<header class="topbar">
 <div class="container-fluid p-0 nav-top-new">
     <div class="row">
         <div class="d-flex flex-column flex-md-row align-items-center py-2 px-4 bg-white border-bottomm box-shadow justify-content-end">
@@ -133,4 +132,3 @@ if (!empty($_GET['view'])) {
         </div>
     </div>
 </div>
-</header>

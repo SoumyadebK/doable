@@ -372,6 +372,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
 function saveProfileData($RESPONSE_DATA){
     error_reporting(0);
     global $db;
+    global $db_account;
 
     if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
         $USER_DATA['PK_ACCOUNT_MASTER'] = 0;
@@ -436,13 +437,13 @@ function saveProfileData($RESPONSE_DATA){
         $USER_PROFILE_DATA['ACTIVE'] = 1;
         $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
+        db_perform_account('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
         if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
             $USER_MASTER_DATE['PK_USER'] = $PK_USER;
             $USER_MASTER_DATE['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
             $USER_MASTER_DATE['CREATED_BY'] = $_SESSION['PK_USER'];
             $USER_MASTER_DATE['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_MASTER', $USER_MASTER_DATE, 'insert');
+            db_perform_account('DOA_USER_MASTER', $USER_MASTER_DATE, 'insert');
             $PK_USER_MASTER = $db->insert_ID();
         }
     }else{
@@ -453,11 +454,11 @@ function saveProfileData($RESPONSE_DATA){
         $USER_PROFILE_DATA['ACTIVE']	= $RESPONSE_DATA['ACTIVE'];
         $USER_PROFILE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");
+        db_perform_account('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");
         $PK_USER = $RESPONSE_DATA['PK_USER'];
         if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
             $USER_MASTER_DATE['PRIMARY_LOCATION_ID'] = $RESPONSE_DATA['PRIMARY_LOCATION_ID'];
-            db_perform('DOA_USER_MASTER', $USER_MASTER_DATE, 'update', " PK_USER_MASTER = '$RESPONSE_DATA[PK_USER_MASTER]'");
+            db_perform_account('DOA_USER_MASTER', $USER_MASTER_DATE, 'update', " PK_USER_MASTER = '$RESPONSE_DATA[PK_USER_MASTER]'");
 
         }
     }
@@ -479,40 +480,40 @@ function saveProfileData($RESPONSE_DATA){
         $CUSTOMER_USER_DATA['PARTNER_GENDER'] = $RESPONSE_DATA['PARTNER_GENDER'];
         $CUSTOMER_USER_DATA['PARTNER_DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['PARTNER_DOB']));
 
-        $check_customer_data = $db->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
+        $check_customer_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
         if ($check_customer_data->RecordCount() > 0) {
-            db_perform('DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'update', " PK_USER_MASTER =  '$PK_USER_MASTER'");
+            db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'update', " PK_USER_MASTER =  '$PK_USER_MASTER'");
             $PK_CUSTOMER_DETAILS = $RESPONSE_DATA['PK_CUSTOMER_DETAILS'];
         } else {
-            db_perform('DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'insert');
+            db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'insert');
             $PK_CUSTOMER_DETAILS = $db->insert_ID();
         }
 
         if (isset($RESPONSE_DATA['CUSTOMER_PHONE'])) {
-            $db->Execute("DELETE FROM `DOA_CUSTOMER_PHONE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+            $db_account->Execute("DELETE FROM `DOA_CUSTOMER_PHONE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
             for ($i = 0; $i < count($RESPONSE_DATA['CUSTOMER_PHONE']); $i++) {
                 $CUSTOMER_PHONE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                 $CUSTOMER_PHONE['PHONE'] = $RESPONSE_DATA['CUSTOMER_PHONE'][$i];
-                db_perform('DOA_CUSTOMER_PHONE', $CUSTOMER_PHONE, 'insert');
+                db_perform_account('DOA_CUSTOMER_PHONE', $CUSTOMER_PHONE, 'insert');
             }
         }
 
         if (isset($RESPONSE_DATA['CUSTOMER_EMAIL'])) {
-            $db->Execute("DELETE FROM `DOA_CUSTOMER_EMAIL` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+            $db_account->Execute("DELETE FROM `DOA_CUSTOMER_EMAIL` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
             for ($i = 0; $i < count($RESPONSE_DATA['CUSTOMER_EMAIL']); $i++) {
                 $CUSTOMER_EMAIL['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                 $CUSTOMER_EMAIL['EMAIL'] = $RESPONSE_DATA['CUSTOMER_EMAIL'][$i];
-                db_perform('DOA_CUSTOMER_EMAIL', $CUSTOMER_EMAIL, 'insert');
+                db_perform_account('DOA_CUSTOMER_EMAIL', $CUSTOMER_EMAIL, 'insert');
             }
         }
 
         if (isset($RESPONSE_DATA['CUSTOMER_SPECIAL_DATE'])) {
-            $db->Execute("DELETE FROM `DOA_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+            $db_account->Execute("DELETE FROM `DOA_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
             for ($i = 0; $i < count($RESPONSE_DATA['CUSTOMER_SPECIAL_DATE']); $i++) {
                 $CUSTOMER_SPECIAL_DATE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                 $CUSTOMER_SPECIAL_DATE['SPECIAL_DATE'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE'][$i];
                 $CUSTOMER_SPECIAL_DATE['DATE_NAME'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE_NAME'][$i];
-                db_perform('DOA_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
+                db_perform_account('DOA_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
             }
         }
     }
@@ -523,17 +524,17 @@ function saveProfileData($RESPONSE_DATA){
         for($i = 0; $i < count($PK_ROLE); $i++){
             $USER_ROLE_DATA['PK_USER'] = $PK_USER;
             $USER_ROLE_DATA['PK_ROLES'] = $PK_ROLE[$i];
-            db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
+            db_perform_account('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
         }
     }
 
-    $db->Execute("DELETE FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$PK_USER'");
+    $db_account->Execute("DELETE FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$PK_USER'");
     if(isset($RESPONSE_DATA['PK_USER_LOCATION'])){
         $PK_USER_LOCATION = $RESPONSE_DATA['PK_USER_LOCATION'];
         for($i = 0; $i < count($PK_USER_LOCATION); $i++){
             $CUSTOMER_LOCATION_DATA['PK_USER'] = $PK_USER;
             $CUSTOMER_LOCATION_DATA['PK_LOCATION'] = $PK_USER_LOCATION[$i];
-            db_perform('DOA_USER_LOCATION', $CUSTOMER_LOCATION_DATA, 'insert');
+            db_perform_account('DOA_USER_LOCATION', $CUSTOMER_LOCATION_DATA, 'insert');
         }
     }
 
