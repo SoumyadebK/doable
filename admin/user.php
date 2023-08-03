@@ -278,7 +278,7 @@ $SUN_MAX_TIME = '';
 $selected_roles = array();
 //end
 if(!empty($_GET['id'])) {
-    $res = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.INACTIVE_BY_ADMIN, DOA_USERS.CAN_EDIT_ENROLLMENT, DOA_USERS.PK_LOCATION, DOA_USERS.USER_TITLE, DOA_USERS.CREATE_LOGIN, DOA_USERS.PASSWORD, DOA_USERS.TICKET_SYSTEM_ACCESS, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES, DOA_USERS.IS_COUNSELLOR  FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_GET[id]'");
+    $res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_GET[id]'");
     if($res->RecordCount() == 0){
         header("location:all_users.php");
         exit;
@@ -298,9 +298,6 @@ if(!empty($_GET['id'])) {
     $CITY = $res->fields['CITY'];
     $ZIP = $res->fields['ZIP'];
     $PHONE = $res->fields['PHONE'];
-    $PK_LOCATION = $res->fields['PK_LOCATION'];
-    $USER_TITLE = $res->fields['USER_TITLE'];
-    $NOTES = $res->fields['NOTES'];
     $NOTES = $res->fields['NOTES'];
     $ACTIVE = $res->fields['ACTIVE'];
     $PASSWORD = $res->fields['PASSWORD'];
@@ -308,8 +305,6 @@ if(!empty($_GET['id'])) {
     $CAN_EDIT_ENROLLMENT = $res->fields['CAN_EDIT_ENROLLMENT'];
     $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
     $TICKET_SYSTEM_ACCESS = $res->fields['TICKET_SYSTEM_ACCESS'];
-
-    $IS_COUNSELLOR = $res->fields['IS_COUNSELLOR'];
 
     $service_data = $db_account->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_SERVICES` WHERE PK_USER = '$PK_USER'");
     if($service_data->RecordCount() > 0) {
@@ -855,14 +850,14 @@ if(!empty($_GET['id'])) {
 
                                                             <?php
                                                             if(!empty($_GET['id'])) {
-                                                                $code_commission_data = $db->Execute("SELECT * FROM DOA_SERVICE_COMMISSION WHERE PK_USER = ".$_GET['id']);
+                                                                $code_commission_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_COMMISSION WHERE PK_USER = ".$_GET['id']);
                                                                 while (!$code_commission_data->EOF) { ?>
                                                                     <div class="row m-t-10">
                                                                         <div class="col-md-3">
                                                                             <select class="form-control" name="PK_SERVICE_MASTER[]">
                                                                                 <option value="">Select Service</option>
                                                                                 <?php
-                                                                                $row = $db->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                                                $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                                                                 while (!$row->EOF) { ?>
                                                                                     <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($code_commission_data->fields['PK_SERVICE_MASTER']==$row->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
                                                                                     <?php $row->MoveNext(); } ?>
@@ -882,7 +877,7 @@ if(!empty($_GET['id'])) {
                                                                         <select class="form-control" name="PK_SERVICE_MASTER[]">
                                                                             <option value="">Select Service</option>
                                                                             <?php
-                                                                            $row = $db->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                                            $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                                                             while (!$row->EOF) { ?>
                                                                                 <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>"><?=$row->fields['SERVICE_NAME']?></option>
                                                                                 <?php $row->MoveNext(); } ?>
@@ -921,7 +916,7 @@ if(!empty($_GET['id'])) {
                                                                 <div class="col-6">
                                                                     <select class="multi_sumo_select_services" name="PK_SERVICE_MASTER[]" multiple>
                                                                         <?php
-                                                                        $row = $db->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+                                                                        $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
                                                                         while (!$row->EOF) { ?>
                                                                             <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=(in_array($row->fields['PK_SERVICE_MASTER'], explode(',', $PK_SERVICE_MASTER))?'selected':'')?> ><?=$row->fields['SERVICE_NAME']?></option>
                                                                             <?php $row->MoveNext(); } ?>
@@ -1063,7 +1058,7 @@ if(!empty($_GET['id'])) {
                                                             <div class="card-body" id="append_user_document">
                                                                 <?php
                                                                 if(!empty($_GET['id'])) { $user_doc_count = 0;
-                                                                    $row = $db->Execute("SELECT * FROM DOA_USER_DOCUMENT WHERE PK_USER = '$PK_USER'");
+                                                                    $row = $db_account->Execute("SELECT * FROM DOA_USER_DOCUMENT WHERE PK_USER = '$PK_USER'");
                                                                     while (!$row->EOF) { ?>
                                                                         <div class="row">
                                                                             <div class="col-5">
@@ -1139,7 +1134,7 @@ if(!empty($_GET['id'])) {
 
                                                             <tbody>
                                                             <?php
-                                                            $comment_data = $db->Execute("SELECT DOA_COMMENT.PK_COMMENT, DOA_COMMENT.COMMENT, DOA_COMMENT.COMMENT_DATE, DOA_COMMENT.ACTIVE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS FULL_NAME FROM `DOA_COMMENT` INNER JOIN DOA_USERS ON DOA_COMMENT.BY_PK_USER = DOA_USERS.PK_USER WHERE `FOR_PK_USER` = ".$PK_USER);
+                                                            $comment_data = $db_account->Execute("SELECT DOA_COMMENT.PK_COMMENT, DOA_COMMENT.COMMENT, DOA_COMMENT.COMMENT_DATE, DOA_COMMENT.ACTIVE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS FULL_NAME FROM `DOA_COMMENT` INNER JOIN DOA_USERS ON DOA_COMMENT.BY_PK_USER = DOA_USERS.PK_USER WHERE `FOR_PK_USER` = ".$PK_USER);
                                                             $i = 1;
                                                             while (!$comment_data->EOF) { ?>
                                                                 <tr>
