@@ -383,12 +383,12 @@ function saveProfileData($RESPONSE_DATA){
         }
 
         if (isset($RESPONSE_DATA['CUSTOMER_SPECIAL_DATE'])) {
-            $db->Execute("DELETE FROM `DOA_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+            $db->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
             for ($i = 0; $i < count($RESPONSE_DATA['CUSTOMER_SPECIAL_DATE']); $i++) {
                 $CUSTOMER_SPECIAL_DATE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                 $CUSTOMER_SPECIAL_DATE['SPECIAL_DATE'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE'][$i];
                 $CUSTOMER_SPECIAL_DATE['DATE_NAME'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE_NAME'][$i];
-                db_perform('DOA_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
+                db_perform('DOA_CUSTOMER_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
             }
         }
     }
@@ -445,12 +445,12 @@ function saveFamilyData($RESPONSE_DATA)
                 $PK_CUSTOMER_DETAILS = $db->insert_ID();
 
                 if (isset($RESPONSE_DATA['FAMILY_SPECIAL_DATE'][$i])) {
-                    $db->Execute("DELETE FROM `DOA_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+                    $db->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
                     for ($j = 0; $j < count($RESPONSE_DATA['FAMILY_SPECIAL_DATE'][$i]); $j++) {
                         $FAMILY_SPECIAL_DATE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                         $FAMILY_SPECIAL_DATE['SPECIAL_DATE'] = $RESPONSE_DATA['FAMILY_SPECIAL_DATE'][$i][$j];
                         $FAMILY_SPECIAL_DATE['DATE_NAME'] = $RESPONSE_DATA['FAMILY_SPECIAL_DATE_NAME'][$i][$j];
-                        db_perform('DOA_SPECIAL_DATE', $FAMILY_SPECIAL_DATE, 'insert');
+                        db_perform('DOA_CUSTOMER_SPECIAL_DATE', $FAMILY_SPECIAL_DATE, 'insert');
                     }
                 }
             }
@@ -462,11 +462,11 @@ function saveInterestData($RESPONSE_DATA)
 {
     global $db;
     if (isset($RESPONSE_DATA['PK_INTERESTS'])){
-        $res = $db->Execute("DELETE FROM `DOA_USER_INTEREST` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
+        $res = $db->Execute("DELETE FROM `DOA_CUSTOMER_INTEREST` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
         for($i = 0; $i < count($RESPONSE_DATA['PK_INTERESTS']); $i++){
             $USER_INTEREST_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
             $USER_INTEREST_DATA['PK_INTERESTS'] = $RESPONSE_DATA['PK_INTERESTS'][$i];
-            db_perform('DOA_USER_INTEREST', $USER_INTEREST_DATA, 'insert');
+            db_perform('DOA_CUSTOMER_INTEREST', $USER_INTEREST_DATA, 'insert');
         }
     }
     if (isset($RESPONSE_DATA['WHAT_PROMPTED_YOU_TO_INQUIRE']) || isset($RESPONSE_DATA['PK_INQUIRY_METHOD']) || isset($RESPONSE_DATA['INQUIRY_TAKER_ID'])){
@@ -479,12 +479,12 @@ function saveInterestData($RESPONSE_DATA)
 
         $check_interest_other_data = '';
         if ($RESPONSE_DATA['PK_USER']){
-            $check_interest_other_data = $db->Execute("SELECT * FROM `DOA_USER_INTEREST_OTHER_DATA` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
+            $check_interest_other_data = $db->Execute("SELECT * FROM `DOA_CUSTOMER_INTEREST_OTHER_DATA` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
         }
         if ($check_interest_other_data != '' && $check_interest_other_data->RecordCount() > 0){
-            db_perform('DOA_USER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");
+            db_perform('DOA_CUSTOMER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");
         }else{
-            db_perform('DOA_USER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'insert');
+            db_perform('DOA_CUSTOMER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'insert');
         }
     }
 }

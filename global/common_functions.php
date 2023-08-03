@@ -501,4 +501,11 @@ function pre_r($data){
     print_r($data);
     echo "</pre>"; die;
 }
+
+function getUserIdMainDb($PK_USER)
+{
+    global $db_account;
+    $user_data = $db_account->Execute("SELECT * FROM `DOA_USERS` WHERE `PK_USER` = '$PK_USER'");
+    return $user_data->fields['PK_USER_MASTER_DB'];
+}
 ?>

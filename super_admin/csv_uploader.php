@@ -244,13 +244,13 @@ if(!empty($_POST))
                                     $SPECIAL_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                                     $SPECIAL_DATA['SPECIAL_DATE'] = date("Y-m-d", strtotime($getData[10]));
                                     $SPECIAL_DATA['DATE_NAME'] = $getData[12];
-                                    db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA, 'insert');
+                                    db_perform('DOA_CUSTOMER_SPECIAL_DATE', $SPECIAL_DATA, 'insert');
                                 }
                                 if ($getData[11] != "0000-00-00 00:00:00" && $getData[11] > 0) {
                                     $SPECIAL_DATA_1['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                                     $SPECIAL_DATA_1['SPECIAL_DATE'] = date("Y-m-d", strtotime($getData[11]));
                                     $SPECIAL_DATA_1['DATE_NAME'] = $getData[13];
-                                    db_perform('DOA_SPECIAL_DATE', $SPECIAL_DATA_1, 'insert');
+                                    db_perform('DOA_CUSTOMER_SPECIAL_DATE', $SPECIAL_DATA_1, 'insert');
                                 }
 
                                 $INQUIRY_VALUE['PK_USER_MASTER'] = $PK_USER_MASTER;
@@ -282,7 +282,7 @@ if(!empty($_POST))
                                     $doableTakerId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_ID='$getTaker'");
                                     $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = $doableTakerId->fields['PK_USER'];
                                 }
-                                db_perform('DOA_USER_INTEREST_OTHER_DATA', $INQUIRY_VALUE, 'insert');
+                                db_perform('DOA_CUSTOMER_INTEREST_OTHER_DATA', $INQUIRY_VALUE, 'insert');
                             }
                         }
                     }

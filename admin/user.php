@@ -119,12 +119,12 @@ $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
         }
 
         if (isset($_POST['CUSTOMER_SPECIAL_DATE'])){
-            $res = $db->Execute("DELETE FROM `DOA_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+            $res = $db->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
             for($i = 0; $i < count($_POST['CUSTOMER_SPECIAL_DATE']); $i++){
                 $CUSTOMER_SPECIAL_DATE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                 $CUSTOMER_SPECIAL_DATE['SPECIAL_DATE'] = $_POST['CUSTOMER_SPECIAL_DATE'][$i];
                 $CUSTOMER_SPECIAL_DATE['DATE_NAME'] = $_POST['CUSTOMER_SPECIAL_DATE_NAME'][$i];
-                db_perform('DOA_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
+                db_perform('DOA_CUSTOMER_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
             }
         }
 
@@ -150,11 +150,11 @@ $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
             }
         }
         if (isset($_POST['PK_INTERESTS'])){
-            $res = $db->Execute("DELETE FROM `DOA_USER_INTEREST` WHERE `PK_USER` = '$PK_USER'");
+            $res = $db->Execute("DELETE FROM `DOA_CUSTOMER_INTEREST` WHERE `PK_USER` = '$PK_USER'");
             for($i = 0; $i < count($_POST['PK_INTERESTS']); $i++){
                 $USER_INTEREST_DATA['PK_USER'] = $PK_USER;
                 $USER_INTEREST_DATA['PK_INTERESTS'] = $_POST['PK_INTERESTS'][$i];
-                db_perform('DOA_USER_INTEREST', $USER_INTEREST_DATA, 'insert');
+                db_perform('DOA_CUSTOMER_INTEREST', $USER_INTEREST_DATA, 'insert');
             }
         }
         if (isset($_POST['WHAT_PROMPTED_YOU_TO_INQUIRE']) || isset($_POST['PK_INQUIRY_METHOD']) || isset($_POST['INQUIRY_TAKER_ID'])){
@@ -167,12 +167,12 @@ $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
             $check_interest_other_data = '';
             if ($_GET['id']){
-                $check_interest_other_data = $db->Execute("SELECT * FROM `DOA_USER_INTEREST_OTHER_DATA` WHERE `PK_USER` = '$_GET[id]'");
+                $check_interest_other_data = $db->Execute("SELECT * FROM `DOA_CUSTOMER_INTEREST_OTHER_DATA` WHERE `PK_USER` = '$_GET[id]'");
             }
             if ($check_interest_other_data != '' && $check_interest_other_data->RecordCount() > 0){
-                db_perform('DOA_USER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'update'," PK_USER =  '$_GET[id]'");
+                db_perform('DOA_CUSTOMER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'update'," PK_USER =  '$_GET[id]'");
             }else{
-                db_perform('DOA_USER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'insert');
+                db_perform('DOA_CUSTOMER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'insert');
             }
         }
     }

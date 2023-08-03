@@ -42,7 +42,7 @@ if(!empty($_POST)){
         }
         $USER_DATA['PHONE'] = $_POST['PHONE'];
         $USER_DATA['GENDER'] = $_POST['GENDER'];
-        $USER_DATA['DOB'] = $_POST['DOB'];
+        $USER_DATA['DOB'] = date('Y-m-d', strtotime($_POST['DOB']));
         $USER_DATA['ADDRESS'] = $_POST['ADDRESS'];
         $USER_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
         $USER_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
@@ -207,7 +207,7 @@ $PHONE_NO = $text->fields['FROM_NO'];
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label class="form-label">Date of Birth</label>
-                                            <input type="text" class="form-control datepicker-past"  id="DOB" name="DOB" value="<?($DOB)?date('m/d/Y', strtotime($DOB)):''?>">
+                                            <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?=($DOB)?date('m/d/Y', strtotime($DOB)):''?>">
                                         </div>
                                     </div>
                                 </div>

@@ -83,7 +83,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
                 }
             }
             $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
-            $wallet_data = $db_account->Execute("SELECT * FROM DOA_USER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_USER_WALLET DESC LIMIT 1");
+            $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
             $DEBIT_AMOUNT = ($WALLET_BALANCE>$AMOUNT)?$AMOUNT:$WALLET_BALANCE;
             if ($wallet_data->RecordCount() > 0) {
                 $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
@@ -93,7 +93,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
             $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment ".$_POST['PK_ENROLLMENT_MASTER'];
             $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_USER_WALLET', $INSERT_DATA, 'insert');
+            db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
         } else{
             $PAYMENT_INFO = 'Payment Done.';
         }
@@ -259,12 +259,12 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
         }
 
         if (isset($_POST['CUSTOMER_SPECIAL_DATE'])){
-            $res = $db->Execute("DELETE FROM `DOA_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+            $res = $db->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
             for($i = 0; $i < count($_POST['CUSTOMER_SPECIAL_DATE']); $i++){
                 $CUSTOMER_SPECIAL_DATE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                 $CUSTOMER_SPECIAL_DATE['SPECIAL_DATE'] = $_POST['CUSTOMER_SPECIAL_DATE'][$i];
                 $CUSTOMER_SPECIAL_DATE['DATE_NAME'] = $_POST['CUSTOMER_SPECIAL_DATE_NAME'][$i];
-                db_perform('DOA_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
+                db_perform('DOA_CUSTOMER_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
             }
         }
 
@@ -290,11 +290,11 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
             }
         }
         if (isset($_POST['PK_INTERESTS'])){
-            $res = $db->Execute("DELETE FROM `DOA_USER_INTEREST` WHERE `PK_USER` = '$PK_USER'");
+            $res = $db->Execute("DELETE FROM `DOA_CUSTOMER_INTEREST` WHERE `PK_USER` = '$PK_USER'");
             for($i = 0; $i < count($_POST['PK_INTERESTS']); $i++){
                 $USER_INTEREST_DATA['PK_USER'] = $PK_USER;
                 $USER_INTEREST_DATA['PK_INTERESTS'] = $_POST['PK_INTERESTS'][$i];
-                db_perform('DOA_USER_INTEREST', $USER_INTEREST_DATA, 'insert');
+                db_perform('DOA_CUSTOMER_INTEREST', $USER_INTEREST_DATA, 'insert');
             }
         }
         if (isset($_POST['WHAT_PROMPTED_YOU_TO_INQUIRE']) || isset($_POST['PK_INQUIRY_METHOD']) || isset($_POST['INQUIRY_TAKER_ID'])){
@@ -307,12 +307,12 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
 
             $check_interest_other_data = '';
             if ($_GET['id']){
-                $check_interest_other_data = $db->Execute("SELECT * FROM `DOA_USER_INTEREST_OTHER_DATA` WHERE `PK_USER` = '$_GET[id]'");
+                $check_interest_other_data = $db->Execute("SELECT * FROM `DOA_CUSTOMER_INTEREST_OTHER_DATA` WHERE `PK_USER` = '$_GET[id]'");
             }
             if ($check_interest_other_data != '' && $check_interest_other_data->RecordCount() > 0){
-                db_perform('DOA_USER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'update'," PK_USER =  '$_GET[id]'");
+                db_perform('DOA_CUSTOMER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'update'," PK_USER =  '$_GET[id]'");
             }else{
-                db_perform('DOA_USER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'insert');
+                db_perform('DOA_CUSTOMER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'insert');
             }
         }
     }
@@ -429,7 +429,7 @@ if(!empty($_GET['id'])) {
     $INACTIVE_BY_ADMIN = $res->fields['INACTIVE_BY_ADMIN'];
     $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
 
-    $user_interest_other_data = $db_account->Execute("SELECT * FROM `DOA_USER_INTEREST_OTHER_DATA` WHERE `PK_USER_MASTER` = '$_GET[master_id]'");
+    $user_interest_other_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_INTEREST_OTHER_DATA` WHERE `PK_USER_MASTER` = '$_GET[master_id]'");
     if($user_interest_other_data->RecordCount() > 0){
         $WHAT_PROMPTED_YOU_TO_INQUIRE = $user_interest_other_data->fields['WHAT_PROMPTED_YOU_TO_INQUIRE'];
         $PK_SKILL_LEVEL = $user_interest_other_data->fields['PK_SKILL_LEVEL'];
@@ -779,16 +779,16 @@ if(!empty($_GET['master_id'])) {
                                                                         <?php
                                                                         $selected_location = [];
                                                                         if(!empty($_GET['id'])) {
-                                                                            $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$_GET[id]'");
+                                                                            $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$_GET[id]'");
                                                                             while (!$selected_location_row->EOF) {
                                                                                 $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
                                                                                 $selected_location_row->MoveNext();
                                                                             }
                                                                         }
-                                                                        $row = $db_account->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                                         while (!$row->EOF) { ?>
                                                                             <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
-                                                                            <?php $row->MoveNext(); } ?>
+                                                                        <?php $row->MoveNext(); } ?>
                                                                     </select>
                                                                 </div>
                                                             </div>
@@ -799,10 +799,10 @@ if(!empty($_GET['master_id'])) {
                                                                     <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" >
                                                                         <option value="">Select Primary Location</option>
                                                                         <?php
-                                                                        $row = $db_account->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                                         while (!$row->EOF) { ?>
                                                                             <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($primary_location == $row->fields['PK_LOCATION'])?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
-                                                                            <?php $row->MoveNext(); } ?>
+                                                                        <?php $row->MoveNext(); } ?>
                                                                     </select>
                                                                 </div>
                                                             </div>
@@ -829,7 +829,7 @@ if(!empty($_GET['master_id'])) {
                                                         </div>
                                                         <div class="add_more_special_days">
                                                             <?php
-                                                            $customer_special_date = $db_account->Execute("SELECT * FROM DOA_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
+                                                            $customer_special_date = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
                                                             if($customer_special_date->RecordCount() > 0) {
                                                                 while (!$customer_special_date->EOF) { ?>
                                                                     <div class="row">
@@ -1172,7 +1172,7 @@ if(!empty($_GET['master_id'])) {
                                                                     </div>
                                                                     <div class="add_more_special_days">
                                                                         <?php
-                                                                        $family_special_date = $db_account->Execute("SELECT * FROM DOA_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = ".$family_member_details->fields['PK_CUSTOMER_DETAILS']);
+                                                                        $family_special_date = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = ".$family_member_details->fields['PK_CUSTOMER_DETAILS']);
                                                                         if($family_special_date->RecordCount() > 0) {
                                                                             while (!$family_special_date->EOF) { ?>
                                                                                 <div class="row">
@@ -1315,7 +1315,7 @@ if(!empty($_GET['master_id'])) {
                                                                 </div>
                                                                 <div class="add_more_special_days">
                                                                     <?php
-                                                                    $customer_special_date = $db_account->Execute("SELECT * FROM DOA_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
+                                                                    $customer_special_date = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
                                                                     if($customer_special_date->RecordCount() > 0) {
                                                                         while (!$customer_special_date->EOF) { ?>
                                                                             <div class="row">
@@ -1393,7 +1393,7 @@ if(!empty($_GET['master_id'])) {
                                                                     <div class="row">
                                                                         <?php
                                                                         $PK_USER = empty($_GET['id'])?0:$_GET['id'];
-                                                                        $user_interest = $db_account->Execute("SELECT PK_INTERESTS FROM `DOA_USER_INTEREST` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
+                                                                        $user_interest = $db_account->Execute("SELECT PK_INTERESTS FROM `DOA_CUSTOMER_INTEREST` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
                                                                         $user_interest_array = [];
                                                                         if ($user_interest->RecordCount() > 0){
                                                                             while (!$user_interest->EOF){
@@ -1633,7 +1633,7 @@ if(!empty($_GET['master_id'])) {
                                                                                             <?php $row->MoveNext(); } ?>
                                                                                     </select>
                                                                                 </div>
-                                                                                <?php $wallet_data = $db_account->Execute("SELECT * FROM DOA_USER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_USER_WALLET DESC LIMIT 1"); ?>
+                                                                                <?php $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); ?>
                                                                                 <span id="wallet_balance_span" style="font-size: 10px;color: green; display: none;">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></span>
                                                                                 <input type="hidden" id="WALLET_BALANCE" name="WALLET_BALANCE" value="<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?>">
                                                                                 <input type="hidden" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">

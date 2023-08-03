@@ -43,7 +43,7 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
 
         $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
         if ($_POST['CREDIT_BALANCE'] > 0) {
-            $wallet_data = $db->Execute("SELECT * FROM DOA_USER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_USER_WALLET DESC LIMIT 1");
+            $wallet_data = $db->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
             if ($wallet_data->RecordCount() > 0) {
                 $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $_POST['CREDIT_BALANCE'];
             } else {
@@ -54,7 +54,7 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
             $INSERT_DATA['DESCRIPTION'] = "Balance credited for cancellation of enrollment ".$PK_ENROLLMENT_MASTER;
             $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_WALLET', $INSERT_DATA, 'insert');
+            db_perform('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
             $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
             if ($enrollment_balance->RecordCount() > 0) {

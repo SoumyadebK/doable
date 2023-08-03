@@ -328,7 +328,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Image Upload
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control" > </div>
+                                                    <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control" onchange="previewFile(this)"> </div>
                                             </div>
                                         </div>
                                     </div>
@@ -337,7 +337,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                         <?php if($USER_IMAGE!=''){?>
                                             <div style="width: 120px;height: 120px;margin-top: 25px;">
                                             <a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery">
-                                                <img src = "<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a>
+                                                <img id="profile-img" src="<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a>
                                             </div><?php } ?>
                                     </div>
 
@@ -374,12 +374,9 @@ $ACTIVE = $res->fields['ACTIVE'];
             fetch_state(<?php  echo $PK_COUNTRY; ?>);
         });
 
-
         function fetch_state(PK_COUNTRY){
-
             jQuery(document).ready(function($) {
                 var data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
-
                 var value = $.ajax({
                     url: "ajax/state.php",
                     type: "POST",
@@ -392,6 +389,17 @@ $ACTIVE = $res->fields['ACTIVE'];
                     }
                 }).responseText;
             });
+        }
+
+        function previewFile(input){
+            let file = $("#USER_IMAGE").get(0).files[0];
+            if(file){
+                let reader = new FileReader();
+                reader.onload = function(){
+                    $("#profile-img").attr("src", reader.result);
+                }
+                reader.readAsDataURL(file);
+            }
         }
     </script>
     <script>

@@ -324,7 +324,7 @@ if(!empty($_POST)){
         }
 
         $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
-        $wallet_data = $db_account->Execute("SELECT * FROM DOA_USER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_USER_WALLET DESC LIMIT 1");
+        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
         $DEBIT_AMOUNT = ($WALLET_BALANCE > $AMOUNT) ? $AMOUNT : $WALLET_BALANCE;
         if ($wallet_data->RecordCount() > 0) {
             $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
@@ -334,7 +334,7 @@ if(!empty($_POST)){
         $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment " . $_POST['PK_ENROLLMENT_MASTER'];
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_USER_WALLET', $INSERT_DATA, 'insert');
+        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
     } else {
         $PAYMENT_INFO = 'Payment Done.';
