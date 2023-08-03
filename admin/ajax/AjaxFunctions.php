@@ -23,13 +23,13 @@ function saveServiceInfoData($RESPONSE_DATA){
         $RESPONSE_DATA['ACTIVE'] = 1;
         $RESPONSE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $RESPONSE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_SERVICE_MASTER', $RESPONSE_DATA, 'insert');
+        db_perform_account('DOA_SERVICE_MASTER', $RESPONSE_DATA, 'insert');
         $PK_SERVICE_MASTER = $db->insert_ID();
     }else{
         $RESPONSE_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $RESPONSE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $RESPONSE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_SERVICE_MASTER', $RESPONSE_DATA, 'update'," PK_SERVICE_MASTER =  '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
+        db_perform_account('DOA_SERVICE_MASTER', $RESPONSE_DATA, 'update'," PK_SERVICE_MASTER =  '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
         $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
     }
     echo $PK_SERVICE_MASTER;
@@ -55,19 +55,19 @@ function saveServiceCodeData($RESPONSE_DATA){
             $SERVICE_CODE_DATA['SERVICE_CODE'] = $RESPONSE_DATA['SERVICE_CODE'][$i];
             $SERVICE_CODE_DATA['DESCRIPTION'] = $RESPONSE_DATA['SERVICE_CODE_DESCRIPTION'][$i];
             if ($RESPONSE_DATA['PK_SERVICE_CODE'][$i] > 0){
-                db_perform('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'update', "PK_SERVICE_CODE = ".$RESPONSE_DATA['PK_SERVICE_CODE'][$i]);
+                db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'update', "PK_SERVICE_CODE = ".$RESPONSE_DATA['PK_SERVICE_CODE'][$i]);
                 $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'][$i];
             } else {
-                db_perform('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
+                db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
                 $PK_SERVICE_CODE = $db->insert_ID();
             }
 
-            $db->Execute("DELETE FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_CODE` = '$PK_SERVICE_CODE'");
+            $db_account->Execute("DELETE FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_CODE` = '$PK_SERVICE_CODE'");
             for ($j = 0; $j < count($RESPONSE_DATA['PK_SCHEDULING_CODE'][$i]); $j++) {
                 $SERVICE_BOOKING_CODE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'];
                 $SERVICE_BOOKING_CODE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
                 $SERVICE_BOOKING_CODE_DATA['PK_SCHEDULING_CODE'] = $RESPONSE_DATA['PK_SCHEDULING_CODE'][$i][$j];
-                db_perform('DOA_SERVICE_SCHEDULING_CODE', $SERVICE_BOOKING_CODE_DATA, 'insert');
+                db_perform_account('DOA_SERVICE_SCHEDULING_CODE', $SERVICE_BOOKING_CODE_DATA, 'insert');
             }
         }
     }
@@ -77,7 +77,7 @@ function saveServiceCodeData($RESPONSE_DATA){
         for ($i = 0; $i < count($RESPONSE_DATA['PK_USER']); $i++) {
             $SERVICE_PROVIDER_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'][$i];
             $SERVICE_PROVIDER_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'];
-            db_perform('DOA_SERVICE_PROVIDER_SERVICE_NEW', $SERVICE_PROVIDER_DATA, 'insert');
+            db_perform_account('DOA_SERVICE_PROVIDER_SERVICE_NEW', $SERVICE_PROVIDER_DATA, 'insert');
         }
     }
 }
@@ -1324,12 +1324,12 @@ function saveCommentData($RESPONSE_DATA){
         $COMMENT_DATA['ACTIVE'] = 1;
         $COMMENT_DATA['CREATED_ON']  = date("Y-m-d H:i");
         $COMMENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        db_perform('DOA_COMMENT', $COMMENT_DATA, 'insert');
+        db_perform_account('DOA_COMMENT', $COMMENT_DATA, 'insert');
     } else {
         $COMMENT_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
         $COMMENT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $COMMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_COMMENT', $COMMENT_DATA, 'update', " PK_COMMENT = ".$RESPONSE_DATA['PK_COMMENT']);
+        db_perform_account('DOA_COMMENT', $COMMENT_DATA, 'update', " PK_COMMENT = ".$RESPONSE_DATA['PK_COMMENT']);
     }
     echo 1;
 }
@@ -1337,27 +1337,27 @@ function saveCommentData($RESPONSE_DATA){
 function deleteCommentData($RESPONSE_DATA) {
     global $db;
     $PK_COMMENT = $RESPONSE_DATA['PK_COMMENT'];
-    $comment_data = $db->Execute("DELETE FROM `DOA_COMMENT` WHERE `PK_COMMENT` = ".$PK_COMMENT);
+    $comment_data = $db_account->Execute("DELETE FROM `DOA_COMMENT` WHERE `PK_COMMENT` = ".$PK_COMMENT);
     echo 1;
 }
 
 function deleteDocumentLibraryData($RESPONSE_DATA) {
-    global $db;
+    global $db_account;
     $PK_DOCUMENT_LIBRARY = $RESPONSE_DATA['PK_DOCUMENT_LIBRARY'];
-    $document_library_data = $db->Execute("DELETE FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = ".$PK_DOCUMENT_LIBRARY);
+    $document_library_data = $db_account->Execute("DELETE FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = ".$PK_DOCUMENT_LIBRARY);
     echo 1;
 }
 
 function deleteServiceData($RESPONSE_DATA) {
-    global $db;
+    global $db_account;
     $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
-    $service_data = $db->Execute("DELETE FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER);
+    $service_data = $db_account->Execute("DELETE FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER);
     echo 1;
 }
 
 function deleteLocationData($RESPONSE_DATA) {
-    global $db;
+    global $db_account;
     $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
-    $location_data = $db->Execute("DELETE FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$PK_LOCATION);
+    $location_data = $db_account->Execute("DELETE FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$PK_LOCATION);
     echo 1;
 }

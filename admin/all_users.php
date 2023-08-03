@@ -73,7 +73,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                         $i=1;
-                                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USERS.USER_TITLE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7,8) AND DOA_USERS.ACTIVE = '$status' AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                        $row = $db_account->Execute("SELECT DISTINCT ($account_database.DOA_USERS.PK_USER), CONCAT($account_database.DOA_USERS.FIRST_NAME, ' ', $account_database.DOA_USERS.LAST_NAME) AS NAME, $account_database.DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, $account_database.DOA_USERS.ACTIVE FROM $account_database.DOA_USERS LEFT JOIN $master_database.DOA_USER_ROLES ON $account_database.DOA_USERS.PK_USER = $master_database.DOA_USER_ROLES.PK_USER LEFT JOIN $account_database.DOA_USER_LOCATION ON $master_database.DOA_USERS.PK_USER = $account_database.DOA_USER_LOCATION.PK_USER LEFT JOIN $account_database.DOA_USER_MASTER ON $master_database.DOA_USERS.PK_USER = $account_database.DOA_USER_MASTER.PK_USER WHERE $account_database.DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND $master_database.DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7,8) AND $account_database.DOA_USERS.ACTIVE = '$status' AND $master_database.DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                         while (!$row->EOF) {
                                             $selected_roles = [];
                                             $selected_location = [];
@@ -85,7 +85,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                                     $selected_roles_row->MoveNext();
                                                 }
 
-                                                $selected_location_row = $db->Execute("SELECT DOA_LOCATION.LOCATION_NAME FROM `DOA_LOCATION` INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE DOA_USER_LOCATION.PK_USER = '$PK_USER'");
+                                                $selected_location_row = $db_account->Execute("SELECT DOA_LOCATION.LOCATION_NAME FROM `DOA_LOCATION` INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE DOA_USER_LOCATION.PK_USER = '$PK_USER'");
                                                 while (!$selected_location_row->EOF) {
                                                     $selected_location[] = $selected_location_row->fields['LOCATION_NAME'];
                                                     $selected_location_row->MoveNext();

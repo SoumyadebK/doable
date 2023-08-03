@@ -706,7 +706,7 @@ if(!empty($_POST)){
                                                         <select id="PK_USER_MASTER" name="PK_USER_MASTER" class="form-control">
                                                             <option>Select Customer</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                            $row = $db_account->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                                             while (!$row->EOF) {
                                                                 $selected = '';
                                                                 if($PK_USER_MASTER!='' && $PK_USER_MASTER == $row->fields['PK_USER_MASTER']){
@@ -724,7 +724,7 @@ if(!empty($_POST)){
                                                         <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" onchange="showMinMaxAmount()" class="form-control" disabled>
                                                             <option disabled selected>Select Gift Certificate Name</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>=EFFECTIVE_DATE AND CURRENT_DATE()<=END_DATE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                            $row = $db_account->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>=EFFECTIVE_DATE AND CURRENT_DATE()<=END_DATE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                                             while (!$row->EOF) {
                                                                 $selected = '';
                                                                 if($PK_GIFT_CERTIFICATE_SETUP != '' && $PK_GIFT_CERTIFICATE_SETUP == $row->fields['PK_GIFT_CERTIFICATE_SETUP']){
@@ -763,7 +763,7 @@ if(!empty($_POST)){
                                                         <div class="col-md-12">
                                                             <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)" disabled>
                                                                 <?php
-                                                                $row = $db->Execute("SELECT DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_GIFT_CERTIFICATE_MASTER.CHECK_NUMBER, DOA_GIFT_CERTIFICATE_MASTER.CHECK_DATE, DOA_GIFT_CERTIFICATE_MASTER.PAYMENT_INFO FROM DOA_PAYMENT_TYPE INNER JOIN DOA_GIFT_CERTIFICATE_MASTER ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE=DOA_GIFT_CERTIFICATE_MASTER.PK_PAYMENT_TYPE WHERE DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER='$_GET[id]'");
+                                                                $row = $db->Execute("SELECT $master_database.DOA_PAYMENT_TYPE.PAYMENT_TYPE, $account_database.DOA_GIFT_CERTIFICATE_MASTER.CHECK_NUMBER, $account_database.DOA_GIFT_CERTIFICATE_MASTER.CHECK_DATE, $account_database.DOA_GIFT_CERTIFICATE_MASTER.PAYMENT_INFO FROM $master_database.DOA_PAYMENT_TYPE INNER JOIN $account_database.DOA_GIFT_CERTIFICATE_MASTER ON $master_database.DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE=$account_database.DOA_GIFT_CERTIFICATE_MASTER.PK_PAYMENT_TYPE WHERE $account_database.DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER='$_GET[id]'");
                                                                 while (!$row->EOF) { ?>
                                                                     <?php if ($row->fields['PAYMENT_TYPE'] == "Check") { ?>
                                                                     <option value=""><?=$row->fields['PAYMENT_TYPE'].' Number: '.$row->fields['CHECK_NUMBER'].', Date: '.$row->fields['CHECK_DATE']?></option>
