@@ -35,12 +35,12 @@ if(!empty($_POST)){
             $LOCATION_DATA['ACTIVE'] = 1;
             $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $LOCATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_LOCATION', $LOCATION_DATA, 'insert');
+            db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
         } else {
             $LOCATION_DATA['ACTIVE'] = $_POST['ACTIVE'];
             $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_GET[id]'");
+            db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_GET[id]'");
         }
     }
 
@@ -101,7 +101,7 @@ if(empty($_GET['id'])){
     $TRANSACTION_KEY = '';
     $AUTHORIZE_CLIENT_KEY = '';
 } else {
-    $res = $db_account->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
+    $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_locations.php");
@@ -135,7 +135,6 @@ if(empty($_GET['id'])){
 }
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
-
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
 
 ?>
@@ -238,7 +237,7 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                         </label>
                                                         <div class="col-md-12">
                                                             <div class="col-sm-12">
-                                                                <select class="form-select" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
+                                                                <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
                                                                     <option value="">Select Country</option>
                                                                     <?php
                                                                     $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
