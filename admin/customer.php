@@ -374,8 +374,6 @@ $PK_STATES = '';
 $CITY = '';
 $ZIP = '';
 $PHONE = '';
-$PK_LOCATION = '';
-$USER_TITLE = '';
 $NOTES = '';
 $PASSWORD = '';
 $ACTIVE = '';
@@ -397,7 +395,7 @@ $PARTNER_GENDER = '';
 $PARTNER_DOB = '';
 $INACTIVE_BY_ADMIN = '';
 if(!empty($_GET['id'])) {
-    $res = $db_account->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.INACTIVE_BY_ADMIN, DOA_USERS.PK_LOCATION, DOA_USERS.USER_TITLE, DOA_USERS.CREATE_LOGIN, DOA_USERS.PASSWORD, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_GET[id]'");
+    $res = $db->Execute("SELECT * FROM DOA_USERS WHERE DOA_USERS.PK_USER = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_customers.php");
@@ -420,9 +418,6 @@ if(!empty($_GET['id'])) {
     $CITY = $res->fields['CITY'];
     $ZIP = $res->fields['ZIP'];
     $PHONE = $res->fields['PHONE'];
-    $PK_LOCATION = $res->fields['PK_LOCATION'];
-    $USER_TITLE = $res->fields['USER_TITLE'];
-    $NOTES = $res->fields['NOTES'];
     $NOTES = $res->fields['NOTES'];
     $ACTIVE = $res->fields['ACTIVE'];
     $PASSWORD = $res->fields['PASSWORD'];
@@ -450,7 +445,7 @@ if(!empty($_GET['id'])) {
     }
 }
 if(!empty($_GET['master_id'])) {
-    $selected_primary_location = $db_account->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = ".$_GET['master_id']);
+    $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = ".$_GET['master_id']);
     $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
 } else {
     $primary_location='';
@@ -837,7 +832,7 @@ if(!empty($_GET['master_id'])) {
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Special Date</label>
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" placeholder="mm/dd" class="form-control" name="CUSTOMER_SPECIAL_DATE[]" value="<?=$customer_special_date->fields['SPECIAL_DATE']?>">
+                                                                                    <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="CUSTOMER_SPECIAL_DATE[]" value="<?=$customer_special_date->fields['SPECIAL_DATE']?>">
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -860,7 +855,7 @@ if(!empty($_GET['master_id'])) {
                                                                         <div class="form-group">
                                                                             <label class="form-label">Special Date</label>
                                                                             <div class="col-md-12">
-                                                                                <input type="text" placeholder="mm/dd" class="form-control" name="CUSTOMER_SPECIAL_DATE[]">
+                                                                                <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="CUSTOMER_SPECIAL_DATE[]">
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -1180,7 +1175,7 @@ if(!empty($_GET['master_id'])) {
                                                                                         <div class="form-group">
                                                                                             <label class="form-label">Special Date</label>
                                                                                             <div class="col-md-12">
-                                                                                                <input type="text" placeholder="mm/dd" class="form-control" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]" value="<?=$family_special_date->fields['SPECIAL_DATE']?>">
+                                                                                                <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]" value="<?=$family_special_date->fields['SPECIAL_DATE']?>">
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
@@ -1203,7 +1198,7 @@ if(!empty($_GET['master_id'])) {
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Special Date</label>
                                                                                         <div class="col-md-12">
-                                                                                            <input type="text" placeholder="mm/dd" class="form-control" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]">
+                                                                                            <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]">
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -1323,7 +1318,7 @@ if(!empty($_GET['master_id'])) {
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Special Date</label>
                                                                                         <div class="col-md-12">
-                                                                                            <input type="text" placeholder="mm/dd" class="form-control" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]" value="<?=$customer_special_date->fields['SPECIAL_DATE']?>">
+                                                                                            <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]" value="<?=$customer_special_date->fields['SPECIAL_DATE']?>">
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -1346,7 +1341,7 @@ if(!empty($_GET['master_id'])) {
                                                                                 <div class="form-group">
                                                                                     <label class="form-label">Special Date</label>
                                                                                     <div class="col-md-12">
-                                                                                        <input type="text" placeholder="mm/dd" class="form-control" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]">
+                                                                                        <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="FAMILY_SPECIAL_DATE[<?=$family_member_count?>][]">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -2355,7 +2350,7 @@ if(!empty($_GET['master_id'])) {
                                                         <div class="form-group">
                                                             <label class="form-label">Special Date</label>
                                                             <div class="col-md-12">
-                                                                <input type="text" placeholder="mm/dd" class="form-control" name="CUSTOMER_SPECIAL_DATE[]">
+                                                                <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="CUSTOMER_SPECIAL_DATE[]">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -2469,7 +2464,7 @@ if(!empty($_GET['master_id'])) {
                                                                     <div class="form-group">
                                                                         <label class="form-label">Special Date</label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" placeholder="mm/dd" class="form-control" name="FAMILY_SPECIAL_DATE[${family_special_day_count}][]">
+                                                                            <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="FAMILY_SPECIAL_DATE[${family_special_day_count}][]">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -2498,7 +2493,7 @@ if(!empty($_GET['master_id'])) {
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Special Date</label>
                                                                                         <div class="col-md-12">
-                                                                                            <input type="text" placeholder="mm/dd" class="form-control" name="FAMILY_SPECIAL_DATE[${data_counter}][]">
+                                                                                            <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="FAMILY_SPECIAL_DATE[${data_counter}][]">
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>

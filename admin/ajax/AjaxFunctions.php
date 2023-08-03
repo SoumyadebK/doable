@@ -697,6 +697,7 @@ function saveFamilyData($RESPONSE_DATA)
 {
     global $db;
     global $db_account;
+
     if (!empty($RESPONSE_DATA['FAMILY_FIRST_NAME']) && $RESPONSE_DATA['PK_CUSTOMER_DETAILS'] > 0) {
         $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_CUSTOMER_PRIMARY` = ".$RESPONSE_DATA['PK_CUSTOMER_DETAILS']);
         for ($i = 0; $i < count($RESPONSE_DATA['FAMILY_FIRST_NAME']); $i++) {
@@ -712,10 +713,10 @@ function saveFamilyData($RESPONSE_DATA)
                 $FAMILY_DATA['GENDER'] = $RESPONSE_DATA['FAMILY_GENDER'][$i];
                 $FAMILY_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['FAMILY_DOB'][$i]));
                 db_perform_account('DOA_CUSTOMER_DETAILS', $FAMILY_DATA, 'insert');
-                $PK_CUSTOMER_DETAILS = $db->insert_ID();
+                $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
 
                 if (isset($RESPONSE_DATA['FAMILY_SPECIAL_DATE'][$i])) {
-                    $db->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+                    $db_account->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
                     for ($j = 0; $j < count($RESPONSE_DATA['FAMILY_SPECIAL_DATE'][$i]); $j++) {
                         $FAMILY_SPECIAL_DATE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                         $FAMILY_SPECIAL_DATE['SPECIAL_DATE'] = $RESPONSE_DATA['FAMILY_SPECIAL_DATE'][$i][$j];
@@ -732,8 +733,9 @@ function saveInterestData($RESPONSE_DATA)
 {
     global $db;
     global $db_account;
+
     if (isset($RESPONSE_DATA['PK_INTERESTS'])){
-        $res = $db_account->Execute("DELETE FROM `DOA_CUSTOMER_INTEREST` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
+        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_INTEREST` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
         for($i = 0; $i < count($RESPONSE_DATA['PK_INTERESTS']); $i++){
             $USER_INTEREST_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
             $USER_INTEREST_DATA['PK_INTERESTS'] = $RESPONSE_DATA['PK_INTERESTS'][$i];
@@ -762,8 +764,9 @@ function saveInterestData($RESPONSE_DATA)
 function saveDocumentData($RESPONSE_DATA)
 {
     global $db;
+    global $db_account;
     if (isset($RESPONSE_DATA['DOCUMENT_NAME'])){
-        $db->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
+        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
         for($i = 0; $i < count($RESPONSE_DATA['DOCUMENT_NAME']); $i++){
             $USER_DOCUMENT_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
             $USER_DOCUMENT_DATA['DOCUMENT_NAME'] = $RESPONSE_DATA['DOCUMENT_NAME'][$i];
@@ -781,7 +784,7 @@ function saveDocumentData($RESPONSE_DATA)
             } else {
                 $USER_DOCUMENT_DATA['FILE_PATH'] = $RESPONSE_DATA['FILE_PATH_URL'][$i];
             }
-            db_perform('DOA_CUSTOMER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
+            db_perform_account('DOA_CUSTOMER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
         }
     }
 }
@@ -789,8 +792,9 @@ function saveDocumentData($RESPONSE_DATA)
 function saveUserDocumentData($RESPONSE_DATA)
 {
     global $db;
+    global $db_account;
     if (isset($RESPONSE_DATA['DOCUMENT_NAME'])){
-        $db->Execute("DELETE FROM `DOA_USER_DOCUMENT` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
+        $db_account->Execute("DELETE FROM `DOA_USER_DOCUMENT` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
         for($i = 0; $i < count($RESPONSE_DATA['DOCUMENT_NAME']); $i++){
             $USER_DOCUMENT_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
             $USER_DOCUMENT_DATA['DOCUMENT_NAME'] = $RESPONSE_DATA['DOCUMENT_NAME'][$i];
@@ -808,7 +812,7 @@ function saveUserDocumentData($RESPONSE_DATA)
             } else {
                 $USER_DOCUMENT_DATA['FILE_PATH'] = $RESPONSE_DATA['FILE_PATH_URL'][$i];
             }
-            db_perform('DOA_USER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
+            db_perform_account('DOA_USER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
         }
     }
 }
@@ -817,15 +821,16 @@ function saveUserDocumentData($RESPONSE_DATA)
 
 function saveEngagementData($RESPONSE_DATA){
     global $db;
+    global $db_account;
     $USER_RATE_ACTIVE['ACTIVE'] = 0;
-    db_perform('DOA_USER_RATE', $USER_RATE_ACTIVE, 'update', " PK_USER = '$RESPONSE_DATA[PK_USER]'");
+    db_perform_account('DOA_USER_RATE', $USER_RATE_ACTIVE, 'update', " PK_USER = '$RESPONSE_DATA[PK_USER]'");
     $PK_RATE_TYPE = $RESPONSE_DATA['PK_RATE_TYPE'];
     $PK_RATE_TYPE_ACTIVE = $RESPONSE_DATA['PK_RATE_TYPE_ACTIVE'];
     $RATE = $RESPONSE_DATA['RATE'];
     for ($i = 0; $i < count($PK_RATE_TYPE); $i++) {
         if (isset($PK_RATE_TYPE[$i])) {
             $USER_RATE_DATA = [];
-            $res = $db->Execute("SELECT * FROM `DOA_USER_RATE` WHERE PK_RATE_TYPE = '$PK_RATE_TYPE[$i]' AND PK_USER = '$RESPONSE_DATA[PK_USER]'");
+            $res = $db_account->Execute("SELECT * FROM `DOA_USER_RATE` WHERE PK_RATE_TYPE = '$PK_RATE_TYPE[$i]' AND PK_USER = '$RESPONSE_DATA[PK_USER]'");
             if ($res->RecordCount() == 0) {
                 $USER_RATE_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
                 $USER_RATE_DATA['PK_RATE_TYPE'] = $PK_RATE_TYPE[$i];
@@ -833,13 +838,13 @@ function saveEngagementData($RESPONSE_DATA){
                 $USER_RATE_DATA['ACTIVE'] = isset($PK_RATE_TYPE_ACTIVE[$i])?1:0;
                 $USER_RATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $USER_RATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_USER_RATE', $USER_RATE_DATA, 'insert');
+                db_perform_account('DOA_USER_RATE', $USER_RATE_DATA, 'insert');
             } else {
                 $USER_RATE_DATA['RATE'] = $RATE[$i];
                 $USER_RATE_DATA['ACTIVE'] = isset($PK_RATE_TYPE_ACTIVE[$i])?1:0;
                 $USER_RATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
                 $USER_RATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_USER_RATE', $USER_RATE_DATA, 'update', " PK_RATE_TYPE = '$PK_RATE_TYPE[$i]' AND PK_USER = '$RESPONSE_DATA[PK_USER]'");
+                db_perform_account('DOA_USER_RATE', $USER_RATE_DATA, 'update', " PK_RATE_TYPE = '$PK_RATE_TYPE[$i]' AND PK_USER = '$RESPONSE_DATA[PK_USER]'");
             }
         }
     }
@@ -847,7 +852,7 @@ function saveEngagementData($RESPONSE_DATA){
     $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
     $COMMISSION_AMOUNT = $RESPONSE_DATA['COMMISSION_AMOUNT'];
     if (count($PK_SERVICE_MASTER) > 0){
-        $db->Execute("DELETE FROM `DOA_SERVICE_COMMISSION` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
+        $db_account->Execute("DELETE FROM `DOA_SERVICE_COMMISSION` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
         for ($i = 0; $i < count($PK_SERVICE_MASTER); $i++){
             $CODE_COMMISSION_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
             $CODE_COMMISSION_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER[$i];
@@ -855,7 +860,7 @@ function saveEngagementData($RESPONSE_DATA){
             $CODE_COMMISSION_DATA['ACTIVE'] = 1;
             $CODE_COMMISSION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $CODE_COMMISSION_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_SERVICE_COMMISSION', $CODE_COMMISSION_DATA, 'insert');
+            db_perform_account('DOA_SERVICE_COMMISSION', $CODE_COMMISSION_DATA, 'insert');
         }
     }
 }
@@ -863,6 +868,7 @@ function saveEngagementData($RESPONSE_DATA){
 function saveServiceData($RESPONSE_DATA){
     //pre_r($RESPONSE_DATA);
     global $db;
+    global $db_account;
     $TYPE = $RESPONSE_DATA['TYPE'];
     unset($RESPONSE_DATA['TYPE']);
     $RESPONSE_DATA['PK_SERVICE_MASTER'] = implode(',', $RESPONSE_DATA['PK_SERVICE_MASTER']);
@@ -880,11 +886,11 @@ function saveServiceData($RESPONSE_DATA){
     $RESPONSE_DATA['SAT_END_TIME'] = ($RESPONSE_DATA['SAT_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['SAT_END_TIME'])):'';
     $RESPONSE_DATA['SUN_START_TIME'] = ($RESPONSE_DATA['SUN_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['SUN_START_TIME'])):'';
     $RESPONSE_DATA['SUN_END_TIME'] = ($RESPONSE_DATA['SUN_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['SUN_END_TIME'])):'';
-    $res = $db->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_SERVICES` WHERE PK_USER = '$RESPONSE_DATA[PK_USER]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_SERVICES` WHERE PK_USER = '$RESPONSE_DATA[PK_USER]'");
     if ($res->RecordCount() == 0) {
-        db_perform('DOA_SERVICE_PROVIDER_SERVICES', $RESPONSE_DATA, 'insert');
+        db_perform_account('DOA_SERVICE_PROVIDER_SERVICES', $RESPONSE_DATA, 'insert');
     }else{
-        db_perform('DOA_SERVICE_PROVIDER_SERVICES', $RESPONSE_DATA, 'update', " PK_USER = $RESPONSE_DATA[PK_USER]");
+        db_perform_account('DOA_SERVICE_PROVIDER_SERVICES', $RESPONSE_DATA, 'update', " PK_USER = $RESPONSE_DATA[PK_USER]");
     }
 }
 
@@ -1312,6 +1318,7 @@ function saveCommentData($RESPONSE_DATA){
 
 function deleteCommentData($RESPONSE_DATA) {
     global $db;
+    global $db_account;
     $PK_COMMENT = $RESPONSE_DATA['PK_COMMENT'];
     $comment_data = $db_account->Execute("DELETE FROM `DOA_COMMENT` WHERE `PK_COMMENT` = ".$PK_COMMENT);
     echo 1;

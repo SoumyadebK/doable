@@ -16,7 +16,7 @@ if(!empty($_GET['customer_id'])) {
     $PK_USER_MASTER = $_GET['customer_id'];
 }
 
-$package = $db->Execute("SELECT IS_PACKAGE FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+$package = $db_account->Execute("SELECT IS_PACKAGE FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
 $IS_PACKAGE = $package->fields['IS_PACKAGE'];
 
 $PK_LOCATION = '';
@@ -49,7 +49,7 @@ $CHECK_DATE = '';
 $NOTE = '';
 
 if(!empty($_GET['id'])) {
-    $res = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_enrollments.php");
@@ -64,7 +64,7 @@ if(!empty($_GET['id'])) {
     $ENROLLMENT_BY_ID = $res->fields['ENROLLMENT_BY_ID'];
     $ACTIVE = $res->fields['ACTIVE'];
 
-    $billing_data = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
+    $billing_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
 
     if($billing_data->RecordCount() > 0){
         $PK_ENROLLMENT_BILLING = $billing_data->fields['PK_ENROLLMENT_BILLING'];
@@ -79,7 +79,7 @@ if(!empty($_GET['id'])) {
         $INSTALLMENT_AMOUNT = $billing_data->fields['INSTALLMENT_AMOUNT'];
     }
 
-    $payment_data = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_PAYMENT` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
+    $payment_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_PAYMENT` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
 
     if($payment_data->RecordCount() > 0){
         $PK_ENROLLMENT_PAYMENT = $payment_data->fields['PK_ENROLLMENT_PAYMENT'];
