@@ -29,18 +29,18 @@ if(!empty($_POST)){
         $EVENT_DATA['ACTIVE'] = 1;
         $EVENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $EVENT_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_EVENT', $EVENT_DATA, 'insert');
+        db_perform_account('DOA_EVENT', $EVENT_DATA, 'insert');
         $PK_EVENT = $db->insert_ID();
     }else{
         $EVENT_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $EVENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $EVENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_EVENT', $EVENT_DATA, 'update'," PK_EVENT =  '$_GET[id]'");
+        db_perform_account('DOA_EVENT', $EVENT_DATA, 'update'," PK_EVENT =  '$_GET[id]'");
         $PK_EVENT = $_GET['id'];
     }
 
     if (isset($_FILES['IMAGE']['name'])){
-        $db->Execute("DELETE FROM `DOA_EVENT_IMAGE` WHERE `PK_EVENT` = '$PK_EVENT'");
+        $db_account->Execute("DELETE FROM `DOA_EVENT_IMAGE` WHERE `PK_EVENT` = '$PK_EVENT'");
         for($i = 0; $i < count($_FILES['IMAGE']['name']); $i++){
             $EVENT_IMAGE_DATA['PK_EVENT'] = $PK_EVENT;
             if(!empty($_FILES['IMAGE']['name'][$i])){
@@ -81,7 +81,7 @@ if(empty($_GET['id'])){
     $SHARE_WITH_EMPLOYEES = '';
     $ACTIVE = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_EVENT` WHERE `PK_EVENT` = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_EVENT` WHERE `PK_EVENT` = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_events.php");
@@ -158,7 +158,7 @@ if(empty($_GET['id'])){
                                                     <select class="form-control" name="PK_EVENT_TYPE" id="PK_EVENT_TYPE">
                                                         <option value="">Select Event Type</option>
                                                         <?php
-                                                        $row = $db->Execute("SELECT * FROM `DOA_EVENT_TYPE` WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." AND `ACTIVE` = 1");
+                                                        $row = $db_account->Execute("SELECT * FROM `DOA_EVENT_TYPE` WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." AND `ACTIVE` = 1");
                                                         while (!$row->EOF) {?>
                                                             <option value="<?php echo $row->fields['PK_EVENT_TYPE'];?>" <?=($PK_EVENT_TYPE==$row->fields['PK_EVENT_TYPE'])?'selected':''?>><?=$row->fields['EVENT_TYPE']?></option>
                                                         <?php $row->MoveNext(); } ?>
@@ -202,7 +202,7 @@ if(empty($_GET['id'])){
                                                 <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
                                                     <select class="multi_sumo_select" name="PK_LOCATION[]" multiple>
                                                         <?php
-                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                        $row = $db_account->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                         while (!$row->EOF) { ?>
                                                             <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], explode(',', $PK_LOCATION))?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
                                                         <?php $row->MoveNext(); } ?>

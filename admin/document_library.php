@@ -20,12 +20,12 @@ if(!empty($_POST)){
         $ONBOARDING_DOCUMENT['ACTIVE'] = 1;
         $ONBOARDING_DOCUMENT['CREATED_BY']  = $_SESSION['PK_USER'];
         $ONBOARDING_DOCUMENT['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_DOCUMENT_LIBRARY', $ONBOARDING_DOCUMENT, 'insert');
+        db_perform_account('DOA_DOCUMENT_LIBRARY', $ONBOARDING_DOCUMENT, 'insert');
     }else{
         $ONBOARDING_DOCUMENT['ACTIVE'] = $_POST['ACTIVE'];
         $ONBOARDING_DOCUMENT['EDITED_BY']	= $_SESSION['PK_USER'];
         $ONBOARDING_DOCUMENT['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_DOCUMENT_LIBRARY', $ONBOARDING_DOCUMENT, 'update'," PK_DOCUMENT_LIBRARY =  '$_GET[id]'");
+        db_perform_account('DOA_DOCUMENT_LIBRARY', $ONBOARDING_DOCUMENT, 'update'," PK_DOCUMENT_LIBRARY =  '$_GET[id]'");
     }
     header("location:all_document_library.php");
 }
@@ -39,7 +39,7 @@ if(empty($_GET['id'])){
     $DOCUMENT_TEMPLATE = '';
     $ACTIVE = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_document_library.php");
@@ -122,7 +122,7 @@ if(empty($_GET['id'])){
                                     <div class="col-md-9" style="margin-bottom: 15px;">
                                         <select name="PK_LOCATION[]" id="PK_LOCATION" multiple>
                                             <?php
-                                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                            $row = $db_account->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                             while (!$row->EOF) { ?>
                                                 <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], explode(',', $PK_LOCATION))?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
                                                 <?php $row->MoveNext(); } ?>

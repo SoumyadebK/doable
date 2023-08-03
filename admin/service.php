@@ -13,7 +13,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if(!empty($_POST)){
     if (isset($_POST['PK_LOCATION'])){
-        $res = $db->Execute("DELETE FROM `DOA_SERVICE_DOCUMENTS` WHERE PK_SERVICE_MASTER =  '$_GET[id]'");
+        $res = $db_account->Execute("DELETE FROM `DOA_SERVICE_DOCUMENTS` WHERE PK_SERVICE_MASTER =  '$_GET[id]'");
         for($i = 0; $i < count($_POST['PK_LOCATION']); $i++){
             $SERVICE_DOCUMENT_DATA['PK_SERVICE_MASTER'] = $_GET['id'];
             $SERVICE_DOCUMENT_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'][$i];
@@ -39,7 +39,7 @@ if(!empty($_POST)){
                 $SERVICE_DOCUMENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
                 $SERVICE_DOCUMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
             }
-            db_perform('DOA_SERVICE_DOCUMENTS', $SERVICE_DOCUMENT_DATA, 'insert');
+            db_perform_account('DOA_SERVICE_DOCUMENTS', $SERVICE_DOCUMENT_DATA, 'insert');
         }
     }
     header("location:all_services.php");
@@ -53,7 +53,7 @@ if(empty($_GET['id'])){
     $ACTIVE = '';
     $IS_PACKAGE = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_services.php");
@@ -243,7 +243,7 @@ if(empty($_GET['id'])){
 
                                                 <?php
                                                 if(!empty($_GET['id'])) { $i = 0;
-                                                $row = $db->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = '$_GET[id]'");
+                                                $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = '$_GET[id]'");
                                                 while (!$row->EOF) { ?>
                                                     <input type="hidden" name="ALL_PK_SERVICE_CODE[]" value="<?=$row->fields['PK_SERVICE_CODE']?>">
                                                     <div class="row align-items-end">
@@ -264,13 +264,13 @@ if(empty($_GET['id'])){
                                                                     <?php
                                                                     $selected_booking_code = [];
                                                                     if(!empty($_GET['id'])) {
-                                                                        $selected_booking_code_row = $db->Execute("SELECT `PK_SCHEDULING_CODE` FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_CODE` = ".$row->fields['PK_SERVICE_CODE']);
+                                                                        $selected_booking_code_row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE` FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_CODE` = ".$row->fields['PK_SERVICE_CODE']);
                                                                         while (!$selected_booking_code_row->EOF) {
                                                                             $selected_booking_code[] = $selected_booking_code_row->fields['PK_SCHEDULING_CODE'];
                                                                             $selected_booking_code_row->MoveNext();
                                                                         }
                                                                     }
-                                                                    $booking_row = $db->Execute("SELECT PK_SCHEDULING_CODE, SCHEDULING_NAME FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                    $booking_row = $db_account->Execute("SELECT PK_SCHEDULING_CODE, SCHEDULING_NAME FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                                     while (!$booking_row->EOF) { ?>
                                                                         <option value="<?php echo $booking_row->fields['PK_SCHEDULING_CODE'];?>" <?=in_array($booking_row->fields['PK_SCHEDULING_CODE'], $selected_booking_code)?"selected":""?>><?=$booking_row->fields['SCHEDULING_NAME']?></option>
                                                                     <?php $booking_row->MoveNext(); } ?>
@@ -360,7 +360,7 @@ if(empty($_GET['id'])){
                                                             <div class="form-group multiselect-box">
                                                                 <select class="multi_sumo_select PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[0][]" multiple>
                                                                     <?php
-                                                                    $booking_code = $db->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
+                                                                    $booking_code = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
                                                                     while (!$booking_code->EOF) { ?>
                                                                         <option value="<?php echo $booking_code->fields['PK_SCHEDULING_CODE'];?>"><?=$booking_code->fields['SCHEDULING_NAME']?></option>
                                                                     <?php $booking_code->MoveNext(); } ?>
@@ -477,7 +477,7 @@ if(empty($_GET['id'])){
                                             <div class="card-body" id="append_service_document">
                                                 <?php
                                                 if(!empty($_GET['id'])) {
-                                                    $service_document = $db->Execute("SELECT * FROM DOA_SERVICE_DOCUMENTS WHERE PK_SERVICE_MASTER = '$_GET[id]'");
+                                                    $service_document = $db_account->Execute("SELECT * FROM DOA_SERVICE_DOCUMENTS WHERE PK_SERVICE_MASTER = '$_GET[id]'");
                                                     while (!$service_document->EOF) { ?>
                                                         <div class="row">
                                                             <div class="col-5">
@@ -486,7 +486,7 @@ if(empty($_GET['id'])){
                                                                     <select class="form-control PK_LOCATION" name="PK_LOCATION[]">
                                                                         <option>Select Location</option>
                                                                         <?php
-                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
+                                                                        $row = $db_account->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
                                                                         while (!$row->EOF) { ?>
                                                                             <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($service_document->fields['PK_LOCATION'] == $row->fields['PK_LOCATION'])?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
                                                                             <?php $row->MoveNext(); } ?>
@@ -516,7 +516,7 @@ if(empty($_GET['id'])){
                                                                 <select class="form-control PK_LOCATION" name="PK_LOCATION[]">
                                                                     <option>Select Location</option>
                                                                     <?php
-                                                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
+                                                                    $row = $db_account->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
                                                                     while (!$row->EOF) { ?>
                                                                         <option value="<?php echo $row->fields['PK_LOCATION'];?>"><?=$row->fields['LOCATION_NAME']?></option>
                                                                         <?php $row->MoveNext(); } ?>
@@ -597,7 +597,7 @@ if(empty($_GET['id'])){
                                                             <div class="form-group multiselect-box">
                                                                 <select class="multi_sumo_select PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[${counter}][]" multiple>
                                                                     <?php
-                                                                        $booking_code = $db->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
+                                                                        $booking_code = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
                                                                         while (!$booking_code->EOF) { ?>
                                                                         <option value="<?php echo $booking_code->fields['PK_SCHEDULING_CODE'];?>"><?=$booking_code->fields['SCHEDULING_NAME']?></option>
                                                                         <?php $booking_code->MoveNext(); } ?>
@@ -697,7 +697,7 @@ if(empty($_GET['id'])){
                                                         <select class="form-control PK_LOCATION" name="PK_LOCATION[]">
                                                             <option>Select Location</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
+                                                            $row = $db_account->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
                                                             while (!$row->EOF) { ?>
                                                                 <option value="<?php echo $row->fields['PK_LOCATION'];?>"><?=$row->fields['LOCATION_NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>

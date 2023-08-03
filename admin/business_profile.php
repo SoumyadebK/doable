@@ -46,23 +46,23 @@ if(!empty($_POST)){
         $ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
 
-        $email = $db->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        $email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
         if ($email->RecordCount() == 0) {
-            db_perform('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'insert');
+            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'insert');
         } else {
-            db_perform('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
+            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
         }
 
     }
 
     if ($_POST['FUNCTION_NAME'] == 'saveHolidayData') {
         unset($_POST['FUNCTION_NAME']);
-        $db->Execute("DELETE FROM `DOA_HOLIDAY_LIST` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        $db_account->Execute("DELETE FROM `DOA_HOLIDAY_LIST` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
         for ($i=0; $i < count($_POST['HOLIDAY_DATE']); $i++) {
             $HOLIDAY_LIST_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
             $HOLIDAY_LIST_DATA['HOLIDAY_DATE'] = date('Y-m-d', strtotime($_POST['HOLIDAY_DATE'][$i]));
             $HOLIDAY_LIST_DATA['HOLIDAY_NAME'] = $_POST['HOLIDAY_NAME'][$i];
-            db_perform('DOA_HOLIDAY_LIST', $HOLIDAY_LIST_DATA, 'insert');
+            db_perform_account('DOA_HOLIDAY_LIST', $HOLIDAY_LIST_DATA, 'insert');
         }
     }
 
@@ -111,7 +111,7 @@ $SMTP_HOST = '';
 $SMTP_PORT = '';
 $SMTP_USERNAME = '';
 $SMTP_PASSWORD = '';
-$email = $db->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 if ($email->RecordCount() > 0) {
     $SMTP_HOST = $email->fields['HOST'];
     $SMTP_PORT = $email->fields['PORT'];
@@ -551,7 +551,7 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                 </div>
                                             </div>
                                             <?php
-                                            $holiday_list = $db->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                            $holiday_list = $db_account->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                             if($holiday_list->RecordCount() > 0) {
                                                 while (!$holiday_list->EOF) { ?>
                                                 <div class="row">
