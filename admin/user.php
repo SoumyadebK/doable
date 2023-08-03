@@ -771,7 +771,7 @@ if(!empty($_GET['id'])) {
                                                                 <?php
                                                                 $i = 0;
                                                                 if(!empty($_GET['id'])) {
-                                                                    $row = $db->Execute("SELECT DOA_RATE_TYPE.PK_RATE_TYPE, DOA_RATE_TYPE.RATE_NAME, DOA_RATE_TYPE.PRICE_TYPE, DOA_USER_RATE.RATE, DOA_USER_RATE.ACTIVE FROM DOA_RATE_TYPE LEFT JOIN DOA_USER_RATE ON DOA_RATE_TYPE.PK_RATE_TYPE = DOA_USER_RATE.PK_RATE_TYPE WHERE DOA_RATE_TYPE.ACTIVE = 1 AND DOA_USER_RATE.PK_USER = '$_GET[id]' ORDER BY DOA_RATE_TYPE.PK_RATE_TYPE ASC");
+                                                                    $row = $db->Execute("SELECT $master_database.DOA_RATE_TYPE.PK_RATE_TYPE, $master_database.DOA_RATE_TYPE.RATE_NAME, $master_database.DOA_RATE_TYPE.PRICE_TYPE, $master_database.DOA_USER_RATE.RATE, $master_database.DOA_USER_RATE.ACTIVE FROM $master_database.DOA_RATE_TYPE LEFT JOIN $account_database.DOA_USER_RATE ON $master_database.DOA_RATE_TYPE.PK_RATE_TYPE = $account_database.DOA_USER_RATE.PK_RATE_TYPE WHERE $master_database.DOA_RATE_TYPE.ACTIVE = 1 AND $account_database.DOA_USER_RATE.PK_USER = '$_GET[id]' ORDER BY $master_database.DOA_RATE_TYPE.PK_RATE_TYPE ASC");
                                                                     while (!$row->EOF) { ?>
                                                                         <div class="col-12">
                                                                             <div class="row form-group" style="margin-bottom: 10px;">
@@ -1495,7 +1495,7 @@ if(!empty($_GET['id'])) {
                                                             <select class="form-control" name="PK_SERVICE_MASTER[]">
                                                                 <option value="">Select Service</option>
                                                                 <?php
-            $row = $db->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+            $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
             while (!$row->EOF) { ?>
                                                                     <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>"><?=$row->fields['SERVICE_NAME']?></option>
                                                                 <?php $row->MoveNext(); } ?>
@@ -1629,7 +1629,7 @@ if(!empty($_GET['id'])) {
                 processData: false,
                 contentType: false,
                 success:function (data) {
-                    window.location.href=`service_provider.php?id=${PK_USER}&on_tab=comments`;
+                    window.location.href=`user.php?id=${PK_USER}&on_tab=comments`;
                 }
             });
         });
@@ -1642,7 +1642,7 @@ if(!empty($_GET['id'])) {
                     type: 'POST',
                     data: {FUNCTION_NAME: 'deleteCommentData', PK_COMMENT: PK_COMMENT},
                     success: function (data) {
-                        window.location.href=`service_provider.php?id=${PK_USER}&on_tab=comments`;
+                        window.location.href=`user.php?id=${PK_USER}&on_tab=comments`;
                     }
                 });
             }
