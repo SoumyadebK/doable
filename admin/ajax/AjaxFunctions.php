@@ -78,6 +78,7 @@ function saveServiceCodeData($RESPONSE_DATA){
 function saveEnrollmentData($RESPONSE_DATA){
     error_reporting(0);
     global $db;
+    global $db_account;
     $ENROLLMENT_MASTER_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     $ENROLLMENT_MASTER_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
     $ENROLLMENT_MASTER_DATA['PK_LOCATION'] = $RESPONSE_DATA['PK_LOCATION'];
@@ -85,8 +86,8 @@ function saveEnrollmentData($RESPONSE_DATA){
     $ENROLLMENT_MASTER_DATA['PK_DOCUMENT_LIBRARY'] = $RESPONSE_DATA['PK_DOCUMENT_LIBRARY'];
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_ID'] = $RESPONSE_DATA['ENROLLMENT_BY_ID'];
 
-    $document_library_data = $db->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = '$RESPONSE_DATA[PK_DOCUMENT_LIBRARY]'");
-    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.ZIP FROM DOA_USERS INNER JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']);
+    $document_library_data = $db_account->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = '$RESPONSE_DATA[PK_DOCUMENT_LIBRARY]'");
+    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']);
     $html_template = $document_library_data->fields['DOCUMENT_TEMPLATE'];
     $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template);
     $html_template = str_replace('{STREET_ADD}', $user_data->fields['ADDRESS'], $html_template);
@@ -97,7 +98,7 @@ function saveEnrollmentData($RESPONSE_DATA){
 
     if(empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER'])){
         $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-        $enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]' ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+        $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]' ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
         if ($enrollment_data->RecordCount() > 0){
             $last_enrollment_id = str_replace($account_data->fields['ENROLLMENT_ID_CHAR'], '', $enrollment_data->fields['ENROLLMENT_ID']) ;
             $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR'].(intval($last_enrollment_id)+1);
@@ -107,7 +108,7 @@ function saveEnrollmentData($RESPONSE_DATA){
         $ENROLLMENT_MASTER_DATA['ACTIVE'] = 1;
         $ENROLLMENT_MASTER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $ENROLLMENT_MASTER_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'insert');
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'insert');
         $PK_ENROLLMENT_MASTER = $db->insert_ID();
         createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER,'DOA_ENROLLMENT_MASTER', 'PK_ENROLLMENT_MASTER', $PK_ENROLLMENT_MASTER, $ENROLLMENT_MASTER_DATA, 'insert');
     }else{
@@ -115,13 +116,13 @@ function saveEnrollmentData($RESPONSE_DATA){
         $ENROLLMENT_MASTER_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $ENROLLMENT_MASTER_DATA['EDITED_ON'] = date("Y-m-d H:i");
         createUpdateHistory('enrollment', $RESPONSE_DATA['PK_ENROLLMENT_MASTER'],'DOA_ENROLLMENT_MASTER', 'PK_ENROLLMENT_MASTER', $RESPONSE_DATA['PK_ENROLLMENT_MASTER'], $ENROLLMENT_MASTER_DATA, 'update');
-        db_perform('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
         $PK_ENROLLMENT_MASTER = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
     }
 
     $total = 0;
     if (isset($RESPONSE_DATA['PK_SERVICE_MASTER']) && count($RESPONSE_DATA['PK_SERVICE_MASTER']) > 0){
-        $db->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+        $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
         /*if ($RESPONSE_DATA['IS_PACKAGE'] == 1 ) {
             for ($i = 0; $i < count($RESPONSE_DATA['PK_SERVICE_CODE']); $i++) {
                 if (!empty($RESPONSE_DATA['PK_SERVICE_CODE'][$i])) {
@@ -150,7 +151,7 @@ function saveEnrollmentData($RESPONSE_DATA){
                 $ENROLLMENT_SERVICE_DATA['NUMBER_OF_SESSION'] = $RESPONSE_DATA['NUMBER_OF_SESSION'][$i];
                 $ENROLLMENT_SERVICE_DATA['PRICE_PER_SESSION'] = $RESPONSE_DATA['PRICE_PER_SESSION'][$i];
                 $ENROLLMENT_SERVICE_DATA['TOTAL'] = $RESPONSE_DATA['TOTAL'][$i];
-                db_perform('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'insert');
+                db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'insert');
                 $PK_ENROLLMENT_SERVICE = $db->insert_ID();
                 createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER, 'DOA_ENROLLMENT_SERVICE', 'PK_ENROLLMENT_SERVICE', $PK_ENROLLMENT_SERVICE, $ENROLLMENT_SERVICE_DATA, 'insert');
                 $total += $RESPONSE_DATA['TOTAL'][$i];
@@ -192,7 +193,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         $ENROLLMENT_SERVICE_DATA['DISCOUNT'] = $RESPONSE_DATA['DISCOUNT'][$i];
         $ENROLLMENT_SERVICE_DATA['DISCOUNT_TYPE'] = $RESPONSE_DATA['DISCOUNT_TYPE'][$i];
         $ENROLLMENT_SERVICE_DATA['FINAL_AMOUNT'] = $RESPONSE_DATA['FINAL_AMOUNT'][$i];
-        db_perform('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'update', " PK_ENROLLMENT_SERVICE =  '$PK_ENROLLMENT_SERVICE[$i]'");
+        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'update', " PK_ENROLLMENT_SERVICE =  '$PK_ENROLLMENT_SERVICE[$i]'");
     }
     if(empty($RESPONSE_DATA['PK_ENROLLMENT_BILLING'])){
         $ENROLLMENT_BILLING_DATA['PK_ENROLLMENT_MASTER'] = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
@@ -212,7 +213,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
             $ENROLLMENT_BILLING_DATA['INSTALLMENT_AMOUNT'] = $RESPONSE_DATA['INSTALLMENT_AMOUNT'];
         }
 
-        db_perform('DOA_ENROLLMENT_BILLING', $ENROLLMENT_BILLING_DATA, 'insert');
+        db_perform_account('DOA_ENROLLMENT_BILLING', $ENROLLMENT_BILLING_DATA, 'insert');
         $PK_ENROLLMENT_BILLING = $db->insert_ID();
         if ($RESPONSE_DATA['PK_SERVICE_CLASS'] == 1){
             $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
@@ -224,7 +225,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
             $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['MEMBERSHIP_PAYMENT_DATE']));
             $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
             $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['MEMBERSHIP_PAYMENT_AMOUNT'];
-            db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
             $PK_ENROLLMENT_LEDGER = $db->insert_ID();
         }else {
             for ($i = 0; $i < count($PK_ENROLLMENT_SERVICE); $i++) {
@@ -232,7 +233,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                 $SESSION_MASTER_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
                 $SESSION_MASTER_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE[$i];
                 $SESSION_MASTER_DATA['SESSION_STATUS'] = 'Purchased';
-                db_perform('DOA_SESSION_MASTER', $SESSION_MASTER_DATA, 'insert');
+                db_perform_account('DOA_SESSION_MASTER', $SESSION_MASTER_DATA, 'insert');
             }
 
             $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
@@ -246,14 +247,14 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                 $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
                 $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
                 $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
-                db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+                db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
                 $PK_ENROLLMENT_LEDGER = $db->insert_ID();
             } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Payment Plans') {
                 if ($RESPONSE_DATA['DOWN_PAYMENT'] > 0) {
                     $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
                     $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
                     $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['DOWN_PAYMENT'];
-                    db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+                    db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
                     $PK_ENROLLMENT_LEDGER = $db->insert_ID();
                 }
                 $BALANCE = $RESPONSE_DATA['DOWN_PAYMENT'];
@@ -266,7 +267,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                     $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['INSTALLMENT_AMOUNT'];
                     $BALANCE = ($BALANCE + $RESPONSE_DATA['INSTALLMENT_AMOUNT']);
                     $LEDGER_DATA['BALANCE'] = $BALANCE;
-                    db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+                    db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
                     if ($RESPONSE_DATA['DOWN_PAYMENT'] <= 0 && $i == 0) {
                         $PK_ENROLLMENT_LEDGER = $db->insert_ID();
                     }
@@ -276,7 +277,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                     $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
                     $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
                     $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['DOWN_PAYMENT'];
-                    db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+                    db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
                     $PK_ENROLLMENT_LEDGER = $db->insert_ID();
                 }
                 $BALANCE = $RESPONSE_DATA['DOWN_PAYMENT'];
@@ -285,7 +286,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                     $LEDGER_DATA['BILLED_AMOUNT'] = $FLEXIBLE_PAYMENT_AMOUNT[$i];
                     $BALANCE = ($BALANCE + $FLEXIBLE_PAYMENT_AMOUNT[$i]);
                     $LEDGER_DATA['BALANCE'] = $BALANCE;
-                    db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+                    db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
                     if ($RESPONSE_DATA['DOWN_PAYMENT'] <= 0 && $i == 0) {
                         $PK_ENROLLMENT_LEDGER = $db->insert_ID();
                     }
@@ -294,13 +295,13 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                     $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
                     $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
                     $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
-                    db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+                    db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
                     $PK_ENROLLMENT_LEDGER = $db->insert_ID();
                 }
             }
         }
     }else{
-        db_perform('DOA_ENROLLMENT_BILLING', $RESPONSE_DATA, 'update'," PK_ENROLLMENT_BILLING =  '$RESPONSE_DATA[PK_ENROLLMENT_BILLING]'");
+        db_perform_account('DOA_ENROLLMENT_BILLING', $RESPONSE_DATA, 'update'," PK_ENROLLMENT_BILLING =  '$RESPONSE_DATA[PK_ENROLLMENT_BILLING]'");
         $PK_ENROLLMENT_BILLING = $RESPONSE_DATA['PK_ENROLLMENT_BILLING'];
 
     }
