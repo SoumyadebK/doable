@@ -4,9 +4,10 @@ require_once('../../global/config.php');
 function getTimeSlot($interval, $start_time, $end_time)
 {
     global $db;
+    global $db_account;
     /*$start = new DateTime($start_time);
     $end = new DateTime($end_time);*/
-    $location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME, DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM DOA_OPERATIONAL_HOUR LEFT JOIN DOA_LOCATION ON DOA_OPERATIONAL_HOUR.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY DOA_LOCATION.PK_LOCATION LIMIT 1");
+    $location_operational_hour = $db->Execute("SELECT $account_database.DOA_OPERATIONAL_HOUR.OPEN_TIME, $account_database.DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM $account_database.DOA_OPERATIONAL_HOUR LEFT JOIN $master_database.DOA_LOCATION ON $account_database.DOA_OPERATIONAL_HOUR.PK_LOCATION = $master_database.DOA_LOCATION.PK_LOCATION WHERE $master_database.DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND $account_database.DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY $master_database.DOA_LOCATION.PK_LOCATION LIMIT 1");
 
     $start = new DateTime($location_operational_hour->fields['OPEN_TIME']);
     $end = new DateTime($location_operational_hour->fields['CLOSE_TIME']);
@@ -40,7 +41,7 @@ $day = $_POST['day'];
 $START_TIME = empty($_POST['START_TIME'])?'09:00:00':$_POST['START_TIME'];
 $END_TIME = empty($_POST['END_TIME'])?'22:00:00':$_POST['END_TIME'];
 
-$booked_slot_data = $db->Execute("SELECT DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME FROM DOA_APPOINTMENT_MASTER INNER JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = ".$PK_SERVICE_MASTER." AND DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = ".$PK_SERVICE_CODE." AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = ".$SERVICE_PROVIDER_ID." AND DOA_APPOINTMENT_MASTER.DATE = "."'".$date."'");
+$booked_slot_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME FROM DOA_APPOINTMENT_MASTER INNER JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = ".$PK_SERVICE_MASTER." AND DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = ".$PK_SERVICE_CODE." AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = ".$SERVICE_PROVIDER_ID." AND DOA_APPOINTMENT_MASTER.DATE = "."'".$date."'");
 $booked_slot_array = [];
 $j = 0;
 while (!$booked_slot_data->EOF) {
@@ -50,7 +51,7 @@ while (!$booked_slot_data->EOF) {
     $j++;
 }
 
-$slot_data = $db->Execute("SELECT * FROM DOA_SERVICE_PROVIDER_SERVICES WHERE PK_USER = ".$SERVICE_PROVIDER_ID);
+$slot_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_PROVIDER_SERVICES WHERE PK_USER = ".$SERVICE_PROVIDER_ID);
 if ($slot_data->RecordCount() > 0) {
     $SLOT_START = $slot_data->fields[$day . '_START_TIME'];
     $SLOT_END = $slot_data->fields[$day . '_END_TIME'];
@@ -58,7 +59,7 @@ if ($slot_data->RecordCount() > 0) {
     $SLOT_START = '09:00:00';
     $SLOT_END = '22:00:00';
 }
-$holiday_data = $db->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND HOLIDAY_DATE = "."'".$date."'");
+$holiday_data = $db_account->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND HOLIDAY_DATE = "."'".$date."'");
 if ($holiday_data->RecordCount() > 0){
     $SLOT_START = '00:00:00';
     $SLOT_END = '00:00:00';
