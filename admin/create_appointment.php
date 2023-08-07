@@ -167,6 +167,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
 function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
     global $db;
+    global $db_account;
     $appointment_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
     $total_bill_and_paid = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
     $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
