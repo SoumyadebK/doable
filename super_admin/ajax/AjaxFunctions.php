@@ -9,6 +9,7 @@ $FUNCTION_NAME($RESPONSE_DATA);
 /*Saving Data from Service Code Page*/
 function saveAccountInfoData($RESPONSE_DATA){
     global $db;
+    global $conn;
     $ACCOUNT_DATA['PK_BUSINESS_TYPE'] = $RESPONSE_DATA['PK_BUSINESS_TYPE'];
     $ACCOUNT_DATA['PK_ACCOUNT_TYPE'] = $RESPONSE_DATA['PK_ACCOUNT_TYPE'];
     $ACCOUNT_DATA['BUSINESS_NAME'] = $RESPONSE_DATA['BUSINESS_NAME'];
@@ -27,8 +28,26 @@ function saveAccountInfoData($RESPONSE_DATA){
         $ACCOUNT_DATA['ACTIVE'] = 1;
         $ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        $databaseName = 'doable_'.str_replace(' ', '_', strtolower($RESPONSE_DATA['BUSINESS_NAME']));
+        $ACCOUNT_DATA['DB_NAME'] = $databaseName;
         db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'insert');
         $PK_ACCOUNT_MASTER = $db->insert_ID();
+        $sqlCreateDatabase = "CREATE DATABASE IF NOT EXISTS $databaseName";
+        if ($conn->query($sqlCreateDatabase) === FALSE) {
+            echo "Error creating database: " . $conn->error . "\n";
+        }
+
+        $conn_account_db = new mysqli('localhost', 'root', '', $databaseName);
+        if ($conn_account_db->connect_error) {
+            die("Connection failed: " . $conn_account_db->connect_error);
+        }
+        include ('../includes/create_database.php');
+        $sqlCreateTable = $create_database;
+        if ($conn_account_db->multi_query($sqlCreateTable) === FALSE) {
+            echo "Error creating table: " . $conn_account_db->error . "\n";
+        }
+        $conn_account_db->close();
+
     }else{
         $ACCOUNT_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
         $ACCOUNT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
@@ -36,7 +55,6 @@ function saveAccountInfoData($RESPONSE_DATA){
         db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'update'," PK_ACCOUNT_MASTER =  '$RESPONSE_DATA[PK_ACCOUNT_MASTER]'");
         $PK_ACCOUNT_MASTER = $RESPONSE_DATA['PK_ACCOUNT_MASTER'];
     }
-
     echo $PK_ACCOUNT_MASTER;
 }
 
@@ -51,16 +69,16 @@ function saveProfileInfoData($RESPONSE_DATA)
     if (!empty($RESPONSE_DATA['PASSWORD']))
         $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
 
-    $USER_PROFILE_DATA['GENDER'] = $RESPONSE_DATA['GENDER'];
-    $USER_PROFILE_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['DOB']));
-    $USER_PROFILE_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'];
-    $USER_PROFILE_DATA['ADDRESS_1'] = $RESPONSE_DATA['ADDRESS_1'];
-    $USER_PROFILE_DATA['PK_COUNTRY'] = $RESPONSE_DATA['PK_COUNTRY'];
-    $USER_PROFILE_DATA['PK_STATES'] = $RESPONSE_DATA['PK_STATES'];
-    $USER_PROFILE_DATA['CITY'] = $RESPONSE_DATA['CITY'];
-    $USER_PROFILE_DATA['ZIP'] = $RESPONSE_DATA['ZIP'];
-    $USER_PROFILE_DATA['PHONE'] = $RESPONSE_DATA['PHONE'];
-    $USER_PROFILE_DATA['NOTES'] = $RESPONSE_DATA['NOTES'];
+    $USER_DATA['GENDER'] = $RESPONSE_DATA['GENDER'];
+    $USER_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['DOB']));
+    $USER_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'];
+    $USER_DATA['ADDRESS_1'] = $RESPONSE_DATA['ADDRESS_1'];
+    $USER_DATA['PK_COUNTRY'] = $RESPONSE_DATA['PK_COUNTRY'];
+    $USER_DATA['PK_STATES'] = $RESPONSE_DATA['PK_STATES'];
+    $USER_DATA['CITY'] = $RESPONSE_DATA['CITY'];
+    $USER_DATA['ZIP'] = $RESPONSE_DATA['ZIP'];
+    $USER_DATA['PHONE'] = $RESPONSE_DATA['PHONE'];
+    $USER_DATA['NOTES'] = $RESPONSE_DATA['NOTES'];
     $PK_ACCOUNT_MASTER = $RESPONSE_DATA['PK_ACCOUNT_MASTER'];
 
     if(empty($RESPONSE_DATA['PK_USER_EDIT'])){
@@ -71,36 +89,21 @@ function saveProfileInfoData($RESPONSE_DATA)
         $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform('DOA_USERS', $USER_DATA, 'insert');
         $PK_USER = $db->insert_ID();
-        $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
-        $USER_PROFILE_DATA['ACTIVE'] = 1;
-        $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
         $USER_ROLE_DATA['PK_USER'] = $PK_USER;
         $USER_ROLE_DATA['PK_ROLES'] = 2;
         db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
     }else{
         if (empty($RESPONSE_DATA['PK_USER_EDIT'])){
-            $USER_DATA['PK_ACCOUNT_MASTER'] = $_GET[id];
+            $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
             $USER_DATA['ACTIVE'] = 1;
             $USER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
             $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
             db_perform('DOA_USERS', $USER_DATA, 'insert');
-            $PK_USER = $db->insert_ID();
-            $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
-            $USER_PROFILE_DATA['ACTIVE'] = 1;
-            $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
         }else {
             $USER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
             $USER_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$RESPONSE_DATA[PK_USER_EDIT]'");
-            $USER_PROFILE_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
-            $USER_PROFILE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update', " PK_USER =  '$RESPONSE_DATA[PK_USER_EDIT]'");
+            db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER = ".$RESPONSE_DATA['PK_USER_EDIT']);
         }
     }
 

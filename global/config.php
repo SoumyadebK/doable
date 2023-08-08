@@ -5,6 +5,7 @@ require_once('query_factory.php');
 require_once('common_functions.php');
 $db = new queryFactory();
 if($_SERVER['HTTP_HOST'] == 'localhost' ) {
+    $master_database = 'doable_master';
     $conn = $db->connect('localhost','root','','doable_master');
     $http_path = 'http://localhost/doable/';
 } else {
@@ -16,10 +17,9 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
 if (!empty($_SESSION['DB_NAME'])) {
     require_once('common_functions_account.php');
     $account_database = $_SESSION['DB_NAME'];
-    $master_database = 'doable_master';
     $db_account = new queryFactory();
     if ($_SERVER['HTTP_HOST'] == 'localhost') {
-        $conn_account = $db_account->connect('localhost', 'root', '', $_SESSION['DB_NAME']);
+        $conn_account = $db_account->connect('localhost', 'root', '', $account_database);
     } else {
         $conn_account = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', 'doable');
     }

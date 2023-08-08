@@ -13,108 +13,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if (!empty($_GET['cond']) && $_GET['cond'] == 'del'){
     $db->Execute("DELETE FROM `DOA_USERS` WHERE `PK_USER` = ".$_GET['PK_USER']);
-    $db->Execute("DELETE FROM `DOA_USER_PROFILE` WHERE `PK_USER` = ".$_GET['PK_USER']);
     header('location:account.php?id='.$_GET['id']);
-}
-
-if(!empty($_POST)){
-    $ACCOUNT_DATA['PK_BUSINESS_TYPE'] = $_POST['PK_BUSINESS_TYPE'];
-    $ACCOUNT_DATA['PK_ACCOUNT_TYPE'] = $_POST['PK_ACCOUNT_TYPE'];
-    $ACCOUNT_DATA['BUSINESS_NAME'] = $_POST['BUSINESS_NAME'];
-    $ACCOUNT_DATA['ADDRESS'] = $_POST['ACCOUNT_ADDRESS'];
-    $ACCOUNT_DATA['ADDRESS_1'] = $_POST['ACCOUNT_ADDRESS_1'];
-    $ACCOUNT_DATA['PK_COUNTRY'] = $_POST['ACCOUNT_PK_COUNTRY'];
-    $ACCOUNT_DATA['PK_STATES'] = $_POST['PK_STATES'];
-    $ACCOUNT_DATA['CITY'] = $_POST['ACCOUNT_CITY'];
-    $ACCOUNT_DATA['ZIP'] = $_POST['ACCOUNT_ZIP'];
-    $ACCOUNT_DATA['PHONE'] = $_POST['ACCOUNT_PHONE'];
-    $ACCOUNT_DATA['FAX'] = $_POST['ACCOUNT_FAX'];
-    $ACCOUNT_DATA['EMAIL'] = $_POST['ACCOUNT_EMAIL'];
-    $ACCOUNT_DATA['WEBSITE'] = $_POST['ACCOUNT_WEBSITE'];
-
-    $USER_DATA['USER_ID'] = $_POST['USER_ID'];
-    $USER_DATA['FIRST_NAME'] = $_POST['FIRST_NAME'];
-    $USER_DATA['LAST_NAME'] = $_POST['LAST_NAME'];
-    $USER_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
-    $USER_DATA['PHONE'] = $_POST['PHONE'];
-    if (!empty($_POST['PASSWORD']))
-        $USER_DATA['PASSWORD'] = password_hash($_POST['PASSWORD'], PASSWORD_DEFAULT);
-    if($_FILES['USER_IMAGE']['name'] != ''){
-        $extn 			= explode(".",$_FILES['USER_IMAGE']['name']);
-        $iindex			= count($extn) - 1;
-        $rand_string 	= time()."-".rand(100000,999999);
-        $file11			= 'user_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
-        $extension   	= strtolower($extn[$iindex]);
-
-        if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
-            $image_path    = '../uploads/user_image/'.$file11;
-            move_uploaded_file($_FILES['USER_IMAGE']['tmp_name'], $image_path);
-            $USER_DATA['USER_IMAGE'] = $image_path;
-        }
-    }
-
-    $USER_PROFILE_DATA['GENDER'] = $_POST['GENDER'];
-    $USER_PROFILE_DATA['DOB'] = $_POST['DOB'];
-    $USER_PROFILE_DATA['ADDRESS'] = $_POST['ADDRESS'];
-    $USER_PROFILE_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
-    $USER_PROFILE_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
-    $USER_PROFILE_DATA['PK_STATES'] = $_POST['PK_STATES'];
-    $USER_PROFILE_DATA['CITY'] = $_POST['CITY'];
-    $USER_PROFILE_DATA['ZIP'] = $_POST['ZIP'];
-    $USER_PROFILE_DATA['NOTES'] = $_POST['NOTES'];
-
-    if(empty($_GET['id'])){
-        $ACCOUNT_DATA['ACTIVE'] = 1;
-        $ACCOUNT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $ACCOUNT_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'insert');
-        $PK_ACCOUNT_MASTER = $db->insert_ID();
-        $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-        $USER_DATA['CREATE_LOGIN'] = 1;
-        $USER_DATA['ACTIVE'] = 1;
-        $USER_DATA['ABLE_TO_EDIT_PAYMENT_GATEWAY'] = isset($_POST['ABLE_TO_EDIT_PAYMENT_GATEWAY']) ? 1 : 0;
-        $USER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_USERS', $USER_DATA, 'insert');
-        $PK_USER = $db->insert_ID();
-        $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
-        $USER_PROFILE_DATA['ACTIVE'] = 1;
-        $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
-        $USER_ROLE_DATA['PK_USER'] = $PK_USER;
-        $USER_ROLE_DATA['PK_ROLES'] = 2;
-        db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
-    }else{
-        $ACCOUNT_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        $ACCOUNT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-        $ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'update'," PK_ACCOUNT_MASTER =  '$_GET[id]'");
-        if (empty($_POST['PK_USER_EDIT'])){
-            $USER_DATA['PK_ACCOUNT_MASTER'] = $_GET[id];
-            $USER_DATA['ACTIVE'] = 1;
-            $USER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-            $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
-            db_perform('DOA_USERS', $USER_DATA, 'insert');
-            $PK_USER = $db->insert_ID();
-            $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
-            $USER_PROFILE_DATA['ACTIVE'] = 1;
-            $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
-        }else {
-            $USER_DATA['ACTIVE'] = $_POST['ACTIVE'];
-            $USER_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_POST[PK_USER_EDIT]'");
-            $USER_PROFILE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-            $USER_PROFILE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update', " PK_USER =  '$_POST[PK_USER_EDIT]'");
-        }
-    }
-
-    header("location:all_accounts.php");
 }
 
 $PK_ACCOUNT_MASTER = '';
@@ -173,10 +72,9 @@ if(!empty($_GET['id'])) {
     $ACCOUNT_WEBSITE = $account_res->fields['WEBSITE'];
     $ACTIVE = $account_res->fields['ACTIVE'];
 
-    $user_res = $db->Execute("SELECT DOA_USERS.PK_USER AS PK_USER_EDIT, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_ACCOUNT_MASTER = '$_GET[id]' AND DOA_USERS.CREATED_BY = '$_SESSION[PK_USER]'");
-
+    $user_res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$_GET[id]' AND CREATED_BY = '$_SESSION[PK_USER]'");
     if($user_res->RecordCount() > 0) {
-        $PK_USER_EDIT = $user_res->fields['PK_USER_EDIT'];
+        $PK_USER_EDIT = $user_res->fields['PK_USER'];
         $USER_ID = $user_res->fields['USER_ID'];
         $FIRST_NAME = $user_res->fields['FIRST_NAME'];
         $LAST_NAME = $user_res->fields['LAST_NAME'];
@@ -861,7 +759,7 @@ if(!empty($_GET['id'])) {
                 if (PK_ACCOUNT_MASTER == 0) {
                     $('#profile_tab_link')[0].click();
                 }else{
-                    window.location.href='all_accounts.php';
+                   // window.location.href='all_accounts.php';
                 }
             }
         });
