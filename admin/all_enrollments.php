@@ -18,6 +18,7 @@ if (isset($_GET['search_text'])) {
 }
 
 $query = $db->Execute("SELECT count($account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM $account_database.`DOA_ENROLLMENT_MASTER` INNER JOIN $master_database.DOA_USER_MASTER ON $account_database.DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $master_database.DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS ON DOA_USERS.PK_USER = $master_database.DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION ON $master_database.DOA_LOCATION.PK_LOCATION = $account_database.DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN $account_database.DOA_ENROLLMENT_BALANCE ON $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = $account_database.DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND $account_database.DOA_ENROLLMENT_MASTER.PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER'].$search." ORDER BY $master_database.DOA_USERS.FIRST_NAME");
+
 $number_of_result =  $query->fields['TOTAL_RECORDS'];
 $number_of_page = ceil ($number_of_result / $results_per_page);
 
@@ -43,7 +44,7 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
 
         $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
         if ($_POST['CREDIT_BALANCE'] > 0) {
-            $wallet_data = $db->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+            $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
             if ($wallet_data->RecordCount() > 0) {
                 $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $_POST['CREDIT_BALANCE'];
             } else {
@@ -56,7 +57,7 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
             $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
             db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
-            $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
+            $enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
             if ($enrollment_balance->RecordCount() > 0) {
                 $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_USED'] = $enrollment_balance->fields['TOTAL_BALANCE_USED'] + $_POST['CREDIT_BALANCE'];
                 $ENROLLMENT_BALANCE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
@@ -64,14 +65,11 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
                 db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
             }
         }
-
     }
-
     header('location:all_enrollments.php');
 }
 
 if(!empty($_GET['id']) && !empty($_GET['status'])) {
-
     if ($_GET['status'] == 'active') {
         $PK_ENROLLMENT_MASTER = $_GET['id'];
         $UPDATE_DATA['STATUS'] = 'A';
