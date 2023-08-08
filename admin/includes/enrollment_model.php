@@ -30,6 +30,8 @@ $EXPIRATION_DATE = '';
 $CHECK_NUMBER = '';
 $CHECK_DATE = '';
 $NOTE = '';
+
+
 ?>
 
 <!DOCTYPE html>
@@ -135,10 +137,10 @@ $NOTE = '';
                                     <?php
                                     $PK_SERVICE_CLASS = 0;
                                     if(!empty($_GET['enrollment_id'])) {
-                                        $enrollment_service_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$_GET[enrollment_id]'");
+                                        $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$_GET[enrollment_id]'");
 
                                         while (!$enrollment_service_data->EOF) {
-                                            $service_class = $db->Execute("SELECT PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = ".$enrollment_service_data->fields['PK_SERVICE_MASTER']);
+                                            $service_class = $db_account->Execute("SELECT PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = ".$enrollment_service_data->fields['PK_SERVICE_MASTER']);
                                             $PK_SERVICE_CLASS = $service_class->fields['PK_SERVICE_CLASS'];
                                             ?>
                                             <div class="row">
@@ -147,7 +149,7 @@ $NOTE = '';
                                                         <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
                                                             <option>Select</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME, PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+                                                            $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME, PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
                                                             while (!$row->EOF) { ?>
                                                                 <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>" data-service_code="<?=$enrollment_service_data->fields['PK_SERVICE_CODE']?>" data-is_package="<?=$row->fields['IS_PACKAGE']?>" <?=($row->fields['PK_SERVICE_MASTER'] == $enrollment_service_data->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
                                                                 <?php $row->MoveNext(); } ?>
@@ -159,7 +161,7 @@ $NOTE = '';
                                                         <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
                                                             <option value="">Select</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT $account_database.DOA_SERVICE_CODE.*, DOA_FREQUENCY.FREQUENCY FROM DOA_SERVICE_CODE LEFT JOIN DOA_FREQUENCY ON DOA_SERVICE_CODE.PK_FREQUENCY = DOA_FREQUENCY.PK_FREQUENCY WHERE PK_SERVICE_MASTER = ".$enrollment_service_data->fields['PK_SERVICE_MASTER']);
+                                                            $row = $db->Execute("SELECT $account_database.DOA_SERVICE_CODE.*, $master_database.DOA_FREQUENCY.FREQUENCY FROM $account_database.DOA_SERVICE_CODE LEFT JOIN $master_database.DOA_FREQUENCY ON $account_database.DOA_SERVICE_CODE.PK_FREQUENCY = $master_database.DOA_FREQUENCY.PK_FREQUENCY WHERE $account_database.DOA_SERVICE_CODE.PK_SERVICE_MASTER = ".$enrollment_service_data->fields['PK_SERVICE_MASTER']);
                                                             while (!$row->EOF) { ?>
                                                                 <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-service_details="<?=$row->fields['DESCRIPTION']?>" data-frequency="<?=$row->fields['FREQUENCY']?>" data-price="<?=$row->fields['PRICE']?>" <?=($row->fields['PK_SERVICE_CODE'] == $enrollment_service_data->fields['PK_SERVICE_CODE'])?'selected':''?>><?=$row->fields['SERVICE_CODE']?></option>
                                                                 <?php $row->MoveNext(); } ?>

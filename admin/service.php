@@ -486,7 +486,7 @@ if(empty($_GET['id'])){
                                                                     <select class="form-control PK_LOCATION" name="PK_LOCATION[]">
                                                                         <option>Select Location</option>
                                                                         <?php
-                                                                        $row = $db_account->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
+                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
                                                                         while (!$row->EOF) { ?>
                                                                             <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($service_document->fields['PK_LOCATION'] == $row->fields['PK_LOCATION'])?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
                                                                             <?php $row->MoveNext(); } ?>
@@ -516,7 +516,7 @@ if(empty($_GET['id'])){
                                                                 <select class="form-control PK_LOCATION" name="PK_LOCATION[]">
                                                                     <option>Select Location</option>
                                                                     <?php
-                                                                    $row = $db_account->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
+                                                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
                                                                     while (!$row->EOF) { ?>
                                                                         <option value="<?php echo $row->fields['PK_LOCATION'];?>"><?=$row->fields['LOCATION_NAME']?></option>
                                                                         <?php $row->MoveNext(); } ?>
@@ -697,7 +697,7 @@ if(empty($_GET['id'])){
                                                         <select class="form-control PK_LOCATION" name="PK_LOCATION[]">
                                                             <option>Select Location</option>
                                                             <?php
-                                                            $row = $db_account->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
+                                                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
                                                             while (!$row->EOF) { ?>
                                                                 <option value="<?php echo $row->fields['PK_LOCATION'];?>"><?=$row->fields['LOCATION_NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>

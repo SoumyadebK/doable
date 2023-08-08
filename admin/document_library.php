@@ -122,7 +122,7 @@ if(empty($_GET['id'])){
                                     <div class="col-md-9" style="margin-bottom: 15px;">
                                         <select name="PK_LOCATION[]" id="PK_LOCATION" multiple>
                                             <?php
-                                            $row = $db_account->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                             while (!$row->EOF) { ?>
                                                 <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], explode(',', $PK_LOCATION))?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
                                                 <?php $row->MoveNext(); } ?>

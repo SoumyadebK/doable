@@ -14,6 +14,8 @@ $FUNCTION_NAME($RESPONSE_DATA);
 function saveServiceInfoData($RESPONSE_DATA){
     error_reporting(0);
     global $db;
+    global $db_account;
+
     $RESPONSE_DATA['SERVICE_NAME'] = $_POST['SERVICE_NAME'];
     $RESPONSE_DATA['IS_PACKAGE'] = isset($RESPONSE_DATA['IS_PACKAGE'])?1:0;
     $RESPONSE_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
@@ -24,7 +26,7 @@ function saveServiceInfoData($RESPONSE_DATA){
         $RESPONSE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $RESPONSE_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform_account('DOA_SERVICE_MASTER', $RESPONSE_DATA, 'insert');
-        $PK_SERVICE_MASTER = $db->insert_ID();
+        $PK_SERVICE_MASTER = $db_account->insert_ID();
     }else{
         $RESPONSE_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $RESPONSE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
@@ -37,15 +39,18 @@ function saveServiceInfoData($RESPONSE_DATA){
 
 function saveServiceCodeData($RESPONSE_DATA){
     global $db;
+    global $db_account;
+
     if (count($RESPONSE_DATA['SERVICE_CODE']) > 0) {
+        $DELETED_CODE = [];
         $ALL_PK_SERVICE_CODE = $RESPONSE_DATA['ALL_PK_SERVICE_CODE'];
         $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'];
         $DELETED_CODE = array_diff($ALL_PK_SERVICE_CODE, $PK_SERVICE_CODE);
-        $db->Execute("DELETE FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_CODE` IN (".implode(',', $DELETED_CODE).")");
+        $db_account->Execute("DELETE FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_CODE` IN (".implode(',', $DELETED_CODE).")");
         for ($i = 0; $i < count($RESPONSE_DATA['SERVICE_CODE']); $i++) {
             $SERVICE_CODE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'];
             $SERVICE_CODE_DATA['PK_FREQUENCY'] = $RESPONSE_DATA['PK_FREQUENCY'][$i];
-            $SERVICE_CODE_DATA['PK_SCHEDULING_CODE'] = $RESPONSE_DATA['PK_SCHEDULING_CODE'][$i];
+            //$SERVICE_CODE_DATA['PK_SCHEDULING_CODE'] = $RESPONSE_DATA['PK_SCHEDULING_CODE'][$i];
             $SERVICE_CODE_DATA['DURATION'] = $RESPONSE_DATA['DURATION'][$i];
             $SERVICE_CODE_DATA['IS_GROUP'] = $RESPONSE_DATA['IS_GROUP_'.$i];
             $SERVICE_CODE_DATA['CAPACITY'] = $RESPONSE_DATA['CAPACITY'][$i];
@@ -59,7 +64,7 @@ function saveServiceCodeData($RESPONSE_DATA){
                 $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'][$i];
             } else {
                 db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
-                $PK_SERVICE_CODE = $db->insert_ID();
+                $PK_SERVICE_CODE = $db_account->insert_ID();
             }
 
             $db_account->Execute("DELETE FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_CODE` = '$PK_SERVICE_CODE'");
@@ -87,7 +92,7 @@ function saveEnrollmentData($RESPONSE_DATA){
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_ID'] = $RESPONSE_DATA['ENROLLMENT_BY_ID'];
 
     $document_library_data = $db_account->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = '$RESPONSE_DATA[PK_DOCUMENT_LIBRARY]'");
-    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']);
+    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_USERS.ZIP FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']);
     $html_template = $document_library_data->fields['DOCUMENT_TEMPLATE'];
     $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template);
     $html_template = str_replace('{STREET_ADD}', $user_data->fields['ADDRESS'], $html_template);
@@ -109,7 +114,7 @@ function saveEnrollmentData($RESPONSE_DATA){
         $ENROLLMENT_MASTER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $ENROLLMENT_MASTER_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'insert');
-        $PK_ENROLLMENT_MASTER = $db->insert_ID();
+        $PK_ENROLLMENT_MASTER = $db_account->insert_ID();
         createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER,'DOA_ENROLLMENT_MASTER', 'PK_ENROLLMENT_MASTER', $PK_ENROLLMENT_MASTER, $ENROLLMENT_MASTER_DATA, 'insert');
     }else{
         $ENROLLMENT_MASTER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'] ?? 0;
@@ -152,7 +157,7 @@ function saveEnrollmentData($RESPONSE_DATA){
                 $ENROLLMENT_SERVICE_DATA['PRICE_PER_SESSION'] = $RESPONSE_DATA['PRICE_PER_SESSION'][$i];
                 $ENROLLMENT_SERVICE_DATA['TOTAL'] = $RESPONSE_DATA['TOTAL'][$i];
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'insert');
-                $PK_ENROLLMENT_SERVICE = $db->insert_ID();
+                $PK_ENROLLMENT_SERVICE = $db_account->insert_ID();
                 createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER, 'DOA_ENROLLMENT_SERVICE', 'PK_ENROLLMENT_SERVICE', $PK_ENROLLMENT_SERVICE, $ENROLLMENT_SERVICE_DATA, 'insert');
                 $total += $RESPONSE_DATA['TOTAL'][$i];
             }
@@ -504,7 +509,7 @@ function saveProfileData($RESPONSE_DATA){
     }
 
     if (isset($RESPONSE_DATA['PK_ROLES'])) {
-        $db_account->Execute("DELETE FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
+        $db->Execute("DELETE FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
         $PK_ROLE = $RESPONSE_DATA['PK_ROLES'];
         for($i = 0; $i < count($PK_ROLE); $i++){
             $USER_ROLE_DATA['PK_USER'] = $PK_USER;
@@ -1126,16 +1131,18 @@ function getPrimaryKeyData($table_name, $primary_key_name, $primary_key) {
 
 function markAppointmentCompleted($RESPONSE_DATA) {
     global $db;
+    global $db_account;
     $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
-    $db->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER);
+    $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER);
     echo 1;
 }
 
 function markAllAppointmentCompleted($RESPONSE_DATA) {
     global $db;
+    global $db_account;
     $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
     for($i=0; $i < count($PK_APPOINTMENT_MASTER); $i++){
-        $db->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER[$i]);
+        $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER[$i]);
     }
     echo 1;
 }

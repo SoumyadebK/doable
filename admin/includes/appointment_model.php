@@ -65,7 +65,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     }
 
     if (count($GROUP_CLASS_DATE_ARRAY) > 0) {
-        $group_class_data = $db->Execute("SELECT GROUP_CLASS_ID FROM `DOA_GROUP_CLASS` ORDER BY GROUP_CLASS_ID DESC LIMIT 1");
+        $group_class_data = $db_account->Execute("SELECT GROUP_CLASS_ID FROM `DOA_GROUP_CLASS` ORDER BY GROUP_CLASS_ID DESC LIMIT 1");
         if ($group_class_data->RecordCount() > 0) {
             $group_class_id = $group_class_data->fields['GROUP_CLASS_ID']+1;
         } else {
@@ -87,7 +87,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             $GROUP_CLASS_DATA['ACTIVE'] = 1;
             $GROUP_CLASS_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $GROUP_CLASS_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'insert');
+            db_perform_account('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'insert');
         }
     }
 
@@ -106,19 +106,19 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
         $SPECIAL_APPOINTMENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $SPECIAL_APPOINTMENT_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'insert');
-        $PK_SPECIAL_APPOINTMENT = $db->insert_ID();
+        db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'insert');
+        $PK_SPECIAL_APPOINTMENT = $db_account->insert_ID();
     }else{
         //$SPECIAL_APPOINTMENT_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
         $SPECIAL_APPOINTMENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $SPECIAL_APPOINTMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update'," PK_SPECIAL_APPOINTMENT =  '$_GET[id]'");
+        db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update'," PK_SPECIAL_APPOINTMENT =  '$_GET[id]'");
         $PK_SPECIAL_APPOINTMENT = $_GET['id'];
     }
 
     if (isset($_POST['PK_USER'])) {
-        $db->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
+        $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
         for ($i = 0; $i < count($_POST['PK_USER']); $i++) {
             $SPECIAL_APPOINTMENT_USER['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
             $SPECIAL_APPOINTMENT_USER['PK_USER'] = $_POST['PK_USER'][$i];
@@ -134,7 +134,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         unset($_POST['START_TIME']);
         unset($_POST['END_TIME']);
     }
-    $session_cost = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
+    $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
     $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
 
     $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
@@ -157,7 +157,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         $APPOINTMENT_DATA['ACTIVE'] = 1;
         $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+        db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
     }
 
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
@@ -167,8 +167,9 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
 function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
     global $db;
-    $appointment_data = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
-    $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
+    global $db_account;
+    $appointment_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
+    $total_bill_and_paid = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
     $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
     $total_paid_appointment = intval($total_paid/$price_per_session);
     $i = 1;
@@ -179,7 +180,7 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
         } else {
             $UPDATE_DATA['IS_PAID'] = 0;
         }
-        db_perform('DOA_APPOINTMENT_MASTER', $UPDATE_DATA, 'update'," PK_APPOINTMENT_MASTER =  ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
+        db_perform_account('DOA_APPOINTMENT_MASTER', $UPDATE_DATA, 'update'," PK_APPOINTMENT_MASTER =  ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
         $appointment_data->MoveNext();
         $i++;
     }

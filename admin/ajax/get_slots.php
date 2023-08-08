@@ -10,9 +10,14 @@ function getTimeSlot($interval, $start_time, $end_time)
     /*$start = new DateTime($start_time);
     $end = new DateTime($end_time);*/
     $location_operational_hour = $db->Execute("SELECT $account_database.DOA_OPERATIONAL_HOUR.OPEN_TIME, $account_database.DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM $account_database.DOA_OPERATIONAL_HOUR LEFT JOIN $master_database.DOA_LOCATION ON $account_database.DOA_OPERATIONAL_HOUR.PK_LOCATION = $master_database.DOA_LOCATION.PK_LOCATION WHERE $master_database.DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND $account_database.DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY $master_database.DOA_LOCATION.PK_LOCATION LIMIT 1");
+if($location_operational_hour->RecordCount()>0){
 
     $start = new DateTime($location_operational_hour->fields['OPEN_TIME']);
     $end = new DateTime($location_operational_hour->fields['CLOSE_TIME']);
+} else {
+    $start = new DateTime($start_time);
+    $end = new DateTime($end_time);
+}
 
     $startTime = $start->format('H:i');
     $endTime = $end->format('H:i');
