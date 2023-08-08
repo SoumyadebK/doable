@@ -34,7 +34,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if (!empty($_GET['id']) && !empty($_GET['action'])){
     if ($_GET['action'] == 'complete'){
-        $db->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$_GET['id']);
+        $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$_GET['id']);
         header("location:operations.php?view=list");
     }
 }
@@ -42,7 +42,7 @@ if (!empty($_GET['id']) && !empty($_GET['action'])){
 if(empty($_GET['id'])){
     $SERVICE_PROVIDER_ID = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_schedules.php?view=list");

@@ -3,8 +3,8 @@ require_once('../../global/config.php');
 
 $PK_ENROLLMENT_MASTER = $_POST['PK_ENROLLMENT_MASTER'];
 $PK_SERVICE_CLASS = $_POST['PK_SERVICE_CLASS'];
-$enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
-
+$enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+//$enrollment_number = $enrollment_data->fields['ENROLLMENT_ID'];
 ?>
 <div class="col-12">
     <div class="form-group">
@@ -81,7 +81,7 @@ $enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTE
 
     <?php
     $total = 0;
-    $enrollment_service_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
+    $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
     while (!$enrollment_service_data->EOF) {
         $total += ($enrollment_service_data->fields['FINAL_AMOUNT']==0.00)?$enrollment_service_data->fields['TOTAL']:$enrollment_service_data->fields['FINAL_AMOUNT']; ?>
         <input type="hidden" name="PK_ENROLLMENT_SERVICE[]" value="<?=$enrollment_service_data->fields['PK_ENROLLMENT_SERVICE']?>">
@@ -91,7 +91,7 @@ $enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTE
                     <select class="form-control PK_SERVICE_MASTER" onchange="selectThisService(this)" disabled>
                         <option>Select</option>
                         <?php
-                        $row = $db->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+                        $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
                         while (!$row->EOF) { ?>
                             <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($row->fields['PK_SERVICE_MASTER'] == $enrollment_service_data->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
                             <?php $row->MoveNext(); } ?>
@@ -103,7 +103,7 @@ $enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTE
                     <select class="form-control PK_SERVICE_CODE" onchange="selectThisServiceCode(this)" disabled>
                         <option value="">Select</option>
                         <?php
-                        $row = $db->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = ".$enrollment_service_data->fields['PK_SERVICE_MASTER']);
+                        $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = ".$enrollment_service_data->fields['PK_SERVICE_MASTER']);
                         while (!$row->EOF) { ?>
                             <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-service_details="<?=$row->fields['DESCRIPTION']?>" data-price="<?=$row->fields['PRICE']?>" <?=($row->fields['PK_SERVICE_CODE'] == $enrollment_service_data->fields['PK_SERVICE_CODE'])?'selected':''?>><?=$row->fields['SERVICE_CODE']?></option>
                             <?php $row->MoveNext(); } ?>
