@@ -31,7 +31,7 @@ function saveAccountInfoData($RESPONSE_DATA){
         db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'insert');
         $PK_ACCOUNT_MASTER = $db->insert_ID();
 
-        $databaseName = 'DOA'.$PK_ACCOUNT_MASTER;
+        $databaseName = 'DOA_'.$PK_ACCOUNT_MASTER;
         $sqlCreateDatabase = "CREATE DATABASE IF NOT EXISTS $databaseName";
         if ($conn->query($sqlCreateDatabase) === FALSE) {
             echo "Error creating database: " . $conn->error . "\n";
