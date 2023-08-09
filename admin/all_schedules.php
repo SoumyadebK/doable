@@ -20,7 +20,7 @@ if (!empty($_GET['view'])){
 }else{
     $view = 'list';
 }
-
+$DEFAULT_LOCATION_ID = 1;
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointmentData'){
     unset($_POST['TIME']);
     unset($_POST['FUNCTION_NAME']);

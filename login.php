@@ -21,17 +21,21 @@ if ($FUNCTION_NAME == 'loginFunction'){
                 }
 
                 $_SESSION['PK_USER'] = $result->fields['PK_USER'];
-                $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
-                $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
 
                 if (in_array(1, $selected_roles)) {
                     $_SESSION['PK_ROLES'] = 1;
                 } elseif (in_array(2, $selected_roles)) {
                     $_SESSION['PK_ROLES'] = 2;
+                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
+                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
                 } elseif (in_array(4, $selected_roles)) {
                     $_SESSION['PK_ROLES'] = 4;
+                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
+                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
                 } elseif (in_array(5, $selected_roles)) {
                     $_SESSION['PK_ROLES'] = 5;
+                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
+                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
                 }
 
                 $_SESSION['FIRST_NAME'] = $result->fields['FIRST_NAME'];

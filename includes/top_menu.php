@@ -73,8 +73,8 @@
             <!-- ============================================================== -->
             <ul class="navbar-nav my-lg-0">
                 <?php if ($_SESSION["PK_ROLES"] == 2) { ?>
-                    <li class="nav-item m-t-15" style="margin-right: 60px;">
-                        <div class="multiselect-box" style="width: 120%;">
+                    <li class="nav-item m-t-15" style="margin-right: 100px;">
+                        <div class="multiselect-box" style="width: 200%;">
                             <select class="multi_select_location" onchange="selectDefaultLocation(this);" multiple>
                                 <?php
                                 $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");

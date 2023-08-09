@@ -9,7 +9,7 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
     $conn = $db->connect('localhost','root','','doable_master');
     $http_path = 'http://localhost/doable/';
 } else {
-    $conn = $db->connect('localhost','root','b54eawxj5h8ev','doable');
+    $conn = $db->connect('localhost','root','b54eawxj5h8ev','doable_master');
     $http_path = 'http://allonehub.com/';
 }
 
@@ -21,10 +21,12 @@ if (!empty($_SESSION['DB_NAME'])) {
     if ($_SERVER['HTTP_HOST'] == 'localhost') {
         $conn_account = $db_account->connect('localhost', 'root', '', $account_database);
     } else {
-        $conn_account = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', 'doable');
+        $conn_account = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $account_database);
     }
-    if ($db_account->error_number)
+    if (mysqli_connect_error()) {
+        header("location:../logout.php");
         die("Account Database Connection Error");
+    }
 }
 
 if ($db->error_number){

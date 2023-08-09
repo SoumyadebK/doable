@@ -1,6 +1,6 @@
 <?php
 require_once('../../global/config.php');
-
+error_reporting(0);
 $RESPONSE_DATA = $_POST;
 $FUNCTION_NAME = $RESPONSE_DATA['FUNCTION_NAME'];
 unset($RESPONSE_DATA['FUNCTION_NAME']);
@@ -28,16 +28,21 @@ function saveAccountInfoData($RESPONSE_DATA){
         $ACCOUNT_DATA['ACTIVE'] = 1;
         $ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        $databaseName = 'doable_'.str_replace(' ', '_', strtolower($RESPONSE_DATA['BUSINESS_NAME']));
-        $ACCOUNT_DATA['DB_NAME'] = $databaseName;
         db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'insert');
         $PK_ACCOUNT_MASTER = $db->insert_ID();
+
+        $databaseName = 'DOA'.$PK_ACCOUNT_MASTER;
         $sqlCreateDatabase = "CREATE DATABASE IF NOT EXISTS $databaseName";
         if ($conn->query($sqlCreateDatabase) === FALSE) {
             echo "Error creating database: " . $conn->error . "\n";
         }
 
-        $conn_account_db = new mysqli('localhost', 'root', '', $databaseName);
+        if ($_SERVER['HTTP_HOST'] == 'localhost') {
+            $conn_account_db = new mysqli('localhost', 'root', '', $databaseName);
+        } else {
+            $conn_account_db = new mysqli('localhost', 'root', 'b54eawxj5h8ev', $databaseName);
+        }
+        
         if ($conn_account_db->connect_error) {
             die("Connection failed: " . $conn_account_db->connect_error);
         }
@@ -48,6 +53,8 @@ function saveAccountInfoData($RESPONSE_DATA){
         }
         $conn_account_db->close();
 
+        $ACCOUNT_DATA_UPDATE['DB_NAME'] = $databaseName;
+        db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA_UPDATE, 'update'," PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
     }else{
         $ACCOUNT_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
         $ACCOUNT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];

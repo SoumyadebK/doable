@@ -4,7 +4,7 @@ use Dompdf\Dompdf;
 use Mpdf\Mpdf;
 
 require_once('../../global/config.php');
-
+error_reporting(0);
 $RESPONSE_DATA = $_POST;
 $FUNCTION_NAME = $RESPONSE_DATA['FUNCTION_NAME'];
 unset($RESPONSE_DATA['FUNCTION_NAME']);
@@ -12,7 +12,6 @@ $FUNCTION_NAME($RESPONSE_DATA);
 
 /*Saving Data from Service Code Page*/
 function saveServiceInfoData($RESPONSE_DATA){
-    error_reporting(0);
     global $db;
     global $db_account;
 
@@ -81,7 +80,6 @@ function saveServiceCodeData($RESPONSE_DATA){
 /*Saving Data from Enrollment Page*/
 
 function saveEnrollmentData($RESPONSE_DATA){
-    error_reporting(0);
     global $db;
     global $db_account;
     $ENROLLMENT_MASTER_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
@@ -183,7 +181,6 @@ function generatePdf($html){
 
 
 function saveEnrollmentBillingData($RESPONSE_DATA){
-    //error_reporting(0);
     global $db;
     $PK_ENROLLMENT_SERVICE = $RESPONSE_DATA['PK_ENROLLMENT_SERVICE'];
     $FLEXIBLE_PAYMENT_DATE = isset($RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE'])?$RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE']:[];
@@ -367,7 +364,6 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
 }*/
 
 function saveProfileData($RESPONSE_DATA){
-    //error_reporting(0);
     global $db;
     global $db_account;
 
@@ -1196,7 +1192,6 @@ function viewSamplePdf($RESPONSE_DATA) {
 }*/
 
 function viewGiftCertificatePdf($RESPONSE_DATA) {
-    error_reporting(0);
     try {
         global $http_path;
         require_once('../../global/vendor/autoload.php');
