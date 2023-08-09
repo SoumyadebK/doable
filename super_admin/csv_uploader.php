@@ -166,7 +166,6 @@ if(!empty($_POST))
                         $USER_DATA['USER_ID'] = $getData[1];
                         $USER_DATA['FIRST_NAME'] = trim($getData[2]);
                         $USER_DATA['LAST_NAME'] = trim($getData[3]);
-                        $USER_DATA['USER_API_KEY'] = $getData[0];
                         $USER_DATA['EMAIL_ID'] = $getData[25];
                         //$USER_DATA['HOME_PHONE'] = $getData[18];
                         if (!empty($getData[21]) && $getData[21] != null && $getData[21] != "   -   -    *") {
