@@ -5,11 +5,11 @@ require_once('query_factory.php');
 require_once('common_functions.php');
 $db = new queryFactory();
 if($_SERVER['HTTP_HOST'] == 'localhost' ) {
-    $master_database = 'doable_master';
-    $conn = $db->connect('localhost','root','','doable_master');
+    $master_database = 'DOA_MASTER';
+    $conn = $db->connect('localhost','root','','DOA_MASTER');
     $http_path = 'http://localhost/doable/';
 } else {
-    $conn = $db->connect('localhost','root','b54eawxj5h8ev','doable_master');
+    $conn = $db->connect('localhost','root','b54eawxj5h8ev','DOA_MASTER');
     $http_path = 'http://allonehub.com/';
 }
 

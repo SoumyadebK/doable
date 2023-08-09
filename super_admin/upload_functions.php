@@ -4,10 +4,10 @@ require_once('../global/common_functions.php');
 
 $db1 = new queryFactory();
 if($_SERVER['HTTP_HOST'] == 'localhost' ) {
-    $conn1 = $db1->connect('localhost','root','','amwh');
+    $conn1 = $db1->connect('localhost','root','',$_SESSION['MIGRATION_DB_NAME']);
     $http_path = 'http://localhost/doable/';
 } else {
-    $conn1 = $db1->connect('localhost','root','b54eawxj5h8ev','amwh');
+    $conn1 = $db1->connect('localhost','root','b54eawxj5h8ev',$_SESSION['MIGRATION_DB_NAME']);
     $http_path = 'http://allonehub.com/';
 }
 if ($db1->error_number){

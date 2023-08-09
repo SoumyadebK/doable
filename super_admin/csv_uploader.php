@@ -1,8 +1,7 @@
 <?php
-error_reporting(0);
+//error_reporting(0);
 require_once('../global/config.php');
 $title = "Upload CSV";
-require_once('upload_functions.php');
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 1 ){
     header("location:../login.php");
@@ -29,14 +28,30 @@ if(!empty($_POST))
     // Validate whether selected file is a CSV file
     if (!empty($_FILES['file']['name']) && in_array($_FILES['file']['type'], $fileMimes))
     {
+        $account_data = $db->Execute("SELECT DB_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$_POST['PK_ACCOUNT_MASTER']);
+        $DB_NAME = $account_data->fields['DB_NAME'];
+
+        if (!empty($DB_NAME)) {
+            require_once('../global/common_functions_account.php');
+            $account_database = $DB_NAME;
+            $db_account = new queryFactory();
+            if ($_SERVER['HTTP_HOST'] == 'localhost') {
+                $conn_account = $db_account->connect('localhost', 'root', '', $account_database);
+            } else {
+                $conn_account = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $account_database);
+            }
+            if (mysqli_connect_error()) {
+                die("Account Database Connection Error");
+            }
+        }
+        $_SESSION['MIGRATION_DB_NAME'] = $_POST['DATABASE_NAME'];
+        require_once('upload_functions.php');
+
         // Open uploaded CSV file with read-only mode
         $csvFile = fopen($_FILES['file']['tmp_name'], 'r');
-
-        // Skip the first line
-        //fgetcsv($csvFile);
         $lineNumber = 1;
 
-        $standardServicePkId = $db->Execute("SELECT PK_SERVICE_CODE, PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE SERVICE_CODE LIKE 'S-1'");
+        $standardServicePkId = $db_account->Execute("SELECT PK_SERVICE_CODE, PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE SERVICE_CODE LIKE 'S-1'");
         $PK_SERVICE_CODE_STANDARD = $standardServicePkId->fields['PK_SERVICE_CODE'];
         $PK_SERVICE_MASTER_STANDARD = $standardServicePkId->fields['PK_SERVICE_MASTER'];
         $PK_LOCATION = $_POST['PK_LOCATION'];
@@ -89,13 +104,10 @@ if(!empty($_POST))
                         $getRole = getRole($roleId);
                         $doableRoleId = $db->Execute("SELECT PK_ROLES FROM DOA_ROLES WHERE ROLES='$getRole'");
                         $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $USER_DATA['PK_LOCATION'] = $PK_LOCATION; // Need to check for further upload
                         $USER_DATA['FIRST_NAME'] = trim($getData[3]);
                         $USER_DATA['LAST_NAME'] = trim($getData[4]);
-                        $USER_DATA['USER_API_KEY'] = $getData[2];
                         $USER_DATA['USER_ID'] = $getData[19];
                         $USER_DATA['EMAIL_ID'] = $getData[14];
-                        $USER_DATA['TAX_ID'] = $getData[15];
                         if (!empty($getData[13]) && $getData[13] != null) {
                             $USER_DATA['PHONE'] = $getData[13];
                         } elseif (!empty($getData[12]) && $getData[12] != null) {
@@ -123,7 +135,7 @@ if(!empty($_POST))
                             $USER_ROLE_DATA['PK_ROLES'] = $doableRoleId->fields['PK_ROLES'];
                             db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
 
-                            if($doableRoleId->fields['PK_ROLES'] == 5) {
+                            if(in_array($doableRoleId->fields['PK_ROLES'], [2,3,5,6])) {
                                 $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
                                 $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                                 $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($getData[3]);
@@ -907,8 +919,8 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                             <label class="form-label">Select Database Name</label>
                             <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
                                 <option value="">Select Database Name</option>
-                                <option value="amto">AMTO</option>
-                                <option value="amdh">AMWH</option>
+                                <option value="AMTO">AMTO</option>
+                                <option value="AMWH">AMWH</option>
                             </select>
                         </div>
                     </div>
