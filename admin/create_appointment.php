@@ -126,7 +126,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         }
     }
 
-    header("location:all_special_appointment.php");
+    header("location:all_schedules.php");
 } elseif ($FUNCTION_NAME == 'saveAppointmentData') {
     unset($_POST['TIME']);
     unset($_POST['FUNCTION_NAME']);
