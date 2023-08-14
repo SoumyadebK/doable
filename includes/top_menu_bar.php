@@ -5,7 +5,7 @@ if (!empty($_GET['view'])) {
     $view = 'list';
 }
 ?>
-<div class="container-fluid p-0 nav-top-new">
+<div class="container-fluid p-0 nav-top-new topbar">
     <div class="row">
         <div class="d-flex flex-column flex-md-row align-items-center py-2 px-4 bg-white border-bottomm box-shadow justify-content-end">
             <nav class="my-2 my-md-0 mr-md-3 new-top-nav">

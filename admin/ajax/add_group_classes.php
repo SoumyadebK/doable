@@ -20,24 +20,24 @@ require_once('../../global/config.php');
                     </select>
                 </div>
             </div>
-            <div class="col-3">
+            <!--<div class="col-3">
                 <div class="form-group">
-                    <label class="form-label">Primary <?=$service_provider_title?> <span class="text-danger">*</span></label>
+                    <label class="form-label">Primary <?php /*=$service_provider_title*/?> <span class="text-danger">*</span></label>
                     <select name="SERVICE_PROVIDER_ID_1" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_1" required>
-                    <option value="">Select <?=$service_provider_title?></option>
+                    <option value="">Select <?php /*=$service_provider_title*/?></option>
 
                     </select>
                 </div>
             </div>
             <div class="col-3">
                 <div class="form-group">
-                    <label class="form-label">Secondary <?=$service_provider_title?></label>
+                    <label class="form-label">Secondary <?php /*=$service_provider_title*/?></label>
                     <select name="SERVICE_PROVIDER_ID_2" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_2">
-                    <option value="">Select <?=$service_provider_title?></option>
+                    <option value="">Select <?php /*=$service_provider_title*/?></option>
 
                     </select>
                 </div>
-            </div>
+            </div>-->
             <div class="col-3">
                 <div class="form-group">
                     <label class="form-label">Location</label>
