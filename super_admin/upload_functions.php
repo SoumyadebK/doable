@@ -15,27 +15,39 @@ if ($db1->error_number){
 }
 
 function getRole($role_id){
-    global $db1;
-    $role = $db1->Execute("SELECT name FROM roles WHERE id = '$role_id'");
-    if ($role->fields['name']=="Supervisor" || $role->fields['name']=="Counselor") {
-        return "Account User";
-    } elseif ($role->fields['name']=="Instructor") {
-        return "Service Provider";
+    if ($role_id > 0) {
+        global $db1;
+        $role = $db1->Execute("SELECT name FROM roles WHERE id = '$role_id'");
+        if ($role->fields['name'] == "Supervisor" || $role->fields['name'] == "Counselor") {
+            return "Account User";
+        } elseif ($role->fields['name'] == "Instructor") {
+            return "Service Provider";
+        } else {
+            return $role->fields['name'];
+        }
     } else {
-        return $role->fields['name'];
+        return 'Guest';
     }
 }
 
 function getInquiry($inquiry_id) {
     global $db1;
     $inquiry = $db1->Execute("SELECT inquiry_type FROM inquiry_type WHERE inquiry_id = '$inquiry_id'");
-    return $inquiry->fields['inquiry_type'];
+    if ($inquiry->RecordCount() > 0) {
+        return $inquiry->fields['inquiry_type'];
+    } else {
+        return '';
+    }
 }
 
 function getTaker($taker_id) {
     global $db1;
     $inquiry_taker = $db1->Execute("SELECT user_name FROM users WHERE user_id = '$taker_id'");
-    return $inquiry_taker->fields['user_name'];
+    if ($inquiry_taker->RecordCount() > 0) {
+        return $inquiry_taker->fields['user_name'];
+    } else {
+        return '';
+    }
 }
 
 function getService($service_id) {
