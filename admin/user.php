@@ -229,8 +229,8 @@ if(!empty($_GET['id'])) {
                                         <div class="card-body">
                                             <!-- Nav tabs -->
                                             <ul class="nav nav-tabs" role="tablist">
-                                                <li> <a class="nav-link active" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
-                                                <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
+                                                <li> <a class="nav-link active" data-bs-toggle="tab" id="profile_tab_link" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+                                                <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" onclick="goToLoginTab()" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
                                                 <li id="rates_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="rates_tab_link" data-bs-toggle="tab" href="#rates" role="tab" ><span class="hidden-sm-up"><i class="ti-money"></i></span> <span class="hidden-xs-down">Rates</span></a> </li>
                                                 <li id="service_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="service_tab_link" data-bs-toggle="tab" href="#service" role="tab" ><span class="hidden-sm-up"><i class="ti-server"></i></span> <span class="hidden-xs-down">Service</span></a> </li>
                                                 <li> <a class="nav-link" data-bs-toggle="tab" href="#documents" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
@@ -465,6 +465,7 @@ if(!empty($_GET['id'])) {
                                                                         <label class="col-md-12">User Name</label>
                                                                         <div class="col-md-12">
                                                                             <input type="text" id="USER_ID" name="USER_ID" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_ID?>">
+                                                                            <div id="uname_result"></div>
                                                                         </div>
                                                                     </div>
                                                                     <span id="lblError" style="color: red"></span>
@@ -496,7 +497,7 @@ if(!empty($_GET['id'])) {
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">Password</label>
                                                                             <div class="col-md-12">
-                                                                                <input type="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
+                                                                                <input type="text" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -504,17 +505,17 @@ if(!empty($_GET['id'])) {
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">Confirm Password</label>
                                                                             <div class="col-md-12">
-                                                                                <input type="password" class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
+                                                                                <input type="text" class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                                 <b id="password_error" style="color: red;"></b>
-                                                                <div class="row">
+                                                                <!--<div class="row">
                                                                     <div class="col-12">
                                                                         <span style="color: orange;">Note  : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
                                                                     </div>
-                                                                </div>
+                                                                </div>-->
                                                                 <div class="row">
                                                                     <div class="col-2">
                                                                         Password Strength:
@@ -1234,6 +1235,14 @@ if(!empty($_GET['id'])) {
             });
         });
 
+        function goToLoginTab() {
+            let PK_USER = $('.PK_USER').val();
+            if (!PK_USER) {
+                alert('Please fill up the profile and click next.');
+                $('#profile_tab_link')[0].click();
+            }
+        }
+
         $(document).on('submit', '#login_form', function (event) {
             event.preventDefault();
             let PASSWORD = $('#PASSWORD').val();
@@ -1434,6 +1443,26 @@ if(!empty($_GET['id'])) {
                 });
             }
         }
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('#USER_ID').on('blur', function () {
+                const USER_ID = $(this).val().trim();
+                if (USER_ID != '') {
+                    $.ajax({
+                        url: 'ajax/username_checker.php',
+                        type: 'post',
+                        data: { USER_ID: USER_ID },
+                        success: function (response) {
+                            $('#uname_result').html(response);
+                        }
+                    });
+                } else {
+                    $("#uname_result").html("");
+                }
+            });
+        });
     </script>
 </body>
 </html>
