@@ -1345,8 +1345,8 @@ function deleteServiceData($RESPONSE_DATA) {
 }
 
 function deleteLocationData($RESPONSE_DATA) {
-    global $db_account;
+    global $db;
     $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
-    $location_data = $db_account->Execute("DELETE FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$PK_LOCATION);
+    $location_data = $db->Execute("DELETE FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$PK_LOCATION);
     echo 1;
 }
