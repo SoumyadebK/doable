@@ -132,25 +132,23 @@ if(!empty($_POST))
 
                         if ($PK_USER) {
                             $USER_ROLE_DATA['PK_USER'] = $PK_USER;
-                            $USER_ROLE_DATA['PK_ROLES'] = $doableRoleId->fields['PK_ROLES'];
+                            $USER_ROLE_DATA['PK_ROLES'] = ($doableRoleId->RecordCount() > 0) ? $doableRoleId->fields['PK_ROLES'] : 0;
                             db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
 
-                            if(in_array($doableRoleId->fields['PK_ROLES'], [2,3,5,6])) {
-                                $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
-                                $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                                $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($getData[3]);
-                                $USER_DATA_ACCOUNT['LAST_NAME'] = trim($getData[4]);
-                                $USER_DATA_ACCOUNT['USER_ID'] = $getData[19];
-                                $USER_DATA_ACCOUNT['EMAIL_ID'] = $getData[14];
-                                if (!empty($getData[13]) && $getData[13] != null) {
-                                    $USER_DATA_ACCOUNT['PHONE'] = $getData[13];
-                                } elseif (!empty($getData[12]) && $getData[12] != null) {
-                                    $USER_DATA_ACCOUNT['PHONE'] = $getData[12];
-                                }
-                                $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
-                                $USER_DATA_ACCOUNT['CREATED_ON'] = date("Y-m-d H:i");
-                                db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
+                            $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
+                            $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                            $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($getData[3]);
+                            $USER_DATA_ACCOUNT['LAST_NAME'] = trim($getData[4]);
+                            $USER_DATA_ACCOUNT['USER_ID'] = $getData[19];
+                            $USER_DATA_ACCOUNT['EMAIL_ID'] = $getData[14];
+                            if (!empty($getData[13]) && $getData[13] != null) {
+                                $USER_DATA_ACCOUNT['PHONE'] = $getData[13];
+                            } elseif (!empty($getData[12]) && $getData[12] != null) {
+                                $USER_DATA_ACCOUNT['PHONE'] = $getData[12];
                             }
+                            $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
+                            $USER_DATA_ACCOUNT['CREATED_ON'] = date("Y-m-d H:i");
+                            db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
 
                             $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
                             $USER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
@@ -244,8 +242,8 @@ if(!empty($_POST))
                                 $CUSTOMER_DATA['CALL_PREFERENCE'] = $getData[24];
                                 //$CUSTOMER_DATA['REMINDER_OPTION'] = $getData[23];
                                 $partner_name = explode(" ", $getData[26]);
-                                $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = ($partner_name[0])?:'';
-                                $CUSTOMER_DATA['PARTNER_LAST_NAME'] = ($partner_name[1])?:'';
+                                $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = isset($partner_name[0])?:'';
+                                $CUSTOMER_DATA['PARTNER_LAST_NAME'] = isset($partner_name[1])?:'';
                                 if ($getData[27] == 0) {
                                     $CUSTOMER_DATA['PARTNER_GENDER'] = "Male";
                                 } elseif ($getData[27] == 1) {
@@ -306,14 +304,14 @@ if(!empty($_POST))
                                         $getInquiry = getInquiry($inquiryId);
                                     }
                                     $doableInquiryId = $db_account->Execute("SELECT PK_INQUIRY_METHOD FROM DOA_INQUIRY_METHOD WHERE INQUIRY_METHOD='$getInquiry'");
-                                    $INQUIRY_VALUE['PK_INQUIRY_METHOD'] = $doableInquiryId->fields['PK_INQUIRY_METHOD'];
+                                    $INQUIRY_VALUE['PK_INQUIRY_METHOD'] = ($doableInquiryId->RecordCount()>0)?$doableInquiryId->fields['PK_INQUIRY_METHOD']:0;
                                 }
 
                                 if (!empty($getData[37])) {
                                     $takerId = $getData[37];
                                     $getTaker = getTaker($takerId);
                                     $doableTakerId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_ID='$getTaker'");
-                                    $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = $doableTakerId->fields['PK_USER'];
+                                    $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = ($doableTakerId->RecordCount()>0)?$doableTakerId->fields['PK_USER']:0;
                                 }
                                 db_perform_account('DOA_CUSTOMER_INTEREST_OTHER_DATA', $INQUIRY_VALUE, 'insert');
                             }
@@ -340,8 +338,7 @@ if(!empty($_POST))
                         $SERVICE_CODE['PK_FREQUENCY'] = 0;
                         $SERVICE_CODE['DESCRIPTION'] = $getData[1];
                         $SERVICE_CODE['DURATION'] = 0;
-                        $serviceName = $getData[1];
-                        if (strpos($serviceName, "Group")) {
+                        if (strpos($getData[0], "GRP") !== false) {
                             $SERVICE_CODE['IS_GROUP'] = 1;
                         } else {
                             $SERVICE_CODE['IS_GROUP'] = 0;
@@ -834,7 +831,7 @@ if(!empty($_POST))
         }
         // Close opened CSV file
         fclose($csvFile);
-        header("Location: csv_uploader.php");
+        //header("Location: csv_uploader.php");
     }
     else
     {
@@ -929,8 +926,8 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                             <select class="form-control" name="TABLE_NAME" id="TABLE_NAME" onchange="viewCsvDownload(this)">
                                 <option value="">Select Table Name</option>
                                 <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
-                                <option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
-                                <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>
+                                <!--<option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
+                                <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>-->
                                 <option value="DOA_USERS">DOA_USERS</option>
                                 <option value="DOA_CUSTOMER">DOA_CUSTOMER</option>
                                 <option value="DOA_SERVICE_MASTER">DOA_SERVICE_MASTER</option>
