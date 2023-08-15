@@ -222,7 +222,7 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid" style="margin-top: 67px">
             <div class="row page-titles">
                 <div class="col-md-4 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
