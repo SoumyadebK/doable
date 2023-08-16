@@ -1,4 +1,10 @@
-<header class="topbar">
+<style>
+    #top_menu {
+        z-index: 100;
+    }
+</style>
+
+<header id="top_menu" class="topbar">
     <nav class="navbar top-navbar navbar-expand-md navbar-dark">
         <!-- ============================================================== -->
         <!-- Logo -->

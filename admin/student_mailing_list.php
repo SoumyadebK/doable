@@ -18,7 +18,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     <div class="page-wrapper">
 
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid" style="margin-top: 67px">
+        <div class="container-fluid body_content">
 
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">

@@ -91,18 +91,23 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid" style="margin-top: 67px">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
+                <div class="col-md-5 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
                         <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='enrollment.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
                     </div>
+                </div>
+                <div class="col-md-2 align-self-center text-end">
+                    <form class="form-material form-horizontal" action="" method="get">
+                        <div class="input-group">
+                            <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
+                            <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -110,21 +115,6 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="col-12 row m-10">
-                                <div class="col-8">
-                                    <div>
-                                        <h5 class="card-title"><?=$title?></h5>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <form class="form-material form-horizontal" action="" method="get">
-                                        <div class="input-group">
-                                            <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
-                                            <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
                             <div class="table-responsive">
                                 <table  class="table table-striped border" data-page-length='50'>
                                     <thead>

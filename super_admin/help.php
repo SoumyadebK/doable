@@ -117,7 +117,7 @@ if($_GET['id'] == ''){
 	<?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
                  <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
                         <h4 class="text-themecolor"><? if($_GET['id'] == '') echo "Add"; else echo "Edit"; ?> Knowledge Base </h4>
