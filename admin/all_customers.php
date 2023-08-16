@@ -48,7 +48,7 @@ $page_first_result = ($page-1) * $results_per_page;
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid" style="margin-top: 67px">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-2 align-self-center">
                     <?php if ($status_check=='inactive') { ?>
@@ -89,7 +89,7 @@ $page_first_result = ($page-1) * $results_per_page;
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table  class="table table-striped border" data-page-length='50'>
+                                <table class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
                                         <th>No</th>

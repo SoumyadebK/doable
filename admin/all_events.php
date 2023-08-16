@@ -67,7 +67,7 @@ $page_first_result = ($page-1) * $results_per_page;
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid" style="margin-top: 67px">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-2 align-self-center">
                     <?php if ($status_check=='inactive') { ?>

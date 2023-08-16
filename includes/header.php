@@ -145,4 +145,9 @@
             white-space:normal;
         }
     </style>
+    <style>
+        .body_content {
+            margin-top: 67px;
+        }
+    </style>
 </head>
