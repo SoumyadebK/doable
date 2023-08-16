@@ -14,6 +14,16 @@ if ($db1->error_number){
     die("Connection Error");
 }
 
+function getAllInquiryMethod() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM inquiry_type");
+}
+
+function getAllUsers() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM users");
+}
+
 function getRole($role_id){
     if ($role_id > 0) {
         global $db1;
