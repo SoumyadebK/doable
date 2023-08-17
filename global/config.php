@@ -4,15 +4,14 @@ ob_start();
 require_once('query_factory.php');
 require_once('common_functions.php');
 $db = new queryFactory();
+$master_database = 'DOA_MASTER';
 if($_SERVER['HTTP_HOST'] == 'localhost' ) {
-    $master_database = 'DOA_MASTER';
-    $conn = $db->connect('localhost','root','','DOA_MASTER');
+    $conn = $db->connect('localhost','root','',$master_database);
     $http_path = 'http://localhost/doable/';
 } else {
-    $conn = $db->connect('localhost','root','b54eawxj5h8ev','DOA_MASTER');
+    $conn = $db->connect('localhost','root','b54eawxj5h8ev',$master_database);
     $http_path = 'http://allonehub.com/';
 }
-
 
 if (!empty($_SESSION['DB_NAME'])) {
     require_once('common_functions_account.php');
