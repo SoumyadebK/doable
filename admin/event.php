@@ -104,7 +104,7 @@ if(empty($_GET['id'])){
     $START_TIME = $res->fields['START_TIME'];
     $END_TIME = $res->fields['END_TIME'];
     $DESCRIPTION = $res->fields['DESCRIPTION'];
-    $PK_LOCATION = $res->fields['PK_LOCATION'];
+    //$PK_LOCATION = $res->fields['PK_LOCATION'];
     $SHARE_WITH_CUSTOMERS = $res->fields['SHARE_WITH_CUSTOMERS'];
     $SHARE_WITH_SERVICE_PROVIDERS = $res->fields['SHARE_WITH_SERVICE_PROVIDERS'];
     $SHARE_WITH_EMPLOYEES = $res->fields['SHARE_WITH_EMPLOYEES'];
@@ -208,13 +208,21 @@ if(empty($_GET['id'])){
                                         <div class="row">
                                             <div class="col-6">
                                                 <label class="form-label">Location</label>
-                                                <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
-                                                    <select class="multi_sumo_select" name="PK_LOCATION[]" multiple>
+                                                <div class="col-md-12 multiselect-box">
+                                                    <select class="multi_sumo_select" name="PK_LOCATION[]" id="PK_LOCATION" multiple>
                                                         <?php
+                                                        $selected_location = [];
+                                                        if(!empty($_GET['id'])) {
+                                                            $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_EVENT_LOCATION` WHERE `PK_EVENT` = '$_GET[id]'");
+                                                            while (!$selected_location_row->EOF) {
+                                                                $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                                                $selected_location_row->MoveNext();
+                                                            }
+                                                        }
                                                         $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                         while (!$row->EOF) { ?>
-                                                            <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], explode(',', $PK_LOCATION))?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
-                                                        <?php $row->MoveNext(); } ?>
+                                                            <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                            <?php $row->MoveNext(); } ?>
                                                     </select>
                                                 </div>
                                             </div>
