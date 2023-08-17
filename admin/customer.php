@@ -252,6 +252,11 @@ if(!empty($_GET['master_id'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+<style>
+    .commentModel {
+        z-index: 1011
+    }
+</style>
 <?php require_once('../includes/header.php');?>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
@@ -1604,7 +1609,7 @@ if(!empty($_GET['master_id'])) {
 
                                                         <tbody>
                                                             <?php
-                                                            $comment_data = $db_account->Execute("SELECT DOA_COMMENT.PK_COMMENT, DOA_COMMENT.COMMENT, DOA_COMMENT.COMMENT_DATE, DOA_COMMENT.ACTIVE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS FULL_NAME FROM `DOA_COMMENT` INNER JOIN DOA_USERS ON DOA_COMMENT.BY_PK_USER = DOA_USERS.PK_USER WHERE `FOR_PK_USER` = ".$PK_USER);
+                                                            $comment_data = $db->Execute("SELECT $account_database.DOA_COMMENT.PK_COMMENT, $account_database.DOA_COMMENT.COMMENT, $account_database.DOA_COMMENT.COMMENT_DATE, $account_database.DOA_COMMENT.ACTIVE, CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS FULL_NAME FROM $account_database.`DOA_COMMENT` INNER JOIN $master_database.DOA_USERS ON $account_database.DOA_COMMENT.BY_PK_USER = $master_database.DOA_USERS.PK_USER WHERE $account_database.DOA_COMMENT.`FOR_PK_USER` = ".$PK_USER);
                                                             $i = 1;
                                                             while (!$comment_data->EOF) { ?>
                                                             <tr>

@@ -1302,6 +1302,7 @@ function getEditCommentData($RESPONSE_DATA) {
 
 function saveCommentData($RESPONSE_DATA){
     global $db;
+    global $db_account;
     $COMMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     $COMMENT_DATA['COMMENT'] = $RESPONSE_DATA['COMMENT'];
     $COMMENT_DATA['COMMENT_DATE'] = date("Y-m-d");
