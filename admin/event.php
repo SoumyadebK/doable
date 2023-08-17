@@ -16,7 +16,6 @@ if(!empty($_POST)){
     $EVENT_DATA['HEADER'] = $_POST['HEADER'];
     $EVENT_DATA['PK_EVENT_TYPE'] = $_POST['PK_EVENT_TYPE'];
     $EVENT_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
-    $EVENT_DATA['PK_LOCATION'] = implode(',', $_POST['PK_LOCATION']);
     $EVENT_DATA['SHARE_WITH_CUSTOMERS'] = isset($_POST['SHARE_WITH_CUSTOMERS'])?1:0;
     $EVENT_DATA['SHARE_WITH_SERVICE_PROVIDERS'] = isset($_POST['SHARE_WITH_SERVICE_PROVIDERS'])?1:0;
     $EVENT_DATA['SHARE_WITH_EMPLOYEES'] = isset($_POST['SHARE_WITH_EMPLOYEES'])?1:0;
@@ -30,13 +29,23 @@ if(!empty($_POST)){
         $EVENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $EVENT_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform_account('DOA_EVENT', $EVENT_DATA, 'insert');
-        $PK_EVENT = $db->insert_ID();
+        $PK_EVENT = $db_account->insert_ID();
     }else{
         $EVENT_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $EVENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $EVENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_EVENT', $EVENT_DATA, 'update'," PK_EVENT =  '$_GET[id]'");
         $PK_EVENT = $_GET['id'];
+    }
+
+    $db_account->Execute("DELETE FROM `DOA_EVENT_LOCATION` WHERE `PK_EVENT` = '$PK_EVENT'");
+    if(isset($_POST['PK_LOCATION'])){
+        $PK_LOCATION = $_POST['PK_LOCATION'];
+        for($i = 0; $i < count($PK_LOCATION); $i++){
+            $EVENT_LOCATION_DATA['PK_EVENT'] = $PK_EVENT;
+            $EVENT_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+            db_perform_account('DOA_EVENT_LOCATION', $EVENT_LOCATION_DATA, 'insert');
+        }
     }
 
     if (isset($_FILES['IMAGE']['name'])){

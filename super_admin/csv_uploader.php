@@ -644,7 +644,7 @@ if(!empty($_POST))
                     break;
 
                 case "DOA_EVENT":
-                    $table_data = $db_account->Execute("SELECT * FROM DOA_EVENT WHERE PK_LOCATION = '$PK_LOCATION' AND HEADER = '$getData[4]' AND START_DATE = '$getData[5]' AND START_TIME = '$getData[6]'");
+                    $table_data = $db_account->Execute("SELECT * FROM DOA_EVENT WHERE HEADER = '$getData[4]' AND START_DATE = '$getData[5]' AND START_TIME = '$getData[6]'");
                     if ($table_data->RecordCount() == 0) {
                         $INSERT_DATA['HEADER'] = $getData[4];
                         if ($getData[9] == "G") {
@@ -654,7 +654,6 @@ if(!empty($_POST))
                             $INSERT_DATA['PK_EVENT_TYPE'] = 0;
                         }
                         $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
                         $INSERT_DATA['START_DATE'] = $getData[5];
                         $INSERT_DATA['START_TIME'] = $getData[6];
                         $endDateTime = strtotime($getData[5] . ' ' . $getData[6]) + $getData[8] * 60;
@@ -678,6 +677,10 @@ if(!empty($_POST))
                         $INSERT_DATA['CREATED_BY'] = $doableNameId->fields['PK_USER'];
                         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                         db_perform_account('DOA_EVENT', $INSERT_DATA, 'insert');
+                        $PK_EVENT = $db_account->insert_ID();
+                        $EVENT_LOCATION_DATA['PK_EVENT'] = $PK_EVENT;
+                        $EVENT_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+                        db_perform_account('DOA_EVENT_LOCATION', $EVENT_LOCATION_DATA, 'insert');
                     }
                     break;
 
