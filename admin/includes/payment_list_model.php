@@ -49,7 +49,7 @@ $page_first_result = ($page-1) * $results_per_page;
 <link rel="stylesheet" href="../assets/CalendarPicker/CalendarPicker.style.css">
 <div id="paymentListModel" class="modal">
     <!-- Modal content -->
-    <div class="modal-content" style="width: 100%;">
+    <div class="modal-content" style="margin-top:2%; width: 100%;">
         <span class="close close_payment_list_model" style="margin-left: 96%;">&times;</span>
         <div class="row" style="padding-bottom: 10px">
             <div class="col-md-2"><input type="text" id="BALANCE" class="form-control"></div>

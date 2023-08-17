@@ -216,9 +216,9 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
 <link rel="stylesheet" href="../assets/CalendarPicker/CalendarPicker.style.css">
 <div id="appointmentModel" class="modal">
     <!-- Modal content -->
-    <div class="modal-content" style="width: 100%;">
+    <div class="modal-content" style="margin-top:2%; width: 100%;">
         <span class="close close_appointment_model" style="margin-left: 96%;">&times;</span>
-        <div class="row page-titles">
+        <div>
             <div class="col-md-12 align-self-center text-center">
                 <div class="d-flex justify-content-center align-items-center">
                     <!--<button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('group_class', this);"><i class="fa fa-plus-circle"></i> Group Class</button>

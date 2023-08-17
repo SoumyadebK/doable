@@ -24,6 +24,51 @@ function getAllUsers() {
     return $db1->Execute("SELECT * FROM users");
 }
 
+function getAllCustomers() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM customer");
+}
+
+function getAllServices() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM service_codes");
+}
+
+function getAllSchedulingCodes() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM booking_codes");
+}
+
+function getAllEnrollmentTypes() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM enrollment_type");
+}
+
+function getAllEnrollments() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM enrollment");
+}
+
+function getAllEnrollmentServices() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM enrollment_services");
+}
+
+function getAllEnrollmentPayments() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM payments");
+}
+
+function getAllEvents() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM general_appt");
+}
+
+function getAllAppointments() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM service_appt");
+}
+
 function getRole($role_id){
     if ($role_id > 0) {
         global $db1;

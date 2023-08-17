@@ -1,6 +1,6 @@
 <div id="myModal" class="modal">
     <!-- Modal content -->
-    <div class="modal-content" style="width: 50%;">
+    <div class="modal-content" style="margin-top:2%; width: 50%;">
         <span class="close" style="margin-left: 96%;">&times;</span>
         <div class="card" id="payment_confirmation_form_div" style="display: none;">
             <div class="card-body">

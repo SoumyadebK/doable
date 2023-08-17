@@ -48,7 +48,7 @@ $NOTE = '';
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 <div id="enrollmentModel" class="modal">
     <!-- Modal content -->
-    <div class="modal-content" style="width: 100%;">
+    <div class="modal-content" style="margin-top: 2%; width: 100%;">
         <span class="close close_enrollment_model" style="margin-left: 96%;">&times;</span>
         <div class="card">
             <div class="card-body">
