@@ -42,36 +42,36 @@ if(!empty($_POST)){
         }
         db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
 
-        $USER_PROFILE_DATA['GENDER'] = $_POST['GENDER'];
-        $USER_PROFILE_DATA['DOB'] = date('Y-m-d', strtotime($_POST['DOB']));
-        $USER_PROFILE_DATA['ADDRESS'] = $_POST['ADDRESS'];
-        $USER_PROFILE_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
-        $USER_PROFILE_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
-        $USER_PROFILE_DATA['PK_STATES'] = $_POST['PK_STATES'];
-        $USER_PROFILE_DATA['CITY'] = $_POST['CITY'];
-        $USER_PROFILE_DATA['ZIP'] = $_POST['ZIP'];
+        $USER_DATA['GENDER'] = $_POST['GENDER'];
+        $USER_DATA['DOB'] = date('Y-m-d', strtotime($_POST['DOB']));
+        $USER_DATA['ADDRESS'] = $_POST['ADDRESS'];
+        $USER_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
+        $USER_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
+        $USER_DATA['PK_STATES'] = $_POST['PK_STATES'];
+        $USER_DATA['CITY'] = $_POST['CITY'];
+        $USER_DATA['ZIP'] = $_POST['ZIP'];
 
         /*$USER_PROFILE_DATA['FAX'] = $_POST['FAX'];
         $USER_PROFILE_DATA['WEBSITE'] = $_POST['WEBSITE'];*/
-        $USER_PROFILE_DATA['NOTES'] = $_POST['NOTES'];
+        $USER_DATA['NOTES'] = $_POST['NOTES'];
 
-        $res = $db->Execute("SELECT `PK_USER_PROFILE` FROM `DOA_USER_PROFILE` WHERE PK_USER = '$_SESSION[PK_USER]'");
+        $res = $db->Execute("SELECT `PK_USER` FROM `DOA_USERS` WHERE PK_USER = '$_SESSION[PK_USER]'");
 
         if ($res->RecordCount() == 0) {
-            $USER_PROFILE_DATA['PK_USER'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['ACTIVE'] = 1;
-            $USER_PROFILE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
+            $USER_DATA['PK_USER'] = $_SESSION['PK_USER'];
+            $USER_DATA['ACTIVE'] = 1;
+            $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+            $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+            db_perform('DOA_USER', $USER_DATA, 'insert');
         } else {
-            $USER_PROFILE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
+            $USER_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+            $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
+            db_perform('DOA_USER', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
         }
     }
 }
 
-$res = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
+$res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 
 if($res->RecordCount() == 0){
     header("location:../login.php");
