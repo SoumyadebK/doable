@@ -359,20 +359,6 @@ if(!empty($_POST))
                 $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 0;
             }
 
-            /*$account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$PK_ACCOUNT_MASTER'");
-            if ($account_data->RecordCount() > 0){
-                $enrollment_char = $account_data->fields['ENROLLMENT_ID_CHAR'];
-            } else {
-                $enrollment_char = 'ENR';
-            }
-            $enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$PK_ACCOUNT_MASTER' ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-            if ($enrollment_data->RecordCount() > 0){
-                $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']) ;
-                $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char.(intval($last_enrollment_id)+1);
-            }else{
-                $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char.$account_data->fields['ENROLLMENT_ID_NUM'];
-            }*/
-
             $ENROLLMENT_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
             $customerId = $getData[4];
             $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID='$customerId' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
