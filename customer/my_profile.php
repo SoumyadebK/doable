@@ -40,7 +40,6 @@ if(!empty($_POST)){
                 $USER_DATA['USER_IMAGE'] = $image_path;
             }
         }
-        db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
 
         $USER_DATA['GENDER'] = $_POST['GENDER'];
         $USER_DATA['DOB'] = date('Y-m-d', strtotime($_POST['DOB']));
@@ -50,24 +49,8 @@ if(!empty($_POST)){
         $USER_DATA['PK_STATES'] = $_POST['PK_STATES'];
         $USER_DATA['CITY'] = $_POST['CITY'];
         $USER_DATA['ZIP'] = $_POST['ZIP'];
-
-        /*$USER_PROFILE_DATA['FAX'] = $_POST['FAX'];
-        $USER_PROFILE_DATA['WEBSITE'] = $_POST['WEBSITE'];*/
         $USER_DATA['NOTES'] = $_POST['NOTES'];
-
-        $res = $db->Execute("SELECT `PK_USER` FROM `DOA_USERS` WHERE PK_USER = '$_SESSION[PK_USER]'");
-
-        if ($res->RecordCount() == 0) {
-            $USER_DATA['PK_USER'] = $_SESSION['PK_USER'];
-            $USER_DATA['ACTIVE'] = 1;
-            $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-            $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER', $USER_DATA, 'insert');
-        } else {
-            $USER_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
-        }
+        db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
     }
 }
 
@@ -92,8 +75,6 @@ $PK_STATES = $res->fields['PK_STATES'];
 $CITY = $res->fields['CITY'];
 $ZIP = $res->fields['ZIP'];
 $PHONE = $res->fields['PHONE'];
-/*$FAX = $res->fields['FAX'];
-$WEBSITE = $res->fields['WEBSITE'];*/
 $NOTES = $res->fields['NOTES'];
 $ACTIVE = $res->fields['ACTIVE'];
 ?>

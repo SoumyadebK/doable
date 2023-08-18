@@ -103,7 +103,8 @@ function displayDates($date1, $date2, $format = 'm/d/Y' ) {
     return $dates;
 }
 
-$location_operational_hour = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME, DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM DOA_OPERATIONAL_HOUR LEFT JOIN $master_database.DOA_LOCATION ON DOA_OPERATIONAL_HOUR.PK_LOCATION = $master_database.DOA_LOCATION.PK_LOCATION WHERE $master_database.DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY $master_database.DOA_LOCATION.PK_LOCATION LIMIT 1");
+$OPEN_TIME = '09:00:00';
+$CLOSE_TIME = '22:00:00';
 
 $user_master_data = $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$_SESSION['PK_USER']);
 $PK_USER_MASTER_ARRAY = [];
@@ -178,7 +179,7 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
 
                             </div>
 
-                            <div id="calendar_div" class="card-body view_div b-l calender-sidebar" style="display: none;">
+                            <div id="calender" class="card-body b-l calender-sidebar">
                                 <div id="calendar"></div>
                             </div>
                         </div>
@@ -217,12 +218,8 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
 <script src='../assets/full_calendar_new/fullcalendar.min.js'></script>
 <script src='../assets/full_calendar_new/scheduler.min.js'></script>
 
-
-
-
 <script>
     let view = '<?=$view?>';
-
     $(window).on('load', function () {
         if (view === 'list'){
             showListView();
@@ -232,7 +229,7 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
     })
 
     function showAppointmentEdit(info) {
-        if (info.resourceId > 0) {
+        if (info.type === 'appointment') {
             $('#appointment_list_half').removeClass('col-12');
             $('#appointment_list_half').addClass('col-6');
             $.ajax({
@@ -255,81 +252,79 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
         $('#appointment_list_half').addClass('col-12');
     }
 
-    var defaultResources = [
-        <?php $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']);
-        while (!$service_provider_data->EOF) { ?>
-        {
-            id: <?=$service_provider_data->fields['PK_USER']?>,
-            title: '<?=$service_provider_data->fields['NAME']?>',
-        },
-        <?php $service_provider_data->MoveNext();
-        } ?>
-    ];
+    function showCalendarView() {
+        showCalendarAppointment();
+        $('#appointment_list').hide();
+        $('#calender').show();
+    }
 
-    var appointmentArray = [
-        <?php $appointment_data = $db->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.CUSTOMER_ID, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.IS_PAID, CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.CUSTOMER_ID IN (".$PK_USER_MASTERS.")");
-        while (!$appointment_data->EOF) { ?>
-        {
-            id: <?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>,
-            resourceId: <?=$appointment_data->fields['CUSTOMER_ID']?>,
-            title: '<?=$appointment_data->fields['CUSTOMER_NAME'].' ('.$appointment_data->fields['SERVICE_NAME'].'-'.$appointment_data->fields['SERVICE_CODE'].')'.'\n'.$appointment_data->fields['ENROLLMENT_ID'].' - '.$appointment_data->fields['SERIAL_NUMBER'].(($appointment_data->fields['IS_PAID'] == 0)?' (Unpaid)':' (Paid)')?>',
-            start: new Date(<?=date("Y",strtotime($appointment_data->fields['DATE']))?>,<?=intval((date("m",strtotime($appointment_data->fields['DATE'])) - 1))?>,<?=intval(date("d",strtotime($appointment_data->fields['DATE'])))?>,<?=date("H",strtotime($appointment_data->fields['START_TIME']))?>,<?=date("i",strtotime($appointment_data->fields['START_TIME']))?>,1,1),
-            end: new Date(<?=date("Y",strtotime($appointment_data->fields['DATE']))?>,<?=intval((date("m",strtotime($appointment_data->fields['DATE'])) - 1))?>,<?=intval(date("d",strtotime($appointment_data->fields['DATE'])))?>,<?=date("H",strtotime($appointment_data->fields['END_TIME']))?>,<?=date("i",strtotime($appointment_data->fields['END_TIME']))?>,1,1),
-            color: '<?=$appointment_data->fields['COLOR_CODE']?>',
-        },
-        <?php $appointment_data->MoveNext();
-        } ?>
-    ];
-
-    var eventArray = [
-        <?php $event_data = $db_account->Execute("SELECT DOA_EVENT.*, DOA_EVENT_TYPE.EVENT_TYPE, DOA_EVENT_TYPE.COLOR_CODE FROM DOA_EVENT LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.SHARE_WITH_CUSTOMERS = 1 AND DOA_EVENT.ACTIVE = 1 AND DOA_EVENT.PK_ACCOUNT_MASTER IN (".$PK_ACCOUNT_MASTERS.")");
-        while (!$event_data->EOF) {
-            $END_DATE = ($event_data->fields['END_DATE'] == '0000-00-00')?$event_data->fields['START_DATE']:$event_data->fields['END_DATE'];
-            $END_TIME = ($event_data->fields['END_TIME'] == '00:00:00')?$event_data->fields['START_TIME']:$event_data->fields['END_TIME']; ?>
-        {
-            id: <?=$event_data->fields['PK_EVENT']?>,
-            resourceId: 0,
-            title: '<?=$event_data->fields['HEADER']?>',
-            start: new Date(<?=date("Y",strtotime($event_data->fields['START_DATE']))?>,<?=intval((date("m",strtotime($event_data->fields['START_DATE'])) - 1))?>,<?=intval(date("d",strtotime($event_data->fields['START_DATE'])))?>,<?=date("H",strtotime($event_data->fields['START_TIME']))?>,<?=date("i",strtotime($event_data->fields['START_TIME']))?>,1,1),
-            end: new Date(<?=date("Y",strtotime($END_DATE))?>,<?=intval((date("m",strtotime($END_DATE)) - 1))?>,<?=intval(date("d",strtotime($END_DATE)))?>,<?=date("H",strtotime($END_TIME))?>,<?=date("i",strtotime($END_TIME))?>,1,1),
-            color: '<?=$event_data->fields['COLOR_CODE']?>',
-        },
-        <?php $event_data->MoveNext();
-        } ?>
-    ];
-
-    var finalArray = appointmentArray.concat(eventArray);
-
-    /*jQuery(document).ready(function($) {
-        defaultEvents =
-        console.log(defaultEvents);
-        $('#calendar').FullCalendar({
-            slotDuration: '00:15:00', /!* If we want to split day time each 15minutes *!/
-            minTime: '00:00:00',
-            maxTime: '24:00:00',
-            defaultView: 'month',
-            header: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'month,agendaWeek,agendaDay'
+    let finalArray = [];
+    let defaultResources = [];
+    function getAllCalendarData(){
+        defaultResources = [
+            <?php
+            $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+            $resourceIdArray = [];
+            while (!$service_provider_data->EOF) { $resourceIdArray[] = $service_provider_data->fields['PK_USER'];?>
+            {
+                id: <?=$service_provider_data->fields['PK_USER']?>,
+                title: '<?=$service_provider_data->fields['NAME'].' - 0'?>',
             },
-            events: defaultEvents,
-            displayEventTime: true,
-            droppable: false,
-            eventLimit: false,
-            selectable: true,
-            editable: true,
-        });
-    });*/
+            <?php $service_provider_data->MoveNext();
+            } $resourceIdArray = json_encode($resourceIdArray)?>
+        ];
 
-    document.addEventListener('DOMContentLoaded', function() {
+        let appointmentArray = [
+            <?php
+            $appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.IS_PAID, CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER INNER JOIN $master_database.DOA_USER_LOCATION AS DOA_USER_LOCATION ON SERVICE_PROVIDER.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.CUSTOMER_ID IN (".$PK_USER_MASTERS.")");
+            while (!$appointment_data->EOF) { ?>
+            {
+                id: <?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>,
+                resourceId: <?=$appointment_data->fields['SERVICE_PROVIDER_ID']?>,
+                title: '<?=$appointment_data->fields['CUSTOMER_NAME'].' ('.$appointment_data->fields['SERVICE_NAME'].'-'.$appointment_data->fields['SERVICE_CODE'].') '.'\n'.$appointment_data->fields['ENROLLMENT_ID'].' - '.$appointment_data->fields['SERIAL_NUMBER'].(($appointment_data->fields['IS_PAID'] == 0)?' (Unpaid)':' (Paid)')?>',
+                start: new Date(<?=date("Y",strtotime($appointment_data->fields['DATE']))?>,<?=intval((date("m",strtotime($appointment_data->fields['DATE'])) - 1))?>,<?=intval(date("d",strtotime($appointment_data->fields['DATE'])))?>,<?=date("H",strtotime($appointment_data->fields['START_TIME']))?>,<?=date("i",strtotime($appointment_data->fields['START_TIME']))?>,1,1),
+                end: new Date(<?=date("Y",strtotime($appointment_data->fields['DATE']))?>,<?=intval((date("m",strtotime($appointment_data->fields['DATE'])) - 1))?>,<?=intval(date("d",strtotime($appointment_data->fields['DATE'])))?>,<?=date("H",strtotime($appointment_data->fields['END_TIME']))?>,<?=date("i",strtotime($appointment_data->fields['END_TIME']))?>,1,1),
+                color: '<?=$appointment_data->fields['COLOR_CODE']?>',
+                type: 'appointment',
+            },
+            <?php $appointment_data->MoveNext();
+            } ?>
+        ];
 
+        let eventArray = [
+            <?php $event_data = $db_account->Execute("SELECT DOA_EVENT.*, DOA_EVENT_TYPE.EVENT_TYPE, DOA_EVENT_TYPE.COLOR_CODE FROM DOA_EVENT LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.ACTIVE = 1 AND DOA_EVENT.SHARE_WITH_CUSTOMERS = 1 AND DOA_EVENT.PK_ACCOUNT_MASTER IN (".$PK_ACCOUNT_MASTERS.")");
+            while (!$event_data->EOF) {
+            $END_DATE = ($event_data->fields['END_DATE'] == '0000-00-00')?$event_data->fields['START_DATE']:$event_data->fields['END_DATE'];
+            $END_TIME = ($event_data->fields['END_TIME'] == '00:00:00')?$event_data->fields['START_TIME']:$event_data->fields['END_TIME'];
+            $open_close_time_diff = (strtotime($CLOSE_TIME) - strtotime($OPEN_TIME)) - 1800;
+            $start_end_time_diff = strtotime($END_DATE.' '.$END_TIME) - strtotime($event_data->fields['START_DATE'].' '.$event_data->fields['START_TIME']);?>
+            {
+                id: <?=$event_data->fields['PK_EVENT']?>,
+                resourceIds: <?=$resourceIdArray?>,
+                title: '<?=$event_data->fields['HEADER']?>',
+                start: new Date(<?=date("Y",strtotime($event_data->fields['START_DATE']))?>,<?=intval((date("m",strtotime($event_data->fields['START_DATE'])) - 1))?>,<?=intval(date("d",strtotime($event_data->fields['START_DATE'])))?>,<?=date("H",strtotime($event_data->fields['START_TIME']))?>,<?=date("i",strtotime($event_data->fields['START_TIME']))?>,1,1),
+                end: new Date(<?=date("Y",strtotime($END_DATE))?>,<?=intval((date("m",strtotime($END_DATE)) - 1))?>,<?=intval(date("d",strtotime($END_DATE)))?>,<?=date("H",strtotime($END_TIME))?>,<?=date("i",strtotime($END_TIME))?>,1,1),
+                color: '<?=$event_data->fields['COLOR_CODE']?>',
+                type: 'event',
+                allDay: '<?=($start_end_time_diff >= $open_close_time_diff)?>'
+            },
+            <?php $event_data->MoveNext();
+            } ?>
+        ];
+        finalArray = appointmentArray.concat(eventArray);
+        console.log(finalArray);
+    }
+
+    function showCalendarAppointment() {
+        getAllCalendarData();
+        let open_time = '<?=$OPEN_TIME?>';
+        let close_time = '<?=$CLOSE_TIME?>';
         let clickCount = 0;
         $('#calendar').fullCalendar({
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
             defaultView: 'agendaDay',
-            //minTime: open_time,
-            //maxTime: close_time,
+            minTime: open_time,
+            maxTime: close_time,
             slotDuration: '00:30:00',
             slotLabelInterval: 30,
             slotMinutes: 30,
@@ -358,6 +353,17 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
                     titleFormat: 'dddd, MMMM Do YYYY'
                 }
             },
+            /*viewRender: function(view) {
+                if(view.type == 'agendaDay') {
+                    $('#calendar').fullCalendar( 'removeEventSource', ev1 );
+                    $('#calendar').fullCalendar( 'addEventSource', ev2 );
+                    return;
+                } else {
+                    $('#calendar').fullCalendar( 'removeEventSource', ev2 );
+                    $('#calendar').fullCalendar( 'addEventSource', ev1 );
+                    return;
+                }
+            },*/
 
             //// uncomment this line to hide the all-day slot
             //allDaySlot: false,
@@ -368,13 +374,7 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
                 { id: 'c', title: 'Room C', eventColor: 'orange' },
                 { id: 'd', title: 'Room D', eventColor: 'red' }
             ]*/,
-            events: finalArray /*[
-                { id: '1', resourceId: 'a', start: '2016-01-06', end: '2016-01-08', title: 'event 1' },
-                { id: '2', resourceId: 'a', start: '2016-01-07T09:00:00', end: '2016-01-07T14:00:00', title: 'event 2' },
-                { id: '3', resourceId: 'b', start: '2016-01-07T12:00:00', end: '2016-01-08T06:00:00', title: 'event 3' },
-                { id: '4', resourceId: 'c', start: '2016-01-07T07:30:00', end: '2016-01-07T09:30:00', title: 'event 4' },
-                { id: '5', resourceId: 'd', start: '2016-01-07T10:00:00', end: '2016-01-07T15:00:00', title: 'event 5' }
-            ]*/,
+            events: finalArray,
 
             eventClick: function(info) {
                 showAppointmentEdit(info);
@@ -400,7 +400,8 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    window.location.href = "add_schedule.php";
+                    //window.location.href = "add_schedule.php";
+                    openModel();
                 }
                 console.log(
                     'dayClick',
@@ -410,100 +411,81 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
             }
         });
 
-        $('.fc-body').css({"overflow-y":"scroll", "height":"400px", "display":"block"});
+
+        $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
 
         $('.fc-agendaDay-button').click(function () {
-            $('.fc-body').css({"overflow-y":"scroll", "height":"400px", "display":"block"});
+            $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
         });
         $('.fc-agendaTwoDay-button').click(function () {
-            $('.fc-body').css({"overflow-y":"scroll", "height":"400px", "display":"block"});
+            $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
         });
         $('.fc-agendaWeek-button').click(function () {
-            $('.fc-body').css({"overflow-y":"scroll", "height":"400px", "display":"block"});
+            $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
         });
         $('.fc-month-button').click(function () {
             $('.fc-body').css({"overflow-y":"", "height":"", "display":""});
         });
-
-        /*var calendarEl = document.getElementById('calendar');
-
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            //initialDate: '2022-08-01',
-            initialView: 'dayGridMonth',
-            slotDuration: '00:15:00',
-            slotLabelInterval: 15,
-            slotMinutes: 15,
-            nowIndicator: true,
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-            },
-            navLinks: true, // can click day/week names to navigate views
-            editable: true,
-            selectable: true,
-            selectMirror: true,
-            dayMaxEvents: true, // allow "more" link when too many events
-            events: defaultEvents,
-        });
-
-        calendar.render();*/
-    });
-
-    /*function viewAppointmentDetails(info) {
-        $.ajax({
-            url: "ajax/get_appointment_details.php",
-            type: "POST",
-            data: {PK_APPOINTMENT_MASTER: info.id},
-            async: false,
-            cache: false,
-            success: function (result) {
-                $('#appointment_details_div').html(result);
-                $('#model-button').trigger('click');
-            }
-        });
-    }*/
+    }
 
     function showListView(page) {
+        let search_text = $('#search_text').val();
+        let START_DATE = $('#START_DATE').val();
+        let END_DATE = $('#END_DATE').val();
         $.ajax({
             url: "pagination/appointment.php",
             type: "GET",
-            data: {search_text:'', page:page},
+            data: {search_text:search_text, page:page, START_DATE:START_DATE, END_DATE:END_DATE},
             async: false,
             cache: false,
+            beforeSend: function (){
+                $('.preloader').show();
+            },
             success: function (result) {
-                $('#appointment_list').html(result)
+                $('#appointment_list').html(result);
+            },
+            complete: function () {
+                $('.preloader').hide();
             }
         });
         window.scrollTo(0,0);
         $('#appointment_list').show();
-        $('#completed_list').hide();
-        $('#calendar_div').hide();
+        $('#calender').hide();
     }
 
-    function showCompleteListView(page) {
-        $.ajax({
-            url: "pagination/appointment_completed.php",
-            type: "GET",
-            data: {search_text:'', page:page},
-            async: false,
-            cache: false,
-            success: function (result) {
-                $('#completed_list').html(result)
-            }
-        });
-        window.scrollTo(0,0);
-        $('#completed_list').show();
-        $('#appointment_list').hide();
-        $('#calendar_div').hide();
-    }
 
-    function showCalendarView() {
-        $('#appointment_list').hide();
-        $('#completed_list').hide();
-        $('#calendar_div').show();
-        $('.fc-state-active').click();
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function editpage(id){
         window.location.href = "add_schedule.php?id="+id;

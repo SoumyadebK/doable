@@ -43,13 +43,13 @@ $IMAGE = $res->fields['IMAGE'];
                                 $selected_customer = '';
                                 $selected_customer_id = '';
                                 $selected_user_id = '';
-                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 ORDER BY FIRST_NAME");
+                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 ORDER BY FIRST_NAME");
                                 while (!$row->EOF) { if (($CUSTOMER_ID==$row->fields['PK_USER_MASTER'])){$selected_customer = $row->fields['NAME']; $customer_phone = $row->fields['PHONE']; $customer_email = $row->fields['EMAIL_ID']; $selected_customer_id = $row->fields['PK_USER_MASTER']; $selected_user_id = $row->fields['PK_USER'];} ?>
                                     <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" <?=($CUSTOMER_ID==$row->fields['PK_USER_MASTER'])?'selected':''?>><?=$row->fields['NAME'].' ('.$row->fields['PHONE'].')'?></option>
-                                    <?php $row->MoveNext(); } ?>
+                                <?php $row->MoveNext(); } ?>
                             </select>
                         </div>
-                        <p><a href="my_profile.php" target="_blank"><?=$selected_customer?></a></p>
+                        <p><a href="customer.php?id=<?=$selected_customer_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank"><?=$selected_customer?></a></p>
                     </div>
                 </div>
                 <div class="col-4">
@@ -93,7 +93,7 @@ $IMAGE = $res->fields['IMAGE'];
                             <option value="">Select Service</option>
                             <?php
                             $selected_service = '';
-                            $row = $db->Execute("SELECT DISTINCT(DOA_SERVICE_MASTER.PK_SERVICE_MASTER), DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 2 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$CUSTOMER_ID);
+                            $row = $db->Execute("SELECT DISTINCT(DOA_SERVICE_MASTER.PK_SERVICE_MASTER), DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                             while (!$row->EOF) { if($PK_SERVICE_MASTER==$row->fields['PK_SERVICE_MASTER']){$selected_service = $row->fields['SERVICE_NAME'];} ?>
                                 <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($PK_SERVICE_MASTER==$row->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
                                 <?php $row->MoveNext(); } ?>
@@ -101,7 +101,6 @@ $IMAGE = $res->fields['IMAGE'];
                         <p><?=$selected_service?></p>
                     </div>
                 </div>
-
                 <div class="col-6">
                     <div class="form-group">
                         <label class="form-label">Service Code : </label>
@@ -126,10 +125,10 @@ $IMAGE = $res->fields['IMAGE'];
                                 <option value="">Select <?=$service_provider_title?></option>
                                 <?php
                                 $selected_service_provider = '';
-                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS JOIN DOA_SERVICE_PROVIDER_SERVICES ON DOA_USERS.PK_USER = DOA_SERVICE_PROVIDER_SERVICES.PK_USER WHERE DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '".$PK_SERVICE_MASTER."' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER."'");
+                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5");
                                 while (!$row->EOF) { if($SERVICE_PROVIDER_ID==$row->fields['PK_USER']){$selected_service_provider = $row->fields['NAME'];} ?>
                                     <option value="<?php echo $row->fields['PK_USER'];?>" <?=($SERVICE_PROVIDER_ID==$row->fields['PK_USER'])?'selected':''?>><?=$row->fields['NAME']?></option>
-                                    <?php $row->MoveNext(); } ?>
+                                <?php $row->MoveNext(); } ?>
                             </select>
                         </div>
                         <p id="service_provider_name"><?=$selected_service_provider?></p>
@@ -243,6 +242,9 @@ $IMAGE = $res->fields['IMAGE'];
         <div class="form-group" style="margin-top: 25px;">
             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
             <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
+            <a href="enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
+            <a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
+            <a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>
         </div>
     </div>
 </form>

@@ -972,10 +972,10 @@ function completeAppointment($RESPONSE_DATA){
 }
 
 function getServiceProviderCount($RESPONSE_DATA){
-    global $db;
+    global $db_account;
     $date = date('Y-m-d', strtotime($RESPONSE_DATA['currentDate']));
     $all_service_provider = implode(',', $RESPONSE_DATA['all_service_provider']);
-    $service_provider_appointment_count = $db->Execute("SELECT COUNT(`PK_APPOINTMENT_MASTER`) AS APPOINTMENT_COUNT, SERVICE_PROVIDER_ID, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER WHERE SERVICE_PROVIDER_ID IN (".$all_service_provider.") AND `DATE` = '$date' GROUP BY SERVICE_PROVIDER_ID");
+    $service_provider_appointment_count = $db_account->Execute("SELECT COUNT(`PK_APPOINTMENT_MASTER`) AS APPOINTMENT_COUNT, SERVICE_PROVIDER_ID, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER WHERE SERVICE_PROVIDER_ID IN (".$all_service_provider.") AND `DATE` = '$date' GROUP BY SERVICE_PROVIDER_ID");
     $return_data = [];
     $i = 0;
     while (!$service_provider_appointment_count->EOF){
