@@ -223,23 +223,14 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid body_content">
-            <div class="row page-titles">
-                <div class="col-md-4 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
-
-                </div>
-                <div class="col-md-4 align-self-center text-center">
+                <div class="row page-titles navbar-fixed-top">
                     <div class="d-flex justify-content-center align-items-center">
-                        <!--<ol class="breadcrumb justify-content-center">
-                            <li class="breadcrumb-item"><a href="all_schedules.php">All Appointment</a></li>
-                        </ol>-->
                         <button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('group_class', this);"><i class="fa fa-plus-circle"></i> Group Class</button>
                         <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('int_app', this);"><i class="fa fa-plus-circle"></i> INT APP</button>
                         <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('appointment', this);"><i class="fa fa-plus-circle"></i> Appointment</button>
                         <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('standing', this);"><i class="fa fa-plus-circle"></i> Standing</button>
                     </div>
                 </div>
-            </div>
 
             <div class="row">
                 <div class="col-12">
