@@ -32,11 +32,6 @@ if(!empty($_POST))
     $_SESSION['MIGRATION_DB_NAME'] = $_POST['DATABASE_NAME'];
     require_once('upload_functions.php');
 
-    $standardServicePkId = $db_account->Execute("SELECT PK_SERVICE_CODE, PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE SERVICE_CODE LIKE 'S-1'");
-    $PK_SERVICE_CODE_STANDARD = $standardServicePkId->fields['PK_SERVICE_CODE'];
-    $PK_SERVICE_MASTER_STANDARD = $standardServicePkId->fields['PK_SERVICE_MASTER'];
-
-
     switch ($_POST['TABLE_NAME']) {
         case 'DOA_INQUIRY_METHOD':
             $allInquiryMethod = getAllInquiryMethod();
@@ -579,21 +574,20 @@ if(!empty($_POST))
 
         case "DOA_EVENT":
             $allEvents = getAllEvents();
+            $pk_event_type = $db_account->Execute("SELECT PK_EVENT_TYPE FROM DOA_EVENT_TYPE WHERE EVENT_TYPE='General' AND PK_ACCOUNT_MASTER='$PK_ACCOUNT_MASTER'");
             while (!$allEvents->EOF) {
                 $header = $allEvents->fields['appt_name'];
                 $start_date = $allEvents->fields['appt_date'];
                 $start_time = $allEvents->fields['appt_time'];
-                $table_data = $db_account->Execute("SELECT * FROM DOA_EVENT WHERE PK_LOCATION = '$PK_LOCATION' AND HEADER = '$header' AND START_DATE = '$start_date' AND START_TIME = '$start_time'");
+                $table_data = $db_account->Execute("SELECT * FROM DOA_EVENT WHERE HEADER = '$header' AND START_DATE = '$start_date' AND START_TIME = '$start_time'");
                 if ($table_data->RecordCount() == 0) {
                     $INSERT_DATA['HEADER'] = $header;
                     if ($allEvents->fields['appt_type'] == "G") {
-                        $pk_event_type = $db_account->Execute("SELECT PK_EVENT_TYPE FROM DOA_EVENT_TYPE WHERE EVENT_TYPE='General' AND PK_ACCOUNT_MASTER='$PK_ACCOUNT_MASTER'");
                         $INSERT_DATA['PK_EVENT_TYPE'] = $pk_event_type->fields['PK_EVENT_TYPE'];
                     } else {
                         $INSERT_DATA['PK_EVENT_TYPE'] = 0;
                     }
                     $INSERT_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-                    $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
                     $INSERT_DATA['START_DATE'] = $start_date;
                     $INSERT_DATA['START_TIME'] =$start_time;
                     $duration = $allEvents->fields['duration'];
@@ -618,12 +612,45 @@ if(!empty($_POST))
                     $INSERT_DATA['CREATED_BY'] = $doableNameId->fields['PK_USER'];
                     $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                     db_perform_account('DOA_EVENT', $INSERT_DATA, 'insert');
+                    $PK_EVENT = $db_account->insert_ID();
+                    $EVENT_LOCATION_DATA['PK_EVENT'] = $PK_EVENT;
+                    $EVENT_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+                    db_perform_account('DOA_EVENT_LOCATION', $EVENT_LOCATION_DATA, 'insert');
                 }
                 $allEvents->Movenext();
             }
             break;
 
         case "DOA_APPOINTMENT_MASTER":
+            $standardServicePkId = $db_account->Execute("SELECT PK_SERVICE_CODE, PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE SERVICE_CODE LIKE 'S-1'");
+            if ($standardServicePkId->RecordCount() > 0) {
+                $PK_SERVICE_CODE_STANDARD = $standardServicePkId->fields['PK_SERVICE_CODE'];
+                $PK_SERVICE_MASTER_STANDARD = $standardServicePkId->fields['PK_SERVICE_MASTER'];
+            } else {
+                $SERVICE['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+                $SERVICE['SERVICE_NAME'] = 'Standard Service';
+                $SERVICE['PK_SERVICE_CLASS'] = 2;
+                $SERVICE['IS_SCHEDULE'] = 1;
+                $SERVICE['DESCRIPTION'] = 'For Standard Service';
+                $SERVICE['ACTIVE'] = 1;
+                $SERVICE['CREATED_BY'] = $_SESSION['PK_USER'];
+                $SERVICE['CREATED_ON'] = date("Y-m-d H:i");
+                db_perform_account('DOA_SERVICE_MASTER', $SERVICE, 'insert');
+                $PK_SERVICE_MASTER_STANDARD = $db_account->insert_ID();
+
+                $SERVICE_CODE['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER_STANDARD;
+                $SERVICE_CODE['SERVICE_CODE'] = 'S-1';
+                $SERVICE_CODE['PK_FREQUENCY'] = 0;
+                $SERVICE_CODE['DESCRIPTION'] = 'For Standard Service';
+                $SERVICE_CODE['DURATION'] = 30;
+                $SERVICE_CODE['IS_GROUP'] = 1;
+                $SERVICE_CODE['CAPACITY'] = 0;
+                $SERVICE_CODE['IS_CHARGEABLE'] = 0;
+                $SERVICE_CODE['ACTIVE'] = 1;
+                db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE, 'insert');
+                $PK_SERVICE_CODE_STANDARD = $db_account->insert_ID();
+            }
+
             $allAppointments = getAllAppointments();
             while (!$allAppointments->EOF) {
                 $INSERT_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
@@ -772,6 +799,7 @@ if(!empty($_POST))
         default:
             break;
     }
+    header("Location: database_uploader.php");
 }
 
 function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT_SERVICE, $PK_USER_MASTER, $PK_SERVICE_MASTER) {
