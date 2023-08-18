@@ -33,7 +33,7 @@ if (empty($_GET['id'])) {
     $ACTIVE = '';
 
 } else {
-    $res = $db->Execute("SELECT * FROM DOA_GIFT_CERTIFICATE_MASTER WHERE PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM DOA_GIFT_CERTIFICATE_MASTER WHERE PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
         header("location:all_gift_certificates.php");
         exit;
@@ -59,7 +59,7 @@ if (!empty($_POST)) {
         $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
         $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
-        db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
+        db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
         header("location:all_gift_certificates.php");
     } else {
         $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
@@ -70,7 +70,7 @@ if (!empty($_POST)) {
         $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
         $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        db_perform('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
+        db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
         header("location:all_gift_certificates.php");
     }
 }
@@ -128,7 +128,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $stripe = new \Stripe\StripeClient($SECRET_KEY);
                 $STRIPE_TOKEN = $_POST['token'];
 
-                $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+                $user_payment_info_data = $db->Execute("SELECT $account_database.DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM $account_database.DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER=$account_database.DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
                 if ($user_payment_info_data->RecordCount() > 0) {
                     $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
                 } else {
@@ -150,7 +150,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
                     $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
                     $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                    db_perform('DOA_CUSTOMER_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
+                    db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
                 }
 
                 $PAYMENT_METHOD_ID = '';
@@ -201,7 +201,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     'environment' => Environment::SANDBOX,
                 ]);
 
-                $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Square' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+                $user_payment_info_data = $db->Execute("SELECT $account_database.DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM $account_database.DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER=$account_database.DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Square' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
                 if ($user_payment_info_data->RecordCount() > 0) {
                     $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
                 } else {
@@ -235,7 +235,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     $SQUARE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
                     $SQUARE_DETAILS['PAYMENT_TYPE'] = 'Square';
                     $SQUARE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                    db_perform('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
+                    db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
 
                 }
 
@@ -358,7 +358,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             }
 
             $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
-            $wallet_data = $db->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+            $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
             $DEBIT_AMOUNT = ($WALLET_BALANCE>$AMOUNT)?$AMOUNT:$WALLET_BALANCE;
             if ($wallet_data->RecordCount() > 0) {
                 $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
@@ -368,7 +368,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment ".$_POST['PK_ENROLLMENT_MASTER'];
             $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+            db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
         }else{
             $PAYMENT_INFO = 'Payment Done.';
@@ -399,24 +399,24 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $PAYMENT_DATA['SECURITY_CODE'] = $_POST['SECURITY_CODE'];
         }
 
-        db_perform('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+        db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 
-        $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
+        $enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
         if ($enrollment_balance->RecordCount() > 0){
             $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $enrollment_balance->fields['TOTAL_BALANCE_PAID']+$_POST['AMOUNT'];
             $ENROLLMENT_BALANCE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
             $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
+            db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
         }else{
             $ENROLLMENT_BALANCE_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
             $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $_POST['AMOUNT'];
             $ENROLLMENT_BALANCE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
             $ENROLLMENT_BALANCE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-            db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
+            db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
         }
 
-        $PK_ENROLLMENT_PAYMENT = $db->insert_ID();
-        $ledger_record = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+        $PK_ENROLLMENT_PAYMENT = $db_account->insert_ID();
+        $ledger_record = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
         $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
         $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $PK_ENROLLMENT_LEDGER;
         $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
@@ -428,11 +428,11 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $LEDGER_DATA['IS_PAID'] = 1;
         $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
         $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
-        db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
         $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
-        db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
     }else{
-        db_perform('DOA_ENROLLMENT_PAYMENT', $_POST, 'update'," PK_ENROLLMENT_PAYMENT =  '$_POST[PK_ENROLLMENT_PAYMENT]'");
+        db_perform_account('DOA_ENROLLMENT_PAYMENT', $_POST, 'update'," PK_ENROLLMENT_PAYMENT =  '$_POST[PK_ENROLLMENT_PAYMENT]'");
         $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
     }
 
@@ -720,7 +720,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                         <select id="GIFT_CERTIFICATE_NAME" name="GIFT_CERTIFICATE_NAME" class="form-control">
                                                             <option disabled selected>Select Gift Certificate Name</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT DOA_GIFT_CERTIFICATE_MASTER.GIFT_CERTIFICATE_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_GIFT_CERTIFICATE_MASTER ON DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']);
+                                                            $row = $db->Execute("SELECT $account_database.DOA_GIFT_CERTIFICATE_MASTER.GIFT_CERTIFICATE_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN $account_database.DOA_GIFT_CERTIFICATE_MASTER ON $account_database.DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']);
                                                             while (!$row->EOF) {
                                                                 $selected = '';
                                                                 if($GIFT_CERTIFICATE_NAME!='' && $GIFT_CERTIFICATE_NAME == $row->fields['GIFT_CERTIFICATE_NAME']){

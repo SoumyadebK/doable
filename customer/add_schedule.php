@@ -18,7 +18,7 @@ if (isset($_POST['FUNCTION_NAME'])){
         unset($_POST['START_TIME']);
         unset($_POST['END_TIME']);
     }
-    $session_cost = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
+    $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
     $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
     if(empty($_POST['PK_APPOINTMENT_MASTER'])){
         $_POST['PK_APPOINTMENT_STATUS'] = 1;

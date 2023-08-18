@@ -27,7 +27,7 @@ if (isset($_POST['FUNCTION_NAME'])){
         unset($_POST['START_TIME']);
         unset($_POST['END_TIME']);
     }
-    $session_cost = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
+    $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
     $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
     if(empty($_POST['PK_APPOINTMENT_MASTER'])){
         $_POST['PK_APPOINTMENT_STATUS'] = 1;
@@ -61,7 +61,7 @@ if (isset($_POST['FUNCTION_NAME'])){
                 $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_USED'] = $enrollment_balance->fields['TOTAL_BALANCE_USED'] + $price_per_session;
                 $ENROLLMENT_BALANCE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
                 $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
+                db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
             }
         }
     }
@@ -74,7 +74,7 @@ if (isset($_POST['FUNCTION_NAME'])){
 function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
     global $db;
     $appointment_data = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
-    $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
+    $total_bill_and_paid = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
     $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
     $total_paid_appointment = intval($total_paid/$price_per_session);
     $i = 1;
@@ -103,7 +103,7 @@ function displayDates($date1, $date2, $format = 'm/d/Y' ) {
     return $dates;
 }
 
-$location_operational_hour = $db->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME, DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM DOA_OPERATIONAL_HOUR LEFT JOIN DOA_LOCATION ON DOA_OPERATIONAL_HOUR.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY DOA_LOCATION.PK_LOCATION LIMIT 1");
+$location_operational_hour = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.OPEN_TIME, DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM DOA_OPERATIONAL_HOUR LEFT JOIN $master_database.DOA_LOCATION ON DOA_OPERATIONAL_HOUR.PK_LOCATION = $master_database.DOA_LOCATION.PK_LOCATION WHERE $master_database.DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY $master_database.DOA_LOCATION.PK_LOCATION LIMIT 1");
 
 $user_master_data = $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$_SESSION['PK_USER']);
 $PK_USER_MASTER_ARRAY = [];
@@ -217,7 +217,7 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
 <script src='../assets/full_calendar_new/fullcalendar.min.js'></script>
 <script src='../assets/full_calendar_new/scheduler.min.js'></script>
 
-<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
+
 
 
 <script>
@@ -282,7 +282,7 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
     ];
 
     var eventArray = [
-        <?php $event_data = $db->Execute("SELECT DOA_EVENT.*, DOA_EVENT_TYPE.EVENT_TYPE, DOA_EVENT_TYPE.COLOR_CODE FROM DOA_EVENT LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.SHARE_WITH_CUSTOMERS = 1 AND DOA_EVENT.ACTIVE = 1 AND DOA_EVENT.PK_ACCOUNT_MASTER IN (".$PK_ACCOUNT_MASTERS.")");
+        <?php $event_data = $db_account->Execute("SELECT DOA_EVENT.*, DOA_EVENT_TYPE.EVENT_TYPE, DOA_EVENT_TYPE.COLOR_CODE FROM DOA_EVENT LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.SHARE_WITH_CUSTOMERS = 1 AND DOA_EVENT.ACTIVE = 1 AND DOA_EVENT.PK_ACCOUNT_MASTER IN (".$PK_ACCOUNT_MASTERS.")");
         while (!$event_data->EOF) {
             $END_DATE = ($event_data->fields['END_DATE'] == '0000-00-00')?$event_data->fields['START_DATE']:$event_data->fields['END_DATE'];
             $END_TIME = ($event_data->fields['END_TIME'] == '00:00:00')?$event_data->fields['START_TIME']:$event_data->fields['END_TIME']; ?>
@@ -323,14 +323,13 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
     });*/
 
     document.addEventListener('DOMContentLoaded', function() {
-        let open_time = '<?=$location_operational_hour->fields['OPEN_TIME']?>';
-        let close_time = '<?=$location_operational_hour->fields['CLOSE_TIME']?>';
+
         let clickCount = 0;
         $('#calendar').fullCalendar({
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
             defaultView: 'agendaDay',
-            minTime: open_time,
-            maxTime: close_time,
+            //minTime: open_time,
+            //maxTime: close_time,
             slotDuration: '00:30:00',
             slotLabelInterval: 30,
             slotMinutes: 30,
