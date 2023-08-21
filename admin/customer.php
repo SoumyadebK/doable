@@ -779,9 +779,11 @@ if(!empty($_GET['master_id'])) {
                                                                     <label class="col-md-12">User Name</label>
                                                                     <div class="col-md-12">
                                                                         <input type="text" id="USER_ID" name="USER_ID" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_ID?>">
+                                                                        <a class="btn-link" onclick="$('#change_password_div').slideToggle();">Change Password</a>
                                                                     </div>
                                                                 </div>
                                                                 <span id="lblError" style="color: red"></span>
+
                                                             </div>
                                                         </div>
 
@@ -859,7 +861,6 @@ if(!empty($_GET['master_id'])) {
                                                     </div>
                                                     <div class="form-group">
                                                         <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
-                                                        <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="$('#change_password_div').slideToggle();">Change Password</a>
                                                         <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                                     </div>
                                                 </form>

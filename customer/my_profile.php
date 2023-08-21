@@ -128,12 +128,12 @@ $ACTIVE = $res->fields['ACTIVE'];
                                             </div>
                                             </br>
                                             <div class="row">
-                                                <div class="col-1">
+                                                <!--<div class="col-1">
                                                     <label class="col-md-12" for="example-text">Role : </label>
                                                 </div>
                                                 <div class="col-3" style="width: 22%;">
                                                     <label style="color: #ff9800; ">Customer</label>
-                                                </div>
+                                                </div>-->
 
                                                 <div class="col-1">
                                                     <label class="col-md-12" for="example-text">Email Id : </label>

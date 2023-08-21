@@ -197,8 +197,8 @@ if(!empty($_POST))
                         $CUSTOMER_DATA['CALL_PREFERENCE'] = $allCustomers->fields['confirmation_pref'];
                         //$CUSTOMER_DATA['REMINDER_OPTION'] = $getData[23];
                         $partner_name = explode(" ", $allCustomers->fields['partner_name']);
-                        $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = isset($partner_name[0]) ?: '';
-                        $CUSTOMER_DATA['PARTNER_LAST_NAME'] = isset($partner_name[1]) ?: '';
+                        $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = isset($partner_name[0]) ?($partner_name[0]): '';
+                        $CUSTOMER_DATA['PARTNER_LAST_NAME'] = isset($partner_name[1]) ?($partner_name[1]): '';
                         if ($allCustomers->fields['partner_gender'] == 0) {
                             $CUSTOMER_DATA['PARTNER_GENDER'] = "Male";
                         } elseif ($allCustomers->fields['partner_gender'] == 1) {
