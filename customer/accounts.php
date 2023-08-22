@@ -2,41 +2,10 @@
 require_once('../global/config.php');
 $title = "Accounts";
 
-$user_master_data = $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$_SESSION['PK_USER']);
-$PK_USER_MASTER_ARRAY = [];
-while (!$user_master_data->EOF){
-    $PK_USER_MASTER_ARRAY[] = $user_master_data->fields['PK_USER_MASTER'];
-    $user_master_data->MoveNext();
-}
-$PK_USER_MASTERS = implode(',', $PK_USER_MASTER_ARRAY);
-
-$results_per_page = 100;
-
-if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
-    $search_text = $_GET['search_text'];
-    $search = " AND DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%'";
-} else {
-    $search_text = '';
-    $search = ' ';
-}
-
-$query = $db->Execute("SELECT count($account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM $account_database.`DOA_ENROLLMENT_MASTER` INNER JOIN $master_database.DOA_LOCATION ON $master_database.DOA_LOCATION.PK_LOCATION = $account_database.DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE $account_database.DOA_ENROLLMENT_MASTER.PK_USER_MASTER IN (".$PK_USER_MASTERS.")".$search);
-$number_of_result =  $query->fields['TOTAL_RECORDS'];
-$number_of_page = ceil ($number_of_result / $results_per_page);
-
-if (!isset ($_GET['page']) ) {
-    $page = 1;
-} else {
-    $page = $_GET['page'];
-}
-$page_first_result = ($page-1) * $results_per_page;
-
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4 ){
     header("location:../login.php");
     exit;
 }
-
-
 ?>
 
 <!DOCTYPE html>
@@ -81,6 +50,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                 <div>
                                     <ul class="menu-list">
                                         <li><a href="all_gift_certificates.php">Gift Certificate</a></li>
+                                        <li><a href="ledger.php">Ledger</a></li>
                                     </ul>
                                 </div>
                             </div>
