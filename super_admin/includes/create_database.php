@@ -880,7 +880,7 @@ CREATE TABLE `DOA_USERS` (
   `PK_ACCOUNT_MASTER` int(11) NOT NULL,
   `FIRST_NAME` varchar(100) NOT NULL,
   `LAST_NAME` varchar(100) NOT NULL,
-  `USER_ID` varchar(100) NOT NULL,
+  `USER_NAME` varchar(100) NOT NULL,
   `EMAIL_ID` varchar(100) NOT NULL,
   `PHONE` varchar(20) NOT NULL,
   `CREATED_ON` datetime NOT NULL,

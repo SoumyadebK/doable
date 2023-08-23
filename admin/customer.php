@@ -157,7 +157,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
 
 $PK_USER = '';
 $PK_USER_MASTER = '';
-$USER_ID = '';
+$USER_NAME = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
 $CUSTOMER_ID = '';
@@ -201,10 +201,10 @@ if(!empty($_GET['id'])) {
     }
     $PK_USER = $_GET['id'];
     $PK_USER_MASTER = $_GET['master_id'];
-    $USER_ID = $res->fields['USER_ID'];
+    $USER_NAME = $res->fields['USER_NAME'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
-    $CUSTOMER_ID = $res->fields['USER_ID'];
+    $CUSTOMER_ID = $res->fields['USER_NAME'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $USER_IMAGE = $res->fields['USER_IMAGE'];
     $GENDER = $res->fields['GENDER'];
@@ -778,7 +778,7 @@ if(!empty($_GET['master_id'])) {
                                                                 <div class="form-group">
                                                                     <label class="col-md-12">User Name</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" id="USER_ID" name="USER_ID" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_ID?>">
+                                                                        <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>">
                                                                         <a class="btn-link" onclick="$('#change_password_div').slideToggle();">Change Password</a>
                                                                     </div>
                                                                 </div>

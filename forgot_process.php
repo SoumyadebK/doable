@@ -2,13 +2,13 @@
 require_once('global/config.php');
 if(isset($_POST['subforgot'])){
     $login=$_REQUEST['login_var'];
-    $query = "SELECT * from  DOA_USERS where USER_ID='$login' OR EMAIL_ID = '$login')";
+    $query = "SELECT * from  DOA_USERS where USER_NAME='$login' OR EMAIL_ID = '$login')";
     $res = mysqli_query($dbc,$query);
     $count=mysqli_num_rows($res);
 //echo $count;
     if($count==1)
     {
-        $findresult = mysqli_query($dbc, "SELECT * FROM DOA_USERS WHERE (USER_ID='$login' OR EMAIL_ID = '$login')");
+        $findresult = mysqli_query($dbc, "SELECT * FROM DOA_USERS WHERE (USER_NAME='$login' OR EMAIL_ID = '$login')");
         if($res = mysqli_fetch_array($findresult))
         {
             $oldftemail = $res['EMAIL_ID'];

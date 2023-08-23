@@ -104,7 +104,7 @@ if(!empty($_POST))
                     $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                     $USER_DATA['FIRST_NAME'] = trim($getData[3]);
                     $USER_DATA['LAST_NAME'] = trim($getData[4]);
-                    $USER_DATA['USER_ID'] = $getData[19];
+                    $USER_DATA['USER_NAME'] = $getData[19];
                     $USER_DATA['EMAIL_ID'] = $getData[14];
                     if (!empty($getData[13]) && $getData[13] != null) {
                         $USER_DATA['PHONE'] = $getData[13];
@@ -137,7 +137,7 @@ if(!empty($_POST))
                         $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                         $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($getData[3]);
                         $USER_DATA_ACCOUNT['LAST_NAME'] = trim($getData[4]);
-                        $USER_DATA_ACCOUNT['USER_ID'] = $getData[19];
+                        $USER_DATA_ACCOUNT['USER_NAME'] = $getData[19];
                         $USER_DATA_ACCOUNT['EMAIL_ID'] = $getData[14];
                         if (!empty($getData[13]) && $getData[13] != null) {
                             $USER_DATA_ACCOUNT['PHONE'] = $getData[13];
@@ -156,7 +156,7 @@ if(!empty($_POST))
 
                 case 'DOA_CUSTOMER':
                     $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                    $USER_DATA['USER_ID'] = $getData[1];
+                    $USER_DATA['USER_NAME'] = $getData[1];
                     $USER_DATA['FIRST_NAME'] = trim($getData[2]);
                     $USER_DATA['LAST_NAME'] = trim($getData[3]);
                     $USER_DATA['EMAIL_ID'] = $getData[25];
@@ -200,7 +200,7 @@ if(!empty($_POST))
                         $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                         $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($getData[2]);
                         $USER_DATA_ACCOUNT['LAST_NAME'] = trim($getData[3]);
-                        $USER_DATA_ACCOUNT['USER_ID'] = $getData[1];
+                        $USER_DATA_ACCOUNT['USER_NAME'] = $getData[1];
                         $USER_DATA_ACCOUNT['EMAIL_ID'] = $getData[25];
                         if (!empty($getData[21]) && $getData[21] != null && $getData[21] != "   -   -    *") {
                             $USER_DATA_ACCOUNT['PHONE'] = $getData[21];
@@ -305,7 +305,7 @@ if(!empty($_POST))
                             if (!empty($getData[37])) {
                                 $takerId = $getData[37];
                                 $getTaker = getTaker($takerId);
-                                $doableTakerId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_ID='$getTaker'");
+                                $doableTakerId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_NAME='$getTaker'");
                                 $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = ($doableTakerId->RecordCount()>0)?$doableTakerId->fields['PK_USER']:0;
                             }
                             db_perform_account('DOA_CUSTOMER_INTEREST_OTHER_DATA', $INQUIRY_VALUE, 'insert');
@@ -414,7 +414,7 @@ if(!empty($_POST))
 
                     $ENROLLMENT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                     $customerId = $getData[4];
-                    $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID='$customerId' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
+                    $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_NAME='$customerId' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
                     $ENROLLMENT_DATA['PK_USER_MASTER'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
                     $ENROLLMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
                     $ENROLLMENT_DATA['ENROLLMENT_BY_ID'] = $_POST['PK_ACCOUNT_MASTER'];
@@ -754,7 +754,7 @@ if(!empty($_POST))
 
                             $ENROLLMENT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                             $customerId = $getData[4];
-                            $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID='$customerId' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
+                            $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_NAME='$customerId' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
                             $ENROLLMENT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
                             $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = '';
                             $ENROLLMENT_DATA['ENROLLMENT_BY_ID'] = $_POST['PK_ACCOUNT_MASTER'];

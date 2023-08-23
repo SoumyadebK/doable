@@ -71,7 +71,7 @@ while (!$selected_roles_row->EOF) {
     $selected_roles_row->MoveNext();
 }
 
-$USER_ID = $res->fields['USER_ID'];
+$USER_NAME = $res->fields['USER_NAME'];
 $FIRST_NAME = $res->fields['FIRST_NAME'];
 $LAST_NAME = $res->fields['LAST_NAME'];
 $EMAIL_ID = $res->fields['EMAIL_ID'];
@@ -150,7 +150,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                         <label class="col-md-12" for="example-text">User Name : </label>
                                     </div>
                                     <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $USER_ID?></label>
+                                        <label style="color: #ff9800; "><?php echo $USER_NAME?></label>
                                     </div>
                                 </div>
                                 </br>

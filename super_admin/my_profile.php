@@ -68,7 +68,7 @@ if($user_data->RecordCount() == 0){
     exit;
 }
 
-$USER_ID = $user_data->fields['USER_ID'];
+$USER_NAME = $user_data->fields['USER_NAME'];
 $FIRST_NAME = $user_data->fields['FIRST_NAME'];
 $LAST_NAME = $user_data->fields['LAST_NAME'];
 $EMAIL_ID = $user_data->fields['EMAIL_ID'];
@@ -147,7 +147,7 @@ $PHONE_NO = $text->fields['FROM_NO'];
                                     <label class="col-md-12" for="example-text">User Name : </label>
                                 </div>
                                 <div class="col-3">
-                                    <label style="color: #ff9800; "><?php echo $USER_ID?></label>
+                                    <label style="color: #ff9800; "><?php echo $USER_NAME?></label>
                                 </div>
                             </div>
                             </br>

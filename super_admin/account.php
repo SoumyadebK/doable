@@ -35,7 +35,7 @@ $ACTIVE = '';
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = '';
 
 $PK_USER_EDIT = '';
-$USER_ID = '';
+$USER_NAME = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
 $EMAIL_ID = '';
@@ -75,7 +75,7 @@ if(!empty($_GET['id'])) {
     $user_res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$_GET[id]' AND CREATED_BY = '$_SESSION[PK_USER]'");
     if($user_res->RecordCount() > 0) {
         $PK_USER_EDIT = $user_res->fields['PK_USER'];
-        $USER_ID = $user_res->fields['USER_ID'];
+        $USER_NAME = $user_res->fields['USER_NAME'];
         $FIRST_NAME = $user_res->fields['FIRST_NAME'];
         $LAST_NAME = $user_res->fields['LAST_NAME'];
         $EMAIL_ID = $user_res->fields['EMAIL_ID'];
@@ -336,7 +336,7 @@ if(!empty($_GET['id'])) {
                                                             <label class="col-md-12">User Name<span class="text-danger">*</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="USER_ID" name="USER_ID" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" onkeyup="ValidateUsername()" value="<?=$USER_ID?>">
+                                                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>">
                                                             </div>
                                                         </div>
                                                         <span id="lblError" style="color: red"></span>
@@ -569,7 +569,7 @@ if(!empty($_GET['id'])) {
                                             <tbody>
                                             <?php
                                             $i=1;
-                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7,8) AND DOA_USERS.PK_ACCOUNT_MASTER='$_GET[id]'");
+                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7,8) AND DOA_USERS.PK_ACCOUNT_MASTER='$_GET[id]'");
                                             while (!$row->EOF) {
                                                 $selected_roles = [];
                                                 if(!empty($row->fields['PK_USER'])) {
@@ -583,7 +583,7 @@ if(!empty($_GET['id'])) {
                                                 <tr>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$i;?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['NAME']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['USER_ID']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['USER_NAME']?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=implode(', ', $selected_roles)?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['EMAIL_ID']?></td>
                                                     <td style="padding: 10px 0px 0px 0px;font-size: 20px;">

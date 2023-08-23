@@ -29,7 +29,7 @@ if(empty($_GET['id'])){
     $ACTIVE = '';
 }
 else {
-    $res = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.ACTIVE, DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE DOA_USERS.PK_USER = '$_GET[id]'");
+    $res = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.ACTIVE, DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE DOA_USERS.PK_USER = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:account.php?id=".$_GET['ac_id']);
@@ -38,7 +38,7 @@ else {
 
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
-    $USER_ID = $res->fields['USER_ID'];
+    $USER_NAME = $res->fields['USER_NAME'];
     $ACTIVE = $res->fields['ACTIVE'];
     $ABLE_TO_EDIT_PAYMENT_GATEWAY = $res->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
 }
@@ -77,7 +77,7 @@ else {
                                     <div class="col-md-12">
                                         <div class="card">
                                             <div class="card-body">
-                                                <h4><span><b>User ID : </b></span><?=$USER_ID?></h4>
+                                                <h4><span><b>User ID : </b></span><?=$USER_NAME?></h4>
                                                 <div class="p-20">
                                                     <h5><b>Change Password</b></h5>
                                                     <div class="row">

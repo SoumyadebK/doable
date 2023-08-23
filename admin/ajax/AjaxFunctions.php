@@ -376,7 +376,7 @@ function saveProfileData($RESPONSE_DATA){
     $USER_DATA['FIRST_NAME'] = $USER_DATA_ACCOUNT['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
     $USER_DATA['LAST_NAME'] = $USER_DATA_ACCOUNT['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
     if (isset($RESPONSE_DATA['CUSTOMER_ID'])) {
-        $USER_DATA['USER_ID'] = $USER_DATA_ACCOUNT['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
+        $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $RESPONSE_DATA['CUSTOMER_ID'];
     }
     $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
     $USER_DATA['PHONE'] = $USER_DATA_ACCOUNT['PHONE'] = $RESPONSE_DATA['PHONE'];
@@ -384,7 +384,7 @@ function saveProfileData($RESPONSE_DATA){
 
     if ($USER_DATA['CREATE_LOGIN'] == 1) {
         if (!empty($RESPONSE_DATA['PASSWORD'])) {
-            $USER_DATA['USER_ID'] = $RESPONSE_DATA['USER_ID'];
+            $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
             $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
         }
     }
@@ -537,7 +537,7 @@ function saveProfileData($RESPONSE_DATA){
 /*function saveLoginData($RESPONSE_DATA)
 {
     global $db;
-    $USER_DATA['USER_ID'] = $RESPONSE_DATA['USER_ID'];
+    $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
     $USER_DATA['CREATE_LOGIN'] = 1;
     $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
     $USER_DATA['CAN_EDIT_ENROLLMENT'] = isset($RESPONSE_DATA['CAN_EDIT_ENROLLMENT'])?$RESPONSE_DATA['CAN_EDIT_ENROLLMENT']:0;
@@ -557,7 +557,7 @@ function saveProfileData($RESPONSE_DATA){
 function saveLoginData($RESPONSE_DATA)
 {
     global $db;
-    $USER_DATA['USER_ID'] = $USER_DATA_ACCOUNT['USER_ID'] = $RESPONSE_DATA['USER_ID'];
+    $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
     $USER_DATA['CREATE_LOGIN'] = 1;
 
     if ((!empty($RESPONSE_DATA['PASSWORD']) && !empty($RESPONSE_DATA['CONFIRM_PASSWORD'])) && ($RESPONSE_DATA['PASSWORD'] == $RESPONSE_DATA['CONFIRM_PASSWORD'])) {
@@ -587,7 +587,7 @@ function saveLoginData($RESPONSE_DATA)
         $user['ACTIVE']     = $res->fields['ACTIVE'];
 
         if($res->fields['ACCESS_TOKEN'] == "") {
-            $user['USER_ID']    = $res->fields['USER_ID'];
+            $user['USER_NAME']    = $res->fields['USER_NAME'];
             $user['PASSWORD']   = $PASSWORD;
         } else {
             $user['ACCESS_TOKEN']   = $res->fields['ACCESS_TOKEN'];

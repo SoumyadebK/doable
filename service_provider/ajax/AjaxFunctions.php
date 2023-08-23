@@ -287,7 +287,7 @@ function saveProfileData($RESPONSE_DATA){
 
     if ($USER_DATA['CREATE_LOGIN'] == 1) {
         if (!empty($RESPONSE_DATA['PASSWORD'])) {
-            $USER_DATA['USER_ID'] = $RESPONSE_DATA['USER_ID'];
+            $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
             $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
         }
     }
@@ -411,7 +411,7 @@ function saveProfileData($RESPONSE_DATA){
 function saveLoginData($RESPONSE_DATA)
 {
     global $db;
-    $USER_DATA['USER_ID'] = $RESPONSE_DATA['USER_ID'];
+    $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
     $USER_DATA['CREATE_LOGIN'] = 1;
     $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
     $USER_DATA['ACTIVE'] = isset($RESPONSE_DATA['ACTIVE'])?$RESPONSE_DATA['ACTIVE']:1;

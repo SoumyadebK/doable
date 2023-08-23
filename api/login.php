@@ -2,7 +2,7 @@
 
 $USER_NAME = trim($_POST['USER_NAME']);
 $PASSWORD  = $_POST['PASSWORD'];
-$result    = $db->Execute("SELECT * FROM DOA_USERS WHERE USER_ID = '$USER_NAME' AND PK_ROLES IN (2, 4)");
+$result    = $db->Execute("SELECT * FROM DOA_USERS WHERE USER_NAME = '$USER_NAME' AND PK_ROLES IN (2, 4)");
 
 if($result->RecordCount() == 0){
     $return_data['success'] = 0;

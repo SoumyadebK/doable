@@ -12,7 +12,7 @@ else
 
 if(!empty($_POST)){
     $USER_DATA['PK_ACCOUNT_MASTER'] = 0;
-    $USER_DATA['USER_ID'] = $_POST['USER_ID'];
+    $USER_DATA['USER_NAME'] = $_POST['USER_NAME'];
     $USER_DATA['FIRST_NAME'] = $_POST['FIRST_NAME'];
     $USER_DATA['LAST_NAME'] = $_POST['LAST_NAME'];
     $USER_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
@@ -65,7 +65,7 @@ if(!empty($_POST)){
 }
 
 if(empty($_GET['id'])){
-    $USER_ID = '';
+    $USER_NAME = '';
     $FIRST_NAME = '';
     $LAST_NAME = '';
     $EMAIL_ID = '';
@@ -89,7 +89,7 @@ else {
         header("location:all_users.php");
         exit;
     }
-    $USER_ID = $res->fields['USER_ID'];
+    $USER_NAME = $res->fields['USER_NAME'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
@@ -167,7 +167,7 @@ else {
                                                                         <label class="col-md-12" for="example-text">User Name<span class="text-danger">*</span>
                                                                         </label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" id="USER_ID" name="USER_ID" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" onkeyup="ValidateUsername()" value="<?=$USER_ID?>">
+                                                                            <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>">
                                                                         </div>
                                                                     </div>
                                                                     <span id="lblError" style="color: red"></span>

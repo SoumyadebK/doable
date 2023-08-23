@@ -19,7 +19,7 @@ $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
 $PK_USER = '';
 $PK_CUSTOMER_DETAILS = '';
-$USER_ID = '';
+$USER_NAME = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
 $EMAIL_ID = '';
@@ -84,7 +84,7 @@ if(!empty($_GET['id'])) {
         exit;
     }
     $PK_USER = $res->fields['PK_USER'];
-    $USER_ID = $res->fields['USER_ID'];
+    $USER_NAME = $res->fields['USER_NAME'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
@@ -464,7 +464,7 @@ if(!empty($_GET['id'])) {
                                                                     <div class="form-group">
                                                                         <label class="col-md-12">User Name</label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" id="USER_ID" name="USER_ID" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_ID?>">
+                                                                            <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>">
                                                                             <div id="uname_result"></div>
                                                                         </div>
                                                                     </div>
@@ -1447,13 +1447,13 @@ if(!empty($_GET['id'])) {
 
     <script>
         $(document).ready(function () {
-            $('#USER_ID').on('blur', function () {
-                const USER_ID = $(this).val().trim();
-                if (USER_ID != '') {
+            $('#USER_NAME').on('blur', function () {
+                const USER_NAME = $(this).val().trim();
+                if (USER_NAME != '') {
                     $.ajax({
                         url: 'ajax/username_checker.php',
                         type: 'post',
-                        data: { USER_ID: USER_ID },
+                        data: { USER_NAME: USER_NAME },
                         success: function (response) {
                             $('#uname_result').html(response);
                         }
