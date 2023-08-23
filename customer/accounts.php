@@ -49,7 +49,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                 <!--<h4 class="card-title">General</h4>-->
                                 <div>
                                     <ul class="menu-list">
-                                        <li><a href="all_gift_certificates.php">Gift Certificate</a></li>
+                                        <!--<li><a href="all_gift_certificates.php">Gift Certificate</a></li>-->
                                         <li><a href="ledger.php">Ledger</a></li>
                                     </ul>
                                 </div>

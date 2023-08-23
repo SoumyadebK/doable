@@ -58,7 +58,7 @@ $page_first_result = ($page-1) * $results_per_page;
             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['PHONE']?></td>
             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['LOCATION_NAME']?></td>
             <td>
-                <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>" target="_blank" title="Edit Enrollment" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>" target="" title="Edit Enrollment" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
                 <?php if($row->fields['ACTIVE']==1){ ?>
                     <span class="active-box-green"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
