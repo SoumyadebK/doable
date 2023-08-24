@@ -107,8 +107,14 @@ if (!empty($_GET['view'])) {
                             <?php } ?>
                         </li>
                         <li>
+                            <a class="waves-effect waves-dark" href="../customer/all_gift_certificates.php" aria-expanded="false">
+                                <i class="icons-Gift-Box"></i>
+                                <span class="hide-menu">Gift Cards</span>
+                            </a>
+                        </li>
+                        <li>
                             <a class="waves-effect waves-dark" href="../customer/billing.php" aria-expanded="false">
-                                <i class="icons-Receipt"></i>
+                                <i class="icons-Receipt-2"></i>
                                 <span class="hide-menu">Billing</span>
                             </a>
                         </li>

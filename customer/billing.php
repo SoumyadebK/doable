@@ -145,25 +145,12 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
-                        <!--<button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='add_schedule.php'" ><i class="fa fa-plus-circle"></i> Create New</button>-->
-                    </div>
-                </div>
             </div>
 
             <div class="row">
                 <div id="appointment_list_half" class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-6">
-                                    <h5 class="card-title"><?=$title?></h5>
-                                </div>
-                            </div>
                             <div class="p-20">
                                 <?php
                                 $i=$page_first_result+1;

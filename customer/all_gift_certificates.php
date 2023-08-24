@@ -24,10 +24,6 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                 </div>
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
                         <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='gift_certificate.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
                     </div>
                 </div>
