@@ -157,13 +157,19 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                 $row = $db->Execute("SELECT $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, $account_database.DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, $account_database.DOA_ENROLLMENT_MASTER.ACTIVE, $master_database.DOA_LOCATION.LOCATION_NAME FROM $account_database.`DOA_ENROLLMENT_MASTER` INNER JOIN $master_database.DOA_LOCATION ON $master_database.DOA_LOCATION.PK_LOCATION = $account_database.DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE $account_database.DOA_ENROLLMENT_MASTER.PK_USER_MASTER IN (".$PK_USER_MASTERS.")".$search." ORDER BY $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
                                 while (!$row->EOF) {
                                     $total_bill_and_paid = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
+                                    $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                    $serviceCode = [];
+                                    while (!$serviceCodeData->EOF) {
+                                        $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'];
+                                        $serviceCodeData->MoveNext();
+                                    }
                                     ?>
                                     <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
-                                        <div class="col-3" style="width: 18%"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
-                                        <div class="col-3" style="width: 18%"><?=$row->fields['LOCATION_NAME']?></div>
+                                        <div class="col-4" style="width: 30%"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']." || ".implode(', ', $serviceCode)?></div>
+                                        <div class="col-2" style="width: 15%"><?=$row->fields['LOCATION_NAME']?></div>
                                         <div class="col-2" style="width: 20%">Total Billed : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>
                                         <div class="col-2" style="width: 20%">Total Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-                                        <div class="col-2" style="width: 20%">Balance : <?=$total_bill_and_paid->fields['TOTAL_BILL']-$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
+                                        <div class="col-2" style="width: 15%">Balance : <?=$total_bill_and_paid->fields['TOTAL_BILL']-$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
                                     </div>
                                     <table id="myTable" class="table table-striped border" style="display: none">
                                         <thead>

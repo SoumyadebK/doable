@@ -73,9 +73,15 @@ $page_first_result = ($page-1) * $results_per_page;
                                     $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
                                     $total_used = $used_session_count->fields['USED_SESSION_COUNT']*$price_per_session;
                                     $service_credit = $total_bill_and_paid->fields['TOTAL_PAID']-$total_used;
+                                    $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                    $serviceCode = [];
+                                    while (!$serviceCodeData->EOF) {
+                                        $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'];
+                                        $serviceCodeData->MoveNext();
+                                    }
                                     ?>
                                     <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
-                                        <div class="col-2"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
+                                        <div class="col-4"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']." || ".implode(', ', $serviceCode)?></div>
                                         <div class="col-2">Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
                                         <div class="col-2">Used : <?=number_format((float)$total_used, 2, '.', ',');?></div>
                                         <div class="col-2" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=number_format((float)$service_credit, 2, '.', ',');?></div>
