@@ -673,7 +673,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
                             <li class="breadcrumb-item"><a href="all_gift_certificates.php">All Gift Certificates</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
@@ -687,9 +686,9 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     <div class="card">
                         <div class="card-body">
                             <!-- Nav tabs -->
-                            <ul class="nav nav-tabs" role="tablist">
+                            <!--<ul class="nav nav-tabs" role="tablist">
                                 <li class="active"> <a class="nav-link active" data-bs-toggle="tab" id="gift_certificate_link" href="#gift_certificate" role="tab"><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Gift Certificate</span></a> </li>
-                            </ul>
+                            </ul>-->
 
                             <div class="tab-content tabcontent-border">
                                 <div class="tab-pane active" id="gift_certificate" role="tabpanel">
