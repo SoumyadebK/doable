@@ -33,6 +33,7 @@ $ACCOUNT_EMAIL = '';
 $ACCOUNT_WEBSITE = '';
 $ACTIVE = '';
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = '';
+$USERNAME_PREFIX = '';
 
 $PK_USER_EDIT = '';
 $USER_NAME = '';
@@ -71,6 +72,7 @@ if(!empty($_GET['id'])) {
     $ACCOUNT_EMAIL = $account_res->fields['EMAIL'];
     $ACCOUNT_WEBSITE = $account_res->fields['WEBSITE'];
     $ACTIVE = $account_res->fields['ACTIVE'];
+    $USERNAME_PREFIX = $account_res->fields['USERNAME_PREFIX'];
 
     $user_res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$_GET[id]' AND CREATED_BY = '$_SESSION[PK_USER]'");
     if($user_res->RecordCount() > 0) {
@@ -243,7 +245,7 @@ if(!empty($_GET['id'])) {
                                                             <label class="col-md-12">City</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="ACCOUNT_CITY" name="ACCOUNT_CITY" class="form-control" placeholder="Entere City" value="<?php echo $ACCOUNT_CITY?>">
+                                                                <input type="text" id="ACCOUNT_CITY" name="ACCOUNT_CITY" class="form-control" placeholder="Enter City" value="<?php echo $ACCOUNT_CITY?>">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -308,6 +310,19 @@ if(!empty($_GET['id'])) {
                                                         </div>
                                                     </div>
                                                 <? } ?>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Username Prefix
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Enter Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                             </div>
                                             <div class="form-group">
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -759,7 +774,7 @@ if(!empty($_GET['id'])) {
                 if (PK_ACCOUNT_MASTER == 0) {
                     $('#profile_tab_link')[0].click();
                 }else{
-                   // window.location.href='all_accounts.php';
+                   window.location.href='all_accounts.php';
                 }
             }
         });

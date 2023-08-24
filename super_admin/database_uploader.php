@@ -618,7 +618,6 @@ if(!empty($_POST))
 
                 $event_location_data = $db_account->Execute("SELECT PK_EVENT_LOCATION FROM DOA_EVENT_LOCATION WHERE PK_EVENT = '$PK_EVENT' AND PK_LOCATION = '$PK_LOCATION'");
                 if ($event_location_data->RecordCount() == 0) {
-                    $PK_EVENT = $db_account->insert_ID();
                     $EVENT_LOCATION_DATA['PK_EVENT'] = $PK_EVENT;
                     $EVENT_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
                     db_perform_account('DOA_EVENT_LOCATION', $EVENT_LOCATION_DATA, 'insert');
@@ -663,11 +662,12 @@ if(!empty($_POST))
                 $INSERT_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
                 $studentId = $allAppointments->fields['student_id'];
                 $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$studentId' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
-                $INSERT_DATA['CUSTOMER_ID'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : NULL;
+                $PK_USER_MASTER = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
+                $INSERT_DATA['CUSTOMER_ID'] = $PK_USER_MASTER;
 
                 $user_id = $allAppointments->fields['user_id'];
                 $doableCustomerId = $db->Execute("SELECT DOA_USERS.PK_USER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$user_id' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
-                $INSERT_DATA['SERVICE_PROVIDER_ID'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER'] : NULL;
+                $INSERT_DATA['SERVICE_PROVIDER_ID'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER'] : 0;
 
                 $service_id = $allAppointments->fields['service_id'];
                 $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_id'");

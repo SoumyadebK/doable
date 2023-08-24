@@ -384,7 +384,9 @@ function saveProfileData($RESPONSE_DATA){
 
     if ($USER_DATA['CREATE_LOGIN'] == 1) {
         if (!empty($RESPONSE_DATA['PASSWORD'])) {
-            $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+            $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+            $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
+            $USER_DATA['USER_NAME'] = $USERNAME_PREFIX.'.'.$RESPONSE_DATA['USER_NAME'];
             $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
         }
     }
@@ -557,7 +559,9 @@ function saveProfileData($RESPONSE_DATA){
 function saveLoginData($RESPONSE_DATA)
 {
     global $db;
-    $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+    $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+    $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
+    $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $USERNAME_PREFIX.'.'.$RESPONSE_DATA['USER_NAME'];
     $USER_DATA['CREATE_LOGIN'] = 1;
 
     if ((!empty($RESPONSE_DATA['PASSWORD']) && !empty($RESPONSE_DATA['CONFIRM_PASSWORD'])) && ($RESPONSE_DATA['PASSWORD'] == $RESPONSE_DATA['CONFIRM_PASSWORD'])) {

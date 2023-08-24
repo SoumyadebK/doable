@@ -106,6 +106,7 @@ $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
 $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
 $APPOINTMENT_REMINDER = $res->fields['APPOINTMENT_REMINDER'];
 $HOUR = $res->fields['HOUR'];
+$USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
 
 $SMTP_HOST = '';
 $SMTP_PORT = '';
@@ -480,6 +481,14 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                         <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?=($APPOINTMENT_REMINDER=='1')?'checked':''?> onclick="showHourBox(this);">Yes</label>
                                                         <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?=($APPOINTMENT_REMINDER=='0')?'checked':''?> onclick="showHourBox(this);">No</label>
 
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Username Prefix</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
