@@ -60,7 +60,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                             <td onclick="editpage(<?=$row->fields['PK_SERVICE_MASTER']?>);"><?=$row->fields['DESCRIPTION']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_SERVICE_MASTER']?>);">
                                                 <?php
-                                                    $doc_row = $db->Execute("SELECT PK_SERVICE_DOCUMENTS FROM `DOA_SERVICE_DOCUMENTS` WHERE PK_SERVICE_MASTER = ".$row->fields['PK_SERVICE_MASTER']);
+                                                    $doc_row = $db_account->Execute("SELECT PK_SERVICE_DOCUMENTS FROM `DOA_SERVICE_DOCUMENTS` WHERE PK_SERVICE_MASTER = ".$row->fields['PK_SERVICE_MASTER']);
                                                     $doc_count = $doc_row->RecordCount();
                                                 ?>
                                                 <i class="fas fa-upload"></i> (<?=$doc_count;?>)
