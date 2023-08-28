@@ -572,7 +572,7 @@ if(!empty($_GET['master_id'])) {
                                                             <div class="col-6">
                                                                 <label class="col-md-12">Preferred Location</label>
                                                                 <div class="col-md-12 multiselect-box" style="width: 100%;">
-                                                                    <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
+                                                                    <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple required>
                                                                         <?php
                                                                         $selected_location = [];
                                                                         if(!empty($_GET['id'])) {
@@ -591,9 +591,9 @@ if(!empty($_GET['master_id'])) {
                                                             </div>
 
                                                             <div class="col-6">
-                                                                <label class="col-md-12">Primary Location</label>
+                                                                <label class="col-md-12">Primary Location<span class="text-danger">*</span></label>
                                                                 <div class="form-group" style="margin-bottom: 15px;">
-                                                                    <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" >
+                                                                    <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" required>
                                                                         <option value="">Select Primary Location</option>
                                                                         <?php
                                                                         $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
