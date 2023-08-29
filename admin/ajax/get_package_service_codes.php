@@ -2,7 +2,7 @@
 require_once('../../global/config.php');
 ?>
 <?php
-$row = $db->Execute("SELECT DOA_SERVICE_CODE.*, DOA_FREQUENCY.FREQUENCY FROM DOA_SERVICE_CODE LEFT JOIN DOA_FREQUENCY ON DOA_SERVICE_CODE.PK_FREQUENCY = DOA_FREQUENCY.PK_FREQUENCY WHERE PK_SERVICE_MASTER = ".$_POST['PK_SERVICE_MASTER']);
+$row = $db_account->Execute("SELECT DOA_SERVICE_CODE.*, DOA_FREQUENCY.FREQUENCY FROM DOA_SERVICE_CODE LEFT JOIN $master_database.DOA_FREQUENCY ON DOA_SERVICE_CODE.PK_FREQUENCY = $master_database.DOA_FREQUENCY.PK_FREQUENCY WHERE PK_SERVICE_MASTER = ".$_POST['PK_SERVICE_MASTER']);
 while (!$row->EOF) { $i=0; ?>
     <div class="row justify-content-end">
         <input type="hidden" class="form-control IS_PACKAGE" name="IS_PACKAGE" value="1">

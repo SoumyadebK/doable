@@ -305,7 +305,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
-                                                            <div class="form-group capacity_div" style="display: <?=(($row->fields['IS_GROUP'] == 0) ? 'none' : '')?>"">
+                                                            <div class="form-group capacity_div" style="display: none">
                                                                 <div class="col-md-12" >
                                                                     <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY" value="<?=$row->fields['CAPACITY']?>">
                                                                 </div>
@@ -395,7 +395,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
-                                                            <div class="form-group capacity_div">
+                                                            <div class="form-group capacity_div" style="display: none">
                                                                 <div class="col-md-12" >
                                                                     <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY">
                                                                 </div>
@@ -726,6 +726,7 @@ if(empty($_GET['id'])){
         window.location.href='all_services.php'
     });
 
+
     $(document).on('submit', '#service_info_form', function (event) {
         event.preventDefault();
         let form_data = $('#service_info_form').serialize();
@@ -747,15 +748,18 @@ if(empty($_GET['id'])){
     $(document).on('submit', '#service_code_form', function (event) {
         event.preventDefault();
         let form_data = $('#service_code_form').serialize();
-        $.ajax({
-            url: "ajax/AjaxFunctions.php",
-            type: 'POST',
-            data: form_data,
-            success:function (data) {
-                //$('#service_document_link')[0].click();
-                window.location.href='all_services.php';
-            }
-        });
+        let entered_price = $('#PRICE').val();
+        if(entered_price>0){
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                success:function (data) {
+                    //$('#service_document_link')[0].click();
+                    window.location.href='all_services.php';
+                }
+            });
+        }
     });
 
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Services', selectAll: true});
