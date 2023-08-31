@@ -356,7 +356,7 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                         <div class="col-md-12">
                                                             <select name="PK_TIMEZONE" id="PK_TIMEZONE" class="form-control" required>
                                                                 <option value="">Select</option>
-                                                                <? $res_type = $db->Execute("select * from DOA_TIMEZONE order by NAME ASC ");
+                                                                <? $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
                                                                 while (!$res_type->EOF) { ?>
                                                                     <option value="<?=$res_type->fields['PK_TIMEZONE']?>" <? if($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected="selected"'; ?>><?=$res_type->fields['NAME']?></option>
                                                                     <?	$res_type->MoveNext();

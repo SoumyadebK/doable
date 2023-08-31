@@ -36,6 +36,10 @@ if(!empty($_POST)){
             $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $LOCATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
             db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
+            $PK_LOCATION = $db->insert_ID();
+            $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
+            $LOCATION_ARRAY[] = $PK_LOCATION;
+            $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
         } else {
             $LOCATION_DATA['ACTIVE'] = $_POST['ACTIVE'];
             $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
@@ -317,7 +321,7 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                         <div class="col-md-12">
                                                             <select name="PK_TIMEZONE" id="PK_TIMEZONE" class="form-control required-entry" required>
                                                                 <option value="">Select</option>
-                                                                <? $res_type = $db->Execute("select * from DOA_TIMEZONE order by NAME ASC ");
+                                                                <? $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
                                                                 while (!$res_type->EOF) { ?>
                                                                     <option value="<?=$res_type->fields['PK_TIMEZONE']?>" <? if($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected="selected"'; ?>><?=$res_type->fields['NAME']?></option>
                                                                     <?	$res_type->MoveNext();
