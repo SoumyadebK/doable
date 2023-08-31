@@ -259,12 +259,12 @@ $CLOSE_TIME = '22:00:00';
 
                 <div id="myModal" class="modal">
                     <!-- Modal content -->
-                    <div class="modal-content" style="width: 20%;">
+                    <div class="modal-content" style="margin-top:10%; width: 20%;">
                         <span class="close" style="margin-left: 96%;">&times;</span>
                         <div class="card" id="payment_confirmation_form_div">
-                            <div class="card-body">
+                            <div class="card-body" style="text-align: center">
                                 <a href="create_appointment.php">Create Appointment</a><br><br>
-                                <a href="event.php">Create Event</a>
+                                <!--<a href="event.php">Create Event</a>-->
                             </div>
                         </div>
                     </div>
@@ -381,7 +381,7 @@ $CLOSE_TIME = '22:00:00';
     function getAllCalendarData(){
         defaultResources = [
             <?php
-            $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN (2,3,5,6,7,8) AND ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+            $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN (5) AND ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
             $resourceIdArray = [];
             while (!$service_provider_data->EOF) { $resourceIdArray[] = $service_provider_data->fields['PK_USER'];?>
             {
@@ -551,8 +551,8 @@ $CLOSE_TIME = '22:00:00';
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    //window.location.href = "add_schedule.php";
-                    openModel();
+                    window.location.href = "create_appointment.php";
+                    //openModel();
                 }
                 console.log(
                     'dayClick',

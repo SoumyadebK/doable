@@ -145,7 +145,7 @@ function saveEnrollmentData($RESPONSE_DATA){
                 }
             }
         } else {*/
-            for ($i = 0; $i < count($RESPONSE_DATA['PK_SERVICE_MASTER']); $i++) {
+            for ($i = 0; $i < count($RESPONSE_DATA['PK_SERVICE_CODE']); $i++) {
                 $ENROLLMENT_SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                 $ENROLLMENT_SERVICE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'][$i];
                 $ENROLLMENT_SERVICE_DATA['PK_SERVICE_CODE'] = $RESPONSE_DATA['PK_SERVICE_CODE'][$i];

@@ -2,10 +2,22 @@
 require_once('../../global/config.php');
 ?>
 <?php
-$row = $db->Execute("SELECT DOA_SERVICE_CODE.*, DOA_FREQUENCY.FREQUENCY FROM DOA_SERVICE_CODE LEFT JOIN DOA_FREQUENCY ON DOA_SERVICE_CODE.PK_FREQUENCY = DOA_FREQUENCY.PK_FREQUENCY WHERE PK_SERVICE_MASTER = ".$_POST['PK_SERVICE_MASTER']);
+$row = $db_account->Execute("SELECT DOA_SERVICE_CODE.*, DOA_FREQUENCY.FREQUENCY FROM DOA_SERVICE_CODE LEFT JOIN $master_database.DOA_FREQUENCY ON DOA_SERVICE_CODE.PK_FREQUENCY = $master_database.DOA_FREQUENCY.PK_FREQUENCY WHERE PK_SERVICE_MASTER = ".$_POST['PK_SERVICE_MASTER']);
 while (!$row->EOF) { $i=0; ?>
     <div class="row justify-content-end">
         <input type="hidden" class="form-control IS_PACKAGE" name="IS_PACKAGE" value="1">
+        <div class="col-2">
+            <div class="form-group">
+                <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
+                    <option>Select</option>
+                    <?php
+                    $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME, PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+                    while (!$row->EOF) { ?>
+                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>"><?=$row->fields['SERVICE_NAME']?></option>
+                        <?php $row->MoveNext(); } ?>
+                </select>
+            </div>
+        </div>
         <div class="col-2">
             <div class="form-group">
                 <input type="hidden" class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" value="<?=$row->fields['PK_SERVICE_CODE']?>">
