@@ -8,6 +8,18 @@ while (!$row->EOF) { $i=0; ?>
         <input type="hidden" class="form-control IS_PACKAGE" name="IS_PACKAGE" value="1">
         <div class="col-2">
             <div class="form-group">
+                <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
+                    <option>Select</option>
+                    <?php
+                    $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME, PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+                    while (!$row->EOF) { ?>
+                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>"><?=$row->fields['SERVICE_NAME']?></option>
+                        <?php $row->MoveNext(); } ?>
+                </select>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="form-group">
                 <input type="hidden" class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" value="<?=$row->fields['PK_SERVICE_CODE']?>">
                 <input type="text" class="form-control PK_SERVICE_CODE" value="<?=$row->fields['SERVICE_CODE']?>">
             </div>
