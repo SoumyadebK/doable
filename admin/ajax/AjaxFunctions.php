@@ -294,7 +294,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                     }
                 }
                 if ($BALANCE < $RESPONSE_DATA['TOTAL_AMOUNT']) {
-                    $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
+                    $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+1 month", strtotime($FLEXIBLE_PAYMENT_DATE[(count($FLEXIBLE_PAYMENT_DATE)-1)])));
                     $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
                     $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
                     db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
