@@ -203,7 +203,7 @@ if(empty($_GET['id'])){
                                             </label>
                                         </div>
 
-                                        <div class="row time">
+                                        <div class="row time" style="display: <?=($ALL_DAY == 1) ? 'none' : ''?>">
                                             <div class="col-6">
                                                 <div class="form-group">
                                                     <label class="form-label">Start Time</label>
@@ -405,15 +405,10 @@ if(empty($_GET['id'])){
     }
 
     function checkAllDay(all) {
-        var allday = $('.all_day').val();
-        if(allday===1){
-            $('.time').hide();
-        }
-
-        if (all.checked==1) {
-            $('.time').hide();
+        if (all.checked) {
+            $('.time').slideUp();
         } else {
-            $('.time').show();
+            $('.time').slideDown();
         }
     }
 
