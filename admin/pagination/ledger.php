@@ -47,7 +47,7 @@ while (!$row->EOF) {
     $service_credit = $total_bill_and_paid->fields['TOTAL_PAID']-$total_used;
     ?>
     <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
-        <div class="col-1"><span class="hidden-sm-up" style=""><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
+        <div class="col-1"><span class="hidden-sm-up link" style=""><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
         <div class="col-2">Total Billed : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>
         <div class="col-2">Total Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
         <div class="col-2">Balance : <?=$balance?></div>

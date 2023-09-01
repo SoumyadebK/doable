@@ -20,10 +20,15 @@ if(!empty($_POST)){
     $EVENT_DATA['SHARE_WITH_SERVICE_PROVIDERS'] = isset($_POST['SHARE_WITH_SERVICE_PROVIDERS'])?1:0;
     $EVENT_DATA['SHARE_WITH_EMPLOYEES'] = isset($_POST['SHARE_WITH_EMPLOYEES'])?1:0;
     $EVENT_DATA['START_DATE'] = date('Y-m-d', strtotime($_POST['START_DATE']));
-    $EVENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
     $EVENT_DATA['END_DATE'] = !empty($_POST['END_DATE'])?date('Y-m-d', strtotime($_POST['END_DATE'])):NULL;
-    $EVENT_DATA['END_TIME'] = !empty($_POST['END_TIME'])?date('H:i:s', strtotime($_POST['END_TIME'])):NULL;
-
+    $EVENT_DATA['ALL_DAY'] = $_POST['ALL_DAY'];
+    if ($_POST['ALL_DAY']==1){
+        $EVENT_DATA['START_TIME'] = '00:00:00';
+        $EVENT_DATA['END_TIME'] = '23:30:00';
+    }else {
+        $EVENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+        $EVENT_DATA['END_TIME'] = !empty($_POST['END_TIME'])?date('H:i:s', strtotime($_POST['END_TIME'])):NULL;
+    }
     if(empty($_GET['id'])){
         $EVENT_DATA['ACTIVE'] = 1;
         $EVENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
@@ -81,6 +86,7 @@ if(empty($_GET['id'])){
     $PK_EVENT_TYPE = '';
     $START_DATE = '';
     $START_TIME = '';
+    $ALL_DAY='';
     $END_DATE = '0000-00-00';
     $END_TIME = '00:00:00';
     $DESCRIPTION = '';
@@ -103,6 +109,7 @@ if(empty($_GET['id'])){
     $END_DATE = $res->fields['END_DATE'];
     $START_TIME = $res->fields['START_TIME'];
     $END_TIME = $res->fields['END_TIME'];
+    $ALL_DAY=$res->fields['ALL_DAY'];
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     //$PK_LOCATION = $res->fields['PK_LOCATION'];
     $SHARE_WITH_CUSTOMERS = $res->fields['SHARE_WITH_CUSTOMERS'];
@@ -190,17 +197,23 @@ if(empty($_GET['id'])){
                                             </div>
                                         </div>
 
-                                        <div class="row">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <input type="checkbox" class="form-check-inline all_day" name="ALL_DAY" value="1" onchange="checkAllDay(this)" <?=($ALL_DAY == 1) ? 'checked' : ''?>> All Day
+                                            </label>
+                                        </div>
+
+                                        <div class="row time">
                                             <div class="col-6">
                                                 <div class="form-group">
                                                     <label class="form-label">Start Time</label>
-                                                    <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" required value="<?php echo ($START_TIME)?date('h:i A', strtotime($START_TIME)):''?>">
+                                                    <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker"  value="<?php echo ($START_TIME)?date('h:i A', strtotime($START_TIME)):''?>">
                                                 </div>
                                             </div>
                                             <div class="col-6">
                                                 <div class="form-group">
                                                     <label class="form-label">End Time</label>
-                                                    <input type="text" id="END_TIME" name="END_TIME" class="form-control time-picker" required value="<?php echo ($END_TIME == '00:00:00')?'':date('h:i A', strtotime($END_TIME))?>">
+                                                    <input type="text" id="END_TIME" name="END_TIME" class="form-control time-picker"  value="<?php echo ($END_TIME == '00:00:00')?'':date('h:i A', strtotime($END_TIME))?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -388,6 +401,19 @@ if(empty($_GET['id'])){
                     checkboxes[i].checked = false;
                 }
             }
+        }
+    }
+
+    function checkAllDay(all) {
+        var allday = $('.all_day').val();
+        if(allday===1){
+            $('.time').hide();
+        }
+
+        if (all.checked==1) {
+            $('.time').hide();
+        } else {
+            $('.time').show();
         }
     }
 
