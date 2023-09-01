@@ -25,7 +25,7 @@ $page_first_result = ($page-1) * $results_per_page;
 ?>
 
 <?php $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); ?>
-<h3 class="m-20">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></h3>
+<h3 class="m-20" xmlns="http://www.w3.org/1999/html">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></h3>
 <?php
 $i=$page_first_result+1;
 $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]'".$search."ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
@@ -46,24 +46,26 @@ while (!$row->EOF) {
     $total_used = $used_session_count->fields['USED_SESSION_COUNT']*$price_per_session;
     $service_credit = $total_bill_and_paid->fields['TOTAL_PAID']-$total_used;
     ?>
+    <div class="" onclick="showEnrollmentPanel()">
+        <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white">  <?=$row->fields['ENROLLMENT_ID']?> </button>
+    </div>
     <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
-        <div class="col-1"><span class="hidden-sm-up link" style=""><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
-        <div class="col-2">Total Billed : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>
-        <div class="col-2">Total Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-        <div class="col-2">Balance : <?=$balance?></div>
+        <div class="col-2"><i class="ti-arrow-circle-right"></i>  Enrolled : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>
+        <div class="col-2">Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
         <div class="col-2">Used : <?=number_format((float)$total_used, 2, '.', ',');?></div>
+        <div class="col-2">Balance : <?=$balance?></div>
         <div class="col-2" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=number_format((float)$service_credit, 2, '.', ',');?></div>
-        <div class="col-1">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count;?></div>
+        <div class="col-2">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count;?></div>
     </div>
     <table id="myTable" class="table table-striped border" style="display: none">
         <thead>
         <tr>
             <th>Service</th>
-            <th>Apt #</th>
+            <!--<th>Apt #</th>-->
             <th>Service Code</th>
-            <th>Date</th>
+            <!--<th>Date</th>
             <th>Time</th>
-            <th>Session Cost</th>
+            <th>Session Cost</th>-->
             <th>Service Credit</th>
         </tr>
         </thead>
@@ -77,11 +79,11 @@ while (!$row->EOF) {
             $total_session_cost += $price_per_session?>
             <tr>
                 <td><?=$appointment_data->fields['SERVICE_NAME']?></td>
-                <td><?=$j.'/'.$total_session_count?></td>
+                <!--<td><?php /*=$j.'/'.$total_session_count*/?></td>-->
                 <td><?=$appointment_data->fields['SERVICE_CODE']?></td>
-                <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
-                <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                <td><?=number_format((float)$price_per_session, 2, '.', ',');?></td>
+                <!--<td><?php /*=date('m/d/Y', strtotime($appointment_data->fields['DATE']))*/?></td>
+                <td><?php /*=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))*/?></td>
+                <td><?php /*=number_format((float)$price_per_session, 2, '.', ',');*/?></td>-->
                 <td style="color:<?=(($total_paid-$total_session_cost)<0)?'red':'black'?>;"><?=number_format((float)($total_paid-$total_session_cost), 2, '.', ',');?></td>
             </tr>
             <?php $appointment_data->MoveNext();
@@ -127,3 +129,41 @@ while (!$row->EOF) {
     </div>
 </div>
 
+<script>
+    function showEnrollmentPanel() {
+        //$('#enrollment_header').text("Add Enrollment");
+        openEnrollmentPanel();
+    }
+</script>
+
+<script>
+    // Get the modal
+    var enrollment_panel = document.getElementById("enrollmentPanel");
+
+    // Get the <span> element that closes the enrollment_model
+    var enrollment_span = document.getElementsByClassName("close_enrollment_panel")[0];
+
+    // When the user clicks the button, open the enrollment_model
+    function openEnrollmentPanel() {
+        enrollment_panel.style.display = "block";
+    }
+
+    // When the user clicks on <appointment_span> (x), close the appointment_model
+    enrollment_span.onclick = function() {
+        enrollment_panel.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the appointment_model, close it
+    window.onclick = function(event) {
+        if (event.target == enrollment_model) {
+            enrollment_panel.style.display = "none";
+        }
+    }
+
+    $(document).keydown(function(e) {
+        // ESCAPE key pressed
+        if (e.keyCode == 27) {
+            enrollment_panel.style.display = "none";
+        }
+    });
+</script>
