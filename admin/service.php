@@ -154,8 +154,28 @@ if(empty($_GET['id'])){
                                                         <label class="m-l-40"><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="0" <?=($IS_SCHEDULE == 0)?'checked':''?>/>&nbsp;No</label>
                                                     </div>
                                                 </div>
+                                                    <div class="col-6">
+                                                        <label class="form-label">Location</label>
+                                                        <div class="col-md-12 multiselect-box">
+                                                            <select class="multi_sumo_select_location" name="PK_LOCATION[]" id="PK_LOCATION" multiple>
+                                                                <?php
+                                                                $selected_location = [];
+                                                                if(!empty($_GET['id'])) {
+                                                                    $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_SERVICE_LOCATION` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
+                                                                    while (!$selected_location_row->EOF) {
+                                                                        $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                                                        $selected_location_row->MoveNext();
+                                                                    }
+                                                                }
+                                                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                while (!$row->EOF) { ?>
+                                                                    <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                                    <?php $row->MoveNext(); } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
 
-                                                <div class="col-12">
+                                                <div class="col-6">
                                                     <div class="form-group">
                                                         <label class="form-label">Description</label>
                                                         <textarea class="form-control" rows="3" id="DESCRIPTION" name="DESCRIPTION"><?php echo $DESCRIPTION?></textarea>
@@ -561,6 +581,8 @@ if(empty($_GET['id'])){
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 <script>
     let PK_SERVICE_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
+
+    $('.multi_sumo_select_location').SumoSelect({placeholder: 'Select Location', selectAll: true});
 
     $(document).on('change', '.IS_CHARGEABLE', function () {
         if ($(this).val() == 1){

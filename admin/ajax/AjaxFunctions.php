@@ -15,23 +15,34 @@ function saveServiceInfoData($RESPONSE_DATA){
     global $db;
     global $db_account;
 
-    $RESPONSE_DATA['SERVICE_NAME'] = $_POST['SERVICE_NAME'];
-    $RESPONSE_DATA['IS_PACKAGE'] = isset($RESPONSE_DATA['IS_PACKAGE'])?1:0;
-    $RESPONSE_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
-    $RESPONSE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-    $RESPONSE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    $SERVICE_INFO_DATA['SERVICE_NAME'] = $RESPONSE_DATA['SERVICE_NAME'];
+    $SERVICE_INFO_DATA['IS_PACKAGE'] = isset($RESPONSE_DATA['IS_PACKAGE'])?1:0;
+    $SERVICE_INFO_DATA['DESCRIPTION'] = $RESPONSE_DATA['DESCRIPTION'];
+    $SERVICE_INFO_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+    $SERVICE_INFO_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     if(empty($RESPONSE_DATA['PK_SERVICE_MASTER'])){
-        $RESPONSE_DATA['ACTIVE'] = 1;
-        $RESPONSE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $RESPONSE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform_account('DOA_SERVICE_MASTER', $RESPONSE_DATA, 'insert');
+        $SERVICE_INFO_DATA['ACTIVE'] = 1;
+        $SERVICE_INFO_DATA['IS_DELETED'] = 0;
+        $SERVICE_INFO_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        $SERVICE_INFO_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform_account('DOA_SERVICE_MASTER', $SERVICE_INFO_DATA, 'insert');
         $PK_SERVICE_MASTER = $db_account->insert_ID();
     }else{
-        $RESPONSE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        $RESPONSE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-        $RESPONSE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_SERVICE_MASTER', $RESPONSE_DATA, 'update'," PK_SERVICE_MASTER =  '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
+        $SERVICE_INFO_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        $SERVICE_INFO_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+        $SERVICE_INFO_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_SERVICE_MASTER', $SERVICE_INFO_DATA, 'update'," PK_SERVICE_MASTER =  '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
         $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
+    }
+
+    $db_account->Execute("DELETE FROM `DOA_SERVICE_LOCATION` WHERE `PK_SERVICE_MASTER` = '$PK_SERVICE_MASTER'");
+    if(isset($RESPONSE_DATA['PK_LOCATION'])){
+        $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
+        for($i = 0; $i < count($PK_LOCATION); $i++){
+            $SERVICE_LOCATION_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+            $SERVICE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+            db_perform_account('DOA_SERVICE_LOCATION', $SERVICE_LOCATION_DATA, 'insert');
+        }
     }
     echo $PK_SERVICE_MASTER;
 }
@@ -1345,7 +1356,7 @@ function deleteDocumentLibraryData($RESPONSE_DATA) {
 function deleteServiceData($RESPONSE_DATA) {
     global $db_account;
     $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
-    $service_data = $db_account->Execute("DELETE FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER);
+    $service_data = $db_account->Execute("UPDATE `DOA_SERVICE_MASTER` SET IS_DELETED=1 WHERE `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER);
     echo 1;
 }
 
