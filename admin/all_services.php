@@ -68,7 +68,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
                                             <td>
                                                 <a href="service.php?id=<?=$row->fields['PK_SERVICE_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="all_services.php?type=del&id=<?=$row->fields['PK_SERVICE_MASTER']?>" onclick='javascript:ConfirmDelete(<?=$row->fields['PK_SERVICE_MASTER']?>);return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <!--<a href="all_services.php?type=del&id=<?php /*=$row->fields['PK_SERVICE_MASTER']*/?>" onclick='javascript:ConfirmDelete(<?php /*=$row->fields['PK_SERVICE_MASTER']*/?>);return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
