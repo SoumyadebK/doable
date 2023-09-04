@@ -325,10 +325,10 @@ if(!empty($_GET['master_id'])) {
                                                 <li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>
                                                 <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
                                                 <?php if(!empty($_GET['id'])) { ?>
-                                                    <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Enrollments</span></a> </li>-->
+                                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Enrollments</span></a> </li>
                                                     <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment" onclick="showListView(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
                                                     <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
-                                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>
+                                                    <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
                                                     <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                                                 <?php } ?>
                                             </ul>
@@ -1350,7 +1350,9 @@ if(!empty($_GET['master_id'])) {
                                             </div>
 
                                             <div class="tab-pane" id="enrollment" role="tabpanel">
-                                                <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createEnrollment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Enrollment</a>
+                                                <div class="row">
+                                                    <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="createEnrollment();" style="width: 120px; margin-left: 91%;"><i class="fa fa-plus-circle"></i> Enrollment</a>
+                                                </div>
                                                 <div id="enrollment_list" class="p-20">
 
                                                 </div>
