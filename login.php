@@ -29,9 +29,10 @@ if ($FUNCTION_NAME == 'loginFunction'){
                     $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
                     $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
                 } elseif (in_array(4, $selected_roles)) {
+                    $customer_account_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER, DOA_ACCOUNT_MASTER.DB_NAME FROM DOA_ACCOUNT_MASTER INNER JOIN DOA_USER_MASTER ON DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  = DOA_USER_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USER_MASTER.PK_USER = '$PK_USER' LIMIT 1");
                     $_SESSION['PK_ROLES'] = 4;
-                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
-                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
+                    $_SESSION['DB_NAME'] = $customer_account_data->fields['DB_NAME'];
+                    $_SESSION['PK_ACCOUNT_MASTER'] = $customer_account_data->fields['PK_ACCOUNT_MASTER'];
                 } elseif (in_array(5, $selected_roles)) {
                     $_SESSION['PK_ROLES'] = 5;
                     $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];

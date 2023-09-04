@@ -1,7 +1,10 @@
 <?php
+global $db;
+global $db_account;
 require_once('../global/config.php');
+
 $title="Accounts";
-$user_master_data = $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$_SESSION['PK_USER']);
+$user_master_data = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$_SESSION['PK_USER']);
 $PK_USER_MASTER_ARRAY = [];
 while (!$user_master_data->EOF){
     $PK_USER_MASTER_ARRAY[] = $user_master_data->fields['PK_USER_MASTER'];
@@ -20,7 +23,7 @@ if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
 }
 
 $query = $db_account->Execute("SELECT count(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER IN (".$PK_USER_MASTERS.")".$search);
-$number_of_result =  $query->fields['TOTAL_RECORDS'];
+$number_of_result = ($query->RecordCount() > 0) ? $query->fields['TOTAL_RECORDS'] : 0;
 $number_of_page = ceil ($number_of_result / $results_per_page);
 
 if (!isset ($_GET['page']) ) {
