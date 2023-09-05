@@ -51,7 +51,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT * FROM `DOA_EMAIL_ACCOUNT` WHERE PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
+                                    $row = $db_account->Execute("SELECT DISTINCT DOA_EMAIL_ACCOUNT.HOST, DOA_EMAIL_ACCOUNT.PORT, DOA_EMAIL_ACCOUNT.USER_NAME, DOA_EMAIL_ACCOUNT.ACTIVE FROM `DOA_EMAIL_ACCOUNT` JOIN DOA_EMAIL_LOCATION ON DOA_EMAIL_ACCOUNT.PK_EMAIL_ACCOUNT=DOA_EMAIL_LOCATION.PK_EMAIL_ACCOUNT WHERE DOA_EMAIL_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_EMAIL_ACCOUNT']?>);"><?=$row->fields['HOST']?></td>

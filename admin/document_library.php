@@ -21,12 +21,25 @@ if(!empty($_POST)){
         $ONBOARDING_DOCUMENT['CREATED_BY']  = $_SESSION['PK_USER'];
         $ONBOARDING_DOCUMENT['CREATED_ON']  = date("Y-m-d H:i");
         db_perform_account('DOA_DOCUMENT_LIBRARY', $ONBOARDING_DOCUMENT, 'insert');
+        $PK_DOCUMENT_LIBRARY = $db_account->insert_ID();
     }else{
         $ONBOARDING_DOCUMENT['ACTIVE'] = $_POST['ACTIVE'];
         $ONBOARDING_DOCUMENT['EDITED_BY']	= $_SESSION['PK_USER'];
         $ONBOARDING_DOCUMENT['EDITED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_DOCUMENT_LIBRARY', $ONBOARDING_DOCUMENT, 'update'," PK_DOCUMENT_LIBRARY =  '$_GET[id]'");
+        $PK_DOCUMENT_LIBRARY = $_GET['id'];
     }
+
+    $db_account->Execute("DELETE FROM `DOA_DOCUMENT_LOCATION` WHERE `PK_DOCUMENT_LIBRARY` = '$PK_DOCUMENT_LIBRARY'");
+    if(isset($_POST['PK_LOCATION'])){
+        $PK_LOCATION = $_POST['PK_LOCATION'];
+        for($i = 0; $i < count($PK_LOCATION); $i++){
+            $DOCUMENT_LOCATION_DATA['PK_DOCUMENT_LIBRARY'] = $PK_DOCUMENT_LIBRARY;
+            $DOCUMENT_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+            db_perform_account('DOA_DOCUMENT_LOCATION', $DOCUMENT_LOCATION_DATA, 'insert');
+        }
+    }
+
     header("location:all_document_library.php");
 }
 
@@ -117,14 +130,22 @@ if(empty($_GET['id'])){
                                     </div>
                                 </div>
 
-                                <div class="row">
+                                <div class="col-6">
                                     <label class="form-label">Location</label>
-                                    <div class="col-md-9" style="margin-bottom: 15px;">
-                                        <select name="PK_LOCATION[]" id="PK_LOCATION" multiple>
+                                    <div class="col-md-12 multiselect-box">
+                                        <select class="multi_sumo_select_location" name="PK_LOCATION[]" id="PK_LOCATION" multiple>
                                             <?php
+                                            $selected_location = [];
+                                            if(!empty($_GET['id'])) {
+                                                $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_DOCUMENT_LOCATION` WHERE `PK_DOCUMENT_LIBRARY` = '$_GET[id]'");
+                                                while (!$selected_location_row->EOF) {
+                                                    $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                                    $selected_location_row->MoveNext();
+                                                }
+                                            }
                                             $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                             while (!$row->EOF) { ?>
-                                                <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], explode(',', $PK_LOCATION))?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
                                                 <?php $row->MoveNext(); } ?>
                                         </select>
                                     </div>
