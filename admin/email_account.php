@@ -13,19 +13,39 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 $msg = '';
 if (!empty($_POST)) {
-    $EMAIL_ACCOUNT_DATA = $_POST;
     $EMAIL_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    if ($_GET['id'] == '') {
+    if (empty($_GET['id'])) {
+        $EMAIL_ACCOUNT_DATA['HOST'] = $_POST['HOST'];
+        $EMAIL_ACCOUNT_DATA['PORT'] = $_POST['PORT'];
+        $EMAIL_ACCOUNT_DATA['USER_NAME'] = $_POST['USER_NAME'];
+        $EMAIL_ACCOUNT_DATA['PASSWORD'] = $_POST['PASSWORD'];
+        $EMAIL_ACCOUNT_DATA['ACTIVE'] = 1;
         $EMAIL_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $EMAIL_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        
         db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'insert');
+        $PK_EMAIL_ACCOUNT = $db_account->insert_ID();
         header("location:all_email_accounts.php");
     } else {
+        $EMAIL_ACCOUNT_DATA['HOST'] = $_POST['HOST'];
+        $EMAIL_ACCOUNT_DATA['PORT'] = $_POST['PORT'];
+        $EMAIL_ACCOUNT_DATA['USER_NAME'] = $_POST['USER_NAME'];
+        $EMAIL_ACCOUNT_DATA['PASSWORD'] = $_POST['PASSWORD'];
+        $EMAIL_ACCOUNT_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $EMAIL_ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $EMAIL_ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'update', " PK_EMAIL_ACCOUNT = '$_GET[id]'");
+        $PK_EMAIL_ACCOUNT = $_GET['id'];
         header("location:all_email_accounts.php");
+    }
+
+    $db_account->Execute("DELETE FROM `DOA_EMAIL_LOCATION` WHERE `PK_EMAIL_ACCOUNT` = '$PK_EMAIL_ACCOUNT'");
+    if(isset($_POST['PK_LOCATION'])){
+        $PK_LOCATION = $_POST['PK_LOCATION'];
+        for($i = 0; $i < count($PK_LOCATION); $i++){
+            $EMAIL_LOCATION_DATA['PK_EMAIL_ACCOUNT'] = $PK_EMAIL_ACCOUNT;
+            $EMAIL_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+            db_perform_account('DOA_EMAIL_LOCATION', $EMAIL_LOCATION_DATA, 'insert');
+        }
     }
     
 }
@@ -82,6 +102,27 @@ if (empty($_GET['id'])) {
                             <div class="card-body">
                                 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
 
+                                    <div class="col-12">
+                                        <label class="form-label">Location</label>
+                                        <div class="col-md-12 multiselect-box">
+                                            <select class="multi_sumo_select_location" name="PK_LOCATION[]" id="PK_LOCATION" multiple>
+                                                <?php
+                                                $selected_location = [];
+                                                if(!empty($_GET['id'])) {
+                                                    $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_EMAIL_LOCATION` WHERE `PK_EMAIL_ACCOUNT` = '$_GET[id]'");
+                                                    while (!$selected_location_row->EOF) {
+                                                        $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                                        $selected_location_row->MoveNext();
+                                                    }
+                                                }
+                                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                while (!$row->EOF) { ?>
+                                                    <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                    <?php $row->MoveNext(); } ?>
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     <div class="col-md-12 mb-3">
                                         <label for="HOST">Host</label>
                                         <input type="text" class="form-control" id="HOST" name="HOST" value="<?php echo $HOST ?>" required>
@@ -91,8 +132,6 @@ if (empty($_GET['id'])) {
                                         <label for="PORT">Port</label>
                                         <input type="text" class="form-control" id="PORT" name="PORT" value="<?php echo $PORT ?>" required>
                                     </div>
-
-                                    
 
                                     <div class="col-md-12 mb-3">
                                         <label for="USER_NAME">User Name</label>
@@ -131,6 +170,13 @@ if (empty($_GET['id'])) {
             <input type="hidden" id="row_id" value="" />
         </div>
     </div>
-    <?php require_once('../includes/footer.php');?>
+
+<?php require_once('../includes/footer.php');?>
+
+<script>
+    $('#PK_LOCATION').SumoSelect({placeholder: 'Select Location', selectAll: true});
+</script>
+
 </body>
 </html>
+

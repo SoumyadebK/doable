@@ -25,6 +25,7 @@ if (!empty($_POST)) {
         $GIFT_CERTIFICATE_SETUP_DATA['CREATED_ON'] = date("Y-m-d H:i");
         $GIFT_CERTIFICATE_SETUP_DATA['ACTIVE'] = 1;
         db_perform_account('DOA_GIFT_CERTIFICATE_SETUP', $GIFT_CERTIFICATE_SETUP_DATA, 'insert');
+        $PK_GIFT_CERTIFICATE_SETUP = $db_account->insert_ID();
         header("location:all_gift_certificate_setup.php");
     } else {
         $GIFT_CERTIFICATE_SETUP_DATA['GIFT_CERTIFICATE_CODE'] = $_POST['GIFT_CERTIFICATE_CODE'];
@@ -37,7 +38,18 @@ if (!empty($_POST)) {
         $GIFT_CERTIFICATE_SETUP_DATA['EDITED_ON'] = date("Y-m-d H:i");
         $GIFT_CERTIFICATE_SETUP_DATA['ACTIVE'] = $_POST['ACTIVE'];
         db_perform_account('DOA_GIFT_CERTIFICATE_SETUP', $GIFT_CERTIFICATE_SETUP_DATA, 'update', "PK_GIFT_CERTIFICATE_SETUP = '$_GET[id]'");
+        $PK_GIFT_CERTIFICATE_SETUP = $_GET['id'];
         header("location:all_gift_certificate_setup.php");
+    }
+
+    $db_account->Execute("DELETE FROM `DOA_GIFT_LOCATION` WHERE `PK_GIFT_CERTIFICATE_SETUP` = '$PK_GIFT_CERTIFICATE_SETUP'");
+    if(isset($_POST['PK_LOCATION'])){
+        $PK_LOCATION = $_POST['PK_LOCATION'];
+        for($i = 0; $i < count($PK_LOCATION); $i++){
+            $GIFT_LOCATION_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $PK_GIFT_CERTIFICATE_SETUP;
+            $GIFT_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+            db_perform_account('DOA_GIFT_LOCATION', $GIFT_LOCATION_DATA, 'insert');
+        }
     }
 }
 
@@ -49,6 +61,7 @@ if (empty($_GET['id'])) {
     $MAXIMUM_AMOUNT = '';
     $EFFECTIVE_DATE = '';
     $END_DATE = '';
+    $PK_LOCATION = '';
     $ACTIVE = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM DOA_GIFT_CERTIFICATE_SETUP WHERE PK_GIFT_CERTIFICATE_SETUP = '$_GET[id]'");
@@ -158,6 +171,26 @@ if (empty($_GET['id'])) {
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="col-6">
+                                                <label class="form-label">Location</label>
+                                                <div class="col-md-12 multiselect-box">
+                                                    <select class="multi_sumo_select_location" name="PK_LOCATION[]" id="PK_LOCATION" multiple>
+                                                        <?php
+                                                        $selected_location = [];
+                                                        if(!empty($_GET['id'])) {
+                                                            $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_GIFT_LOCATION` WHERE `PK_GIFT_CERTIFICATE_SETUP` = '$_GET[id]'");
+                                                            while (!$selected_location_row->EOF) {
+                                                                $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                                                $selected_location_row->MoveNext();
+                                                            }
+                                                        }
+                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                        while (!$row->EOF) { ?>
+                                                            <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                            <?php $row->MoveNext(); } ?>
+                                                    </select>
+                                                </div>
+                                            </div>
                                         </div>
 
                                 <?php if(!empty($_GET['id'])) { ?>
@@ -195,6 +228,8 @@ if (empty($_GET['id'])) {
 <script src="https://js.stripe.com/v3/"></script>
 
 <script>
+    $('#PK_LOCATION').SumoSelect({placeholder: 'Select Location', selectAll: true});
+
     $('.datepicker-future').datepicker({
         format: 'mm/dd/yyyy',
         minDate: 0
