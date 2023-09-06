@@ -920,6 +920,10 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
                                             </div>
 
+                                            <div id="services_from_package">
+
+                                            </div>
+
                                             <div class="row" id="add_more">
                                                 <div class="col-12">
                                                     <div class="form-group" style="float: right;">
@@ -1722,14 +1726,29 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 async: false,
                 cache: false,
                 success: function (result) {
+                    $('.service_name').hide();
                     $('.service_div').hide();
                     $('#add_more').hide();
                     $('#package_services').html(result);
                 }
             });
         } else {
-            $('.service_div').show();
+            $('.service_name').hide();
+            $('.service_div').hide();
             $('#add_more').show();
+            $.ajax({
+                url: "ajax/get_package_service_codes.php",
+                type: "POST",
+                data: {PK_SERVICE_MASTER: PK_SERVICE_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('.service_name').remove();
+                    $('.service_div').remove();
+                    $('#add_more').hide();
+                    $('#services_from_package').html(result);
+                }
+            });
         }
     }
 

@@ -228,11 +228,19 @@ if(empty($_GET['id'])){
                                                             <label>Scheduling Code</label>
                                                         </div>
                                                     </div>
+                                                    <? if (empty($_GET['id'])) { ?>
                                                     <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label id="frequency_duration_label"><?=($PK_SERVICE_CLASS==2)?'Duration':'Frequency'?></label>
                                                         </div>
                                                     </div>
+                                                    <? } else { ?>
+                                                    <div class="col-1" style="text-align: center; display: none">
+                                                        <div class="form-group">
+                                                            <label id="frequency_duration_label"><?=($PK_SERVICE_CLASS==2)?'Duration':'Frequency'?></label>
+                                                        </div>
+                                                    </div>
+                                                    <? } ?>
                                                     <div class="col-2" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label>Is Group</label>
@@ -423,7 +431,7 @@ if(empty($_GET['id'])){
                                                         </div>
                                                         <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 5%;">
                                                             <div class="form-group" >
-                                                                <div class="col-md-12" style="height: 20px;margin-bottom: 35px;padding-left: 90px;">
+                                                                <div class="col-md-12" style="margin-bottom: 10px;">
                                                                     <label><input type="radio" name="IS_CHARGEABLE_0" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
                                                                     <label><input type="radio" name="IS_CHARGEABLE_0" class="IS_CHARGEABLE" value="0"/>&nbsp;No</label>
                                                                 </div>
