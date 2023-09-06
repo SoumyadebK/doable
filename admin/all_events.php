@@ -179,7 +179,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=date('m/d/Y',strtotime($row->fields['START_DATE']))?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=date('h:i A', strtotime($row->fields['START_TIME']))?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=($row->fields['END_DATE'] == '0000-00-00')?'':date('m/d/Y',strtotime($row->fields['END_DATE']))?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=($row->fields['END_TIME'] == '00:00:00')?'':date('h:i A', strtotime($row->fields['END_TIME']))?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_EVENT']?>);"><?=($row->fields['END_TIME'] == '00:00:00')?'12:00 AM':date('h:i A', strtotime($row->fields['END_TIME']))?></td>
                                             <td>
                                                 <a href="event.php?id=<?=$row->fields['PK_EVENT']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
