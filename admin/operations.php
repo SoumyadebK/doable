@@ -7,7 +7,7 @@ $results_per_page = 100;
 $search_text = '';
 $search='';
 $SPECIFIC_DATE='';
-$START_DATE='';
+$FROM_DATE='';
 $END_DATE='';
 
 if (!empty($_GET['DATE_SELECTION'])) {
@@ -44,12 +44,14 @@ if (!empty($_GET['DATE_SELECTION'])) {
             $search = " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         }
     } else if ($_GET['DATE_SELECTION'] == 5) {
+        $FROM_DATE = date('Y-m-d', strtotime($_GET['FROM_DATE']));
+        $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
         if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
-            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = '%" . $search_text . "%' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN " . $_GET['START_DATE'] . " AND " . $_GET['END_DATE'] . ")";
+            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = '$search_text' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
         } else {
             $search_text = '';
-            $search = ' ';
+            $search = " AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
         }
     }
 }
@@ -140,9 +142,9 @@ if(empty($_GET['id'])){
                         <input type="text" id="SPECIFIC_DATE" name="SPECIFIC_DATE" placeholder="Specific Date" class="form-control datepicker-past" value="<?=($SPECIFIC_DATE == '' || $SPECIFIC_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($SPECIFIC_DATE))?>">
                     </div>
                 </div>
-                <div class="col-2 start_date" style="display: none">
+                <div class="col-2 from_date" style="display: none">
                     <div class="form-group">
-                        <input type="text" id="START_DATE" name="START_DATE" placeholder="From Date" class="form-control datepicker-past" value="<?=($START_DATE == '' || $START_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($START_DATE))?>">
+                        <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-past" value="<?=($FROM_DATE == '' || $FROM_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($FROM_DATE))?>">
                     </div>
                 </div>
                 <div class="col-2 end_date" style="display: none">
@@ -180,7 +182,7 @@ if(empty($_GET['id'])){
                                     <tbody>
                                     <?php
                                     $i=$page_first_result+1;
-                                    echo "SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.IS_PAID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, CONCAT($master_database.CUSTOMER.FIRST_NAME, ' ', $master_database.CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT($master_database.SERVICE_PROVIDER.FIRST_NAME, ' ', $master_database.SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search." ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC LIMIT " . $page_first_result . ',' . $results_per_page;
+                                    $appointment_data = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.IS_PAID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, CONCAT($master_database.CUSTOMER.FIRST_NAME, ' ', $master_database.CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT($master_database.SERVICE_PROVIDER.FIRST_NAME, ' ', $master_database.SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search." ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$appointment_data->EOF) { ?>
                                         <tr>
                                             <td <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"></label></td>
@@ -243,23 +245,23 @@ if(empty($_GET['id'])){
         let Date = parseInt($(param).val());
 
         if (Date === 1) {
-            $('.start_date').hide();
+            $('.from_date').hide();
             $('.end_date').hide();
             $('.specific_date').hide();
         } else if (Date === 2) {
-            $('.start_date').hide();
+            $('.from_date').hide();
             $('.end_date').hide();
             $('.specific_date').hide();
         } else if (Date === 3) {
-            $('.start_date').hide();
+            $('.from_date').hide();
             $('.end_date').hide();
             $('.specific_date').hide();
         } else if (Date === 4) {
-            $('.start_date').hide();
+            $('.from_date').hide();
             $('.end_date').hide();
             $('.specific_date').slideDown();
         } else if (Date === 5) {
-            $('.start_date').slideDown();
+            $('.from_date').slideDown();
             $('.end_date').slideDown();
             $('.specific_date').hide();
         }
@@ -270,17 +272,17 @@ if(empty($_GET['id'])){
             format: 'mm/dd/yyyy',
             maxDate: 0
         });
-        $("#START_DATE").datepicker({
+        $("#FROM_DATE").datepicker({
             numberOfMonths: 1,
             onSelect: function(selected) {
                 $("#END_DATE").datepicker("option","minDate", selected);
-                $("#START_DATE, #END_DATE").trigger("change");
+                $("#FROM_DATE, #END_DATE").trigger("change");
             }
         });
         $("#END_DATE").datepicker({
             numberOfMonths: 1,
             onSelect: function(selected) {
-                $("#START_DATE").datepicker("option","maxDate", selected)
+                $("#FROM_DATE").datepicker("option","maxDate", selected)
             }
         });
     });
