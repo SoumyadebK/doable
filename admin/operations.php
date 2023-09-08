@@ -15,7 +15,7 @@ if (!empty($_GET['DATE_SELECTION'])) {
         $SPECIFIC_DATE = date('Y-m-d');
         if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
-            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $search_text . " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
+            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $_GET['SERVICE_PROVIDER_ID'] . " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         } else {
             $search = " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         }
@@ -23,7 +23,7 @@ if (!empty($_GET['DATE_SELECTION'])) {
         $SPECIFIC_DATE = date('Y-m-d', strtotime("-1 days"));
         if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
-            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $search_text . " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
+            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $_GET['SERVICE_PROVIDER_ID'] . " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         } else {
             $search = " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         }
@@ -31,7 +31,7 @@ if (!empty($_GET['DATE_SELECTION'])) {
         [$START_DATE, $END_DATE] = currentWeekRange(date('Y-m-d'));
         if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
-            $search = " DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $search_text . " AND DOA_APPOINTMENT_MASTER.DATE >= '$START_DATE' AND DOA_APPOINTMENT_MASTER.DATE <= '$END_DATE'";
+            $search = " DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $_GET['SERVICE_PROVIDER_ID'] . " AND DOA_APPOINTMENT_MASTER.DATE >= '$START_DATE' AND DOA_APPOINTMENT_MASTER.DATE <= '$END_DATE'";
         } else {
             $search = " AND DOA_APPOINTMENT_MASTER.DATE >= '$START_DATE' AND DOA_APPOINTMENT_MASTER.DATE <= '$END_DATE'";
         }
@@ -39,7 +39,7 @@ if (!empty($_GET['DATE_SELECTION'])) {
         $SPECIFIC_DATE = date('Y-m-d', strtotime($_GET['SPECIFIC_DATE']));
         if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
-            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = '$search_text' AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
+            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $_GET['SERVICE_PROVIDER_ID'] . " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         } else {
             $search = " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         }
@@ -48,7 +48,7 @@ if (!empty($_GET['DATE_SELECTION'])) {
         $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
         if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
-            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = '$search_text' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
+            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $_GET['SERVICE_PROVIDER_ID'] . " AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
         } else {
             $search_text = '';
             $search = " AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
