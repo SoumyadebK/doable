@@ -1726,15 +1726,15 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 async: false,
                 cache: false,
                 success: function (result) {
-                    $('.service_name').hide();
-                    $('.service_div').hide();
+                    $('.service_name').remove();
+                    $('.service_div').remove();
                     $('#add_more').hide();
                     $('#package_services').html(result);
                 }
             });
         } else {
-            $('.service_name').hide();
-            $('.service_div').hide();
+            $('.service_name').remove();
+            $('.service_div').remove();
             $('#add_more').show();
             $.ajax({
                 url: "ajax/get_package_service_codes.php",

@@ -7,7 +7,7 @@ $results_per_page = 100;
 $search_text = '';
 $search='';
 $SPECIFIC_DATE='';
-$START_DATE='';
+$FROM_DATE='';
 $END_DATE='';
 
 if (!empty($_GET['DATE_SELECTION'])) {
@@ -44,12 +44,14 @@ if (!empty($_GET['DATE_SELECTION'])) {
             $search = " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         }
     } else if ($_GET['DATE_SELECTION'] == 5) {
+        $FROM_DATE = date('Y-m-d', strtotime($_GET['FROM_DATE']));
+        $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
         if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
-            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = '%" . $search_text . "%' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN " . $_GET['START_DATE'] . " AND " . $_GET['END_DATE'] . ")";
+            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = '$search_text' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
         } else {
             $search_text = '';
-            $search = ' ';
+            $search = " AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
         }
     }
 }
@@ -146,9 +148,9 @@ function currentWeekRange($date): array
                         <input type="text" id="SPECIFIC_DATE" name="SPECIFIC_DATE" placeholder="Specific Date" class="form-control datepicker-past" value="<?=($SPECIFIC_DATE == '' || $SPECIFIC_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($SPECIFIC_DATE))?>">
                     </div>
                 </div>
-                <div class="col-2 start_date" style="display: none">
+                <div class="col-2 from_date" style="display: none">
                     <div class="form-group">
-                        <input type="text" id="START_DATE" name="START_DATE" placeholder="From Date" class="form-control datepicker-past" value="<?=($START_DATE == '' || $START_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($START_DATE))?>">
+                        <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-past" value="<?=($FROM_DATE == '' || $FROM_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($FROM_DATE))?>">
                     </div>
                 </div>
                 <div class="col-2 end_date" style="display: none">
@@ -249,23 +251,23 @@ function currentWeekRange($date): array
         let Date = parseInt($(param).val());
 
         if (Date === 1) {
-            $('.start_date').hide();
+            $('.from_date').hide();
             $('.end_date').hide();
             $('.specific_date').hide();
         } else if (Date === 2) {
-            $('.start_date').hide();
+            $('.from_date').hide();
             $('.end_date').hide();
             $('.specific_date').hide();
         } else if (Date === 3) {
-            $('.start_date').hide();
+            $('.from_date').hide();
             $('.end_date').hide();
             $('.specific_date').hide();
         } else if (Date === 4) {
-            $('.start_date').hide();
+            $('.from_date').hide();
             $('.end_date').hide();
             $('.specific_date').slideDown();
         } else if (Date === 5) {
-            $('.start_date').slideDown();
+            $('.from_date').slideDown();
             $('.end_date').slideDown();
             $('.specific_date').hide();
         }
@@ -276,17 +278,17 @@ function currentWeekRange($date): array
             format: 'mm/dd/yyyy',
             maxDate: 0
         });
-        $("#START_DATE").datepicker({
+        $("#FROM_DATE").datepicker({
             numberOfMonths: 1,
             onSelect: function(selected) {
                 $("#END_DATE").datepicker("option","minDate", selected);
-                $("#START_DATE, #END_DATE").trigger("change");
+                $("#FROM_DATE, #END_DATE").trigger("change");
             }
         });
         $("#END_DATE").datepicker({
             numberOfMonths: 1,
             onSelect: function(selected) {
-                $("#START_DATE").datepicker("option","maxDate", selected)
+                $("#FROM_DATE").datepicker("option","maxDate", selected)
             }
         });
     });
