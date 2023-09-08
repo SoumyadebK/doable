@@ -459,7 +459,7 @@ $CLOSE_TIME = '23:59:00';
                 end: new Date(<?=date("Y",strtotime($END_DATE))?>,<?=intval((date("m",strtotime($END_DATE)) - 1))?>,<?=intval(date("d",strtotime($END_DATE)))?>,<?=date("H",strtotime($END_TIME))?>,<?=date("i",strtotime($END_TIME))?>,1,1),
                 color: '<?=$event_data->fields['COLOR_CODE']?>',
                 type: 'event',
-                allDay: '<?=($start_end_time_diff >= $open_close_time_diff)?>'
+                allDay: <?=(($event_data->fields['ALL_DAY'] == 1) ? 1 : (($start_end_time_diff >= $open_close_time_diff) ? 1 : 0))?>
             },
             <?php $event_data->MoveNext();
             } ?>
