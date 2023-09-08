@@ -3,21 +3,57 @@ require_once('../global/config.php');
 $title = "Appointments";
 
 $results_per_page = 100;
-$DEFAULT_LOCATION_ID='';
 
-if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
-    $search_text = $_GET['search_text'];
-    $search = " AND DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%'";
-} else {
-    $search_text = '';
-    $search = ' ';
+$_GET['DATE_SELECTION']='';
+$search='';
+$SPECIFIC_DATE='';
+$START_DATE='';
+$END_DATE='';
+
+if ($_GET['DATE_SELECTION'] == 1) {
+    if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
+        $search_text = $_GET['SERVICE_PROVIDER_ID'];
+        $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = ".$search_text." AND DOA_APPOINTMENT_MASTER.DATE = current_date";
+    } else {
+        $search_text = '';
+        $search = ' ';
+    }
+} else if ($_GET['DATE_SELECTION'] == 2) {
+    if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '' ) {
+        $search_text = $_GET['SERVICE_PROVIDER_ID'];
+        $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = '%".$search_text."%' AND DOA_APPOINTMENT_MASTER.DATE = DATE_SUB(current_date(), INTERVAL 1 DAY)";
+    } else {
+        $search_text = '';
+        $search = ' ';
+    }
+} else if ($_GET['DATE_SELECTION'] == 3) {
+    if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '' ) {
+        $search_text = $_GET['SERVICE_PROVIDER_ID'];
+        $search = " DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = ".$search_text." AND WEEK(DOA_APPOINTMENT_MASTER.DATE)=week(now())";
+    } else {
+        $search_text = '';
+        $search = ' ';
+    }
+} else if ($_GET['DATE_SELECTION'] == 4) {
+    if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '' ) {
+        $search_text = $_GET['SERVICE_PROVIDER_ID'];
+        $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = '%".$search_text."%' AND DOA_APPOINTMENT_MASTER.DATE = ".$_GET['SPECIFIC_DATE'].")";
+    } else {
+        $search_text = '';
+        $search = ' ';
+    }
+} else if ($_GET['DATE_SELECTION'] == 5) {
+    if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '' ) {
+        $search_text = $_GET['SERVICE_PROVIDER_ID'];
+        $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = '%".$search_text."%' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN ".$_GET['START_DATE']." AND ".$_GET['END_DATE'].")";
+    } else {
+        $search_text = '';
+        $search = ' ';
+    }
 }
 
-if ($DEFAULT_LOCATION_ID > 0){
-    $query = $db->Execute("SELECT count($account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM $account_database.DOA_APPOINTMENT_MASTER LEFT JOIN $account_database.DOA_SERVICE_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = $account_database.DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER = $account_database.DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON $master_database.DOA_USER_MASTER.PK_USER = $master_database.CUSTOMER.PK_USER LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON $account_database.DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = $master_database.SERVICE_PROVIDER.PK_USER INNER JOIN $master_database.DOA_USER_LOCATION ON $master_database.SERVICE_PROVIDER.PK_USER = $master_database.DOA_USER_LOCATION.PK_USER LEFT JOIN $account_database.DOA_SERVICE_CODE ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = $account_database.DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_LOCATION ON $master_database.DOA_LOCATION.PK_LOCATION = $account_database.DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND $account_database.DOA_APPOINTMENT_MASTER.STATUS = 'A' AND $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND $account_database.DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'".$search);
-} else {
-    $query = $db->Execute("SELECT count($account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM $account_database.DOA_APPOINTMENT_MASTER LEFT JOIN $account_database.DOA_SERVICE_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = $account_database.DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER = $account_database.DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON $master_database.DOA_USER_MASTER.PK_USER = $master_database.CUSTOMER.PK_USER LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON $account_database.DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = $master_database.SERVICE_PROVIDER.PK_USER LEFT JOIN $account_database.DOA_SERVICE_CODE ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = $account_database.DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE $account_database.DOA_APPOINTMENT_MASTER.STATUS = 'A' AND $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND $account_database.DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'".$search);
-}
+
+$query = $db->Execute("SELECT count($account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM $account_database.DOA_APPOINTMENT_MASTER LEFT JOIN $account_database.DOA_SERVICE_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = $account_database.DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER = $account_database.DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON $master_database.DOA_USER_MASTER.PK_USER = $master_database.CUSTOMER.PK_USER LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON $account_database.DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = $master_database.SERVICE_PROVIDER.PK_USER LEFT JOIN $account_database.DOA_SERVICE_CODE ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = $account_database.DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND $account_database.DOA_APPOINTMENT_MASTER.STATUS = 'A' AND $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND $account_database.DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search);
 $number_of_result =  $query->fields['TOTAL_RECORDS'];
 $number_of_page = ceil ($number_of_result / $results_per_page);
 
@@ -52,6 +88,7 @@ if(empty($_GET['id'])){
 
     $SERVICE_PROVIDER_ID = $res->fields['SERVICE_PROVIDER_ID'];
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -69,7 +106,7 @@ if(empty($_GET['id'])){
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
             </div>
-
+            <form class="form-horizontal" action="" method="get">
             <div class="row">
                 <div class="col-3">
                     <div class="form-group">
@@ -79,25 +116,43 @@ if(empty($_GET['id'])){
                             $selected_service_provider = '';
                             $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
                             while (!$row->EOF) { ?>
-                                <option value="<?=$row->fields['NAME']?>"><?=$row->fields['NAME']?></option>
+                                <option value="<?=$row->fields['PK_USER']?>"><?=$row->fields['NAME']?></option>
                             <?php $row->MoveNext(); } ?>
                         </select>
                     </div>
                 </div>
-                <div class="col-3">
-                    <div class="form-group">
-                        <input type="text" id="START_DATE" name="START_DATE" placeholder="From Date" class="form-control datepicker-normal">
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="form-group">
-                        <input type="text" id="END_DATE" name="END_DATE" placeholder="To Date" class="form-control datepicker-normal">
-                    </div>
-                </div>
                 <div class="col-2">
+                    <div class="form-group">
+                        <select class="form-control" name="DATE_SELECTION" id="DATE_SELECTION" onchange="selectDate(this)">
+                            <option value="">Select Date</option>
+                            <option value="1">Today</option>
+                            <option value="2">Yesterday</option>
+                            <option value="3">This week</option>
+                            <option value="4">Specific Date</option>
+                            <option value="5">Date Range</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-2 specific_date" style="display: none">
+                    <div class="form-group">
+                        <input type="text" id="SPECIFIC_DATE" name="SPECIFIC_DATE" placeholder="Specific Date" class="form-control datepicker-past" value="<?=($SPECIFIC_DATE == '' || $SPECIFIC_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($SPECIFIC_DATE))?>">
+                    </div>
+                </div>
+                <div class="col-2 start_date" style="display: none">
+                    <div class="form-group">
+                        <input type="text" id="START_DATE" name="START_DATE" placeholder="From Date" class="form-control datepicker-past" value="<?=($START_DATE == '' || $START_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($START_DATE))?>">
+                    </div>
+                </div>
+                <div class="col-2 end_date" style="display: none">
+                    <div class="form-group">
+                        <input type="text" id="END_DATE" name="END_DATE" placeholder="To Date" class="form-control datepicker-normal" value="<?=($END_DATE == '' || $END_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($END_DATE))?>">
+                    </div>
+                </div>
+                <div class="col-1">
                 <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
                 </div>
             </div>
+            </form>
 
             <div class="row">
                 <div class="col-12">
@@ -111,8 +166,6 @@ if(empty($_GET['id'])){
                                         <th><input type="checkbox" onClick="toggle(this)" /></th>
                                         <th>Customer</th>
                                         <th>Enrollment ID</th>
-                                        <th>Service</th>
-                                        <th>Service Code</th>
                                         <th><?=$service_provider_title?></th>
                                         <th>Day</th>
                                         <th>Date</th>
@@ -125,18 +178,16 @@ if(empty($_GET['id'])){
                                     <tbody>
                                     <?php
                                     $i=$page_first_result+1;
-                                    if ($DEFAULT_LOCATION_ID > 0){
-                                        $appointment_data = $db->Execute("SELECT DISTINCT $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, $account_database.DOA_APPOINTMENT_MASTER.DATE, $account_database.DOA_APPOINTMENT_MASTER.START_TIME, $account_database.DOA_APPOINTMENT_MASTER.END_TIME, $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, $account_database.DOA_APPOINTMENT_MASTER.IS_PAID, $account_database.DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, CONCAT($master_database.CUSTOMER.FIRST_NAME, ' ', $master_database.CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT($master_database.SERVICE_PROVIDER.FIRST_NAME, ' ', $master_database.SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, $account_database.DOA_SERVICE_MASTER.SERVICE_NAME, $account_database.DOA_SERVICE_CODE.SERVICE_CODE, $account_database.DOA_APPOINTMENT_MASTER.ACTIVE FROM $account_database.DOA_APPOINTMENT_MASTER LEFT JOIN $account_database.DOA_SERVICE_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = $account_database.DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER = $account_database.DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON $master_database.DOA_USER_MASTER.PK_USER = $master_database.CUSTOMER.PK_USER LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON $account_database.DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = $master_database.SERVICE_PROVIDER.PK_USER INNER JOIN $master_database.DOA_USER_LOCATION ON $master_database.SERVICE_PROVIDER.PK_USER = $master_database.DOA_USER_LOCATION.PK_USER LEFT JOIN $account_database.DOA_SERVICE_CODE ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = $account_database.DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE $master_database.DOA_USER_LOCATION.PK_LOCATION = '$DEFAULT_LOCATION_ID' AND $account_database.DOA_APPOINTMENT_MASTER.STATUS = 'A' AND $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND $account_database.DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'".$search."ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
-                                    } else {
-                                        $appointment_data = $db->Execute("SELECT DISTINCT $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, $account_database.DOA_APPOINTMENT_MASTER.DATE, $account_database.DOA_APPOINTMENT_MASTER.START_TIME, $account_database.DOA_APPOINTMENT_MASTER.END_TIME, $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, $account_database.DOA_APPOINTMENT_MASTER.IS_PAID, $account_database.DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, CONCAT($master_database.CUSTOMER.FIRST_NAME, ' ', $master_database.CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT($master_database.SERVICE_PROVIDER.FIRST_NAME, ' ', $master_database.SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, $account_database.DOA_SERVICE_MASTER.SERVICE_NAME, $account_database.DOA_SERVICE_CODE.SERVICE_CODE, $account_database.DOA_APPOINTMENT_MASTER.ACTIVE FROM $account_database.DOA_APPOINTMENT_MASTER LEFT JOIN $account_database.DOA_SERVICE_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = $account_database.DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER = $account_database.DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON $master_database.DOA_USER_MASTER.PK_USER = $master_database.CUSTOMER.PK_USER LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON $account_database.DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = $master_database.SERVICE_PROVIDER.PK_USER LEFT JOIN $account_database.DOA_SERVICE_CODE ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = $account_database.DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE $account_database.DOA_APPOINTMENT_MASTER.STATUS = 'A' AND $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND $account_database.DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'".$search."ORDER BY $account_database.DOA_APPOINTMENT_MASTER.DATE DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
-                                    }
+                                    $appointment_data = $db->Execute("SELECT DISTINCT $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, $account_database.DOA_APPOINTMENT_MASTER.DATE, $account_database.DOA_APPOINTMENT_MASTER.START_TIME, $account_database.DOA_APPOINTMENT_MASTER.END_TIME, $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, $account_database.DOA_APPOINTMENT_MASTER.IS_PAID, $account_database.DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, CONCAT($master_database.CUSTOMER.FIRST_NAME, ' ', $master_database.CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT($master_database.SERVICE_PROVIDER.FIRST_NAME, ' ', $master_database.SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, $account_database.DOA_SERVICE_MASTER.SERVICE_NAME, $account_database.DOA_SERVICE_CODE.SERVICE_CODE, $account_database.DOA_APPOINTMENT_MASTER.ACTIVE FROM $account_database.DOA_APPOINTMENT_MASTER LEFT JOIN $account_database.DOA_SERVICE_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = $account_database.DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER = $account_database.DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON $master_database.DOA_USER_MASTER.PK_USER = $master_database.CUSTOMER.PK_USER LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON $account_database.DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = $master_database.SERVICE_PROVIDER.PK_USER LEFT JOIN $account_database.DOA_SERVICE_CODE ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = $account_database.DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND $account_database.DOA_APPOINTMENT_MASTER.STATUS = 'A' AND $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND $account_database.DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search." ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$appointment_data->EOF) { ?>
                                         <tr>
                                             <td <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"></label></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['ENROLLMENT_ID']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_CODE']?></td>
+                                            <? if (!empty($appointment_data->fields['ENROLLMENT_ID'])) { ?>
+                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['ENROLLMENT_ID']." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
+                                            <? } else { ?>
+                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
+                                            <? } ?>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
@@ -186,20 +237,48 @@ if(empty($_GET['id'])){
 <?php require_once('../includes/footer.php');?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 <script>
+    function selectDate(param) {
+        let Date = parseInt($(param).val());
+
+        if (Date === 1) {
+            $('.start_date').hide();
+            $('.end_date').hide();
+            $('.specific_date').hide();
+        } else if (Date === 2) {
+            $('.start_date').hide();
+            $('.end_date').hide();
+            $('.specific_date').hide();
+        } else if (Date === 3) {
+            $('.start_date').hide();
+            $('.end_date').hide();
+            $('.specific_date').hide();
+        } else if (Date === 4) {
+            $('.start_date').hide();
+            $('.end_date').hide();
+            $('.specific_date').slideDown();
+        } else if (Date === 5) {
+            $('.start_date').slideDown();
+            $('.end_date').slideDown();
+            $('.specific_date').hide();
+        }
+    }
 
     $(document).ready(function(){
+        $("#SPECIFIC_DATE").datepicker({
+            format: 'mm/dd/yyyy',
+            maxDate: 0
+        });
         $("#START_DATE").datepicker({
             numberOfMonths: 1,
             onSelect: function(selected) {
                 $("#END_DATE").datepicker("option","minDate", selected);
-                $(this).change();
+                $("#START_DATE, #END_DATE").trigger("change");
             }
         });
         $("#END_DATE").datepicker({
             numberOfMonths: 1,
             onSelect: function(selected) {
-                $("#START_DATE").datepicker("option","maxDate", selected);
-                $(this).change();
+                $("#START_DATE").datepicker("option","maxDate", selected)
             }
         });
     });
