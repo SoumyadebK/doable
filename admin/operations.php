@@ -12,34 +12,34 @@ $END_DATE='';
 
 if (!empty($_GET['DATE_SELECTION'])) {
     if ($_GET['DATE_SELECTION'] == 1) {
+        $SPECIFIC_DATE = date('Y-m-d');
         if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
-            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $search_text . " AND DOA_APPOINTMENT_MASTER.DATE = current_date";
+            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $_GET['SERVICE_PROVIDER_ID'] . " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         } else {
-            $search_text = '';
-            $search = ' ';
+            $search = " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         }
     } else if ($_GET['DATE_SELECTION'] == 2) {
+        $SPECIFIC_DATE = date('Y-m-d', strtotime("-1 days"));
         if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
-            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = '%" . $search_text . "%' AND DOA_APPOINTMENT_MASTER.DATE = DATE_SUB(current_date(), INTERVAL 1 DAY)";
+            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $_GET['SERVICE_PROVIDER_ID'] . " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         } else {
-            $search_text = '';
-            $search = ' ';
+            $search = " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         }
     } else if ($_GET['DATE_SELECTION'] == 3) {
+        [$START_DATE, $END_DATE] = currentWeekRange(date('Y-m-d'));
         if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
-            $search = " DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $search_text . " AND WEEK(DOA_APPOINTMENT_MASTER.DATE)=week(now())";
+            $search = " DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $_GET['SERVICE_PROVIDER_ID'] . " AND DOA_APPOINTMENT_MASTER.DATE >= '$START_DATE' AND DOA_APPOINTMENT_MASTER.DATE <= '$END_DATE'";
         } else {
-            $search_text = '';
-            $search = ' ';
+            $search = " AND DOA_APPOINTMENT_MASTER.DATE >= '$START_DATE' AND DOA_APPOINTMENT_MASTER.DATE <= '$END_DATE'";
         }
     } else if ($_GET['DATE_SELECTION'] == 4) {
         $SPECIFIC_DATE = date('Y-m-d', strtotime($_GET['SPECIFIC_DATE']));
         if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
-            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = '$search_text' AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
+            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $_GET['SERVICE_PROVIDER_ID'] . " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         } else {
             $search = " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         }
@@ -48,14 +48,13 @@ if (!empty($_GET['DATE_SELECTION'])) {
         $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
         if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
-            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = '$search_text' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
+            $search = " AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = " . $_GET['SERVICE_PROVIDER_ID'] . " AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
         } else {
             $search_text = '';
             $search = " AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
         }
     }
 }
-
 
 $query = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS TOTAL_RECORDS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search);
 $number_of_result =  $query->fields['TOTAL_RECORDS'];
@@ -91,6 +90,13 @@ if(empty($_GET['id'])){
     }
 
     $SERVICE_PROVIDER_ID = $res->fields['SERVICE_PROVIDER_ID'];
+}
+function currentWeekRange($date): array
+{
+    $ts = strtotime($date);
+    $start = (date('w', $ts) == 0) ? $ts : strtotime('last sunday', $ts);
+    return array(date('Y-m-d', $start),
+        date('Y-m-d', strtotime('next saturday', $start)));
 }
 
 ?>
