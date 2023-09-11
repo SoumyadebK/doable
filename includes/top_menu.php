@@ -79,7 +79,7 @@
             <!-- ============================================================== -->
             <ul class="navbar-nav my-lg-0">
                 <?php if ($_SESSION["PK_ROLES"] == 2) { ?>
-                    <li class="nav-item m-t-15" style="margin-right: 50px;">
+                    <li class="nav-item m-t-15">
                         <div id="location" class="multiselect-box" style="width: 120%;">
                             <select class="multi_select_location" onchange="selectDefaultLocation(this);" multiple style="width: 100%">
                                 <?php
@@ -115,6 +115,12 @@
                     </li>
                 <?php endif;?>
 
+                <li class="nav-item" style="margin-top: 4px;">
+                    <a class="nav-link dropdown-toggle waves-effect waves-dark" href="../admin/manage_help.php" aria-haspopup="true" aria-expanded="false">
+                        <img src="../assets/images/help.png" alt="Help" style="height: 35px; width: 35px;">
+                    </a>
+                </li>
+
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <?php
@@ -136,7 +142,7 @@
                         <?php }
                         ?>
                     </a>
-                    <div id="logout" class="dropdown-menu dropdown-menu-end mailbox animated bounceInDown">
+                    <div id="logout" class="dropdown-menu dropdown-menu-end mailbox animated bounceInDown" style="margin-right: 45%">
                         <ul>
                             <?php if ($_SESSION["PK_ROLES"] == 1) { ?>
                                 <li>
@@ -160,6 +166,11 @@
                             </li>
                         </ul>
                     </div>
+                    <?php if ($_SESSION["PK_ROLES"] != 1) { ?>
+                    <a class="navbar-brand" href="">
+                        <img src="../assets/images/doable_logo.png" alt="LOGO" style="height: 60px; width: auto;">
+                    </a>
+                    <? } ?>
                 </li>
             </ul>
         </div>

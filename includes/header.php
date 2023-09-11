@@ -150,4 +150,9 @@
             margin-top: 67px;
         }
     </style>
+    <style>
+        th {
+            font-weight: bold !important;
+        }
+    </style>
 </head>

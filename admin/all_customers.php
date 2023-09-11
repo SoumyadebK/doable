@@ -40,6 +40,11 @@ $page_first_result = ($page-1) * $results_per_page;
 ?>
 
 <!DOCTYPE html>
+<style>
+    table th{
+        font-weight:bold;
+    }
+</style>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
 <body class="skin-default-dark fixed-layout">
@@ -89,11 +94,11 @@ $page_first_result = ($page-1) * $results_per_page;
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-striped border" data-page-length='50'>
+                                <table class="table table-striped border">
                                     <thead>
                                     <tr>
                                         <th>No</th>
-                                        <th style="width:20%;">Name</th>
+                                        <th style="width:20%; font-weight: bold;">Name</th>
                                         <th style="width:10%;">Customer ID</th>
                                         <th style="width:20%;">Email Id</th>
                                         <th style="width:12%;">Phone</th>
