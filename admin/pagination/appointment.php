@@ -16,7 +16,8 @@ $search_text = '';
 $search = $START_DATE.$END_DATE. ' ';
 if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
     $search_text = $_GET['search_text'];
-    $search = $START_DATE.$END_DATE." AND DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%".$search_text."%' OR CUSTOMER.FIRST_NAME LIKE '%".$search_text."%'";
+    echo $search = $START_DATE.$END_DATE." AND DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%".$search_text."%' OR CUSTOMER.FIRST_NAME LIKE '%".$search_text."%'";
+
 }
 
 if (isset($_GET['master_id']) && $_GET['master_id'] != '') {
@@ -25,6 +26,7 @@ if (isset($_GET['master_id']) && $_GET['master_id'] != '') {
 } else {
     $query = $db->Execute("SELECT DISTINCT($account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER), count($account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS TOTAL_RECORDS FROM $account_database.DOA_APPOINTMENT_MASTER LEFT JOIN $account_database.DOA_SERVICE_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = $account_database.DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER = $account_database.DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON $master_database.DOA_USER_MASTER.PK_USER = $master_database.CUSTOMER.PK_USER LEFT JOIN $master_database.DOA_USER_LOCATION ON $master_database.CUSTOMER.PK_USER = $master_database.DOA_USER_LOCATION.PK_USER LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON $account_database.DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = $master_database.SERVICE_PROVIDER.PK_USER LEFT JOIN $account_database.DOA_SERVICE_CODE ON $account_database.DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = $account_database.DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE $master_database.DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND $account_database.DOA_APPOINTMENT_MASTER.STATUS = 'A' AND $account_database.DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND $account_database.DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search);
 }
+
 
 $number_of_result =  $query->fields['TOTAL_RECORDS'];
 $number_of_page = ceil ($number_of_result / $results_per_page);
