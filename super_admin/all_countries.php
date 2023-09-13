@@ -19,7 +19,7 @@ $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_COUNTRY.COUNTRY LIKE '%".$search_text."%')";
+    $search = " AND (DOA_COUNTRY.COUNTRY_NAME LIKE '%".$search_text."%' OR DOA_COUNTRY.COUNTRY_CODE LIKE '%".$search_text."%')";
 } else {
     $search_text = '';
     $search = ' ';
@@ -47,7 +47,7 @@ $page_first_result = ($page-1) * $results_per_page;
             <?php require_once('../includes/top_menu.php');?>
             <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-                <div class="container-fluid body-content">
+                <div class="container-fluid body_content">
                     <div class="row page-titles">
                         <div class="col-md-5 align-self-center">
                             <h4 class="text-themecolor"><?=$title?></h4>
@@ -89,7 +89,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <tbody>
                                              <?php
                                                     $i=1;
-                                                    $result_dropdown_query = mysqli_query($conn,"SELECT COUNTRY_CODE,COUNTRY_NAME,PK_COUNTRY FROM `DOA_COUNTRY` Where ACTIVE=1");
+                                                    $result_dropdown_query = mysqli_query($conn,"SELECT COUNTRY_CODE,COUNTRY_NAME,PK_COUNTRY FROM `DOA_COUNTRY` WHERE ACTIVE=1".$search." LIMIT " . $page_first_result . ',' . $results_per_page);
                                                     while ($result_dropdown=mysqli_fetch_array($result_dropdown_query,MYSQLI_ASSOC)) { ?>
 
                                                 <tr>

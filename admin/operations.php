@@ -231,7 +231,7 @@ function currentWeekRange($date): array
                                                 }
                                             }
                                             if ($page < $number_of_page) { ?>
-                                                <li><a href="operations.php?page=<?=($page+1)?>">&rsaquo;</a></li>
+                                                <li><a href="operations.php?page=<?=($page+1)."&".$search?>">&rsaquo;</a></li>
                                                 <li><a href="operations.php?page=<?=$number_of_page?>">&raquo;</a></li>
                                             <?php } ?>
                                         </ul>
