@@ -1,6 +1,6 @@
 <?php
 require_once('../global/config.php');
-$title = "All Countries";
+$title = "All States";
 
 $status_check = empty($_GET['status'])?'active':$_GET['status'];
 
