@@ -13,7 +13,7 @@
                     <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=$PK_ENROLLMENT_BILLING?>">
                     <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
                     <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
-                    <input type="hidden" name="PK_USER_MASTER" id="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
+                    <input type="hidden" name="PK_USER_MASTER" class="CUSTOMER_ID" id="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
                     <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID">
 
                     <div class="p-20">
