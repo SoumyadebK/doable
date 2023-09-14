@@ -1732,6 +1732,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     $('.service_div').remove();
                     $('#add_more').hide();
                     $('#package_services').html(result);
+                    $('#services_from_package').hide();
                 }
             });
         } else {
