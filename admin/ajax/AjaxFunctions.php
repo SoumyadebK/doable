@@ -981,6 +981,7 @@ function cancelAppointment($RESPONSE_DATA){
 
 function completeAppointment($RESPONSE_DATA){
     global $db;
+    global $db_account;
     $RESPONSE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
     $RESPONSE_DATA['EDITED_ON'] = date("Y-m-d H:i");
     $RESPONSE_DATA['STATUS'] = 'C';
@@ -1230,6 +1231,7 @@ function viewGiftCertificatePdf($RESPONSE_DATA) {
 
 function saveMultiAppointmentData($RESPONSE_DATA){
     global $db;
+    global $db_account;
     $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
     $PK_ENROLLMENT_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[0];
     $PK_ENROLLMENT_SERVICE = $PK_ENROLLMENT_MASTER_ARRAY[1];
@@ -1273,7 +1275,7 @@ function saveMultiAppointmentData($RESPONSE_DATA){
         }
     }
 
-    $session_created_data = $db->Execute("SELECT COUNT(`PK_ENROLLMENT_SERVICE`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
+    $session_created_data = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_SERVICE`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
     $SESSION_CREATED = $session_created_data->fields['USED_SESSION_COUNT'];
     $SESSION_LEFT = $NUMBER_OF_SESSION-$SESSION_CREATED;
 
@@ -1295,9 +1297,9 @@ function saveMultiAppointmentData($RESPONSE_DATA){
                 $APPOINTMENT_DATA['ACTIVE'] = 1;
                 $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+                db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
             }
-            $session_cost = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
+            $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
             $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
             rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
         }
@@ -1311,9 +1313,9 @@ function saveMultiAppointmentData($RESPONSE_DATA){
 }
 
 function getEditCommentData($RESPONSE_DATA) {
-    global $db;
+    global $db_account;
     $PK_COMMENT = $RESPONSE_DATA['PK_COMMENT'];
-    $comment_data = $db->Execute("SELECT * FROM `DOA_COMMENT` WHERE `PK_COMMENT` = ".$PK_COMMENT);
+    $comment_data = $db_account->Execute("SELECT * FROM `DOA_COMMENT` WHERE `PK_COMMENT` = ".$PK_COMMENT);
     echo json_encode($comment_data);
 }
 
