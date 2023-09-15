@@ -39,7 +39,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointme
         $_POST['ACTIVE'] = 1;
         $_POST['CREATED_BY']  = $_SESSION['PK_USER'];
         $_POST['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_APPOINTMENT_MASTER', $_POST, 'insert');
+        db_perform_account('DOA_APPOINTMENT_MASTER', $_POST, 'insert');
     }else{
         //$_POST['ACTIVE'] = $_POST['ACTIVE'];
         if($_FILES['IMAGE']['name'] != ''){
@@ -121,7 +121,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         for ($i = 0; $i < count($_POST['PK_USER_MASTER']); $i++) {
             $GROUP_CLASS_USER_DATA['PK_GROUP_CLASS'] = $PK_GROUP_CLASS;
             $GROUP_CLASS_USER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$i];
-            db_perform('DOA_GROUP_CLASS_CUSTOMER', $GROUP_CLASS_USER_DATA, 'insert');
+            db_perform_account('DOA_GROUP_CLASS_CUSTOMER', $GROUP_CLASS_USER_DATA, 'insert');
         }
     }
     header("location:all_schedules.php");
@@ -149,7 +149,7 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
 }
 
 $dayNumber = date('N');
-$location_operational_hour = $db_account->Execute("SELECT MAX(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber' AND CLOSED = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].")");
+$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber' AND CLOSED = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].")");
 if ($location_operational_hour->RecordCount() > 0) {
     $OPEN_TIME = $location_operational_hour->fields['OPEN_TIME'];
     $CLOSE_TIME = $location_operational_hour->fields['CLOSE_TIME'];

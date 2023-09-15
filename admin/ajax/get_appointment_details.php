@@ -26,6 +26,15 @@ $START_TIME = $res->fields['START_TIME'];
 $END_TIME = $res->fields['END_TIME'];
 $COMMENT = $res->fields['COMMENT'];
 $IMAGE = $res->fields['IMAGE'];
+
+$customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
+
+$selected_customer = $customer_data->fields['NAME'];
+$customer_phone = $customer_data->fields['PHONE'];
+$customer_email = $customer_data->fields['EMAIL_ID'];
+$selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
+$selected_user_id = $customer_data->fields['PK_USER'];
+
 ?>
 
 <form id="appointment_form" action="" method="post" enctype="multipart/form-data">
@@ -36,21 +45,6 @@ $IMAGE = $res->fields['IMAGE'];
                 <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">Name: </label>
-                        <div id="customer_select" style="display: none;">
-                            <select name="CUSTOMER_ID" id="CUSTOMER_ID" onchange="selectThisCustomer(this);">
-                                <option value="">Select Customer</option>
-                                <?php
-                                $customer_phone='';
-                                $customer_email='';
-                                $selected_customer = '';
-                                $selected_customer_id = '';
-                                $selected_user_id = '';
-                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 ORDER BY FIRST_NAME");
-                                while (!$row->EOF) { if (($CUSTOMER_ID==$row->fields['PK_USER_MASTER'])){$selected_customer = $row->fields['NAME']; $customer_phone = $row->fields['PHONE']; $customer_email = $row->fields['EMAIL_ID']; $selected_customer_id = $row->fields['PK_USER_MASTER']; $selected_user_id = $row->fields['PK_USER'];} ?>
-                                    <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" <?=($CUSTOMER_ID==$row->fields['PK_USER_MASTER'])?'selected':''?>><?=$row->fields['NAME'].' ('.$row->fields['PHONE'].')'?></option>
-                                <?php $row->MoveNext(); } ?>
-                            </select>
-                        </div>
                         <p><a href="customer.php?id=<?=$selected_customer_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank"><?=$selected_customer?></a></p>
                     </div>
                 </div>
@@ -137,7 +131,7 @@ $IMAGE = $res->fields['IMAGE'];
                     </div>
                 </div>
             </div>
-            <span id="cancel_reschedule" style="display: none;"><a href="javascript:;" onclick="cancelReschedule()">Cancel</a></span>
+            <!--<span id="cancel_reschedule" style="display: none;"><a href="javascript:;" onclick="cancelReschedule()">Cancel</a></span>-->
             <div class="row" id="date_time_div">
                 <div class="col-3">
                     <div class="form-group">
@@ -147,15 +141,15 @@ $IMAGE = $res->fields['IMAGE'];
                 </div>
                 <div class="col-6">
                     <div class="form-group">
-                        <label class="form-label">Time : <span id="reschedule" style="margin-left: 80px;"><a href="javascript:;" onclick="reschedule()">Reschedule</a></span></label>
+                        <label class="form-label">Time : </label>
                         <p><?=date('h:i A', strtotime($START_TIME)).' - '.date('h:i A', strtotime($END_TIME))?></p>
                     </div>
                 </div>
-                <div class="col-3">
+                <!--<div class="col-3">
                     <div class="form-group">
                         <span><a href="javascript:;" onclick="cancelAppointment()">Cancel</a></span>
                     </div>
-                </div>
+                </div>-->
             </div>
 
         <!--<input type="hidden" name="DATE" id="DATE">
@@ -245,8 +239,8 @@ $IMAGE = $res->fields['IMAGE'];
             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
             <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
             <a href="enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
-            <a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
-            <a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>
+            <!--<a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
+            <a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>-->
         </div>
     </div>
 </form>
