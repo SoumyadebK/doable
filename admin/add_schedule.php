@@ -178,9 +178,6 @@ if(empty($_GET['id'])){
     $customer_email = $customer_data->fields['EMAIL_ID'];
     $selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
     $selected_user_id = $customer_data->fields['PK_USER'];
-
-    $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
-    $selected_enrollment = $enrollment_data->fields['ENROLLMENT_ID'];
 }
 
 ?>
@@ -305,6 +302,15 @@ if(empty($_GET['id'])){
                                             <div class="col-2">
                                                 <div class="form-group">
                                                     <label class="form-label">Enrollment ID : </label>
+                                                    <select class="form-control" name="PK_ENROLLMENT_MASTER" id="PK_ENROLLMENT_MASTER" style="display: none;" onchange="selectThisEnrollment(this);">
+                                                        <option value="">Select Enrollment ID</option>
+                                                        <?php
+                                                        $selected_enrollment = '';
+                                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.DURATION, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+                                                        while (!$row->EOF) { if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
+                                                            <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-duration="<?=$row->fields['DURATION']?>" <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$row->fields['ENROLLMENT_ID']?></option>
+                                                            <?php $row->MoveNext(); } ?>
+                                                    </select>
                                                     <p><?=$selected_enrollment?></p>
                                                 </div>
                                             </div>
