@@ -13,7 +13,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 if (!empty($_GET['id']) && !empty($_GET['action'])){
     if ($_GET['action'] == 'complete'){
         $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$_GET['id']);
-        header("location:all_schedules.php?view=list");
+        header("location:all_schedules.php?view=table");
     }
 }
 
@@ -72,7 +72,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointme
 
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
-    header("location:all_schedules.php");
+    header("location:all_schedules.php?view=table");
 }
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAppointmentData'){
@@ -96,7 +96,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAp
             db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
         }
     }
-    header("location:all_schedules.php");
+    header("location:all_schedules.php?view=table");
 }
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClassData'){
@@ -124,7 +124,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
             db_perform('DOA_GROUP_CLASS_CUSTOMER', $GROUP_CLASS_USER_DATA, 'insert');
         }
     }
-    header("location:all_schedules.php");
+    header("location:all_schedules.php?view=table");
 }
 
 function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){

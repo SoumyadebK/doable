@@ -91,7 +91,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         }
     }
 
-    header("location:all_schedules.php");
+    header("location:all_schedules.php?view=table");
 } elseif ($FUNCTION_NAME == 'saveSpecialAppointment') {
     $SPECIAL_APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     $SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
@@ -126,7 +126,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         }
     }
 
-    header("location:all_schedules.php");
+    header("location:all_schedules.php?view=table");
 } elseif ($FUNCTION_NAME == 'saveAppointmentData') {
     unset($_POST['TIME']);
     unset($_POST['FUNCTION_NAME']);
@@ -162,7 +162,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
-    header("location:all_schedules.php");
+    header("location:all_schedules.php?view=table");
 }
 
 function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
