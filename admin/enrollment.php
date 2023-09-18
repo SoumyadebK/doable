@@ -1152,14 +1152,14 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" value="<?=($flexible_payment_data->fields['DUE_DATE'])?date('m/d/Y', strtotime($flexible_payment_data->fields['DUE_DATE'])):''?>">
+                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" value="<?=($flexible_payment_data->fields['DUE_DATE'])?date('m/d/Y', strtotime($flexible_payment_data->fields['DUE_DATE'])):''?>" required>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" value="<?=$flexible_payment_data->fields['BILLED_AMOUNT']?>">
+                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" value="<?=$flexible_payment_data->fields['BILLED_AMOUNT']?>" required>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -1173,14 +1173,14 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future">
+                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" required>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT">
+                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" required>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -1571,9 +1571,9 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 <script>
     let PK_ENROLLMENT_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
     var PK_SERVICE_CLASS = parseInt(<?=empty($PK_SERVICE_CLASS)?0:$PK_SERVICE_CLASS?>);
-    if (PK_ENROLLMENT_MASTER > 0){
+    /*if (PK_ENROLLMENT_MASTER > 0){
         selectThisService($('.PK_SERVICE_MASTER'));
-    }
+    }*/
 
     $('#PK_USER_MASTER').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
 
@@ -1664,14 +1664,14 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                             <div class="col-3">
                                                 <div class="form-group">
                                                     <div class="col-md-12">
-                                                        <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future">
+                                                        <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" required>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="col-3">
                                                 <div class="form-group">
                                                     <div class="col-md-12">
-                                                        <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT">
+                                                        <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" required>
                                                     </div>
                                                 </div>
                                             </div>

@@ -151,8 +151,8 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
 $dayNumber = date('N');
 $location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber' AND CLOSED = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].")");
 if ($location_operational_hour->RecordCount() > 0) {
-    $OPEN_TIME = $location_operational_hour->fields['OPEN_TIME'];
-    $CLOSE_TIME = $location_operational_hour->fields['CLOSE_TIME'];
+    $OPEN_TIME = $location_operational_hour->fields['OPEN_TIME'] ?? '00:00:00';
+    $CLOSE_TIME = $location_operational_hour->fields['CLOSE_TIME'] ?? '23:59:00';
 } else {
     $OPEN_TIME = '00:00:00';
     $CLOSE_TIME = '23:59:00';
@@ -218,12 +218,12 @@ if ($location_operational_hour->RecordCount() > 0) {
                                     <h5 class="card-title"><?=$title?></h5>
                                 </div>
                                 <div class="col-6">
-                                    <form class="form-material form-horizontal" action="" method="get">
+                                    <form class="form-material form-horizontal" id="searching_form">
                                         <div class="input-group">
                                             <input type="date" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <input type="date" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <input class="form-control" type="text" id="search_text" name="search_text" placeholder="Search..">
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onsubmit="showListView(1)"><i class="fa fa-search"></i></button>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px"><i class="fa fa-search"></i></button>
                                         </div>
                                     </form>
                                 </div>
@@ -612,6 +612,11 @@ if ($location_operational_hour->RecordCount() > 0) {
         });
     }
 
+    $('#searching_form').submit(function (e){
+        e.preventDefault();
+        showListView(1);
+    });
+
     function showListView(page) {
         let search_text = $('#search_text').val();
         let START_DATE = $('#START_DATE').val();
@@ -635,6 +640,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         window.scrollTo(0,0);
         $('#appointment_list').show();
         $('#calender').hide();
+        return false;
     }
 
     function editpage(id){
