@@ -6,17 +6,17 @@ $results_per_page = 100;
 $START_DATE = ' ';
 $END_DATE = ' ';
 if (isset($_GET['START_DATE']) && $_GET['START_DATE'] != '') {
-    $START_DATE = " AND DOA_APPOINTMENT_MASTER.DATE > '$_GET[START_DATE]'";
+    $START_DATE = " AND DOA_APPOINTMENT_MASTER.DATE >= '$_GET[START_DATE]'";
 }
 if (isset($_GET['END_DATE']) && $_GET['END_DATE'] != '') {
-    $END_DATE = " AND DOA_APPOINTMENT_MASTER.DATE < '$_GET[END_DATE]'";
+    $END_DATE = " AND DOA_APPOINTMENT_MASTER.DATE <= '$_GET[END_DATE]'";
 }
 
 $search_text = '';
 $search = $START_DATE.$END_DATE. ' ';
 if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
     $search_text = $_GET['search_text'];
-    echo $search = $START_DATE.$END_DATE." AND DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%".$search_text."%' OR CUSTOMER.FIRST_NAME LIKE '%".$search_text."%'";
+    $search = $START_DATE.$END_DATE." AND (DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%".$search_text."%' OR CUSTOMER.FIRST_NAME LIKE '%".$search_text."%' OR SERVICE_PROVIDER.FIRST_NAME LIKE '%".$search_text."%')";
 
 }
 
