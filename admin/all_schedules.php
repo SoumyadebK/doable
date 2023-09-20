@@ -121,7 +121,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         for ($i = 0; $i < count($_POST['PK_USER_MASTER']); $i++) {
             $GROUP_CLASS_USER_DATA['PK_GROUP_CLASS'] = $PK_GROUP_CLASS;
             $GROUP_CLASS_USER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$i];
-            db_perform('DOA_GROUP_CLASS_CUSTOMER', $GROUP_CLASS_USER_DATA, 'insert');
+            db_perform_account('DOA_GROUP_CLASS_CUSTOMER', $GROUP_CLASS_USER_DATA, 'insert');
         }
     }
     header("location:all_schedules.php?view=table");

@@ -1,7 +1,7 @@
 <?php
 require_once('../../global/config.php');
 
-$res = $db->Execute("SELECT DOA_GROUP_CLASS.PK_GROUP_CLASS, DOA_GROUP_CLASS.GROUP_CLASS_ID, DOA_GROUP_CLASS.SERVICE_PROVIDER_ID_1, DOA_GROUP_CLASS.SERVICE_PROVIDER_ID_2, DOA_GROUP_CLASS.PK_LOCATION, DOA_GROUP_CLASS.DATE, DOA_GROUP_CLASS.START_TIME, DOA_GROUP_CLASS.END_TIME, DOA_GROUP_CLASS.PK_APPOINTMENT_STATUS, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_GROUP_CLASS.ACTIVE FROM DOA_GROUP_CLASS LEFT JOIN DOA_SERVICE_MASTER ON DOA_GROUP_CLASS.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_GROUP_CLASS.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_GROUP_CLASS.PK_GROUP_CLASS = '$_POST[PK_GROUP_CLASS]'");
+$res = $db_account->Execute("SELECT DOA_GROUP_CLASS.PK_GROUP_CLASS, DOA_GROUP_CLASS.GROUP_CLASS_ID, DOA_GROUP_CLASS.SERVICE_PROVIDER_ID_1, DOA_GROUP_CLASS.SERVICE_PROVIDER_ID_2, DOA_GROUP_CLASS.PK_LOCATION, DOA_GROUP_CLASS.DATE, DOA_GROUP_CLASS.START_TIME, DOA_GROUP_CLASS.END_TIME, DOA_GROUP_CLASS.PK_APPOINTMENT_STATUS, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_GROUP_CLASS.ACTIVE FROM DOA_GROUP_CLASS LEFT JOIN DOA_SERVICE_MASTER ON DOA_GROUP_CLASS.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_GROUP_CLASS.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_GROUP_CLASS.PK_GROUP_CLASS = '$_POST[PK_GROUP_CLASS]'");
 
 if($res->RecordCount() == 0){
     header("location:all_schedule.php");
@@ -43,32 +43,32 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                 </div>
             </div>
             <div class="row">
-                <div class="col-4">
+                <!--<div class="col-4">
                     <div class="form-group">
-                        <label class="form-label">Primary <?=$service_provider_title?> <span class="text-danger">*</span></label>
+                        <label class="form-label">Primary <?php /*=$service_provider_title*/?> <span class="text-danger">*</span></label>
                         <select name="SERVICE_PROVIDER_ID_1" class="form-control SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_1" required>
-                        <option value="">Select <?=$service_provider_title?></option>
+                        <option value="">Select <?php /*=$service_provider_title*/?></option>
                         <?php
-                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS JOIN DOA_SERVICE_PROVIDER_SERVICES ON DOA_USERS.PK_USER = DOA_SERVICE_PROVIDER_SERVICES.PK_USER WHERE DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE ".$PK_SERVICE_MASTER." OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER."'");
-                        while (!$row->EOF) { ?>
-                            <option value="<?=$row->fields['PK_USER'];?>" <?=($SERVICE_PROVIDER_ID_1==$row->fields['PK_USER'])?'selected':''?>><?=$row->fields['NAME']?></option>
-                        <?php $row->MoveNext(); } ?>
+/*                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS JOIN DOA_SERVICE_PROVIDER_SERVICES ON DOA_USERS.PK_USER = DOA_SERVICE_PROVIDER_SERVICES.PK_USER WHERE DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE ".$PK_SERVICE_MASTER." OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER."'");
+                        while (!$row->EOF) { */?>
+                            <option value="<?php /*=$row->fields['PK_USER'];*/?>" <?php /*=($SERVICE_PROVIDER_ID_1==$row->fields['PK_USER'])?'selected':''*/?>><?php /*=$row->fields['NAME']*/?></option>
+                        <?php /*$row->MoveNext(); } */?>
                         </select>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="form-group">
-                        <label class="form-label">Secondary <?=$service_provider_title?></label>
+                        <label class="form-label">Secondary <?php /*=$service_provider_title*/?></label>
                         <select name="SERVICE_PROVIDER_ID_2" class="form-control SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_2">
-                        <option value="">Select <?=$service_provider_title?></option>
+                        <option value="">Select <?php /*=$service_provider_title*/?></option>
                         <?php
-                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS JOIN DOA_SERVICE_PROVIDER_SERVICES ON DOA_USERS.PK_USER = DOA_SERVICE_PROVIDER_SERVICES.PK_USER WHERE DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE ".$PK_SERVICE_MASTER." OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER."'");
-                        while (!$row->EOF) { ?>
-                            <option value="<?=$row->fields['PK_USER'];?>" <?=($SERVICE_PROVIDER_ID_2==$row->fields['PK_USER'])?'selected':''?>><?=$row->fields['NAME']?></option>
-                        <?php $row->MoveNext(); } ?>
+/*                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS JOIN DOA_SERVICE_PROVIDER_SERVICES ON DOA_USERS.PK_USER = DOA_SERVICE_PROVIDER_SERVICES.PK_USER WHERE DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE ".$PK_SERVICE_MASTER." OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER."'");
+                        while (!$row->EOF) { */?>
+                            <option value="<?php /*=$row->fields['PK_USER'];*/?>" <?php /*=($SERVICE_PROVIDER_ID_2==$row->fields['PK_USER'])?'selected':''*/?>><?php /*=$row->fields['NAME']*/?></option>
+                        <?php /*$row->MoveNext(); } */?>
                         </select>
                     </div>
-                </div>
+                </div>-->
                 <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">Location</label>
@@ -110,13 +110,13 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                         <select class="multi_sumo_select" name="PK_USER_MASTER[]" multiple>
                             <?php
                             $selected_customer = [];
-                            $selected_customer_row = $db->Execute("SELECT DOA_GROUP_CLASS_CUSTOMER.PK_USER_MASTER FROM DOA_GROUP_CLASS_CUSTOMER LEFT JOIN DOA_USER_MASTER ON DOA_GROUP_CLASS_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_GROUP_CLASS_CUSTOMER.PK_GROUP_CLASS = '$PK_GROUP_CLASS'");
+                            $selected_customer_row = $db_account->Execute("SELECT DOA_GROUP_CLASS_CUSTOMER.PK_USER_MASTER FROM DOA_GROUP_CLASS_CUSTOMER LEFT JOIN DOA_USER_MASTER ON DOA_GROUP_CLASS_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_GROUP_CLASS_CUSTOMER.PK_GROUP_CLASS = '$PK_GROUP_CLASS'");
                             while (!$selected_customer_row->EOF) {
                                 $selected_customer[] = $selected_customer_row->fields['PK_USER_MASTER'];
                                 $selected_customer_row->MoveNext();
                             }
                             //$row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                             while (!$row->EOF) { ?>
                                 <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" <?=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""?>><?=$row->fields['NAME']?></option>
                             <?php $row->MoveNext(); } ?>
