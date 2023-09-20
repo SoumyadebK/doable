@@ -39,7 +39,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointme
         $_POST['ACTIVE'] = 1;
         $_POST['CREATED_BY']  = $_SESSION['PK_USER'];
         $_POST['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform_account('DOA_APPOINTMENT_MASTER', $_POST, 'insert');
+        db_perform('DOA_APPOINTMENT_MASTER', $_POST, 'insert');
     }else{
         //$_POST['ACTIVE'] = $_POST['ACTIVE'];
         if($_FILES['IMAGE']['name'] != ''){
@@ -148,15 +148,17 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
     }
 }
 
-$dayNumber = date('N');
-$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber' AND CLOSED = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].")");
+/*$location_operational_hour = $db->Execute("SELECT $account_database.DOA_OPERATIONAL_HOUR.OPEN_TIME, $account_database.DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM $account_database.DOA_OPERATIONAL_HOUR LEFT JOIN $master_database.DOA_LOCATION ON $account_database.DOA_OPERATIONAL_HOUR.PK_LOCATION = $master_database.DOA_LOCATION.PK_LOCATION WHERE $master_database.DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND $account_database.DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY $master_database.DOA_LOCATION.PK_LOCATION LIMIT 1");
 if ($location_operational_hour->RecordCount() > 0) {
-    $OPEN_TIME = $location_operational_hour->fields['OPEN_TIME'] ?? '00:00:00';
-    $CLOSE_TIME = $location_operational_hour->fields['CLOSE_TIME'] ?? '23:59:00';
+    $OPEN_TIME = $location_operational_hour->fields['OPEN_TIME'];
+    $CLOSE_TIME = $location_operational_hour->fields['CLOSE_TIME'];
 } else {
     $OPEN_TIME = '00:00:00';
     $CLOSE_TIME = '23:59:00';
-}
+}*/
+
+$OPEN_TIME = '00:0:00';
+$CLOSE_TIME = '23:59:00';
 
 ?>
 
@@ -190,6 +192,9 @@ if ($location_operational_hour->RecordCount() > 0) {
     .SumoSelect {
         width: 100%;
     }
+    #add_buttons {
+        z-index: 500;
+    }
 </style>
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 
@@ -200,13 +205,13 @@ if ($location_operational_hour->RecordCount() > 0) {
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid body_content">
-            <div class="row page-titles navbar-fixed-top">
-                    <div class="d-flex justify-content-center align-items-center">
-                        <button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=group_class'"><i class="fa fa-plus-circle"></i> Group Class</button>
-                        <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=int_app'"><i class="fa fa-plus-circle"></i> INT APP</button>
-                        <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=appointment'"><i class="fa fa-plus-circle"></i> Appointment</button>
-                        <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=standing'"><i class="fa fa-plus-circle"></i> Standing</button>
-                    </div>
+            <div class="row" >
+                <div id="add_buttons" class="d-flex justify-content-center align-items-center" style="position: fixed; bottom: 0">
+                    <button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=group_class'"><i class="fa fa-plus-circle"></i> Group Class</button>
+                    <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=int_app'"><i class="fa fa-plus-circle"></i> INT APP</button>
+                    <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=appointment'"><i class="fa fa-plus-circle"></i> Appointment</button>
+                    <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=standing'"><i class="fa fa-plus-circle"></i> Standing</button>
+                </div>
             </div>
 
             <div class="row">
@@ -218,12 +223,12 @@ if ($location_operational_hour->RecordCount() > 0) {
                                     <h5 class="card-title"><?=$title?></h5>
                                 </div>
                                 <div class="col-6">
-                                    <form class="form-material form-horizontal" id="searching_form">
+                                    <form class="form-material form-horizontal" action="" method="get">
                                         <div class="input-group">
                                             <input type="date" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <input type="date" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <input class="form-control" type="text" id="search_text" name="search_text" placeholder="Search..">
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px"><i class="fa fa-search"></i></button>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onsubmit="showListView(1)"><i class="fa fa-search"></i></button>
                                         </div>
                                     </form>
                                 </div>
@@ -275,6 +280,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         </div>
     </div>
 </div>
+
 
 <?php require_once('../includes/footer.php');?>
 
@@ -612,11 +618,6 @@ if ($location_operational_hour->RecordCount() > 0) {
         });
     }
 
-    $('#searching_form').submit(function (e){
-        e.preventDefault();
-        showListView(1);
-    });
-
     function showListView(page) {
         let search_text = $('#search_text').val();
         let START_DATE = $('#START_DATE').val();
@@ -640,7 +641,6 @@ if ($location_operational_hour->RecordCount() > 0) {
         window.scrollTo(0,0);
         $('#appointment_list').show();
         $('#calender').hide();
-        return false;
     }
 
     function editpage(id){
