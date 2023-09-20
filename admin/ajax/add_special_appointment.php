@@ -37,6 +37,21 @@ require_once('../../global/config.php');
             </div>
 
             <div class="row">
+                <div class="col-6">
+                    <label class="form-label"><?=$service_provider_title?></label>
+                    <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
+                        <select class="multi_sumo_select" name="PK_USER[]" multiple>
+                            <?php
+                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES IN(5) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                            while (!$row->EOF) { ?>
+                                <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
+                                <?php $row->MoveNext(); } ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-12">
                     <div class="form-group">
                         <label class="form-label">Description</label>
@@ -45,20 +60,6 @@ require_once('../../global/config.php');
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-6">
-                    <label class="form-label"><?=$service_provider_title?></label>
-                    <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
-                        <select class="multi_sumo_select" name="PK_USER[]" multiple>
-                            <?php
-                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                            while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
-                            <?php $row->MoveNext(); } ?>
-                        </select>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
