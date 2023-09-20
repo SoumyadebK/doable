@@ -118,6 +118,15 @@ if(empty($_GET['id'])){
     $ACTIVE = $res->fields['ACTIVE'];
 }
 
+$location_operational_hour = $db->Execute("SELECT $account_database.DOA_OPERATIONAL_HOUR.OPEN_TIME, $account_database.DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM $account_database.DOA_OPERATIONAL_HOUR LEFT JOIN $master_database.DOA_LOCATION ON $account_database.DOA_OPERATIONAL_HOUR.PK_LOCATION = $master_database.DOA_LOCATION.PK_LOCATION WHERE $master_database.DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND $account_database.DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY $master_database.DOA_LOCATION.PK_LOCATION LIMIT 1");
+if ($location_operational_hour->RecordCount() > 0) {
+    $OPEN_TIME = $location_operational_hour->fields['OPEN_TIME'];
+    $CLOSE_TIME = $location_operational_hour->fields['CLOSE_TIME'];
+} else {
+    $OPEN_TIME = '00:00:00';
+    $CLOSE_TIME = '23:59:00';
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -379,9 +388,13 @@ if(empty($_GET['id'])){
     /*$('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
     });*/
+    let open_time = '<?=$OPEN_TIME?>';
+    let close_time = '<?=$CLOSE_TIME?>';
 
     $('.time-picker').timepicker({
         timeFormat: 'hh:mm p',
+        minTime: open_time,
+        maxTime: close_time
     });
 
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Location', selectAll: true});
