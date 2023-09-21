@@ -248,15 +248,9 @@ $CLOSE_TIME = '23:59:00';
                 <div id="edit_appointment_half" class="col-6" style="display: none;">
                     <div class="card">
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-8">
-                                    <h5 class="card-title">Edit Appointment</h5>
-                                </div>
-                                <div class="col-4">
-                                    <a href="javascript:;" onclick="closeEditAppointment()" style="float: right;">Close</a>
-                                </div>
-                            </div>
+                            <a href="javascript:;" onclick="closeEditAppointment()" style="float: right;">&times;</a>
                             <div class="card-body" id="appointment_details_div">
+
                             </div>
                         </div>
                     </div>
