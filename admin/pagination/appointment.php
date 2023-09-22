@@ -41,16 +41,16 @@ $page_first_result = ($page-1) * $results_per_page;
 <table id="myTable" class="table table-striped border" data-page-length='50'>
     <thead>
     <tr>
-        <th>No</th>
-        <th>Customer</th>
-        <th>Enrollment ID</th>
-        <th><?=$service_provider_title?></th>
-        <th>Day</th>
-        <th>Date</th>
-        <th>Time</th>
-        <th>Paid</th>
-        <th style="text-align: center;">Completed</th>
-        <th>Actions</th>
+        <th data-type="number">No</th>
+        <th data-type="string">Customer</th>
+        <th data-type="string">Enrollment ID</th>
+        <th data-type="string"><?=$service_provider_title?></th>
+        <th data-type="string">Day</th>
+        <th data-type="datetime">Date</th>
+        <th data-type="string">Time</th>
+        <th data-type="string">Paid</th>
+        <th data-type="string" style="text-align: center;">Completed</th>
+        <th data-type="string">Actions</th>
     </tr>
     </thead>
 
@@ -118,3 +118,69 @@ $page_first_result = ($page-1) * $results_per_page;
         </ul>
     </div>
 </div>
+
+<script>
+    $(function() {
+        const ths = $("th");
+        let sortOrder = 1;
+
+        ths.on("click", function() {
+            const rows = sortRows(this);
+            rebuildTbody(rows);
+            updateClassName(this);
+            sortOrder *= -1; //反転
+        })
+
+        function sortRows(th) {
+            const rows = $.makeArray($('tbody > tr'));
+            const col = th.cellIndex;
+            const type = th.dataset.type;
+            rows.sort(function(a, b) {
+                return compare(a, b, col, type) * sortOrder;
+            });
+            return rows;
+        }
+
+        function compare(a, b, col, type) {
+            let _a = a.children[col].textContent;
+            let _b = b.children[col].textContent;
+            if (type === "number") {
+                _a *= 1;
+                _b *= 1;
+            } else if (type === "string") {
+                //全て小文字に揃えている。toLowerCase()
+                _a = _a.toLowerCase();
+                _b = _b.toLowerCase();
+            }
+
+            if (_a < _b) {
+                return -1;
+            }
+            if (_a > _b) {
+                return 1;
+            }
+            return 0;
+        }
+
+        function rebuildTbody(rows) {
+            const tbody = $("tbody");
+            while (tbody.firstChild) {
+                tbody.remove(tbody.firstChild);
+            }
+
+            let j;
+            for (j=0; j<rows.length; j++) {
+                tbody.append(rows[j]);
+            }
+        }
+
+        function updateClassName(th) {
+            let k;
+            for (k=0; k<ths.length; k++) {
+                ths[k].className = "";
+            }
+            th.className = sortOrder === 1 ? "asc" : "desc";
+        }
+
+    });
+</script>
