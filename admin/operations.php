@@ -120,10 +120,10 @@ function currentWeekRange($date): array
             </div>
             <form class="form-horizontal" action="" method="get">
             <div class="row">
-                <div class="col-1">
+                <div class="col-2">
                     <div class="form-group">
                         <select class="form-control" name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID">
-                            <option value=""><?=$service_provider_title?></option>
+                            <option value="">Select <?=$service_provider_title?></option>
                             <?php
                             $selected_service_provider = '';
                             $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
@@ -145,7 +145,7 @@ function currentWeekRange($date): array
                     <button type="button" id="earlier" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"> Earlier (<?=$earlier_count->fields['EARLIER_COUNT']?>)</button>
                     </div>
                 </div>
-                <div class="col-1">
+                <div class="col-2">
                     <div class="form-group">
                         <select class="form-control" name="DATE_SELECTION" id="DATE_SELECTION" onchange="selectDate(this)">
                             <option value="">Select Date</option>
@@ -162,12 +162,12 @@ function currentWeekRange($date): array
                         <input type="text" id="SPECIFIC_DATE" name="SPECIFIC_DATE" placeholder="Specific Date" class="form-control datepicker-past" value="<?=($SPECIFIC_DATE == '' || $SPECIFIC_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($SPECIFIC_DATE))?>">
                     </div>
                 </div>
-                <div class="col-2 from_date" style="display: none">
+                <div class="col-1 from_date" style="display: none">
                     <div class="form-group">
                         <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-past" value="<?=($FROM_DATE == '' || $FROM_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($FROM_DATE))?>">
                     </div>
                 </div>
-                <div class="col-2 end_date" style="display: none">
+                <div class="col-1 end_date" style="display: none">
                     <div class="form-group">
                         <input type="text" id="END_DATE" name="END_DATE" placeholder="To Date" class="form-control datepicker-normal" value="<?=($END_DATE == '' || $END_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($END_DATE))?>">
                     </div>
