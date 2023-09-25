@@ -1,4 +1,4 @@
-    <?php
+<?php
 require_once('../global/config.php');
 $title = "Appointments";
 
@@ -120,10 +120,10 @@ function currentWeekRange($date): array
             </div>
             <form class="form-horizontal" action="" method="get">
             <div class="row">
-                <div class="col-3">
+                <div class="col-1">
                     <div class="form-group">
                         <select class="form-control" name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID">
-                            <option value="">Select <?=$service_provider_title?></option>
+                            <option value=""><?=$service_provider_title?></option>
                             <?php
                             $selected_service_provider = '';
                             $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
@@ -133,7 +133,19 @@ function currentWeekRange($date): array
                         </select>
                     </div>
                 </div>
-                <div class="col-2">
+                <div class="col-3">
+                    <div class="d-flex justify-content-center align-items-center"">
+                    <?php $today_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS TODAY_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE"); ?>
+                    <button type="button" id="today" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"> Today (<?=$today_count->fields['TODAY_COUNT']?>)</button>
+
+                    <?php $yesterday_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS YESTERDAY_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE-1"); ?>
+                    <button type="button" id="yesterday" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"> Yesterday (<?=$yesterday_count->fields['YESTERDAY_COUNT']?>)</button>
+
+                    <?php $earlier_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS EARLIER_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE+1"); ?>
+                    <button type="button" id="earlier" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"> Earlier (<?=$earlier_count->fields['EARLIER_COUNT']?>)</button>
+                    </div>
+                </div>
+                <div class="col-1">
                     <div class="form-group">
                         <select class="form-control" name="DATE_SELECTION" id="DATE_SELECTION" onchange="selectDate(this)">
                             <option value="">Select Date</option>

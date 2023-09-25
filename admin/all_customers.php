@@ -94,7 +94,7 @@ $page_first_result = ($page-1) * $results_per_page;
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-striped border">
+                                <table id="myTable1" class="table table-striped border">
                                     <thead>
                                     <tr>
                                         <th data-type="number">No</th>
@@ -102,8 +102,8 @@ $page_first_result = ($page-1) * $results_per_page;
                                         <th data-type="string" style="width:10%;">Customer ID</th>
                                         <th data-type="string" style="width:20%;">Email Id</th>
                                         <th data-type="string" style="width:12%;">Phone</th>
-                                        <th data-type="decimal" style="width:10%;">Total Paid</th>
-                                        <th data-type="decimal" style="width:10%;">Balance</th>
+                                        <th data-type="numeric-comma" style="width:10%;">Total Paid</th>
+                                        <th data-type="numeric-comma" style="width:10%;">Balance</th>
                                         <th style="width:10%;">Actions</th>
                                     </tr>
                                     </thead>
@@ -391,6 +391,34 @@ $page_first_result = ($page-1) * $results_per_page;
 
 </script>
 //end sorting
+
+<script>
+        $('#myTable1').dataTable( {
+               columnDefs: [
+                     { type: 'numeric-comma', targets: 0 }
+                   ]
+        } );
+
+    $.extend( $.fn.dataTableExt.oSort, {
+        "numeric-comma-pre": function ( a ) {
+            var x = (a === "-") ? 0 : a.replace( /,/g, "" );
+            return parseFloat( x );
+        },
+
+        "numeric-comma-asc": function ( a, b ) {
+            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+        },
+
+        "numeric-comma-desc": function ( a, b ) {
+            return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+        }
+    } );
+
+    $('#test').DataTable({
+        columnDefs: [
+            { targets: 4, type: 'numeric-comma' }
+        ]
+    });
 
 </body>
 </html>
