@@ -257,10 +257,10 @@ $selected_user_id = $customer_data->fields['PK_USER'];
             <li> <a class="nav-link active" id="edit_appointment_tab_link" data-bs-toggle="tab" href="#edit_appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Edit Appointment</span></a> </li>
         <?php } ?>
         <?php if ($_GET['tab'] == 'profile') { ?>
-            <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+            <li> <a class="nav-link" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
         <?php } ?>
         <?php if ($_GET['tab'] == 'appointment_view') { ?>
-            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment_view" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
+            <li> <a class="nav-link" id="appointment_view_tab_link" data-bs-toggle="tab" href="#appointment_view" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
         <?php } ?>
         <?php if ($_GET['tab'] == 'billing') { ?>
             <li> <a class="nav-link" id="billing_tab_link" data-bs-toggle="tab" href="#billing" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
@@ -272,14 +272,14 @@ $selected_user_id = $customer_data->fields['PK_USER'];
 <?php } else { ?>
     <ul class="nav nav-tabs" role="tablist">
         <li> <a class="nav-link active" data-bs-toggle="tab" href="#edit_appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Edit Appointment</span></a> </li>
-        <li> <a class="nav-link active" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+        <li> <a class="nav-link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
         <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Enrollments</span></a> </li>
-        <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment_view" onclick="showListView(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
-        <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+        <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment_view" onclick="showAppointmentListView(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
+        <li> <a class="nav-link" data-bs-toggle="tab" href="#comments" id="comment_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
     </ul>
 <?php } ?>
 
@@ -2810,12 +2810,13 @@ $selected_user_id = $customer_data->fields['PK_USER'];
             cache: false,
             success: function (result) {
                 $('#enrollment_list').html(result)
+
             }
         });
         window.scrollTo(0,0);
     }
 
-    function showListView(page) {
+    function showAppointmentListView(page) {
         let PK_USER_MASTER=$('.PK_USER_MASTER').val();
         $.ajax({
             url: "pagination/appointment.php",

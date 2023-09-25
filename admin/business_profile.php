@@ -9,22 +9,19 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if(!empty($_POST)){
     if ($_POST['FUNCTION_NAME'] == 'saveProfileData') {
-        $EMAIL_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-        $EMAIL_DATA['HOST'] = $_POST['SMTP_HOST'];
-        $EMAIL_DATA['PORT'] = $_POST['SMTP_PORT'];
-        $EMAIL_DATA['USER_NAME'] = $_POST['SMTP_USERNAME'];
-        $EMAIL_DATA['PASSWORD'] = $_POST['SMTP_PASSWORD'];
-        $EMAIL_DATA['ACTIVE'] = 1;
-        $EMAIL_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $EMAIL_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        $EMAIL_DATA['EDITED_BY'] = 0;
-        $EMAIL_DATA['EDITED_ON'] = "0000-00-00 00:00:00";
-        unset($_POST['FUNCTION_NAME']);
-        unset($_POST['SMTP_HOST']);
-        unset($_POST['SMTP_PORT']);
-        unset($_POST['SMTP_USERNAME']);
-        unset($_POST['SMTP_PASSWORD']);
-        $ACCOUNT_DATA = $_POST;
+        $ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $ACCOUNT_DATA['PK_BUSINESS_TYPE'] = $_POST['PK_BUSINESS_TYPE'];
+        $ACCOUNT_DATA['BUSINESS_NAME'] = $_POST['BUSINESS_NAME'];
+        $ACCOUNT_DATA['ADDRESS'] = $_POST['ADDRESS'];
+        $ACCOUNT_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
+        $ACCOUNT_DATA['CITY'] = $_POST['CITY'];
+        $ACCOUNT_DATA['PK_STATES'] = $_POST['PK_STATES'];
+        $ACCOUNT_DATA['ZIP'] = $_POST['ZIP'];
+        $ACCOUNT_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
+        $ACCOUNT_DATA['PHONE'] = $_POST['PHONE'];
+        $ACCOUNT_DATA['FAX'] = $_POST['FAX'];
+        $ACCOUNT_DATA['EMAIL'] = $_POST['EMAIL'];
+        $ACCOUNT_DATA['WEBSITE'] = $_POST['WEBSITE'];
         if ($_FILES['BUSINESS_LOGO']['name'] != '') {
             $USER_DATA = [];
             $extn = explode(".", $_FILES['BUSINESS_LOGO']['name']);
@@ -39,12 +36,58 @@ if(!empty($_POST)){
                 $ACCOUNT_DATA['BUSINESS_LOGO'] = $image_path;
             }
         }
+        $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        if ($account_data->RecordCount() == 0) {
+            db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'insert');
+        } else {
+            db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
+        }
+    }
 
-        $ACCOUNT_DATA['APPOINTMENT_REMINDER'] = $_POST['APPOINTMENT_REMINDER'];
-        $ACCOUNT_DATA['HOUR'] = $_POST['HOUR'];
-        $ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
+    if ($_POST['FUNCTION_NAME'] == 'saveSettingsData') {
+        $SETTINGS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $SETTINGS_DATA['PK_TIMEZONE'] = $_POST['PK_TIMEZONE'];
+        $SETTINGS_DATA['SERVICE_PROVIDER_TITLE'] = $_POST['SERVICE_PROVIDER_TITLE'];
+        $SETTINGS_DATA['PK_CURRENCY'] = $_POST['PK_CURRENCY'];
+        $SETTINGS_DATA['ENROLLMENT_ID_CHAR'] = $_POST['ENROLLMENT_ID_CHAR'];
+        $SETTINGS_DATA['ENROLLMENT_ID_NUM'] = $_POST['ENROLLMENT_ID_NUM'];
+        $SETTINGS_DATA['PAYMENT_GATEWAY_TYPE'] = $_POST['PAYMENT_GATEWAY_TYPE'];
+        $SETTINGS_DATA['SECRET_KEY'] = $_POST['SECRET_KEY'];
+        $SETTINGS_DATA['PUBLISHABLE_KEY'] = $_POST['PUBLISHABLE_KEY'];
+        $SETTINGS_DATA['ACCESS_TOKEN'] = $_POST['ACCESS_TOKEN'];
+        $SETTINGS_DATA['APP_ID'] = $_POST['APP_ID'];
+        $SETTINGS_DATA['LOCATION_ID'] = $_POST['LOCATION_ID'];
+        $SETTINGS_DATA['AUTHORIZE_CLIENT_KEY'] = $_POST['AUTHORIZE_CLIENT_KEY'];
+        $SETTINGS_DATA['TRANSACTION_KEY'] = $_POST['TRANSACTION_KEY'];
+        $SETTINGS_DATA['LOGIN_ID'] = $_POST['LOGIN_ID'];
+        $SETTINGS_DATA['APPOINTMENT_REMINDER'] = $_POST['APPOINTMENT_REMINDER'];
+        $SETTINGS_DATA['HOUR'] = $_POST['HOUR'];
+        $SETTINGS_DATA['ACTIVE'] = 1;
+        $SETTINGS_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $SETTINGS_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        $SETTINGS_DATA['EDITED_BY'] = 0;
+        $SETTINGS_DATA['EDITED_ON'] = "0000-00-00 00:00:00";
+        $settings = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        if ($settings->RecordCount() == 0) {
+            db_perform('DOA_ACCOUNT_MASTER', $SETTINGS_DATA, 'insert');
+        } else {
+            db_perform('DOA_ACCOUNT_MASTER', $SETTINGS_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
+        }
+
+        $EMAIL_DATA['HOST'] = $_POST['SMTP_HOST'];
+        $EMAIL_DATA['PORT'] = $_POST['SMTP_PORT'];
+        $EMAIL_DATA['USER_NAME'] = $_POST['SMTP_USERNAME'];
+        $EMAIL_DATA['PASSWORD'] = $_POST['SMTP_PASSWORD'];
+        $EMAIL_DATA['ACTIVE'] = 1;
+        $EMAIL_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $EMAIL_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        $EMAIL_DATA['EDITED_BY'] = 0;
+        $EMAIL_DATA['EDITED_ON'] = "0000-00-00 00:00:00";
+//        unset($_POST['FUNCTION_NAME']);
+//        unset($_POST['SMTP_HOST']);
+//        unset($_POST['SMTP_PORT']);
+//        unset($_POST['SMTP_USERNAME']);
+//        unset($_POST['SMTP_PASSWORD']);
 
         $email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
         if ($email->RecordCount() == 0) {
@@ -52,7 +95,6 @@ if(!empty($_POST)){
         } else {
             db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
         }
-
     }
 
     if ($_POST['FUNCTION_NAME'] == 'saveHolidayData') {
@@ -156,6 +198,7 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                             <!-- Nav tabs -->
                             <ul class="nav nav-tabs" role="tablist">
                                 <li class="active"> <a class="nav-link active" data-bs-toggle="tab" id="profile_link" href="#profile" role="tab"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+                                <li> <a class="nav-link" data-bs-toggle="tab" id="settings_link" href="#settings" role="tab"><span class="hidden-sm-up"><i class="ti-settings"></i></span> <span class="hidden-xs-down">Settings</span></a> </li>
                                 <li> <a class="nav-link" data-bs-toggle="tab" id="holiday_list_link" href="#holiday_list" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Holiday List</span></a> </li>
                             </ul>
 
@@ -349,7 +392,19 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                     </div>
                                                     <?php if($BUSINESS_LOGO!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $BUSINESS_LOGO;?>" data-fancybox-group="gallery"><img src = "<?php echo $BUSINESS_LOGO;?>" style="width:auto; height:120px" /></a></div><?php } ?>
                                                 </div>
+                                            </div>
 
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
+                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="tab-pane" id="settings" role="tabpanel">
+                                    <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                        <input type="hidden" name="FUNCTION_NAME" value="saveSettingsData">
+                                        <div class="p-20">
+                                            <div class="row" style="margin-bottom: 15px;">
                                                 <div class="col-6">
                                                     <div class="form-group">
                                                         <label class="col-md-12">Timezone<span class="text-danger">*</span></label>
@@ -415,63 +470,63 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
 
 
                                             <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
-                                                        <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
-                                                        <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
-                                                        <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'checked':''?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
+                                                            <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
+                                                            <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
+                                                            <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'checked':''?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <div class="row payment_gateway" id="stripe" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'':'none'?>;">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Secret Key</label>
-                                                        <input type="text" class="form-control" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label class="form-label">Publishable Key</label>
-                                                        <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?=$PUBLISHABLE_KEY?>">
+                                                <div class="row payment_gateway" id="stripe" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'':'none'?>;">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Secret Key</label>
+                                                            <input type="text" class="form-control" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label class="form-label">Publishable Key</label>
+                                                            <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?=$PUBLISHABLE_KEY?>">
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <div class="row payment_gateway" id="square" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Square')?'':'none'?>">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Application ID</label>
-                                                        <input type="text" class="form-control" name="APP_ID" value="<?=$SQUARE_APP_ID?>">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label class="form-label">Location ID</label>
-                                                        <input type="text" class="form-control" name="LOCATION_ID" value="<?=$SQUARE_LOCATION_ID?>">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label class="form-label">Access Token</label>
-                                                        <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?=$ACCESS_TOKEN?>">
+                                                <div class="row payment_gateway" id="square" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Square')?'':'none'?>">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Application ID</label>
+                                                            <input type="text" class="form-control" name="APP_ID" value="<?=$SQUARE_APP_ID?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label class="form-label">Location ID</label>
+                                                            <input type="text" class="form-control" name="LOCATION_ID" value="<?=$SQUARE_LOCATION_ID?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label class="form-label">Access Token</label>
+                                                            <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?=$ACCESS_TOKEN?>">
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <div class="row payment_gateway" id="authorized" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'':'none'?>">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Login ID</label>
-                                                        <input type="text" class="form-control" name="LOGIN_ID" value="<?=$LOGIN_ID?>">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label class="form-label">Transaction Key</label>
-                                                        <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?=$TRANSACTION_KEY?>">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label class="form-label">Authorize Client Key</label>
-                                                        <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?=$AUTHORIZE_CLIENT_KEY?>">
+                                                <div class="row payment_gateway" id="authorized" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'':'none'?>">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Login ID</label>
+                                                            <input type="text" class="form-control" name="LOGIN_ID" value="<?=$LOGIN_ID?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label class="form-label">Transaction Key</label>
+                                                            <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?=$TRANSACTION_KEY?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label class="form-label">Authorize Client Key</label>
+                                                            <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?=$AUTHORIZE_CLIENT_KEY?>">
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
                                             <?php } ?>
 
                                             <div class="row">
@@ -504,7 +559,7 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
 
                                             <div class="row smtp" id="smtp" >
                                                 <div class="form-group">
-                                                <label class="form-label">SMTP Setup</label>
+                                                    <label class="form-label">SMTP Setup</label>
                                                 </div>
                                                 <div class="col-3">
                                                     <div class="form-group">

@@ -102,8 +102,8 @@ $page_first_result = ($page-1) * $results_per_page;
                                         <th data-type="string" style="width:10%;">Customer ID</th>
                                         <th data-type="string" style="width:20%;">Email Id</th>
                                         <th data-type="string" style="width:12%;">Phone</th>
-                                        <th data-type="string" style="width:10%;">Total Paid</th>
-                                        <th data-type="string" style="width:10%;">Balance</th>
+                                        <th data-type="decimal" style="width:10%;">Total Paid</th>
+                                        <th data-type="decimal" style="width:10%;">Balance</th>
                                         <th style="width:10%;">Actions</th>
                                     </tr>
                                     </thead>
