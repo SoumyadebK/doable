@@ -97,20 +97,20 @@ $page_first_result = ($page-1) * $results_per_page;
                                 <table class="table table-striped border">
                                     <thead>
                                     <tr>
-                                        <th>No</th>
-                                        <th style="width:20%; font-weight: bold;">Name</th>
-                                        <th style="width:10%;">Customer ID</th>
-                                        <th style="width:20%;">Email Id</th>
-                                        <th style="width:12%;">Phone</th>
-                                        <th style="width:10%;">Total Paid</th>
-                                        <th style="width:10%;">Balance</th>
+                                        <th data-type="number">No</th>
+                                        <th data-type="string" style="width:20%; font-weight: bold;">Name</th>
+                                        <th data-type="string" style="width:10%;">Customer ID</th>
+                                        <th data-type="string" style="width:20%;">Email Id</th>
+                                        <th data-type="string" style="width:12%;">Phone</th>
+                                        <th data-type="string" style="width:10%;">Total Paid</th>
+                                        <th data-type="string" style="width:10%;">Balance</th>
                                         <th style="width:10%;">Actions</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     <?php
                                     $i = $page_first_result+1;
-                                    $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = '$status' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search." ORDER BY DOA_USERS.FIRST_NAME LIMIT " . $page_first_result . ',' . $results_per_page );
+                                    $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER JOIN $account_database.DOA_APPOINTMENT_MASTER ON $account_database.DOA_APPOINTMENT_MASTER.CUSTOMER_ID=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = '$status' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search." ORDER BY $account_database.DOA_APPOINTMENT_MASTER.CREATED_ON LIMIT " . $page_first_result . ',' . $results_per_page );
                                     while (!$row->EOF) {
                                         $total_paid_data = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER=".$row->fields['PK_USER_MASTER']);
                                         $total_paid = ($total_paid_data->RecordCount() > 0) ? $total_paid_data->fields['TOTAL_PAID'] : 0.00;
@@ -207,6 +207,190 @@ $page_first_result = ($page-1) * $results_per_page;
 
     }
 </script>
+
+
+// start sorting
+<script>
+    $(function() {
+        const ths = $("th");
+        let sortOrder = 1;
+
+        ths.on("click", function() {
+            const rows = sortRows(this);
+            rebuildTbody(rows);
+            updateClassName(this);
+            sortOrder *= -1; //反転
+        })
+
+        function sortRows(th) {
+            const rows = $.makeArray($('tbody > tr'));
+            const col = th.cellIndex;
+            const type = th.dataset.type;
+            rows.sort(function(a, b) {
+                return compare(a, b, col, type) * sortOrder;
+            });
+            return rows;
+        }
+
+        function compare(a, b, col, type) {
+            let _a = a.children[col].textContent;
+            let _b = b.children[col].textContent;
+            if (type === "number") {
+                _a *= 1;
+                _b *= 1;
+            } else if (type === "string") {
+                //全て小文字に揃えている。toLowerCase()
+                _a = _a.toLowerCase();
+                _b = _b.toLowerCase();
+            }
+
+            if (_a < _b) {
+                return -1;
+            }
+            if (_a > _b) {
+                return 1;
+            }
+            return 0;
+        }
+
+        function rebuildTbody(rows) {
+            const tbody = $("tbody");
+            while (tbody.firstChild) {
+                tbody.remove(tbody.firstChild);
+            }
+
+            let j;
+            for (j=0; j<rows.length; j++) {
+                tbody.append(rows[j]);
+            }
+        }
+
+        function updateClassName(th) {
+            let k;
+            for (k=0; k<ths.length; k++) {
+                ths[k].className = "";
+            }
+            th.className = sortOrder === 1 ? "asc" : "desc";
+        }
+
+    });
+</script>
+<script>
+    function Checktrim(str) {
+        str = str.replace(/^\s+/, '');
+        for (var i = str.length - 1; i >= 0; i--) {
+            if (/\S/.test(str.charAt(i))) {
+                str = str.substring(0, i + 1);
+                break;
+            }
+        }
+        return str;
+    }
+    function stringMonth(month) {
+
+        if(month=="jan" || month=="Jan"){month=01;}
+        else if(month=="feb" || month=="Feb"){month=02;}
+        else if(month=="mar" || month=="Mar"){month=03;}
+        else if(month=="apr" || month=="Apr"){month=04;}
+        else if(month=="may" || month=="May"){month=05;}
+        else if(month=="jun" || month=="Jun"){month=06;}
+        else if(month=="jul" || month=="Jul"){month=07;}
+        else if(month=="aug" || month=="Aug"){month=08;}
+        else if(month=="sep" || month=="Sep"){month=09;}
+        else if(month=="oct" || month=="Oct"){month=10;}
+        else if(month=="nov" || month=="Nov"){month=11;}
+        else{month=12;}
+
+
+        return month;
+    }
+
+    function dateHeight(dateStr){
+
+
+        if (Checktrim(dateStr) != ''  && Checktrim(dateStr) != '(none)' && (Checktrim(dateStr)).indexOf(',') > -1 ) {
+
+            var frDateParts = Checktrim(dateStr).split(',');
+
+            var day = frDateParts[0].substring(3) * 60 * 24;
+            var strMonth=frDateParts[0].substring(0,3);
+            var month = stringMonth(strMonth) * 60 * 24 * 31;
+            var year = (frDateParts[1].trim()).substring(0,4) * 60 * 24 * 366;
+
+            var x = day+month+year;
+
+
+        } else {
+            var x =0; //highest value posible
+        }
+
+        return x;
+    }
+
+    jQuery.fn.dataTableExt.oSort['data-date-asc'] = function(a, b) {
+        var x = dateHeight(a) === 0 ? dateHeight(b)+1 : dateHeight(a) ;
+        var y = dateHeight(b)=== 0 ? dateHeight(a)+1 : dateHeight(b);
+        var z = ((x < y) ? -1 : ((x > y) ? 1 : 0));
+        return z;
+    };
+
+    jQuery.fn.dataTableExt.oSort['data-date-desc'] = function(a, b) {
+        var x = dateHeight(a);
+        var y = dateHeight(b);
+        var z = ((x < y) ? 1 : ((x > y) ? -1 : 0));
+        return z;
+    };
+
+
+
+
+    var aoColumns = [];
+
+    var $tableTh = $(".data-table th , .dataTable th");
+    if($tableTh.length) {
+        $tableTh.each(function(index,elem) {
+            if($(elem).hasClass('sortable-false')) {
+                aoColumns.push({"bSortable": false });
+            } else if($(elem).attr('data-date') !== undefined) {
+                aoColumns.push({"sType": "data-date" });
+            }else{
+                aoColumns.push(null);
+            }
+        });
+
+
+    };
+
+
+
+    if(aoColumns.length > 0) {
+
+        var indexProperty=0;
+        var valueProperty='asc';
+        $('.data-table').find('th').each(function(index){
+
+
+            if($(this).attr('data-order')!== undefined){
+                indexProperty=index;
+                valueProperty = $(this).attr('data-order') !== undefined? $(this).attr('data-order') : valueProperty;
+            }});
+
+
+
+        $('.data-table').dataTable({
+            "aoColumns": aoColumns,
+            "order":[[indexProperty,valueProperty]],
+            "oLanguage": {
+                "sSearch": "Keyword Search"
+            },
+            "dom": '<"top"<"row"<"component-4"<"dataTableAction">><"component-4"<"dataTableLength"l<"clear">>> <"component-4"<"dataTableFilter"f<"clear">>>>>rt<"bottom"ip<"clear">>',
+            "fnDrawCallback": function(){DataTableTruncate.initTrigger();}
+        });
+    }
+
+
+</script>
+//end sorting
 
 </body>
 </html>
