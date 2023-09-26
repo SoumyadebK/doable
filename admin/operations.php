@@ -64,7 +64,7 @@ if (!empty($_GET['date'])) {
     } else if ($_GET['date'] == 'yesterday') {
         $search = " AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE-1";
     } else if ($_GET['date'] == 'earlier') {
-        $search = "AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE+1";
+        $search = " AND DOA_APPOINTMENT_MASTER.DATE > CURRENT_DATE";
     }
 }
 
