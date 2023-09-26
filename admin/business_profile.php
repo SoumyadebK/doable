@@ -48,6 +48,7 @@ if(!empty($_POST)){
         $SETTINGS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
         $SETTINGS_DATA['PK_TIMEZONE'] = $_POST['PK_TIMEZONE'];
         $SETTINGS_DATA['SERVICE_PROVIDER_TITLE'] = $_POST['SERVICE_PROVIDER_TITLE'];
+        $SETTINGS_DATA['OPERATION_TAB_TITLE'] = $_POST['OPERATION_TAB_TITLE'];
         $SETTINGS_DATA['PK_CURRENCY'] = $_POST['PK_CURRENCY'];
         $SETTINGS_DATA['ENROLLMENT_ID_CHAR'] = $_POST['ENROLLMENT_ID_CHAR'];
         $SETTINGS_DATA['ENROLLMENT_ID_NUM'] = $_POST['ENROLLMENT_ID_NUM'];
@@ -134,6 +135,7 @@ $PK_ACCOUNT_TYPE    = $res->fields['PK_ACCOUNT_TYPE'];
 $PK_TIMEZONE        = $res->fields['PK_TIMEZONE'];
 $ACTIVE             = $res->fields['ACTIVE'];
 $SERVICE_PROVIDER_TITLE = $res->fields['SERVICE_PROVIDER_TITLE'];
+$OPERATION_TAB_TITLE = $res->fields['OPERATION_TAB_TITLE'];
 $PK_CURRENCY            = $res->fields['PK_CURRENCY'];
 $ENROLLMENT_ID_CHAR     = $res->fields['ENROLLMENT_ID_CHAR'];
 $ENROLLMENT_ID_NUM      = $res->fields['ENROLLMENT_ID_NUM'];
@@ -420,19 +422,6 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                         </div>
                                                     </div>
                                                 </div>
-
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Service Provider Title</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="SERVICE_PROVIDER_TITLE" name="SERVICE_PROVIDER_TITLE" class="form-control" placeholder="Enter Service Provider Title" value="<?php echo $SERVICE_PROVIDER_TITLE?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
                                                 <div class="col-6">
                                                     <div class="form-group">
                                                         <label class="col-md-12">Currency</label>
@@ -444,6 +433,25 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                                     <?	$res_type->MoveNext();
                                                                 } ?>
                                                             </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Service Provider Title</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="SERVICE_PROVIDER_TITLE" name="SERVICE_PROVIDER_TITLE" class="form-control" placeholder="Enter Service Provider Title" value="<?php echo $SERVICE_PROVIDER_TITLE?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Operation Tab Title</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="OPERATION_TAB_TITLE" name="OPERATION_TAB_TITLE" class="form-control" placeholder="Enter Operation Tab Title" value="<?php echo $OPERATION_TAB_TITLE?>">
                                                         </div>
                                                     </div>
                                                 </div>

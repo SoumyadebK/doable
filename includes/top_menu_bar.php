@@ -1,4 +1,5 @@
 <?php
+global $db;
 if (!empty($_GET['view'])) {
     $view = $_GET['view'];
 } else {
@@ -55,7 +56,7 @@ if (!empty($_GET['view'])) {
                         <li>
                             <a class="waves-effect waves-dark" href="../admin/all_enrollments.php" aria-expanded="false">
                                 <i class="icon-note"></i>
-                                <span class="hide-menu">Enrollment</span>
+                                <span class="hide-menu">Enrollments</span>
                             </a>
                         </li>
                         <li>
@@ -67,7 +68,7 @@ if (!empty($_GET['view'])) {
                         <li>
                             <a class="waves-effect waves-dark" href="../admin/operations.php" aria-expanded="false">
                                 <i class="ti-layers-alt"></i>
-                                <span class="hide-menu">Operations</span>
+                                <span class="hide-menu"><?=$operation_tab_title?></span>
                             </a>
                         </li>
                         <li>
