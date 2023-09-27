@@ -102,8 +102,8 @@ $page_first_result = ($page-1) * $results_per_page;
                                         <th data-type="string" style="width:10%;">Customer ID</th>
                                         <th data-type="string" style="width:20%;">Email Id</th>
                                         <th data-type="string" style="width:12%;">Phone</th>
-                                        <th data-type="numeric-comma" style="width:10%;">Total Paid</th>
-                                        <th data-type="numeric-comma" style="width:10%;">Balance</th>
+                                        <th data-type="number" style="width:10%;">Total Paid</th>
+                                        <th data-type="number" style="width:10%;">Balance</th>
                                         <th style="width:10%;">Actions</th>
                                     </tr>
                                     </thead>
@@ -132,8 +132,8 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['USER_NAME']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['EMAIL_ID']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['PHONE']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($total_paid, 2)?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($total_paid-$total_used, 2)?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format($total_paid, 2))?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format($total_paid-$total_used, 2))?></td>
                                             <td style="margin-top: auto; margin-bottom: auto">
                                                 <?php if($row->fields['EMAIL_ID']): ?>
                                                     <a class="waves-dark" href="compose.php?sel_uid=<?=$row->fields['PK_USER']?>" aria-haspopup="true" aria-expanded="false" title="Email"><i class="ti-email" style="font-size: 20px;"></i>
