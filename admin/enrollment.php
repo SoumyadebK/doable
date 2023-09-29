@@ -926,7 +926,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
                                             <div class="row" id="add_more">
                                                 <div class="col-12">
-                                                    <div class="form-group" style="float: right;">
+                                                    <div class="form-group" style="float: right; display: none">
                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServices();">Add More</a>
                                                     </div>
                                                 </div>
@@ -1735,6 +1735,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     $('#services_from_package').hide();
                 }
             });
+
         } else {
             $('.service_name').remove();
             $('.service_div').remove();
@@ -1748,7 +1749,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 success: function (result) {
                     $('.service_name').remove();
                     $('.service_div').remove();
-                    $('#add_more').hide();
+                    $('#add_more').show();
                     $('#services_from_package').html(result);
                 }
             });
