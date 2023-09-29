@@ -12,4 +12,15 @@ if(isset($_POST['USER_NAME'])) {
     }
 }
 
+if(isset($_POST['CUSTOMER_ID'])) {
+    $CUSTOMER_ID = $_POST['CUSTOMER_ID'];
+    $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE USER_NAME = '".$CUSTOMER_ID."'");
+
+    if($result->RecordCount() == 0){
+        echo '<span class="text-success">Username <b>'.$CUSTOMER_ID.'</b> is available!</span>';
+    } else {
+        echo '<span class="text-danger">Username <b>'.$CUSTOMER_ID.'</b> is already taken!</span>';
+    }
+}
+
 ?>

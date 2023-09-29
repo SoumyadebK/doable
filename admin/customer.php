@@ -362,10 +362,12 @@ if(!empty($_GET['master_id'])) {
                                                             </div>
                                                             <div class="col-2">
                                                                 <div class="form-group">
-                                                                    <label class="form-label">Customer ID</label>
+                                                                    <label class="form-label">Customer ID<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control" placeholder="Enter User Name" value="<?=$CUSTOMER_ID?>">
+                                                                        <input type="text" id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control" placeholder="Enter User Name" required value="<?=$CUSTOMER_ID?>">
+                                                                        <div id="uname_result"></div>
                                                                     </div>
+                                                                    <span id="lblError" style="color: red"></span>
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-2">
@@ -2009,7 +2011,7 @@ if(!empty($_GET['master_id'])) {
         }
 
         function ValidateUsername() {
-            let username = document.getElementById("User_Id").value;
+            let username = document.getElementById("USER_NAME").value;
             let lblError = document.getElementById("lblError");
             lblError.innerHTML = "";
             let expr = /^[a-zA-Z0-9_]{8,20}$/;
@@ -2722,7 +2724,25 @@ if(!empty($_GET['master_id'])) {
 
 
     </script>
-
+        <script>
+            $(document).ready(function () {
+                $('#CUSTOMER_ID').on('blur', function () {
+                    const CUSTOMER_ID = $(this).val().trim();
+                    if (CUSTOMER_ID != '') {
+                        $.ajax({
+                            url: 'ajax/username_checker.php',
+                            type: 'post',
+                            data: { CUSTOMER_ID: CUSTOMER_ID },
+                            success: function (response) {
+                                $('#uname_result').html(response);
+                            }
+                        });
+                    } else {
+                        $("#uname_result").html("");
+                    }
+                });
+            });
+        </script>
 
 </body>
 </html>
