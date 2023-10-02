@@ -17,7 +17,7 @@ if(isset($_POST['CUSTOMER_ID'])) {
     $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE USER_NAME = '".$CUSTOMER_ID."'");
 
     if($result->RecordCount() == 0){
-        echo '<span class="text-success">Username <b>'.$CUSTOMER_ID.'</b> is available!</span>';
+        echo '';
     } else {
         echo '<span class="text-danger">Username <b>'.$CUSTOMER_ID.'</b> is already taken!</span>';
     }

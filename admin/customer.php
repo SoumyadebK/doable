@@ -763,7 +763,7 @@ if(!empty($_GET['master_id'])) {
                                                         <? } ?>
                                                     </div>
                                                     <div class="form-group">
-                                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                                                        <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
                                                         <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                                     </div>
                                                 </form>
@@ -2728,13 +2728,19 @@ if(!empty($_GET['master_id'])) {
             $(document).ready(function () {
                 $('#CUSTOMER_ID').on('blur', function () {
                     const CUSTOMER_ID = $(this).val().trim();
-                    if (CUSTOMER_ID != '') {
+                    let PK_USER = $('.PK_USER').val()
+                    if (CUSTOMER_ID != '' && PK_USER=='') {
                         $.ajax({
                             url: 'ajax/username_checker.php',
                             type: 'post',
-                            data: { CUSTOMER_ID: CUSTOMER_ID },
+                            data: { CUSTOMER_ID: CUSTOMER_ID, PK_USER: PK_USER },
                             success: function (response) {
                                 $('#uname_result').html(response);
+                                if (response == '') {
+                                    $('#submit').removeAttr('disabled')
+                                } else {
+                                    $('#submit').attr('disabled', 'disabled')
+                                }
                             }
                         });
                     } else {
