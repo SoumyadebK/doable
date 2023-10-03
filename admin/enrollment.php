@@ -915,12 +915,12 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                     </div>
                                                 <?php } ?>
 
-                                                <div id="append_service_div" style="margin-top: -30px">
+                                                <div id="append_service_div" style="margin-top: 0px">
 
                                                 </div>
                                             </div>
 
-                                            <div class="row" id="add_more" style="display: none;">
+                                            <div class="row" id="add_more" style="display: ;">
                                                 <div class="col-12">
                                                     <div class="form-group" style="float: right;">
                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServices();">Add More</a>
@@ -1169,14 +1169,14 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" required>
+                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future">
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" required>
+                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT">
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -1713,27 +1713,37 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 }
             });
         }
-
-        $.ajax({
-            url: "ajax/get_package_service_codes.php",
-            type: "POST",
-            data: {PK_SERVICE_MASTER: PK_SERVICE_MASTER},
-            async: false,
-            cache: false,
-            success: function (result) {
-                if (IS_PACKAGE == 1){
+        if (IS_PACKAGE == 1) {
+            $.ajax({
+                url: "ajax/get_package_service_codes.php",
+                type: "POST",
+                data: {PK_SERVICE_MASTER: PK_SERVICE_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
                     $('.service_name').remove();
                     $('.service_div').remove();
                     $('#add_more').hide();
                     $('#append_service_div').html(result);
-                } else {
-                    $('#add_more').show();
-                    //$('#append_service_div').append(result);
                 }
-            }
-        });
+            });
+        } else {
+            $.ajax({
+                url: "ajax/get_package_service_codes.php",
+                type: "POST",
+                data: {PK_SERVICE_MASTER: PK_SERVICE_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('.service_name').remove();
+                    $('.service_div').remove();
+                    $('#add_more').show();
+                    $('#append_service_div').html(result);
+                }
+            });
+        }
 
-    }
+        }
 
 
     function selectThisServiceCode(param) {
@@ -1755,7 +1765,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         number_of_session = (number_of_session)?number_of_session:0;
         let service_price = $(param).closest('.row').find('.PRICE_PER_SESSION').val();
         service_price = (service_price)?service_price:0;
-        $(param).closest('.row').find('.TOTAL').val(parseFloat(parseFloat(service_price)*parseFloat(number_of_session)).toFixed(2));
+        $(param).closest('.row').find('.TOTAL').val(parseFloat(parseFloat(service_price)* parseFloat(number_of_session)).toFixed(2));
     }
 
     $(document).on('click', '#cancel_button', function () {
