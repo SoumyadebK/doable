@@ -122,6 +122,10 @@ while (!$row->EOF) {
                     <th>Payment Type</th>
                     <th>Balance</th>
                     <th>Actions</th>
+                    <?php
+                    $details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+                    ?>
+                    <th><input type="checkbox" onClick="toggle(this)"/><button type="button" class="btn btn-info d-none d-md-block m-l-30 text-white" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay Selected</button></th>
                 </tr>
             </thead>
 
@@ -144,6 +148,7 @@ while (!$row->EOF) {
                             <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</a>
                         <?php } ?>
                     </td>
+                    <td <label><input type="checkbox" name="BILLED_AMOUNT[]" class="BILLED_AMOUNT" data-pk_enrollment_ledger="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>" value="<?=$billing_details->fields['BILLED_AMOUNT']?>"></label></td>
                 </tr>
                 <?php
                 $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
@@ -201,3 +206,27 @@ while (!$row->EOF) {
         $i++;
     } ?>
 
+<script>
+    function paySelected(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
+        let BILLED_AMOUNT = [];
+        let PK_ENROLLMENT_LEDGER = [];
+
+        $(".BILLED_AMOUNT:checked").each(function() {
+            BILLED_AMOUNT.push($(this).val());
+            PK_ENROLLMENT_LEDGER.push($(this).data('pk_enrollment_ledger'));
+        });
+alert(PK_ENROLLMENT_LEDGER)
+        let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
+
+        function getSum(total, num) {
+            return total + Math.round(num);
+        }
+
+        $('#enrollment_number').text(ENROLLMENT_ID);
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#AMOUNT_TO_PAY_CUSTOMER').val(parseFloat(TOTAL).toFixed(2));
+        $('#payment_confirmation_form_div_customer').slideDown();
+        openPaymentModel();
+    }
+</script>
