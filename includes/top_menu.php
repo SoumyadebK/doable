@@ -124,23 +124,24 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <?php
-                        $res = $db->Execute(
+/*                        $res = $db->Execute(
                             "SELECT USER_IMAGE FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'"
                         );
-                        if (empty($res->fields["USER_IMAGE"])) { ?>
-                            <img src="../assets/images/users/user_image_demo.jpg" alt="user-img" class="img-circle" width="35" height="35"> &nbsp;&nbsp;&nbsp;<?= $_SESSION[
+                        if (empty($res->fields["USER_IMAGE"])) { */?><!--
+                            <img src="../assets/images/users/user_image_demo.jpg" alt="user-img" class="img-circle" width="35" height="35"> &nbsp;&nbsp;&nbsp;<?php /*= $_SESSION[
                         "FIRST_NAME"
                         ] .
                         " " .
                         $_SESSION[
                         "LAST_NAME"
-                        ] ?> <i class="fas fa-angle-down"></i>
-                        <?php } else { ?>
-                            <img src="<?= $res->fields[
+                        ] */?> <i class="fas fa-angle-down"></i>
+                        <?php /*} else { */?>
+                            <img src="<?php /*= $res->fields[
                             "USER_IMAGE"
-                            ] ?>" alt="user-img" class="img-circle" width="35" height="35"> &nbsp;&nbsp;&nbsp;<?= $_SESSION["FIRST_NAME"]." ".$_SESSION["LAST_NAME"] ?> <i class="fas fa-angle-down"></i>
-                        <?php }
-                        ?>
+                            ] */?>" alt="user-img" class="img-circle" width="35" height="35"> &nbsp;&nbsp;&nbsp;<?php /*= $_SESSION["FIRST_NAME"]." ".$_SESSION["LAST_NAME"] */?> <i class="fas fa-angle-down"></i>
+                        --><?php /*}
+                        */?>
+                        <?= $_SESSION["FIRST_NAME"]." ".$_SESSION["LAST_NAME"] ?> <i class="fas fa-angle-down"></i>
                     </a>
                     <div id="logout" class="dropdown-menu dropdown-menu-end mailbox animated bounceInDown" style="margin-right: 45%">
                         <ul>
