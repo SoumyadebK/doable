@@ -1684,6 +1684,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         }
     }
 
+    var PACKAGE_SET = 0;
     function selectThisService(param) {
         let PK_SERVICE_MASTER = $(param).val();
         PK_SERVICE_CLASS = $(param).find(':selected').data('service_class');
@@ -1713,6 +1714,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 }
             });
         }
+
         if (IS_PACKAGE == 1) {
             $.ajax({
                 url: "ajax/get_package_service_codes.php",
@@ -1725,25 +1727,18 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     $('.service_div').remove();
                     $('#add_more').hide();
                     $('#append_service_div').html(result);
+                    PACKAGE_SET = 1;
                 }
             });
         } else {
-            $.ajax({
-                url: "ajax/get_package_service_codes.php",
-                type: "POST",
-                data: {PK_SERVICE_MASTER: PK_SERVICE_MASTER},
-                async: false,
-                cache: false,
-                success: function (result) {
-                    $('.service_name').remove();
-                    $('.service_div').remove();
-                    $('#add_more').show();
-                    $('#append_service_div').html(result);
-                }
-            });
+            $('#add_more').show();
+            if (PACKAGE_SET === 1) {
+                $('#append_service_div').html('');
+                addMoreServices();
+                PACKAGE_SET = 0;
+            }
         }
-
-        }
+    }
 
 
     function selectThisServiceCode(param) {
