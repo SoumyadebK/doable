@@ -920,7 +920,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                 </div>
                                             </div>
 
-                                            <div class="row" id="add_more" style="display: ;">
+                                            <div class="row" id="add_more">
                                                 <div class="col-12">
                                                     <div class="form-group" style="float: right;">
                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServices();">Add More</a>
