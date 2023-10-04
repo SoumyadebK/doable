@@ -1519,8 +1519,7 @@ $selected_user_id = $customer_data->fields['PK_USER'];
 
 
     <div class="tab-pane" id="appointment_view" role="tabpanel">
-        <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createNewAppointment();" style="width: 125px; float: right;"><i class="fa fa-plus-circle"></i> Appointment</a>
-        <div id="appointment_list" class="p-20">
+        <div id="appointment_list_calendar" >
 
         </div>
     </div>
@@ -1836,16 +1835,15 @@ $selected_user_id = $customer_data->fields['PK_USER'];
     }
 </style>
 <?php require_once('../../includes/footer.php');?>
-<?php require_once('../../admin/includes/enrollment_model.php');?>
-<?php require_once('../../admin/includes/appointment_model.php');?>
-<?php require_once('../../admin/includes/payment_list_model.php');?>
+<?php require_once('../../admin/includes/enrollment_model_calendar.php');?>
+<?php /*require_once('../../admin/includes/payment_list_model_calendar.php');*/?>
 
 
 <script>
     let PK_USER = parseInt(<?=empty($PK_USER)?0:$PK_USER?>);
     let PK_USER_MASTER = parseInt(<?=empty($PK_USER_MASTER)?0:$PK_USER_MASTER?>);
     // Get the modal
-    var payment_model = document.getElementById("paymentModel");
+    var payment_model = document.getElementById("paymentModelCalendar");
 
     // Get the <span> element that closes the payment_model
     var payment_span = document.getElementsByClassName("close")[0];
@@ -1908,7 +1906,7 @@ $selected_user_id = $customer_data->fields['PK_USER'];
 
 <script>
     // Get the modal
-    var enrollment_model = document.getElementById("enrollmentModel");
+    var enrollment_model = document.getElementById("enrollmentModelCalendar");
 
     // Get the <span> element that closes the enrollment_model
     var enrollment_span = document.getElementsByClassName("close_enrollment_model")[0];
@@ -1936,38 +1934,6 @@ $selected_user_id = $customer_data->fields['PK_USER'];
             enrollment_model.style.display = "none";
         }
     });*/
-</script>
-
-<script>
-    // Get the modal
-    var appointment_model = document.getElementById("appointmentModel");
-
-    // Get the <span> element that closes the enrollment_model
-    var appointment_span = document.getElementsByClassName("close_appointment_model")[0];
-
-    // When the user clicks the button, open the enrollment_model
-    function openAppointmentModel() {
-        appointment_model.style.display = "block";
-    }
-
-    // When the user clicks on <appointment_span> (x), close the appointment_model
-    appointment_span.onclick = function() {
-        appointment_model.style.display = "none";
-    }
-
-    // When the user clicks anywhere outside of the appointment_model, close it
-    window.onclick = function(event) {
-        if (event.target == appointment_model) {
-            appointment_model.style.display = "none";
-        }
-    }
-
-    $(document).keydown(function(e) {
-        // ESCAPE key pressed
-        if (e.keyCode == 27) {
-            appointment_model.style.display = "none";
-        }
-    });
 </script>
 
 <script>
@@ -2015,11 +1981,6 @@ $selected_user_id = $customer_data->fields['PK_USER'];
     function createEnrollment() {
         $('#enrollment_header').text("Add Enrollment");
         openEnrollmentModel();
-    }
-
-    function createNewAppointment() {
-        $('#appointment_header').text("Add Appointment");
-        openAppointmentModel();
     }
 
     function viewPaymentList() {
@@ -2825,7 +2786,7 @@ $selected_user_id = $customer_data->fields['PK_USER'];
             async: false,
             cache: false,
             success: function (result) {
-                $('#appointment_list').html(result)
+                $('#appointment_list_calendar').html(result)
             }
         });
         window.scrollTo(0,0);
