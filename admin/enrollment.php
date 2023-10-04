@@ -1687,6 +1687,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     var PACKAGE_SET = 0;
     function selectThisService(param) {
         let PK_SERVICE_MASTER = $(param).val();
+        let SERVICE_CODE_RESULT = '';
         PK_SERVICE_CLASS = $(param).find(':selected').data('service_class');
         let IS_PACKAGE = $(param).find(':selected').data('is_package');
         let SERVICE_CODE = ($(param).find(':selected').data('service_code'))?$(param).find(':selected').data('service_code'):0;
@@ -1701,7 +1702,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             }
         }
 
-        if (SERVICE_CODE == 0) {
+        if (SERVICE_CODE === 0) {
             $.ajax({
                 url: "ajax/get_service_codes.php",
                 type: "POST",
@@ -1709,13 +1710,14 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 async: false,
                 cache: false,
                 success: function (result) {
+                    SERVICE_CODE_RESULT = result;
                     $(param).closest('.row').find('.PK_SERVICE_CODE').empty();
                     $(param).closest('.row').find('.PK_SERVICE_CODE').append(result);
                 }
             });
         }
 
-        if (IS_PACKAGE == 1) {
+        if (IS_PACKAGE === 1) {
             $.ajax({
                 url: "ajax/get_package_service_codes.php",
                 type: "POST",
@@ -1736,6 +1738,9 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $('#append_service_div').html('');
                 addMoreServices();
                 PACKAGE_SET = 0;
+                $('.PK_SERVICE_MASTER').val(PK_SERVICE_MASTER);
+                $('.PK_SERVICE_CODE').empty();
+                $('.PK_SERVICE_CODE').append(SERVICE_CODE_RESULT);
             }
         }
     }

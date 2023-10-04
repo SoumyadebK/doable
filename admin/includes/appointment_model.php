@@ -1,8 +1,5 @@
 <?php
-require_once('../global/config.php');
-
-use Twilio\Exceptions\ConfigurationException;
-use Twilio\Rest\Client;
+//require_once('../../global/config.php');
 
 if (empty($_GET['id']))
     $title = "Create Appointment";

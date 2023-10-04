@@ -1,5 +1,5 @@
 <?php
-require_once('../global/config.php');
+//require_once('../../global/config.php');
 
 if (!empty($_GET['master_id'])) {
     $master_id = $_GET['master_id'];
