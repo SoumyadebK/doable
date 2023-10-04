@@ -156,7 +156,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
         $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
     }
 
-    header('location:customer.php?id='.$_GET['id'].'&master_id='.$_GET['master_id']);
+    header('location:customer.php?id='.$_GET['id'].'&master_id='.$_GET['master_id'].'&tab=enrollment');
 }
 
 $PK_USER = '';
@@ -310,6 +310,9 @@ if(!empty($_GET['master_id'])) {
                                             <ul class="nav nav-tabs" role="tablist">
                                                 <?php if ($_GET['tab'] == 'profile') { ?>
                                                     <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+                                                <?php } ?>
+                                                <?php if ($_GET['tab'] == 'enrollment') { ?>
+                                                    <li> <a class="nav-link active" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                                                 <?php } ?>
                                                 <?php if ($_GET['tab'] == 'appointment') { ?>
                                                     <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
@@ -1940,6 +1943,9 @@ if(!empty($_GET['master_id'])) {
             fetch_state(<?php  echo $PK_COUNTRY; ?>);
             if (tab_link.id == 'profile'){
                 $('#profile_tab_link')[0].click();
+            }
+            if (tab_link.id == 'enrollment'){
+                $('#enrollment_tab_link')[0].click();
             }
             if (tab_link.id == 'appointment'){
                 $('#appointment_tab_link')[0].click();
