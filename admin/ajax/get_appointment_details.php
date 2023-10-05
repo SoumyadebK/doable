@@ -2732,7 +2732,7 @@ $selected_user_id = $customer_data->fields['PK_USER'];
     function showEnrollmentList(page) {
         let PK_USER_MASTER=$('.PK_USER_MASTER').val();
         $.ajax({
-            url: "pagination/enrollment.php",
+            url: "pagination/enrollment_list.php",
             type: "GET",
             data: {search_text:'', page:page, master_id:PK_USER_MASTER},
             async: false,
