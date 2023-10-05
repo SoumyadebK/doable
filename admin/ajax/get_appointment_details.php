@@ -1937,38 +1937,6 @@ $selected_user_id = $customer_data->fields['PK_USER'];
 </script>
 
 <script>
-    // Get the modal
-    var payment_list_model = document.getElementById("paymentListModel");
-
-    // Get the <span> element that closes the enrollment_model
-    var payment_list_span = document.getElementsByClassName("close_payment_list_model")[0];
-
-    // When the user clicks the button, open the payment_list_model
-    function openPaymentListModel() {
-        payment_list_model.style.display = "block";
-    }
-
-    // When the user clicks on <new_payment_span> (x), close the payment_list_model
-    payment_list_span.onclick = function() {
-        payment_list_model.style.display = "none";
-    }
-
-    // When the user clicks anywhere outside of the payment_list_model, close it
-    window.onclick = function(event) {
-        if (event.target == payment_list_model) {
-            payment_list_model.style.display = "none";
-        }
-    }
-
-    /*$(document).keydown(function(e) {
-        // ESCAPE key pressed
-        if (e.keyCode == 27) {
-            payment_list_model.style.display = "none";
-        }
-    });*/
-</script>
-
-<script>
     function createUserComment() {
         $('#comment_header').text("Add Comment");
         $('#PK_COMMENT').val(0);
