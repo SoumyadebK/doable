@@ -214,7 +214,7 @@ if ($location_operational_hour->RecordCount() > 0) {
             </div>
 
             <div class="row">
-                <div id="appointment_list_half" class="col-6">
+                <div id="appointment_list_half" class="col-12">
                     <div class="card">
                         <div class="card-body">
                             <div class="col-12 row m-10">
