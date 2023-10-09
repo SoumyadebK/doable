@@ -222,7 +222,7 @@ while (!$row->EOF) {
                                 }
                                 ?>
                             </td>
-                            <td><?=$used_session_count->fields['USED_SESSION_COUNT']?></td>
+                            <td><?=$paid_session_count?></td>
                             <td><?=$serviceCodeData->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']?></td>
                             <td><?=($total_bill_and_paid->fields['TOTAL_BILL']==0) ? 0 : $serviceCodeData->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']?></td>
                         </tr>
