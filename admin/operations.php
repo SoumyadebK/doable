@@ -147,7 +147,7 @@ function currentWeekRange($date): array
                 <div class="col-3">
                     <div class="d-flex justify-content-center align-items-center"">
                     <?php $today_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS TODAY_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE"); ?>
-                    <a type="button" id="today" class="btn btn-info d-none d-lg-block m-l-10 text-white" href="operations.php?date=today"> Today (<?=$today_count->fields['TODAY_COUNT']?>)</a>
+                    <a type="button" id="today" class="btn btn-info d-none d-lg-block m-l-10 text-white button-selected" href="operations.php?date=today"> Today (<?=$today_count->fields['TODAY_COUNT']?>)</a>
 
                     <?php $yesterday_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS YESTERDAY_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE-1"); ?>
                     <a type="button" id="yesterday" class="btn btn-info d-none d-lg-block m-l-10 text-white" href="operations.php?date=yesterday"> Yesterday (<?=$yesterday_count->fields['YESTERDAY_COUNT']?>)</a>
