@@ -60,11 +60,11 @@ if (!empty($_GET['DATE_SELECTION'])) {
 
 if (!empty($_GET['date'])) {
     if ($_GET['date'] == 'today') {
-        $search = " AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE";
+        $search = " AND DOA_APPOINTMENT_MASTER.DATE = '".date('Y-m-d')."'";
     } else if ($_GET['date'] == 'yesterday') {
-        $search = " AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE-1";
+        $search = " AND DOA_APPOINTMENT_MASTER.DATE = '".date('Y-m-d', strtotime('-1 day'))."'";
     } else if ($_GET['date'] == 'earlier') {
-        $search = " AND DOA_APPOINTMENT_MASTER.DATE < CURRENT_DATE AND DOA_APPOINTMENT_MASTER.IS_PAID = 0";
+        $search = " AND DOA_APPOINTMENT_MASTER.DATE < '".date('Y-m-d')."' AND DOA_APPOINTMENT_MASTER.IS_PAID = 0";
     }
 }
 
@@ -146,13 +146,13 @@ function currentWeekRange($date): array
                 </div>
                 <div class="col-3">
                     <div class="d-flex justify-content-center align-items-center"">
-                    <?php $today_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS TODAY_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE"); ?>
+                    <?php $today_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS TODAY_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." AND DOA_APPOINTMENT_MASTER.DATE = '".date('Y-m-d')."'"); ?>
                     <a type="button" id="today" style="color: <?php echo $_GET['date']=='today' ? 'black' : 'white'; ?>" class="btn btn-info" href="operations.php?date=today"> Today (<?=$today_count->fields['TODAY_COUNT']?>)</a>
 
-                    <?php $yesterday_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS YESTERDAY_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE-1"); ?>
+                    <?php $yesterday_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS YESTERDAY_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." AND DOA_APPOINTMENT_MASTER.DATE = '".date('Y-m-d', strtotime('-1 day'))."'"); ?>
                     <a type="button" id="yesterday" style="color: <?php echo $_GET['date']=='yesterday' ? 'black' : 'white'; ?>" class="btn btn-info d-none d-lg-block m-l-10" href="operations.php?date=yesterday"> Yesterday (<?=$yesterday_count->fields['YESTERDAY_COUNT']?>)</a>
 
-                    <?php $earlier_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS EARLIER_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.DATE < CURRENT_DATE AND DOA_APPOINTMENT_MASTER.IS_PAID = 0"); ?>
+                    <?php $earlier_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS EARLIER_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." AND DOA_APPOINTMENT_MASTER.DATE < '".date('Y-m-d')."' AND DOA_APPOINTMENT_MASTER.IS_PAID = 0"); ?>
                     <a type="button" id="earlier" style="color: <?php echo $_GET['date']=='earlier' ? 'black' : 'white'; ?>" class="btn btn-info d-none d-lg-block m-l-10" href="operations.php?date=earlier"> Earlier (<?=$earlier_count->fields['EARLIER_COUNT']?>)</a>
                     </div>
                 </div>
