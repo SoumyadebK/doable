@@ -115,17 +115,6 @@ function currentWeekRange($date): array
 ?>
 
 <!DOCTYPE html>
-<style>
-    .btn-info: a-selected {
-        background-color: #690C24;
-        border-color: #690C24;
-    }
-
-    .btn-info:hover {
-        background-color: #690C24;
-        border-color: #690C24;
-    }
-</style>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
 <body class="skin-default-dark fixed-layout">
@@ -158,13 +147,13 @@ function currentWeekRange($date): array
                 <div class="col-3">
                     <div class="d-flex justify-content-center align-items-center"">
                     <?php $today_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS TODAY_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE"); ?>
-                    <a type="button" id="today" style="color: <?php echo $_GET['date']=='today' ? 'black' : 'white'; ?>" class="btn btn-info " href="operations.php?date=today"> Today (<?=$today_count->fields['TODAY_COUNT']?>)</a>
+                    <a type="button" id="today" style="color: <?php echo $_GET['date']=='today' ? 'black' : 'white'; ?>" class="btn btn-info" href="operations.php?date=today"> Today (<?=$today_count->fields['TODAY_COUNT']?>)</a>
 
                     <?php $yesterday_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS YESTERDAY_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.DATE = CURRENT_DATE-1"); ?>
-                    <a type="button" id="yesterday" style="color: <?php echo $_GET['date']=='yesterday' ? 'black' : 'white'; ?>" class="btn btn-info d-none d-lg-block m-l-10 text-white" href="operations.php?date=yesterday"> Yesterday (<?=$yesterday_count->fields['YESTERDAY_COUNT']?>)</a>
+                    <a type="button" id="yesterday" style="color: <?php echo $_GET['date']=='yesterday' ? 'black' : 'white'; ?>" class="btn btn-info d-none d-lg-block m-l-10" href="operations.php?date=yesterday"> Yesterday (<?=$yesterday_count->fields['YESTERDAY_COUNT']?>)</a>
 
                     <?php $earlier_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS EARLIER_COUNT FROM DOA_APPOINTMENT_MASTER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_MASTER.CUSTOMER_ID WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.DATE < CURRENT_DATE AND DOA_APPOINTMENT_MASTER.IS_PAID = 0"); ?>
-                    <a type="button" id="earlier" style="color: <?php echo $_GET['date']=='today' ? 'black' : 'white'; ?>" class="btn btn-info d-none d-lg-block m-l-10 text-white" href="operations.php?date=earlier"> Earlier (<?=$earlier_count->fields['EARLIER_COUNT']?>)</a>
+                    <a type="button" id="earlier" style="color: <?php echo $_GET['date']=='earlier' ? 'black' : 'white'; ?>" class="btn btn-info d-none d-lg-block m-l-10" href="operations.php?date=earlier"> Earlier (<?=$earlier_count->fields['EARLIER_COUNT']?>)</a>
                     </div>
                 </div>
                 <div class="col-2">
