@@ -103,8 +103,8 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     $PK_GROUP_CLASS = $_POST['PK_GROUP_CLASS'];
     $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
     $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
-    $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_1'] = $_POST['SERVICE_PROVIDER_ID_1'];
-    $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_2'] = $_POST['SERVICE_PROVIDER_ID_2'];
+    //$GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_1'] = $_POST['SERVICE_PROVIDER_ID_1'];
+    //$GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_2'] = $_POST['SERVICE_PROVIDER_ID_2'];
     $GROUP_CLASS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
     $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
     $GROUP_CLASS_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
@@ -619,6 +619,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         let search_text = $('#search_text').val();
         let START_DATE = $('#START_DATE').val();
         let END_DATE = $('#END_DATE').val();
+        alert(START_DATE)
         $.ajax({
             url: "pagination/appointment.php",
             type: "GET",

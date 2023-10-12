@@ -1,7 +1,7 @@
 <?php
 require_once('../../global/config.php');
 
-$res = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = '$_POST[PK_APPOINTMENT_MASTER]'");
+$res = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = '$_POST[PK_APPOINTMENT_MASTER]'");
 
 if($res->RecordCount() == 0){
     header("location:all_services.php");
@@ -26,6 +26,14 @@ $START_TIME = $res->fields['START_TIME'];
 $END_TIME = $res->fields['END_TIME'];
 $COMMENT = $res->fields['COMMENT'];
 $IMAGE = $res->fields['IMAGE'];
+
+$customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
+
+$selected_customer = $customer_data->fields['NAME'];
+$customer_phone = $customer_data->fields['PHONE'];
+$customer_email = $customer_data->fields['EMAIL_ID'];
+$selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
+$selected_user_id = $customer_data->fields['PK_USER'];
 ?>
 
 <form id="appointment_form" action="" method="post" enctype="multipart/form-data">
@@ -72,7 +80,7 @@ $IMAGE = $res->fields['IMAGE'];
                             <option value="">Select Enrollment ID</option>
                             <?php
                             $selected_enrollment = '';
-                            $row = $db->Execute("SELECT PK_ENROLLMENT_MASTER, ENROLLMENT_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+                            $row = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER, ENROLLMENT_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
                             while (!$row->EOF) { if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
                                 <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'];?>" <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$row->fields['ENROLLMENT_ID']?></option>
                                 <?php $row->MoveNext(); } ?>
@@ -93,7 +101,7 @@ $IMAGE = $res->fields['IMAGE'];
                             <option value="">Select Service</option>
                             <?php
                             $selected_service = '';
-                            $row = $db->Execute("SELECT DISTINCT(DOA_SERVICE_MASTER.PK_SERVICE_MASTER), DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                            $row = $db_account->Execute("SELECT DISTINCT(DOA_SERVICE_MASTER.PK_SERVICE_MASTER), DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                             while (!$row->EOF) { if($PK_SERVICE_MASTER==$row->fields['PK_SERVICE_MASTER']){$selected_service = $row->fields['SERVICE_NAME'];} ?>
                                 <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($PK_SERVICE_MASTER==$row->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
                                 <?php $row->MoveNext(); } ?>
@@ -108,7 +116,7 @@ $IMAGE = $res->fields['IMAGE'];
                             <option value="">Select Service Code</option>
                             <?php
                             $selected_service_code = '';
-                            $row = $db->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = ".$PK_SERVICE_MASTER);
+                            $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = ".$PK_SERVICE_MASTER);
                             while (!$row->EOF) { if($PK_SERVICE_CODE==$row->fields['PK_SERVICE_CODE']){$selected_service_code = $row->fields['SERVICE_CODE'];} ?>
                                 <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-duration="<?=$row->fields['DURATION']?>" <?=($PK_SERVICE_CODE==$row->fields['PK_SERVICE_CODE'])?'selected':''?>><?=$row->fields['SERVICE_CODE']?></option>
                                 <?php $row->MoveNext(); } ?>
