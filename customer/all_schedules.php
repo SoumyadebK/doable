@@ -72,7 +72,7 @@ if (isset($_POST['FUNCTION_NAME'])){
 }
 
 function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
-    global $db;
+    global $db_account;
     $appointment_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
     $total_bill_and_paid = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
     $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
@@ -162,7 +162,7 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="showCompleteListView(1)"><i class="ti-check"></i> Completed</button>
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='add_schedule.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='add_schedule.php?id=<?php $_SESSION['PK_USER'] ?>'" ><i class="fa fa-plus-circle"></i> Create New</button>
                     </div>
                 </div>
             </div>
@@ -217,6 +217,7 @@ $PK_ACCOUNT_MASTERS = implode(',', $PK_ACCOUNT_MASTER_ARRAY);
 <script src='../assets/full_calendar_new/jquery.min.js'></script>
 <script src='../assets/full_calendar_new/fullcalendar.min.js'></script>
 <script src='../assets/full_calendar_new/scheduler.min.js'></script>
+<script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
 <script>
     let view = '<?=$view?>';

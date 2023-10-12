@@ -201,7 +201,7 @@ $location_operational_hour = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.O
 
                             </div>
 
-                            <div id="calendar_div" class="card-body view_div b-l calender-sidebar" style="display: none;">
+                            <div id="calendar" class="card-body view_div b-l calender-sidebar" style="display: none;">
                                 <div id="calendar"></div>
                             </div>
                         </div>
@@ -278,7 +278,16 @@ $location_operational_hour = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.O
         $('#appointment_list_half').addClass('col-12');
     }
 
-    var defaultResources = [
+    function showCalendarView() {
+        showCalendarAppointment();
+        $('#appointment_list').hide();
+        $('#calendar').show();
+    }
+
+    let finalArray = [];
+    let defaultResources = [];
+    function getAllCalendarData(){
+    defaultResources = [
         <?php
         $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USERS.PK_USER IN (".implode(',', $SERVICE_PROVIDER_ARRAY).")");
         while (!$service_provider_data->EOF) { ?>
@@ -340,7 +349,8 @@ $location_operational_hour = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.O
     ];
 
     var finalArray = appointmentArray.concat(eventArray).concat(specialAppointmentArray);
-
+        console.log(finalArray);
+    }
     /*jQuery(document).ready(function($) {
         defaultEvents =
         console.log(defaultEvents);
@@ -363,9 +373,10 @@ $location_operational_hour = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.O
         });
     });*/
 
-    document.addEventListener('DOMContentLoaded', function() {
-        let open_time = '<?=$location_operational_hour->fields['OPEN_TIME']?>';
-        let close_time = '<?=$location_operational_hour->fields['CLOSE_TIME']?>';
+    function showCalendarAppointment() {
+        getAllCalendarData();
+        let open_time = '<?=$OPEN_TIME?>';
+        let close_time = '<?=$CLOSE_TIME?>';
         let clickCount = 0;
         $('#calendar').fullCalendar({
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
@@ -400,6 +411,17 @@ $location_operational_hour = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.O
                     titleFormat: 'dddd, MMMM Do YYYY'
                 }
             },
+            /*viewRender: function(view) {
+                if(view.type == 'agendaDay') {
+                    $('#calendar').fullCalendar( 'removeEventSource', ev1 );
+                    $('#calendar').fullCalendar( 'addEventSource', ev2 );
+                    return;
+                } else {
+                    $('#calendar').fullCalendar( 'removeEventSource', ev2 );
+                    $('#calendar').fullCalendar( 'addEventSource', ev1 );
+                    return;
+                }
+            },*/
 
             //// uncomment this line to hide the all-day slot
             //allDaySlot: false,
@@ -410,13 +432,7 @@ $location_operational_hour = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.O
                 { id: 'c', title: 'Room C', eventColor: 'orange' },
                 { id: 'd', title: 'Room D', eventColor: 'red' }
             ]*/,
-            events: finalArray /*[
-                { id: '1', resourceId: 'a', start: '2016-01-06', end: '2016-01-08', title: 'event 1' },
-                { id: '2', resourceId: 'a', start: '2016-01-07T09:00:00', end: '2016-01-07T14:00:00', title: 'event 2' },
-                { id: '3', resourceId: 'b', start: '2016-01-07T12:00:00', end: '2016-01-08T06:00:00', title: 'event 3' },
-                { id: '4', resourceId: 'c', start: '2016-01-07T07:30:00', end: '2016-01-07T09:30:00', title: 'event 4' },
-                { id: '5', resourceId: 'd', start: '2016-01-07T10:00:00', end: '2016-01-07T15:00:00', title: 'event 5' }
-            ]*/,
+            events: finalArray,
 
             eventClick: function(info) {
                 showAppointmentEdit(info);
@@ -442,9 +458,9 @@ $location_operational_hour = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.O
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    window.location.href = "add_schedule.php";
+                    //window.location.href = "add_schedule.php";
+                    openModel();
                 }
-
                 console.log(
                     'dayClick',
                     date.format(),
@@ -453,45 +469,22 @@ $location_operational_hour = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.O
             }
         });
 
-        $('.fc-body').css({"overflow-y":"scroll", "height":"400px", "display":"block"});
+
+        $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
 
         $('.fc-agendaDay-button').click(function () {
-            $('.fc-body').css({"overflow-y":"scroll", "height":"400px", "display":"block"});
+            $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
         });
         $('.fc-agendaTwoDay-button').click(function () {
-            $('.fc-body').css({"overflow-y":"scroll", "height":"400px", "display":"block"});
+            $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
         });
         $('.fc-agendaWeek-button').click(function () {
-            $('.fc-body').css({"overflow-y":"scroll", "height":"400px", "display":"block"});
+            $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
         });
         $('.fc-month-button').click(function () {
             $('.fc-body').css({"overflow-y":"", "height":"", "display":""});
         });
-
-        /*var calendarEl = document.getElementById('calendar');
-
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            //initialDate: '2022-08-01',
-            initialView: 'dayGridMonth',
-            slotDuration: '00:15:00',
-            slotLabelInterval: 15,
-            slotMinutes: 15,
-            nowIndicator: true,
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-            },
-            navLinks: true, // can click day/week names to navigate views
-            editable: true,
-            selectable: true,
-            selectMirror: true,
-            dayMaxEvents: true, // allow "more" link when too many events
-            events: defaultEvents,
-        });
-
-        calendar.render();*/
-    });
+    }
 
     /*function viewAppointmentDetails(info) {
         $.ajax({
@@ -521,7 +514,7 @@ $location_operational_hour = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.O
         window.scrollTo(0,0);
         $('#appointment_list').show();
         $('#completed_list').hide();
-        $('#calendar_div').hide();
+        $('#calendar').hide();
     }
 
     function showCompleteListView(page) {
@@ -538,15 +531,9 @@ $location_operational_hour = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.O
         window.scrollTo(0,0);
         $('#completed_list').show();
         $('#appointment_list').hide();
-        $('#calendar_div').hide();
+        $('#calendar').hide();
     }
 
-    function showCalendarView() {
-        $('#appointment_list').hide();
-        $('#completed_list').hide();
-        $('#calendar_div').show();
-        $('.fc-state-active').click();
-    }
 
     function editpage(id){
         window.location.href = "add_schedule.php?id="+id;
