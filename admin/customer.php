@@ -1340,7 +1340,16 @@ if(!empty($_GET['master_id'])) {
 
                                             <div class="tab-pane" id="enrollment" role="tabpanel">
                                                 <div class="row">
-                                                    <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="createEnrollment();" style="width: 120px; margin-left: 91%;"><i class="fa fa-plus-circle"></i> Enrollment</a>
+                                                    <div class="d-flex justify-content-end align-items-center">
+                                                        <?php
+                                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+                                                        ?>
+                                                        <input type="checkbox" id="toggleAll" onclick="toggleCheckboxes()"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="payAll(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay All</button>
+                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="createEnrollment();" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
+                                                    </div>
+                                                    <div style="margin-left: 90%">
+
+                                                    </div>
                                                 </div>
                                                 <div id="enrollment_list" class="p-20">
 
@@ -2742,6 +2751,31 @@ if(!empty($_GET['master_id'])) {
 
         <script>
             function paySelected(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
+                let BILLED_AMOUNT = [];
+                let PK_ENROLLMENT_LEDGER = [];
+
+                $(".BILLED_AMOUNT:checked").each(function() {
+                    BILLED_AMOUNT.push($(this).val());
+                    PK_ENROLLMENT_LEDGER.push($(this).data('pk_enrollment_ledger'));
+                });
+
+                let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
+
+                function getSum(total, num) {
+                    return total + Math.round(num);
+                }
+
+                $('#enrollment_number').text(ENROLLMENT_ID);
+                $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+                $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+                $('#AMOUNT_TO_PAY_CUSTOMER').val(parseFloat(TOTAL).toFixed(2));
+                $('#payment_confirmation_form_div_customer').slideDown();
+                openPaymentModel();
+            }
+        </script>
+
+        <script>
+            function payAll(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
                 let BILLED_AMOUNT = [];
                 let PK_ENROLLMENT_LEDGER = [];
 

@@ -124,7 +124,7 @@ while (!$row->EOF) {
                     <?php
                     $details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
                     ?>
-                    <th><input type="checkbox" onClick="toggle(this)"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay Selected</button></th>
+                    <th><input type="checkbox" id="toggleAll" onclick="toggleCheckboxes()"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay Selected</button></th>
                 </tr>
             </thead>
 
@@ -204,3 +204,17 @@ while (!$row->EOF) {
         $row->MoveNext();
         $i++;
     } ?>
+
+<script>
+    function toggleCheckboxes() {
+        var toggleCheckbox = document.getElementById('toggleAll');
+        var childCheckboxes = document.getElementsByClassName('BILLED_AMOUNT');
+
+        // If the toggle checkbox is checked, uncheck all child checkboxes
+        if (toggleCheckbox.checked) {
+            for (var i = 0; i < childCheckboxes.length; i++) {
+                childCheckboxes[i].checked = true;
+            }
+        }
+    }
+</script>
