@@ -116,7 +116,7 @@ $selected_user_id = $customer_data->fields['PK_USER'];
                         <label class="form-label"><?=$service_provider_title?> : <span id="change_service_provider" style="margin-left: 30px;"><a href="javascript:;" onclick="changeServiceProvider()">Change</a></span>
                             <span id="cancel_change_service_provider" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeServiceProvider()">Cancel</a></span></label>
                         <div id="service_provider_select" style="display: none;">
-                            <select required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
+                            <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
                                 <option value="">Select <?=$service_provider_title?></option>
                                 <?php
                                 $selected_service_provider = '';
