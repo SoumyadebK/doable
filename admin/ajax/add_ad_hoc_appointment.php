@@ -24,7 +24,7 @@ if (empty($_GET['PK_USER'])) {
             <div class="col-3">
                 <div class="form-group">
                     <label class="form-label">Customer<span class="text-danger">*</span></label><br>
-                    <select name="CUSTOMER_ID" id="SELECT_CUSTOMER" onchange="selectThisCustomer(this);">
+                    <select required name="CUSTOMER_ID" id="SELECT_CUSTOMER" onchange="selectThisCustomer(this);">
                         <option value="">Select Customer</option>
                         <?php
                         $row = $db->Execute("SELECT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 ORDER BY DOA_USERS.FIRST_NAME");
@@ -36,7 +36,7 @@ if (empty($_GET['PK_USER'])) {
             </div>
             <div class="col-5">
                 <div class="form-group">
-                    <label class="form-label">Enrollment ID<span class="text-danger">*</span></label>
+                    <label class="form-label">Enrollment ID</label>
                     <select class="form-control" name="PK_ENROLLMENT_MASTER" id="PK_ENROLLMENT_MASTER" onchange="selectThisEnrollment(this);">
                         <option value="">Select Enrollment ID</option>
                         <?php
@@ -55,7 +55,7 @@ if (empty($_GET['PK_USER'])) {
             </div>
             <div class="col-3">
                 <div class="form-group">
-                    <label class="form-label"><?=$service_provider_title?><span class="text-danger">*</span></label>
+                    <label class="form-label"><?=$service_provider_title?></label>
                     <select name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
                         <option value="">Select <?=$service_provider_title?></option>
 
