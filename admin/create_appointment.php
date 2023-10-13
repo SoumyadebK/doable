@@ -228,6 +228,7 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
                         <button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('group_class', this);"><i class="fa fa-plus-circle"></i> Group Class</button>
                         <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('int_app', this);"><i class="fa fa-plus-circle"></i> INT APP</button>
                         <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('appointment', this);"><i class="fa fa-plus-circle"></i> Appointment</button>
+                        <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('ad_hoc', this);"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>
                         <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('standing', this);"><i class="fa fa-plus-circle"></i> Standing</button>
                     </div>
                 </div>
@@ -271,6 +272,9 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
             }
             if (type === 'appointment') {
                 url = "ajax/add_appointment.php";
+            }
+            if (type === 'ad_hoc') {
+                url = "ajax/add_ad_hoc_appointment.php";
             }
             if (type === 'standing') {
                 url = "ajax/add_multiple_appointment.php";
