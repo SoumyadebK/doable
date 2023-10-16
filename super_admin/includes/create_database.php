@@ -502,6 +502,7 @@ CREATE TABLE `DOA_EVENT` (
   `END_DATE` date DEFAULT NULL,
   `START_TIME` time DEFAULT NULL,
   `END_TIME` time DEFAULT NULL,
+  `ALL_DAY` TINYINT NOT NULL DEFAULT '0',
   `DESCRIPTION` text NOT NULL,
   `PK_LOCATION` varchar(255) NOT NULL,
   `SHARE_WITH_CUSTOMERS` tinyint(4) NOT NULL,
@@ -512,6 +513,21 @@ CREATE TABLE `DOA_EVENT` (
   `CREATED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_EVENT_LOCATION`
+--
+
+CREATE TABLE `DOA_EVENT_LOCATION` (
+  `PK_EVENT_LOCATION` int(11) NOT NULL AUTO_INCREMENT,
+  `PK_EVENT` int(11) NOT NULL,
+  `PK_LOCATION` int(11) NOT NULL,
+  PRIMARY KEY (`PK_EVENT_LOCATION`),
+  KEY `PK_EVENT` (`PK_EVENT`),
+  KEY `PK_LOCATION` (`PK_LOCATION`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
