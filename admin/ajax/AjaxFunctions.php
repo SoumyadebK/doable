@@ -90,6 +90,34 @@ function saveServiceCodeData($RESPONSE_DATA){
     }
 }
 
+function savePackageInfoData($RESPONSE_DATA){
+    global $db;
+    global $db_account;
+
+    $PACKAGE_SERVICE_DATA['PACKAGE_NAME'] = $RESPONSE_DATA['PACKAGE_NAME'];
+    $total = 0;
+    if (isset($RESPONSE_DATA['PK_SERVICE_MASTER']) && count($RESPONSE_DATA['PK_SERVICE_MASTER']) > 0){
+        $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+
+        for ($i = 0; $i < count($RESPONSE_DATA['PK_SERVICE_CODE']); $i++) {
+            $PACKAGE_SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'][$i];
+            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $RESPONSE_DATA['PK_SERVICE_CODE'][$i];
+            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $RESPONSE_DATA['SERVICE_DETAILS'][$i];
+            $PACKAGE_SERVICE_DATA['FREQUENCY'] = $RESPONSE_DATA['FREQUENCY'][$i];
+            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $RESPONSE_DATA['NUMBER_OF_SESSION'][$i];
+            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = $RESPONSE_DATA['PRICE_PER_SESSION'][$i];
+            $PACKAGE_SERVICE_DATA['TOTAL'] = $RESPONSE_DATA['TOTAL'][$i];
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+            $PACKAGE_SERVICE_DATA = $db_account->insert_ID();
+            createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER, 'DOA_ENROLLMENT_SERVICE', 'PK_ENROLLMENT_SERVICE', $PK_ENROLLMENT_SERVICE, $ENROLLMENT_SERVICE_DATA, 'insert');
+            $total += $RESPONSE_DATA['TOTAL'][$i];
+        }
+        //}
+    }
+}
+
+
 /*Saving Data from Enrollment Page*/
 
 function saveEnrollmentData($RESPONSE_DATA){
