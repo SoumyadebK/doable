@@ -915,6 +915,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                                 <option value="">Select Database Name</option>
                                 <option value="AMTO">AMTO</option>
                                 <option value="AMWH">AMWH</option>
+                                <option value="AMTO_NEW">AMTO_NEW</option>
                             </select>
                         </div>
                     </div>
