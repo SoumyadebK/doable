@@ -261,6 +261,7 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
         var myCalender;
 
         function createAppointment(type, param) {
+            let PK_APPOINTMENT_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
             $('.btn').removeClass('button-selected');
             $(param).addClass('button-selected');
             let url = '';
@@ -274,7 +275,7 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
                 url = "ajax/add_appointment.php";
             }
             if (type === 'ad_hoc') {
-                url = "ajax/add_ad_hoc_appointment.php";
+                url = "ajax/add_ad_hoc_appointment.php?id="+PK_APPOINTMENT_MASTER;
             }
             if (type === 'standing') {
                 url = "ajax/add_multiple_appointment.php";

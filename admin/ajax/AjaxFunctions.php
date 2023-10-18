@@ -90,6 +90,43 @@ function saveServiceCodeData($RESPONSE_DATA){
     }
 }
 
+function savePackageInfoData($RESPONSE_DATA){
+    global $db;
+    global $db_account;
+
+    if (empty($RESPONSE_DATA['PK_PACKAGE'])){
+        $PACKAGE_DATA['PACKAGE_NAME'] = $RESPONSE_DATA['PACKAGE_NAME'];
+        $PACKAGE_DATA['ACTIVE'] = 1;
+        $PACKAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        $PACKAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'insert');
+        $PK_PACKAGE = $db_account->insert_ID();
+    } else {
+        $PACKAGE_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'] ?? 0;
+        $PACKAGE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+        $PACKAGE_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'update'," PK_PACKAGE =  '$RESPONSE_DATA[PK_PACKAGE]'");
+        $PK_PACKAGE = $RESPONSE_DATA['PK_PACKAGE'];
+    }
+
+    if (isset($RESPONSE_DATA['PK_SERVICE_MASTER']) && count($RESPONSE_DATA['PK_SERVICE_MASTER']) > 0){
+        $db_account->Execute("DELETE FROM `DOA_PACKAGE_SERVICE` WHERE `PK_PACKAGE` = '$PK_PACKAGE'");
+
+        for ($i = 0; $i < count($RESPONSE_DATA['PK_SERVICE_MASTER']); $i++) {
+            $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'][$i];
+            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $RESPONSE_DATA['PK_SERVICE_CODE'][$i];
+            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $RESPONSE_DATA['SERVICE_DETAILS'][$i];
+            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $RESPONSE_DATA['NUMBER_OF_SESSION'][$i];
+            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = $RESPONSE_DATA['PRICE_PER_SESSION'][$i];
+            $PACKAGE_SERVICE_DATA['TOTAL'] = $RESPONSE_DATA['TOTAL'][$i];
+            $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+        }
+    }
+}
+
+
 /*Saving Data from Enrollment Page*/
 
 function saveEnrollmentData($RESPONSE_DATA){
@@ -954,6 +991,46 @@ function saveAppointmentData($RESPONSE_DATA){
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 }
 
+function saveAdhocAppointmentData($RESPONSE_DATA){
+    global $db;
+    global $db_account;
+    unset($RESPONSE_DATA['TIME']);
+    if (empty($RESPONSE_DATA['START_TIME']) || empty($RESPONSE_DATA['END_TIME'])){
+        unset($RESPONSE_DATA['START_TIME']);
+        unset($RESPONSE_DATA['END_TIME']);
+    }
+    $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
+    $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
+    if(empty($RESPONSE_DATA['PK_APPOINTMENT_MASTER'])){
+        $RESPONSE_DATA['PK_APPOINTMENT_STATUS'] = 1;
+        $RESPONSE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $RESPONSE_DATA['ACTIVE'] = 1;
+        $RESPONSE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        $RESPONSE_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform_account('DOA_APPOINTMENT_MASTER', $RESPONSE_DATA, 'insert');
+    }else{
+        //$RESPONSE_DATA['ACTIVE'] = $_POST['ACTIVE'];
+        if($_FILES['IMAGE']['name'] != ''){
+            $extn 			= explode(".",$_FILES['IMAGE']['name']);
+            $iindex			= count($extn) - 1;
+            $rand_string 	= time()."-".rand(100000,999999);
+            $file11			= 'appointment_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
+            $extension   	= strtolower($extn[$iindex]);
+
+            if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
+                $image_path    = '../uploads/appointment_image/'.$file11;
+                move_uploaded_file($_FILES['IMAGE']['tmp_name'], $image_path);
+                $RESPONSE_DATA['IMAGE'] = $image_path;
+            }
+        }
+        $RESPONSE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+        $RESPONSE_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_APPOINTMENT_MASTER', $RESPONSE_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
+    }
+
+    rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
+}
+
 function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
     global $db;
     global $db_account;
@@ -1363,6 +1440,13 @@ function deleteServiceData($RESPONSE_DATA) {
     global $db_account;
     $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
     $service_data = $db_account->Execute("UPDATE `DOA_SERVICE_MASTER` SET IS_DELETED=1 WHERE `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER);
+    echo 1;
+}
+
+function deletePackageData($RESPONSE_DATA) {
+    global $db_account;
+    $PK_PACKAGE = $RESPONSE_DATA['PK_PACKAGE'];
+    $package_data = $db_account->Execute("UPDATE `DOA_PACKAGE` SET IS_DELETED=1 WHERE `PK_PACKAGE` = ".$PK_PACKAGE);
     echo 1;
 }
 

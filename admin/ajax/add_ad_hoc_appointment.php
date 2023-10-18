@@ -1,11 +1,19 @@
 <?php
 require_once('../../global/config.php');
 
-if (empty($_GET['PK_USER_MASTER'])) {
+if (empty($_GET['id'])) {
+    $PK_APPOINTMENT_MASTER = 0;
+} else {
+    $PK_APPOINTMENT_MASTER = $_GET['id'];
+}
+
+$appointment_details = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER=".$PK_APPOINTMENT_MASTER);
+if ($appointment_details->RecordCount()==0) {
     $PK_USER_MASTER = 0;
 } else {
-    $PK_USER_MASTER = $_GET['PK_USER_MASTER'];
+    $PK_USER_MASTER = $appointment_details->fields['CUSTOMER_ID'];
 }
+
 
 if (empty($_GET['PK_USER'])) {
     $PK_USER = 0;
@@ -17,7 +25,7 @@ if (empty($_GET['PK_USER'])) {
 
 
 <form id="appointment_form" action="" method="post" enctype="multipart/form-data">
-    <input type="hidden" name="FUNCTION_NAME" value="saveAppointmentData">
+    <input type="hidden" name="FUNCTION_NAME" value="saveAdhocAppointmentData">
     <input type="hidden" name="PK_USER" value="<?=$PK_USER?>">
     <div class="p-40" style="padding-top: 10px;">
         <div class="row">
@@ -42,8 +50,8 @@ if (empty($_GET['PK_USER'])) {
                         <?php
                         if ($PK_USER_MASTER > 0) {
                             $selected_enrollment = '';
-                            $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.DURATION, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
-                            $used_session_count = $db->Execute("SELECT COUNT(`PK_ENROLLMENT_SERVICE`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_SERVICE` = ".$row->fields['PK_ENROLLMENT_SERVICE']);
+                            $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.DURATION, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
+                            $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_SERVICE`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_SERVICE` = ".$row->fields['PK_ENROLLMENT_SERVICE']);
 
                             //$row = $db->Execute("SELECT PK_ENROLLMENT_MASTER, ENROLLMENT_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
                             while (!$row->EOF) { if($PK_USER_MASTER==$row->fields['PK_USER_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
@@ -58,6 +66,13 @@ if (empty($_GET['PK_USER'])) {
                     <label class="form-label"><?=$service_provider_title?></label>
                     <select name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
                         <option value="">Select <?=$service_provider_title?></option>
+                        <?php
+                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+
+                        while (!$row->EOF) { ?>
+                            <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
+                            <?php $row->MoveNext(); } ?>
+
 
                     </select>
                 </div>
@@ -68,7 +83,7 @@ if (empty($_GET['PK_USER'])) {
         <input type="hidden" name="START_TIME" id="START_TIME">
         <input type="hidden" name="END_TIME" id="END_TIME">
 
-        <div class="row" id="schedule_div" style="display: <?=empty($_GET['id'])?'':'none'?>;">
+        <div class="row" id="schedule_div">
             <div class="col-7">
                 <div id="showcase-wrapper">
                     <div id="myCalendarWrapper">
@@ -90,11 +105,11 @@ if (empty($_GET['PK_USER'])) {
             <div class="form-group" style="margin-top: 25px;">
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                <?php if(!empty($_GET['id'])) { ?>
-                    <a href="enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
-                    <a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
-                    <a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>
-                <?php } ?>
+                <?php /*if(!empty($_GET['id'])) { */?><!--
+                    <a href="enrollment.php?customer_id=<?php /*=$selected_customer_id;*/?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
+                    <a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
+                    <a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>
+                --><?php /*} */?>
 
             </div>
         <?php } else { ?>
@@ -191,6 +206,7 @@ if (empty($_GET['PK_USER'])) {
 
     function getSlots(){
         let PK_ENROLLMENT_MASTER = $('#PK_ENROLLMENT_MASTER').val();
+
         /*let PK_SERVICE_MASTER = $('#PK_SERVICE_MASTER').val();
         let PK_SERVICE_CODE = $('#PK_SERVICE_CODE').val();*/
         let SERVICE_PROVIDER_ID = $('#SERVICE_PROVIDER_ID').val();

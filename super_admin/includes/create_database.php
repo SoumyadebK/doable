@@ -992,6 +992,45 @@ CREATE TABLE `DOA_Z_HELP_FILES` (
   `CREATED_BY` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_PACKAGE_SERVICE`
+--
+
+CREATE TABLE `DOA_PACKAGE_SERVICE` (
+  `PK_PACKAGE_SERVICE` int(11) NOT NULL AUTO_INCREMENT,
+  `PK_PACKAGE` int(11) NOT NULL,
+  `PK_SERVICE_MASTER` int(11) NOT NULL,
+  `PK_SERVICE_CODE` int(11) NOT NULL,
+  `SERVICE_DETAILS` varchar(250) DEFAULT NULL,
+  `NUMBER_OF_SESSION` int(11) DEFAULT NULL,
+  `PRICE_PER_SESSION` float(9,2) NOT NULL,
+  `TOTAL` float(9,2) NOT NULL,
+  `ACTIVE` int(11) NOT NULL,
+  PRIMARY KEY (`PK_PACKAGE_SERVICE`)
+) ENGINE=InnoDB AUTO_INCREMENT=65 DEFAULT CHARSET=utf8mb4
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_PACKAGE`
+--
+
+CREATE TABLE `DOA_PACKAGE` (
+  `PK_PACKAGE` int(11) NOT NULL AUTO_INCREMENT,
+  `PACKAGE_NAME` varchar(250) NOT NULL,
+  `ACTIVE` int(11) NOT NULL,
+  `IS_DELETED` int(11) NOT NULL,
+  `CREATED_ON` date NOT NULL,
+  `CREATED_BY` int(11) NOT NULL,
+  `EDITED_ON` date NOT NULL,
+  `EDITED_BY` int(11) NOT NULL,
+  PRIMARY KEY (`PK_PACKAGE`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4
+
+-- --------------------------------------------------------
+
 --
 -- Indexes for dumped tables
 --
