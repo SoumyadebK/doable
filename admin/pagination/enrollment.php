@@ -42,9 +42,9 @@ while (!$row->EOF) {
     }
     $total_session_count = ($total_session->RecordCount() > 0) ? $total_session->fields['TOTAL_SESSION_COUNT'] : 0;
     $total_bill_and_paid = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID, SUM(BALANCE) AS BALANCE FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-    $price_per_session = ($total_session_count > 0) ? $total_bill_and_paid->fields['TOTAL_PAID']/$total_session_count : 0.00;
     //$enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
     $total_amount = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT) AS TOTAL_AMOUNT FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
+    $price_per_session = ($total_session_count > 0) ? $total_amount->fields['TOTAL_AMOUNT']/$total_session_count : 0.00;
     $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
     $balance = $total_bill_and_paid->fields['TOTAL_BILL'] - $total_bill_and_paid->fields['TOTAL_PAID'];
     $total_used = $used_session_count->fields['USED_SESSION_COUNT']*$price_per_session;
@@ -71,7 +71,7 @@ while (!$row->EOF) {
 
                     <tbody>
                     <?php
-                    $per_session_cost = $total_bill_and_paid->fields['TOTAL_BILL']/(($total_session_count==0)?1:$total_session_count);
+                    $per_session_cost = $total_amount->fields['TOTAL_AMOUNT']/(($total_session_count==0)?1:$total_session_count);
                     $total_paid_session_count = ceil($total_bill_and_paid->fields['TOTAL_PAID']/(($per_session_cost==0)?1:$per_session_cost));
                     $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                     while (!$serviceCodeData->EOF) {
@@ -90,7 +90,7 @@ while (!$row->EOF) {
                                 }
                                 ?>
                             </td>
-                            <td><?=$paid_session_count?></td>
+                            <td><?=$used_session_count->fields['USED_SESSION_COUNT']?></td>
                             <td><?=$serviceCodeData->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']?></td>
                             <td><?=($total_bill_and_paid->fields['TOTAL_BILL']==0) ? 0 : $serviceCodeData->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']?></td>
                         </tr>
@@ -98,10 +98,10 @@ while (!$row->EOF) {
                     } ?>
                     <tr>
                         <td>Amount</td>
-                        <td><?=$total_bill_and_paid->fields['TOTAL_BILL']?></td>
+                        <td><?=$total_amount->fields['TOTAL_AMOUNT']?></td>
                         <td><?=$total_bill_and_paid->fields['TOTAL_PAID']?></td>
                         <td><?=$total_used?></td>
-                        <td><?=$balance?></td>
+                        <td><?=$total_amount->fields['TOTAL_AMOUNT']-$total_bill_and_paid->fields['TOTAL_PAID']?></td>
                         <td><?=$service_credit?></td>
                     </tr>
                     </tbody>
