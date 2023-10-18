@@ -104,12 +104,12 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                 </div>
             </div>
             <div class="row">
-                <!--<div class="col-8">
+                <div class="col-8">
                     <label class="form-label">Customer</label>
                     <div style="margin-bottom: 15px; margin-top: 10px; width: 480px;" >
-                        <select class="multi_sumo_select" name="PK_USER_MASTER[]" multiple disabled>
+                        <select class="multi_sumo_select" name="PK_USER_MASTER[]" multiple>
                             <?php
-/*                            $selected_customer = [];
+                            $selected_customer = [];
                             $selected_customer_row = $db_account->Execute("SELECT DOA_GROUP_CLASS_CUSTOMER.PK_USER_MASTER FROM DOA_GROUP_CLASS_CUSTOMER LEFT JOIN $master_database.DOA_USER_MASTER ON DOA_GROUP_CLASS_CUSTOMER.PK_USER_MASTER = $master_database.DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_GROUP_CLASS_CUSTOMER.PK_GROUP_CLASS = '$PK_GROUP_CLASS'");
                             while (!$selected_customer_row->EOF) {
                                 $selected_customer[] = $selected_customer_row->fields['PK_USER_MASTER'];
@@ -117,12 +117,12 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                             }
                             //$row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                             $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                            while (!$row->EOF) { */?>
-                                <option value="<?php /*echo $row->fields['PK_USER_MASTER'];*/?>" <?php /*=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""*/?>><?php /*=$row->fields['NAME']*/?></option>
-                                <?php /*$row->MoveNext(); } */?>
+                            while (!$row->EOF) { ?>
+                                <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" <?=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""?>><?=$row->fields['NAME']?></option>
+                                <?php $row->MoveNext(); } ?>
                         </select>
                     </div>
-                </div>-->
+                </div>
                 <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">Status:</label>
@@ -138,6 +138,11 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                         <p id="appointment_status"><?=$selected_status?></p>
                     </div>
                 </div>
+                <div class="col-6">
+                    <div class="form-group">
+                        <label class="form-label">Do you want to cancel your Appointment for this Group Class ? <a href="all_schedules.php?view=table&id=<?=$_SESSION['PK_USER']?>" onclick='javascript:ConfirmDelete(<?=$_SESSION['PK_USER']?>);return false;'><img src="../assets/images/noun-cancel-button.png" title="Cancel" style="height: 20px; width: 20px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -147,3 +152,20 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
 </form>
+
+<script>
+    function ConfirmDelete(PK_USER_MASTER)
+    {
+        var conf = confirm("Are you sure you want to cancel?");
+        if(conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {FUNCTION_NAME: 'cancelGroupClass', PK_USER_MASTER: PK_USER_MASTER},
+                success: function (data) {
+                    window.location.href = `all_schedules.php?view=table`;
+                }
+            });
+        }
+    }
+</script>

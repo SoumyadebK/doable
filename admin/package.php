@@ -2,9 +2,9 @@
 require_once('../global/config.php');
 
 if (empty($_GET['id']))
-    $title = "Add Service";
+    $title = "Add Package";
 else
-    $title = "Edit Service";
+    $title = "Edit Package";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -19,19 +19,21 @@ if(empty($_GET['id'])){
     $ACTIVE = '';
     $IS_PACKAGE = '';
 } else {
-    $res = $db_account->Execute("SELECT * FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_PACKAGE_SERVICE` JOIN DOA_PACKAGE ON DOA_PACKAGE_SERVICE.PK_PACKAGE=DOA_PACKAGE.PK_PACKAGE WHERE DOA_PACKAGE_SERVICE.`PK_PACKAGE` = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_packages.php");
         exit;
     }
 
-    $PACKAGE_NAME = $res->fields['SERVICE_NAME'];
-    $PK_SERVICE_CLASS = $res->fields['PK_SERVICE_CLASS'];
-    $IS_SCHEDULE = $res->fields['IS_SCHEDULE'];
-    $DESCRIPTION = $res->fields['DESCRIPTION'];
+    $PACKAGE_NAME = $res->fields['PACKAGE_NAME'];
+    $PK_SERVICE_MASTER = $res->fields['PK_SERVICE_MASTER'];
+    $PK_SERVICE_CODE = $res->fields['PK_SERVICE_CODE'];
+    $SERVICE_DETAILS = $res->fields['SERVICE_DETAILS'];
+    $NUMBER_OF_SESSION = $res->fields['NUMBER_OF_SESSION'];
+    $PRICE_PER_SESSION = $res->fields['PRICE_PER_SESSION'];
+    $TOTAL = $res->fields['TOTAL'];
     $ACTIVE = $res->fields['ACTIVE'];
-    $IS_PACKAGE = $res->fields['IS_PACKAGE'];
 }
 
 ?>
@@ -78,13 +80,13 @@ if(empty($_GET['id'])){
                                 <div class="tab-pane active" id="service_info" role="tabpanel">
                                     <form class="form-material form-horizontal" id="package_info_form">
                                         <input type="hidden" name="FUNCTION_NAME" value="savePackageInfoData">
-                                        <input type="hidden" name="PK_PACKAGE_MASTER" class="PK_PACKAGE_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
+                                        <input type="hidden" name="PK_PACKAGE" class="PK_PACKAGE" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                         <div class="p-20">
                                             <div class="row">
                                                 <div class="col-6">
                                                     <div class="form-group">
                                                         <label class="form-label">Package Name<span class="text-danger">*</span></label>
-                                                        <input type="text" id="PACKAGE_NAME" name="PACKAGE_NAME" class="form-control" placeholder="Enter Package name" required value="<?php echo $PACKAGE_NAME?>">
+                                                        <input type="text" id="PK_PACKAGE" name="PACKAGE_NAME" class="form-control" placeholder="Enter Package name" required value="<?php echo $PACKAGE_NAME?>">
                                                     </div>
                                                 </div>
 
@@ -130,10 +132,10 @@ if(empty($_GET['id'])){
                                                     <?php
                                                     $PK_SERVICE_CLASS = 0;
                                                     if(!empty($_GET['id'])) {
-                                                        $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
+                                                        $package_service_data = $db_account->Execute("SELECT * FROM DOA_PACKAGE_SERVICE WHERE PK_PACKAGE = '$_GET[id]'");
 
-                                                        while (!$enrollment_service_data->EOF) {
-                                                            $service_class = $db_account->Execute("SELECT PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = ".$enrollment_service_data->fields['PK_SERVICE_MASTER']);
+                                                        while (!$package_service_data->EOF) {
+                                                            $service_class = $db_account->Execute("SELECT PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = ".$package_service_data->fields['PK_SERVICE_MASTER']);
                                                             $PK_SERVICE_CLASS = $service_class->fields['PK_SERVICE_CLASS'];
                                                             ?>
                                                             <div class="row">
@@ -142,9 +144,9 @@ if(empty($_GET['id'])){
                                                                         <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
                                                                             <option>Select</option>
                                                                             <?php
-                                                                            $row = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER=DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+                                                                            $row = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER JOIN DOA_PACKAGE_SERVICE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER=DOA_PACKAGE_SERVICE.PK_SERVICE_MASTER ");
                                                                             while (!$row->EOF) { ?>
-                                                                                <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>" data-service_code="<?=$enrollment_service_data->fields['PK_SERVICE_CODE']?>" data-is_package="<?=$row->fields['IS_PACKAGE']?>" <?=($row->fields['PK_SERVICE_MASTER'] == $enrollment_service_data->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
+                                                                                <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>" data-service_code="<?=$package_service_data->fields['PK_SERVICE_CODE']?>" data-is_package="<?=$row->fields['IS_PACKAGE']?>" <?=($row->fields['PK_SERVICE_MASTER'] == $package_service_data->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
                                                                                 <?php $row->MoveNext(); } ?>
                                                                         </select>
                                                                     </div>
@@ -154,9 +156,9 @@ if(empty($_GET['id'])){
                                                                         <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
                                                                             <option value="">Select</option>
                                                                             <?php
-                                                                            $row = $db->Execute("SELECT $account_database.DOA_SERVICE_CODE.*, $master_database.DOA_FREQUENCY.FREQUENCY FROM $account_database.DOA_SERVICE_CODE LEFT JOIN $master_database.DOA_FREQUENCY ON $account_database.DOA_SERVICE_CODE.PK_FREQUENCY = $master_database.DOA_FREQUENCY.PK_FREQUENCY WHERE PK_SERVICE_MASTER = ".$enrollment_service_data->fields['PK_SERVICE_MASTER']);
+                                                                            $row = $db->Execute("SELECT $account_database.DOA_SERVICE_CODE.*, DOA_FREQUENCY.FREQUENCY FROM $account_database.DOA_SERVICE_CODE LEFT JOIN DOA_FREQUENCY ON $account_database.DOA_SERVICE_CODE.PK_FREQUENCY = DOA_FREQUENCY.PK_FREQUENCY WHERE PK_SERVICE_MASTER = ".$package_service_data->fields['PK_SERVICE_MASTER']);
                                                                             while (!$row->EOF) { ?>
-                                                                                <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-service_details="<?=$row->fields['DESCRIPTION']?>" data-frequency="<?=$row->fields['FREQUENCY']?>" data-price="<?=$row->fields['PRICE']?>" <?=($row->fields['PK_SERVICE_CODE'] == $enrollment_service_data->fields['PK_SERVICE_CODE'])?'selected':''?>><?=$row->fields['SERVICE_CODE']?></option>
+                                                                                <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-service_details="<?=$row->fields['DESCRIPTION']?>" data-frequency="<?=$row->fields['FREQUENCY']?>" data-price="<?=$row->fields['PRICE']?>" <?=($row->fields['PK_SERVICE_CODE'] == $package_service_data->fields['PK_SERVICE_CODE'])?'selected':''?>><?=$row->fields['SERVICE_CODE']?></option>
                                                                                 <?php $row->MoveNext(); } ?>
                                                                         </select>
                                                                     </div>
@@ -164,30 +166,41 @@ if(empty($_GET['id'])){
                                                                 <?php if($PK_SERVICE_CLASS == 1){ ?>
                                                                     <div class="col-4">
                                                                         <div class="form-group">
-                                                                            <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" value="<?=$enrollment_service_data->fields['FREQUENCY']?>" readonly>
+                                                                            <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" value="<?=$package_service_data->fields['FREQUENCY']?>" readonly>
                                                                         </div>
                                                                     </div>
                                                                 <?php }elseif($PK_SERVICE_CLASS == 2){ ?>
                                                                     <div class="col-2">
                                                                         <div class="form-group">
-                                                                            <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?=$enrollment_service_data->fields['SERVICE_DETAILS']?>">
+                                                                            <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?=$package_service_data->fields['SERVICE_DETAILS']?>">
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-2">
                                                                         <div class="form-group">
-                                                                            <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" value="<?=$enrollment_service_data->fields['NUMBER_OF_SESSION']?>" onkeyup="calculateServiceTotal(this)">
+                                                                            <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" value="<?=$package_service_data->fields['NUMBER_OF_SESSION']?>" onkeyup="calculateServiceTotal(this)">
+                                                                        </div>
+                                                                    </div>
+                                                                <?php }elseif($PK_SERVICE_CLASS == 0){ ?>
+                                                                    <div class="col-2">
+                                                                        <div class="form-group">
+                                                                            <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?=$package_service_data->fields['SERVICE_DETAILS']?>">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-2">
+                                                                        <div class="form-group">
+                                                                            <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" value="<?=$package_service_data->fields['NUMBER_OF_SESSION']?>" onkeyup="calculateServiceTotal(this)">
                                                                         </div>
                                                                     </div>
                                                                 <?php } ?>
 
                                                                 <div class="col-2">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" value="<?=$enrollment_service_data->fields['PRICE_PER_SESSION']?>" onkeyup="calculateServiceTotal(this);">
+                                                                        <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" value="<?=$package_service_data->fields['PRICE_PER_SESSION']?>" onkeyup="calculateServiceTotal(this);">
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1" style="width: 11%;">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control TOTAL" value="<?=$enrollment_service_data->fields['TOTAL']?>" name="TOTAL[]">
+                                                                        <input type="text" class="form-control TOTAL" value="<?=$package_service_data->fields['TOTAL']?>" name="TOTAL[]">
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1" style="width: 5%;">
@@ -196,7 +209,7 @@ if(empty($_GET['id'])){
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <?php $enrollment_service_data->MoveNext(); } ?>
+                                                            <?php $package_service_data->MoveNext(); } ?>
                                                     <?php } else { ?>
                                                         <div class="row">
                                                             <div class="col-2 service_name">
@@ -300,11 +313,12 @@ if(empty($_GET['id'])){
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
 <script>
+    let PK_SERVICE_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
+
     function selectThisService(param) {
         let PK_SERVICE_MASTER = $(param).val();
         let SERVICE_CODE_RESULT = '';
         PK_SERVICE_CLASS = $(param).find(':selected').data('service_class');
-        let IS_PACKAGE = $(param).find(':selected').data('is_package');
         let SERVICE_CODE = ($(param).find(':selected').data('service_code'))?$(param).find(':selected').data('service_code'):0;
         $('.PK_SERVICE_CLASS').val(PK_SERVICE_CLASS);
         if (PK_SERVICE_CLASS === 1){
@@ -318,6 +332,7 @@ if(empty($_GET['id'])){
         }
 
         if (SERVICE_CODE === 0) {
+            $('#add_more').show();
             $.ajax({
                 url: "ajax/get_service_codes.php",
                 type: "POST",
@@ -330,33 +345,6 @@ if(empty($_GET['id'])){
                     $(param).closest('.row').find('.PK_SERVICE_CODE').append(result);
                 }
             });
-        }
-
-        if (IS_PACKAGE === 1) {
-            $.ajax({
-                url: "ajax/get_package_service_codes.php",
-                type: "POST",
-                data: {PK_SERVICE_MASTER: PK_SERVICE_MASTER},
-                async: false,
-                cache: false,
-                success: function (result) {
-                    $('.service_name').remove();
-                    $('.service_div').remove();
-                    $('#add_more').hide();
-                    $('#append_service_div').html(result);
-                    PACKAGE_SET = 1;
-                }
-            });
-        } else {
-            $('#add_more').show();
-            if (PACKAGE_SET === 1) {
-                $('#append_service_div').html('');
-                addMoreServices();
-                PACKAGE_SET = 0;
-                $('.PK_SERVICE_MASTER').val(PK_SERVICE_MASTER);
-                $('.PK_SERVICE_CODE').empty();
-                $('.PK_SERVICE_CODE').append(SERVICE_CODE_RESULT);
-            }
         }
     }
 
@@ -441,7 +429,7 @@ if(empty($_GET['id'])){
     }
 
     $(document).on('click', '#cancel_button', function () {
-        window.location.href='all_services.php'
+        window.location.href='all_packages.php'
     });
 
 
@@ -454,9 +442,10 @@ if(empty($_GET['id'])){
             data: form_data,
             success:function (data) {
                 if (PK_SERVICE_MASTER == 0) {
-                    $('.PK_PACKAGE_MASTER').val(data);
-                }else{
-                    window.location.href='all_packages.php';
+                    $('.PK_SERVICE_MASTER').val(data);
+                    window.location.href = 'all_packages.php';
+                } else {
+                    window.location.href = 'all_packages.php';
                 }
             }
         });

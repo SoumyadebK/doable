@@ -1,6 +1,6 @@
 <?php
 require_once('../global/config.php');
-$title = "All Services";
+$title = "All Packages";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -42,33 +42,34 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <thead>
                                     <tr>
                                         <th>No</th>
-                                        <th>Service Name</th>
-                                        <th>Description</th>
-                                        <th>Upload Documents</th>
-                                        <th>Actions</th>
+                                        <th>Package Name</th>
+                                        <!--<th>Service Name</th>
+                                        <th>Service Details</th>
+                                        <th>Service Code</th>
+                                        <th>Number of Sessions</th>
+                                        <th>Price Per Sessions</th>
+                                        <th>Total</th>-->
+                                        <th>Action</th>
                                     </tr>
                                     </thead>
 
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND IS_DELETED=0 AND PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
+                                    $row = $db_account->Execute("SELECT * FROM DOA_PACKAGE WHERE IS_DELETED = 0");
                                     while (!$row->EOF) { ?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_SERVICE_MASTER']?>);"><?=$i;?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_SERVICE_MASTER']?>);"><?=$row->fields['SERVICE_NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_SERVICE_MASTER']?>);"><?=$row->fields['DESCRIPTION']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_SERVICE_MASTER']?>);">
-                                                <?php
-                                                $doc_row = $db_account->Execute("SELECT PK_SERVICE_DOCUMENTS FROM `DOA_SERVICE_DOCUMENTS` WHERE PK_SERVICE_MASTER = ".$row->fields['PK_SERVICE_MASTER']);
-                                                $doc_count = $doc_row->RecordCount();
-                                                ?>
-                                                <i class="fas fa-upload"></i> (<?=$doc_count;?>)
-                                            </td>
-
+                                            <td onclick="editpage(<?=$row->fields['PK_PACKAGE']?>);"><?=$i;?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_PACKAGE']?>);"><?=$row->fields['PACKAGE_NAME']?></td>
+                                           <!-- <td onclick="editpage(<?php /*=$row->fields['PK_PACKAGE_SERVICE']*/?>);"><?php /*=$row->fields['SERVICE_NAME']*/?></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_PACKAGE_SERVICE']*/?>);"><?php /*=$row->fields['DESCRIPTION']*/?></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_PACKAGE_SERVICE']*/?>);"><?php /*=$row->fields['SERVICE_CODE']*/?></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_PACKAGE_SERVICE']*/?>);"><?php /*=$row->fields['NUMBER_OF_SESSION']*/?></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_PACKAGE_SERVICE']*/?>);"><?php /*=$row->fields['PRICE_PER_SESSION']*/?></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_PACKAGE_SERVICE']*/?>);"><?php /*=$row->fields['TOTAL']*/?></td>-->
                                             <td>
-                                                <a href="service.php?id=<?=$row->fields['PK_SERVICE_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="all_services.php?type=del&id=<?=$row->fields['PK_SERVICE_MASTER']?>" onclick='javascript:ConfirmDelete(<?=$row->fields['PK_SERVICE_MASTER']?>);return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="package.php?id=<?=$row->fields['PK_PACKAGE']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="all_packages.php?type=del&id=<?=$row->fields['PK_PACKAGE']?>" onclick='javascript:ConfirmDelete(<?=$row->fields['PK_PACKAGE']?>);return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
@@ -94,22 +95,22 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     $(function () {
         $('#myTable').DataTable();
     });
-    function ConfirmDelete(PK_SERVICE_MASTER)
+    function ConfirmDelete(PK_PACKAGE)
     {
         var conf = confirm("Are you sure you want to delete?");
         if(conf) {
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
-                data: {FUNCTION_NAME: 'deleteServiceData', PK_SERVICE_MASTER: PK_SERVICE_MASTER},
+                data: {FUNCTION_NAME: 'deletePackageData', PK_PACKAGE: PK_PACKAGE},
                 success: function (data) {
-                    window.location.href = `all_services.php`;
+                    window.location.href = `all_packages.php`;
                 }
             });
         }
     }
     function editpage(id){
-        window.location.href = "service.php?id="+id;
+        window.location.href = "package.php?id="+id;
     }
 </script>
 </body>
