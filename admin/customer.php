@@ -1349,15 +1349,23 @@ if(!empty($_GET['master_id'])) {
 
                                             <div class="tab-pane" id="enrollment" role="tabpanel">
                                                 <div class="row">
-                                                    <div class="d-flex justify-content-end align-items-center">
+                                                    <div class="col-9 d-flex justify-content-end align-items-center" style="font-weight: bold; font-size: 15px; margin-top: 15px">
+                                                        <?php
+                                                        $row = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT) AS TOTAL_BILL, SUM(DOA_ENROLLMENT_LEDGER.PAID_AMOUNT) AS TOTAL_PAID, SUM(DOA_ENROLLMENT_LEDGER.BALANCE) AS BALANCE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]'");
+                                                        if($row->RecordCount()>0){
+                                                            $balance = $row->fields['TOTAL_BILL'] - $row->fields['TOTAL_PAID'];
+                                                        } else{
+                                                            $balance = 0;
+                                                        }
+                                                        ?>
+                                                        <p>Wallet Balance : $<?=$balance?></p>
+                                                    </div>
+                                                    <div class="col-3 d-flex justify-content-end align-items-center">
                                                         <?php
                                                         $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
                                                         ?>
                                                         <input type="checkbox" id="toggleAll" onclick="toggleCheckboxes()"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="payAll(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay All</button>
                                                         <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="createEnrollment();" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
-                                                    </div>
-                                                    <div style="margin-left: 90%">
-
                                                     </div>
                                                 </div>
                                                 <div id="enrollment_list" class="p-20">

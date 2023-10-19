@@ -31,9 +31,6 @@ while (!$row->EOF) {
         $serviceMaster[] = $serviceMasterData->fields['SERVICE_NAME'];
         $serviceMasterData->MoveNext();
     }
-
-
-
     $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT, PK_SERVICE_MASTER FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
     $PK_SERVICE_MASTER = ($used_session_count->RecordCount() > 0) ? $used_session_count->fields['PK_SERVICE_MASTER'] : 0;
     $total_session = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION_COUNT FROM `DOA_ENROLLMENT_SERVICE` WHERE  `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER);
@@ -107,9 +104,9 @@ while (!$row->EOF) {
                     </tbody>
                 </table>
             </div>
-            <div class="col-2" style="text-align: center; margin-top: 1.5%;">
-                <p>Wallet Balance : $<?=$balance?></p>
-            </div>
+            <!--<div class="col-2" style="text-align: center; margin-top: 1.5%;">
+                <p>Wallet Balance : $<?php /*=$balance*/?></p>
+            </div>-->
         </div>
 
         <table id="myTable" class="table table-striped border" style="display: none">
