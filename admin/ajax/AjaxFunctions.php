@@ -456,7 +456,7 @@ function saveProfileData($RESPONSE_DATA){
             $USER_DATA['USER_IMAGE'] = $image_path;
         }
     }
-
+    $USER_DATA['DISPLAY_ORDER'] = $RESPONSE_DATA['DISPLAY_ORDER'];
     $USER_DATA['GENDER'] = $RESPONSE_DATA['GENDER'];
     $USER_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['DOB']));
     $USER_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'];

@@ -23,6 +23,7 @@ $USER_NAME = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
 $EMAIL_ID = '';
+$DISPLAY_ORDER = '';
 $USER_IMAGE = '';
 $GENDER = '';
 $DOB = '';
@@ -88,6 +89,7 @@ if(!empty($_GET['id'])) {
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
+    $DISPLAY_ORDER = $res->fields['DISPLAY_ORDER'];
     $USER_IMAGE = $res->fields['USER_IMAGE'];
     $GENDER = $res->fields['GENDER'];
     $DOB = $res->fields['DOB'];
@@ -292,8 +294,16 @@ if(!empty($_GET['id'])) {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-2">
+                                                                <div class="col-4">
                                                                     <label class="col-md-12"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?=($CREATE_LOGIN == 1)?'checked':''?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
+                                                                </div>
+                                                                <div id="display_order" class="col-2">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Display Order</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" id="DISPLAY_ORDER" name="DISPLAY_ORDER" class="form-control" placeholder="Enter Display Order" value="<?=$DISPLAY_ORDER?>">
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
 
@@ -1169,10 +1179,12 @@ if(!empty($_GET['id'])) {
                 $('#rates_tab').show();
                 $('#service_tab').show();
                 $('#comment_tab').show();
+                $('#display_order').show();
             }else {
                 $('#rates_tab').hide();
                 $('#service_tab').hide();
                 $('#comment_tab').hide();
+                $('#display_order').hide();
             }
         }
 
