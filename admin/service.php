@@ -235,7 +235,7 @@ if(empty($_GET['id'])){
                                                         </div>
                                                     </div>
                                                     <? } else { ?>
-                                                    <div class="col-1" style="text-align: center; display: none">
+                                                    <div class="col-1" style="text-align: center; ">
                                                         <div class="form-group">
                                                             <label id="frequency_duration_label"><?=($PK_SERVICE_CLASS==2)?'Duration':'Frequency'?></label>
                                                         </div>

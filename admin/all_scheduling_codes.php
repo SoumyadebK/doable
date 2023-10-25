@@ -2,6 +2,14 @@
 require_once('../global/config.php');
 $title = "All Scheduling Codes";
 
+$status_check = empty($_GET['status'])?'active':$_GET['status'];
+
+if ($status_check == 'active'){
+    $status = 1;
+} elseif ($status_check == 'inactive') {
+    $status = 0;
+}
+
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
@@ -20,9 +28,22 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
         <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+                    <?php if ($status_check=='inactive') { ?>
+                        <h4 class="text-themecolor">Not Active Scheduling Codes</h4>
+                    <?php } elseif ($status_check=='active') { ?>
+                        <h4 class="text-themecolor">Active Scheduling Codes</h4>
+                    <?php } ?>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
+                <?php if ($status_check=='inactive') { ?>
+                    <div class="col-md-3" >
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_scheduling_codes.php?status=active'"><i class="fa fa-user"></i> Show Active</button>
+                    </div>
+                <?php } elseif ($status_check=='active') { ?>
+                    <div class="col-md-3" >
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_scheduling_codes.php?status=inactive'"><i class="fa fa-user-times"></i> Show Not Active</button>
+                    </div>
+                <?php } ?>
+                <div class="col-md-4 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
@@ -52,7 +73,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT $account_database.DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, $account_database.DOA_SCHEDULING_CODE.SCHEDULING_CODE, $account_database.DOA_SCHEDULING_CODE.SCHEDULING_NAME, $master_database.DOA_SCHEDULING_EVENT.SCHEDULING_EVENT, $master_database.DOA_EVENT_ACTION.EVENT_ACTION, $account_database.DOA_SCHEDULING_CODE.ACTIVE FROM $account_database.`DOA_SCHEDULING_CODE` INNER JOIN $master_database.`DOA_SCHEDULING_EVENT` ON $account_database.DOA_SCHEDULING_CODE.PK_SCHEDULING_EVENT = $master_database.DOA_SCHEDULING_EVENT.PK_SCHEDULING_EVENT INNER JOIN $master_database.`DOA_EVENT_ACTION` ON $account_database.DOA_SCHEDULING_CODE.PK_EVENT_ACTION=$master_database.DOA_EVENT_ACTION.PK_EVENT_ACTION WHERE PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
+                                    $row = $db_account->Execute("SELECT $account_database.DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, $account_database.DOA_SCHEDULING_CODE.SCHEDULING_CODE, $account_database.DOA_SCHEDULING_CODE.SCHEDULING_NAME, $master_database.DOA_SCHEDULING_EVENT.SCHEDULING_EVENT, $master_database.DOA_EVENT_ACTION.EVENT_ACTION, $account_database.DOA_SCHEDULING_CODE.ACTIVE FROM $account_database.`DOA_SCHEDULING_CODE` INNER JOIN $master_database.`DOA_SCHEDULING_EVENT` ON $account_database.DOA_SCHEDULING_CODE.PK_SCHEDULING_EVENT = $master_database.DOA_SCHEDULING_EVENT.PK_SCHEDULING_EVENT INNER JOIN $master_database.`DOA_EVENT_ACTION` ON $account_database.DOA_SCHEDULING_CODE.PK_EVENT_ACTION=$master_database.DOA_EVENT_ACTION.PK_EVENT_ACTION WHERE DOA_SCHEDULING_CODE.ACTIVE = '$status' AND PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['SCHEDULING_CODE']?></td>

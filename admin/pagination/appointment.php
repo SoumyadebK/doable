@@ -45,9 +45,9 @@ $page_first_result = ($page-1) * $results_per_page;
         <th data-type="string">Customer</th>
         <th data-type="string">Enrollment ID</th>
         <th data-type="string"><?=$service_provider_title?></th>
-        <th data-type="string">Day</th>
-        <th data-date data-order>Date</th>
-        <th data-type="string">Time</th>
+        <th data-type="string">Day-Date-Time</th>
+        <!--<th data-date data-order>Date</th>
+        <th data-type="string">Time</th>-->
         <th data-type="string">Paid</th>
         <th data-type="string" style="text-align: center;">Completed</th>
         <th data-type="string">Actions</th>
@@ -76,9 +76,9 @@ $page_first_result = ($page-1) * $results_per_page;
                 <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
             <? }?>
             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
-            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
-            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
-            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
+            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=substr(date('l', strtotime($appointment_data->fields['DATE'])), 0, 4).' - '.date('m/d/Y', strtotime($appointment_data->fields['DATE'])).' '.date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
+            <!--<td onclick="editpage(<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>);"><?php /*=date('m/d/Y', strtotime($appointment_data->fields['DATE']))*/?></td>
+            <td onclick="editpage(<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>);"><?php /*=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))*/?></td>-->
             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=($appointment_data->fields['IS_PAID'] == 0)?'Unpaid':'Paid'?></td>
             <td style="text-align: center;">
                 <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
@@ -94,6 +94,7 @@ $page_first_result = ($page-1) * $results_per_page;
                 <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <?php } ?>
                 <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <a href="all_services.php?type=del&id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='javascript:ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);return false;'><img src="../assets/images/delete.png" title="Delete"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </td>
         </tr>
         <?php $appointment_data->MoveNext();
