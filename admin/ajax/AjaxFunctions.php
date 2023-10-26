@@ -1456,3 +1456,10 @@ function deleteLocationData($RESPONSE_DATA) {
     $location_data = $db->Execute("DELETE FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$PK_LOCATION);
     echo 1;
 }
+
+function deleteAppointment($RESPONSE_DATA) {
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $location_data = $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
+    echo 1;
+}

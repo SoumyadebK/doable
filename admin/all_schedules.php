@@ -704,5 +704,22 @@ if ($location_operational_hour->RecordCount() > 0) {
         });
     }
 </script>
+<script>
+    function ConfirmDelete(PK_APPOINTMENT_MASTER)
+    {
+        var conf = confirm("Are you sure you want to delete this appointment?");
+        if(conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {FUNCTION_NAME: 'deleteAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                success: function (data) {
+                    window.location.href = 'all_schedules.php?view=list';
+                }
+            });
+        }
+    }
+</script>
+
 </body>
 </html>

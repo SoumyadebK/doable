@@ -97,13 +97,13 @@ $page_first_result = ($page-1) * $results_per_page;
                                 <table id="myTable1" class="table table-striped border">
                                     <thead>
                                     <tr>
-                                        <th data-type="number">No</th>
-                                        <th data-type="string" style="width:20%; font-weight: bold;">Name</th>
-                                        <th data-type="string" style="width:10%;">Customer ID</th>
-                                        <th data-type="string" style="width:20%;">Email Id</th>
-                                        <th data-type="string" style="width:12%;">Phone</th>
-                                        <th data-type="number" style="width:10%;">Total Paid</th>
-                                        <th data-type="number" style="width:10%;">Balance</th>
+                                        <th data-type="number" style="cursor: pointer;">No <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" style="width:20%; cursor: pointer;">Name <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" style="width:10%; cursor: pointer;">Customer ID <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" style="width:20%; cursor: pointer;">Email Id <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" style="width:12%; cursor: pointer;">Phone <i class='fas fa-sort'></i></th>
+                                        <th data-type="number" style="width:10%; cursor: pointer;">Total Paid <i class='fas fa-sort'></i></th>
+                                        <th data-type="number" style="width:10%; cursor: pointer;">Balance <i class='fas fa-sort'></i></th>
                                         <th style="width:10%;">Actions</th>
                                     </tr>
                                     </thead>
