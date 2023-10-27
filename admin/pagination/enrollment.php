@@ -55,7 +55,7 @@ while (!$row->EOF) {
                 <p><?=date('m/d/Y', strtotime($row->fields['CREATED_ON']))?></p>
             </div>
             <div class="col-8">
-                <table id="myTable" class="table table-striped border">
+                <table id="myTable" class="table table-striped border" >
                     <thead>
                     <tr>
                         <th></th>
@@ -105,6 +105,13 @@ while (!$row->EOF) {
                     </tbody>
                 </table>
             </div>
+            <?php
+            if ($serviceCodeData->fields['NUMBER_OF_SESSION']==$paid_session_count) {
+            ?>
+            <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
+                <p>Completed</p>
+            </div>
+            <?php } ?>
             <!--<div class="col-2" style="text-align: center; margin-top: 1.5%;">
                 <p>Wallet Balance : $<?php /*=$balance*/?></p>
             </div>-->
