@@ -119,12 +119,12 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                                 <table  class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
-                                        <th data-type="number">No</th>
-                                        <th data-type="string">Enrollment Id</th>
-                                        <th data-type="string">Customer</th>
-                                        <th data-type="string">Email ID</th>
-                                        <th data-type="string">Phone</th>
-                                        <th data-type="string">Location</th>
+                                        <th data-type="number" style="cursor: pointer">No <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" style="cursor: pointer">Enrollment Id <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" style="cursor: pointer">Customer <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" style="cursor: pointer">Email ID <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" style="cursor: pointer">Phone <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" style="cursor: pointer">Location <i class='fas fa-sort'></i></th>
                                         <th>Actions</th>
                                         <th>Status</th>
                                         <th>Cancel</th>

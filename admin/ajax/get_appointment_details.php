@@ -2748,7 +2748,7 @@ $selected_user_id = $customer_data->fields['PK_USER'];
     function showAppointmentListView(page) {
         let PK_USER_MASTER=$('.PK_USER_MASTER').val();
         $.ajax({
-            url: "pagination/appointment.php",
+            url: "pagination/appointment_list_calendar.php",
             type: "GET",
             data: {search_text:'', page:page, master_id:PK_USER_MASTER},
             async: false,

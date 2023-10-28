@@ -1,6 +1,15 @@
 <?php
 require_once('../global/config.php');
 $userType = "Customers";
+
+$status_check = empty($_GET['status'])?'active':$_GET['status'];
+
+if ($status_check == 'active'){
+    $status = 1;
+} elseif ($status_check == 'inactive') {
+    $status = 0;
+}
+
 $user_role_condition = " AND PK_ROLES = 4";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
@@ -1340,15 +1349,23 @@ if(!empty($_GET['master_id'])) {
 
                                             <div class="tab-pane" id="enrollment" role="tabpanel">
                                                 <div class="row">
-                                                    <div class="d-flex justify-content-end align-items-center">
+                                                    <div class="col-9 d-flex justify-content-end align-items-center" style="font-weight: bold; font-size: 15px; margin-top: 15px">
+                                                        <?php
+                                                        $row = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT) AS TOTAL_BILL, SUM(DOA_ENROLLMENT_LEDGER.PAID_AMOUNT) AS TOTAL_PAID, SUM(DOA_ENROLLMENT_LEDGER.BALANCE) AS BALANCE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]'");
+                                                        if($row->RecordCount()>0){
+                                                            $balance = $row->fields['TOTAL_BILL'] - $row->fields['TOTAL_PAID'];
+                                                        } else{
+                                                            $balance = 0;
+                                                        }
+                                                        ?>
+                                                        <p>Wallet Balance : $<?=$balance?></p>
+                                                    </div>
+                                                    <div class="col-3 d-flex justify-content-end align-items-center">
                                                         <?php
                                                         $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
                                                         ?>
                                                         <input type="checkbox" id="toggleAll" onclick="toggleCheckboxes()"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="payAll(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay All</button>
                                                         <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="createEnrollment();" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
-                                                    </div>
-                                                    <div style="margin-left: 90%">
-
                                                     </div>
                                                 </div>
                                                 <div id="enrollment_list" class="p-20">
@@ -1360,7 +1377,23 @@ if(!empty($_GET['master_id'])) {
 
 
                                             <div class="tab-pane" id="appointment" role="tabpanel">
-                                                <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createNewAppointment();" style="width: 125px; float: right;"><i class="fa fa-plus-circle"></i> Appointment</a>
+                                                <div class="row">
+                                                    <div id="posted" class="col-md-3 align-self-center" style="margin-left: 20%">
+                                                        <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showPosted(1)"> Show Posted</button>
+                                                    </div>
+                                                    <div id="unposted" class="col-md-3 align-self-center" style="margin-left: 20%">
+                                                        <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showListView(1)"> Show Unposted</button>
+                                                    </div>
+                                                    <div class="col-md-6 align-self-center">
+                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createNewAppointment();" style="width: 125px; float: right;"><i class="fa fa-plus-circle"></i> Appointment</a>
+                                                    </div>
+                                                </div>
+                                                <div id="posted_list" style="margin-left: 2%; font-weight: bold;">
+                                                    <label>List of Posted Appointments</label>
+                                                </div>
+                                                <div id="unposted_list" style="margin-left: 2%; font-weight: bold;">
+                                                    <label>List of Unposted Appointments</label>
+                                                </div>
                                                 <div id="appointment_list" class="p-20">
 
                                                 </div>
@@ -2679,6 +2712,29 @@ if(!empty($_GET['master_id'])) {
                 cache: false,
                 success: function (result) {
                     $('#appointment_list').html(result)
+                    $('#unposted').hide()
+                    $('#posted').show();
+                    $('#posted_list').hide();
+                    $('#unposted_list').show();
+                }
+            });
+            window.scrollTo(0,0);
+        }
+
+        function showPosted(page) {
+            let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+            $.ajax({
+                url: "pagination/posted_appointment.php",
+                type: "GET",
+                data: {search_text:'', page:page, master_id:PK_USER_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#appointment_list').html(result);
+                    $('#posted').hide();
+                    $('#unposted').show();
+                    $('#unposted_list').hide();
+                    $('#posted_list').show();
                 }
             });
             window.scrollTo(0,0);

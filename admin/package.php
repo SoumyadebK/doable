@@ -18,6 +18,10 @@ if(empty($_GET['id'])){
     $DESCRIPTION = '';
     $ACTIVE = '';
     $IS_PACKAGE = '';
+    $TOTAL = '';
+    $DISCOUNT_TYPE = '';
+    $DISCOUNT = '';
+    $FINAL_AMOUNT = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM `DOA_PACKAGE_SERVICE` JOIN DOA_PACKAGE ON DOA_PACKAGE_SERVICE.PK_PACKAGE=DOA_PACKAGE.PK_PACKAGE WHERE DOA_PACKAGE_SERVICE.`PK_PACKAGE` = '$_GET[id]'");
 
@@ -33,6 +37,9 @@ if(empty($_GET['id'])){
     $NUMBER_OF_SESSION = $res->fields['NUMBER_OF_SESSION'];
     $PRICE_PER_SESSION = $res->fields['PRICE_PER_SESSION'];
     $TOTAL = $res->fields['TOTAL'];
+    $DISCOUNT_TYPE = $res->fields['DISCOUNT_TYPE'];
+    $DISCOUNT = $res->fields['DISCOUNT'];
+    $FINAL_AMOUNT = $res->fields['FINAL_AMOUNT'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
 
@@ -97,34 +104,49 @@ if(empty($_GET['id'])){
                                                                 <label class="form-label">Services</label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2">
+                                                        <div class="col-1">
                                                             <div class="form-group">
                                                                 <label class="form-label">Service Codes</label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2">
+                                                        <div class="col-2" style="text-align: center;">
                                                             <div class="form-group">
                                                                 <label class="form-label">Service Details</label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2 session_div">
+                                                        <div class="col-1 session_div">
                                                             <div class="form-group">
                                                                 <label class="form-label">Number of Sessions</label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2 session_div">
+                                                        <div class="col-1 session_div">
                                                             <div class="form-group">
                                                                 <label class="form-label">Price Per Sessions</label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-4 frequency_div" style="display: none; text-align: center;">
+                                                        <div class="col-1 frequency_div" style="display: none; text-align: center;">
                                                             <div class="form-group">
                                                                 <label class="form-label">Frequency</label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-1" style="width: 11%;">
+                                                        <div class="col-1" style="width: 11%; text-align: center;">
                                                             <div class="form-group">
                                                                 <label class="form-label">Total</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Discount Type</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Discount</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Final Amount</label>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -151,7 +173,7 @@ if(empty($_GET['id'])){
                                                                         </select>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-2">
+                                                                <div class="col-1">
                                                                     <div class="form-group">
                                                                         <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
                                                                             <option value="">Select</option>
@@ -164,7 +186,7 @@ if(empty($_GET['id'])){
                                                                     </div>
                                                                 </div>
                                                                 <?php if($PK_SERVICE_CLASS == 1){ ?>
-                                                                    <div class="col-4">
+                                                                    <div class="col-1">
                                                                         <div class="form-group">
                                                                             <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" value="<?=$package_service_data->fields['FREQUENCY']?>" readonly>
                                                                         </div>
@@ -175,25 +197,25 @@ if(empty($_GET['id'])){
                                                                             <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?=$package_service_data->fields['SERVICE_DETAILS']?>">
                                                                         </div>
                                                                     </div>
-                                                                    <div class="col-2">
+                                                                    <div class="col-1">
                                                                         <div class="form-group">
                                                                             <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" value="<?=$package_service_data->fields['NUMBER_OF_SESSION']?>" onkeyup="calculateServiceTotal(this)">
                                                                         </div>
                                                                     </div>
                                                                 <?php }elseif($PK_SERVICE_CLASS == 0){ ?>
-                                                                    <div class="col-2">
+                                                                    <div class="col-1">
                                                                         <div class="form-group">
                                                                             <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?=$package_service_data->fields['SERVICE_DETAILS']?>">
                                                                         </div>
                                                                     </div>
-                                                                    <div class="col-2">
+                                                                    <div class="col-1">
                                                                         <div class="form-group">
                                                                             <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" value="<?=$package_service_data->fields['NUMBER_OF_SESSION']?>" onkeyup="calculateServiceTotal(this)">
                                                                         </div>
                                                                     </div>
                                                                 <?php } ?>
 
-                                                                <div class="col-2">
+                                                                <div class="col-1">
                                                                     <div class="form-group">
                                                                         <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" value="<?=$package_service_data->fields['PRICE_PER_SESSION']?>" onkeyup="calculateServiceTotal(this);">
                                                                     </div>
@@ -201,6 +223,25 @@ if(empty($_GET['id'])){
                                                                 <div class="col-1" style="width: 11%;">
                                                                     <div class="form-group">
                                                                         <input type="text" class="form-control TOTAL" value="<?=$package_service_data->fields['TOTAL']?>" name="TOTAL[]">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateDiscount(this)">
+                                                                            <option value="">Select</option>
+                                                                            <option value="1" <?=($package_service_data->fields['DISCOUNT_TYPE'] == 1)?'selected':''?>>Fixed</option>
+                                                                            <option value="2" <?=($package_service_data->fields['DISCOUNT_TYPE'] == 2)?'selected':''?>>Percent</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" value="<?=$package_service_data->fields['DISCOUNT']?>" onkeyup="calculateDiscount(this)">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=($package_service_data->fields['FINAL_AMOUNT']==0.00)?$package_service_data->fields['TOTAL']:$package_service_data->fields['FINAL_AMOUNT']?>" readonly>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1" style="width: 5%;">
@@ -224,7 +265,7 @@ if(empty($_GET['id'])){
                                                                     </select>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-2 service_div">
+                                                            <div class="col-1 service_div">
                                                                 <div class="form-group">
                                                                     <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
                                                                         <option value="">Select</option>
@@ -236,17 +277,17 @@ if(empty($_GET['id'])){
                                                                     <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" >
                                                                 </div>
                                                             </div>
-                                                            <div class="col-4 frequency_div " style="display: none;">
+                                                            <div class="col-1 frequency_div " style="display: none;">
                                                                 <div class="form-group">
                                                                     <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" readonly>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-2 session_div service_div">
+                                                            <div class="col-1 session_div service_div">
                                                                 <div class="form-group">
                                                                     <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)">
                                                                 </div>
                                                             </div>
-                                                            <div class="col-2 session_div service_div">
+                                                            <div class="col-1 session_div service_div">
                                                                 <div class="form-group">
                                                                     <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);">
                                                                 </div>
@@ -254,6 +295,25 @@ if(empty($_GET['id'])){
                                                             <div class="col-1 service_div" style="width: 11%;">
                                                                 <div class="form-group">
                                                                     <input type="text" class="form-control TOTAL" name="TOTAL[]">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-1">
+                                                                <div class="form-group">
+                                                                    <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateDiscount(this)">
+                                                                        <option value="">Select</option>
+                                                                        <option value="1" <?=($DISCOUNT_TYPE == 1)?'selected':''?>>Fixed</option>
+                                                                        <option value="2" <?=($DISCOUNT_TYPE == 2)?'selected':''?>>Percent</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-1">
+                                                                <div class="form-group">
+                                                                    <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" value="<?=$DISCOUNT?>" onkeyup="calculateDiscount(this)">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-1">
+                                                                <div class="form-group">
+                                                                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=($FINAL_AMOUNT==0.00)?$TOTAL:$FINAL_AMOUNT?>" readonly>
                                                                 </div>
                                                             </div>
                                                             <div class="col-1 service_div" style="width: 5%;">
@@ -384,7 +444,7 @@ if(empty($_GET['id'])){
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-2">
+                                            <div class="col-1">
                                                 <div class="form-group">
                                                     <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
                                                         <option value="">Select</option>
@@ -396,17 +456,17 @@ if(empty($_GET['id'])){
                                                     <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" >
                                                 </div>
                                             </div>
-                                            <div class="col-4 frequency_div" style="display: none;">
+                                            <div class="col-1 frequency_div" style="display: none;">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" readonly>
                                                 </div>
                                             </div>
-                                            <div class="col-2 session_div">
+                                            <div class="col-1 session_div">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)">
                                                 </div>
                                             </div>
-                                            <div class="col-2 session_div">
+                                            <div class="col-1 session_div">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);">
                                                 </div>
@@ -416,6 +476,25 @@ if(empty($_GET['id'])){
                                                     <input type="text" class="form-control TOTAL" name="TOTAL[]">
                                                 </div>
                                             </div>
+                                            <div class="col-1">
+                                            <div class="form-group">
+                                                                    <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateDiscount(this)">
+                                                                        <option value="">Select</option>
+                                                                        <option value="1">Fixed</option>
+                                                                        <option value="2">Percent</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-1">
+                                                                <div class="form-group">
+                                                                    <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" onkeyup="calculateDiscount(this)">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-1">
+                                                                <div class="form-group">
+                                                                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" readonly>
+                                                                </div>
+                                                            </div>
                                             <div class="col-1" style="width: 5%;">
                                                 <div class="form-group">
                                                     <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
@@ -450,6 +529,28 @@ if(empty($_GET['id'])){
             }
         });
     });
+
+    function calculateDiscount(param) {
+        let DISCOUNT = $(param).closest('.row').find('.DISCOUNT').val();
+        let DISCOUNT_TYPE = $(param).closest('.row').find('.DISCOUNT_TYPE').val();
+        let TOTAL = $(param).closest('.row').find('.TOTAL').val();
+
+        if (DISCOUNT_TYPE == 1){
+            let FINAL_AMOUNT = parseFloat(TOTAL-DISCOUNT);
+            $(param).closest('.row').find('.FINAL_AMOUNT').val(FINAL_AMOUNT.toFixed(2));
+        } else {
+            if (DISCOUNT_TYPE == 2) {
+                let FINAL_AMOUNT = parseFloat(TOTAL - (TOTAL * (DISCOUNT / 100)));
+                $(param).closest('.row').find('.FINAL_AMOUNT').val(FINAL_AMOUNT.toFixed(2));
+            }
+        }
+        let TOTAL_AMOUNT = 0;
+        $('.FINAL_AMOUNT').each(function () {
+            TOTAL_AMOUNT += parseFloat($(this).val());
+        });
+        $('#total_bill').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
+        $('#BALANCE_PAYABLE').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
+    }
 </script>
 </body>
 </html>

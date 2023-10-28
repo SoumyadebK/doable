@@ -381,7 +381,7 @@ if ($location_operational_hour->RecordCount() > 0) {
     function getAllCalendarData(){
         defaultResources = [
             <?php
-            $service_provider_data = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+            $service_provider_data = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']. " ORDER BY DISPLAY_ORDER");
             $resourceIdArray = [];
             while (!$service_provider_data->EOF) { $resourceIdArray[] = $service_provider_data->fields['PK_USER'];?>
             {
@@ -480,9 +480,9 @@ if ($location_operational_hour->RecordCount() > 0) {
             defaultView: 'agendaDay',
             minTime: open_time,
             maxTime: close_time,
-            slotDuration: '00:30:00',
-            slotLabelInterval: 30,
-            slotMinutes: 30,
+            slotDuration: '00:05:00',
+            slotLabelInterval: 5,
+            slotMinutes: 5,
             //defaultDate: '2016-01-07',
             editable: true,
             selectable: true,
@@ -704,5 +704,22 @@ if ($location_operational_hour->RecordCount() > 0) {
         });
     }
 </script>
+<script>
+    function ConfirmDelete(PK_APPOINTMENT_MASTER)
+    {
+        var conf = confirm("Are you sure you want to delete this appointment?");
+        if(conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {FUNCTION_NAME: 'deleteAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                success: function (data) {
+                    window.location.href = 'all_schedules.php?view=list';
+                }
+            });
+        }
+    }
+</script>
+
 </body>
 </html>

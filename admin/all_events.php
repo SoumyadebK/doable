@@ -154,14 +154,14 @@ $page_first_result = ($page-1) * $results_per_page;
                                 <table class="table table-striped border" data-page-length='50'>
                                     <thead>
                                         <tr>
-                                            <th data-type="number">No</th>
-                                            <th data-type="string">Event Name</th>
-                                            <th data-type="string">Type</th>
-                                            <th data-type="string">Location</th>
-                                            <th data-type="date mm:dd:yyyy">Start Date</th>
-                                            <th data-type="time">Start Time</th>
-                                            <th data-type="datetime">End Date</th>
-                                            <th data-type="time">End Time</th>
+                                            <th data-type="number" style="cursor: pointer">No <i class='fas fa-sort'></i></th>
+                                            <th data-type="string" style="cursor: pointer">Event Name <i class='fas fa-sort'></i></th>
+                                            <th data-type="string" style="cursor: pointer">Type <i class='fas fa-sort'></i></th>
+                                            <th data-type="string" style="cursor: pointer">Location <i class='fas fa-sort'></i></th>
+                                            <th data-type="date mm:dd:yyyy" style="cursor: pointer">Start Date <i class='fas fa-sort'></i></th>
+                                            <th data-type="time" style="cursor: pointer">Start Time <i class='fas fa-sort'></i></th>
+                                            <th data-type="datetime" style="cursor: pointer">End Date <i class='fas fa-sort'></i></th>
+                                            <th data-type="time" style="cursor: pointer">End Time <i class='fas fa-sort'></i></th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>

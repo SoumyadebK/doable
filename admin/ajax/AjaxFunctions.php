@@ -102,6 +102,7 @@ function savePackageInfoData($RESPONSE_DATA){
         db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'insert');
         $PK_PACKAGE = $db_account->insert_ID();
     } else {
+        $PACKAGE_DATA['PACKAGE_NAME'] = $RESPONSE_DATA['PACKAGE_NAME'];
         $PACKAGE_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'] ?? 0;
         $PACKAGE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $PACKAGE_DATA['EDITED_ON'] = date("Y-m-d H:i");
@@ -120,6 +121,9 @@ function savePackageInfoData($RESPONSE_DATA){
             $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $RESPONSE_DATA['NUMBER_OF_SESSION'][$i];
             $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = $RESPONSE_DATA['PRICE_PER_SESSION'][$i];
             $PACKAGE_SERVICE_DATA['TOTAL'] = $RESPONSE_DATA['TOTAL'][$i];
+            $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = $RESPONSE_DATA['DISCOUNT_TYPE'][$i];
+            $PACKAGE_SERVICE_DATA['DISCOUNT'] = $RESPONSE_DATA['DISCOUNT'][$i];
+            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = $RESPONSE_DATA['FINAL_AMOUNT'][$i];
             $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
             db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
         }
@@ -456,7 +460,7 @@ function saveProfileData($RESPONSE_DATA){
             $USER_DATA['USER_IMAGE'] = $image_path;
         }
     }
-
+    $USER_DATA['DISPLAY_ORDER'] = $RESPONSE_DATA['DISPLAY_ORDER'];
     $USER_DATA['GENDER'] = $RESPONSE_DATA['GENDER'];
     $USER_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['DOB']));
     $USER_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'];
@@ -1454,5 +1458,12 @@ function deleteLocationData($RESPONSE_DATA) {
     global $db;
     $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
     $location_data = $db->Execute("DELETE FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$PK_LOCATION);
+    echo 1;
+}
+
+function deleteAppointment($RESPONSE_DATA) {
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $location_data = $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
     echo 1;
 }

@@ -199,13 +199,13 @@ function currentWeekRange($date): array
                                     <thead>
                                     <tr>
                                         <th><input type="checkbox" onClick="toggle(this)" /></th>
-                                        <th data-type="string">Customer</th>
-                                        <th data-type="string">Enrollment ID</th>
-                                        <th data-type="string"><?=$service_provider_title?></th>
-                                        <th data-type="string">Day</th>
-                                        <th data-type="datetime">Date</th>
-                                        <th data-type="time">Time</th>
-                                        <th data-type="number">Paid</th>
+                                        <th data-type="string" style="cursor: pointer">Customer <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" style="cursor: pointer">Enrollment ID <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" style="cursor: pointer"><?=$service_provider_title?> <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" style="cursor: pointer">Day <i class='fas fa-sort'></i></th>
+                                        <th data-type="datetime" style="cursor: pointer">Date <i class='fas fa-sort'></i></th>
+                                        <th data-type="time" style="cursor: pointer">Time <i class='fas fa-sort'></i></th>
+                                        <th>Paid</th>
                                         <th>Actions</th>
                                     </tr>
                                     </thead>

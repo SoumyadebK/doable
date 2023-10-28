@@ -19,6 +19,7 @@ if (!empty($_POST)) {
         $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
         $SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
         $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
+        $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
         $SCHEDULING_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $SCHEDULING_DATA['CREATED_ON'] = date("Y-m-d H:i");
         $SCHEDULING_DATA['ACTIVE'] = 1;
@@ -29,6 +30,7 @@ if (!empty($_POST)) {
         $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
         $SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
         $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
+        $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
         $SCHEDULING_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $SCHEDULING_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $SCHEDULING_DATA['EDITED_ON'] = date("Y-m-d H:i");
@@ -43,6 +45,7 @@ if (empty($_GET['id'])) {
     $SCHEDULING_NAME            = '';
     $PK_SCHEDULING_EVENT     = '';
     $PK_EVENT_ACTION            = '';
+    $COLOR_CODE = '';
     $ACTIVE             = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = '$_GET[id]'");
@@ -53,7 +56,8 @@ if (empty($_GET['id'])) {
     $SCHEDULING_CODE      = $res->fields['SCHEDULING_CODE'];
     $SCHEDULING_NAME      = $res->fields['SCHEDULING_NAME'];
     $PK_SCHEDULING_EVENT  = $res->fields['PK_SCHEDULING_EVENT'];
-    $PK_EVENT_ACTION   = $res->fields['PK_EVENT_ACTION'];
+    $PK_EVENT_ACTION      = $res->fields['PK_EVENT_ACTION'];
+    $COLOR_CODE           = $res->fields['COLOR_CODE'];
     $ACTIVE            = $res->fields['ACTIVE'];
 }
 ?>
@@ -138,6 +142,13 @@ if (empty($_GET['id'])) {
                                             <option value="<?php echo $row->fields['PK_EVENT_ACTION']; ?>" <?php echo $selected ;?>><?php echo $row->fields['EVENT_ACTION']; ?></option>
                                             <?php $row->MoveNext(); } ?>
                                     </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12" for="example-text">Color Code<span class="text-danger">*</span>
+                                    </label>
+                                    <div class="col-md-3">
+                                        <input type="color" id="COLOR_CODE" name="COLOR_CODE" value="<?php echo $COLOR_CODE?>" style="margin: 10px; width: 150px;">
+                                    </div>
                                 </div>
 
                                 <?php if(!empty($_GET['id'])){?>
