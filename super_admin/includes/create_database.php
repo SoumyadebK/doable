@@ -789,11 +789,25 @@ CREATE TABLE `DOA_SERVICE_MASTER` (
   `IMAGE_NAME` varchar(250) NOT NULL,
   `IMAGE_PATH` varchar(250) NOT NULL,
   `ACTIVE` int(1) NOT NULL DEFAULT 1,
+  `IS_DELETED` TINYINT NOT NULL DEFAULT '0',
   `CREATED_ON` datetime NOT NULL,
   `CREATED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_SERVICE_LOCATION`
+--
+
+CREATE TABLE `DOA_SERVICE_LOCATION` (
+  `PK_SERVICE_LOCATION` int(11) NOT NULL AUTO_INCREMENT,
+  `PK_SERVICE_MASTER` int(11) NOT NULL,
+  `PK_LOCATION` int(11) NOT NULL,
+  PRIMARY KEY (`PK_SERVICE_LOCATION`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 

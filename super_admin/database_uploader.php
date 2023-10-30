@@ -288,6 +288,10 @@ if(!empty($_POST))
                     db_perform_account('DOA_SERVICE_MASTER', $SERVICE, 'insert');
                     $PK_SERVICE_MASTER = $db_account->insert_ID();
 
+                    $SERVICE_LOCATION_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                    $SERVICE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+                    db_perform_account('DOA_SERVICE_LOCATION', $SERVICE_LOCATION_DATA, 'insert');
+
                     $SERVICE_CODE['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
                     $SERVICE_CODE['SERVICE_CODE'] = $allServices->fields['service_id'];
                     $SERVICE_CODE['PK_FREQUENCY'] = 0;
