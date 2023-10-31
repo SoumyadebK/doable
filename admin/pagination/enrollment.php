@@ -55,7 +55,19 @@ while (!$row->EOF) {
                 <p><?=date('m/d/Y', strtotime($row->fields['CREATED_ON']))?></p>
             </div>
             <div class="col-8">
-                <table id="myTable" class="table table-striped border" >
+                <?php
+                $per_session_cost = $total_amount->fields['TOTAL_AMOUNT']/(($total_session_count==0)?1:$total_session_count);
+                $total_paid_session_count = ceil($total_bill_and_paid->fields['TOTAL_PAID']/(($per_session_cost==0)?1:$per_session_cost));
+                $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                if ($total_paid_session_count > $serviceCodeData->fields['NUMBER_OF_SESSION']) {
+                    $paid_session_count = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                    $total_paid_session_count -= $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                } else {
+                    $paid_session_count = $total_paid_session_count;
+                    $total_paid_session_count = 0;
+                }
+                ?>
+                <table id="myTable" class="table <?php if ($serviceCodeData->fields['NUMBER_OF_SESSION']==$paid_session_count) { echo 'table-success' ;}else{echo "table-striped";}?> border">
                     <thead>
                     <tr>
                         <th></th>
@@ -109,7 +121,9 @@ while (!$row->EOF) {
             if ($serviceCodeData->fields['NUMBER_OF_SESSION']==$paid_session_count) {
             ?>
             <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
-                <p>Completed</p>
+
+                <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
+
             </div>
             <?php } ?>
             <!--<div class="col-2" style="text-align: center; margin-top: 1.5%;">

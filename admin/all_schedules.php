@@ -39,7 +39,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointme
         $_POST['ACTIVE'] = 1;
         $_POST['CREATED_BY']  = $_SESSION['PK_USER'];
         $_POST['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_APPOINTMENT_MASTER', $_POST, 'insert');
+        db_perform_account('DOA_APPOINTMENT_MASTER', $_POST, 'insert');
     }else{
         //$_POST['ACTIVE'] = $_POST['ACTIVE'];
         if($_FILES['IMAGE']['name'] != ''){
@@ -157,7 +157,11 @@ if ($location_operational_hour->RecordCount() > 0) {
     $OPEN_TIME = '00:00:00';
     $CLOSE_TIME = '23:59:00';
 }
-
+if (isset($_GET['CHOOSE_DATE'])) {
+    $CHOOSE_DATE = $_GET['CHOOSE_DATE'];
+} else {
+    $CHOOSE_DATE = date("Y-m-d");
+}
 ?>
 
 <!DOCTYPE html>
@@ -225,6 +229,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                                 <div class="col-6">
                                     <form class="form-material form-horizontal" action="" method="get">
                                         <div class="input-group">
+                                            <input type="date" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <input type="date" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <input type="date" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <input class="form-control" type="text" id="search_text" name="search_text" placeholder="Search..">
@@ -232,6 +237,14 @@ if ($location_operational_hour->RecordCount() > 0) {
                                         </div>
                                     </form>
                                 </div>
+                                <!--<div class="col-6">
+                                    <form class="form-material form-horizontal" action="" method="get">
+                                        <div class="input-group">
+                                            <input type="date" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date">&nbsp;&nbsp;&nbsp;&nbsp;
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onsubmit="showCalendarView(1)"><i class="fa fa-search"></i></button>
+                                        </div>
+                                    </form>
+                                </div>-->
                             </div>
 
                             <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
@@ -370,7 +383,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         $('#appointment_list_half').addClass('col-12');
     }
 
-    function showCalendarView() {
+    function  showCalendarView() {
         showCalendarAppointment();
         $('#appointment_list').hide();
         $('#calender').show();
@@ -483,7 +496,7 @@ if ($location_operational_hour->RecordCount() > 0) {
             slotDuration: '00:05:00',
             slotLabelInterval: 5,
             slotMinutes: 5,
-            //defaultDate: '2016-01-07',
+            //defaultDate: '<?=$CHOOSE_DATE?>',
             editable: true,
             selectable: true,
             eventLimit: true, // allow "more" link when too many events
