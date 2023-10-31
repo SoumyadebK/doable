@@ -1014,7 +1014,7 @@ CREATE TABLE `DOA_PACKAGE_SERVICE` (
   `FINAL_AMOUNT` float(9,2) NOT NULL,
   `ACTIVE` int(11) NOT NULL,
   PRIMARY KEY (`PK_PACKAGE_SERVICE`)
-) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb4
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -1032,7 +1032,7 @@ CREATE TABLE `DOA_PACKAGE` (
   `EDITED_ON` date NOT NULL,
   `EDITED_BY` int(11) NOT NULL,
   PRIMARY KEY (`PK_PACKAGE`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
