@@ -80,6 +80,8 @@ function getRole($role_id){
         } else {
             return $role->fields['name'];
         }
+    } elseif ($role_id == 0) {
+        return "Service Provider";
     } else {
         return 'Guest';
     }
