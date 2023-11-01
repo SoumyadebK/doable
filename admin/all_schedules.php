@@ -229,27 +229,25 @@ if (isset($_GET['CHOOSE_DATE'])) {
                                 <div class="col-6">
                                     <form class="form-material form-horizontal" action="" method="get">
                                         <div class="input-group">
+                                            <select class="form-control" name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID">
+                                                <option value="">Select <?=$service_provider_title?></option>
+                                                <?php
+                                                $selected_service_provider = '';
+                                                $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
+                                                while (!$row->EOF) { ?>
+                                                    <option value="<?=$row->fields['PK_USER']?>"><?=$row->fields['NAME']?></option>
+                                                    <?php $row->MoveNext(); } ?>
+                                            </select>&nbsp;&nbsp;&nbsp;&nbsp;
                                             <input type="date" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date">&nbsp;&nbsp;&nbsp;&nbsp;
-                                            <input type="date" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date">&nbsp;&nbsp;&nbsp;&nbsp;
-                                            <input type="date" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date">&nbsp;&nbsp;&nbsp;&nbsp;
-                                            <input class="form-control" type="text" id="search_text" name="search_text" placeholder="Search..">
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onsubmit="showListView(1)"><i class="fa fa-search"></i></button>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onsubmit="showCalendarView()"><i class="fa fa-search"></i></button>
                                         </div>
                                     </form>
                                 </div>
-                                <!--<div class="col-6">
-                                    <form class="form-material form-horizontal" action="" method="get">
-                                        <div class="input-group">
-                                            <input type="date" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date">&nbsp;&nbsp;&nbsp;&nbsp;
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onsubmit="showCalendarView(1)"><i class="fa fa-search"></i></button>
-                                        </div>
-                                    </form>
-                                </div>-->
                             </div>
 
-                            <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
+                          <!--  <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
 
-                            </div>
+                            </div>-->
 
                             <div id="calender" class="card-body b-l calender-sidebar">
                                 <div id="calendar"></div>
@@ -496,7 +494,7 @@ if (isset($_GET['CHOOSE_DATE'])) {
             slotDuration: '00:05:00',
             slotLabelInterval: 5,
             slotMinutes: 5,
-            //defaultDate: '<?=$CHOOSE_DATE?>',
+            defaultDate: '<?=$CHOOSE_DATE?>',
             editable: true,
             selectable: true,
             eventLimit: true, // allow "more" link when too many events

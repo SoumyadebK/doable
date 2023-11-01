@@ -59,9 +59,12 @@ while (!$row->EOF) {
                 $per_session_cost = $total_amount->fields['TOTAL_AMOUNT']/(($total_session_count==0)?1:$total_session_count);
                 $total_paid_session_count = ceil($total_bill_and_paid->fields['TOTAL_PAID']/(($per_session_cost==0)?1:$per_session_cost));
                 $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                if ($total_paid_session_count > $serviceCodeData->fields['NUMBER_OF_SESSION']) {
-                    $paid_session_count = $serviceCodeData->fields['NUMBER_OF_SESSION'];
-                    $total_paid_session_count -= $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                if ($serviceCodeData->RecordCount()>0) {
+                    $number_of_sessions = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                }
+                if ($total_paid_session_count > $number_of_sessions) {
+                    $paid_session_count = $number_of_sessions;
+                    $total_paid_session_count -= $number_of_sessions;
                 } else {
                     $paid_session_count = $total_paid_session_count;
                     $total_paid_session_count = 0;
@@ -118,7 +121,7 @@ while (!$row->EOF) {
                 </table>
             </div>
             <?php
-            if ($serviceCodeData->fields['NUMBER_OF_SESSION']==$paid_session_count) {
+            if ($number_of_sessions==$paid_session_count) {
             ?>
             <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
 

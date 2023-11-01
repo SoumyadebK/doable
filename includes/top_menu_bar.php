@@ -34,18 +34,30 @@ if (!empty($_GET['view'])) {
                     <?php } ?>
 
                     <?php if($_SESSION['PK_ROLES'] == 2) { ?>
-                        <li>
-                            <?php if ($view=='list') { ?>
+                        <!--<li>
+                            <?php /*if ($view=='list') { */?>
                             <a class="waves-effect waves-dark" href="../admin/all_schedules.php?view=table" aria-expanded="false">
                                 <i class="icon-calender"></i>
                                 <span class="hide-menu">Calendar</span>
                             </a>
-                            <?php } elseif ($view=='table') { ?>
+                            <?php /*} elseif ($view=='table') { */?>
                             <a class="waves-effect waves-dark" href="../admin/all_schedules.php?view=list" aria-expanded="false">
                                 <i class="icon-list"></i>
                                 <span class="hide-menu">List</span>
                             </a>
-                            <?php } ?>
+                            <?php /*} */?>
+                        </li>-->
+                        <li>
+                            <a class="waves-effect waves-dark" href="../admin/all_schedules.php?view=table" aria-expanded="false">
+                                <i class="icon-calender"></i>
+                                <span class="hide-menu">Calendar</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="waves-effect waves-dark" href="../admin/appointment_list.php" aria-expanded="false">
+                                <i class="icon-list"></i>
+                                <span class="hide-menu">List</span>
+                            </a>
                         </li>
                         <li>
                             <a class="waves-effect waves-dark" href="../admin/all_customers.php" aria-expanded="false">
