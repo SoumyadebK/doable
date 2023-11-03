@@ -66,7 +66,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                         <select class="multi_sumo_select" name="PK_USER[]" multiple>
                             <?php
                             $selected_service_provider = [];
-                            $selected_service_provider_row = $db->Execute("SELECT `PK_USER` FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
+                            $selected_service_provider_row = $db_account->Execute("SELECT `PK_USER` FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
                             while (!$selected_service_provider_row->EOF) {
                                 $selected_service_provider[] = $selected_service_provider_row->fields['PK_USER'];
                                 $selected_service_provider_row->MoveNext();
