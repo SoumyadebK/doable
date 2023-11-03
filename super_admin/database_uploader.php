@@ -351,6 +351,7 @@ if(!empty($_POST))
                     } elseif ($allSchedulingCodes->fields['status'] == "Not Active") {
                         $SCHEDULING_CODE['ACTIVE'] = 0;
                     }
+                    $SCHEDULING_CODE['COLOR_CODE'] = $allSchedulingCodes->fields['color_hexcode'];;
                     $SCHEDULING_CODE['CREATED_BY'] = $_SESSION['PK_USER'];
                     $SCHEDULING_CODE['CREATED_ON'] = date("Y-m-d H:i");
                     db_perform_account('DOA_SCHEDULING_CODE', $SCHEDULING_CODE, 'insert');
