@@ -163,6 +163,14 @@ if (isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '') {
 } else {
     $CHOOSE_DATE = date("Y-m-d");
 }
+
+$business_type = $db->Execute("SELECT DOA_BUSINESS_TYPE.TIME_SLOT_INTERVAL FROM DOA_BUSINESS_TYPE INNER JOIN DOA_ACCOUNT_MASTER ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE=DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
+if ($business_type->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
+    $INTERVAL = "00:15:00";
+}else {
+    $INTERVAL = $business_type->fields['TIME_SLOT_INTERVAL'];
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -506,7 +514,7 @@ if (isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '') {
             defaultView: 'agendaDay',
             minTime: open_time,
             maxTime: close_time,
-            slotDuration: '00:05:00',
+            slotDuration: '<?=$INTERVAL?>',
             slotLabelInterval: 5,
             slotMinutes: 5,
             defaultDate: '<?=$CHOOSE_DATE?>',
