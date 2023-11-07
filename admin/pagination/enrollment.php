@@ -146,7 +146,7 @@ while (!$row->EOF) {
                     <?php
                     $details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
                     ?>
-                    <th><input type="checkbox" id="toggleAll" onclick="toggleCheckboxes()"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay Selected</button></th>
+                    <th><input type="checkbox" id="toggleEnrollment_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" onclick="toggleEnrollmentCheckboxes(<?=$row->fields['PK_ENROLLMENT_MASTER']?>)"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay Selected</button></th>
                 </tr>
             </thead>
 
@@ -166,7 +166,7 @@ while (!$row->EOF) {
                     <td><?=number_format((float)$balance, 2, '.', '')?></td>
                     <td>
                         <?php if($billing_details->fields['IS_PAID']==0 && $billing_details->fields['STATUS']=='A') { ?>
-                        <label><input type="checkbox" name="BILLED_AMOUNT[]" class="BILLED_AMOUNT" data-pk_enrollment_ledger="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>" value="<?=$billing_details->fields['BILLED_AMOUNT']?>"</label>
+                        <label><input type="checkbox" name="BILLED_AMOUNT[]" class="BILLED_AMOUNT PAYMENT_CHECKBOX_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" data-pk_enrollment_ledger="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>" value="<?=$billing_details->fields['BILLED_AMOUNT']?>"</label>
                             <a href="javascript:;" class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</a>
                         <?php } ?>
                     </td>
@@ -228,14 +228,34 @@ while (!$row->EOF) {
     } ?>
 
 <script>
-    function toggleCheckboxes() {
-        var toggleCheckbox = document.getElementById('toggleAll');
-        var childCheckboxes = document.getElementsByClassName('BILLED_AMOUNT');
+    function toggleAllCheckboxes() {
+        let toggleCheckbox = document.getElementById('toggleAll');
+        let childCheckboxes = document.getElementsByClassName('BILLED_AMOUNT');
 
         // If the toggle checkbox is checked, uncheck all child checkboxes
         if (toggleCheckbox.checked) {
-            for (var i = 0; i < childCheckboxes.length; i++) {
+            for (let i = 0; i < childCheckboxes.length; i++) {
                 childCheckboxes[i].checked = true;
+            }
+        } else {
+            for (let i = 0; i < childCheckboxes.length; i++) {
+                childCheckboxes[i].checked = false;
+            }
+        }
+    }
+
+    function toggleEnrollmentCheckboxes(PK_ENROLLMENT_MASTER) {
+        let toggleCheckbox = document.getElementById('toggleEnrollment_'+PK_ENROLLMENT_MASTER);
+        let childCheckboxes = document.getElementsByClassName('PAYMENT_CHECKBOX_'+PK_ENROLLMENT_MASTER);
+
+        // If the toggle checkbox is checked, uncheck all child checkboxes
+        if (toggleCheckbox.checked) {
+            for (let i = 0; i < childCheckboxes.length; i++) {
+                childCheckboxes[i].checked = true;
+            }
+        } else {
+            for (let i = 0; i < childCheckboxes.length; i++) {
+                childCheckboxes[i].checked = false;
             }
         }
     }
