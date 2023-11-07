@@ -164,13 +164,13 @@ if (isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '') {
     $CHOOSE_DATE = date("Y-m-d");
 }
 
+
 $interval = $db->Execute("SELECT TIME_SLOT_INTERVAL FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
 if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     $INTERVAL = "00:15:00";
 }else {
     $INTERVAL = $interval->fields['TIME_SLOT_INTERVAL'];
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -564,6 +564,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 showAppointmentEdit(info);
                 // window.location.href = "add_schedule.php?id="+info.id;
                 //viewAppointmentDetails(info);
+            },
+
+            eventDrop: function (info) {
+                let PK_APPOINTMENT_MASTER = info.id;
+                let SERVICE_PROVIDER_ID = info.resourceId;
+                let START_DATE_TIME = info.start.toDate().toString();
+                let END_DATE_TIME = info.end.toDate().toString();
+                console.log(PK_APPOINTMENT_MASTER, SERVICE_PROVIDER_ID, START_DATE_TIME, END_DATE_TIME);
             },
 
             select: function(start, end, jsEvent, view, resource) {
