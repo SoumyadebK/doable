@@ -29,7 +29,6 @@ if(!empty($_POST)){
 
 if(empty($_GET['id'])){
     $BUSINESS_TYPE = '';
-    $TIME_SLOT_INTERVAL = '';
     $ACTIVE = '';
 }
 else {
@@ -39,7 +38,6 @@ else {
         exit;
     }
     $BUSINESS_TYPE = $res->fields['BUSINESS_TYPE'];
-    $TIME_SLOT_INTERVAL = $res->fields['TIME_SLOT_INTERVAL'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
 ?>
@@ -82,12 +80,6 @@ else {
                                         <input type="text" id="BUSINESS_TYPE" name="BUSINESS_TYPE" class="form-control" placeholder="Enter Business Type" value="<?php echo $BUSINESS_TYPE?>">
                                     </div>
                                 </div>
-                                <div class="col-4 form-group">
-                                    <label for="example-text">Time Slot Interval</label>
-                                    <div>
-                                        <input type="text" id="TIME_SLOT_INTERVAL" name="TIME_SLOT_INTERVAL" class="form-control time-picker" placeholder="Enter Time Slot Interval" value="<?php echo $TIME_SLOT_INTERVAL?>">
-                                    </div>
-                                </div>
                                 </div>
 
                                 <?php if(!empty($_GET['id'])) { ?>
@@ -117,17 +109,3 @@ else {
 <?php require_once('../includes/footer.php');?>
 </body>
 </html>
-
-<script>
-    $('.time-picker').timepicker({
-        timeFormat: 'HH:mm:ss',
-        interval: 5,
-        minTime: '00',
-        maxTime: '00:60:00',
-        //defaultTime: '11',
-        startTime: '00:00:00',
-        dynamic: false,
-        dropdown: true,
-        scrollbar: true
-    });
-</script>
