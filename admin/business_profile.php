@@ -47,6 +47,8 @@ if(!empty($_POST)){
     if ($_POST['FUNCTION_NAME'] == 'saveSettingsData') {
         $SETTINGS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
         $SETTINGS_DATA['PK_TIMEZONE'] = $_POST['PK_TIMEZONE'];
+        $SETTINGS_DATA['USERNAME_PREFIX'] = $_POST['USERNAME_PREFIX'];
+        $SETTINGS_DATA['TIME_SLOT_INTERVAL'] = $_POST['TIME_SLOT_INTERVAL'];
         $SETTINGS_DATA['SERVICE_PROVIDER_TITLE'] = $_POST['SERVICE_PROVIDER_TITLE'];
         $SETTINGS_DATA['OPERATION_TAB_TITLE'] = $_POST['OPERATION_TAB_TITLE'];
         $SETTINGS_DATA['PK_CURRENCY'] = $_POST['PK_CURRENCY'];
@@ -151,6 +153,7 @@ $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
 $APPOINTMENT_REMINDER = $res->fields['APPOINTMENT_REMINDER'];
 $HOUR = $res->fields['HOUR'];
 $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
+$TIME_SLOT_INTERVAL = $res->fields['TIME_SLOT_INTERVAL'];
 
 $SMTP_HOST = '';
 $SMTP_PORT = '';
@@ -441,6 +444,25 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                             <div class="row">
                                                 <div class="col-6">
                                                     <div class="form-group">
+                                                        <label class="col-md-12">Username Prefix</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label for="example-text">Time Slot Interval</label>
+                                                        <div>
+                                                            <input type="text" id="TIME_SLOT_INTERVAL" name="TIME_SLOT_INTERVAL" class="form-control time-picker" placeholder="Enter Time Slot Interval" value="<?php echo $TIME_SLOT_INTERVAL?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
                                                         <label class="col-md-12">Service Provider Title</label>
                                                         <div class="col-md-12">
                                                             <input type="text" id="SERVICE_PROVIDER_TITLE" name="SERVICE_PROVIDER_TITLE" class="form-control" placeholder="Enter Service Provider Title" value="<?php echo $SERVICE_PROVIDER_TITLE?>">
@@ -543,15 +565,6 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                         <label class="form-label" style="margin-bottom: 5px;">Send an Appointment Reminder Text message.</label><br>
                                                         <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?=($APPOINTMENT_REMINDER=='1')?'checked':''?> onclick="showHourBox(this);">Yes</label>
                                                         <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?=($APPOINTMENT_REMINDER=='0')?'checked':''?> onclick="showHourBox(this);">No</label>
-
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Username Prefix</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -759,6 +772,19 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                 $('#yes').slideDown();
             }
         }
+    </script>
+    <script>
+        $('.time-picker').timepicker({
+            timeFormat: 'HH:mm:ss',
+            interval: 5,
+            minTime: '00',
+            maxTime: '00:60:00',
+            //defaultTime: '11',
+            startTime: '00:00:00',
+            dynamic: false,
+            dropdown: true,
+            scrollbar: true
+        });
     </script>
 
 </body>
