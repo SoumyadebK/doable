@@ -40,7 +40,7 @@ if (!empty($_GET['view'])) {
     <div class="row">
         <div class="d-flex flex-column flex-md-row align-items-center py-2 px-4 bg-white border-bottomm box-shadow justify-content-end">
             <?php if($_SESSION['PK_ROLES'] == 2) { ?>
-            <div class="col-md-6 new-top-menu">
+            <div class="col-md-4 new-top-menu">
                 <nav class="navbar navbar-expand-lg px-2 py-1">
                     <div class="collapse navbar-collapse" id="navbarNavDropdown">
                         <ul class="navbar-nav">
@@ -91,7 +91,7 @@ if (!empty($_GET['view'])) {
                 </nav>
             </div>
             <?php } ?>
-            <nav class="my-2 my-md-0 mr-md-3 new-top-nav col-md-6">
+            <nav class="my-2 my-md-0 mr-md-3 new-top-nav col-md-8">
                 <ul id="sidebarnav" style="float: right;">
                     <?php if($_SESSION['PK_ROLES'] == 1) { ?>
                         <li>
