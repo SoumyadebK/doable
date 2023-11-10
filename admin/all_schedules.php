@@ -567,11 +567,53 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             },
 
             eventDrop: function (info) {
+                let TYPE = info.type;
                 let PK_APPOINTMENT_MASTER = info.id;
+                let PK_GROUP_CLASS = info.id;
+                let PK_EVENT = info.id;
                 let SERVICE_PROVIDER_ID = info.resourceId;
-                let START_DATE_TIME = info.start.toDate().toString();
-                let END_DATE_TIME = info.end.toDate().toString();
-                console.log(PK_APPOINTMENT_MASTER, SERVICE_PROVIDER_ID, START_DATE_TIME, END_DATE_TIME);
+                let START_DATE_TIME = info.start.toDate();
+                let END_DATE_TIME = info.end.toDate();
+                let DATE = START_DATE_TIME.getFullYear() + "-" + (START_DATE_TIME.getMonth()+1)  + "-" + START_DATE_TIME.getDate();
+                let END_DATE = END_DATE_TIME.getFullYear() + "-" + (END_DATE_TIME.getMonth()+1)  + "-" + (END_DATE_TIME.getDate()-1);
+                let START_TIME = START_DATE_TIME.getUTCHours() + ":" + START_DATE_TIME.getUTCMinutes() + ":" + START_DATE_TIME.getUTCSeconds();
+                let END_TIME = END_DATE_TIME.getUTCHours() + ":" + END_DATE_TIME.getUTCMinutes() + ":" + END_DATE_TIME.getUTCSeconds();
+
+                console.log(PK_APPOINTMENT_MASTER, SERVICE_PROVIDER_ID, DATE, START_TIME, END_TIME);
+                if (TYPE == "appointment") {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: "POST",
+                        data: {FUNCTION_NAME:'updateDroppedAppointment', PK_APPOINTMENT_MASTER:PK_APPOINTMENT_MASTER, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, DATE:DATE, START_TIME:START_TIME, END_TIME:END_TIME},
+                        async: false,
+                        cache: false,
+                        success: function (data) {
+
+                        }
+                    });
+                } else if (TYPE == "group_class") {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: "POST",
+                        data: {FUNCTION_NAME:'updateDroppedGroupClass', PK_GROUP_CLASS:PK_GROUP_CLASS, DATE:DATE, START_TIME:START_TIME, END_TIME:END_TIME},
+                        async: false,
+                        cache: false,
+                        success: function (data) {
+
+                        }
+                    });
+                } else if (TYPE == "event") {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: "POST",
+                        data: {FUNCTION_NAME: 'updateDroppedEvent', PK_EVENT: PK_EVENT, DATE: DATE, END_DATE: END_DATE, START_TIME: START_TIME, END_TIME: END_TIME},
+                        async: false,
+                        cache: false,
+                        success: function (data) {
+
+                        }
+                    });
+                }
             },
 
             select: function(start, end, jsEvent, view, resource) {
