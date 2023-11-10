@@ -11,11 +11,86 @@ if (!empty($_GET['view'])) {
     #top_bar {
         z-index: 50;
     }
+    #navbarDropdownMenuLink {
+        z-index: 500;
+    }
+    .menu-list{
+        list-style-type: none;
+        margin-left: -30px;
+    }
+
+    .menu-list li{
+        margin: 10px;
+    }
+    .new-top-menu a.dropdown-item {
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+    .new-top-menu a.dropdown-item:hover {
+        background: #f4f4f4;
+    }
+    .new-top-menu .dropdown-item.active, .new-top-menu .dropdown-item:active {
+        color: #000;
+        text-decoration: none;
+        background-color: #f4f4f4;
+    }
 </style>
 
 <div id="top_bar" class="container-fluid p-0 nav-top-new topbar">
     <div class="row">
         <div class="d-flex flex-column flex-md-row align-items-center py-2 px-4 bg-white border-bottomm box-shadow justify-content-end">
+            <?php if($_SESSION['PK_ROLES'] == 2) { ?>
+            <div class="col-lg-5 new-top-menu">
+                <nav class="navbar navbar-expand-lg px-2 py-1">
+                    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                        <ul class="navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    General
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                    <a class="dropdown-item" href="business_profile.php">Business Profile</a>
+                                    <a class="dropdown-item" href="all_locations.php">Locations</a>
+                                    <a class="dropdown-item" href="all_users.php">Users</a>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Services
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                    <a class="dropdown-item" href="all_services.php">Services</a>
+                                    <a class="dropdown-item" href="all_packages.php">Packages</a>
+                                    <a class="dropdown-item" href="all_document_library.php">Document Library</a>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Others
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                    <a class="dropdown-item" href="all_gift_certificates.php">Gift Certificate</a>
+                                    <a class="dropdown-item" href="all_gift_certificate_setup.php">Gift Certificate Setup</a>
+                                    <a class="dropdown-item" href="all_event_types.php">Event Types</a>
+                                    <a class="dropdown-item" href="all_inquiry_methods.php">Inquiry Method</a>
+                                    <a class="dropdown-item" href="all_scheduling_codes.php">Scheduling Codes</a>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Communication
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                    <a class="dropdown-item" href="all_email_accounts.php">Email Accounts</a>
+                                    <a class="dropdown-item" href="all_email_templates.php">Email Templates</a>
+                                    <a class="dropdown-item" href="all_text_templates.php">Text Templates</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <?php } ?>
             <nav class="my-2 my-md-0 mr-md-3 new-top-nav">
                 <ul id="sidebarnav">
                     <?php if($_SESSION['PK_ROLES'] == 1) { ?>
@@ -89,12 +164,12 @@ if (!empty($_GET['view'])) {
                                 <span class="hide-menu">Reports</span>
                             </a>
                         </li>
-                        <li>
+                        <!--<li>
                             <a class="waves-effect waves-dark" href="../admin/setup.php" aria-expanded="false">
                                 <i class="ti-settings"></i>
                                 <span class="hide-menu">Setup</span>
                             </a>
-                        </li>
+                        </li>-->
                     <?php } ?>
 
                     <?php if($_SESSION['PK_ROLES'] == 3) { ?>
@@ -165,3 +240,4 @@ if (!empty($_GET['view'])) {
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>

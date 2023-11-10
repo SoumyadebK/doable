@@ -613,11 +613,6 @@ function cancelAppointment($RESPONSE_DATA){
     $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
 }
 
-function cancelGroupClass($RESPONSE_DATA){
-    global $db_account;
-    $db_account->Execute("DELETE FROM `DOA_GROUP_CLASS_CUSTOMER` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA'");
-}
-
 function completeAppointment($RESPONSE_DATA){
     global $db_account;
     $RESPONSE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];

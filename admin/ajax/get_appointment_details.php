@@ -61,12 +61,13 @@ $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 
 if(!empty($_POST) && $FUNCTION_NAME == 'confirmEnrollmentPayment'){
     $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
+    $PK_ENROLLMENT_LEDGER_ARRAY = explode(',', $PK_ENROLLMENT_LEDGER);
     unset($_POST['PK_ENROLLMENT_LEDGER']);
     $AMOUNT = $_POST['AMOUNT'];
     if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
         if ($_POST['PK_PAYMENT_TYPE'] == 1) {
             if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
-                require_once("../global/stripe-php-master/init.php");
+                require_once("../../global/stripe-php-master/init.php");
                 \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
                 $STRIPE_TOKEN = $_POST['token'];
                 try {
@@ -90,7 +91,7 @@ if(!empty($_POST) && $FUNCTION_NAME == 'confirmEnrollmentPayment'){
             $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
 
             if ($_POST['PK_PAYMENT_TYPE_REMAINING'] == 1) {
-                require_once("../global/stripe-php-master/init.php");
+                require_once("../../global/stripe-php-master/init.php");
                 \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
                 $STRIPE_TOKEN = $_POST['token'];
                 $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
@@ -191,7 +192,6 @@ $customer_phone = $customer_data->fields['PHONE'];
 $customer_email = $customer_data->fields['EMAIL_ID'];
 $selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
 $selected_user_id = $customer_data->fields['PK_USER'];
-
 
     $res = $db->Execute("SELECT * FROM DOA_USERS JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
 
