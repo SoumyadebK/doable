@@ -40,7 +40,7 @@ if (!empty($_GET['view'])) {
     <div class="row">
         <div class="d-flex flex-column flex-md-row align-items-center py-2 px-4 bg-white border-bottomm box-shadow justify-content-end">
             <?php if($_SESSION['PK_ROLES'] == 2) { ?>
-            <div class="col-lg-5 new-top-menu">
+            <div class="col-md-6 new-top-menu">
                 <nav class="navbar navbar-expand-lg px-2 py-1">
                     <div class="collapse navbar-collapse" id="navbarNavDropdown">
                         <ul class="navbar-nav">
@@ -91,8 +91,8 @@ if (!empty($_GET['view'])) {
                 </nav>
             </div>
             <?php } ?>
-            <nav class="my-2 my-md-0 mr-md-3 new-top-nav">
-                <ul id="sidebarnav">
+            <nav class="my-2 my-md-0 mr-md-3 new-top-nav col-md-6">
+                <ul id="sidebarnav" style="float: right;">
                     <?php if($_SESSION['PK_ROLES'] == 1) { ?>
                         <li>
                             <a class="waves-effect waves-dark" href="../super_admin/all_accounts.php" aria-expanded="false">
@@ -240,4 +240,3 @@ if (!empty($_GET['view'])) {
         </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
