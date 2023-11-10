@@ -20,7 +20,7 @@ if (!empty($_GET['view'])){
     $view = 'table';
 }
 
-if (isset($_POST['FUNCTION_NAME'])){
+if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointmentData'){
     unset($_POST['TIME']);
     unset($_POST['FUNCTION_NAME']);
     if (empty($_POST['START_TIME']) || empty($_POST['END_TIME'])){
@@ -88,8 +88,8 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         db_perform_account('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " PK_GROUP_CLASS =  '$PK_GROUP_CLASS'");
     }
 
+    $db_account->Execute("DELETE FROM `DOA_GROUP_CLASS_CUSTOMER` WHERE `PK_GROUP_CLASS` = '$PK_GROUP_CLASS'");
     if (isset($_POST['PK_USER_MASTER'])) {
-        $db_account->Execute("DELETE FROM `DOA_GROUP_CLASS_CUSTOMER` WHERE `PK_GROUP_CLASS` = '$PK_GROUP_CLASS'");
         for ($i = 0; $i < count($_POST['PK_USER_MASTER']); $i++) {
             $GROUP_CLASS_USER_DATA['PK_GROUP_CLASS'] = $PK_GROUP_CLASS;
             $GROUP_CLASS_USER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$i];
