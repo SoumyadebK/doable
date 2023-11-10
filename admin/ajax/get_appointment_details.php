@@ -181,7 +181,7 @@ if(!empty($_POST) && $FUNCTION_NAME == 'confirmEnrollmentPayment'){
         $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
     }
 
-    header('location:customer.php?id='.$_GET['id'].'&master_id='.$_GET['master_id']);
+    header('location:all_schedules.php?view=table');
 }
 
 
