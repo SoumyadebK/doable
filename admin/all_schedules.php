@@ -420,6 +420,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             } $resourceIdArray = json_encode($resourceIdArray)?>
         ];
 
+        console.log(defaultResources);
+
         let appointmentArray = [
             <?php
             if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
