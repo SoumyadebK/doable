@@ -210,6 +210,19 @@ CREATE TABLE `DOA_DOCUMENT_LIBRARY` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `DOA_DOCUMENT_LOCATION`
+--
+
+CREATE TABLE `DOA_DOCUMENT_LOCATION` (
+  `PK_DOCUMENT_LOCATION` int(11) NOT NULL AUTO_INCREMENT,
+  `PK_DOCUMENT_LIBRARY` int(11) NOT NULL,
+  `PK_LOCATION` int(11) NOT NULL,
+  PRIMARY KEY (`PK_DOCUMENT_LOCATION`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `DOA_EMAIL`
 --
 

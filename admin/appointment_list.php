@@ -12,10 +12,10 @@ $results_per_page = 100;
 $START_DATE = ' ';
 $END_DATE = ' ';
 if (isset($_GET['START_DATE']) && $_GET['START_DATE'] != '') {
-    $START_DATE = " AND DOA_APPOINTMENT_MASTER.DATE >= '$_GET[START_DATE]'";
+    $START_DATE = " AND DOA_APPOINTMENT_MASTER.DATE >= '".date('Y-m-d', strtotime($_GET['START_DATE']))."'";
 }
 if (isset($_GET['END_DATE']) && $_GET['END_DATE'] != '') {
-    $END_DATE = " AND DOA_APPOINTMENT_MASTER.DATE <= '$_GET[END_DATE]'";
+    $END_DATE = " AND DOA_APPOINTMENT_MASTER.DATE <= '".date('Y-m-d', strtotime($_GET['END_DATE']))."'";
 }
 
 $search_text = '';
@@ -104,8 +104,8 @@ $page_first_result = ($page-1) * $results_per_page;
                 <div class="col-6">
                     <form class="form-material form-horizontal" action="" method="get">
                         <div class="input-group">
-                            <input type="date" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?=$_GET['START_DATE']?>">&nbsp;&nbsp;&nbsp;&nbsp;
-                            <input type="date" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date" value="<?=$_GET['END_DATE']?>">&nbsp;&nbsp;&nbsp;&nbsp;
+                            <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?=!empty($_GET['START_DATE'])?$_GET['START_DATE']:''?>">&nbsp;&nbsp;&nbsp;&nbsp;
+                            <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date" value="<?=!empty($_GET['END_DATE'])?$_GET['END_DATE']:''?>">&nbsp;&nbsp;&nbsp;&nbsp;
                             <input class="form-control" type="text" id="search_text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onsubmit="showListView(1)"><i class="fa fa-search"></i></button>
                         </div>
@@ -134,7 +134,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                     </tr>
                                     </thead>
 
-                                    <tbody >
+                                    <tbody>
                                     <?php
                                     $i=$page_first_result+1;
                                     if (isset($_GET['master_id']) && $_GET['master_id'] != '') {
@@ -217,7 +217,21 @@ $page_first_result = ($page-1) * $results_per_page;
 <?php require_once('../includes/footer.php');?>
 
 <script>
-    $(function() {
+    $(function () {
+        startDate = $("#START_DATE").datepicker({
+            numberOfMonths: 1,
+            onSelect: function(selected) {
+                $("#END_DATE").datepicker("option","minDate", selected);
+                $("#START_DATE, #END_DATE").trigger("change");
+            }
+        });
+        $("#END_DATE").datepicker({
+            numberOfMonths: 1,
+            onSelect: function(selected) {
+                $("#START_DATE").datepicker("option","maxDate", selected)
+            }
+        });
+
         const ths = $("th");
         let sortOrder = 1;
 
