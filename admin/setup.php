@@ -54,7 +54,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
             </div>
             <div class="row">
                 <div class="col-12 new-top-menu">
-                    <nav class="navbar navbar-expand-lg navbar-light bg-light px-2 py-1">
+                    <nav class="navbar navbar-expand-lg navbar bg-light px-2 py-1">
                         <div class="collapse navbar-collapse" id="navbarNavDropdown">
                             <ul class="navbar-nav">
                                 <li class="nav-item dropdown">

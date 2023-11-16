@@ -39,7 +39,7 @@ if (!empty($_GET['view'])) {
 <div id="top_bar" class="container-fluid p-0 nav-top-new topbar">
     <div class="row">
         <div class="d-flex flex-column flex-md-row align-items-center py-2 px-4 bg-white border-bottomm box-shadow justify-content-end">
-            <?php if($_SESSION['PK_ROLES'] == 2) { ?>
+            <?php /*if($_SESSION['PK_ROLES'] == 2) { */?><!--
             <div class="col-md-4 new-top-menu">
                 <nav class="navbar navbar-expand-lg px-2 py-1">
                     <div class="collapse navbar-collapse" id="navbarNavDropdown">
@@ -90,7 +90,7 @@ if (!empty($_GET['view'])) {
                     </div>
                 </nav>
             </div>
-            <?php } ?>
+            --><?php /*} */?>
             <nav class="my-2 my-md-0 mr-md-3 new-top-nav col-md-8">
                 <ul id="sidebarnav" style="float: right;">
                     <?php if($_SESSION['PK_ROLES'] == 1) { ?>
@@ -164,12 +164,12 @@ if (!empty($_GET['view'])) {
                                 <span class="hide-menu">Reports</span>
                             </a>
                         </li>
-                        <!--<li>
+                        <li>
                             <a class="waves-effect waves-dark" href="../admin/setup.php" aria-expanded="false">
                                 <i class="ti-settings"></i>
                                 <span class="hide-menu">Setup</span>
                             </a>
-                        </li>-->
+                        </li>
                     <?php } ?>
 
                     <?php if($_SESSION['PK_ROLES'] == 3) { ?>

@@ -19,11 +19,13 @@ if(!empty($_GET['customer_id'])) {
 $package = $db_account->Execute("SELECT IS_PACKAGE FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
 $IS_PACKAGE = $package->fields['IS_PACKAGE'];
 
+$ENROLLMENT_NAME = '';
 $PK_LOCATION = '';
 $PK_AGREEMENT_TYPE = '';
 $PK_DOCUMENT_LIBRARY = '';
 $AGREEMENT_PDF_LINK = '';
 $ENROLLMENT_BY_ID = $_SESSION['PK_USER'];
+$MEMO = '';
 $ACTIVE = '';
 
 $PK_ENROLLMENT_BILLING = '';
@@ -57,11 +59,13 @@ if(!empty($_GET['id'])) {
     }
 
     $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
+    $ENROLLMENT_NAME = $res->fields['ENROLLMENT_NAME'];
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
     $PK_DOCUMENT_LIBRARY = $res->fields['PK_DOCUMENT_LIBRARY'];
     $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
     $ENROLLMENT_BY_ID = $res->fields['ENROLLMENT_BY_ID'];
+    $MEMO = $res->fields['MEMO'];
     $ACTIVE = $res->fields['ACTIVE'];
 
     $billing_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
@@ -724,7 +728,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                         <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                         <div class="p-20">
                                             <div class="row">
-                                                <div class="col-6">
+                                                <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Customer<span class="text-danger">*</span></label><br>
                                                         <select required name="PK_USER_MASTER" id="PK_USER_MASTER" onchange="selectThisCustomer(this);">
@@ -737,7 +741,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div class="col-6">
+                                                <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Location<span class="text-danger">*</span></label>
                                                         <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION">
@@ -747,6 +751,29 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                             while (!$row->EOF) { ?>
                                                                 <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($PK_LOCATION == $row->fields['PK_LOCATION'])?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Enrollment Name</label>
+                                                        <input type="text" id="ENROLLMENT_NAME" name="ENROLLMENT_NAME" class="form-control" placeholder="Enter Enrollment Name" value="<?=$ENROLLMENT_NAME?>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Packages</label>
+                                                        <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
+                                                            <option>Select</option>
+                                                            <?php
+                                                            $enrollment_package_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
+                                                            $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_PACKAGE=DOA_PACKAGE.PK_PACKAGE WHERE DOA_PACKAGE.ACTIVE = 1 ORDER BY DOA_PACKAGE.PACKAGE_NAME");
+                                                            while (!$row->EOF) { ?>
+                                                                <option value="<?php echo $row->fields['PK_PACKAGE'];?>" <?=($row->fields['PK_PACKAGE'] == $enrollment_package_data->fields['PK_PACKAGE'])?'selected':''?>><?=$row->fields['PACKAGE_NAME']?></option>
+                                                                <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -868,7 +895,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                                 <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
                                                                     <option>Select</option>
                                                                     <?php
-                                                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_MASTER.IS_PACKAGE FROM DOA_SERVICE_MASTER JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+                                                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_MASTER.IS_PACKAGE FROM DOA_SERVICE_MASTER JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.IS_PACKAGE=0 AND DOA_SERVICE_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
                                                                     while (!$row->EOF) { ?>
                                                                         <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>" data-is_package="<?=$row->fields['IS_PACKAGE']?>"><?=$row->fields['SERVICE_NAME']?></option>
                                                                     <?php $row->MoveNext(); } ?>
@@ -970,6 +997,15 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                                 <option value="<?php echo $row->fields['PK_USER'];?>" <?=($ENROLLMENT_BY_ID == $row->fields['PK_USER'])?'selected':''?>><?=$row->fields['NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>
                                                         </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Memo</label>
+                                                        <textarea class="form-control" name="MEMO" rows="3"><?=$MEMO?></textarea>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1717,7 +1753,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             });
         }
 
-        if (IS_PACKAGE === 1) {
+       /* if (IS_PACKAGE === 1) {
             $.ajax({
                 url: "ajax/get_package_service_codes.php",
                 type: "POST",
@@ -1727,7 +1763,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 success: function (result) {
                     $('.service_name').remove();
                     $('.service_div').remove();
-                    $('#add_more').hide();
+                    $('#add_more').show();
                     $('#append_service_div').html(result);
                     PACKAGE_SET = 1;
                 }
@@ -1742,7 +1778,28 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $('.PK_SERVICE_CODE').empty();
                 $('.PK_SERVICE_CODE').append(SERVICE_CODE_RESULT);
             }
+        }*/
+    }
+
+    function selectThisPackage(param) {
+        let PK_PACKAGE = $(param).val();
+        if (PK_PACKAGE != 'Select') {
+            $.ajax({
+                url: "ajax/get_packages.php",
+                type: "POST",
+                data: {PK_PACKAGE: PK_PACKAGE},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    console.log(result)
+                    $('.service_name').remove();
+                    $('.service_div').remove();
+                    $('#add_more').show();
+                    $('#append_service_div').html(result);
+                }
+            });
         }
+
     }
 
 
