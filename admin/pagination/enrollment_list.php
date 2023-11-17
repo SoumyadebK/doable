@@ -63,10 +63,12 @@ while (!$row->EOF) {
             $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
             if ($serviceCodeData->RecordCount()>0) {
                 $number_of_sessions = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+            }else{
+                $number_of_sessions=0;
             }
-            if ($total_paid_session_count > $serviceCodeData->fields['NUMBER_OF_SESSION']) {
-                $paid_session_count = $serviceCodeData->fields['NUMBER_OF_SESSION'];
-                $total_paid_session_count -= $serviceCodeData->fields['NUMBER_OF_SESSION'];
+            if ($total_paid_session_count > $number_of_sessions) {
+                $paid_session_count = $number_of_sessions;
+                $total_paid_session_count -= $number_of_sessions;
             } else {
                 $paid_session_count = $total_paid_session_count;
                 $total_paid_session_count = 0;
@@ -78,7 +80,7 @@ while (!$row->EOF) {
                 </div>
             <?php } ?>
             <div class="col-12">
-                <table id="myTable" class="table table-striped border">
+                <table id="myTable" class="table <?php if ($serviceCodeData->fields['NUMBER_OF_SESSION']==$paid_session_count) { echo 'table-success' ;}else{echo "table-striped";}?> border">
                     <thead>
                     <tr>
                         <th></th>
@@ -114,9 +116,10 @@ while (!$row->EOF) {
                                 }
                                 ?>
                             </td>
-                            <td><?=$paid_session_count?></td>
+                            <td><?=$used_session_count->fields['USED_SESSION_COUNT']?></td>
                             <td><?=$serviceCodeData->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']?></td>
-                            <td><?=($total_bill_and_paid->fields['TOTAL_BILL']==0) ? 0 : $serviceCodeData->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']?></td>
+                            <td><?=$paid_session_count-$used_session_count->fields['USED_SESSION_COUNT']?></td>
+                            <!--<td><?php /*=($total_bill_and_paid->fields['TOTAL_BILL']==0) ? 0 : $serviceCodeData->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']*/?></td>-->
                         </tr>
                         <?php $serviceCodeData->MoveNext();
                     } ?>
@@ -147,7 +150,7 @@ while (!$row->EOF) {
                 <?php
                 $details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
                 if ($number_of_sessions!=$paid_session_count) {
-                ?><input type="checkbox" id="toggleEnrollment_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" onclick="toggleEnrollmentCheckboxes(<?=$row->fields['PK_ENROLLMENT_MASTER']?>)"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay Selected</button>
+                ?><input type="checkbox" id="toggleEnrollment_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" onclick="toggleEnrollmentCheckboxes(<?=$row->fields['PK_ENROLLMENT_MASTER']?>)"/><button type="button" class="btn btn-info m-l-5 text-white" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay Selected</button>
                 <?php } ?>
                 </th>
 

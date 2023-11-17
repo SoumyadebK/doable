@@ -23,8 +23,14 @@ $page_first_result = ($page-1) * $results_per_page;
 <?php $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); ?>
 <?php
 $i=$page_first_result+1;
-$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.CREATED_ON FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.CREATED_ON FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
 while (!$row->EOF) {
+    $name = $row->fields['ENROLLMENT_NAME'];
+    if(empty($name)){
+        $enrollment_name = ' ';
+    }else {
+        $enrollment_name = "$name"." - ";
+    }
     $serviceMasterData = $db_account->Execute("SELECT DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
     $serviceMaster = [];
     while (!$serviceMasterData->EOF) {
@@ -50,7 +56,7 @@ while (!$row->EOF) {
     <div class="border" style="margin: 10px;">
         <div class="row" onclick="$(this).next().slideToggle();" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
             <div class="col-2" style="text-align: center; margin-top: 1.5%;">
-                <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>"><?=$row->fields['ENROLLMENT_ID']?></a>
+                <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>"><?=$enrollment_name.$row->fields['ENROLLMENT_ID']?></a>
                 <p><?=implode(' || ', $serviceMaster)?></p>
                 <p><?=date('m/d/Y', strtotime($row->fields['CREATED_ON']))?></p>
             </div>
@@ -61,6 +67,8 @@ while (!$row->EOF) {
                 $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                 if ($serviceCodeData->RecordCount()>0) {
                     $number_of_sessions = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                }else{
+                    $number_of_sessions=0;
                 }
                 if ($total_paid_session_count > $number_of_sessions) {
                     $paid_session_count = $number_of_sessions;
@@ -128,9 +136,6 @@ while (!$row->EOF) {
                 <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
             </div>
             <?php } ?>
-            <!--<div class="col-2" style="text-align: center; margin-top: 1.5%;">
-                <p>Wallet Balance : $<?php /*=$balance*/?></p>
-            </div>-->
         </div>
 
         <table id="myTable" class="table table-striped border" style="display: none">
@@ -221,7 +226,6 @@ while (!$row->EOF) {
                 $j++; } ?>
             </tbody>
         </table>
-
     </div>
     <?php
         $row->MoveNext();

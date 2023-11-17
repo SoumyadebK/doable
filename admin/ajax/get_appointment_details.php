@@ -2444,9 +2444,7 @@ z-index: 500;
                         $('#family_tab_link')[0].click();
                     }
                 }else{
-                    let PK_USER = $('.PK_USER').val();
-                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                    window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
+                    window.location.href='all_schedules.php?view=table';
                 }
             }
         });
@@ -2479,9 +2477,7 @@ z-index: 500;
                                     if (PK_USER == 0) {
                                         $('#family_tab_link')[0].click();
                                     } else {
-                                        let PK_USER = $('.PK_USER').val();
-                                        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                                        window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
+                                        window.location.href='all_schedules.php?view=table';
                                     }
                                 }
                             });
@@ -2499,9 +2495,7 @@ z-index: 500;
                         if (PK_USER == 0) {
                             $('#family_tab_link')[0].click();
                         } else {
-                            let PK_USER = $('.PK_USER').val();
-                            let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                            window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
+                            window.location.href='all_schedules.php?view=table';
                         }
                     }
                 });
@@ -2522,9 +2516,7 @@ z-index: 500;
                 if (PK_USER == 0) {
                     $('#interest_tab_link')[0].click();
                 }else{
-                    let PK_USER = $('.PK_USER').val();
-                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                    window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
+                    window.location.href='all_schedules.php?view=table';
                 }
             }
         });
@@ -2541,9 +2533,7 @@ z-index: 500;
                 if (PK_USER == 0) {
                     $('#document_tab_link')[0].click();
                 }else{
-                    let PK_USER = $('.PK_USER').val();
-                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                    window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
+                    window.location.href='all_schedules.php?view=table';
                 }
             }
         });
@@ -2559,9 +2549,7 @@ z-index: 500;
             processData: false,
             contentType: false,
             success:function (data) {
-                let PK_USER = $('.PK_USER').val();
-                let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
+                window.location.href='all_schedules.php?view=table';
             }
         });
     });
