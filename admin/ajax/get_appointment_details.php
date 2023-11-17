@@ -249,7 +249,15 @@ $selected_user_id = $customer_data->fields['PK_USER'];
 
 <!DOCTYPE html>
 <html lang="en">
+<style>
+#paymentModel {
+z-index: 500;
+}
 
+#commentModel {
+    z-index: 500;
+}
+</style>
 <!-- Nav tabs -->
 <?php if(!empty($_GET['tab'])) { ?>
     <ul class="nav nav-tabs" role="tablist">
@@ -1508,7 +1516,24 @@ $selected_user_id = $customer_data->fields['PK_USER'];
 
     <div class="tab-pane" id="enrollment" role="tabpanel">
         <div class="row">
-            <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="createEnrollment();" style="width: 120px; float: right"><i class="fa fa-plus-circle"></i> Enrollment</a>
+            <div class="col-6 d-flex justify-content-end align-items-center" style="font-weight: bold; font-size: 15px; margin-top: 15px">
+                <?php
+                $row = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT) AS TOTAL_BILL, SUM(DOA_ENROLLMENT_LEDGER.PAID_AMOUNT) AS TOTAL_PAID, SUM(DOA_ENROLLMENT_LEDGER.BALANCE) AS BALANCE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$PK_USER_MASTER'");
+                if($row->RecordCount()>0){
+                    $balance = $row->fields['TOTAL_BILL'] - $row->fields['TOTAL_PAID'];
+                } else{
+                    $balance = 0;
+                }
+                ?>
+                <p>Wallet Balance : $<?=$balance?></p>
+            </div>
+            <div class="col-6 d-flex justify-content-end align-items-center">
+                <?php
+                $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$PK_USER_MASTER' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+                ?>
+                <input type="checkbox" id="toggleAll" onclick="toggleAllCheckboxes()"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="payAll(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay All</button>
+                <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="createEnrollment();" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
+            </div>
         </div>
         <div id="enrollment_list" class="p-20">
 
@@ -1984,7 +2009,7 @@ $selected_user_id = $customer_data->fields['PK_USER'];
             processData: false,
             contentType: false,
             success:function (data) {
-                window.location.href=`customer.php?id=${PK_USER}&master_id=${PK_USER_MASTER}&on_tab=comments`;
+                window.location.href='all_schedules.php?view=table';
             }
         });
     });
@@ -1997,7 +2022,7 @@ $selected_user_id = $customer_data->fields['PK_USER'];
                 type: 'POST',
                 data: {FUNCTION_NAME: 'deleteCommentData', PK_COMMENT: PK_COMMENT},
                 success: function (data) {
-                    window.location.href = `customer.php?id=${PK_USER}&master_id=${PK_USER_MASTER}&on_tab=comments`;
+                    window.location.href='all_schedules.php?view=table';
                 }
             });
         }
@@ -2940,6 +2965,31 @@ $selected_user_id = $customer_data->fields['PK_USER'];
                 }
             });
         }
+    }
+</script>
+
+<script>
+    function payAll(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
+        let BILLED_AMOUNT = [];
+        let PK_ENROLLMENT_LEDGER = [];
+
+        $(".BILLED_AMOUNT:checked").each(function() {
+            BILLED_AMOUNT.push($(this).val());
+            PK_ENROLLMENT_LEDGER.push($(this).data('pk_enrollment_ledger'));
+        });
+
+        let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
+
+        function getSum(total, num) {
+            return total + Math.round(num);
+        }
+
+        $('#enrollment_number').text(ENROLLMENT_ID);
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#AMOUNT_TO_PAY_CUSTOMER').val(parseFloat(TOTAL).toFixed(2));
+        $('#payment_confirmation_form_div_customer').slideDown();
+        openPaymentModel();
     }
 </script>
 

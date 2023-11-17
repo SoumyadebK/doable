@@ -23,7 +23,7 @@ $page_first_result = ($page-1) * $results_per_page;
 <?php $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); ?>
 <?php
 $i=$page_first_result+1;
-$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.CREATED_ON FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
 while (!$row->EOF) {
     $serviceMasterData = $db_account->Execute("SELECT DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
     $serviceMaster = [];
@@ -49,13 +49,34 @@ while (!$row->EOF) {
     ?>
     <div class="border" style="margin: 10px;">
         <div class="row" onclick="$(this).next().slideToggle();" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
-            <div class="col-6" style="text-align: center; margin-top: 1.5%;">
+            <div class="col-5" style="text-align: center; margin-top: 1.5%;">
                 <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>"><?=$row->fields['ENROLLMENT_ID']?></a>
                 <p><?=implode(' || ', $serviceMaster)?></p>
             </div>
-            <div class="col-6" style="text-align: center; margin-top: 1.5%;">
-                <p>Wallet Balance : $<?=$balance?></p>
+            <div class="col-5" style="text-align: center; margin-top: 1.5%;">
+               <!-- <p>Wallet Balance : $<?php /*=$balance*/?></p>-->
+                <p><?=date('m/d/Y', strtotime($row->fields['CREATED_ON']))?></p>
             </div>
+            <?php
+            $per_session_cost = $total_bill_and_paid->fields['TOTAL_BILL']/(($total_session_count==0)?1:$total_session_count);
+            $total_paid_session_count = ceil($total_bill_and_paid->fields['TOTAL_PAID']/(($per_session_cost==0)?1:$per_session_cost));
+            $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+            if ($serviceCodeData->RecordCount()>0) {
+                $number_of_sessions = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+            }
+            if ($total_paid_session_count > $serviceCodeData->fields['NUMBER_OF_SESSION']) {
+                $paid_session_count = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                $total_paid_session_count -= $serviceCodeData->fields['NUMBER_OF_SESSION'];
+            } else {
+                $paid_session_count = $total_paid_session_count;
+                $total_paid_session_count = 0;
+            }
+            if ($number_of_sessions==$paid_session_count) {
+                ?>
+                <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
+                    <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
+                </div>
+            <?php } ?>
             <div class="col-12">
                 <table id="myTable" class="table table-striped border">
                     <thead>
@@ -74,6 +95,9 @@ while (!$row->EOF) {
                     $per_session_cost = $total_bill_and_paid->fields['TOTAL_BILL']/(($total_session_count==0)?1:$total_session_count);
                     $total_paid_session_count = ceil($total_bill_and_paid->fields['TOTAL_PAID']/(($per_session_cost==0)?1:$per_session_cost));
                     $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                    if ($serviceCodeData->RecordCount()>0) {
+                        $number_of_sessions = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                    }
                     while (!$serviceCodeData->EOF) {
                         $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$serviceCodeData->fields['PK_SERVICE_CODE']); ?>
                         <tr>
@@ -119,10 +143,14 @@ while (!$row->EOF) {
                 <th>Paid Amount</th>
                 <th>Payment Type</th>
                 <th>Balance</th>
+                <th>
                 <?php
                 $details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
-                ?>
-                <th><input type="checkbox" id="toggleEnrollment_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" onclick="toggleEnrollmentCheckboxes(<?=$row->fields['PK_ENROLLMENT_MASTER']?>)"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay Selected</button></th>
+                if ($number_of_sessions!=$paid_session_count) {
+                ?><input type="checkbox" id="toggleEnrollment_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" onclick="toggleEnrollmentCheckboxes(<?=$row->fields['PK_ENROLLMENT_MASTER']?>)"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay Selected</button>
+                <?php } ?>
+                </th>
+
             </tr>
             </thead>
 
@@ -196,7 +224,6 @@ while (!$row->EOF) {
                 $j++; } ?>
             </tbody>
         </table>
-
     </div>
     <?php
     $row->MoveNext();
