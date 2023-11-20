@@ -97,12 +97,12 @@ $page_first_result = ($page-1) * $results_per_page;
                                 <table id="myTable1" class="table table-striped border">
                                     <thead>
                                     <tr>
-                                        <th data-type="number" style="cursor: pointer;">No <i class='fas fa-sort'></i></th>
+                                        <th data-type="number" style="cursor: pointer">No <i class='fas fa-sort'></i></th>
                                         <th data-type="string" style="width:20%; cursor: pointer;">Name <i class='fas fa-sort'></i></th>
                                         <th data-type="string" style="width:10%; cursor: pointer;">Customer ID <i class='fas fa-sort'></i></th>
                                         <th data-type="string" style="width:20%; cursor: pointer;">Email Id <i class='fas fa-sort'></i></th>
                                         <th data-type="string" style="width:12%; cursor: pointer;">Phone <i class='fas fa-sort'></i></th>
-                                        <th data-type="number" style="width:10%; cursor: pointer;">Total Paid <i class='fas fa-sort'></i></th>
+                                        <th data-type="number" style="width:10%; cursor: pointer; ">Total Paid <i class='fas fa-sort'></i></th>
                                         <th data-type="number" style="width:10%; cursor: pointer;">Balance <i class='fas fa-sort'></i></th>
                                         <th style="width:10%;">Actions</th>
                                     </tr>
@@ -132,8 +132,8 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['USER_NAME']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['EMAIL_ID']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['PHONE']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format($total_paid, 2))?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format($total_paid-$total_used, 2))?></td>
+                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format($total_paid, 2))?></td>
+                                            <td style="text-align: right"  onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format($total_paid-$total_used, 2))?></td>
                                             <td style="margin-top: auto; margin-bottom: auto">
                                                 <?php if($row->fields['EMAIL_ID']): ?>
                                                     <a class="waves-dark" href="compose.php?sel_uid=<?=$row->fields['PK_USER']?>" aria-haspopup="true" aria-expanded="false" title="Email"><i class="ti-email" style="font-size: 20px;"></i>
