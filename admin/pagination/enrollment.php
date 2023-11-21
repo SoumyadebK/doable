@@ -78,15 +78,22 @@ while (!$row->EOF) {
                     $total_paid_session_count = 0;
                 }
                 ?>
-                <table id="myTable" class="table <?php if ($serviceCodeData->fields['NUMBER_OF_SESSION']==$paid_session_count) { echo 'table-success' ;}else{echo "table-striped";}?> border">
+                <table id="myTable" class="table <?php
+                $details = $db_account->Execute("SELECT  DOA_PAYMENT_TYPE.PAYMENT_TYPE, count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                if($details->RecordCount()>0){
+                    $paid_count = $details->fields['PAID'];
+                } else {
+                    $paid_count = 0;
+                }
+                if ($paid_count==0) { echo 'table-success' ;}else{echo "table-striped";}?> border">
                     <thead>
                     <tr>
                         <th></th>
-                        <th>Enrolled</th>
-                        <th>Paid</th>
-                        <th>Used</th>
-                        <th>Balance</th>
-                        <th>Service Credit</th>
+                        <th style="text-align: center;">Enrolled</th>
+                        <th style="text-align: center;">Paid</th>
+                        <th style="text-align: center;">Used</th>
+                        <th style="text-align: center;">Balance</th>
+                        <th style="text-align: center;">Service Credit</th>
                     </tr>
                     </thead>
 
@@ -99,8 +106,8 @@ while (!$row->EOF) {
                         $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$serviceCodeData->fields['PK_SERVICE_CODE']); ?>
                         <tr>
                             <td><?=$serviceCodeData->fields['SERVICE_CODE']?></td>
-                            <td><?=$serviceCodeData->fields['NUMBER_OF_SESSION']?></td>
-                            <td>
+                            <td style="text-align: right"><?=$serviceCodeData->fields['NUMBER_OF_SESSION']?></td>
+                            <td style="text-align: right">
                                 <?php
                                 if ($total_paid_session_count > $serviceCodeData->fields['NUMBER_OF_SESSION']) {
                                     echo $paid_session_count = $serviceCodeData->fields['NUMBER_OF_SESSION'];
@@ -111,27 +118,33 @@ while (!$row->EOF) {
                                 }
                                 ?>
                             </td>
-                            <td><?=$used_session_count->fields['USED_SESSION_COUNT']?></td>
-                            <td><?=$serviceCodeData->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']?></td>
+                            <td style="text-align: right;"><?=$used_session_count->fields['USED_SESSION_COUNT']?></td>
+                            <td style="text-align: right;"><?=$serviceCodeData->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']?></td>
                             <!--<td><?php /*=($total_bill_and_paid->fields['TOTAL_BILL']==0) ? 0 : $serviceCodeData->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']*/?></td>-->
-                            <td><?=$paid_session_count-$used_session_count->fields['USED_SESSION_COUNT']?></td>
+                            <td style="text-align: right;"><?=$paid_session_count-$used_session_count->fields['USED_SESSION_COUNT']?></td>
                         </tr>
                     <?php $serviceCodeData->MoveNext();
                     } ?>
                     <tr>
                         <td>Amount</td>
-                        <td><?=$total_amount->fields['TOTAL_AMOUNT']?></td>
-                        <td><?=$total_bill_and_paid->fields['TOTAL_PAID']?></td>
-                        <td><?=$total_used?></td>
-                        <td><?=$total_amount->fields['TOTAL_AMOUNT']-$total_bill_and_paid->fields['TOTAL_PAID']?></td>
-                        <td><?=$service_credit?></td>
+                        <td style="text-align: right;"><?=$total_amount->fields['TOTAL_AMOUNT']?></td>
+                        <td style="text-align: right;"><?=$total_bill_and_paid->fields['TOTAL_PAID']?></td>
+                        <td style="text-align: right;"><?=$total_used?></td>
+                        <td style="text-align: right;"><?=$total_amount->fields['TOTAL_AMOUNT']-$total_bill_and_paid->fields['TOTAL_PAID']?></td>
+                        <td style="text-align: right;"><?=$service_credit?></td>
                     </tr>
                     </tbody>
                 </table>
             </div>
             <?php
-            if ($number_of_sessions==$paid_session_count) {
-            ?>
+            $details = $db_account->Execute("SELECT  DOA_PAYMENT_TYPE.PAYMENT_TYPE, count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+            if($details->RecordCount()>0){
+                $paid_count = $details->fields['PAID'];
+            } else {
+                $paid_count = 0;
+            }
+            if ($paid_count == 0){
+                ?>
             <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
                 <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
             </div>
@@ -143,16 +156,23 @@ while (!$row->EOF) {
                 <tr>
                     <th>Due Date</th>
                     <th>Transaction Type</th>
-                    <th>Billed Amount</th>
-                    <th>Paid Amount</th>
-                    <th>Payment Type</th>
-                    <th>Balance</th>
+                    <th style="text-align: center;">Billed Amount</th>
+                    <th style="text-align: center;">Paid Amount</th>
+                    <th style="text-align: center;">Payment Type</th>
+                    <th style="text-align: center;">Balance</th>
+                    <th>
                     <?php
-                    $details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE, count(IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
-                    if ($number_of_sessions!=$paid_session_count){
+                    $details = $db_account->Execute("SELECT  DOA_PAYMENT_TYPE.PAYMENT_TYPE, count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+                    if($details->RecordCount()>0){
+                        $paid_count = $details->fields['PAID'];
+                    } else {
+                        $paid_count = 0;
+                    }
+                    if ($paid_count > 0){
                     ?>
-                    <th><input type="checkbox" id="toggleEnrollment_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" onclick="toggleEnrollmentCheckboxes(<?=$row->fields['PK_ENROLLMENT_MASTER']?>)"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay Selected</button></th>
+                    <input type="checkbox" id="toggleEnrollment_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" onclick="toggleEnrollmentCheckboxes(<?=$row->fields['PK_ENROLLMENT_MASTER']?>)"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay Selected</button>
                     <?php } ?>
+                    </th>
                 </tr>
             </thead>
 
@@ -166,10 +186,10 @@ while (!$row->EOF) {
                 <tr>
                     <td><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
                     <td><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
-                    <td><?=$billing_details->fields['BILLED_AMOUNT']?></td>
+                    <td style="text-align: right;"><?=$billing_details->fields['BILLED_AMOUNT']?></td>
                     <td></td>
-                    <td><?=$billing_details->fields['PAYMENT_TYPE']?></td>
-                    <td><?=number_format((float)$balance, 2, '.', '')?></td>
+                    <td style="text-align: center;"><?=$billing_details->fields['PAYMENT_TYPE']?></td>
+                    <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
                     <td>
                         <?php if($billing_details->fields['IS_PAID']==0 && $billing_details->fields['STATUS']=='A') { ?>
                         <label><input type="checkbox" name="BILLED_AMOUNT[]" class="BILLED_AMOUNT PAYMENT_CHECKBOX_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" data-pk_enrollment_ledger="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>" value="<?=$billing_details->fields['BILLED_AMOUNT']?>"</label>
@@ -184,9 +204,9 @@ while (!$row->EOF) {
                         <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
                         <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
                         <td></td>
-                        <td><?=$payment_details->fields['PAID_AMOUNT']?></td>
-                        <td><?=$payment_details->fields['PAYMENT_TYPE']?></td>
-                        <td><?=number_format((float)$balance, 2, '.', '')?></td>
+                        <td style="text-align: right;"><?=$payment_details->fields['PAID_AMOUNT']?></td>
+                        <td style="text-align: center;"><?=$payment_details->fields['PAYMENT_TYPE']?></td>
+                        <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
                         <td>
                         </td>
                     </tr>
@@ -196,13 +216,13 @@ while (!$row->EOF) {
 
             <thead>
                 <tr>
-                    <th>Service</th>
-                    <th>Apt #</th>
-                    <th>Service Code</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Session Cost</th>
-                    <th>Service Credit</th>
+                    <th style="text-align: left;">Service</th>
+                    <th style="text-align: left;">Apt #</th>
+                    <th style="text-align: left;">Service Code</th>
+                    <th style="text-align: center;">Date</th>
+                    <th style="text-align: center;">Time</th>
+                    <th style="text-align: center;">Session Cost</th>
+                    <th style="text-align: center;">Service Credit</th>
                 </tr>
             </thead>
 
@@ -214,13 +234,13 @@ while (!$row->EOF) {
             while (!$appointment_data->EOF) {
                 $total_session_cost += $price_per_session; ?>
                 <tr>
-                    <td><?=$appointment_data->fields['SERVICE_NAME']?></td>
-                    <td><?=$j.'/'.$total_session_count?></td>
-                    <td><?=$appointment_data->fields['SERVICE_CODE']?></td>
-                    <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
-                    <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                    <td><?=number_format((float)$price_per_session, 2, '.', ',');?></td>
-                    <td style="color:<?=(($total_paid-$total_session_cost)<0)?'red':'black'?>;"><?=number_format((float)($total_paid-$total_session_cost), 2, '.', ',');?></td>
+                    <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_NAME']?></td>
+                    <td style="text-align: left;"><?=$j.'/'.$total_session_count?></td>
+                    <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_CODE']?></td>
+                    <td style="text-align: center;"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
+                    <td style="text-align: center;"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
+                    <td style="text-align: right;"><?=number_format((float)$price_per_session, 2, '.', ',');?></td>
+                    <td style="color:<?=(($total_paid-$total_session_cost)<0)?'red':'black'?>; text-align: right;"><?=number_format((float)($total_paid-$total_session_cost), 2, '.', ',');?></td>
                 </tr>
                 <?php $appointment_data->MoveNext();
                 $j++; } ?>

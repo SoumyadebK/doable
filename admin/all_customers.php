@@ -40,10 +40,39 @@ $page_first_result = ($page-1) * $results_per_page;
 ?>
 
 <!DOCTYPE html>
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 <style>
     table th{
         font-weight:bold;
     }
+
+    /* Table sort indicators */
+
+    th.sortable {
+        position: relative;
+        cursor: pointer;
+    }
+
+    th.sortable::after {
+        font-family: FontAwesome;
+        content: "\f0dc";
+        position: absolute;
+        right: 8px;
+        color: #999;
+    }
+
+    th.sortable.asc::after {
+        content: "\f0d8";
+    }
+
+    th.sortable.desc::after {
+        content: "\f0d7";
+    }
+
+    th.sortable:hover::after {
+        color: #333;
+    }
+
 </style>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
@@ -97,13 +126,13 @@ $page_first_result = ($page-1) * $results_per_page;
                                 <table id="myTable1" class="table table-striped border">
                                     <thead>
                                     <tr>
-                                        <th data-type="number" style="cursor: pointer">No <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="width:20%; cursor: pointer;">Name <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="width:10%; cursor: pointer;">Customer ID <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="width:20%; cursor: pointer;">Email Id <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="width:12%; cursor: pointer;">Phone <i class='fas fa-sort'></i></th>
-                                        <th data-type="number" style="width:10%; cursor: pointer; ">Total Paid <i class='fas fa-sort'></i></th>
-                                        <th data-type="number" style="width:10%; cursor: pointer;">Balance <i class='fas fa-sort'></i></th>
+                                        <th data-type="number" class="sortable" style="cursor: pointer">No</th>
+                                        <th data-type="string" class="sortable" style="width:20%; cursor: pointer;">Name</th>
+                                        <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Customer ID</th>
+                                        <th data-type="string" class="sortable" style="width:20%; cursor: pointer;">Email Id</th>
+                                        <th data-type="string" class="sortable" style="width:12%; cursor: pointer;">Phone</th>
+                                        <th data-type="number" class="sortable" style="width:10%; cursor: pointer; ">Total Paid</th>
+                                        <th data-type="number" class="sortable" style="width:10%; cursor: pointer;">Balance</th>
                                         <th style="width:10%;">Actions</th>
                                     </tr>
                                     </thead>
@@ -344,7 +373,7 @@ $page_first_result = ($page-1) * $results_per_page;
 
 
 
-    var aoColumns = [];
+/*    var aoColumns = [];
 
     var $tableTh = $(".data-table th , .dataTable th");
     if($tableTh.length) {
@@ -359,7 +388,7 @@ $page_first_result = ($page-1) * $results_per_page;
         });
 
 
-    };
+    };*/
 
 
 
@@ -392,8 +421,8 @@ $page_first_result = ($page-1) * $results_per_page;
 </script>
 //end sorting
 
-<script>
-        $('#myTable1').dataTable( {
+<!--<script>
+        $('#myTable').dataTable( {
                columnDefs: [
                      { type: 'numeric-comma', targets: 0 }
                    ]
@@ -420,5 +449,23 @@ $page_first_result = ($page-1) * $results_per_page;
         ]
     });
 
+</script>-->
+<script>
+    var sortable = $('.sortable');
+
+    sortable.on('click', function(){
+
+        var sort = $(this);
+        var asc = sort.hasClass('asc');
+        var desc = sort.hasClass('desc');
+        sortable.removeClass('asc').removeClass('desc');
+        if (desc || (!asc && !desc)) {
+            sort.addClass('asc');
+        } else {
+            sort.addClass('desc');
+        }
+
+    });
+</script>
 </body>
 </html>
