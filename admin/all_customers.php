@@ -247,7 +247,7 @@ $page_first_result = ($page-1) * $results_per_page;
         ths.on("click", function() {
             const rows = sortRows(this);
             rebuildTbody(rows);
-            updateClassName(this);
+            //updateClassName(this);
             sortOrder *= -1; //反転
         })
 
@@ -294,13 +294,13 @@ $page_first_result = ($page-1) * $results_per_page;
             }
         }
 
-        function updateClassName(th) {
+        /*function updateClassName(th) {
             let k;
             for (k=0; k<ths.length; k++) {
                 ths[k].className = "";
             }
-            th.className = sortOrder === 1 ? "asc" : "desc";
-        }
+            th.className = sortOrder === 1 ? "sortable asc" : "sortable desc";
+        }*/
 
     });
 </script>
@@ -373,7 +373,7 @@ $page_first_result = ($page-1) * $results_per_page;
 
 
 
-/*    var aoColumns = [];
+    var aoColumns = [];
 
     var $tableTh = $(".data-table th , .dataTable th");
     if($tableTh.length) {
@@ -388,7 +388,7 @@ $page_first_result = ($page-1) * $results_per_page;
         });
 
 
-    };*/
+    };
 
 
 

@@ -115,6 +115,35 @@ function currentWeekRange($date): array
 ?>
 
 <!DOCTYPE html>
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+    /* Table sort indicators */
+
+    th.sortable {
+        position: relative;
+        cursor: pointer;
+    }
+
+    th.sortable::after {
+        font-family: FontAwesome;
+        content: "\f0dc";
+        position: absolute;
+        right: 8px;
+        color: #999;
+    }
+
+    th.sortable.asc::after {
+        content: "\f0d8";
+    }
+
+    th.sortable.desc::after {
+        content: "\f0d7";
+    }
+
+    th.sortable:hover::after {
+        color: #333;
+    }
+</style>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
 <body class="skin-default-dark fixed-layout">
@@ -199,12 +228,12 @@ function currentWeekRange($date): array
                                     <thead>
                                     <tr>
                                         <th><input type="checkbox" onClick="toggle(this)" /></th>
-                                        <th data-type="string" style="cursor: pointer">Customer <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="cursor: pointer">Enrollment ID <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="cursor: pointer"><?=$service_provider_title?> <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="cursor: pointer">Day <i class='fas fa-sort'></i></th>
-                                        <th data-type="datetime" style="cursor: pointer">Date <i class='fas fa-sort'></i></th>
-                                        <th data-type="time" style="cursor: pointer">Time <i class='fas fa-sort'></i></th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer">Enrollment ID</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer"><?=$service_provider_title?></th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer">Day</th>
+                                        <th data-type="datetime" class="sortable" style="cursor: pointer">Date</th>
+                                        <th data-type="time" class="sortable" style="cursor: pointer">Time</th>
                                         <th>Paid</th>
                                         <th>Actions</th>
                                     </tr>
@@ -420,7 +449,7 @@ function currentWeekRange($date): array
         ths.on("click", function() {
             const rows = sortRows(this);
             rebuildTbody(rows);
-            updateClassName(this);
+            //updateClassName(this);
             sortOrder *= -1; //反転
         })
 
@@ -467,13 +496,13 @@ function currentWeekRange($date): array
             }
         }
 
-        function updateClassName(th) {
+        /*function updateClassName(th) {
             let k;
             for (k=0; k<ths.length; k++) {
                 ths[k].className = "";
             }
             th.className = sortOrder === 1 ? "asc" : "desc";
-        }
+        }*/
 
     });
 </script>
@@ -591,6 +620,23 @@ function currentWeekRange($date): array
     }
 
 
+</script>
+<script>
+    var sortable = $('.sortable');
+
+    sortable.on('click', function(){
+
+        var sort = $(this);
+        var asc = sort.hasClass('asc');
+        var desc = sort.hasClass('desc');
+        sortable.removeClass('asc').removeClass('desc');
+        if (desc || (!asc && !desc)) {
+            sort.addClass('asc');
+        } else {
+            sort.addClass('desc');
+        }
+
+    });
 </script>
 //end sorting
 </body>
