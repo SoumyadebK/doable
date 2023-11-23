@@ -1384,7 +1384,10 @@ if(!empty($_GET['master_id'])) {
                                                     <div id="unposted" class="col-md-3 align-self-center" style="margin-left: 20%">
                                                         <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showListView(1)"> Show Unposted</button>
                                                     </div>
-                                                    <div class="col-md-6 align-self-center">
+                                                    <div id="canceled" class="col-md-2 align-self-center" style="margin-left: -15%">
+                                                        <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showCanceled(1)"> Show Canceled</button>
+                                                    </div>
+                                                    <div class="col-md-4 align-self-center">
                                                         <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createNewAppointment();" style="width: 125px; float: right;"><i class="fa fa-plus-circle"></i> Appointment</a>
                                                     </div>
                                                 </div>
@@ -1393,6 +1396,9 @@ if(!empty($_GET['master_id'])) {
                                                 </div>
                                                 <div id="unposted_list" style="margin-left: 2%; font-weight: bold;">
                                                     <label>List of Unposted Appointments</label>
+                                                </div>
+                                                <div id="canceled_list" style="margin-left: 2%; font-weight: bold;">
+                                                    <label>List of Canceled Appointments</label>
                                                 </div>
                                                 <div id="appointment_list" class="p-20">
 
@@ -2714,8 +2720,10 @@ if(!empty($_GET['master_id'])) {
                     $('#appointment_list').html(result)
                     $('#unposted').hide()
                     $('#posted').show();
+                    $('#canceled').show();
                     $('#posted_list').hide();
                     $('#unposted_list').show();
+                    $('#canceled_list').hide();
                 }
             });
             window.scrollTo(0,0);
@@ -2733,8 +2741,30 @@ if(!empty($_GET['master_id'])) {
                     $('#appointment_list').html(result);
                     $('#posted').hide();
                     $('#unposted').show();
+                    $('#canceled').show();
                     $('#unposted_list').hide();
                     $('#posted_list').show();
+                    $('#canceled_list').hide();
+                }
+            });
+            window.scrollTo(0,0);
+        }
+
+        function showCanceled(page) {
+            let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+            $.ajax({
+                url: "pagination/canceled_appointment.php",
+                type: "GET",
+                data: {search_text:'', page:page, master_id:PK_USER_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#appointment_list').html(result);
+                    $('#posted').show();
+                    $('#unposted').hide();
+                    $('#unposted_list').hide();
+                    $('#posted_list').hide();
+                    $('#canceled_list').show();
                 }
             });
             window.scrollTo(0,0);

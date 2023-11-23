@@ -83,6 +83,36 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
 ?>
 
 <!DOCTYPE html>
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+    /* Table sort indicators */
+
+    th.sortable {
+        position: relative;
+        cursor: pointer;
+    }
+
+    th.sortable::after {
+        font-family: FontAwesome;
+        content: "\f0dc";
+        position: absolute;
+        right: 8px;
+        color: #999;
+    }
+
+    th.sortable.asc::after {
+        content: "\f0d8";
+    }
+
+    th.sortable.desc::after {
+        content: "\f0d7";
+    }
+
+    th.sortable:hover::after {
+        color: #333;
+    }
+
+</style>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
 <body class="skin-default-dark fixed-layout">
@@ -119,12 +149,12 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                                 <table  class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
-                                        <th data-type="number" style="cursor: pointer">No <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="cursor: pointer">Enrollment Id <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="cursor: pointer">Customer <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="cursor: pointer">Email ID <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="cursor: pointer">Phone <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="cursor: pointer">Location <i class='fas fa-sort'></i></th>
+                                        <th data-type="number" class="sortable" style="cursor: pointer">No</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer">Enrollment Id</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer">Email ID</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer">Phone</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer">Location</th>
                                         <th>Actions</th>
                                         <th>Status</th>
                                         <th>Cancel</th>
@@ -326,7 +356,7 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
         ths.on("click", function() {
             const rows = sortRows(this);
             rebuildTbody(rows);
-            updateClassName(this);
+            //updateClassName(this);
             sortOrder *= -1; //反転
         })
 
@@ -373,13 +403,13 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
             }
         }
 
-        function updateClassName(th) {
+  /*      function updateClassName(th) {
             let k;
             for (k=0; k<ths.length; k++) {
                 ths[k].className = "";
             }
             th.className = sortOrder === 1 ? "asc" : "desc";
-        }
+        }*/
 
     });
 </script>
@@ -497,6 +527,23 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
     }
 
 
+</script>
+<script>
+    var sortable = $('.sortable');
+
+    sortable.on('click', function(){
+
+        var sort = $(this);
+        var asc = sort.hasClass('asc');
+        var desc = sort.hasClass('desc');
+        sortable.removeClass('asc').removeClass('desc');
+        if (desc || (!asc && !desc)) {
+            sort.addClass('asc');
+        } else {
+            sort.addClass('desc');
+        }
+
+    });
 </script>
 //end sorting
 </body>

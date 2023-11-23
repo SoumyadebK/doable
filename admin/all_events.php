@@ -39,6 +39,7 @@ $page_first_result = ($page-1) * $results_per_page;
 ?>
 
 <!DOCTYPE html>
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 <html lang="en">
 <?php require_once('../includes/header.php');?>
 <style>
@@ -60,6 +61,33 @@ $page_first_result = ($page-1) * $results_per_page;
         border: 1px solid #39B54A;
     }
     .pagination a:hover:not(.active) {background-color: #ddd;}
+
+    /* Table sort indicators */
+
+    th.sortable {
+        position: relative;
+        cursor: pointer;
+    }
+
+    th.sortable::after {
+        font-family: FontAwesome;
+        content: "\f0dc";
+        position: absolute;
+        right: 8px;
+        color: #999;
+    }
+
+    th.sortable.asc::after {
+        content: "\f0d8";
+    }
+
+    th.sortable.desc::after {
+        content: "\f0d7";
+    }
+
+    th.sortable:hover::after {
+        color: #333;
+    }
 </style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
@@ -154,14 +182,14 @@ $page_first_result = ($page-1) * $results_per_page;
                                 <table class="table table-striped border" data-page-length='50'>
                                     <thead>
                                         <tr>
-                                            <th data-type="number" style="cursor: pointer">No <i class='fas fa-sort'></i></th>
-                                            <th data-type="string" style="cursor: pointer">Event Name <i class='fas fa-sort'></i></th>
-                                            <th data-type="string" style="cursor: pointer">Type <i class='fas fa-sort'></i></th>
-                                            <th data-type="string" style="cursor: pointer">Location <i class='fas fa-sort'></i></th>
-                                            <th data-type="date mm:dd:yyyy" style="cursor: pointer">Start Date <i class='fas fa-sort'></i></th>
-                                            <th data-type="time" style="cursor: pointer">Start Time <i class='fas fa-sort'></i></th>
-                                            <th data-type="datetime" style="cursor: pointer">End Date <i class='fas fa-sort'></i></th>
-                                            <th data-type="time" style="cursor: pointer">End Time <i class='fas fa-sort'></i></th>
+                                            <th data-type="number" class="sortable" style="cursor: pointer">No</th>
+                                            <th data-type="string" class="sortable" style="cursor: pointer">Event Name</th>
+                                            <th data-type="string" class="sortable" style="cursor: pointer">Type</th>
+                                            <th data-type="string" class="sortable" style="cursor: pointer">Location</th>
+                                            <th data-type="date mm:dd:yyyy" class="sortable" style="cursor: pointer">Start Date</th>
+                                            <th data-type="time" class="sortable" style="cursor: pointer">Start Time</th>
+                                            <th data-type="datetime" class="sortable" style="cursor: pointer">End Date</th>
+                                            <th data-type="time" class="sortable" style="cursor: pointer">End Time</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -323,7 +351,7 @@ $page_first_result = ($page-1) * $results_per_page;
         ths.on("click", function() {
             const rows = sortRows(this);
             rebuildTbody(rows);
-            updateClassName(this);
+            //updateClassName(this);
             sortOrder *= -1; //反転
         })
 
@@ -370,13 +398,13 @@ $page_first_result = ($page-1) * $results_per_page;
             }
         }
 
-        function updateClassName(th) {
+        /*function updateClassName(th) {
             let k;
             for (k=0; k<ths.length; k++) {
                 ths[k].className = "";
             }
             th.className = sortOrder === 1 ? "asc" : "desc";
-        }
+        }*/
 
     });
 </script>
@@ -494,6 +522,23 @@ $page_first_result = ($page-1) * $results_per_page;
     }
 
 
+</script>
+<script>
+    var sortable = $('.sortable');
+
+    sortable.on('click', function(){
+
+        var sort = $(this);
+        var asc = sort.hasClass('asc');
+        var desc = sort.hasClass('desc');
+        sortable.removeClass('asc').removeClass('desc');
+        if (desc || (!asc && !desc)) {
+            sort.addClass('asc');
+        } else {
+            sort.addClass('desc');
+        }
+
+    });
 </script>
 //end sorting
 </body>

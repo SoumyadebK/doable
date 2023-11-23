@@ -32,6 +32,13 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
         text-decoration: none;
         background-color: #f4f4f4;
     }
+/*    #dropdown-products {
+        display: none;
+    }
+
+    #menu-products:hover #dropdown-products {
+        display: block;
+    }*/
 </style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
@@ -39,29 +46,17 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid body_content">
-            <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
-                </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
+        <div class="container-fluid body_content p-0" style="margin-top: 67px;">
             <div class="row">
                 <div class="col-12 new-top-menu">
-                    <nav class="navbar navbar-expand-lg navbar bg-light px-2 py-1">
+                    <nav class="navbar navbar-expand-lg navbar-light bg-light px-2 py-1 d-non">
                         <div class="collapse navbar-collapse" id="navbarNavDropdown">
                             <ul class="navbar-nav">
-                                <li class="nav-item dropdown">
+                                <li id="menu-products" class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         General
                                     </a>
-                                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                    <div id="dropdown-products" class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                         <a class="dropdown-item" href="business_profile.php">Business Profile</a>
                                         <a class="dropdown-item" href="all_locations.php">Locations</a>
                                         <a class="dropdown-item" href="all_users.php">Users</a>
@@ -102,6 +97,20 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                             </ul>
                         </div>
                     </nav>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid body_content m-0">
+            <div class="row page-titles">
+                <div class="col-md-5 align-self-center">
+                    <h4 class="text-themecolor"><?=$title?></h4>
+                </div>
+                <div class="col-md-7 align-self-center text-end">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <ol class="breadcrumb justify-content-end">
+                            <li class="breadcrumb-item active"><?=$title?></li>
+                        </ol>
+                    </div>
                 </div>
             </div>
             <div class="row d-none">

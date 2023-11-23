@@ -40,10 +40,39 @@ $page_first_result = ($page-1) * $results_per_page;
 ?>
 
 <!DOCTYPE html>
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 <style>
     table th{
         font-weight:bold;
     }
+
+    /* Table sort indicators */
+
+    th.sortable {
+        position: relative;
+        cursor: pointer;
+    }
+
+    th.sortable::after {
+        font-family: FontAwesome;
+        content: "\f0dc";
+        position: absolute;
+        right: 8px;
+        color: #999;
+    }
+
+    th.sortable.asc::after {
+        content: "\f0d8";
+    }
+
+    th.sortable.desc::after {
+        content: "\f0d7";
+    }
+
+    th.sortable:hover::after {
+        color: #333;
+    }
+
 </style>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
@@ -97,13 +126,13 @@ $page_first_result = ($page-1) * $results_per_page;
                                 <table id="myTable1" class="table table-striped border">
                                     <thead>
                                     <tr>
-                                        <th data-type="number" style="cursor: pointer;">No <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="width:20%; cursor: pointer;">Name <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="width:10%; cursor: pointer;">Customer ID <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="width:20%; cursor: pointer;">Email Id <i class='fas fa-sort'></i></th>
-                                        <th data-type="string" style="width:12%; cursor: pointer;">Phone <i class='fas fa-sort'></i></th>
-                                        <th data-type="number" style="width:10%; cursor: pointer;">Total Paid <i class='fas fa-sort'></i></th>
-                                        <th data-type="number" style="width:10%; cursor: pointer;">Balance <i class='fas fa-sort'></i></th>
+                                        <th data-type="number" class="sortable" style="cursor: pointer">No</th>
+                                        <th data-type="string" class="sortable" style="width:20%; cursor: pointer;">Name</th>
+                                        <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Customer ID</th>
+                                        <th data-type="string" class="sortable" style="width:20%; cursor: pointer;">Email Id</th>
+                                        <th data-type="string" class="sortable" style="width:12%; cursor: pointer;">Phone</th>
+                                        <th data-type="number" class="sortable" style="width:10%; cursor: pointer; ">Total Paid</th>
+                                        <th data-type="number" class="sortable" style="width:10%; cursor: pointer;">Balance</th>
                                         <th style="width:10%;">Actions</th>
                                     </tr>
                                     </thead>
@@ -132,8 +161,8 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['USER_NAME']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['EMAIL_ID']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['PHONE']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format($total_paid, 2))?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format($total_paid-$total_used, 2))?></td>
+                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format($total_paid, 2))?></td>
+                                            <td style="text-align: right"  onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format($total_paid-$total_used, 2))?></td>
                                             <td style="margin-top: auto; margin-bottom: auto">
                                                 <?php if($row->fields['EMAIL_ID']): ?>
                                                     <a class="waves-dark" href="compose.php?sel_uid=<?=$row->fields['PK_USER']?>" aria-haspopup="true" aria-expanded="false" title="Email"><i class="ti-email" style="font-size: 20px;"></i>
@@ -218,7 +247,7 @@ $page_first_result = ($page-1) * $results_per_page;
         ths.on("click", function() {
             const rows = sortRows(this);
             rebuildTbody(rows);
-            updateClassName(this);
+            //updateClassName(this);
             sortOrder *= -1; //反転
         })
 
@@ -265,13 +294,13 @@ $page_first_result = ($page-1) * $results_per_page;
             }
         }
 
-        function updateClassName(th) {
+        /*function updateClassName(th) {
             let k;
             for (k=0; k<ths.length; k++) {
                 ths[k].className = "";
             }
-            th.className = sortOrder === 1 ? "asc" : "desc";
-        }
+            th.className = sortOrder === 1 ? "sortable asc" : "sortable desc";
+        }*/
 
     });
 </script>
@@ -392,8 +421,8 @@ $page_first_result = ($page-1) * $results_per_page;
 </script>
 //end sorting
 
-<script>
-        $('#myTable1').dataTable( {
+<!--<script>
+        $('#myTable').dataTable( {
                columnDefs: [
                      { type: 'numeric-comma', targets: 0 }
                    ]
@@ -420,5 +449,23 @@ $page_first_result = ($page-1) * $results_per_page;
         ]
     });
 
+</script>-->
+<script>
+    var sortable = $('.sortable');
+
+    sortable.on('click', function(){
+
+        var sort = $(this);
+        var asc = sort.hasClass('asc');
+        var desc = sort.hasClass('desc');
+        sortable.removeClass('asc').removeClass('desc');
+        if (desc || (!asc && !desc)) {
+            sort.addClass('asc');
+        } else {
+            sort.addClass('desc');
+        }
+
+    });
+</script>
 </body>
 </html>
