@@ -55,7 +55,7 @@ $day = $_POST['day'];
 $START_TIME = empty($_POST['START_TIME'])?'09:00:00':$_POST['START_TIME'];
 $END_TIME = empty($_POST['END_TIME'])?'22:00:00':$_POST['END_TIME'];
 
-$booked_slot_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME FROM DOA_APPOINTMENT_MASTER INNER JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = ".$PK_SERVICE_MASTER." AND DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = ".$PK_SERVICE_CODE." AND DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = ".$SERVICE_PROVIDER_ID." AND DOA_APPOINTMENT_MASTER.DATE = "."'".$date."'");
+$booked_slot_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME FROM DOA_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = ".$SERVICE_PROVIDER_ID." AND DOA_APPOINTMENT_MASTER.DATE = "."'".$date."'");
 $booked_slot_array = [];
 $j = 0;
 while (!$booked_slot_data->EOF) {
@@ -104,6 +104,6 @@ foreach ($time_slot_array as $key => $item) {
         $selected = "background-color: orange !important;";
     } ?>
     <div class="col-md-6 form-group">
-        <button type="button" data-is_disable="<?=$disabled?>" data-is_selected="<?=($selected)?1:0?>" class="btn waves-effect waves-light btn-light slot_btn" id="slot_btn_<?=$key?>" onclick="set_time(this, <?=$key?>, '<?=$item['slot_start_time']?>', '<?=$item['slot_end_time']?>', <?=$PK_APPOINTMENT_MASTER?>)" style="width:100%; <?=($selected)?$selected:$disabled?>"><?=date('h:i A', strtotime($item['slot_start_time']))?> - <?=date('h:i A', strtotime($item['slot_end_time']))?></button>
+        <button type="button" data-is_disable="<?=$disabled?>" data-is_selected="<?=($selected)?1:0?>" class="btn waves-effect waves-light btn-light slot_btn" id="slot_btn_<?=$key?>" onclick="set_time(this, <?=$key?>, '<?=$item['slot_start_time']?>', '<?=$item['slot_end_time']?>', <?=$PK_APPOINTMENT_MASTER?>)" style="width:100%; <?=($selected)?:$disabled?>"><?=date('h:i A', strtotime($item['slot_start_time']))?> - <?=date('h:i A', strtotime($item['slot_end_time']))?></button>
     </div>
 <?php } ?>
