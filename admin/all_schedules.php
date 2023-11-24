@@ -203,6 +203,57 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointme
     header("location:all_schedules.php?view=table");
 }
 
+if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAdhocAppointmentData'){
+    unset($_POST['TIME']);
+    unset($_POST['FUNCTION_NAME']);
+    if (empty($_POST['START_TIME']) || empty($_POST['END_TIME'])){
+        unset($_POST['START_TIME']);
+        unset($_POST['END_TIME']);
+    }
+    $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
+    $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
+    if(empty($_POST['PK_APPOINTMENT_MASTER'])){
+        $_POST['PK_APPOINTMENT_STATUS'] = 1;
+        $_POST['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $_POST['ACTIVE'] = 1;
+        $_POST['CREATED_BY']  = $_SESSION['PK_USER'];
+        $_POST['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform_account('DOA_APPOINTMENT_MASTER', $_POST, 'insert');
+    }else{
+        //$_POST['ACTIVE'] = $_POST['ACTIVE'];
+        if($_FILES['IMAGE']['name'] != ''){
+            $extn 			= explode(".",$_FILES['IMAGE']['name']);
+            $iindex			= count($extn) - 1;
+            $rand_string 	= time()."-".rand(100000,999999);
+            $file11			= 'appointment_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
+            $extension   	= strtolower($extn[$iindex]);
+
+            if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
+                $image_path    = '../uploads/appointment_image/'.$file11;
+                move_uploaded_file($_FILES['IMAGE']['tmp_name'], $image_path);
+                $_POST['IMAGE'] = $image_path;
+            }
+        }
+        $_POST['EDITED_BY']	= $_SESSION['PK_USER'];
+        $_POST['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_APPOINTMENT_MASTER', $_POST, 'update'," PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
+
+        if ($_POST['PK_APPOINTMENT_STATUS'] == 2 || ($_POST['PK_APPOINTMENT_STATUS'] == 4 && $_POST['NO_SHOW'] == 'Charge')) {
+            $enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
+            if ($enrollment_balance->RecordCount() > 0) {
+                $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_USED'] = $enrollment_balance->fields['TOTAL_BALANCE_USED'] + $price_per_session;
+                $ENROLLMENT_BALANCE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+                $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
+                db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
+            }
+        }
+    }
+
+    rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
+
+    header("location:all_schedules.php?view=table");
+}
+
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAppointmentData'){
     $SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
     $SPECIAL_APPOINTMENT_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));

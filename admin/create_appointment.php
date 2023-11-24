@@ -163,6 +163,42 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
     header("location:all_schedules.php?view=table");
+} elseif ($FUNCTION_NAME == 'saveAdhocAppointmentData') {
+    unset($_POST['TIME']);
+    unset($_POST['FUNCTION_NAME']);
+    if (empty($_POST['START_TIME']) || empty($_POST['END_TIME'])){
+        unset($_POST['START_TIME']);
+        unset($_POST['END_TIME']);
+    }
+    $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
+    $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
+
+    $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
+    $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
+    for ($i=0; $i<count($START_TIME_ARRAY); $i++) {
+        $APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $APPOINTMENT_DATA['CUSTOMER_ID'] = $_POST['CUSTOMER_ID'];
+
+        $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $_POST['PK_ENROLLMENT_MASTER']);
+        $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[0];
+        $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_MASTER_ARRAY[1];
+        $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[2];
+        $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_ENROLLMENT_MASTER_ARRAY[3];
+
+        $APPOINTMENT_DATA['SERVICE_PROVIDER_ID'] = $_POST['SERVICE_PROVIDER_ID'];
+        $APPOINTMENT_DATA['DATE'] = $_POST['DATE'];
+        $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
+        $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
+        $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+        $APPOINTMENT_DATA['ACTIVE'] = 1;
+        $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+    }
+
+    rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
+
+    header("location:all_schedules.php?view=table");
 }
 
 function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){

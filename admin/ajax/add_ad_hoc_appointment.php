@@ -153,20 +153,39 @@ if (empty($_GET['PK_USER'])) {
         getSlots();
     });
 
-    function set_time(id, start_time, end_time, PK_APPOINTMENT_MASTER){
-        start_time_array.push(start_time);
-        end_time_array.push(end_time);
-        $('#START_TIME').val(start_time_array);
-        $('#END_TIME').val(end_time_array);
+    function set_time(param, id, start_time, end_time, PK_APPOINTMENT_MASTER){
+        if ($(param).data('is_selected') == 0) {
+            start_time_array.push(start_time);
+            end_time_array.push(end_time);
+            $('#START_TIME').val(start_time_array);
+            $('#END_TIME').val(end_time_array);
+            $('#slot_btn_' + id).data('is_selected', 1);
+            document.getElementById('slot_btn_' + id).style.setProperty('background-color', 'orange', 'important');
+        } else {
+            const start_time_index = start_time_array.indexOf(start_time);
+            if (start_time_index > -1) {
+                start_time_array.splice(start_time_index, 1);
+            }
+
+            const end_time_index = end_time_array.indexOf(end_time);
+            if (end_time_index > -1) {
+                end_time_array.splice(end_time_index, 1);
+            }
+
+            $('#START_TIME').val(start_time_array);
+            $('#END_TIME').val(end_time_array);
+            $('#slot_btn_' + id).data('is_selected', 0);
+            document.getElementById('slot_btn_' + id).style.setProperty('background-color', 'greenyellow', 'important');
+        }
+
         if (PK_APPOINTMENT_MASTER > 0) {
             let slot_btn = $(".slot_btn");
             slot_btn.each(function (index) {
-                if ($(this).data('is_disable') == 0) {
-                    $(this).css('background-color', 'greenyellow');
+                if ($(param).data('is_disable') == 0) {
+                    $(param).css('background-color', 'greenyellow');
                 }
             })
         }
-        document.getElementById('slot_btn_'+id).style.setProperty('background-color', 'orange', 'important');
     }
 
     $(document).on('click', '#cancel_button', function () {
