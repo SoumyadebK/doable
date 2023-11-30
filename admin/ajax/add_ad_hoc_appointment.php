@@ -29,51 +29,48 @@ if (empty($_GET['PK_USER'])) {
     <input type="hidden" name="PK_USER" value="<?=$PK_USER?>">
     <div class="p-40" style="padding-top: 10px;">
         <div class="row">
-            <div class="col-3">
+            <div class="col-6">
                 <div class="form-group">
                     <label class="form-label">Customer<span class="text-danger">*</span></label><br>
                     <select required name="CUSTOMER_ID" id="SELECT_CUSTOMER" onchange="selectThisCustomer(this);">
                         <option value="">Select Customer</option>
                         <?php
-                        $row = $db->Execute("SELECT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 ORDER BY DOA_USERS.FIRST_NAME");
+                        $row = $db->Execute("SELECT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE NOT EXISTS(SELECT DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER) AND DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 ORDER BY DOA_USERS.FIRST_NAME");
                         while (!$row->EOF) { ?>
                             <option value="<?php echo $row->fields['PK_USER_MASTER'];?>"  <?=($PK_USER_MASTER == $row->fields['PK_USER_MASTER'])?'selected':''?>><?=$row->fields['NAME'].' ('.$row->fields['USER_NAME'].')'.' ('.$row->fields['PHONE'].')'?></option>
-                            <?php $row->MoveNext(); } ?>
+                        <?php $row->MoveNext(); } ?>
                     </select>
                 </div>
             </div>
-            <div class="col-5">
+            <!--<div class="col-5">
                 <div class="form-group">
                     <label class="form-label">Enrollment ID</label>
                     <select class="form-control" name="PK_ENROLLMENT_MASTER" id="PK_ENROLLMENT_MASTER" onchange="selectThisEnrollment(this);">
                         <option value="">Select Enrollment ID</option>
                         <?php
-                        if ($PK_USER_MASTER > 0) {
+/*                        if ($PK_USER_MASTER > 0) {
                             $selected_enrollment = '';
                             $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.DURATION, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
                             $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_SERVICE`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_SERVICE` = ".$row->fields['PK_ENROLLMENT_SERVICE']);
 
                             //$row = $db->Execute("SELECT PK_ENROLLMENT_MASTER, ENROLLMENT_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
-                            while (!$row->EOF) { if($PK_USER_MASTER==$row->fields['PK_USER_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
-                                <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-duration="<?=$row->fields['DURATION']?>"><?=$row->fields['ENROLLMENT_ID'].' || '.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$used_session_count->fields['USED_SESSION_COUNT'].'/'.$row->fields['NUMBER_OF_SESSION'];?></option>
-                                <?php $row->MoveNext(); }
-                        } ?>
+                            while (!$row->EOF) { if($PK_USER_MASTER==$row->fields['PK_USER_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} */?>
+                                <option value="<?php /*echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];*/?>" data-duration="<?php /*=$row->fields['DURATION']*/?>"><?php /*=$row->fields['ENROLLMENT_ID'].' || '.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$used_session_count->fields['USED_SESSION_COUNT'].'/'.$row->fields['NUMBER_OF_SESSION'];*/?></option>
+                                <?php /*$row->MoveNext(); }
+                        } */?>
                     </select>
                 </div>
-            </div>
-            <div class="col-3">
+            </div>-->
+            <div class="col-6">
                 <div class="form-group">
                     <label class="form-label"><?=$service_provider_title?></label>
                     <select name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
                         <option value="">Select <?=$service_provider_title?></option>
                         <?php
-                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-
+                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME");
                         while (!$row->EOF) { ?>
                             <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
-                            <?php $row->MoveNext(); } ?>
-
-
+                        <?php $row->MoveNext(); } ?>
                     </select>
                 </div>
             </div>
