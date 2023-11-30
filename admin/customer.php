@@ -217,7 +217,7 @@ if(!empty($_GET['id'])) {
     $USER_NAME = $res->fields['USER_NAME'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
-    $CUSTOMER_ID = $res->fields['USER_NAME'];
+    $CUSTOMER_ID = $res->fields['USER_ID'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $USER_IMAGE = $res->fields['USER_IMAGE'];
     $GENDER = $res->fields['GENDER'];
@@ -358,9 +358,9 @@ if(!empty($_GET['master_id'])) {
                                                             </div>
                                                             <div class="col-2">
                                                                 <div class="form-group">
-                                                                    <label class="form-label">Customer ID<span class="text-danger">*</span></label>
+                                                                    <label class="form-label">Customer ID</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control" placeholder="Enter User Name" required value="<?=$CUSTOMER_ID?>">
+                                                                        <input type="text" id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control" placeholder="Enter User Name" value="<?=$CUSTOMER_ID?>">
                                                                         <div id="uname_result"></div>
                                                                     </div>
                                                                     <span id="lblError" style="color: red"></span>

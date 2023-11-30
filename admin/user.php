@@ -1,5 +1,7 @@
 <?php
 require_once('../global/config.php');
+global $db;
+
 $userType = "Users";
 $user_role_condition = " AND PK_ROLES IN(2,3,5,6,7,8)";
 
@@ -209,7 +211,20 @@ if(!empty($_GET['id'])) {
                         </div>
                     </h4>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
+                <div class="col-md-3 align-self-center">
+                    <?php if(!empty($_GET['id'])) { ?>
+                        <select required name="NAME" id="NAME" onchange="editpage(this);">
+                            <option value="">Select User</option>
+                            <?php
+                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                            while (!$row->EOF) {?>
+                                <option value="<?php echo $row->fields['PK_USER'];?>" data-id="<?php echo $row->fields['PK_USER'];?>" <?=($row->fields['PK_USER']==$_GET['id'])?'selected':''?>><?=$row->fields['NAME']?></option>
+                                <?php $row->MoveNext(); } ?>
+                        </select>
+                    <?php } ?>
+                </div>
+
+                <div class="col-md-4 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
@@ -1028,9 +1043,16 @@ if(!empty($_GET['id'])) {
             maxDate: 0
         });
 
+        $('#NAME').SumoSelect({placeholder: 'Select User', search: true, searchText: 'Search...'});
         $('.multi_sumo_select_location').SumoSelect({placeholder: 'Select Location', selectAll: true});
         $('.multi_sumo_select_roles').SumoSelect({placeholder: 'Select Roles', selectAll: true});
         $('.multi_sumo_select_services').SumoSelect({placeholder: 'Select Services', selectAll: true});
+
+        function editpage(param){
+            var id = $(param).val();
+            window.location.href = "user.php?id="+id;
+
+        }
 
         $(document).ready(function() {
             fetch_state(<?php  echo $PK_COUNTRY; ?>);
