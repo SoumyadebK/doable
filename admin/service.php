@@ -52,6 +52,7 @@ if(empty($_GET['id'])){
     $DESCRIPTION = '';
     $ACTIVE = '';
     $IS_PACKAGE = '';
+    $IS_DEFAULT = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
 
@@ -66,6 +67,7 @@ if(empty($_GET['id'])){
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
     $IS_PACKAGE = $res->fields['IS_PACKAGE'];
+    $IS_DEFAULT = $res->fields['IS_DEFAULT'];
 }
 
 ?>
@@ -131,6 +133,10 @@ if(empty($_GET['id'])){
 
                                                 <div class="col-2">
                                                     <label class="col-md-12 mt-3"><input type="checkbox" id="IS_PACKAGE" name="IS_PACKAGE" class="form-check-inline" <?=($IS_PACKAGE == 1)?'checked':''?> style="margin-top: 30px;" onchange="isPackage(this);"> Is Package ?</label>
+                                                </div>
+
+                                                <div class="col-2">
+                                                    <label class="col-md-12 mt-3"><input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?> style="margin-top: 30px;">Default for Ad-hoc</label>
                                                 </div>
 
                                                 <div class="col-6">
