@@ -67,7 +67,12 @@ if(empty($_GET['id'])){
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
     $IS_PACKAGE = $res->fields['IS_PACKAGE'];
-    $IS_DEFAULT = $res->fields['IS_DEFAULT'];
+    $service_code = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
+    if($service_code->RecordCount() == 0){
+        header("location:all_services.php");
+        exit;
+    }
+    $IS_DEFAULT = $service_code->fields['IS_DEFAULT'];
 }
 
 ?>
@@ -133,10 +138,6 @@ if(empty($_GET['id'])){
 
                                                 <div class="col-2">
                                                     <label class="col-md-12 mt-3"><input type="checkbox" id="IS_PACKAGE" name="IS_PACKAGE" class="form-check-inline" <?=($IS_PACKAGE == 1)?'checked':''?> style="margin-top: 30px;" onchange="isPackage(this);"> Is Package ?</label>
-                                                </div>
-
-                                                <div class="col-2">
-                                                    <label class="col-md-12 mt-3"><input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?> style="margin-top: 30px;">Default for Ad-hoc</label>
                                                 </div>
 
                                                 <div class="col-6">
@@ -215,6 +216,9 @@ if(empty($_GET['id'])){
                                     <form id="service_code_form">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveServiceCodeData">
                                         <input type="hidden" name="PK_SERVICE_MASTER" class="PK_SERVICE_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
+                                        <div class="col-2">
+                                            <label class="col-md-12 mt-3"><input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?>>Default for Ad-hoc</label>
+                                        </div>
                                         <div class="p-20">
                                             <div id="append_service_code">
 
