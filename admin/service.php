@@ -362,7 +362,7 @@ if(empty($_GET['id'])){
                                                                 <div class="col-md-12" >
                                                                     <div class="input-group">
                                                                         <span class="input-group-text"><?=$currency?></span>
-                                                                        <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price" value="<?=$row->fields['PRICE']?>">
+                                                                        <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price" value="<?=$row->fields['PRICE']?>" required>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -605,8 +605,10 @@ if(empty($_GET['id'])){
     $(document).on('change', '.IS_CHARGEABLE', function () {
         if ($(this).val() == 1){
             $(this).closest('.row').find('.service_price').slideDown();
+            $('#PRICE').removeAttr('required');
         }else {
             $(this).closest('.row').find('.service_price').slideUp();
+            $("#PRICE").attr("required","required");
         }
     });
 
@@ -788,8 +790,6 @@ if(empty($_GET['id'])){
     $(document).on('submit', '#service_code_form', function (event) {
         event.preventDefault();
         let form_data = $('#service_code_form').serialize();
-        let entered_price = $('#PRICE').val();
-        if(entered_price>0){
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
@@ -799,7 +799,6 @@ if(empty($_GET['id'])){
                     window.location.href='all_services.php';
                 }
             });
-        }
     });
 
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Services', selectAll: true});
