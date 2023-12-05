@@ -67,7 +67,12 @@ if(empty($_GET['id'])){
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
     $IS_PACKAGE = $res->fields['IS_PACKAGE'];
-    $IS_DEFAULT = $res->fields['IS_DEFAULT'];
+    $service_code = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
+    if($service_code->RecordCount() == 0){
+        header("location:all_services.php");
+        exit;
+    }
+    $IS_DEFAULT = $service_code->fields['IS_DEFAULT'];
 }
 
 ?>
@@ -133,10 +138,6 @@ if(empty($_GET['id'])){
 
                                                 <div class="col-2">
                                                     <label class="col-md-12 mt-3"><input type="checkbox" id="IS_PACKAGE" name="IS_PACKAGE" class="form-check-inline" <?=($IS_PACKAGE == 1)?'checked':''?> style="margin-top: 30px;" onchange="isPackage(this);"> Is Package ?</label>
-                                                </div>
-
-                                                <div class="col-2">
-                                                    <label class="col-md-12 mt-3"><input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?> style="margin-top: 30px;">Default for Ad-hoc</label>
                                                 </div>
 
                                                 <div class="col-6">
@@ -292,7 +293,7 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description" value="<?=$row->fields['DESCRIPTION']?>">
                                                             </div>
                                                         </div>
-                                                        <div class="col-2" style=" margin-bottom: auto">
+                                                        <div class="col-2" style="margin-bottom: auto;">
                                                             <div class="form-group multiselect-box">
                                                                 <select class="multi_sumo_select PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[<?=$i?>][]" multiple>
                                                                     <?php
@@ -358,7 +359,7 @@ if(empty($_GET['id'])){
                                                                 <div class="col-md-12" >
                                                                     <div class="input-group">
                                                                         <span class="input-group-text"><?=$currency?></span>
-                                                                        <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price" value="<?=$row->fields['PRICE']?>">
+                                                                        <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price" value="<?=$row->fields['PRICE']?>" required>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -372,6 +373,7 @@ if(empty($_GET['id'])){
                                                         </div>-->
                                                         <div class="col-1">
                                                             <div class="form-group">
+                                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" title="Default for Ad-hoc" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?>>
                                                                 <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                             </div>
                                                         </div>
@@ -462,6 +464,7 @@ if(empty($_GET['id'])){
                                                         </div>-->
                                                         <div class="col-1">
                                                             <div class="form-group">
+                                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" title="Default for Ad-hoc" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?>>
                                                                 <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                             </div>
                                                         </div>
@@ -601,8 +604,10 @@ if(empty($_GET['id'])){
     $(document).on('change', '.IS_CHARGEABLE', function () {
         if ($(this).val() == 1){
             $(this).closest('.row').find('.service_price').slideDown();
+            $('#PRICE').removeAttr('required');
         }else {
             $(this).closest('.row').find('.service_price').slideUp();
+            $("#PRICE").attr("required","required");
         }
     });
 
@@ -694,6 +699,7 @@ if(empty($_GET['id'])){
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
+                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" title="Default for Ad-hoc" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?>>
                                                     <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                 </div>
                                             </div>
@@ -784,8 +790,6 @@ if(empty($_GET['id'])){
     $(document).on('submit', '#service_code_form', function (event) {
         event.preventDefault();
         let form_data = $('#service_code_form').serialize();
-        let entered_price = $('#PRICE').val();
-        if(entered_price>0){
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
@@ -795,7 +799,6 @@ if(empty($_GET['id'])){
                     window.location.href='all_services.php';
                 }
             });
-        }
     });
 
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Services', selectAll: true});

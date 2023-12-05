@@ -22,6 +22,9 @@ if (!empty($_GET['view'])){
 }else{
     $view = 'list';
 }
+
+
+
 $DEFAULT_LOCATION_ID = 1;
 
 if(isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
@@ -280,19 +283,22 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAp
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClassData'){
     $PK_GROUP_CLASS = $_POST['PK_GROUP_CLASS'];
-    $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
-    $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
-    //$GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_1'] = $_POST['SERVICE_PROVIDER_ID_1'];
-    //$GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_2'] = $_POST['SERVICE_PROVIDER_ID_2'];
     $GROUP_CLASS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
-    $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
-    $GROUP_CLASS_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-    $GROUP_CLASS_DATA['EDITED_ON'] = date("Y-m-d H:i");
-    if (isset($_POST['GROUP_CLASS_ID'])) {
-        db_perform_account('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " GROUP_CLASS_ID =  '$_POST[GROUP_CLASS_ID]'");
-    } else {
-        $GROUP_CLASS_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
-        db_perform_account('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " PK_GROUP_CLASS =  '$PK_GROUP_CLASS'");
+    $GROUP_CLASS_DATA['GROUP_NAME'] = $_POST['GROUP_NAME'];
+    for ($i = 0; $i < count($_POST['SERVICE_PROVIDER_ID_1']); $i++) {
+        $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+        $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
+        $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_1'] = $_POST['SERVICE_PROVIDER_ID_1'];
+        //$GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_2'] = $_POST['SERVICE_PROVIDER_ID_2'];
+        $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+        $GROUP_CLASS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+        $GROUP_CLASS_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        if (isset($_POST['GROUP_CLASS_ID'])) {
+            db_perform_account('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " GROUP_CLASS_ID =  '$_POST[GROUP_CLASS_ID]'");
+        } else {
+            $GROUP_CLASS_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
+            db_perform_account('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " PK_GROUP_CLASS =  '$PK_GROUP_CLASS'");
+        }
     }
 
     if (isset($_POST['PK_USER_MASTER'])) {
@@ -397,11 +403,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         <div class="container-fluid body_content">
             <div class="row" >
                 <div id="add_buttons" class="d-flex justify-content-center align-items-center" style="position: fixed; bottom: 0">
-                    <button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=group_class'"><i class="fa fa-plus-circle"></i> Group Class</button>
+                    <!--<button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=group_class'"><i class="fa fa-plus-circle"></i> Group Class</button>
                     <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=int_app'"><i class="fa fa-plus-circle"></i> INT APP</button>
                     <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=appointment'"><i class="fa fa-plus-circle"></i> Appointment</button>
                     <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=standing'"><i class="fa fa-plus-circle"></i> Standing</button>
-                    <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=ad_hoc'"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>
+                    <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=ad_hoc'"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>-->
+                    <button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php'"><i class="fa fa-plus-circle"></i> Appointments</button>
                     <button type="button" id="operations" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"><i class="ti-layers-alt"></i> <?=$operation_tab_title?></button>
                 </div>
             </div>
@@ -414,9 +421,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                 <div class="col-6">
                                     <h5 class="card-title"><?=$title?></h5>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-6" style="margin-left: -15%">
                                     <form class="form-material form-horizontal" action="" method="get">
                                         <div class="input-group">
+                                            <input type="date" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=$_GET['CHOOSE_DATE']?>">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <select class="form-control" name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID">
                                                 <option value="">Select <?=$service_provider_title?></option>
                                                 <?php
@@ -428,7 +436,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                                     <option value="<?=$row->fields['PK_USER']?>" <?=($row->fields['NAME'] == $NAME)?"selected":""?>><?=$row->fields['NAME']?></option>
                                                     <?php $row->MoveNext(); } ?>
                                             </select>&nbsp;&nbsp;&nbsp;&nbsp;
-                                            <input type="date" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=$_GET['CHOOSE_DATE']?>">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onsubmit="showCalendarView()"><i class="fa fa-search"></i></button>
                                         </div>
                                     </form>
@@ -815,7 +822,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    window.location.href = "create_appointment.php";
+                    window.location.href = "create_appointment.php?date="+date.format();
                     //openModel();
                 }
                 console.log(
@@ -959,6 +966,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         }
         if (type === 'ad_hoc') {
             url = "ajax/add_ad_hoc_appointment.php";
+        }
+        if (type === 'appointments') {
+            url = "create_appointment.php";
         }
         $.ajax({
             url: url,

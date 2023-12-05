@@ -1,13 +1,23 @@
 <?php
 require_once('../../global/config.php');
+
+if (!empty($_GET['date'])) {
+    $get_date = explode('T', $_GET['date']);
+    $date = $get_date[0];
+    $time = date("h:i", strtotime($get_date[1]));
+} else {
+    $date = '';
+    $time = '';
+}
 ?>
 
 <form id="appointment_form" action="" method="post" enctype="multipart/form-data">
     <input type="hidden" name="FUNCTION_NAME" value="saveGroupClassData">
     <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
-    <div class="p-40" style="padding-top: 10px;">
-        <div class="row">
-            <div class="col-3">
+    <div class="p-40 " style="padding-top: 10px;">
+        <div id="append_service_code">
+        <div class="row" style="border-bottom: 1px solid grey;">
+            <div class="col-4">
                 <div class="form-group">
                     <label class="form-label">Service <span class="text-danger">*</span></label><br>
                     <select required name="SERVICE_ID" id="SERVICE_ID" onchange="selectThisService(this);">
@@ -38,7 +48,7 @@ require_once('../../global/config.php');
                     </select>
                 </div>
             </div>-->
-            <div class="col-3">
+            <div class="col-4">
                 <div class="form-group">
                     <label class="form-label">Location</label>
                     <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
@@ -51,22 +61,35 @@ require_once('../../global/config.php');
                     </select>
                 </div>
             </div>
+            <div class="col-4">
+                <div class="form-group">
+                    <label class="form-label">Group Name</label><br>
+                    <input class="form-control" type="text" name="GROUP_NAME" id="GROUP_NAME" placeholder="Group Name">
+                </div>
+            </div>
         </div>
 
-        <div class="row">
+        <div class="row justify-content-evenly" style="margin-top: 20px; border-bottom: 1px solid grey;">
+            <input type="hidden" name="PK_GROUP_CLASS[]" value="<?=$row->fields['PK_GROUP_CLASS']?>">
+            <div class="col-3">
+                <div class="form-group">
+                    <label class="form-label"><?=$service_provider_title?> <span class="text-danger">*</span></label>
+                    <select name="SERVICE_PROVIDER_ID_1[]" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_1" required>
+                    <option value="">Select <?=$service_provider_title?></option>
+                    </select>
+                </div>
+            </div>
             <div class="col-2">
                 <div class="form-group">
                     <label class="form-label">Starting On<span class="text-danger">*</span></label><br>
-                    <input class="form-control datepicker-normal" type="text" name="STARTING_ON" required>
+                    <input class="form-control datepicker-normal" type="text" name="STARTING_ON" value="<?=$date?>" required>
                 </div>
-            </div>
-            <div class="col-2">
                 <div class="form-group">
                     <label class="form-label">Time<span class="text-danger">*</span></label><br>
-                    <input class="form-control timepicker-normal" type="text" name="START_TIME" required>
+                    <input class="form-control timepicker-normal" type="text" name="START_TIME" value="<?=$time?>" required>
                 </div>
             </div>
-            <div class="col-2">
+            <div class="col-2 days_div">
                 <div class="form-group">
                     <label class="form-label">Select Days</label><br>
                     <label><input type="checkbox" class="DAYS" name="DAYS[]" value="monday"> Monday</label><br>
@@ -78,26 +101,35 @@ require_once('../../global/config.php');
                     <label><input type="checkbox" class="DAYS" name="DAYS[]" value="sunday"> Sunday</label><br>
                 </div>
             </div>
-            <div class="col-2 occurrence_div">
-                <div class="form-group">
+            <div class="col-2">
+                <div class="form-group occurrence_div">
                     <label class="form-label">Select Occurrence<span class="text-danger">*</span></label><br>
                     <label><input type="radio" name="OCCURRENCE" value="WEEKLY" required> Weekly</label><br>
                     <label><input type="radio" name="OCCURRENCE" value="DAYS" required> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
                 </div>
-            </div>
-            <div class="col-2">
-                <div class="form-group">
+                <div class="form-group length_div">
                     <label class="form-label">Length<span class="text-danger">*</span></label><br>
-                    <input type="number" class="form-control" name="LENGTH" style="width: 80px;" required>
+                    <input type="number" id="LENGTH" class="form-control" name="LENGTH" style="width: 80px;" required>
                     <select class="form-control" name="FREQUENCY" style="width: 100px;" required>
                         <option value="week">Week(S)</option>
                         <option value="month">Month(S)</option>
                         <option value="year">Year(S)</option>
                     </select>
+                    <label><input type="checkbox" class="YEAR" name="YEAR" value=""></label>
+                </div>
+            </div>
+            <div class="col-1">
+                <div class="form-group">
+                    <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeClass(this);"><i class="ti-trash"></i></a>
                 </div>
             </div>
         </div>
-
+    </div>
+        <div class="row" style="margin-top: 20px">
+            <div class="form-group">
+                <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreClass();">Add More</a>
+            </div>
+        </div>
         <?php if ($time_zone == 1){ ?>
             <div class="form-group" style="margin-top: 25px;">
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
@@ -128,8 +160,22 @@ require_once('../../global/config.php');
         if ($('.DAYS').is(':checked')){
             $("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
             $('.occurrence_div').addClass('disable-div');
+            $('.length_div').addClass('disable-div');
         } else {
             $("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
+            $('.occurrence_div').removeClass('disable-div');
+            $('.length_div').removeClass('disable-div');
+        }
+    });
+
+    $('.YEAR').on('change', function(){
+        if ($('.YEAR').is(':checked')){
+            let length = 52;
+            $('.days_div').addClass('disable-div');
+            $('.occurrence_div').addClass('disable-div');
+            $('#LENGTH').val(length);
+        } else {
+            $('.days_div').removeClass('disable-div');
             $('.occurrence_div').removeClass('disable-div');
         }
     });
@@ -153,5 +199,74 @@ require_once('../../global/config.php');
                 $('#SERVICE_PROVIDER_ID_2').prop('required', false);
             }
         });
+    }
+
+    function addMoreClass() {
+        $('#append_service_code').append(`<div class="row justify-content-evenly" style="margin-top: 20px; border-bottom: 1px solid grey;">
+            <div class="col-3">
+                <div class="form-group">
+                    <label class="form-label"><?=$service_provider_title?> <span class="text-danger">*</span></label>
+                    <select name="SERVICE_PROVIDER_ID_1[]" class="SERVICE_PROVIDER_ID_1" id="SERVICE_PROVIDER_ID_1" required>
+                    <option value="">Select <?=$service_provider_title?></option>
+                    <?php
+        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+
+        while (!$row->EOF) { ?>
+    <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
+<?php $row->MoveNext(); } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="form-group">
+                    <label class="form-label">Starting On<span class="text-danger">*</span></label><br>
+                    <input class="form-control datepicker-normal" type="text" name="STARTING_ON" value="<?=$date?>" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Time<span class="text-danger">*</span></label><br>
+                    <input class="form-control timepicker-normal" type="text" name="START_TIME" value="<?=$time?>" required>
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="form-group">
+                    <label class="form-label">Select Days</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="monday"> Monday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="tuesday"> Tuesday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="wednesday"> Wednesday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="thursday"> Thursday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="friday"> Friday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="saturday"> Saturday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="sunday"> Sunday</label><br>
+                </div>
+            </div>
+            <div class="col-2 occurrence_div">
+                <div class="form-group">
+                    <label class="form-label">Select Occurrence<span class="text-danger">*</span></label><br>
+                    <label><input type="radio" name="OCCURRENCE" value="WEEKLY" required> Weekly</label><br>
+                    <label><input type="radio" name="OCCURRENCE" value="DAYS" required> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
+                </div>
+                <div class="form-group length_div">
+                    <label class="form-label">Length<span class="text-danger">*</span></label><br>
+                    <input type="number" id="LENGTH" class="form-control" name="LENGTH" style="width: 80px;" required>
+                    <select class="form-control" name="FREQUENCY" style="width: 100px;" required>
+                        <option value="week">Week(S)</option>
+                        <option value="month">Month(S)</option>
+                        <option value="year">Year(S)</option>
+                    </select>
+                    <label><input type="checkbox" class="YEAR" name="YEAR" value=""></label>
+                </div>
+            </div>
+            <div class="col-1">
+                <div class="form-group">
+                    <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeClass(this);"><i class="ti-trash"></i></a>
+                </div>
+            </div>
+        </div>`);
+        $('.SERVICE_PROVIDER_ID_1').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
+    }
+
+    function removeClass(param) {
+        $(param).closest('.row').remove();
+        counter--;
     }
 </script>

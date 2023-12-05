@@ -12,7 +12,16 @@ else
 if (!empty($_GET['type'])) {
     $type = $_GET['type'];
 } else {
-    $type = 'appointment';
+    $type = '';
+}
+
+if (!empty($_GET['date'])) {
+    $date_array = explode('T', $_GET['date']);
+    $date = $date_array[0];
+    $time = $date_array[1];
+} else {
+    $date = '';
+    $time = '';
 }
 
 
@@ -264,7 +273,7 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
                 <div class="row page-titles navbar-fixed-top">
                     <div class="d-flex justify-content-center align-items-center">
                         <button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('group_class', this);"><i class="fa fa-plus-circle"></i> Group Class</button>
-                        <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('int_app', this);"><i class="fa fa-plus-circle"></i> INT APP</button>
+                        <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('int_app', this);"><i class="fa fa-plus-circle"></i> To Dos</button>
                         <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('appointment', this);"><i class="fa fa-plus-circle"></i> Appointment</button>
                         <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('ad_hoc', this);"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>
                         <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('standing', this);"><i class="fa fa-plus-circle"></i> Standing</button>
@@ -275,7 +284,7 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body" id="create_form_div">
-                            <h3>Select type of Appointment you want to create</h3>
+                            <h3 style="text-align: center">Select type of Appointment you want to create</h3>
                         </div>
                     </div>
                 </div>
@@ -304,7 +313,7 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
             $(param).addClass('button-selected');
             let url = '';
             if (type === 'group_class') {
-                url = "ajax/add_group_classes.php";
+                url = "ajax/add_group_classes.php?date=<?=$date?>&time=<?=$time?>";
             }
             if (type === 'int_app') {
                 url = "ajax/add_special_appointment.php";
