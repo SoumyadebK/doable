@@ -216,9 +216,6 @@ if(empty($_GET['id'])){
                                     <form id="service_code_form">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveServiceCodeData">
                                         <input type="hidden" name="PK_SERVICE_MASTER" class="PK_SERVICE_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
-                                        <div class="col-2">
-                                            <label class="col-md-12 mt-3"><input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?>>Default for Ad-hoc</label>
-                                        </div>
                                         <div class="p-20">
                                             <div id="append_service_code">
 
@@ -296,7 +293,7 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description" value="<?=$row->fields['DESCRIPTION']?>">
                                                             </div>
                                                         </div>
-                                                        <div class="col-2" style=" margin-bottom: auto">
+                                                        <div class="col-2" style="margin-bottom: auto;">
                                                             <div class="form-group multiselect-box">
                                                                 <select class="multi_sumo_select PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[<?=$i?>][]" multiple>
                                                                     <?php
@@ -376,6 +373,7 @@ if(empty($_GET['id'])){
                                                         </div>-->
                                                         <div class="col-1">
                                                             <div class="form-group">
+                                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" title="Default for Ad-hoc" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?>>
                                                                 <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                             </div>
                                                         </div>
@@ -466,6 +464,7 @@ if(empty($_GET['id'])){
                                                         </div>-->
                                                         <div class="col-1">
                                                             <div class="form-group">
+                                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" title="Default for Ad-hoc" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?>>
                                                                 <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                             </div>
                                                         </div>
@@ -700,6 +699,7 @@ if(empty($_GET['id'])){
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
+                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" title="Default for Ad-hoc" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?>>
                                                     <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                 </div>
                                             </div>
