@@ -52,27 +52,18 @@ if(empty($_GET['id'])){
     $DESCRIPTION = '';
     $ACTIVE = '';
     $IS_PACKAGE = '';
-    $IS_DEFAULT = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
-
     if($res->RecordCount() == 0){
         header("location:all_services.php");
         exit;
     }
-
     $SERVICE_NAME = $res->fields['SERVICE_NAME'];
     $PK_SERVICE_CLASS = $res->fields['PK_SERVICE_CLASS'];
     $IS_SCHEDULE = $res->fields['IS_SCHEDULE'];
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
     $IS_PACKAGE = $res->fields['IS_PACKAGE'];
-    $service_code = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
-    if($service_code->RecordCount() == 0){
-        header("location:all_services.php");
-        exit;
-    }
-    $IS_DEFAULT = $service_code->fields['IS_DEFAULT'];
 }
 
 ?>
@@ -265,7 +256,7 @@ if(empty($_GET['id'])){
                                                     </div>
                                                     <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
-                                                            <label>Price</label>
+                                                            <label>Price&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default</label>
                                                         </div>
                                                     </div>
                                                     <!--<div class="col-1" style="text-align: center;">
@@ -373,7 +364,7 @@ if(empty($_GET['id'])){
                                                         </div>-->
                                                         <div class="col-1">
                                                             <div class="form-group">
-                                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" title="Default for Ad-hoc" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?>>
+                                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT_<?=$i?>" title="Default for Ad-hoc" class="form-check-inline" <?=($row->fields['IS_DEFAULT'] == 1)?'checked':''?>>
                                                                 <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                             </div>
                                                         </div>
@@ -464,7 +455,7 @@ if(empty($_GET['id'])){
                                                         </div>-->
                                                         <div class="col-1">
                                                             <div class="form-group">
-                                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" title="Default for Ad-hoc" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?>>
+                                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT_0" title="Default for Ad-hoc" class="form-check-inline">
                                                                 <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                             </div>
                                                         </div>
@@ -699,7 +690,7 @@ if(empty($_GET['id'])){
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
-                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" title="Default for Ad-hoc" class="form-check-inline" <?=($IS_DEFAULT == 1)?'checked':''?>>
+                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT_${counter}" title="Default for Ad-hoc" class="form-check-inline">
                                                     <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                 </div>
                                             </div>
@@ -796,7 +787,7 @@ if(empty($_GET['id'])){
                 data: form_data,
                 success:function (data) {
                     //$('#service_document_link')[0].click();
-                    window.location.href='all_services.php';
+                    //window.location.href='all_services.php';
                 }
             });
     });
