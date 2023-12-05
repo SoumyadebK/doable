@@ -397,6 +397,39 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         }else{
             $PAYMENT_INFO = 'Payment Done.';
         }
+        $TRANSACTION_TYPE = 'Payment';
+        $BILLED_AMOUNT = 0.00;
+
+        if($_POST['IS_ONE_TIME_PAY'] == 1) {
+            $ENROLLMENT_BILLING_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
+            $ENROLLMENT_BILLING_DATA['BILLING_REF'] = $_POST['BILLING_REF'];
+            $ENROLLMENT_BILLING_DATA['BILLING_DATE'] = date('Y-m-d', strtotime($_POST['BILLING_DATE']));
+            $ENROLLMENT_BILLING_DATA['DOWN_PAYMENT'] = 0;
+            $ENROLLMENT_BILLING_DATA['BALANCE_PAYABLE'] = 0;
+            $ENROLLMENT_BILLING_DATA['ACTUAL_AMOUNT'] = $ENROLLMENT_BILLING_DATA['TOTAL_AMOUNT'] = $_POST['AMOUNT'];
+            $ENROLLMENT_BILLING_DATA['PAYMENT_METHOD'] = 'One Time';
+            $ENROLLMENT_BILLING_DATA['NUMBER_OF_PAYMENT'] = 0;
+            $ENROLLMENT_BILLING_DATA['FIRST_DUE_DATE'] = date('Y-m-d', strtotime($_POST['BILLING_DATE']));
+            $ENROLLMENT_BILLING_DATA['INSTALLMENT_AMOUNT'] = 0;
+
+            db_perform_account('DOA_ENROLLMENT_BILLING', $ENROLLMENT_BILLING_DATA, 'insert');
+            $PK_ENROLLMENT_BILLING = $db_account->insert_ID();
+            $_POST['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
+
+            $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
+            $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
+            $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
+            $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
+            $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
+            $LEDGER_DATA['BILLED_AMOUNT'] = $_POST['AMOUNT'];
+            $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
+            $LEDGER_DATA['BALANCE'] = $_POST['AMOUNT'];
+            $LEDGER_DATA['IS_PAID'] = 1;
+            $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+            $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+        }
 
         $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
         $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
@@ -723,13 +756,13 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                             <!-- Enrollment Tab panes -->
                             <div class="tab-content tabcontent-border">
                                 <div class="tab-pane active" id="enrollment" role="tabpanel">
-                                    <form id="enrollment_form">
+                                    <form class="form-material form-horizontal" id="enrollment_form">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentData">
                                         <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                         <div class="p-20">
                                             <div class="row">
                                                 <div class="col-4">
-                                                    <div class="form-group">
+                                                    <div>
                                                         <label class="form-label">Customer<span class="text-danger">*</span></label><br>
                                                         <select required name="PK_USER_MASTER" id="PK_USER_MASTER" onchange="selectThisCustomer(this);">
                                                             <option value="">Select Customer</option>
@@ -1036,7 +1069,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                 <div class="tab-pane" id="billing" role="tabpanel" style="pointer-events: <?=($PK_ENROLLMENT_BILLING>0)?'none':''?>; opacity: <?=($PK_ENROLLMENT_BILLING>0)?'60%':''?>">
                                     <div class="card">
                                         <div class="card-body">
-                                            <form id="billing_form">
+                                            <form class="form-material form-horizontal" id="billing_form">
                                                 <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
                                                 <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                                 <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=$PK_ENROLLMENT_BILLING?>">
@@ -1514,7 +1547,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         const errorBody = await paymentResponse.text();
         throw new Error(errorBody);*/
 
-        token
     }
 
     async function tokenize(paymentMethod) {
@@ -1534,7 +1566,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     }
 
     // status is either SUCCESS or FAILURE;
-    function displayPaymentResults(status) {
+    /*function displayPaymentResults(status) {
         const statusContainer = document.getElementById(
             'payment-status-container'
         );
@@ -1597,7 +1629,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         cardButton.addEventListener('click', async function (event) {
             await handlePaymentMethodSubmission(event, card);
         });
-    });
+    });*/
 </script>
 
 <script>
@@ -1905,6 +1937,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $('.payment_method_div').slideUp();
         $('#down_payment_div').slideDown();
         $('#FIRST_DUE_DATE').prop('required', false);
+        $('#IS_ONE_TIME_PAY').val(0);
         if ($(this).val() == 'One Time'){
             let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
             $('#DOWN_PAYMENT').val(0.00);
@@ -1912,6 +1945,9 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $('#down_payment_div').slideUp();
             $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
             $('#payment_confirmation_form_div').slideDown();
+            $('#IS_ONE_TIME_PAY').val(1);
+            $('#PAYMENT_BILLING_REF').val($('#BILLING_REF').val());
+            $('#PAYMENT_BILLING_DATE').val($('#BILLING_DATE').val());
             openModel();
         }
         if ($(this).val() == 'Payment Plans'){

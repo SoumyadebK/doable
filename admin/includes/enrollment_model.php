@@ -848,6 +848,7 @@ $NOTE = '';
         $('.payment_method_div').slideUp();
         $('#down_payment_div').slideDown();
         $('#FIRST_DUE_DATE').prop('required', false);
+        $('#IS_ONE_TIME_PAY').val(0);
         if ($(this).val() == 'One Time'){
             let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
             $('#DOWN_PAYMENT').val(0.00);
@@ -855,6 +856,9 @@ $NOTE = '';
             $('#down_payment_div').slideUp();
             $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
             $('#payment_confirmation_form_div').slideDown();
+            $('#IS_ONE_TIME_PAY').val(1);
+            $('#PAYMENT_BILLING_REF').val($('#BILLING_REF').val());
+            $('#PAYMENT_BILLING_DATE').val($('#BILLING_DATE').val());
             openModel();
         }
         if ($(this).val() == 'Payment Plans'){

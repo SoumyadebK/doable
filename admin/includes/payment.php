@@ -7,14 +7,17 @@
                 <h4><b>Payment</b></h4>
 
                 <form id="payment_confirmation_form" role="form" action="" method="post">
-                    <input type="hidden" name="sourceId" id="sourceId" >
+                    <input type="hidden" name="sourceId" id="sourceId">
                     <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
+                    <input type="hidden" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">
                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                     <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=$PK_ENROLLMENT_BILLING?>">
                     <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
                     <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
                     <input type="hidden" name="PK_USER_MASTER" class="CUSTOMER_ID" id="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
                     <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID">
+                    <input type="hidden" name="BILLING_REF" id="PAYMENT_BILLING_REF">
+                    <input type="hidden" name="BILLING_DATE" id="PAYMENT_BILLING_DATE">
 
                     <div class="p-20">
                         <div class="row">

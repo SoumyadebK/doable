@@ -182,6 +182,10 @@ function saveEnrollmentData($RESPONSE_DATA){
     }
 
     $total = 0;
+    $default_service_code = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `IS_DEFAULT` = 1 LIMIT 1");
+    $DEFAULT_PK_SERVICE_CODE = ($default_service_code->RecordCount() > 0) ? $default_service_code->fields['PK_SERVICE_CODE'] : 0;
+    $DEFAULT_ENROLLMENT_SERVICE = 0;
+    $is_default_service_code_selected = 0;
     if (isset($RESPONSE_DATA['PK_SERVICE_MASTER']) && count($RESPONSE_DATA['PK_SERVICE_MASTER']) > 0){
         $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
         /*if ($RESPONSE_DATA['IS_PACKAGE'] == 1 ) {
@@ -214,10 +218,23 @@ function saveEnrollmentData($RESPONSE_DATA){
                 $ENROLLMENT_SERVICE_DATA['TOTAL'] = $RESPONSE_DATA['TOTAL'][$i];
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'insert');
                 $PK_ENROLLMENT_SERVICE = $db_account->insert_ID();
+                if ($DEFAULT_PK_SERVICE_CODE === $RESPONSE_DATA['PK_SERVICE_CODE'][$i]) {
+                    $is_default_service_code_selected = 1;
+                    $DEFAULT_ENROLLMENT_SERVICE = $PK_ENROLLMENT_SERVICE;
+                }
                 createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER, 'DOA_ENROLLMENT_SERVICE', 'PK_ENROLLMENT_SERVICE', $PK_ENROLLMENT_SERVICE, $ENROLLMENT_SERVICE_DATA, 'insert');
                 $total += $RESPONSE_DATA['TOTAL'][$i];
             }
         //}
+    }
+
+    if ($is_default_service_code_selected === 1) {
+        $ad_hoc_appointment = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE CUSTOMER_ID = ".$RESPONSE_DATA['PK_USER_MASTER']." AND PK_ENROLLMENT_MASTER = 0");
+        if ($ad_hoc_appointment->RecordCount() > 0) {
+            $UPDATE_APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $UPDATE_APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $DEFAULT_ENROLLMENT_SERVICE;
+            db_perform_account('DOA_APPOINTMENT_MASTER', $UPDATE_APPOINTMENT_DATA, 'update'," CUSTOMER_ID = ".$RESPONSE_DATA['PK_USER_MASTER']." AND PK_ENROLLMENT_MASTER = 0");
+        }
     }
 
     $return_data['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;

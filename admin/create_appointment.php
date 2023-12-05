@@ -173,17 +173,19 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
     $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
 
+    $default_service_code = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `IS_DEFAULT` = 1 LIMIT 1");
+
     $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
     $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
     for ($i=0; $i<count($START_TIME_ARRAY); $i++) {
         $APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
         $APPOINTMENT_DATA['CUSTOMER_ID'] = $_POST['CUSTOMER_ID'];
 
-        $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $_POST['PK_ENROLLMENT_MASTER']);
-        $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[0];
-        $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_MASTER_ARRAY[1];
-        $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[2];
-        $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_ENROLLMENT_MASTER_ARRAY[3];
+        //$PK_ENROLLMENT_MASTER_ARRAY = explode(',', $_POST['PK_ENROLLMENT_MASTER']);
+        $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+        $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
+        $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = ($default_service_code->RecordCount() > 0) ? $default_service_code->fields['PK_SERVICE_MASTER'] : 0;
+        $APPOINTMENT_DATA['PK_SERVICE_CODE'] = ($default_service_code->RecordCount() > 0) ? $default_service_code->fields['PK_SERVICE_CODE'] : 0;
 
         $APPOINTMENT_DATA['SERVICE_PROVIDER_ID'] = $_POST['SERVICE_PROVIDER_ID'];
         $APPOINTMENT_DATA['DATE'] = $_POST['DATE'];
