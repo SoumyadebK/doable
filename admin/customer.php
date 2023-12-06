@@ -1384,7 +1384,7 @@ if(!empty($_GET['master_id'])) {
                                                         <?php
                                                         $used_session_count = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS USED_SESSION_COUNT, DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER FROM DOA_APPOINTMENT_MASTER JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]'");
                                                         $PK_SERVICE_MASTER = ($used_session_count->RecordCount() > 0) ? $used_session_count->fields['PK_SERVICE_MASTER'] : 0;
-                                                        $total_session = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS TOTAL_SESSION_COUNT FROM DOA_ENROLLMENT_SERVICE JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]'");
+                                                        $total_session = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS TOTAL_SESSION_COUNT FROM DOA_ENROLLMENT_SERVICE JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = ".$PK_SERVICE_MASTER);
                                                         if ($total_session->RecordCount() <= 0 || $total_session->fields['TOTAL_SESSION_COUNT'] == '') {
                                                             $total_session = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS TOTAL_SESSION_COUNT FROM `DOA_ENROLLMENT_SERVICE` JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]'");
                                                         }
@@ -1397,15 +1397,6 @@ if(!empty($_GET['master_id'])) {
                                                         $balance = $total_bill_and_paid->fields['TOTAL_BILL'] - $total_bill_and_paid->fields['TOTAL_PAID'];
                                                         $total_used = $used_session_count->fields['USED_SESSION_COUNT'] * $price_per_session;
                                                         $service_credit = $total_bill_and_paid->fields['TOTAL_PAID'] - $total_used;
-                                                        //$row = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT) AS TOTAL_BILL, SUM(DOA_ENROLLMENT_LEDGER.PAID_AMOUNT) AS TOTAL_PAID, SUM(DOA_ENROLLMENT_LEDGER.BALANCE) AS BALANCE, SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS TOTAL_SESSION_COUNT, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' AND `PK_ENROLLMENT_MASTER`=" . $row->fields['PK_ENROLLMENT_MASTER']);
-                                                        /*if($row->RecordCount()>0){
-                                                            $total_bill = $row->fields['TOTAL_BILL'];
-                                                            $total_paid = $row->fields['TOTAL_PAID'];
-                                                            $balance = $total_bill - $total_paid;
-                                                            $total_session_count = $row->fields['TOTAL_SESSION_COUNT'];
-                                                        } else{
-                                                            $balance = 0;
-                                                        }*/
                                                         ?>
 
                                                         <div class="col-2">Enrolled : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>

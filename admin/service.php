@@ -787,7 +787,7 @@ if(empty($_GET['id'])){
                 data: form_data,
                 success:function (data) {
                     //$('#service_document_link')[0].click();
-                    //window.location.href='all_services.php';
+                    window.location.href='all_services.php';
                 }
             });
     });
