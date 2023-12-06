@@ -35,7 +35,7 @@ if (isset($_POST['FUNCTION_NAME'])){
         $_POST['ACTIVE'] = 1;
         $_POST['CREATED_BY']  = $_SESSION['PK_USER'];
         $_POST['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_APPOINTMENT_MASTER', $_POST, 'insert');
+        db_perform_account('DOA_APPOINTMENT_MASTER', $_POST, 'insert');
     }else{
         //$_POST['ACTIVE'] = $_POST['ACTIVE'];
         if($_FILES['IMAGE']['name'] != ''){
@@ -71,10 +71,35 @@ if (isset($_POST['FUNCTION_NAME'])){
     header("location:all_schedules.php");
 }
 
+if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAppointmentData'){
+    $SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
+    $SPECIAL_APPOINTMENT_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
+    $SPECIAL_APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+    $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
+    $SPECIAL_APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
+    $SPECIAL_APPOINTMENT_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
+    $PK_SPECIAL_APPOINTMENT = $_POST['PK_SPECIAL_APPOINTMENT'];
+
+    $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+    $SPECIAL_APPOINTMENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+    $SPECIAL_APPOINTMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
+    db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update'," PK_SPECIAL_APPOINTMENT =  '$PK_SPECIAL_APPOINTMENT'");
+
+    if (isset($_POST['PK_USER'])) {
+        $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
+        for ($i = 0; $i < count($_POST['PK_USER']); $i++) {
+            $SPECIAL_APPOINTMENT_USER['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
+            $SPECIAL_APPOINTMENT_USER['PK_USER'] = $_POST['PK_USER'][$i];
+            db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
+        }
+    }
+    header("location:all_schedules.php?view=table");
+}
+
 function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
-    global $db;
-    $appointment_data = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
-    $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
+    global $db_account;
+    $appointment_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
+    $total_bill_and_paid = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
     $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
     $total_paid_appointment = intval($total_paid/$price_per_session);
     $i = 1;
@@ -256,7 +281,7 @@ $CLOSE_TIME = '23:59:00';
     })
 
     function showAppointmentEdit(info) {
-        if (info.resourceId > 0) {
+        if (info.type === 'appointment') {
             $('#appointment_list_half').removeClass('col-12');
             $('#appointment_list_half').addClass('col-6');
             $.ajax({
@@ -271,19 +296,20 @@ $CLOSE_TIME = '23:59:00';
                 }
             });
         } else {
-            if (info.type === 'group_class') {
+            if (info.type === 'special_appointment') {
                 $('#appointment_list_half').removeClass('col-12');
                 $('#appointment_list_half').addClass('col-6');
                 $.ajax({
-                    url: "ajax/get_group_class_details.php",
+                    url: "ajax/get_special_appointment_details.php",
                     type: "POST",
-                    data: {PK_GROUP_CLASS: info.id},
+                    data: {PK_APPOINTMENT_MASTER: info.id},
                     async: false,
                     cache: false,
                     success: function (result) {
                         $('#appointment_details_div').html(result);
                         $('#edit_appointment_half').show();
-                        $('.multi_sumo_select').SumoSelect({placeholder: 'Select Customer', selectAll: true, search:true, searchText:"Search Customer"});
+                        $('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
+                        $('.PK_SCHEDULING_CODE').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
 
                         $('.datepicker-normal').datepicker({
                             format: 'mm/dd/yyyy',
@@ -294,6 +320,31 @@ $CLOSE_TIME = '23:59:00';
                         });
                     }
                 });
+            } else {
+                if (info.type === 'group_class') {
+                    $('#appointment_list_half').removeClass('col-12');
+                    $('#appointment_list_half').addClass('col-6');
+                    $.ajax({
+                        url: "ajax/get_group_class_details.php",
+                        type: "POST",
+                        data: {PK_GROUP_CLASS: info.id},
+                        async: false,
+                        cache: false,
+                        success: function (result) {
+                            $('#appointment_details_div').html(result);
+                            $('#edit_appointment_half').show();
+                            $('.multi_sumo_select').SumoSelect({placeholder: 'Select Customer', selectAll: true, search:true, searchText:"Search Customer"});
+
+                            $('.datepicker-normal').datepicker({
+                                format: 'mm/dd/yyyy',
+                            });
+
+                            $('.timepicker-normal').timepicker({
+                                timeFormat: 'hh:mm p',
+                            });
+                        }
+                    });
+                }
             }
         }
     }
@@ -344,7 +395,7 @@ $CLOSE_TIME = '23:59:00';
 
         var specialAppointmentArray = [
             <?php
-            $special_appointment_data = $db_account->Execute("SELECT DOA_SPECIAL_APPOINTMENT.*, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM `DOA_SPECIAL_APPOINTMENT` LEFT JOIN DOA_SPECIAL_APPOINTMENT_USER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS WHERE DOA_SPECIAL_APPOINTMENT_USER.PK_USER = ".$_SESSION['PK_USER']);
+            $special_appointment_data = $db_account->Execute("SELECT DOA_SPECIAL_APPOINTMENT.*, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_SCHEDULING_CODE.COLOR_CODE, DOA_SCHEDULING_CODE.DURATION FROM `DOA_SPECIAL_APPOINTMENT` LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS LEFT JOIN DOA_SCHEDULING_CODE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE WHERE DOA_SPECIAL_APPOINTMENT.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
             while (!$special_appointment_data->EOF) { ?>
             {
                 id: <?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>,

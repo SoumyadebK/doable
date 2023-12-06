@@ -25,7 +25,7 @@ require_once('../../global/config.php');
                 <div class="col-6">
                     <div class="form-group">
                         <label class="form-label">Start Time</label>
-                        <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" required>
+                        <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" required>
                     </div>
                 </div>
                 <div class="col-6">
@@ -46,6 +46,27 @@ require_once('../../global/config.php');
                             while (!$row->EOF) { ?>
                                 <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
                                 <?php $row->MoveNext(); } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Scheduling Code</label>
+                    <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
+                        <select class="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
+                            <option disabled selected>Select Scheduling Code</option>
+                            <?php
+                            $selected_booking_code = [];
+                            if(!empty($_GET['id'])) {
+                                $selected_booking_code_row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = ".$row->fields['PK_SCHEDULING_CODE']);
+                                while (!$selected_booking_code_row->EOF) {
+                                    $selected_booking_code[] = $selected_booking_code_row->fields['PK_SCHEDULING_CODE'];
+                                    $selected_booking_code_row->MoveNext();
+                                }
+                            }
+                            $booking_row = $db_account->Execute("SELECT PK_SCHEDULING_CODE, SCHEDULING_NAME, DURATION FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                            while (!$booking_row->EOF) { ?>
+                                <option value="<?php echo $booking_row->fields['PK_SCHEDULING_CODE'];?>" data-duration="<?php echo $booking_row->fields['DURATION'];?>" <?=in_array($booking_row->fields['PK_SCHEDULING_CODE'], $selected_booking_code)?"selected":""?>><?=$booking_row->fields['SCHEDULING_NAME']?></option>
+                                <?php $booking_row->MoveNext(); } ?>
                         </select>
                     </div>
                 </div>
@@ -77,4 +98,21 @@ require_once('../../global/config.php');
     });
 
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', selectAll: true});
+    $('.PK_SCHEDULING_CODE').SumoSelect({placeholder: 'Select Scheduling Code', selectAll: true});
+
+    function calculateEndTime(param) {
+        let start_time = $('#START_TIME').val();
+
+        let duration = $(param).find(':selected').data('duration');
+        duration = (duration)?duration:0;
+
+        Date.prototype.add_minutes = function(){
+            return this.setMinutes(this.getMinutes() + duration);
+        }
+
+        let end_time = start_time.add_minutes();
+        $('#END_TIME').val(end_time);
+
+    }
+
 </script>
