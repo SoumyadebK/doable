@@ -23,21 +23,6 @@ require_once('../../global/config.php');
 
             <div class="row">
                 <div class="col-6">
-                    <div class="form-group">
-                        <label class="form-label">Start Time</label>
-                        <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" required>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="form-group">
-                        <label class="form-label">End Time</label>
-                        <input type="text" id="END_TIME" name="END_TIME" class="form-control time-picker" required>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-6">
                     <label class="form-label"><?=$service_provider_title?></label>
                     <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
                         <select class="multi_sumo_select" name="PK_USER[]" multiple>
@@ -52,7 +37,7 @@ require_once('../../global/config.php');
                 <div class="col-6">
                     <label class="form-label">Scheduling Code</label>
                     <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
-                        <select class="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
+                        <select class="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
                             <option disabled selected>Select Scheduling Code</option>
                             <?php
                             $selected_booking_code = [];
@@ -73,6 +58,21 @@ require_once('../../global/config.php');
             </div>
 
             <div class="row">
+                <div class="col-6">
+                    <div class="form-group">
+                        <label class="form-label">Start Time</label>
+                        <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" required>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="form-group">
+                        <label class="form-label">End Time</label>
+                        <input type="text" id="END_TIME" name="END_TIME" class="form-control time-picker" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-12">
                     <div class="form-group">
                         <label class="form-label">Description</label>
@@ -87,6 +87,7 @@ require_once('../../global/config.php');
 </form>
 
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
 <script type="text/javascript">
     $('.datepicker-normal').datepicker({
@@ -95,24 +96,33 @@ require_once('../../global/config.php');
 
     $('.time-picker').timepicker({
         timeFormat: 'hh:mm p',
+        change: function () {
+            calculateEndTime();
+        },
     });
 
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', selectAll: true});
     $('.PK_SCHEDULING_CODE').SumoSelect({placeholder: 'Select Scheduling Code', selectAll: true});
 
-    function calculateEndTime(param) {
+    function calculateEndTime() {
         let start_time = $('#START_TIME').val();
+        let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
 
-        let duration = $(param).find(':selected').data('duration');
-        duration = (duration)?duration:0;
-
-        Date.prototype.add_minutes = function(){
-            return this.setMinutes(this.getMinutes() + duration);
+        if (start_time && duration) {
+            start_time = moment(start_time, ["h:mm A"]).format("HH:mm");
+            let end_time = addMinutes(start_time, duration);
+            end_time = moment(end_time, ["HH:mm"]).format("h:mm A");
+            $('#END_TIME').val(end_time);
         }
-
-        let end_time = start_time.add_minutes();
-        $('#END_TIME').val(end_time);
-
     }
+
+    function addMinutes(time, minsToAdd) {
+        function D(J){ return (J<10? '0':'') + J;};
+        var piece = time.split(':');
+        var mins = piece[0]*60 + +piece[1] + +minsToAdd;
+
+        return D(mins%(24*60)/60 | 0) + ':' + D(mins%60);
+    }
+
 
 </script>
