@@ -1,5 +1,20 @@
 <?php
 require_once('../../global/config.php');
+
+if (!empty($_GET['date']) && !empty($_GET['time'])) {
+    $date = $_GET['date'];
+    $time = $_GET['time'];
+} else {
+    $date = '';
+    $time = '';
+}
+
+if (!empty($_GET['id'])) {
+    $PK_USER = $_GET['id'];
+} else {
+    $PK_USER = '';
+}
+
 ?>
 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
     <input type="hidden" name="FUNCTION_NAME" value="saveSpecialAppointment">
@@ -16,7 +31,7 @@ require_once('../../global/config.php');
                 <div class="col-6">
                     <div class="form-group">
                         <label class="form-label">Date</label>
-                        <input type="text" id="DATE" name="DATE" class="form-control datepicker-normal" required>
+                        <input type="text" id="DATE" name="DATE" class="form-control datepicker-normal" value="<?=$date?>" required>
                     </div>
                 </div>
             </div>
@@ -25,7 +40,7 @@ require_once('../../global/config.php');
                 <div class="col-6">
                     <div class="form-group">
                         <label class="form-label">Start Time</label>
-                        <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" required>
+                        <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" value="<?=$time?>" required>
                     </div>
                 </div>
                 <div class="col-6">
@@ -44,7 +59,7 @@ require_once('../../global/config.php');
                             <?php
                             $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES IN(5) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                             while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
+                                <option value="<?php echo $row->fields['PK_USER'];?>" <?=($PK_USER == $row->fields['PK_USER'])?"selected":""?>><?=$row->fields['NAME']?></option>
                                 <?php $row->MoveNext(); } ?>
                         </select>
                     </div>
@@ -106,11 +121,11 @@ require_once('../../global/config.php');
         let duration = $(param).find(':selected').data('duration');
         duration = (duration)?duration:0;
 
-        Date.prototype.add_minutes = function(){
-            return this.setMinutes(this.getMinutes() + duration);
-        }
+        let timeParts = start_time.split(":");
+        let minutes =  Number(timeParts[0]) * 60 + Number(timeParts[1]);
+        alert(minutes)
+        let end_time = minutes+duration;
 
-        let end_time = start_time.add_minutes();
         $('#END_TIME').val(end_time);
 
     }

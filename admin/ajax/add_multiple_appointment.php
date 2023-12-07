@@ -7,6 +7,21 @@ if (empty($_GET['PK_USER_MASTER'])) {
     $PK_USER_MASTER = $_GET['PK_USER_MASTER'];
 }
 
+if (!empty($_GET['date']) && !empty($_GET['time'])) {
+    $date = $_GET['date'];
+    $time = $_GET['time'];
+} else {
+    $date = '';
+    $time = '';
+}
+
+
+if (!empty($_GET['id'])) {
+    $PK_USER = $_GET['id'];
+} else {
+    $PK_USER = '';
+}
+
 ?>
 
 <form id="multi_appointment_form" method="post" action="">
@@ -51,7 +66,12 @@ if (empty($_GET['PK_USER_MASTER'])) {
                     <label class="form-label"><?=$service_provider_title?><span class="text-danger">*</span></label>
                     <select required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" <!--onchange="getSlots()"-->>
                         <option value="">Select <?=$service_provider_title?></option>
+                    <?php
+                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
 
+                    while (!$row->EOF) { ?>
+                        <option value="<?php echo $row->fields['PK_USER'];?>" <?=($PK_USER == $row->fields['PK_USER'])?"selected":""?>><?=$row->fields['NAME']?></option>
+                        <?php $row->MoveNext(); } ?>
                     </select>
                 </div>
             </div>
@@ -63,13 +83,13 @@ if (empty($_GET['PK_USER_MASTER'])) {
             <div class="col-2">
                 <div class="form-group">
                     <label class="form-label">Starting On<span class="text-danger">*</span></label><br>
-                    <input class="form-control datepicker-normal" type="text" name="STARTING_ON" required>
+                    <input class="form-control datepicker-normal" type="text" name="STARTING_ON" value="<?=$date?>" required>
                 </div>
             </div>
             <div class="col-2">
                 <div class="form-group">
                     <label class="form-label">Time<span class="text-danger">*</span></label><br>
-                    <input class="form-control timepicker-normal" type="text" name="START_TIME" required>
+                    <input class="form-control timepicker-normal" type="text" name="START_TIME" value="<?=$time?>" required>
                 </div>
             </div>
             <div class="col-2">
