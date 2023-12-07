@@ -357,15 +357,22 @@ z-index: 500;
                         <div class="col-6">
                             <div class="form-group">
                                 <label class="form-label">Service Code : </label>
-                                <select class="form-control" required name="PK_SERVICE_CODE" id="PK_SERVICE_CODE" style="display: none;" onchange="getSlots()" disabled>
+                                <?php if ($PK_SERVICE_CODE==0) {
+                                    $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE IS_DEFAULT=1");
+                                    $service_code = $row->fields['SERVICE_CODE'];?>
+                                    <p><?=$service_code?></p>
+                                <?php } else { ?>
+                                    <select class="form-control" required name="PK_SERVICE_CODE" id="PK_SERVICE_CODE" style="display: none;" onchange="getSlots()" disabled>
                                     <option value="">Select Service Code</option>
                                     <?php
                                     $selected_service_code = '';
                                     $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = ".$PK_SERVICE_MASTER);
                                     while (!$row->EOF) { if($PK_SERVICE_CODE==$row->fields['PK_SERVICE_CODE']){$selected_service_code = $row->fields['SERVICE_CODE'];} ?>
-                                        <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-duration="<?=$row->fields['DURATION']?>" <?=($PK_SERVICE_CODE==$row->fields['PK_SERVICE_CODE'])?'selected':''?>><?=$row->fields['SERVICE_CODE']?></option>
-                                        <?php $row->MoveNext(); } ?>
+                                <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-duration="<?=$row->fields['DURATION']?>" <?=($PK_SERVICE_CODE==$row->fields['PK_SERVICE_CODE'])?'selected':''?>><?=$row->fields['SERVICE_CODE']?></option>
+                                <?php $row->MoveNext(); } ?>
                                 </select>
+                                <?php } ?>
+
                                 <p><?=$selected_service_code?></p>
                             </div>
                         </div>
