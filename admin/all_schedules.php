@@ -824,7 +824,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    window.location.href = "create_appointment.php?date="+date.format()+"&id="+resource.id;
+                    window.location.href = "create_appointment.php?date="+date.format()+"&SERVICE_PROVIDER_ID="+resource.id;
                     //openModel();
                 }
                 console.log(

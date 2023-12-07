@@ -16,8 +16,8 @@ if (!empty($_GET['date']) && !empty($_GET['time'])) {
 }
 
 
-if (!empty($_GET['id'])) {
-    $PK_USER = $_GET['id'];
+if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
+    $PK_USER = $_GET['SERVICE_PROVIDER_ID'];
 } else {
     $PK_USER = '';
 }

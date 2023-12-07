@@ -89,11 +89,11 @@ while (!$row->EOF) {
                     <thead>
                     <tr>
                         <th></th>
-                        <th style="text-align: center;">Enrolled</th>
-                        <th style="text-align: center;">Paid</th>
-                        <th style="text-align: center;">Used</th>
-                        <th style="text-align: center;">Balance</th>
-                        <th style="text-align: center;">Service Credit</th>
+                        <th style="text-align: right;">Enrolled</th>
+                        <th style="text-align: right;">Paid</th>
+                        <th style="text-align: right;">Used</th>
+                        <th style="text-align: right;">Balance</th>
+                        <th style="text-align: right;">Service Credit</th>
                     </tr>
                     </thead>
 

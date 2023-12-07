@@ -1380,7 +1380,7 @@ if(!empty($_GET['master_id'])) {
 
                                             <div class="tab-pane" id="enrollment" role="tabpanel">
                                                 <div class="row">
-                                                    <div class="col-10 d-flex justify-content-end align-items-center" style="font-weight: bold; font-size: 15px; margin-top: 15px;">
+                                                    <div class="col-12 d-flex justify-content-end align-items-center" style="font-weight: bold; font-size: 15px; margin-top: 15px;">
                                                         <?php
                                                         $used_session_count = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS USED_SESSION_COUNT, DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER FROM DOA_APPOINTMENT_MASTER JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]'");
                                                         $PK_SERVICE_MASTER = ($used_session_count->RecordCount() > 0) ? $used_session_count->fields['PK_SERVICE_MASTER'] : 0;
@@ -1399,19 +1399,22 @@ if(!empty($_GET['master_id'])) {
                                                         $service_credit = $total_bill_and_paid->fields['TOTAL_PAID'] - $total_used;
                                                         ?>
 
-                                                        <div class="col-2">Enrolled : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>
-                                                        <div class="col-1">Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-                                                        <div class="col-2">Used : <?=number_format((float)$total_used, 2, '.', ',');?></div>
-                                                        <div class="col-2">Balance : <?=$balance?></div>
-                                                        <div class="col-2" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=number_format((float)$service_credit, 2, '.', ',');?></div>
-                                                        <div class="col-1">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count;?></div>
-                                                        <div class="col-2">Wallet Balance : <?=$balance;?></div>
+                                                        <div class="col-2 text-center">Enrolled : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>
+                                                        <div class="col-2 text-center">Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
+                                                        <div class="col-2 text-center">Used : <?=number_format((float)$total_used, 2, '.', ',');?></div>
+                                                        <div class="col-2 text-center">Balance : <?=$balance?></div>
+                                                        <div class="col-2 text-center" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=number_format((float)$service_credit, 2, '.', ',');?></div>
+                                                        <div class="col-2 text-center">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count;?></div>
+                                                        <!--<div class="col-1 text-end">Wallet Balance : <?php /*=$balance;*/?></div>-->
                                                     </div>
-                                                    <div class="col-2 d-flex justify-content-end align-items-center">
+                                                </div>
+                                                <div class="row" style="margin-bottom: -30px; margin-top: 10px;">
+                                                    <div class="col-12 d-flex justify-content-end">
                                                         <?php
                                                         $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
                                                         ?>
-                                                        <input type="checkbox" id="toggleAll" onclick="toggleAllCheckboxes()"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="payAll(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay All</button>
+                                                        <input type="checkbox" id="toggleAll" onclick="toggleAllCheckboxes()"/>
+                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="payAll(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')">Pay All</a>
                                                         <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="createEnrollment();" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
                                                     </div>
                                                 </div>

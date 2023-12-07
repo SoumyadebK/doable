@@ -17,7 +17,7 @@ if (!empty($_GET['type'])) {
 
 if (!empty($_GET['date'])) {
     $date_array = explode('T', $_GET['date']);
-    $date = $date_array[0];
+    $date = date("m/d/Y", strtotime($date_array[0]));
     $time = date("h:i A", strtotime($date_array[1]));
 
 } else {
@@ -25,8 +25,8 @@ if (!empty($_GET['date'])) {
     $time = '';
 }
 
-if (!empty($_GET['id'])) {
-    $PK_USER = $_GET['id'];
+if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
+    $PK_USER = $_GET['SERVICE_PROVIDER_ID'];
 } else {
     $PK_USER = '';
 }
@@ -321,19 +321,19 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
             $(param).addClass('button-selected');
             let url = '';
             if (type === 'group_class') {
-                url = "ajax/add_group_classes.php?date=<?=$date?>&time=<?=$time?>&id=<?=$PK_USER?>";
+                url = "ajax/add_group_classes.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
             }
             if (type === 'int_app') {
-                url = "ajax/add_special_appointment.php?date=<?=$date?>&time=<?=$time?>&id=<?=$PK_USER?>";
+                url = "ajax/add_special_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
             }
             if (type === 'appointment') {
-                url = "ajax/add_appointment.php?date=<?=$date?>&time=<?=$time?>&id=<?=$PK_USER?>";
+                url = "ajax/add_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
             }
             if (type === 'ad_hoc') {
                 url = "ajax/add_ad_hoc_appointment.php?id="+PK_APPOINTMENT_MASTER;
             }
             if (type === 'standing') {
-                url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&id=<?=$PK_USER?>";
+                url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
             }
             $.ajax({
                 url: url,
