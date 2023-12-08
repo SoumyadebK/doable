@@ -114,13 +114,13 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
             <div class="col-2">
                 <div class="form-group occurrence_div">
                     <label class="form-label">Select Occurrence<span class="text-danger">*</span></label><br>
-                    <label><input type="radio" name="OCCURRENCE_0" value="WEEKLY"> Weekly</label><br>
-                    <label><input type="radio" name="OCCURRENCE_0" value="DAYS"> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
+                    <label><input type="radio" class="OCCURRENCE" name="OCCURRENCE_0" value="WEEKLY" required> Weekly</label><br>
+                    <label><input type="radio" class="OCCURRENCE" name="OCCURRENCE_0" value="DAYS" required> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
                 </div>
                 <div class="form-group length_div">
                     <label class="form-label">Length<span class="text-danger">*</span></label><br>
-                    <input type="number" id="LENGTH" class="form-control" name="LENGTH[]" style="width: 80px;">
-                    <select class="form-control" name="FREQUENCY[]" style="width: 100px;">
+                    <input type="number" id="LENGTH" class="form-control" name="LENGTH[]" style="width: 80px;" required>
+                    <select class="form-control" name="FREQUENCY[]" style="width: 100px;" required>
                         <option value="week">Week(S)</option>
                         <option value="month">Month(S)</option>
                         <option value="year">Year(S)</option>
@@ -167,14 +167,14 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
     });
 
     $('.DAYS').on('change', function(){
-        if ($(this).is(':checked')){
-            $(this).closest('.group_class_setting').find("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
+        if ($(this).closest('.group_class_setting').find('.DAYS').is(':checked')){
+            $(this).closest('.group_class_setting').find("input[class='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
             $(this).closest('.group_class_setting').find('.occurrence_div').addClass('disable-div');
-            $(this).closest('.group_class_setting').find('.length_div').addClass('disable-div');
+            //$(this).closest('.group_class_setting').find('.length_div').addClass('disable-div');
         } else {
-            $(this).closest('.group_class_setting').find("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
+            $(this).closest('.group_class_setting').find("input[class='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
             $(this).closest('.group_class_setting').find('.occurrence_div').removeClass('disable-div');
-            $(this).closest('.group_class_setting').find('.length_div').removeClass('disable-div');
+            //$(this).closest('.group_class_setting').find('.length_div').removeClass('disable-div');
         }
     });
 
@@ -252,13 +252,13 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
             <div class="col-2">
                 <div class="form-group occurrence_div">
                     <label class="form-label">Select Occurrence<span class="text-danger">*</span></label><br>
-                    <label><input type="radio" name="OCCURRENCE_${counter}" value="WEEKLY"> Weekly</label><br>
-                    <label><input type="radio" name="OCCURRENCE_${counter}" value="DAYS"> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
+                    <label><input type="radio" class="OCCURRENCE" name="OCCURRENCE_${counter}" value="WEEKLY" required> Weekly</label><br>
+                    <label><input type="radio" class="OCCURRENCE" name="OCCURRENCE_${counter}" value="DAYS" required> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
                 </div>
                 <div class="form-group length_div">
                     <label class="form-label">Length<span class="text-danger">*</span></label><br>
-                    <input type="number" id="LENGTH" class="form-control" name="LENGTH[]" style="width: 80px;">
-                    <select class="form-control" name="FREQUENCY[]" style="width: 100px;">
+                    <input type="number" id="LENGTH" class="form-control" name="LENGTH[]" style="width: 80px;" required>
+                    <select class="form-control" name="FREQUENCY[]" style="width: 100px;" required>
                         <option value="week">Week(S)</option>
                         <option value="month">Month(S)</option>
                         <option value="year">Year(S)</option>
@@ -284,14 +284,14 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
         });
 
         $('.DAYS').on('change', function(){
-            if ($(this).is(':checked')){
-                $(this).closest('.group_class_setting').find("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
+            if ($(this).closest('.group_class_setting').find('.DAYS').is(':checked')){
+                $(this).closest('.group_class_setting').find("input[class='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
                 $(this).closest('.group_class_setting').find('.occurrence_div').addClass('disable-div');
-                $(this).closest('.group_class_setting').find('.length_div').addClass('disable-div');
+                //$(this).closest('.group_class_setting').find('.length_div').addClass('disable-div');
             } else {
-                $(this).closest('.group_class_setting').find("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
+                $(this).closest('.group_class_setting').find("input[class='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
                 $(this).closest('.group_class_setting').find('.occurrence_div').removeClass('disable-div');
-                $(this).closest('.group_class_setting').find('.length_div').removeClass('disable-div');
+                //$(this).closest('.group_class_setting').find('.length_div').removeClass('disable-div');
             }
         });
 

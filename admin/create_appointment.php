@@ -40,7 +40,6 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 
 if ($FUNCTION_NAME == 'saveGroupClassData'){
-    pre_r($_POST);
     $SERVICE_ID = explode(',', $_POST['SERVICE_ID']);
     $DURATION = $SERVICE_ID[0];
     $PK_SERVICE_CODE = $SERVICE_ID[1];
