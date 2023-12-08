@@ -219,12 +219,12 @@ if (!empty($_GET['id'])) {
                     <label class="form-label"><?=$service_provider_title?> <span class="text-danger">*</span></label>
                     <select name="SERVICE_PROVIDER_ID_1[]" class="SERVICE_PROVIDER_ID_1" id="SERVICE_PROVIDER_ID_1" required>
                     <option value="">Select <?=$service_provider_title?></option>
-<?php
-        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                    <?php
+                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
 
-        while (!$row->EOF) { ?>
-                            <option value="<?php echo $row->fields['PK_USER'];?>" <?=($PK_USER == $row->fields['PK_USER'])?"selected":""?>><?=$row->fields['NAME']?></option>
-                            <?php $row->MoveNext(); } ?>
+                    while (!$row->EOF) { ?>
+                        <option value="<?php echo $row->fields['PK_USER'];?>" <?=($PK_USER == $row->fields['PK_USER'])?"selected":""?>><?=$row->fields['NAME']?></option>
+                    <?php $row->MoveNext(); } ?>
                     </select>
                 </div>
             </div>
@@ -274,6 +274,15 @@ if (!empty($_GET['id'])) {
             </div>
         </div>`);
         $('.SERVICE_PROVIDER_ID_1').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
+        $('.datepicker-normal').datepicker({
+            format: 'mm/dd/yyyy',
+        });
+
+        $('.timepicker-normal').timepicker({
+            timeFormat: 'hh:mm p',
+            minTime: '01:00 PM',
+            maxTime: '09:00 PM'
+        });
     }
 
     function removeClass(param) {
