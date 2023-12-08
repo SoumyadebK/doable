@@ -74,12 +74,12 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
             </div>
         </div>
 
-        <div class="row justify-content-evenly" style="margin-top: 20px; border-bottom: 1px solid grey;">
+        <div class="row justify-content-evenly group_class_setting" style="margin-top: 20px; border-bottom: 1px solid grey;">
             <input type="hidden" name="PK_GROUP_CLASS[]" value="<?=$row->fields['PK_GROUP_CLASS']?>">
             <div class="col-3">
                 <div class="form-group">
                     <label class="form-label"><?=$service_provider_title?> <span class="text-danger">*</span></label>
-                    <select name="SERVICE_PROVIDER_ID_1[]" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_1" required multiple>
+                    <select name="SERVICE_PROVIDER_ID_0[]" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_0" required multiple>
                         <?php
                         $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
 
@@ -92,40 +92,40 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
             <div class="col-2">
                 <div class="form-group">
                     <label class="form-label">Starting On<span class="text-danger">*</span></label><br>
-                    <input class="form-control datepicker-normal" type="text" name="STARTING_ON" value="<?=$date?>" required>
+                    <input class="form-control datepicker-normal" type="text" name="STARTING_ON[]" value="<?=$date?>" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Time<span class="text-danger">*</span></label><br>
-                    <input class="form-control timepicker-normal" type="text" name="START_TIME" value="<?=$time?>" required>
+                    <input class="form-control timepicker-normal" type="text" name="START_TIME[]" value="<?=$time?>" required>
                 </div>
             </div>
             <div class="col-2 days_div">
                 <div class="form-group">
                     <label class="form-label">Select Days</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="monday"> Monday</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="tuesday"> Tuesday</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="wednesday"> Wednesday</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="thursday"> Thursday</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="friday"> Friday</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="saturday"> Saturday</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="sunday"> Sunday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_0[]" value="monday"> Monday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_0[]" value="tuesday"> Tuesday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_0[]" value="wednesday"> Wednesday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_0[]" value="thursday"> Thursday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_0[]" value="friday"> Friday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_0[]" value="saturday"> Saturday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_0[]" value="sunday"> Sunday</label><br>
                 </div>
             </div>
             <div class="col-2">
                 <div class="form-group occurrence_div">
                     <label class="form-label">Select Occurrence<span class="text-danger">*</span></label><br>
-                    <label><input type="radio" name="OCCURRENCE" value="WEEKLY" required> Weekly</label><br>
-                    <label><input type="radio" name="OCCURRENCE" value="DAYS" required> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
+                    <label><input type="radio" name="OCCURRENCE_0" value="WEEKLY"> Weekly</label><br>
+                    <label><input type="radio" name="OCCURRENCE_0" value="DAYS"> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
                 </div>
                 <div class="form-group length_div">
                     <label class="form-label">Length<span class="text-danger">*</span></label><br>
-                    <input type="number" id="LENGTH" class="form-control" name="LENGTH" style="width: 80px;" required>
-                    <select class="form-control" name="FREQUENCY" style="width: 100px;" required>
+                    <input type="number" id="LENGTH" class="form-control" name="LENGTH[]" style="width: 80px;">
+                    <select class="form-control" name="FREQUENCY[]" style="width: 100px;">
                         <option value="week">Week(S)</option>
                         <option value="month">Month(S)</option>
                         <option value="year">Year(S)</option>
                     </select>
-                    <label><input type="checkbox" class="YEAR" name="YEAR" value=""></label>
+                    <label><input type="checkbox" class="YEAR" name="YEAR_0" value=""></label>
                 </div>
             </div>
             <div class="col-1">
@@ -167,26 +167,26 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
     });
 
     $('.DAYS').on('change', function(){
-        if ($('.DAYS').is(':checked')){
-            $("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
-            $('.occurrence_div').addClass('disable-div');
-            $('.length_div').addClass('disable-div');
+        if ($(this).is(':checked')){
+            $(this).closest('.group_class_setting').find("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
+            $(this).closest('.group_class_setting').find('.occurrence_div').addClass('disable-div');
+            $(this).closest('.group_class_setting').find('.length_div').addClass('disable-div');
         } else {
-            $("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
-            $('.occurrence_div').removeClass('disable-div');
-            $('.length_div').removeClass('disable-div');
+            $(this).closest('.group_class_setting').find("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
+            $(this).closest('.group_class_setting').find('.occurrence_div').removeClass('disable-div');
+            $(this).closest('.group_class_setting').find('.length_div').removeClass('disable-div');
         }
     });
 
     $('.YEAR').on('change', function(){
-        if ($('.YEAR').is(':checked')){
+        if ($(this).is(':checked')){
             let length = 52;
-            $('.days_div').addClass('disable-div');
-            $('.occurrence_div').addClass('disable-div');
-            $('#LENGTH').val(length);
+            $(this).closest('.group_class_setting').find('.days_div').addClass('disable-div');
+            $(this).closest('.group_class_setting').find('.occurrence_div').addClass('disable-div');
+            $(this).closest('.group_class_setting').find('#LENGTH').val(length);
         } else {
-            $('.days_div').removeClass('disable-div');
-            $('.occurrence_div').removeClass('disable-div');
+            $(this).closest('.group_class_setting').find('.days_div').removeClass('disable-div');
+            $(this).closest('.group_class_setting').find('.occurrence_div').removeClass('disable-div');
         }
     });
 
@@ -204,19 +204,20 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
             success: function (result) {
                 $('.SERVICE_PROVIDER_ID').empty();
                 $('.SERVICE_PROVIDER_ID').append(result);
-                $('#SERVICE_PROVIDER_ID_1')[0].sumo.reload();
+                $('#SERVICE_PROVIDER_ID_0')[0].sumo.reload();
                 $('#SERVICE_PROVIDER_ID_2')[0].sumo.reload();
                 $('#SERVICE_PROVIDER_ID_2').prop('required', false);
             }
         });
     }*/
 
+    var counter = 1;
     function addMoreClass() {
-        $('#append_service_code').append(`<div class="row justify-content-evenly" style="margin-top: 20px; border-bottom: 1px solid grey;">
+        $('#append_service_code').append(`<div class="row justify-content-evenly group_class_setting" style="margin-top: 20px; border-bottom: 1px solid grey;">
             <div class="col-3">
                 <div class="form-group">
                     <label class="form-label"><?=$service_provider_title?> <span class="text-danger">*</span></label>
-                    <select name="SERVICE_PROVIDER_ID_1[]" class="SERVICE_PROVIDER_ID_1" id="SERVICE_PROVIDER_ID_1" required>
+                    <select name="SERVICE_PROVIDER_ID_${counter}[]" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_${counter}" multiple required>
                     <option value="">Select <?=$service_provider_title?></option>
                     <?php
                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
@@ -229,40 +230,40 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
             <div class="col-2">
                 <div class="form-group">
                     <label class="form-label">Starting On<span class="text-danger">*</span></label><br>
-                    <input class="form-control datepicker-normal" type="text" name="STARTING_ON" value="<?=$date?>" required>
+                    <input class="form-control datepicker-normal" type="text" name="STARTING_ON[]" value="<?=$date?>" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Time<span class="text-danger">*</span></label><br>
-                    <input class="form-control timepicker-normal" type="text" name="START_TIME" value="<?=$time?>" required>
+                    <input class="form-control timepicker-normal" type="text" name="START_TIME[]" value="<?=$time?>" required>
                 </div>
             </div>
             <div class="col-2">
                 <div class="form-group">
                     <label class="form-label">Select Days</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="monday"> Monday</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="tuesday"> Tuesday</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="wednesday"> Wednesday</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="thursday"> Thursday</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="friday"> Friday</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="saturday"> Saturday</label><br>
-                    <label><input type="checkbox" class="DAYS" name="DAYS[]" value="sunday"> Sunday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_${counter}[]" value="monday"> Monday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_${counter}[]" value="tuesday"> Tuesday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_${counter}[]" value="wednesday"> Wednesday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_${counter}[]" value="thursday"> Thursday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_${counter}[]" value="friday"> Friday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_${counter}[]" value="saturday"> Saturday</label><br>
+                    <label><input type="checkbox" class="DAYS" name="DAYS_${counter}[]" value="sunday"> Sunday</label><br>
                 </div>
             </div>
-            <div class="col-2 occurrence_div">
-                <div class="form-group">
+            <div class="col-2">
+                <div class="form-group occurrence_div">
                     <label class="form-label">Select Occurrence<span class="text-danger">*</span></label><br>
-                    <label><input type="radio" name="OCCURRENCE" value="WEEKLY" required> Weekly</label><br>
-                    <label><input type="radio" name="OCCURRENCE" value="DAYS" required> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
+                    <label><input type="radio" name="OCCURRENCE_${counter}" value="WEEKLY"> Weekly</label><br>
+                    <label><input type="radio" name="OCCURRENCE_${counter}" value="DAYS"> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
                 </div>
                 <div class="form-group length_div">
                     <label class="form-label">Length<span class="text-danger">*</span></label><br>
-                    <input type="number" id="LENGTH" class="form-control" name="LENGTH" style="width: 80px;" required>
-                    <select class="form-control" name="FREQUENCY" style="width: 100px;" required>
+                    <input type="number" id="LENGTH" class="form-control" name="LENGTH[]" style="width: 80px;">
+                    <select class="form-control" name="FREQUENCY[]" style="width: 100px;">
                         <option value="week">Week(S)</option>
                         <option value="month">Month(S)</option>
                         <option value="year">Year(S)</option>
                     </select>
-                    <label><input type="checkbox" class="YEAR" name="YEAR" value=""></label>
+                    <label><input type="checkbox" class="YEAR" name="YEAR_${counter}" value=""></label>
                 </div>
             </div>
             <div class="col-1">
@@ -271,7 +272,7 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
                 </div>
             </div>
         </div>`);
-        $('.SERVICE_PROVIDER_ID_1').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
+
         $('.datepicker-normal').datepicker({
             format: 'mm/dd/yyyy',
         });
@@ -281,6 +282,35 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
             minTime: '01:00 PM',
             maxTime: '09:00 PM'
         });
+
+        $('.DAYS').on('change', function(){
+            if ($(this).is(':checked')){
+                $(this).closest('.group_class_setting').find("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
+                $(this).closest('.group_class_setting').find('.occurrence_div').addClass('disable-div');
+                $(this).closest('.group_class_setting').find('.length_div').addClass('disable-div');
+            } else {
+                $(this).closest('.group_class_setting').find("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
+                $(this).closest('.group_class_setting').find('.occurrence_div').removeClass('disable-div');
+                $(this).closest('.group_class_setting').find('.length_div').removeClass('disable-div');
+            }
+        });
+
+        $('.YEAR').on('change', function(){
+            if ($(this).is(':checked')){
+                let length = 52;
+                $(this).closest('.group_class_setting').find('.days_div').addClass('disable-div');
+                $(this).closest('.group_class_setting').find('.occurrence_div').addClass('disable-div');
+                $(this).closest('.group_class_setting').find('#LENGTH').val(length);
+            } else {
+                $(this).closest('.group_class_setting').find('.days_div').removeClass('disable-div');
+                $(this).closest('.group_class_setting').find('.occurrence_div').removeClass('disable-div');
+            }
+        });
+
+        $('#SERVICE_ID').SumoSelect({placeholder: 'Select Services', search: true, searchText: 'Search...'});
+        $('.SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', selectAll: true, search: true, searchText: 'Search...'});
+
+        counter++;
     }
 
     function removeClass(param) {
