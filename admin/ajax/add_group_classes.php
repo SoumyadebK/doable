@@ -9,8 +9,8 @@ if (!empty($_GET['date']) && !empty($_GET['time'])) {
     $time = '';
 }
 
-if (!empty($_GET['id'])) {
-    $PK_USER = $_GET['id'];
+if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
+    $PK_USER = $_GET['SERVICE_PROVIDER_ID'];
 } else {
     $PK_USER = '';
 }
@@ -79,8 +79,7 @@ if (!empty($_GET['id'])) {
             <div class="col-3">
                 <div class="form-group">
                     <label class="form-label"><?=$service_provider_title?> <span class="text-danger">*</span></label>
-                    <select name="SERVICE_PROVIDER_ID_1[]" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_1" required>
-                    <option value="">Select <?=$service_provider_title?></option>
+                    <select name="SERVICE_PROVIDER_ID_1[]" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_1" required multiple>
                         <?php
                         $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
 
@@ -192,7 +191,7 @@ if (!empty($_GET['id'])) {
     });
 
     $('#SERVICE_ID').SumoSelect({placeholder: 'Select Services', search: true, searchText: 'Search...'});
-    $('.SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
+    $('.SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', selectAll: true, search: true, searchText: 'Search...'});
 
 /*    function selectThisService(param) {
         let SERVICE_ID = $(param).val();
@@ -221,7 +220,6 @@ if (!empty($_GET['id'])) {
                     <option value="">Select <?=$service_provider_title?></option>
                     <?php
                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-
                     while (!$row->EOF) { ?>
                         <option value="<?php echo $row->fields['PK_USER'];?>" <?=($PK_USER == $row->fields['PK_USER'])?"selected":""?>><?=$row->fields['NAME']?></option>
                     <?php $row->MoveNext(); } ?>

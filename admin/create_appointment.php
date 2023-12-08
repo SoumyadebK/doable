@@ -17,7 +17,7 @@ if (!empty($_GET['type'])) {
 
 if (!empty($_GET['date'])) {
     $date_array = explode('T', $_GET['date']);
-    $date = $date_array[0];
+    $date = date("m/d/Y", strtotime($date_array[0]));
     $time = date("h:i A", strtotime($date_array[1]));
 
 } else {
@@ -25,8 +25,8 @@ if (!empty($_GET['date'])) {
     $time = '';
 }
 
-if (!empty($_GET['id'])) {
-    $PK_USER = $_GET['id'];
+if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
+    $PK_USER = $_GET['SERVICE_PROVIDER_ID'];
 } else {
     $PK_USER = '';
 }
@@ -143,6 +143,14 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         }
     }
 
+    if (isset($_POST['CUSTOMER_ID'])) {
+        $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_CUSTOMER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
+        for ($i = 0; $i < count($_POST['CUSTOMER_ID']); $i++) {
+            $SPECIAL_APPOINTMENT_CUSTOMER_DATA['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
+            $SPECIAL_APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$i];
+            db_perform_account('DOA_SPECIAL_APPOINTMENT_CUSTOMER', $SPECIAL_APPOINTMENT_CUSTOMER_DATA, 'insert');
+        }
+    }
     header("location:all_schedules.php?view=table");
 } elseif ($FUNCTION_NAME == 'saveAppointmentData') {
     unset($_POST['TIME']);
@@ -283,7 +291,7 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
                         <button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('group_class', this);"><i class="fa fa-plus-circle"></i> Group Class</button>
                         <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('int_app', this);"><i class="fa fa-plus-circle"></i> To Dos</button>
                         <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('appointment', this);"><i class="fa fa-plus-circle"></i> Appointment</button>
-                        <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('ad_hoc', this);"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>
+                        <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('ad_hoc', this);"><i class="fa fa-plus-circle"></i> Ad-hoc</button>
                         <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('standing', this);"><i class="fa fa-plus-circle"></i> Standing</button>
                     </div>
                 </div>
@@ -321,19 +329,19 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
             $(param).addClass('button-selected');
             let url = '';
             if (type === 'group_class') {
-                url = "ajax/add_group_classes.php?date=<?=$date?>&time=<?=$time?>&id=<?=$PK_USER?>";
+                url = "ajax/add_group_classes.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
             }
             if (type === 'int_app') {
-                url = "ajax/add_special_appointment.php?date=<?=$date?>&time=<?=$time?>&id=<?=$PK_USER?>";
+                url = "ajax/add_special_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
             }
             if (type === 'appointment') {
-                url = "ajax/add_appointment.php?date=<?=$date?>&time=<?=$time?>&id=<?=$PK_USER?>";
+                url = "ajax/add_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
             }
             if (type === 'ad_hoc') {
                 url = "ajax/add_ad_hoc_appointment.php?id="+PK_APPOINTMENT_MASTER;
             }
             if (type === 'standing') {
-                url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&id=<?=$PK_USER?>";
+                url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
             }
             $.ajax({
                 url: url,

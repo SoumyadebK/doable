@@ -279,6 +279,15 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAp
             db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
         }
     }
+
+    if (isset($_POST['PK_USER_MASTER'])) {
+        $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_CUSTOMER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
+        for ($i = 0; $i < count($_POST['PK_USER_MASTER']); $i++) {
+            $SPECIAL_APPOINTMENT_CUSTOMER_DATA['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
+            $SPECIAL_APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$i];
+            db_perform_account('DOA_SPECIAL_APPOINTMENT_CUSTOMER', $SPECIAL_APPOINTMENT_CUSTOMER_DATA, 'insert');
+        }
+    }
     header("location:all_schedules.php?view=table");
 }
 
@@ -825,7 +834,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    window.location.href = "create_appointment.php?date="+date.format()+"&id="+resource.id;
+                    window.location.href = "create_appointment.php?date="+date.format()+"&SERVICE_PROVIDER_ID="+resource.id;
                     //openModel();
                 }
                 console.log(
