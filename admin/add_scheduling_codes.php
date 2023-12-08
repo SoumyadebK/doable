@@ -19,6 +19,7 @@ if (!empty($_POST)) {
         $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
         $SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
         $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
+        $SCHEDULING_DATA['IS_DEFAULT'] = $_POST['IS_DEFAULT'];
         $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
         $SCHEDULING_DATA['DURATION'] = $_POST['DURATION'];
         $SCHEDULING_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
@@ -31,6 +32,7 @@ if (!empty($_POST)) {
         $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
         $SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
         $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
+        $SCHEDULING_DATA['IS_DEFAULT'] = isset($_POST['IS_DEFAULT'])?1:0;
         $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
         $SCHEDULING_DATA['DURATION'] = $_POST['DURATION'];
         $SCHEDULING_DATA['ACTIVE'] = $_POST['ACTIVE'];
@@ -47,6 +49,7 @@ if (empty($_GET['id'])) {
     $SCHEDULING_NAME            = '';
     $PK_SCHEDULING_EVENT     = '';
     $PK_EVENT_ACTION            = '';
+    $IS_DEFAULT = '';
     $COLOR_CODE = '';
     $DURATION = '';
     $ACTIVE             = '';
@@ -60,6 +63,7 @@ if (empty($_GET['id'])) {
     $SCHEDULING_NAME      = $res->fields['SCHEDULING_NAME'];
     $PK_SCHEDULING_EVENT  = $res->fields['PK_SCHEDULING_EVENT'];
     $PK_EVENT_ACTION      = $res->fields['PK_EVENT_ACTION'];
+    $IS_DEFAULT      = $res->fields['IS_DEFAULT'];
     $COLOR_CODE           = $res->fields['COLOR_CODE'];
     $DURATION           = $res->fields['DURATION'];
     $ACTIVE            = $res->fields['ACTIVE'];
@@ -148,6 +152,10 @@ if (empty($_GET['id'])) {
                                     </select>
                                 </div>
                                 <div class="form-group">
+                                    <label class="" for="example-text">Customer Required</label>
+                                    <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" class="form-check-inline" style="margin-left: 10px;" <?=($IS_DEFAULT == 1)?'checked':''?>
+                                </div>
+                                <div class="form-group" style="margin-top: 10px">
                                     <label class="col-md-12" for="example-text">Color Code<span class="text-danger">*</span>
                                     </label>
                                     <div class="col-md-3">

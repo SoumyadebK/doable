@@ -11,6 +11,7 @@ while (!$row->EOF) {
     }else {
         $enrollment_name = "$name"." - ";
     }
-    $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_SERVICE`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_SERVICE` = ".$row->fields['PK_ENROLLMENT_SERVICE']); ?>
+    $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_SERVICE`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_SERVICE` = ".$row->fields['PK_ENROLLMENT_SERVICE']);
+    if (($row->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']) > 0) {?>
     <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-duration="<?=$row->fields['DURATION']?>" data-no_of_session="<?=$row->fields['NUMBER_OF_SESSION']?>" <?=(($row->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']) <= 0)?'disabled':''?>><?=$enrollment_name.$row->fields['ENROLLMENT_ID'].' || '.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$used_session_count->fields['USED_SESSION_COUNT'].'/'.$row->fields['NUMBER_OF_SESSION'];?></option>
-<?php $row->MoveNext(); } ?>
+<?php } $row->MoveNext(); } ?>
