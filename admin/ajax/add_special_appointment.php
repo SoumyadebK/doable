@@ -170,6 +170,4 @@ if (empty($_GET['PK_USER_MASTER'])) {
 
         return D(mins%(24*60)/60 | 0) + ':' + D(mins%60);
     }
-
-
 </script>

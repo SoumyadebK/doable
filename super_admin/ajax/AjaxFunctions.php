@@ -43,7 +43,7 @@ function saveAccountInfoData($RESPONSE_DATA){
         } else {
             $conn_account_db = new mysqli('localhost', 'root', 'b54eawxj5h8ev', $databaseName);
         }
-        
+
         if ($conn_account_db->connect_error) {
             die("Connection failed: " . $conn_account_db->connect_error);
         }
@@ -72,7 +72,11 @@ function saveProfileInfoData($RESPONSE_DATA)
     $PK_ACCOUNT_MASTER = $RESPONSE_DATA['PK_ACCOUNT_MASTER'];
     $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
     $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
-    $USER_DATA['USER_NAME'] = $USERNAME_PREFIX.'.'.$RESPONSE_DATA['USER_NAME'];
+    if (strpos($RESPONSE_DATA['USER_NAME'], $USERNAME_PREFIX.'.') !== false) {
+        $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+    } else {
+        $USER_DATA['USER_NAME'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['USER_NAME'];
+    }
     $USER_DATA['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
     $USER_DATA['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
     $USER_DATA['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
