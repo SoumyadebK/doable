@@ -637,6 +637,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 end: new Date(<?=date("Y",strtotime($appointment_data->fields['DATE']))?>,<?=intval((date("m",strtotime($appointment_data->fields['DATE'])) - 1))?>,<?=intval(date("d",strtotime($appointment_data->fields['DATE'])))?>,<?=date("H",strtotime($appointment_data->fields['END_TIME']))?>,<?=date("i",strtotime($appointment_data->fields['END_TIME']))?>,1,1),
                 color: '<?=$appointment_data->fields['COLOR_CODE']?>',
                 type: 'appointment',
+                status: '<?=$appointment_data->fields['APPOINTMENT_STATUS']?>',
+                statusColor: 'red !important'
+
                 //textColor: 'black !important',
             },
             <?php $appointment_data->MoveNext();
@@ -759,6 +762,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
             resources: defaultResources,
             events: finalArray,
+
+            eventRender: function(event, element) {
+                if (event.status) {
+                    element.find(".fc-title").prepend(' <strong style="color: ' + event.statusColor + '">(' + event.status + ')</strong> ');
+                }
+            },
 
             eventClick: function(info) {
                 showAppointmentEdit(info);
