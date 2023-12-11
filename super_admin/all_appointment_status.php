@@ -82,6 +82,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <tr>
                                         <th>No</th>
                                         <th>Appointment Status</th>
+                                        <th>Status Code</th>
                                         <th>Color</th>
                                         <th>Actions</th>
                                     </tr>
@@ -95,6 +96,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_APPOINTMENT_STATUS']?>);"><?=$i;?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_APPOINTMENT_STATUS']?>);"><?=$row->fields['APPOINTMENT_STATUS']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_APPOINTMENT_STATUS']?>);" style="text-transform: capitalize; font-weight: bold; color: <?= $row->fields['COLOR_CODE']?>"><?=$row->fields['STATUS_CODE']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_APPOINTMENT_STATUS']?>);"><span style="display: block; width: 44px; height: 22px; background-color: <?=$row->fields['COLOR_CODE']?>"></span></td>
                                             <td>
                                                 <a href="add_appointment_status.php?id=<?=$row->fields['PK_APPOINTMENT_STATUS']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;

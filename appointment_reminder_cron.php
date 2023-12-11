@@ -31,7 +31,7 @@ while (!$all_account->EOF) {
         } catch (\Twilio\Exceptions\TwilioException $e) {
             echo $e->getMessage()."<br>";
         } finally {
-            $db->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET `IS_REMINDER_SEND` = '1' WHERE `DOA_APPOINTMENT_MASTER`.`PK_APPOINTMENT_MASTER` = ".$APPOINTMENT_DATA->fields['PK_APPOINTMENT_MASTER']);
+            $db->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET `IS_REMINDER_SEND` = '1' AND PK_APPOINTMENT_STATUS = 7 WHERE `DOA_APPOINTMENT_MASTER`.`PK_APPOINTMENT_MASTER` = ".$APPOINTMENT_DATA->fields['PK_APPOINTMENT_MASTER']);
         }
         $APPOINTMENT_DATA->MoveNext();
     }

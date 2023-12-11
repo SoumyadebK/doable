@@ -29,6 +29,7 @@ if(!empty($_POST)){
 
 if(empty($_GET['id'])){
     $APPOINTMENT_STATUS = '';
+    $STATUS_CODE = '';
     $COLOR_CODE = '';
     $ACTIVE = '';
 }
@@ -39,6 +40,7 @@ else {
         exit;
     }
     $APPOINTMENT_STATUS = $res->fields['APPOINTMENT_STATUS'];
+    $STATUS_CODE = $res->fields['STATUS_CODE'];
     $COLOR_CODE = $res->fields['COLOR_CODE'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
@@ -79,6 +81,14 @@ else {
                                     </label>
                                     <div class="col-md-12">
                                         <input type="text" id="APPOINTMENT_STATUS" name="APPOINTMENT_STATUS" class="form-control" placeholder="Enter Appointment Status" value="<?php echo $APPOINTMENT_STATUS?>">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-md-12" for="example-text">Status Code<span class="text-danger">*</span>
+                                    </label>
+                                    <div class="col-md-12">
+                                        <input type="text" id="STATUS_CODE" name="STATUS_CODE" style="text-transform:uppercase" class="form-control" placeholder="Enter Status Code" value="<?php echo $STATUS_CODE?>">
                                     </div>
                                 </div>
 
