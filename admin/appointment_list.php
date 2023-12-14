@@ -163,7 +163,7 @@ $page_first_result = ($page-1) * $results_per_page;
                             <?php
                             $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
                             while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($row->fields['PK_APPOINTMENT_STATUS'] == $appointment_status)?"selected":""?>><?=$row->fields['STATUS_CODE']?></option>
+                                <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($row->fields['PK_APPOINTMENT_STATUS'] == $appointment_status)?"selected":""?>><?=$row->fields['APPOINTMENT_STATUS']?></option>
                                 <?php $row->MoveNext(); } ?>
                         </select>
                     </div>
