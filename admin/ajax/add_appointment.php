@@ -298,7 +298,8 @@ if ($row->RecordCount() > 0) {
                     day: day,
                     date: date,
                     START_TIME: START_TIME,
-                    END_TIME: END_TIME
+                    END_TIME: END_TIME,
+                    slot_time: '<?=$time?>'
                 },
                 async: false,
                 cache: false,
