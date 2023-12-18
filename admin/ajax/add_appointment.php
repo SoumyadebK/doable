@@ -16,6 +16,9 @@ if (empty($_GET['PK_USER'])) {
 if (!empty($_GET['date']) && !empty($_GET['time'])) {
     $date = $_GET['date'];
     $time = $_GET['time'];
+    $DATE_ARR[0] = date("Y",strtotime($date));
+    $DATE_ARR[1] = date("m",strtotime($date)) -1;
+    $DATE_ARR[2] = date("d",strtotime($date));
 } else {
     $date = '';
     $time = '';
@@ -25,6 +28,21 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
     $SERVICE_PROVIDER_ID = $_GET['SERVICE_PROVIDER_ID'];
 } else {
     $SERVICE_PROVIDER_ID = '';
+}
+
+
+$row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE DATE = '".date('Y-m-d', strtotime($date))."' AND '".date('H:i:s', strtotime($time))."' >= START_TIME AND '".date('H:i:s', strtotime($time))."' <= END_TIME");
+$selected_service_provider = [];
+while (!$row->EOF) {
+    $selected_service_provider[] = $row->fields['SERVICE_PROVIDER_ID'];
+    $row->MoveNext();
+}
+$selected_service_provider_array = implode(',', $selected_service_provider);
+
+if ($row->RecordCount() > 0) {
+    $AND_PK_USER = "AND NOT DOA_USERS.PK_USER IN (".$selected_service_provider_array.")";
+} else {
+    $AND_PK_USER = '';
 }
 ?>
 
@@ -72,8 +90,7 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
                     <select required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
                         <option value="">Select <?=$service_provider_title?></option>
                         <?php
-                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-
+                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 ".$AND_PK_USER." AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
                         while (!$row->EOF) { ?>
                             <option value="<?php echo $row->fields['PK_USER'];?>" <?=($SERVICE_PROVIDER_ID == $row->fields['PK_USER'])?"selected":""?>><?=$row->fields['NAME']?></option>
                             <?php $row->MoveNext(); } ?>
@@ -281,7 +298,8 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
                     day: day,
                     date: date,
                     START_TIME: START_TIME,
-                    END_TIME: END_TIME
+                    END_TIME: END_TIME,
+                    slot_time: '<?=$time?>'
                 },
                 async: false,
                 cache: false,

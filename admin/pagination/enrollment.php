@@ -221,6 +221,7 @@ while (!$row->EOF) {
                     <th style="text-align: left;">Service Code</th>
                     <th style="text-align: center;">Date</th>
                     <th style="text-align: center;">Time</th>
+                    <th style="text-align: center;">Status</th>
                     <th style="text-align: center;">Session Cost</th>
                     <th style="text-align: center;">Service Credit</th>
                 </tr>
@@ -239,6 +240,7 @@ while (!$row->EOF) {
                     <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_CODE']?></td>
                     <td style="text-align: center;"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
                     <td style="text-align: center;"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
+                    <td style="text-align: center;"><?=$appointment_data->fields['APPOINTMENT_STATUS']?></td>
                     <td style="text-align: right;"><?=number_format((float)$price_per_session, 2, '.', ',');?></td>
                     <td style="color:<?=(($total_paid-$total_session_cost)<0)?'red':'black'?>; text-align: right;"><?=number_format((float)($total_paid-$total_session_cost), 2, '.', ',');?></td>
                 </tr>

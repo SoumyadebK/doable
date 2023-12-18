@@ -45,8 +45,6 @@ if (empty($_POST['PK_ENROLLMENT_MASTER'])) {
     $PK_SERVICE_CODE = $PK_ENROLLMENT_MASTER_ARRAY[3];
 }
 
-
-
 $PK_APPOINTMENT_MASTER = $_POST['PK_APPOINTMENT_MASTER'];
 $SERVICE_PROVIDER_ID = $_POST['SERVICE_PROVIDER_ID'];
 $duration = intval($_POST['duration']);
@@ -54,6 +52,7 @@ $date = $_POST['date'];
 $day = $_POST['day'];
 $START_TIME = empty($_POST['START_TIME'])?'09:00:00':$_POST['START_TIME'];
 $END_TIME = empty($_POST['END_TIME'])?'22:00:00':$_POST['END_TIME'];
+$slot_time = empty($_POST['slot_time'])?'':$_POST['slot_time'];
 
 $booked_slot_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME FROM DOA_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = ".$SERVICE_PROVIDER_ID." AND DOA_APPOINTMENT_MASTER.DATE = "."'".$date."'");
 $booked_slot_array = [];
@@ -100,7 +99,7 @@ foreach ($time_slot_array as $key => $item) {
         }
     }
     $selected = "";
-    if((date('H:i',strtotime($item['slot_start_time'])) == date('H:i',strtotime($START_TIME))) && date('H:i',strtotime($item['slot_end_time'])) == date('H:i',strtotime($END_TIME))){
+    if((date('H:i',strtotime($item['slot_start_time'])) == date('H:i',strtotime($START_TIME))) && date('H:i',strtotime($item['slot_end_time'])) == date('H:i',strtotime($END_TIME)) || (date('H:i',strtotime($item['slot_start_time'])) == date('H:i',strtotime($slot_time))) || (date('H:i',strtotime($slot_time)) > date('H:i',strtotime($item['slot_start_time']))) && (date('H:i',strtotime($slot_time)) < date('H:i',strtotime($item['slot_end_time'])))){
         $selected = "background-color: orange !important;";
     } ?>
     <div class="col-md-6 form-group">
