@@ -45,7 +45,15 @@ if (empty($_POST['PK_ENROLLMENT_MASTER'])) {
     $PK_SERVICE_CODE = $PK_ENROLLMENT_MASTER_ARRAY[3];
 }
 
+if (!empty($_GET['date'])) {
+    $date_array = explode('T', $_GET['date']);
+    $slot_date = date("m/d/Y", strtotime($date_array[0]));
+    $slot_time = date("H:i", strtotime($date_array[1]));
 
+} else {
+    $slot_date = '';
+    $slot_time = '';
+}
 
 $PK_APPOINTMENT_MASTER = $_POST['PK_APPOINTMENT_MASTER'];
 $SERVICE_PROVIDER_ID = $_POST['SERVICE_PROVIDER_ID'];
@@ -100,7 +108,7 @@ foreach ($time_slot_array as $key => $item) {
         }
     }
     $selected = "";
-    if((date('H:i',strtotime($item['slot_start_time'])) == date('H:i',strtotime($START_TIME))) && date('H:i',strtotime($item['slot_end_time'])) == date('H:i',strtotime($END_TIME))){
+    if((date('H:i',strtotime($item['slot_start_time'])) == date('H:i',strtotime($START_TIME))) && date('H:i',strtotime($item['slot_end_time'])) == date('H:i',strtotime($END_TIME)) || (date('H:i',strtotime($item['slot_start_time'])) == $slot_time)){
         $selected = "background-color: orange !important;";
     } ?>
     <div class="col-md-6 form-group">
