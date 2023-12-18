@@ -199,6 +199,58 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
     header('location:customer.php?id='.$_GET['id'].'&master_id='.$_GET['master_id'].'&tab=enrollment');
 }
 
+
+
+if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'addMoneyToWallet'){
+    $AMOUNT = $_POST['AMOUNT'];
+    if ($_POST['PK_PAYMENT_TYPE'] == 1) {
+        if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
+            require_once("../global/stripe-php-master/init.php");
+            \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
+            $STRIPE_TOKEN = $_POST['token'];
+            try {
+                $charge = \Stripe\Charge::create([
+                    'amount' => ($AMOUNT * 100),
+                    'currency' => 'usd',
+                    'description' => $_POST['NOTE'],
+                    'source' => $STRIPE_TOKEN
+                ]);
+            } catch (Exception $e) {
+
+            }
+            if ($charge->paid == 1) {
+                $PAYMENT_INFO = $charge->id;
+            } else {
+                $PAYMENT_INFO = 'Payment Unsuccessful.';
+            }
+        }
+    } else {
+        $PAYMENT_INFO = 'Payment Done.';
+    }
+
+    if ($_POST['PK_PAYMENT_TYPE'] >= 1) {
+        $payment_type = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE = " . $_POST['PK_PAYMENT_TYPE']);
+        $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
+        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+        if ($wallet_data->RecordCount() > 0) {
+            $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $AMOUNT;
+        } else {
+            $INSERT_DATA['CURRENT_BALANCE'] = $AMOUNT;
+        }
+        $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+        $INSERT_DATA['DEBIT'] = 0;
+        $INSERT_DATA['CREDIT'] = $AMOUNT;
+        $INSERT_DATA['DESCRIPTION'] = "Amount Credited to Your Wallet using " . $payment_type->fields['PAYMENT_TYPE'];
+        $INSERT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+        $INSERT_DATA['NOTE'] = $_POST['NOTE'];
+        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+    }
+
+    header('location:customer.php?id='.$_GET['id'].'&master_id='.$_GET['master_id'].'&tab=wallet');
+}
+
 $PK_USER = '';
 $PK_USER_MASTER = '';
 $USER_NAME = '';
@@ -358,6 +410,7 @@ if(!empty($_GET['master_id'])) {
                                                 <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
                                                 <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
                                                 <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                                                <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" ><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
                                             <?php } ?>
                                         </ul>
                                         <!-- Tab panes -->
@@ -1203,8 +1256,6 @@ if(!empty($_GET['master_id'])) {
                                                 </form>
                                             </div>
 
-
-
                                             <div class="tab-pane" id="interest" role="tabpanel">
                                                 <form id="interest_form">
                                                     <input type="hidden" name="FUNCTION_NAME" value="saveInterestData">
@@ -1442,9 +1493,7 @@ if(!empty($_GET['master_id'])) {
 
                                                 </div>
                                             </div>
-
                                             <!--Enrollment Model-->
-
 
                                             <div class="tab-pane" id="appointment" role="tabpanel">
                                                 <div class="row">
@@ -1743,6 +1792,48 @@ if(!empty($_GET['master_id'])) {
                                                 </div>
                                             </div>
 
+                                            <div class="tab-pane" id="wallet" role="tabpanel">
+                                                <div class="p-20">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <?php $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); ?>
+                                                            <h3 id="wallet_balance_span">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></h3>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:;" onclick="openWalletModel();" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Money to Wallet</a>
+                                                        </div>
+                                                    </div>
+
+                                                    <table id="myTable" class="table table-striped border">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Date</th>
+                                                                <th>Transaction Details</th>
+                                                                <th>Debit</th>
+                                                                <th>Credit</th>
+                                                                <th>Balance</th>
+                                                            </tr>
+                                                        </thead>
+
+                                                        <tbody>
+                                                        <?php
+                                                        $walletTransaction = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET ASC");
+                                                        $i = 1;
+                                                        while (!$walletTransaction->EOF) { ?>
+                                                            <tr>
+                                                                <td ><?=date('m/d/Y h:i A', strtotime($walletTransaction->fields['CREATED_ON']))?></td>
+                                                                <td ><?=$walletTransaction->fields['DESCRIPTION']?></td>
+                                                                <td ><?=$walletTransaction->fields['DEBIT']?></td>
+                                                                <td ><?=$walletTransaction->fields['CREDIT']?></td>
+                                                                <td ><?=$walletTransaction->fields['CURRENT_BALANCE']?></td>
+                                                            </tr>
+                                                            <?php $walletTransaction->MoveNext();
+                                                            $i++; } ?>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
                                             <!--Comment Model-->
                                             <div id="commentModel" class="modal">
                                                 <!-- Modal content -->
@@ -1773,6 +1864,18 @@ if(!empty($_GET['master_id'])) {
                                                                     </div>
                                                                 </div>
                                                             </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!--Wallet Model-->
+                                            <div id="walletModel" class="modal">
+                                                <div class="modal-content" style="width: 50%;">
+                                                    <span class="close close_wallet_model" style="margin-left: 96%;">&times;</span>
+                                                    <div class="card">
+                                                        <div class="card-body">
+                                                            <?php include('includes/add_money_to_wallet.php'); ?>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1862,6 +1965,38 @@ if(!empty($_GET['master_id'])) {
             // ESCAPE key pressed
             if (e.keyCode == 27) {
                 comment_model.style.display = "none";
+            }
+        });
+
+
+
+        // Get the modal
+        var wallet_model = document.getElementById("walletModel");
+
+        // Get the <span> element that closes the wallet_model
+        var wallet_span = document.getElementsByClassName("close_wallet_model")[0];
+
+        // When the user clicks the button, open the wallet_model
+        function openWalletModel() {
+            wallet_model.style.display = "block";
+        }
+
+        // When the user clicks on <wallet_span> (x), close the wallet_model
+        wallet_span.onclick = function() {
+            wallet_model.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the wallet_model, close it
+        window.onclick = function(event) {
+            if (event.target == wallet_model) {
+                wallet_model.style.display = "none";
+            }
+        }
+
+        $(document).keydown(function(e) {
+            // ESCAPE key pressed
+            if (e.keyCode == 27) {
+                wallet_model.style.display = "none";
             }
         });
     </script>
