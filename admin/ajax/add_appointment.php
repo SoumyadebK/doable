@@ -32,6 +32,7 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
 
 
 $row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE DATE = '".date('Y-m-d', strtotime($date))."' AND '".date('H:i:s', strtotime($time))."' >= START_TIME AND '".date('H:i:s', strtotime($time))."' <= END_TIME");
+
 $selected_service_provider = [];
 while (!$row->EOF) {
     $selected_service_provider[] = $row->fields['SERVICE_PROVIDER_ID'];
@@ -314,6 +315,7 @@ if ($row->RecordCount() > 0) {
 
     $(document).on('submit', '#appointment_form', function (event) {
         //event.preventDefault();
+        $('.selected_slot').trigger('click');
         let selected_date  = myCalender.value.toDateString()
         let month = selected_date.toString().split(' ')[1];
         if(month == 'Jan')

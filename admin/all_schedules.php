@@ -203,6 +203,13 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointme
         }
     }
 
+    if ($_POST['PK_APPOINTMENT_STATUS'] == 6) {
+        $CANCELLED_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+        $CANCELLED_DATA['CANCELLED_BY']	= $_SESSION['PK_USER'];
+        $CANCELLED_DATA['CANCELLED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_APPOINTMENT_MASTER', $CANCELLED_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
+    }
+
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
     header("location:all_schedules.php?view=table");
