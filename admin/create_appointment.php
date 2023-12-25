@@ -40,7 +40,6 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 
 if ($FUNCTION_NAME == 'saveGroupClassData'){
-    pre_r($_POST);
     $SERVICE_ID = explode(',', $_POST['SERVICE_ID']);
     $DURATION = $SERVICE_ID[0];
     $PK_SERVICE_CODE = $SERVICE_ID[1];
@@ -109,9 +108,9 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             $PK_GROUP_CLASS = $db_account->insert_ID();
 
             $db_account->Execute("DELETE FROM `DOA_GROUP_CLASS_USER` WHERE `PK_GROUP_CLASS` = '$PK_GROUP_CLASS'");
-            for ($j = 0; $j < count($_POST['SERVICE_PROVIDER_ID_0'][$i]); $j++) {
+            for ($j = 0; $j < count($_POST['SERVICE_PROVIDER_ID_'.$i]); $j++) {
                 $GROUP_CLASS_USER_DATA['PK_GROUP_CLASS'] = $PK_GROUP_CLASS;
-                $GROUP_CLASS_USER_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID_0'][$i][$j];
+                $GROUP_CLASS_USER_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID_'.$i][$j];
                 db_perform_account('DOA_GROUP_CLASS_USER', $GROUP_CLASS_USER_DATA, 'insert');
             }
         }

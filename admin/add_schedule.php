@@ -180,6 +180,13 @@ if(empty($_GET['id'])){
     $selected_user_id = $customer_data->fields['PK_USER'];
 }
 
+$status_data = $db_account->Execute("SELECT $master_database.DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.CANCELLED_ON, DOA_APPOINTMENT_MASTER.CHANGED_ON, DOA_APPOINTMENT_MASTER.CREATED_BY, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_APPOINTMENT_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_APPOINTMENT_MASTER.CHANGED_BY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = $master_database.DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$_GET[id]'");
+
+if (!empty($status_data->fields['CHANGED_ON'])) {
+    $CHANGED_BY = "(".$status_data->fields['APPOINTMENT_STATUS']." by ".$status_data->fields['NAME']." at ".$status_data->fields['CHANGED_ON'].")";
+} else {
+    $CHANGED_BY = ' ';
+}
 ?>
 
 
@@ -479,7 +486,7 @@ if(empty($_GET['id'])){
                                             <div class="col-6">
                                                 <div class="form-group">
                                                     <label class="form-label">Comment</label>
-                                                    <textarea class="form-control" name="COMMENT" rows="6"><?=$COMMENT?></textarea>
+                                                    <textarea class="form-control" name="COMMENT" rows="6"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
                                                 </div>
                                             </div>
                                             <div class="col-4">
