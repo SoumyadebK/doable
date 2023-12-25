@@ -129,7 +129,7 @@ if ($row->RecordCount() > 0) {
                 <div class="form-group occurrence_div">
                     <label class="form-label">Select Occurrence<span class="text-danger">*</span></label><br>
                     <label><input type="radio" class="OCCURRENCE" name="OCCURRENCE_0" value="WEEKLY" required> Weekly</label><br>
-                    <label><input type="radio" class="OCCURRENCE" name="OCCURRENCE_0" value="DAYS" required> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
+                    <label><input type="radio" class="OCCURRENCE" name="OCCURRENCE_0" value="DAYS" required> Every <input type="text" name="OCCURRENCE_DAYS[]" style="width: 45px;"> Days</label>
                 </div>
                 <div class="form-group length_div">
                     <label class="form-label">Length<span class="text-danger">*</span></label><br>
@@ -266,7 +266,7 @@ if ($row->RecordCount() > 0) {
                 <div class="form-group occurrence_div">
                     <label class="form-label">Select Occurrence<span class="text-danger">*</span></label><br>
                     <label><input type="radio" class="OCCURRENCE" name="OCCURRENCE_${counter}" value="WEEKLY" required> Weekly</label><br>
-                    <label><input type="radio" class="OCCURRENCE" name="OCCURRENCE_${counter}" value="DAYS" required> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
+                    <label><input type="radio" class="OCCURRENCE" name="OCCURRENCE_${counter}" value="DAYS" required> Every <input type="text" name="OCCURRENCE_DAYS[]" style="width: 45px;"> Days</label>
                 </div>
                 <div class="form-group length_div">
                     <label class="form-label">Length<span class="text-danger">*</span></label><br>
