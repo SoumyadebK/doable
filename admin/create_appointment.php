@@ -41,7 +41,7 @@ $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 
 if ($FUNCTION_NAME == 'saveGroupClassData'){
     $SERVICE_ID = explode(',', $_POST['SERVICE_ID']);
-    $DURATION = $SERVICE_ID[0];
+    $DURATION = ($SERVICE_ID[0] > 0) ? $SERVICE_ID[0] : 30;
     $PK_SERVICE_CODE = $SERVICE_ID[1];
     $PK_SERVICE_MASTER = $SERVICE_ID[2];
 
