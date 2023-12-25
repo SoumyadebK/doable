@@ -1498,6 +1498,13 @@ function deleteAppointment($RESPONSE_DATA) {
     echo 1;
 }
 
+function updateAppointmentData($RESPONSE_DATA) {
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $appointment_data = $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET IS_PAID=1 WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
+    echo 1;
+}
+
 function updateDroppedAppointment($RESPONSE_DATA) {
     $APPOINTMENT_DATA['PK_APPOINTMENT_MASTER'] = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
     $APPOINTMENT_DATA['SERVICE_PROVIDER_ID'] = $RESPONSE_DATA['SERVICE_PROVIDER_ID'];

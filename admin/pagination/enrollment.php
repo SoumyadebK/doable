@@ -221,15 +221,15 @@ while (!$row->EOF) {
                     <th style="text-align: left;">Service Code</th>
                     <th style="text-align: center;">Date</th>
                     <th style="text-align: center;">Time</th>
-                    <th style="text-align: center;">Status</th>
-                    <th style="text-align: center;">Session Cost</th>
-                    <th style="text-align: center;">Service Credit</th>
+                    <th style="text-align: left;">Status</th>
+                    <th style="text-align: right;">Session Cost</th>
+                    <th style="text-align: right;">Service Credit</th>
                 </tr>
             </thead>
 
             <tbody>
             <?php
-            $appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.PRICE AS SESSION_COST, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS  WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']."");
+            $appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.IS_PAID, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.PRICE AS SESSION_COST, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS  WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']."");
             $total_session_cost = 0;
             $j=1;
             while (!$appointment_data->EOF) {
@@ -240,7 +240,11 @@ while (!$row->EOF) {
                     <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_CODE']?></td>
                     <td style="text-align: center;"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
                     <td style="text-align: center;"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                    <td style="text-align: center;"><?=$appointment_data->fields['APPOINTMENT_STATUS']?></td>
+                    <td style="text-align: left;"><?=$appointment_data->fields['APPOINTMENT_STATUS']?>
+                        <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled' && $appointment_data->fields['IS_PAID']==0){ ?>
+                            <a href="javascript:;" class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick='ConfirmPosted(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);return false;'>Post</a>
+                        <?php }?>
+                    </td>
                     <td style="text-align: right;"><?=number_format((float)$price_per_session, 2, '.', ',');?></td>
                     <td style="color:<?=(($total_paid-$total_session_cost)<0)?'red':'black'?>; text-align: right;"><?=number_format((float)($total_paid-$total_session_cost), 2, '.', ',');?></td>
                 </tr>

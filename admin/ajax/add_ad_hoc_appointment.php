@@ -322,6 +322,7 @@ if ($row->RecordCount() > 0) {
 
     $(document).on('submit', '#appointment_form', function (event) {
         //event.preventDefault();
+        $('.selected_slot').trigger('click');
         let selected_date  = myCalender.value.toDateString()
         let month = selected_date.toString().split(' ')[1];
         if(month == 'Jan')
