@@ -37,7 +37,7 @@ $IMAGE = $res->fields['IMAGE'];
 $status_data = $db_account->Execute("SELECT $master_database.DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.CANCELLED_ON, DOA_APPOINTMENT_MASTER.CHANGED_ON, DOA_APPOINTMENT_MASTER.CREATED_BY, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_APPOINTMENT_MASTER LEFT JOIN $master_database.DOA_USERS as DOA_USERS ON DOA_USERS.PK_USER = DOA_APPOINTMENT_MASTER.CHANGED_BY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = $master_database.DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
 
 if (!empty($status_data->fields['CHANGED_ON'])) {
-    $CHANGED_BY = "(".$status_data->fields['APPOINTMENT_STATUS']." by ".$status_data->fields['NAME']." at ".$status_data->fields['CHANGED_ON'].")";
+    $CHANGED_BY = "(".$status_data->fields['APPOINTMENT_STATUS']." by ".$status_data->fields['NAME']." at ".date('m-d-Y H:i:s A', strtotime($status_data->fields['CHANGED_ON'])).")";
 } else if (empty($status_data->fields['CANCELLED_ON']) && empty($status_data->fields['CHANGED_ON'])) {
     $CHANGED_BY ='';
 }
