@@ -79,7 +79,7 @@ while (!$row->EOF) {
                 }
                 ?>
                 <table id="myTable" class="table <?php
-                $details = $db_account->Execute("SELECT  DOA_PAYMENT_TYPE.PAYMENT_TYPE, count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                $details = $db_account->Execute("SELECT DOA_PAYMENT_TYPE.PAYMENT_TYPE, count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                 if($details->RecordCount()>0){
                     $paid_count = $details->fields['PAID'];
                 } else {
@@ -217,8 +217,8 @@ while (!$row->EOF) {
             <thead>
                 <tr>
                     <th style="text-align: left;">Service</th>
-                    <th style="text-align: left;">Apt #</th>
-                    <th style="text-align: left;">Service Code</th>
+                    <th style="text-align: left;" onclick="$(this).next().slideToggle();">Apt #</th>
+                    <th style="text-align: left;" onclick="$(this).next().slideToggle();">Service Code</th>
                     <th style="text-align: center;">Date</th>
                     <th style="text-align: center;">Time</th>
                     <th style="text-align: left;">Status</th>
@@ -229,12 +229,18 @@ while (!$row->EOF) {
 
             <tbody>
             <?php
-            $appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.IS_PAID, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.PRICE AS SESSION_COST, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS  WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']."");
+            $appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.EDITED_ON, DOA_APPOINTMENT_MASTER.COMMENT, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.OLD_PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.IS_PAID, DOA_APPOINTMENT_MASTER.CANCELLED_ON, DOA_APPOINTMENT_MASTER.CANCELLED_BY, DOA_APPOINTMENT_MASTER.CHANGED_ON, DOA_APPOINTMENT_MASTER.CHANGED_BY, DOA_APPOINTMENT_MASTER.CREATED_ON, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.PRICE AS SESSION_COST, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE, CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS NAME FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS ON $master_database.DOA_USERS.PK_USER=DOA_APPOINTMENT_MASTER.EDITED_BY WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']."");
             $total_session_cost = 0;
             $j=1;
             while (!$appointment_data->EOF) {
+                $old_appointment_status = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE PK_APPOINTMENT_STATUS= ".$appointment_data->fields['OLD_PK_APPOINTMENT_STATUS']."");
+                if ($old_appointment_status->RecordCount()>0){
+                    $old_data = "This appointment was marked ".$old_appointment_status->fields['APPOINTMENT_STATUS']." before.";
+                }else{
+                    $old_data='';
+                }
                 $total_session_cost += $price_per_session; ?>
-                <tr>
+                <tr onclick="$(this).next().slideToggle();">
                     <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_NAME']?></td>
                     <td style="text-align: left;"><?=$j.'/'.$total_session_count?></td>
                     <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_CODE']?></td>
@@ -243,10 +249,26 @@ while (!$row->EOF) {
                     <td style="text-align: left;"><?=$appointment_data->fields['APPOINTMENT_STATUS']?>
                         <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled' && $appointment_data->fields['IS_PAID']==0){ ?>
                             <a href="javascript:;" class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick='ConfirmPosted(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);return false;'>Post</a>
+                        <?php }else if ($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled' && $appointment_data->fields['IS_PAID']==1) { ?>
+                            <a href="javascript:;" class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick='ConfirmUnposted(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);return false;'>Unpost</a>
                         <?php }?>
                     </td>
                     <td style="text-align: right;"><?=number_format((float)$price_per_session, 2, '.', ',');?></td>
                     <td style="color:<?=(($total_paid-$total_session_cost)<0)?'red':'black'?>; text-align: right;"><?=number_format((float)($total_paid-$total_session_cost), 2, '.', ',');?></td>
+                </tr>
+                <tr style="display: none">
+                    <?php if (!empty($appointment_data->fields['COMMENT'])) { ?>
+                    <td>Comment : <?=$appointment_data->fields['COMMENT']?></td>
+                    <?php } ?>
+                    <?php if (!empty($appointment_data->fields['CANCELLED_ON'])) {
+                        $cancelled_data =  $db_account->Execute("SELECT CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS NAME FROM $master_database.DOA_USERS WHERE PK_USER=".$appointment_data->fields['CANCELLED_BY']);
+                        ?>
+                        <td>(<?=$appointment_data->fields['APPOINTMENT_STATUS']?> by <?=$cancelled_data->fields['NAME']?> at <?=date('m-d-Y H:i:s A', strtotime($appointment_data->fields['CANCELLED_ON']))?>) <?=$old_data?></td>
+                    <?php } else if (!empty($appointment_data->fields['CHANGED_ON'])){
+                        $cancelled_data =  $db_account->Execute("SELECT CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS NAME FROM $master_database.DOA_USERS WHERE PK_USER=".$appointment_data->fields['CHANGED_BY']);
+                        ?>
+                        <td>(<?=$appointment_data->fields['APPOINTMENT_STATUS']?> by <?=$appointment_data->fields['NAME']?> at <?=date('m-d-Y H:i:s A', strtotime($appointment_data->fields['CHANGED_ON']))?>) <?=$old_data?></td>
+                    <?php } ?>
                 </tr>
                 <?php $appointment_data->MoveNext();
                 $j++; } ?>

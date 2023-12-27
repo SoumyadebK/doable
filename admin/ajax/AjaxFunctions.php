@@ -1019,7 +1019,21 @@ function saveAppointmentData($RESPONSE_DATA){
         }
         $RESPONSE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $RESPONSE_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        $query = $db_account->Execute("SELECT PK_APPOINTMENT_STATUS FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
+        $RESPONSE_DATA['OLD_PK_APPOINTMENT_STATUS'] = $query->fields['PK_APPOINTMENT_STATUS'];
         db_perform_account('DOA_APPOINTMENT_MASTER', $RESPONSE_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
+    }
+
+    if ($_POST['PK_APPOINTMENT_STATUS'] != 6) {
+        $CHANGED_DATA['CHANGED_BY'] = $_SESSION['PK_USER'];
+        $CHANGED_DATA['CHANGED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_APPOINTMENT_MASTER', $CHANGED_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
+    }
+
+    if ($_POST['PK_APPOINTMENT_STATUS'] == 6) {
+        $CANCELLED_DATA['CANCELLED_BY']	= $_SESSION['PK_USER'];
+        $CANCELLED_DATA['CANCELLED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_APPOINTMENT_MASTER', $CANCELLED_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
     }
 
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
@@ -1502,6 +1516,13 @@ function updateAppointmentData($RESPONSE_DATA) {
     global $db_account;
     $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
     $appointment_data = $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET IS_PAID=1 WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
+    echo 1;
+}
+
+function updateAppointmentDataUnpost($RESPONSE_DATA) {
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $appointment_data = $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET IS_PAID=0 WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
     echo 1;
 }
 

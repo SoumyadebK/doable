@@ -3104,6 +3104,21 @@ if(!empty($_GET['master_id'])) {
                     });
                 }
             }
+
+            function ConfirmUnposted(PK_APPOINTMENT_MASTER)
+            {
+                var conf = confirm("Are you sure you want to Unpost it?");
+                if(conf) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {FUNCTION_NAME: 'updateAppointmentDataUnpost', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                        success: function (data) {
+                            window.location.href = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER+'&tab=enrollment';
+                        }
+                    });
+                }
+            }
         </script>
 
 </body>
