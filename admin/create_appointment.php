@@ -117,6 +117,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             }
         }
     }
+
     header("location:all_schedules.php?view=table");
 } elseif ($FUNCTION_NAME == 'saveSpecialAppointment') {
     $SPECIAL_APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];

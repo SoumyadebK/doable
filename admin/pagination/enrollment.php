@@ -149,8 +149,8 @@ while (!$row->EOF) {
                 <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
             </div>
             <?php }else { ?>
-            <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
-                <label>Payments Schedule</label>
+            <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 5%;">
+                <button class="btn btn-info m-l-10 text-white">Payments Schedule</button>
             </div>
             <?php } ?>
         </div>
@@ -237,11 +237,11 @@ while (!$row->EOF) {
             $total_session_cost = 0;
             $j=1;
             while (!$appointment_data->EOF) {
-                $old_appointment_status = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE PK_APPOINTMENT_STATUS= ".$appointment_data->fields['OLD_PK_APPOINTMENT_STATUS']."");
-                if ($old_appointment_status->RecordCount()>0){
-                    $old_data = "This appointment was marked ".$old_appointment_status->fields['APPOINTMENT_STATUS']." before.";
-                }else{
-                    $old_data='';
+                $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
+                $CHANGED_BY = '';
+                while (!$status_data->EOF) {
+                    $CHANGED_BY .= "(".$status_data->fields['APPOINTMENT_STATUS']." by ".$status_data->fields['NAME']." at ".date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])).")<br>";
+                    $status_data->MoveNext();
                 }
                 $total_session_cost += $price_per_session; ?>
                 <tr onclick="$(this).next().slideToggle();">
@@ -264,14 +264,8 @@ while (!$row->EOF) {
                     <?php if (!empty($appointment_data->fields['COMMENT'])) { ?>
                     <td>Comment : <?=$appointment_data->fields['COMMENT']?></td>
                     <?php } ?>
-                    <?php if (!empty($appointment_data->fields['CANCELLED_ON'])) {
-                        $cancelled_data =  $db_account->Execute("SELECT CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS NAME FROM $master_database.DOA_USERS WHERE PK_USER=".$appointment_data->fields['CANCELLED_BY']);
-                        ?>
-                        <td>(<?=$appointment_data->fields['APPOINTMENT_STATUS']?> by <?=$cancelled_data->fields['NAME']?> at <?=date('m-d-Y H:i:s A', strtotime($appointment_data->fields['CANCELLED_ON']))?>) <?=$old_data?></td>
-                    <?php } else if (!empty($appointment_data->fields['CHANGED_ON'])){
-                        $cancelled_data =  $db_account->Execute("SELECT CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS NAME FROM $master_database.DOA_USERS WHERE PK_USER=".$appointment_data->fields['CHANGED_BY']);
-                        ?>
-                        <td>(<?=$appointment_data->fields['APPOINTMENT_STATUS']?> by <?=$appointment_data->fields['NAME']?> at <?=date('m-d-Y H:i:s A', strtotime($appointment_data->fields['CHANGED_ON']))?>) <?=$old_data?></td>
+                    <?php if (!empty($CHANGED_BY)) {?>
+                        <td><?=$CHANGED_BY?></td>
                     <?php } ?>
                 </tr>
                 <?php $appointment_data->MoveNext();
