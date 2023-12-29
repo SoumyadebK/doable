@@ -33,6 +33,28 @@ if(!empty($_POST))
     require_once('upload_functions.php');
 
     switch ($_POST['TABLE_NAME']) {
+        case 'DOA_OPERATIONAL_HOUR':
+            $startTime = getStartTime();
+            $endTime = getEndTime();
+            for ($i = 1; $i <= 5; $i++) {
+                $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = $PK_LOCATION;
+                $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $i;
+                $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                $OPERATIONAL_HOUR_DATA['CLOSED'] = 0;
+                db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'insert');
+            }
+
+            for ($i = 6; $i <= 7; $i++) {
+                $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = $PK_LOCATION;
+                $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $i;
+                $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = '00:00:00';
+                $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = '00:00:00';
+                $OPERATIONAL_HOUR_DATA['CLOSED'] = 1;
+                db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'insert');
+            }
+            break;
+
         case 'DOA_INQUIRY_METHOD':
             $allInquiryMethod = getAllInquiryMethod();
             while (!$allInquiryMethod->EOF) {
@@ -616,7 +638,7 @@ if(!empty($_POST))
                     $INSERT_DATA['START_DATE'] = $start_date;
                     $INSERT_DATA['START_TIME'] =$start_time;
                     $duration = $allEvents->fields['duration'];
-                    $endDateTime = strtotime($start_date . ' ' . $start_time) + $duration * 60;
+                    $endDateTime = strtotime($start_date . ' ' . $start_time) + ($duration * 60);
                     $convertedDate = date('Y-m-d', $endDateTime);
                     $convertedTime = date('H:i:s', $endDateTime);
                     $INSERT_DATA['END_DATE'] = $convertedDate;
@@ -911,6 +933,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                             <label class="form-label">Select Table Name</label>
                             <select class="form-control" name="TABLE_NAME" id="TABLE_NAME" onchange="viewCsvDownload(this)">
                                 <option value="">Select Table Name</option>
+                                <option value="DOA_OPERATIONAL_HOUR">DOA_OPERATIONAL_HOUR</option>
                                 <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
                                 <!--<option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
                                 <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>-->

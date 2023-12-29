@@ -148,6 +148,10 @@ while (!$row->EOF) {
             <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
                 <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
             </div>
+            <?php }else { ?>
+            <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
+                <label>Payments Schedule</label>
+            </div>
             <?php } ?>
         </div>
 

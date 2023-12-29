@@ -62,9 +62,54 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                     </div>
                 </div>
             </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="row" style="padding: 15px 35px 35px 35px;">
+                            <div class="col-md-3 col-sm-3 mt-3">
+                                <h4 class="card-title">Electronic Weekly Reports</h4>
+                            </div>
+                            <div class="row">
+                                <div class="col-3">
+                                    <div>
+                                        <select class="form-control" required name="NAME" id="NAME" onchange="editpage(this);">
+                                            <option value="">ROYALTY / SERVICE REPORT</option>
+                                            <option value="">SUMMARY OF STUDIO BUSINESS REPORT</option>
+                                            <option value="">STAFF PERFORMANCE REPORT</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-2">
+                                    <div class="form-group">
+                                        <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date">
+                                    </div>
+                                </div>
+                                <div class="col-1">
+                                    <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">View</button>
+                                </div>
+                                <div class="col-1">
+                                    <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Export</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 <?php require_once('../includes/footer.php');?>
 </body>
 </html>
+
+<script>
+    $(document).ready(function(){
+        $("#START_DATE").datepicker({
+            numberOfMonths: 1,
+            onSelect: function(selected) {
+                $("#END_DATE").datepicker("option","minDate", selected)
+            }
+        });
+    });
+</script>

@@ -21,6 +21,7 @@ $IS_PACKAGE = $package->fields['IS_PACKAGE'];
 
 $ENROLLMENT_NAME = '';
 $PK_LOCATION = '';
+$PK_PACKAGE = '';
 $PK_AGREEMENT_TYPE = '';
 $PK_DOCUMENT_LIBRARY = '';
 $AGREEMENT_PDF_LINK = '';
@@ -61,6 +62,7 @@ if(!empty($_GET['id'])) {
     $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
     $ENROLLMENT_NAME = $res->fields['ENROLLMENT_NAME'];
     $PK_LOCATION = $res->fields['PK_LOCATION'];
+    $PK_PACKAGE = $res->fields['PK_PACKAGE'];
     $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
     $PK_DOCUMENT_LIBRARY = $res->fields['PK_DOCUMENT_LIBRARY'];
     $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
@@ -382,6 +384,8 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             }
 
             $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
+            $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$_POST['PK_ENROLLMENT_MASTER']);
+
             $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
             $DEBIT_AMOUNT = ($WALLET_BALANCE>$AMOUNT)?$AMOUNT:$WALLET_BALANCE;
             if ($wallet_data->RecordCount() > 0) {
@@ -389,7 +393,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             }
             $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
             $INSERT_DATA['DEBIT'] = $DEBIT_AMOUNT;
-            $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment ".$_POST['PK_ENROLLMENT_MASTER'];
+            $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment ".$enrollment_data->fields['ENROLLMENT_ID'];
             $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
             db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
@@ -802,11 +806,10 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                         <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
                                                             <option>Select</option>
                                                             <?php
-                                                            $enrollment_package_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
                                                             $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_PACKAGE=DOA_PACKAGE.PK_PACKAGE WHERE DOA_PACKAGE.ACTIVE = 1 ORDER BY DOA_PACKAGE.PACKAGE_NAME");
                                                             while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_PACKAGE'];?>" <?=($row->fields['PK_PACKAGE'] == $enrollment_package_data->fields['PK_PACKAGE'])?'selected':''?>><?=$row->fields['PACKAGE_NAME']?></option>
-                                                                <?php $row->MoveNext(); } ?>
+                                                                <option value="<?php echo $row->fields['PK_PACKAGE'];?>" <?=($row->fields['PK_PACKAGE'] == $PK_PACKAGE)?'selected':''?>><?=$row->fields['PACKAGE_NAME']?></option>
+                                                            <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -1517,10 +1520,13 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     const locationId = '<?=$SQUARE_LOCATION_ID ?>';
 
     async function initializeCard(payments) {
-        const card = await payments.card();
-        await card.attach('#card-container');
-
-        return card;
+        if (document.getElementById("card-container") !== null) {
+            const card = await payments.card();
+            await card.attach('#card-container');
+            return card;
+        } else {
+            return false;
+        }
     }
 
     async function createPayment(token) {
@@ -1566,7 +1572,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     }
 
     // status is either SUCCESS or FAILURE;
-    /*function displayPaymentResults(status) {
+    function displayPaymentResults(status) {
         const statusContainer = document.getElementById(
             'payment-status-container'
         );
@@ -1629,7 +1635,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         cardButton.addEventListener('click', async function (event) {
             await handlePaymentMethodSubmission(event, card);
         });
-    });*/
+    });
 </script>
 
 <script>

@@ -17,7 +17,9 @@ if (!empty($_GET['id']) && !empty($_GET['action'])){
     }
 }
 
-$appointment_status = empty($_GET['appointment_status'])?'1, 7':$_GET['appointment_status'];
+$appointment_status = empty($_GET['appointment_status'])?'1, 2, 3, 5, 7':$_GET['appointment_status'];
+
+$appointment_type = empty($_GET['appointment_type'])?'':$_GET['appointment_type'];
 
 if (!empty($_GET['view'])){
     $view = $_GET['view'];
@@ -459,7 +461,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-6" style="margin-left: 40px">
+                                <div class="col-5" style="margin-left: 70px">
                                     <form class="form-material form-horizontal" action="" method="get">
                                         <div class="input-group">
                                             <input type="date" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=$_GET['CHOOSE_DATE']?>">&nbsp;&nbsp;&nbsp;&nbsp;
@@ -473,10 +475,20 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                                 while (!$row->EOF) { ?>
                                                     <option value="<?=$row->fields['PK_USER']?>" <?=($row->fields['NAME'] == $NAME)?"selected":""?>><?=$row->fields['NAME']?></option>
                                                     <?php $row->MoveNext(); } ?>
-                                            </select>&nbsp;&nbsp;&nbsp;&nbsp;
+                                            </select>
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onsubmit="showCalendarView()"><i class="fa fa-search"></i></button>
                                         </div>
                                     </form>
+                                </div>
+                                <div class="col-2" >
+                                    <div class="form-group">
+                                        <select class="form-control" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="selectAppointmentType(this)">
+                                            <option value="">Select Appointment Type</option>
+                                            <option value="appointment" <?php if($appointment_type=="appointment"){echo "selected";}?>>Appointment</option>
+                                            <option value="group_class" <?php if($appointment_type=="group_class"){echo "selected";}?>>Group Class</option>
+                                            <option value="to_dos" <?php if($appointment_type=="to_dos"){echo "selected";}?>>To Dos</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -645,8 +657,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             } $resourceIdArray = json_encode($resourceIdArray)?>
         ];
 
-        console.log(defaultResources);
-
         let appointmentArray = [
             <?php
             if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
@@ -667,8 +677,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 type: 'appointment',
                 status: '<?=$appointment_data->fields['STATUS_CODE']?>',
                 statusColor: '<?=$appointment_data->fields['APPOINTMENT_COLOR']?> !important'
-
-                //textColor: 'black !important',
             },
             <?php $appointment_data->MoveNext();
             } ?>
@@ -695,7 +703,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             <?php $special_appointment_data->MoveNext();
             } ?>
         ];
-        console.log(specialAppointmentArray)
 
         let groupClassArray = [
             <?php
@@ -719,7 +726,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         let eventArray = [
             <?php $event_data = $db_account->Execute("SELECT DISTINCT DOA_EVENT.*, DOA_EVENT_TYPE.EVENT_TYPE, DOA_EVENT_TYPE.COLOR_CODE FROM DOA_EVENT INNER JOIN DOA_EVENT_LOCATION ON DOA_EVENT.PK_EVENT = DOA_EVENT_LOCATION.PK_EVENT LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.ACTIVE = 1 AND DOA_EVENT_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_EVENT.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' ORDER BY DOA_EVENT.START_DATE DESC LIMIT 2000");
             while (!$event_data->EOF) {
-            if (isset($event_data->fields['END_DATE'])) {
+            if (isset($event_data->fields['END_DATE']) && $event_data->fields['ALL_DAY'] == 1) {
                 $END_DATE = date('Y-m-d', strtotime($event_data->fields['END_DATE'].'+1 day'));
             }else {
                 $END_DATE = ($event_data->fields['END_DATE'] == '0000-00-00') ? $event_data->fields['START_DATE'] : $event_data->fields['END_DATE'];
@@ -740,7 +747,16 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             <?php $event_data->MoveNext();
             } ?>
         ];
+
+        <?php if ($appointment_type=="appointment") { ?>
+        finalArray = appointmentArray;
+        <?php } elseif ($appointment_type=="group_class") {?>
+        finalArray = groupClassArray;
+        <?php } elseif ($appointment_type=="to_dos") {?>
+        finalArray = specialAppointmentArray;
+        <?php } else { ?>
         finalArray = appointmentArray.concat(eventArray).concat(specialAppointmentArray).concat(groupClassArray);
+        <?php } ?>
         console.log(appointmentArray);
     }
 
@@ -1056,7 +1072,11 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     function selectStatus(param){
         var status = $(param).val();
         window.location.href = "all_schedules.php?appointment_status="+status;
+    }
 
+    function selectAppointmentType(param){
+        var type = $(param).val();
+        window.location.href = "all_schedules.php?appointment_type="+type;
     }
 </script>
 

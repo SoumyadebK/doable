@@ -13,7 +13,16 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
 if ($db1->error_number){
     die("Connection Error");
 }
-
+function getStartTime()
+{
+    global $db1;
+    return $db1->Execute("SELECT * FROM settings WHERE name = 'Calendar Start Time'");
+}
+function getEndTime()
+{
+    global $db1;
+    return $db1->Execute("SELECT * FROM settings WHERE name = 'Calendar End Time'");
+}
 function getAllInquiryMethod() {
     global $db1;
     return $db1->Execute("SELECT * FROM inquiry_type");
