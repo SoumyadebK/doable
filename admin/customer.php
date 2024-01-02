@@ -275,6 +275,7 @@ $WHAT_PROMPTED_YOU_TO_INQUIRE = '';
 $PK_SKILL_LEVEL = '';
 $PK_INQUIRY_METHOD = '';
 $INQUIRY_TAKER_ID = '';
+$INQUIRY_DATE = '';
 $PK_CUSTOMER_DETAILS = '';
 $CALL_PREFERENCE = '';
 $REMINDER_OPTION = '';
@@ -324,6 +325,7 @@ if(!empty($_GET['id'])) {
         $PK_SKILL_LEVEL = $user_interest_other_data->fields['PK_SKILL_LEVEL'];
         $PK_INQUIRY_METHOD = $user_interest_other_data->fields['PK_INQUIRY_METHOD'];
         $INQUIRY_TAKER_ID = $user_interest_other_data->fields['INQUIRY_TAKER_ID'];
+        $INQUIRY_DATE = $user_interest_other_data->fields['INQUIRY_DATE'];
     }
 
     $customer_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$_GET[master_id]'");
@@ -378,7 +380,7 @@ if(!empty($_GET['master_id'])) {
                         <?php $row->MoveNext(); } ?>
                     </select>
                 <?php } ?>
-            </div>
+                </div>
             <div class="col-md-4 align-self-center text-end">
                 <div class="d-flex justify-content-end align-items-center">
                     <ol class="breadcrumb justify-content-end">
@@ -1293,7 +1295,7 @@ if(!empty($_GET['master_id'])) {
                                                         <div class="row">
                                                             <div class="col-6">
                                                                 <div class="form-group">
-                                                                    <label class="form-label">What promoted you to inquire with us ?</label>
+                                                                    <label class="form-label">What prompted you to inquire with us ?</label>
                                                                     <div class="col-md-12">
                                                                         <input type="text" class="form-control" name="WHAT_PROMPTED_YOU_TO_INQUIRE" value="<?=$WHAT_PROMPTED_YOU_TO_INQUIRE?>">
                                                                     </div>
@@ -1344,6 +1346,14 @@ if(!empty($_GET['master_id'])) {
                                                                                 <option value="<?php echo $row->fields['PK_USER'];?>" <?=($row->fields['PK_USER'] == $INQUIRY_TAKER_ID)?'selected':''?>><?=$row->fields['NAME']?></option>
                                                                             <?php $row->MoveNext(); } ?>
                                                                         </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Inquiry Date</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="INQUIRY_DATE" class="form-control datepicker-normal" value="<?=$INQUIRY_DATE?>">
                                                                     </div>
                                                                 </div>
                                                             </div>

@@ -17,7 +17,9 @@ if (!empty($_GET['id']) && !empty($_GET['action'])){
     }
 }
 
-$appointment_status = empty($_GET['appointment_status'])?'1, 7':$_GET['appointment_status'];
+$appointment_status = empty($_GET['appointment_status'])?'1, 2, 3, 5, 7':$_GET['appointment_status'];
+
+$appointment_type = empty($_GET['appointment_type'])?'':$_GET['appointment_type'];
 
 if (!empty($_GET['view'])){
     $view = $_GET['view'];
@@ -458,7 +460,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-6" style="margin-left: 40px">
+                                <div class="col-5" style="margin-left: 70px">
                                     <form class="form-material form-horizontal" action="" method="get">
                                         <div class="input-group">
                                             <input type="date" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=$_GET['CHOOSE_DATE']?>">&nbsp;&nbsp;&nbsp;&nbsp;
@@ -472,10 +474,20 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                                 while (!$row->EOF) { ?>
                                                     <option value="<?=$row->fields['PK_USER']?>" <?=($row->fields['NAME'] == $NAME)?"selected":""?>><?=$row->fields['NAME']?></option>
                                                     <?php $row->MoveNext(); } ?>
-                                            </select>&nbsp;&nbsp;&nbsp;&nbsp;
+                                            </select>
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onsubmit="showCalendarView()"><i class="fa fa-search"></i></button>
                                         </div>
                                     </form>
+                                </div>
+                                <div class="col-2" >
+                                    <div class="form-group">
+                                        <select class="form-control" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="selectAppointmentType(this)">
+                                            <option value="">Select Appointment Type</option>
+                                            <option value="appointment" <?php if($appointment_type=="appointment"){echo "selected";}?>>Appointment</option>
+                                            <option value="group_class" <?php if($appointment_type=="group_class"){echo "selected";}?>>Group Class</option>
+                                            <option value="to_dos" <?php if($appointment_type=="to_dos"){echo "selected";}?>>To Dos</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -737,7 +749,16 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             <?php $event_data->MoveNext();
             } ?>
         ];
+
+        <?php if ($appointment_type=="appointment") { ?>
+        finalArray = appointmentArray;
+        <?php } elseif ($appointment_type=="group_class") {?>
+        finalArray = groupClassArray;
+        <?php } elseif ($appointment_type=="to_dos") {?>
+        finalArray = specialAppointmentArray;
+        <?php } else { ?>
         finalArray = appointmentArray.concat(eventArray).concat(specialAppointmentArray).concat(groupClassArray);
+        <?php } ?>
         console.log(appointmentArray);
     }
 
@@ -1053,7 +1074,11 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     function selectStatus(param){
         var status = $(param).val();
         window.location.href = "all_schedules.php?appointment_status="+status;
+    }
 
+    function selectAppointmentType(param){
+        var type = $(param).val();
+        window.location.href = "all_schedules.php?appointment_type="+type;
     }
 </script>
 

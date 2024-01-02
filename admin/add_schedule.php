@@ -101,6 +101,17 @@ if (isset($_POST['FUNCTION_NAME'])){
                 db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
             }
         }
+
+        if (isset($_POST['PK_APPOINTMENT_STATUS'])) {
+            $appointment_data = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
+            if ($appointment_data->RecordCount() > 0) {
+                $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_MASTER'] = $appointment_data->fields['PK_APPOINTMENT_MASTER'];
+                $APPOINTMENT_STATUS_HISTORY_DATA['PK_USER'] = $_SESSION['PK_USER'];
+                $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+                $APPOINTMENT_STATUS_HISTORY_DATA['TIME_STAMP'] = date("Y-m-d H:i");
+                db_perform_account('DOA_APPOINTMENT_STATUS_HISTORY', $APPOINTMENT_STATUS_HISTORY_DATA, 'insert');
+            }
+        }
     }
 
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
@@ -182,12 +193,11 @@ if(empty($_GET['id'])){
     $selected_user_id = $customer_data->fields['PK_USER'];
 }
 
-$status_data = $db_account->Execute("SELECT $master_database.DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.CANCELLED_ON, DOA_APPOINTMENT_MASTER.CHANGED_ON, DOA_APPOINTMENT_MASTER.CREATED_BY, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_APPOINTMENT_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_APPOINTMENT_MASTER.CHANGED_BY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = $master_database.DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$_GET[id]'");
-
-if (!empty($status_data->fields['CHANGED_ON'])) {
-    $CHANGED_BY = "(".$status_data->fields['APPOINTMENT_STATUS']." by ".$status_data->fields['NAME']." at ".date('m-d-Y H:i:s A', strtotime($status_data->fields['CHANGED_ON'])).")";
-} else {
-    $CHANGED_BY = ' ';
+$status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_GET[id]'");
+$CHANGED_BY = '';
+while (!$status_data->EOF) {
+    $CHANGED_BY .= "(".$status_data->fields['APPOINTMENT_STATUS']." by ".$status_data->fields['NAME']." at ".date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])).")<br>";
+    $status_data->MoveNext();
 }
 ?>
 
