@@ -759,7 +759,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         <?php } else { ?>
         finalArray = appointmentArray.concat(eventArray).concat(specialAppointmentArray).concat(groupClassArray);
         <?php } ?>
-        console.log(appointmentArray);
+        console.log(groupClassArray);
     }
 
     function showCalendarAppointment() {

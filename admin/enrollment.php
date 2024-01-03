@@ -460,6 +460,18 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $PAYMENT_DATA['SECURITY_CODE'] = $_POST['SECURITY_CODE'];
         }
 
+        $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$_POST['PK_ENROLLMENT_MASTER']);
+        $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$_POST['PK_ENROLLMENT_MASTER']);
+        $ACTUAL_AMOUNT = $enrollmentBillingData->fields['TOTAL_AMOUNT'];
+        while (!$enrollmentServiceData->EOF) {
+            $servicePercent = ($enrollmentServiceData->fields['TOTAL']*100)/$ACTUAL_AMOUNT;
+            $serviceAmount = ($_POST['AMOUNT']*$servicePercent)/100;
+
+            $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID']+$serviceAmount;
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update'," PK_ENROLLMENT_SERVICE = ".$enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+            $enrollmentServiceData->MoveNext();
+        }
+
         db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 
         $enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
@@ -1555,7 +1567,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
     }
 
-    async function tokenize(paymentMethod) {
+    /*async function tokenize(paymentMethod) {
         const tokenResult = await paymentMethod.tokenize();
         if (tokenResult.status === 'OK') {
             return tokenResult.token;
@@ -1573,9 +1585,13 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
     // status is either SUCCESS or FAILURE;
     function displayPaymentResults(status) {
-        const statusContainer = document.getElementById(
-            'payment-status-container'
-        );
+        if (document.getElementById("payment-status-container") !== null) {
+            const statusContainer = document.getElementById(
+                'payment-status-container'
+            );
+        } else {
+            return false;
+        }
         if (status === 'SUCCESS') {
             statusContainer.classList.remove('is-failure');
             statusContainer.classList.add('is-success');
@@ -1596,9 +1612,13 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         try {
             payments = window.Square.payments(appId, locationId);
         } catch {
-            const statusContainer = document.getElementById(
-                'payment-status-container'
-            );
+            if (document.getElementById("payment-status-container") !== null) {
+                const statusContainer = document.getElementById(
+                    'payment-status-container'
+                );
+            } else {
+                return false;
+            }
             statusContainer.className = 'missing-credentials';
             statusContainer.style.visibility = 'visible';
             return;
@@ -1635,7 +1655,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         cardButton.addEventListener('click', async function (event) {
             await handlePaymentMethodSubmission(event, card);
         });
-    });
+    });*/
 </script>
 
 <script>
