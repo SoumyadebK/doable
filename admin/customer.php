@@ -1353,7 +1353,7 @@ if(!empty($_GET['master_id'])) {
                                                                 <div class="form-group">
                                                                     <label class="form-label">Inquiry Date</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" name="INQUIRY_DATE" class="form-control datepicker-normal" value="<?=$INQUIRY_DATE?>">
+                                                                        <input type="text" name="INQUIRY_DATE" class="form-control datepicker-normal" value="<?=($INQUIRY_DATE == '0000-00-00')?'':date('m/d/Y',strtotime($INQUIRY_DATE))?>">
                                                                     </div>
                                                                 </div>
                                                             </div>
