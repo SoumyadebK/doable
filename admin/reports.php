@@ -55,6 +55,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <li><a href="customer_summary_report.php">Customer Reports</a></li>
                                         <li><a href="student_mailing_list.php">Student Mailing List</a></li>
                                         <li><a href="total_open_liability.php">Total Open Liability Since Last Activity</a></li>
+                                        <li><a href="royalty_service_report.php">Royalty / Service Report</a></li>
                                     </ul>
                                 </div>
                             </div>
