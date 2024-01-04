@@ -341,10 +341,12 @@ if(!empty($_GET['id'])) {
     }
 }
 if(!empty($_GET['master_id'])) {
-    $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = ".$_GET['master_id']);
-    $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
-} else {
-    $primary_location='';
+    $selected_primary_location = $db->Execute("SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = " . $_GET['master_id']);
+    if ($selected_primary_location->RecordCount() > 0) {
+        $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
+    } else {
+        $primary_location = '';
+    }
 }
 
 ?>
@@ -401,7 +403,7 @@ if(!empty($_GET['master_id'])) {
                                     <div class="row">
                                         <div class="col-12 d-flex justify-content-end align-items-center" style="font-weight: bold; font-size: 15px; margin-top: 15px;">
                                             <?php
-                                            $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.CREATED_ON FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+                                            $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.CREATED_ON FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$PK_USER_MASTER' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
                                             $enrolled = 0;
                                             $paid = 0;
                                             $used = 0;
@@ -437,7 +439,7 @@ if(!empty($_GET['master_id'])) {
                                                 $row->MoveNext();
                                             }
                                             ?>
-
+                                            <?php if (!empty($_GET['id'])) { ?>
                                             <div class="col-2 text-center">Enrolled : <?=number_format($enrolled, 2);?></div>
                                             <div class="col-2 text-center">Paid : <?=number_format($paid, 2);?></div>
                                             <div class="col-2 text-center">Used : <?=number_format((float)$used, 2);?></div>
@@ -445,6 +447,7 @@ if(!empty($_GET['master_id'])) {
                                             <div class="col-2 text-center" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=number_format((float)$service_credit, 2);?></div>
                                             <div class="col-2 text-center">Session : <?=$used_session_count.'/'.$totalSessionCount;?></div>
                                             <!--<div class="col-1 text-end">Wallet Balance : <?php /*=$balance;*/?></div>-->
+                                            <?php }?>
                                         </div>
                                     </div>
                                     <div class="card-body">
@@ -1402,7 +1405,7 @@ if(!empty($_GET['master_id'])) {
                                                                 <div class="form-group">
                                                                     <label class="form-label">Inquiry Date</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" name="INQUIRY_DATE" class="form-control datepicker-normal" value="<?=($INQUIRY_DATE == '0000-00-00')?'':date('m/d/Y',strtotime($INQUIRY_DATE))?>">
+                                                                        <input type="text" name="INQUIRY_DATE" class="form-control datepicker-normal" value="<?=($INQUIRY_DATE == '' || $INQUIRY_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($INQUIRY_DATE))?>">
                                                                     </div>
                                                                 </div>
                                                             </div>
