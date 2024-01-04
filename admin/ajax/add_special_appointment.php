@@ -53,7 +53,7 @@ if (empty($_GET['PK_USER_MASTER'])) {
                                     $selected_booking_code_row->MoveNext();
                                 }
                             }
-                            $booking_row = $db_account->Execute("SELECT PK_SCHEDULING_CODE, SCHEDULING_NAME, DURATION, IS_DEFAULT FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                            $booking_row = $db_account->Execute("SELECT PK_SCHEDULING_CODE, SCHEDULING_NAME, DURATION, IS_DEFAULT FROM DOA_SCHEDULING_CODE WHERE TO_DOS=1 AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                             while (!$booking_row->EOF) { ?>
                                 <option value="<?php echo $booking_row->fields['PK_SCHEDULING_CODE'];?>" data-duration="<?php echo $booking_row->fields['DURATION'];?>" data-scheduling_name="<?php echo $booking_row->fields['SCHEDULING_NAME']?>" data-is_default="<?php echo $booking_row->fields['IS_DEFAULT']?>" <?=in_array($booking_row->fields['PK_SCHEDULING_CODE'], $selected_booking_code)?"selected":""?>><?=$booking_row->fields['SCHEDULING_NAME']?></option>
                                 <?php $booking_row->MoveNext(); } ?>
