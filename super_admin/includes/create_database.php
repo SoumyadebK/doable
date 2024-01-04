@@ -670,6 +670,19 @@ CREATE TABLE `DOA_GROUP_CLASS_CUSTOMER` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `DOA_GROUP_CLASS_USER`
+--
+
+CREATE TABLE `DOA_GROUP_CLASS_USER` (
+  `PK_GROUP_CLASS_USER` int(11) NOT NULL AUTO_INCREMENT,
+  `PK_GROUP_CLASS` int(11) NOT NULL,
+  `PK_USER` int(11) NOT NULL,
+  PRIMARY KEY (`PK_GROUP_CLASS_USER`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `DOA_HOLIDAY_LIST`
 --
 
