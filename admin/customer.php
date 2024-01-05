@@ -341,10 +341,12 @@ if(!empty($_GET['id'])) {
     }
 }
 if(!empty($_GET['master_id'])) {
-    $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = ".$_GET['master_id']);
-    $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
-} else {
-    $primary_location='';
+    $selected_primary_location = $db->Execute("SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = " . $_GET['master_id']);
+    if ($selected_primary_location->RecordCount() > 0) {
+        $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
+    } else {
+        $primary_location = '';
+    }
 }
 
 ?>
@@ -398,6 +400,56 @@ if(!empty($_GET['master_id'])) {
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="card">
+                                    <div class="row">
+                                        <div class="col-12 d-flex justify-content-end align-items-center" style="font-weight: bold; font-size: 15px; margin-top: 15px;">
+                                            <?php
+                                            $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.CREATED_ON FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$PK_USER_MASTER' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+                                            $enrolled = 0;
+                                            $paid = 0;
+                                            $used = 0;
+                                            $total_balance = 0;
+                                            $service_credit = 0;
+                                            $used_session_count = 0;
+                                            $totalSessionCount = 0;
+                                            while (!$row->EOF) {
+                                                $used_session = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT, PK_SERVICE_MASTER FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                                $PK_SERVICE_MASTER = ($used_session->RecordCount() > 0) ? $used_session->fields['PK_SERVICE_MASTER'] : 0;
+                                                $total_session = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION_COUNT FROM `DOA_ENROLLMENT_SERVICE` WHERE  `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER);
+                                                if ($total_session->RecordCount() <= 0 || $total_session->fields['TOTAL_SESSION_COUNT'] == '') {
+                                                    $total_session = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION_COUNT FROM `DOA_ENROLLMENT_SERVICE` WHERE  `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                                }
+                                                $total_session_count = ($total_session->RecordCount() > 0) ? $total_session->fields['TOTAL_SESSION_COUNT'] : 0;
+                                                $total_bill_and_paid = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID, SUM(BALANCE) AS BALANCE FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
+                                                //$enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
+                                                $total_amount = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT) AS TOTAL_AMOUNT FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
+                                                $price_per_session = ($total_session_count > 0) ? $total_amount->fields['TOTAL_AMOUNT']/$total_session_count : 0.00;
+
+                                                $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
+                                                $balance = $total_bill_and_paid->fields['TOTAL_BILL'] - $total_bill_and_paid->fields['TOTAL_PAID'];
+                                                $total_used = $used_session->fields['USED_SESSION_COUNT']*$price_per_session;
+
+                                                $enrolled += $total_amount->fields['TOTAL_AMOUNT'];
+                                                $paid += $total_bill_and_paid->fields['TOTAL_PAID'];
+                                                $used += $total_used;
+                                                $total_balance += $total_amount->fields['TOTAL_AMOUNT']-$total_bill_and_paid->fields['TOTAL_PAID'];
+                                                $used_session_count += $used_session->fields['USED_SESSION_COUNT'];
+                                                $totalSessionCount += $total_session_count;
+                                                $service_credit += $total_bill_and_paid->fields['TOTAL_PAID']-$total_used;
+
+                                                $row->MoveNext();
+                                            }
+                                            ?>
+                                            <?php if (!empty($_GET['id'])) { ?>
+                                            <div class="col-2 text-center">Enrolled : <?=number_format($enrolled, 2);?></div>
+                                            <div class="col-2 text-center">Paid : <?=number_format($paid, 2);?></div>
+                                            <div class="col-2 text-center">Used : <?=number_format((float)$used, 2);?></div>
+                                            <div class="col-2 text-center">Balance : <?=number_format($total_balance, 2)?></div>
+                                            <div class="col-2 text-center" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=number_format((float)$service_credit, 2);?></div>
+                                            <div class="col-2 text-center">Session : <?=$used_session_count.'/'.$totalSessionCount;?></div>
+                                            <!--<div class="col-1 text-end">Wallet Balance : <?php /*=$balance;*/?></div>-->
+                                            <?php }?>
+                                        </div>
+                                    </div>
                                     <div class="card-body">
                                         <!-- Nav tabs -->
                                         <ul class="nav nav-tabs" role="tablist">
@@ -1353,7 +1405,7 @@ if(!empty($_GET['master_id'])) {
                                                                 <div class="form-group">
                                                                     <label class="form-label">Inquiry Date</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" name="INQUIRY_DATE" class="form-control datepicker-normal" value="<?=($INQUIRY_DATE == '0000-00-00')?'':date('m/d/Y',strtotime($INQUIRY_DATE))?>">
+                                                                        <input type="text" name="INQUIRY_DATE" class="form-control datepicker-normal" value="<?=($INQUIRY_DATE == '' || $INQUIRY_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($INQUIRY_DATE))?>">
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1440,46 +1492,6 @@ if(!empty($_GET['master_id'])) {
                                             </div>
 
                                             <div class="tab-pane" id="enrollment" role="tabpanel">
-                                                <div class="row">
-                                                    <div class="col-12 d-flex justify-content-end align-items-center" style="font-weight: bold; font-size: 15px; margin-top: 15px;">
-                                                        <?php
-                                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
-
-                                                        $total_amount = 0;
-                                                        $total_paid_amount = 0;
-                                                        $total_used_amount = 0;
-                                                        $total_session_count = 0;
-                                                        $used_session_count = 0;
-
-                                                        while (!$row->EOF) {
-                                                            $billing_data = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT) AS TOTAL_AMOUNT FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-                                                            $total_amount += ($billing_data->RecordCount() > 0) ? $billing_data->fields['TOTAL_AMOUNT'] : 0;
-
-                                                            $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                                                            while (!$serviceCodeData->EOF)
-                                                            {
-                                                                $used_session = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$serviceCodeData->fields['PK_SERVICE_CODE']);
-                                                                $paid_session = $serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'];
-                                                                $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-                                                                $total_used_amount += ($serviceCodeData->fields['PRICE_PER_SESSION']*$used_session->fields['USED_SESSION_COUNT']);
-                                                                $total_session_count += $serviceCodeData->fields['NUMBER_OF_SESSION'];
-                                                                $used_session_count += $used_session->fields['USED_SESSION_COUNT'];
-
-                                                                $serviceCodeData->MoveNext();
-                                                            }
-                                                        $row->MoveNext();
-                                                        }
-                                                        ?>
-
-                                                        <div class="col-2 text-center">Enrolled : <?=number_format($total_amount, 2);?></div>
-                                                        <div class="col-2 text-center">Paid : <?=number_format($total_paid_amount, 2);?></div>
-                                                        <div class="col-2 text-center">Used : <?=number_format((float)$total_used_amount, 2);?></div>
-                                                        <div class="col-2 text-center">Balance : <?=number_format($total_amount-$total_paid_amount, 2)?></div>
-                                                        <div class="col-2 text-center" style="color:<?=($total_paid_amount-$total_used_amount<0)?'red':'black'?>;">Service Credit : <?=number_format((float)$total_paid_amount-$total_used_amount, 2);?></div>
-                                                        <div class="col-2 text-center">Session : <?=$used_session_count.'/'.$total_session_count;?></div>
-                                                        <!--<div class="col-1 text-end">Wallet Balance : <?php /*=$balance;*/?></div>-->
-                                                    </div>
-                                                </div>
                                                 <div class="row" style="margin-bottom: -30px; margin-top: 10px;">
                                                     <div class="col-12 d-flex justify-content-end">
                                                         <?php

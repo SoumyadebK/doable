@@ -265,7 +265,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                 <div>
                                     I have checked this statement and certify that it is correct and complete. I also certify that none of the above listed enrollments or payments resulted in violation of the Arthur Murray International Inc. dollar limitation policy or limitations set by other regulatory agencies.<br>
                                     I further certify that all the above have been enrolled on Arthur Murray International Inc. approved student enrollment agreements.<br><br>
-                                    Prepared by : ............................ Title : ........................ Date : ............. Signed franchisee :...............
+                                    Prepared by : ............................ Title : ............................ Date : ............................ Signed franchisee ............................
                                 </div>
                             </div>
                         </div>
