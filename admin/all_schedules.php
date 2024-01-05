@@ -448,8 +448,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                     <h5 class="card-title"><?=$title?></h5>
                                 </div>
                                 <div class="col-2" >
-                                    <div class="form-group">
-                                        <select class="form-control" name="STATUS_CODE" id="STATUS_CODE" onchange="selectStatus(this)" >
+                                    <div class="form-material form-horizontal">
+                                        <select class="form-control" name="STATUS_CODE" id="STATUS_CODE" onchange="selectStatus(this)">
                                             <option value="">Select Status</option>
                                             <?php
                                             $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
@@ -459,10 +459,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-5" style="margin-left: 70px">
+                                <div class="col-5">
                                     <form class="form-material form-horizontal" action="" method="get">
                                         <div class="input-group">
-                                            <input type="date" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=$_GET['CHOOSE_DATE']?>">&nbsp;&nbsp;&nbsp;&nbsp;
+                                            <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <select class="form-control" name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID">
                                                 <option value="">Select <?=$service_provider_title?></option>
                                                 <?php
@@ -479,7 +479,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                     </form>
                                 </div>
                                 <div class="col-2" >
-                                    <div class="form-group">
+                                    <div class="form-material form-horizontal">
                                         <select class="form-control" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="selectAppointmentType(this)">
                                             <option value="">Select Appointment Type</option>
                                             <option value="appointment" <?php if($appointment_type=="appointment"){echo "selected";}?>>Appointment</option>
@@ -534,6 +534,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
 <?php require_once('../includes/footer.php');?>
 
+<script>
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+    });
+</script>
+
 <script src='../assets/full_calendar_new/moment.min.js'></script>
 <script src='../assets/full_calendar_new/jquery.min.js'></script>
 <script src='../assets/full_calendar_new/fullcalendar.min.js'></script>
@@ -550,8 +556,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         }else {
             showCalendarView();
         }
-    })
-
+    });
     function showAppointmentEdit(info) {
         if (info.type === 'appointment') {
             $('#appointment_list_half').removeClass('col-12');

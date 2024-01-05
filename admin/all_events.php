@@ -126,7 +126,7 @@ $page_first_result = ($page-1) * $results_per_page;
                 <div class="card-body" style="height: 100px">
                     <div class="row">
                         <div class="col-2">
-                            <div class="form-group">
+                            <div class="form-material form-horizontal">
                                 <label class="form-label">Event Type</label>
                                 <select class="form-control" name="PK_EVENT_TYPE" id="PK_EVENT_TYPE">
                                     <option value="">Select Event Type</option>
@@ -139,7 +139,7 @@ $page_first_result = ($page-1) * $results_per_page;
                             </div>
                         </div>
                         <div class="col-2">
-                            <div class="form-group">
+                            <div class="form-material form-horizontal">
                                 <label class="form-label">Event Status</label>
                                 <select class="form-control" name="PK_EVENT_STATUS" id="PK_EVENT_STATUS">
                                     <option value="">Select Event Status</option>
@@ -150,13 +150,13 @@ $page_first_result = ($page-1) * $results_per_page;
                         </div>
 
                         <div class="col-2">
-                            <div class="form-group">
+                            <div class="form-material form-horizontal">
                                 <label class="form-label">From Date</label>
                                 <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" value="">
                             </div>
                         </div>
                         <div class="col-2">
-                            <div class="form-group">
+                            <div class="form-material form-horizontal">
                                 <label class="form-label">To Date</label>
                                 <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" required value="">
                             </div>
@@ -308,11 +308,11 @@ $page_first_result = ($page-1) * $results_per_page;
               /*var startDateVal = data[startDateIndex];
               var endDateVal = data[endDateIndex];*/
               if (
-                    (eventType === "" || eventTypeVal.includes(eventType)) 
+                    (eventType === "" || eventTypeVal.includes(eventType))
                     && (eventStatus === "" || eventStatusVal.includes(eventStatus))
                     && (startDate == "" || moment(startedAt).isSameOrAfter(startDate))
                     && (endDate == "" || moment(endedAt).isSameOrBefore(endDate))
-                  ) 
+                  )
               {
                 return true;
               }

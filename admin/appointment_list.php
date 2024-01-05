@@ -138,26 +138,26 @@ $page_first_result = ($page-1) * $results_per_page;
             </div>
 
             <div class="row page-titles">
-                <div class="col-md-2 align-self-center" style="margin-top: -25px">
+                <div class="col-md-2 align-self-center">
                     <?php if ($status_check=='previous') { ?>
-                        <h4 class="text-themecolor">List of Previous Appointments</h4>
+                        <h4 class="text-themecolor">Previous Appointments</h4>
                     <?php } elseif ($status_check=='future') { ?>
-                        <h4 class="text-themecolor">List of future Appointments</h4>
+                        <h4 class="text-themecolor">Future Appointments</h4>
                     <?php } ?>
                 </div>
 
                 <?php if ($status_check=='previous') { ?>
-                    <div class="col-md-2 align-self-center" style="margin-top: -25px">
+                    <div class="col-md-2 align-self-center">
                         <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?status=future'">Future Appointments</button>
                     </div>
                 <?php } elseif ($status_check=='future') { ?>
-                    <div class="col-md-2 align-self-center" style="margin-top: -25px">
+                    <div class="col-md-2 align-self-center">
                         <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?status=previous'">Previous Appointments</button>
                     </div>
                 <?php } ?>
 
                 <div class="col-2">
-                    <div class="form-group">
+                    <div class="form-material form-horizontal">
                         <select class="form-control" name="STATUS_CODE" id="STATUS_CODE" onchange="selectStatus(this)">
                             <option value="">Select Status</option>
                             <?php
