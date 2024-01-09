@@ -139,7 +139,7 @@ if ($row->RecordCount() > 0) {
                         <option value="month">Month(S)</option>
                         <option value="year">Year(S)</option>
                     </select>
-                    <label><input type="checkbox" class="YEAR" name="YEAR_0" value=""></label>
+                    <label><input type="checkbox" class="YEAR" name="YEAR_0" value=""> Ongoing</label>
                 </div>
             </div>
             <div class="col-1">

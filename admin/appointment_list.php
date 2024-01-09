@@ -504,7 +504,7 @@ $page_first_result = ($page-1) * $results_per_page;
                 type: 'POST',
                 data: {FUNCTION_NAME: 'deleteAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
                 success: function (data) {
-                    window.location.href = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER+'&tab=appointment';
+                    window.location.href = 'appointment_list.php';
                 }
             });
         }
