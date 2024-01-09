@@ -822,7 +822,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                         <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
                                                             <option>Select</option>
                                                             <?php
-                                                            $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_PACKAGE=DOA_PACKAGE.PK_PACKAGE WHERE DOA_PACKAGE.ACTIVE = 1 ORDER BY DOA_PACKAGE.PACKAGE_NAME");
+                                                            $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE WHERE ACTIVE = 1 ORDER BY PACKAGE_NAME");
                                                             while (!$row->EOF) { ?>
                                                                 <option value="<?php echo $row->fields['PK_PACKAGE'];?>" <?=($row->fields['PK_PACKAGE'] == $PK_PACKAGE)?'selected':''?>><?=$row->fields['PACKAGE_NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>
@@ -2033,6 +2033,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
         let down_payment = parseFloat(($('#DOWN_PAYMENT').val())?$('#DOWN_PAYMENT').val():0);
         let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val())?$('#BALANCE_PAYABLE').val():0);
+        $('#MEMBERSHIP_PAYMENT_AMOUNT').val(parseFloat(total_bill).toFixed(2));
         $('#BALANCE_PAYABLE').val(parseFloat(total_bill-down_payment).toFixed(2));
         calculatePaymentPlans();
     }

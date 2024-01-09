@@ -24,7 +24,7 @@ if (empty($_GET['PK_USER_MASTER'])) {
 ?>
 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
     <input type="hidden" name="FUNCTION_NAME" value="saveSpecialAppointment">
-    <div class="row">
+    <div class="row to_dos_class_setting">
         <div class="col-12">
             <div class="row">
                 <div class="col-6">
@@ -83,7 +83,7 @@ if (empty($_GET['PK_USER_MASTER'])) {
                         <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" value="<?=$time?>" required>
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-6 END_TIME">
                     <div class="form-group">
                         <label class="form-label">End Time</label>
                         <input type="text" id="END_TIME" name="END_TIME" class="form-control time-picker" required>
@@ -111,10 +111,46 @@ if (empty($_GET['PK_USER_MASTER'])) {
                     </div>
                 </div>
             </div>
+            <div class="col-2">
+                <label class="col-md-12 mt-3"><input type="checkbox" id="IS_STANDING" name="IS_STANDING" class="form-check-inline"> Is Standing ?</label>
+            </div>
+
+            <div class="row standing" style="display: none;  margin-top: 10px;">
+                <div class="col-2">
+                    <div class="form-group">
+                        <label class="form-label">Select Days</label><br>
+                        <label><input type="checkbox" class="DAYS" name="DAYS[]" value="monday"> Monday</label><br>
+                        <label><input type="checkbox" class="DAYS" name="DAYS[]" value="tuesday"> Tuesday</label><br>
+                        <label><input type="checkbox" class="DAYS" name="DAYS[]" value="wednesday"> Wednesday</label><br>
+                        <label><input type="checkbox" class="DAYS" name="DAYS[]" value="thursday"> Thursday</label><br>
+                        <label><input type="checkbox" class="DAYS" name="DAYS[]" value="friday"> Friday</label><br>
+                        <label><input type="checkbox" class="DAYS" name="DAYS[]" value="saturday"> Saturday</label><br>
+                        <label><input type="checkbox" class="DAYS" name="DAYS[]" value="sunday"> Sunday</label><br>
+                    </div>
+                </div>
+                <div class="col-2 occurrence_div">
+                    <div class="form-group">
+                        <label class="form-label">Select Occurrence<span class="text-danger">*</span></label><br>
+                        <label><input type="radio" name="OCCURRENCE" value="WEEKLY" required> Weekly</label><br>
+                        <label><input type="radio" name="OCCURRENCE" value="DAYS" required> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="form-group">
+                        <label class="form-label">Length<span class="text-danger">*</span></label><br>
+                        <input type="number" class="form-control" name="LENGTH" style="width: 80px;" required>
+                        <select class="form-control" name="FREQUENCY" style="width: 100px;" required>
+                            <option value="week">Week(S)</option>
+                            <option value="month">Month(S)</option>
+                            <option value="year">Year(S)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
         </div>
     </div>
-    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
+    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="margin-top: 15px;">Submit</button>
 </form>
 
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
@@ -170,4 +206,14 @@ if (empty($_GET['PK_USER_MASTER'])) {
 
         return D(mins%(24*60)/60 | 0) + ':' + D(mins%60);
     }
+
+    $('#IS_STANDING').on('change', function(){
+        if ($(this).is(':checked')){
+            $(this).closest('.to_dos_class_setting').find('.standing').show();
+            $(this).closest('.to_dos_class_setting').find('.END_TIME').hide();
+        } else {
+            $(this).closest('.to_dos_class_setting').find('.standing').hide();
+            $(this).closest('.to_dos_class_setting').find('.END_TIME').show();
+        }
+    });
 </script>

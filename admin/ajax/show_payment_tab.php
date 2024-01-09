@@ -168,7 +168,7 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
                     <label class="form-label" style="float: right;margin-top: 10px;">Total</label>
                 </div>
                 <div class="col-md-8">
-                    <input type="text" class="form-control" name="TOTAL_AMOUNT" id="total_bill" value="<?=number_format((float)$total, 2, '.', '');?>" readonly>
+                    <input type="text" class="form-control TOTAL_AMOUNT" name="TOTAL_AMOUNT" id="total_bill" value="<?=number_format((float)$total, 2, '.', '');?>" readonly>
                 </div>
             </div>
         </div>

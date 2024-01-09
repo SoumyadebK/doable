@@ -1515,6 +1515,13 @@ function deleteAppointment($RESPONSE_DATA) {
     echo 1;
 }
 
+function deleteCustomer($RESPONSE_DATA) {
+    global $db;
+    $PK_USER = $RESPONSE_DATA['PK_USER'];
+    $customer_data = $db->Execute("UPDATE `DOA_USERS` SET IS_DELETED=1 WHERE `PK_USER` = ".$PK_USER);
+    echo 1;
+}
+
 function updateAppointmentData($RESPONSE_DATA) {
     global $db_account;
     $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
