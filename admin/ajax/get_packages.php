@@ -18,7 +18,7 @@ while (!$row->EOF) { $i=0; ?>
                 </select>
             </div>
         </div>
-        <div class="col-2">
+        <div class="col-1">
             <div class="form-group">
                 <input type="hidden" class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" value="<?=$row->fields['PK_SERVICE_CODE']?>">
                 <input type="text" class="form-control PK_SERVICE_CODE" value="<?=$row->fields['SERVICE_CODE']?>">
@@ -29,19 +29,38 @@ while (!$row->EOF) { $i=0; ?>
                 <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?=$row->fields['SERVICE_DETAILS']?>">
             </div>
         </div>
-        <div class="col-2">
+        <div class="col-1">
             <div class="form-group">
                 <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" value="<?=$row->fields['NUMBER_OF_SESSION']?>" onkeyup="calculateServiceTotal(this)">
             </div>
         </div>
-        <div class="col-2">
+        <div class="col-1" style="text-align: right;">
             <div class="form-group">
                 <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" value="<?=$row->fields['PRICE_PER_SESSION']?>" onkeyup="calculateServiceTotal(this)">
             </div>
         </div>
-        <div class="col-1" style="width: 11%;">
+        <div class="col-1" style="width: 11%; text-align: right;">
             <div class="form-group">
                 <input type="text" class="form-control TOTAL" value="<?=$row->fields['NUMBER_OF_SESSION']*$row->fields['PRICE_PER_SESSION']?>" name="TOTAL[]">
+            </div>
+        </div>
+        <div class="col-1 discount_div">
+            <div class="form-group">
+                <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateDiscount(this)">
+                    <option value="">Select</option>
+                    <option value="1" <?=($row->fields['DISCOUNT_TYPE'] == 1)?'selected':''?>>Fixed</option>
+                    <option value="2" <?=($row->fields['DISCOUNT_TYPE'] == 2)?'selected':''?>>Percent</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-1 discount_div" style="text-align: right;">
+            <div class="form-group">
+                <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" value="<?=$row->fields['DISCOUNT']?>" onkeyup="calculateDiscount(this)">
+            </div>
+        </div>
+        <div class="col-1 final_div" style="text-align: right;">
+            <div class="form-group">
+                <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=($row->fields['FINAL_AMOUNT']==0.00)?$row->fields['TOTAL']:$row->fields['FINAL_AMOUNT']?>" readonly>
             </div>
         </div>
         <div class="col-1" style="width: 5%;">

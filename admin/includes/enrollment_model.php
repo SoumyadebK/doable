@@ -2,11 +2,18 @@
 $package = $db_account->Execute("SELECT IS_PACKAGE FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
 $IS_PACKAGE = $package->fields['IS_PACKAGE'];
 
+$ENROLLMENT_NAME = '';
 $PK_LOCATION = '';
+$PK_PACKAGE = '';
+$TOTAL = '';
+$DISCOUNT_TYPE = '';
+$DISCOUNT = '';
+$FINAL_AMOUNT = '';
 $PK_AGREEMENT_TYPE = '';
 $PK_DOCUMENT_LIBRARY = '';
 $AGREEMENT_PDF_LINK = '';
 $ENROLLMENT_BY_ID = $_SESSION['PK_USER'];
+$MEMO = '';
 $ACTIVE = '';
 
 $PK_ENROLLMENT_BILLING = '';
@@ -30,8 +37,6 @@ $EXPIRATION_DATE = '';
 $CHECK_NUMBER = '';
 $CHECK_DATE = '';
 $NOTE = '';
-
-
 ?>
 
 <!DOCTYPE html>
@@ -67,10 +72,10 @@ $NOTE = '';
                             <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['enrollment_id']))?'':$_GET['enrollment_id']?>">
                             <div class="p-20">
                                 <div class="row">
-                                    <div class="col-6">
+                                    <div class="col-4">
                                         <div class="form-group">
                                             <label class="form-label">Customer<span class="text-danger">*</span></label><br>
-                                            <select required name="PK_USER_MASTER" id="PK_USER_MASTER" onchange="selectThisCustomerLocation(this);">
+                                            <select required name="PK_USER_MASTER" id="PK_USER_MASTER_MODEL" onchange="selectThisCustomerLocation(this);">
                                                 <option value="">Select Customer</option>
                                                 <?php
                                                 $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_USER_MASTER.PRIMARY_LOCATION_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.ACTIVE=1 AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME");
@@ -80,7 +85,7 @@ $NOTE = '';
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-6">
+                                    <div class="col-4">
                                         <div class="form-group">
                                             <label class="form-label">Location<span class="text-danger">*</span></label>
                                             <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION">
@@ -93,16 +98,38 @@ $NOTE = '';
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Enrollment Name</label>
+                                            <input type="text" id="ENROLLMENT_NAME" name="ENROLLMENT_NAME" class="form-control" placeholder="Enter Enrollment Name" value="<?=$ENROLLMENT_NAME?>">
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div class="card-body" id="append_service_div">
+                                <div class="row">
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <label class="form-label">Packages</label>
+                                            <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
+                                                <option>Select</option>
+                                                <?php
+                                                $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_PACKAGE=DOA_PACKAGE.PK_PACKAGE WHERE DOA_PACKAGE.ACTIVE = 1 ORDER BY DOA_PACKAGE.PACKAGE_NAME");
+                                                while (!$row->EOF) { ?>
+                                                    <option value="<?php echo $row->fields['PK_PACKAGE'];?>" <?=($row->fields['PK_PACKAGE'] == $PK_PACKAGE)?'selected':''?>><?=$row->fields['PACKAGE_NAME']?></option>
+                                                    <?php $row->MoveNext(); } ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-body">
                                     <div class="row">
                                         <div class="col-2">
                                             <div class="form-group">
                                                 <label class="form-label">Services</label>
                                             </div>
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col-1">
                                             <div class="form-group">
                                                 <label class="form-label">Service Codes</label>
                                             </div>
@@ -112,17 +139,17 @@ $NOTE = '';
                                                 <label class="form-label">Service Details</label>
                                             </div>
                                         </div>
-                                        <div class="col-2 session_div">
+                                        <div class="col-1 session_div">
                                             <div class="form-group">
                                                 <label class="form-label">Number of Sessions</label>
                                             </div>
                                         </div>
-                                        <div class="col-2 session_div">
+                                        <div class="col-1 session_div">
                                             <div class="form-group">
                                                 <label class="form-label">Price Per Sessions</label>
                                             </div>
                                         </div>
-                                        <div class="col-4 frequency_div" style="display: none; text-align: center;">
+                                        <div class="col-1 frequency_div" style="display: none; text-align: center;">
                                             <div class="form-group">
                                                 <label class="form-label">Frequency</label>
                                             </div>
@@ -130,6 +157,21 @@ $NOTE = '';
                                         <div class="col-1" style="width: 11%;">
                                             <div class="form-group">
                                                 <label class="form-label">Total</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-1" style="text-align: center">
+                                            <div class="form-group">
+                                                <label class="form-label">Discount Type</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-1" style="text-align: center">
+                                            <div class="form-group">
+                                                <label class="form-label">Discount</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-1" style="text-align: center">
+                                            <div class="form-group">
+                                                <label class="form-label">Final Amount</label>
                                             </div>
                                         </div>
                                     </div>
@@ -156,7 +198,7 @@ $NOTE = '';
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div class="col-2">
+                                                <div class="col-1">
                                                     <div class="form-group">
                                                         <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
                                                             <option value="">Select</option>
@@ -169,7 +211,7 @@ $NOTE = '';
                                                     </div>
                                                 </div>
                                                 <?php if($PK_SERVICE_CLASS == 1){ ?>
-                                                    <div class="col-4">
+                                                    <div class="col-1">
                                                         <div class="form-group">
                                                             <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" value="<?=$enrollment_service_data->fields['FREQUENCY']?>" readonly>
                                                         </div>
@@ -180,14 +222,14 @@ $NOTE = '';
                                                             <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?=$enrollment_service_data->fields['SERVICE_DETAILS']?>">
                                                         </div>
                                                     </div>
-                                                    <div class="col-2">
+                                                    <div class="col-1">
                                                         <div class="form-group">
                                                             <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" value="<?=$enrollment_service_data->fields['NUMBER_OF_SESSION']?>" onkeyup="calculateServiceTotal(this)">
                                                         </div>
                                                     </div>
                                                 <?php } ?>
 
-                                                <div class="col-2">
+                                                <div class="col-1">
                                                     <div class="form-group">
                                                         <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" value="<?=$enrollment_service_data->fields['PRICE_PER_SESSION']?>" onkeyup="calculateServiceTotal(this);">
                                                     </div>
@@ -195,6 +237,25 @@ $NOTE = '';
                                                 <div class="col-1" style="width: 11%;">
                                                     <div class="form-group">
                                                         <input type="text" class="form-control TOTAL" value="<?=$enrollment_service_data->fields['TOTAL']?>" name="TOTAL[]">
+                                                    </div>
+                                                </div>
+                                                <div class="col-1 discount_div">
+                                                    <div class="form-group">
+                                                        <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateDiscount(this)">
+                                                            <option value="">Select</option>
+                                                            <option value="1" <?=($enrollment_service_data->fields['DISCOUNT_TYPE'] == 1)?'selected':''?>>Fixed</option>
+                                                            <option value="2" <?=($enrollment_service_data->fields['DISCOUNT_TYPE'] == 2)?'selected':''?>>Percent</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-1 discount_div" style="text-align: right;">
+                                                    <div class="form-group">
+                                                        <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" value="<?=$enrollment_service_data->fields['DISCOUNT']?>" onkeyup="calculateDiscount(this)">
+                                                    </div>
+                                                </div>
+                                                <div class="col-1 final_div" style="text-align: right;">
+                                                    <div class="form-group">
+                                                        <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=($enrollment_service_data->fields['FINAL_AMOUNT']==0.00)?$enrollment_service_data->fields['TOTAL']:$enrollment_service_data->fields['FINAL_AMOUNT']?>" readonly>
                                                     </div>
                                                 </div>
                                                 <div class="col-1" style="width: 5%;">
@@ -206,7 +267,7 @@ $NOTE = '';
                                             <?php $enrollment_service_data->MoveNext(); } ?>
                                     <?php } else { ?>
                                         <div class="row">
-                                            <div class="col-2">
+                                            <div class="col-2 service_name">
                                                 <div class="form-group">
                                                     <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
                                                         <option>Select</option>
@@ -218,36 +279,55 @@ $NOTE = '';
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-2 service_div" style="display: none;">
+                                            <div class="col-1 service_div">
                                                 <div class="form-group">
                                                     <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
                                                         <option value="">Select</option>
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-2 service_div" style="display: none;">
+                                            <div class="col-2 service_div">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" >
                                                 </div>
                                             </div>
-                                            <div class="col-4 frequency_div " style="display: none;">
+                                            <div class="col-1 frequency_div" style="display: none;">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" readonly>
                                                 </div>
                                             </div>
-                                            <div class="col-2 session_div service_div" style="display: none;">
+                                            <div class="col-1 session_div service_div">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)">
                                                 </div>
                                             </div>
-                                            <div class="col-2 session_div service_div" style="display: none;">
+                                            <div class="col-1 session_div service_div">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);">
                                                 </div>
                                             </div>
-                                            <div class="col-1 service_div" style="width: 11%; display: none">
+                                            <div class="col-1 service_div" style="width: 11%;">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control TOTAL" name="TOTAL[]">
+                                                </div>
+                                            </div>
+                                            <div class="col-1 discount_div">
+                                                <div class="form-group">
+                                                    <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateDiscount(this)">
+                                                        <option value="">Select</option>
+                                                        <option value="1" <?=($DISCOUNT_TYPE == 1)?'selected':''?>>Fixed</option>
+                                                        <option value="2" <?=($DISCOUNT_TYPE == 2)?'selected':''?>>Percent</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-1 discount_div">
+                                                <div class="form-group">
+                                                    <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" value="<?=$DISCOUNT?>" onkeyup="calculateDiscount(this)">
+                                                </div>
+                                            </div>
+                                            <div class="col-1 final_div" style="text-align: right;">
+                                                <div class="form-group">
+                                                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=($FINAL_AMOUNT==0.00)?$TOTAL:$FINAL_AMOUNT?>" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-1 service_div" style="width: 5%; display:none">
@@ -259,7 +339,7 @@ $NOTE = '';
                                     <?php } ?>
                                 </div>
 
-                                <div id="package_services" style="margin-top: -30px">
+                                <div id="append_service_div" style="margin-top: 0px">
 
                                 </div>
 
@@ -313,6 +393,14 @@ $NOTE = '';
                                                     <option value="<?php echo $row->fields['PK_USER'];?>" <?=($ENROLLMENT_BY_ID == $row->fields['PK_USER'])?'selected':''?>><?=$row->fields['NAME']?></option>
                                                     <?php $row->MoveNext(); } ?>
                                             </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Memo</label>
+                                            <textarea class="form-control" name="MEMO" rows="3"><?=$MEMO?></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -583,7 +671,7 @@ $NOTE = '';
         selectThisService($('.PK_SERVICE_MASTER'));
     }
 
-    $('#PK_USER_MASTER').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
+    $('#PK_USER_MASTER_MODEL').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
 
     $('.datepicker-future').datepicker({
         format: 'mm/dd/yyyy',
@@ -614,7 +702,7 @@ $NOTE = '';
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-2">
+                                            <div class="col-1">
                                                 <div class="form-group">
                                                     <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
                                                         <option value="">Select</option>
@@ -626,17 +714,17 @@ $NOTE = '';
                                                     <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" >
                                                 </div>
                                             </div>
-                                            <div class="col-4 frequency_div" style="display: none;">
+                                            <div class="col-1 frequency_div" style="display: none;">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" readonly>
                                                 </div>
                                             </div>
-                                            <div class="col-2 session_div">
+                                            <div class="col-1 session_div">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)">
                                                 </div>
                                             </div>
-                                            <div class="col-2 session_div">
+                                            <div class="col-1 session_div">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);">
                                                 </div>
@@ -646,6 +734,25 @@ $NOTE = '';
                                                     <input type="text" class="form-control TOTAL" name="TOTAL[]">
                                                 </div>
                                             </div>
+                                            <div class="col-1" style="text-align: right">
+                                            <div class="form-group">
+                                                                    <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateDiscount(this)">
+                                                                        <option value="">Select</option>
+                                                                        <option value="1">Fixed</option>
+                                                                        <option value="2">Percent</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-1" style="text-align: right">
+                                                                <div class="form-group">
+                                                                    <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" onkeyup="calculateDiscount(this)">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-1" style="text-align: right">
+                                                                <div class="form-group">
+                                                                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" readonly>
+                                                                </div>
+                                                            </div>
                                             <div class="col-1" style="width: 5%;">
                                                 <div class="form-group">
                                                     <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
@@ -724,9 +831,9 @@ $NOTE = '';
             });
         }
 
-        $('#package_services').html('');
+        //$('#package_services').html('');
 
-        if (IS_PACKAGE == 1){
+        /*if (IS_PACKAGE == 1){
             $.ajax({
                 url: "ajax/get_package_service_codes.php",
                 type: "POST",
@@ -742,7 +849,30 @@ $NOTE = '';
         } else {
             $('.service_div').show();
             $('#add_more').show();
+        }*/
+    }
+
+    function selectThisPackage(param) {
+        let PK_PACKAGE = $(param).val();
+        if (PK_PACKAGE != 'Select') {
+            $.ajax({
+                url: "ajax/get_packages.php",
+                type: "POST",
+                data: {PK_PACKAGE: PK_PACKAGE},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    console.log(result)
+                    $('.service_name').remove();
+                    $('.service_div').remove();
+                    $('.discount_div').remove();
+                    $('.final_div').remove();
+                    $('#add_more').show();
+                    $('#append_service_div').html(result);
+                }
+            });
         }
+
     }
 
 
