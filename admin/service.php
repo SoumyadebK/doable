@@ -226,19 +226,19 @@ if(empty($_GET['id'])){
                                                             <label>Scheduling Code</label>
                                                         </div>
                                                     </div>
-                                                    <? if (empty($_GET['id'])) { ?>
+                                                    <?/* if (empty($_GET['id'])) { */?><!--
                                                     <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
-                                                            <label id="frequency_duration_label"><?=($PK_SERVICE_CLASS==2)?'Duration':'Frequency'?></label>
+                                                            <label id="frequency_duration_label"><?php /*=($PK_SERVICE_CLASS==2)?'Duration':'Frequency'*/?></label>
                                                         </div>
                                                     </div>
-                                                    <? } else { ?>
+                                                    <?/* } else { */?>
                                                     <div class="col-1" style="text-align: center; ">
                                                         <div class="form-group">
-                                                            <label id="frequency_duration_label"><?=($PK_SERVICE_CLASS==2)?'Duration':'Frequency'?></label>
+                                                            <label id="frequency_duration_label"><?php /*=($PK_SERVICE_CLASS==2)?'Duration':'Frequency'*/?></label>
                                                         </div>
                                                     </div>
-                                                    <? } ?>
+                                                    --><?/* } */?>
                                                     <div class="col-2" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label>Is Group</label>
@@ -315,13 +315,13 @@ if(empty($_GET['id'])){
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-1 duration_div" style="display: <?=($PK_SERVICE_CLASS!=2)?'none':''?>;">
+                                                        <!--<div class="col-1 duration_div" style="display: <?php /*=($PK_SERVICE_CLASS!=2)?'none':''*/?>;">
                                                             <div class="form-group">
                                                                 <div class="col-md-12">
-                                                                    <input type="text" id="DURATION" name="DURATION[]" class="form-control" placeholder="Duration" value="<?=$row->fields['DURATION']?>">
+                                                                    <input type="text" id="DURATION" name="DURATION[]" class="form-control" placeholder="Duration" value="<?php /*=$row->fields['DURATION']*/?>">
                                                                 </div>
                                                             </div>
-                                                        </div>
+                                                        </div>-->
                                                         <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 5%;">
                                                             <div class="form-group justify-content-center">
                                                                 <div class="col-md-12">
@@ -406,13 +406,13 @@ if(empty($_GET['id'])){
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-1 duration_div" style="display: none;">
+                                                        <!--<div class="col-1 duration_div" style="display: none;">
                                                             <div class="form-group">
                                                                 <div class="col-md-12">
                                                                     <input type="text" id="DURATION" name="DURATION[]" class="form-control" placeholder="Duration">
                                                                 </div>
                                                             </div>
-                                                        </div>
+                                                        </div>-->
                                                         <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 5%;">
                                                             <div class="form-group">
                                                                 <div class="col-md-12">
@@ -648,13 +648,7 @@ if(empty($_GET['id'])){
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-1 duration_div" style="display: ${(PK_SERVICE_CLASS===2)?'':'none'}">
-                                                <div class="form-group">
-                                                    <div class="col-md-12">
-                                                        <input type="text" id="DURATION" name="DURATION[]" class="form-control" placeholder="Duration">
-                                                    </div>
-                                                </div>
-                                            </div>
+                                           
                                             <div class="col-2" style="height: 20px;margin-bottom: 35px;padding-left: 5%;">
                                                 <div class="form-group">
                                                     <div class="col-md-12">

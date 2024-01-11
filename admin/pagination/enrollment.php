@@ -65,7 +65,7 @@ while (!$row->EOF) {
                 <p><?=implode(' || ', $serviceMaster)?></p>
                 <p><?=date('m/d/Y', strtotime($row->fields['CREATED_ON']))?></p>
                 <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                    <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
+                    <a href="../admin/client_enrollment_agreement.php?id=<?=$_GET['master_id']?>" target="_blank">View Agreement</a>
                 <?php } ?>
             </div>
             <div class="col-8">
