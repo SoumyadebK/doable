@@ -147,16 +147,6 @@ function saveEnrollmentData($RESPONSE_DATA){
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_ID'] = $RESPONSE_DATA['ENROLLMENT_BY_ID'];
     $ENROLLMENT_MASTER_DATA['MEMO'] = $RESPONSE_DATA['MEMO'];
 
-    $document_library_data = $db_account->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = '$RESPONSE_DATA[PK_DOCUMENT_LIBRARY]'");
-    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_USERS.ZIP FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']);
-    $html_template = $document_library_data->fields['DOCUMENT_TEMPLATE'];
-    $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template);
-    $html_template = str_replace('{STREET_ADD}', $user_data->fields['ADDRESS'], $html_template);
-    $html_template = str_replace('{CITY}', $user_data->fields['CITY'], $html_template);
-    $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
-    $html_template = str_replace('{CELL_PHONE}', $user_data->fields['PHONE'], $html_template);
-    $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
-
     if(empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER'])){
         $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
         $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]' ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
@@ -245,22 +235,13 @@ function saveEnrollmentData($RESPONSE_DATA){
     echo json_encode($return_data);
 }
 
-function generatePdf($html){
-    require_once('../../global/vendor/autoload.php');
 
-    $mpdf = new Mpdf();
-    $mpdf->WriteHTML($html);
-
-    $file_name = "enrollment_pdf_".time().".pdf";
-    $mpdf->Output("../../uploads/enrollment_pdf/".$file_name, 'F');
-
-    return $file_name;
-}
 
 
 function saveEnrollmentBillingData($RESPONSE_DATA){
     global $db;
     global $db_account;
+    global $account_database;
     $PK_ENROLLMENT_SERVICE = $RESPONSE_DATA['PK_ENROLLMENT_SERVICE'];
     $FLEXIBLE_PAYMENT_DATE = isset($RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE'])?$RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE']:[];
     $FLEXIBLE_PAYMENT_AMOUNT = isset($RESPONSE_DATA['FLEXIBLE_PAYMENT_AMOUNT'])?$RESPONSE_DATA['FLEXIBLE_PAYMENT_AMOUNT']:[];
@@ -270,6 +251,41 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $RESPONSE_DATA['BILLING_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE']));
     $RESPONSE_DATA['FIRST_DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['FIRST_DUE_DATE']));
     $PK_ENROLLMENT_LEDGER = 0;
+
+    $document_library_data = $db_account->Execute("SELECT DOA_DOCUMENT_LIBRARY.DOCUMENT_TEMPLATE FROM `DOA_DOCUMENT_LIBRARY` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_DOCUMENT_LIBRARY=DOA_DOCUMENT_LIBRARY.PK_DOCUMENT_LIBRARY WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+    $enrollment_details = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS NUMBER_OF_SESSIONS, SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS TOTAL, SUM(DOA_ENROLLMENT_SERVICE.DISCOUNT) AS DISCOUNT, SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS FINAL_AMOUNT, DOA_ENROLLMENT_BILLING.FIRST_DUE_DATE, DOA_ENROLLMENT_BILLING.PAYMENT_TERM, DOA_ENROLLMENT_BILLING.NUMBER_OF_PAYMENT, DOA_ENROLLMENT_BILLING.INSTALLMENT_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+    $html_template = $document_library_data->fields['DOCUMENT_TEMPLATE'];
+    $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template);
+    $html_template = str_replace('{STREET_ADD}', $user_data->fields['ADDRESS'], $html_template);
+    $html_template = str_replace('{CITY}', $user_data->fields['CITY'], $html_template);
+    $html_template = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template);
+    $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
+    $html_template = str_replace('{CELL_PHONE}', $user_data->fields['PHONE'], $html_template);
+    $html_template = str_replace('{PVT_LESSONS}', $enrollment_details->fields['NUMBER_OF_SESSIONS'], $html_template);
+    $html_template = str_replace('{TUITION}', $enrollment_details->fields['TOTAL'], $html_template);
+    $html_template = str_replace('{DISCOUNT}', ($enrollment_details->fields['TOTAL'] - $enrollment_details->fields['FINAL_AMOUNT']), $html_template);
+    $html_template = str_replace('{BAL_DUE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
+    $html_template = str_replace('{TYPE_OF_ENROLLMENT}', '0', $html_template);
+    $html_template = str_replace('{MISC_SERVICES}', '0', $html_template);
+    $html_template = str_replace('{TUITION_COST}', '0', $html_template);
+    $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
+    $html_template = str_replace('{OUTS_BAL_PRE_AGREE}', '0', $html_template);
+    $html_template = str_replace('{UNEARNED_CHARGE}', '0', $html_template);
+    $html_template = str_replace('{PREV_BAL_RESCHEDULE}', '0', $html_template);
+    $html_template = str_replace('{CONSOLIDATED_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
+    $html_template = str_replace('{DOWN_PAYMENTS}', $RESPONSE_DATA['DOWN_PAYMENT'], $html_template);
+    $html_template = str_replace('{SCHEDULE_AMOUNT}', $RESPONSE_DATA['INSTALLMENT_AMOUNT'], $html_template);
+    $html_template = str_replace('{SERVICE_CHARGE}', '0', $html_template);
+    $html_template = str_replace('{TOTAL_PAYMENTS}', '0', $html_template);
+    $html_template = str_replace('{TOTAL_SELL_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
+    $html_template = str_replace('{PERCENTAGE_RATE}','%', $html_template);
+    $html_template = str_replace('{PAYMENT_NAME}', $RESPONSE_DATA['PAYMENT_TERM'], $html_template);
+    $html_template = str_replace('{NO_AMT_PAYMENT}', $RESPONSE_DATA['NUMBER_OF_PAYMENT'], $html_template);
+    $html_template = str_replace('{STARTING_DATE}', $RESPONSE_DATA['FIRST_DUE_DATE'], $html_template);
+    $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
+    db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+
     for ($i = 0; $i < count($PK_ENROLLMENT_SERVICE); $i++) {
         $ENROLLMENT_SERVICE_DATA['DISCOUNT'] = $RESPONSE_DATA['DISCOUNT'][$i];
         $ENROLLMENT_SERVICE_DATA['DISCOUNT_TYPE'] = $RESPONSE_DATA['DISCOUNT_TYPE'][$i];
@@ -390,6 +406,19 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $return_data['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
     $return_data['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
     echo json_encode($return_data);
+}
+
+function generatePdf($html){
+    require_once('../../global/vendor/autoload.php');
+
+    $mpdf = new Mpdf();
+    $mpdf->WriteHTML($html);
+    $mpdf->AddPage();
+
+    $file_name = "enrollment_pdf_".time().".pdf";
+    $mpdf->Output("../../uploads/enrollment_pdf/".$file_name, 'F');
+
+    return $file_name;
 }
 
 /*function confirmEnrollmentPayment($RESPONSE_DATA){

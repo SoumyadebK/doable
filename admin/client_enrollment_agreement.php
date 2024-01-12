@@ -141,22 +141,27 @@ bottom: 0cm;text-align: center;width: 100%;padding-bottom: 16px;border-top: 0px 
                                 <td style="vertical-align: bottom;border-bottom: 1px solid #ccc; font-size: 12px;">$8505.00</td>
                             </tr>
                             <tr style=" margin-top: 15px; display: block;">
-                                <th style="border: 0px solid #ccc;padding: 0 5px;width: 9cm; font-size:12px; font-weight: 100;">2. Cash Price of This Course
+                                <th style="border: 0px solid #ccc;padding: 0 5px;width: 9cm; font-size:12px; font-weight: 100;">2. Outstanding Balance of Previous Agreement
                                 </th>
                                 <td style="vertical-align: bottom;border-bottom: 1px solid #ccc; font-size: 12px;">$8505.00</td>
                             </tr>
                             <tr style=" margin-top: 15px; display: block;">
-                                <th style="border: 0px solid #ccc;padding: 0 5px;width: 9cm ;font-size:12px; font-weight: 100;">3. Cash Price of This Course
+                                <th style="border: 0px solid #ccc;padding: 0 5px;width: 9cm ;font-size:12px; font-weight: 100;">3. Unearned Service Charge
                                 </th>
                                 <td style="vertical-align: bottom;border-bottom: 1px solid #ccc; font-size: 12px;">$8505.00</td>
                             </tr>
                             <tr style=" margin-top: 15px; display: block;">
-                                <th style="border: 0px solid #ccc;padding: 0 5px;width: 9cm; font-size:12px; font-weight: 100;">4. Cash Price of This Course
+                                <th style="border: 0px solid #ccc;padding: 0 5px;width: 9cm; font-size:12px; font-weight: 100;">4. Previous Balance to be Rescheduled (2-3) if any
                                 </th>
                                 <td style="vertical-align: bottom;border-bottom: 1px solid #ccc; font-size: 12px;">$8505.00</td>
                             </tr>
                             <tr style=" margin-top: 15px; display: block;">
-                                <th style="border: 0px solid #ccc;padding: 0 5px;width: 9cm; font-size:12px; font-weight: 100;">5. Cash Price of This Course
+                                <th style="border: 0px solid #ccc;padding: 0 5px;width: 9cm; font-size:12px; font-weight: 100;">5. Consolidated Cash Price (1+4)
+                                </th>
+                                <td style="vertical-align: bottom;border-bottom: 1px solid #ccc; font-size: 12px;">$8505.00</td>
+                            </tr>
+                            <tr style=" margin-top: 15px; display: block;">
+                                <th style="border: 0px solid #ccc;padding: 0 5px;width: 9cm; font-size:12px; font-weight: 100;">5. Down Payment(s)
                                 </th>
                                 <td style="vertical-align: bottom;border-bottom: 1px solid #ccc; font-size: 12px;">$8505.00</td>
                             </tr>
@@ -222,7 +227,7 @@ bottom: 0cm;text-align: center;width: 100%;padding-bottom: 16px;border-top: 0px 
                                     <tbody>
                                     <tr style=" margin-top: 15px; display: block; border: 1px solid #ccc;">
                                         <th style="border: 0px solid #ccc;padding: 3px 5px;width: 9cm;font-size: 13px; font-weight: 100;">
-                                            Cash Price of This Course <br>
+                                            Amount to be Scheduled<br>
                                             <p style="    padding: 0;
                                             margin: 0;
                                             font-size: 12px;
@@ -234,12 +239,11 @@ bottom: 0cm;text-align: center;width: 100%;padding-bottom: 16px;border-top: 0px 
                                     </tr>
                                     <tr style=" margin-top: 5px; display: block; border: 1px solid #ccc;">
                                         <th style="border: 0px solid #ccc;padding: 3px 5px;width: 9cm;font-size: 13px; font-weight: 100;">
-                                            Outstanding Balance of Previous
-                                            Agreement<br>
+                                            Service Charge<br>
                                             <p style="    padding: 0;
                                             margin: 0;
                                             font-size: 12px;
-                                            font-weight: normal;">The amount of tuition to be scheduled as installments:</p>
+                                            font-weight: normal;">The dollar amount the installment agreement will cost you:</p>
                                         </th>
                                         <td style="vertical-align: bottom;border-bottom: 0px solid #ccc; padding: 3px 5px;
                                           width: 93px;
@@ -247,12 +251,12 @@ bottom: 0cm;text-align: center;width: 100%;padding-bottom: 16px;border-top: 0px 
                                     </tr>
                                     <tr style=" margin-top: 5px; display: block; border: 1px solid #ccc;">
                                         <th style="border: 0px solid #ccc;padding: 3px 5px;width: 9cm;font-size: 13px; font-weight: 100;">
-                                            Outstanding Balance of Previous
-                                            Agreement<br>
+                                            Total of Payments<br>
                                             <p style="    padding: 0;
                                             margin: 0;
                                             font-size: 12px;
-                                            font-weight: normal;">The amount of tuition to be scheduled as installments:</p>
+                                            font-weight: normal;">The amount you will have paid after you have made all payments
+                                                as scheduled:</p>
                                         </th>
                                         <td style="vertical-align: bottom;border-bottom: 0px solid #ccc; padding: 3px 5px;
                                           width: 93px;
@@ -260,12 +264,23 @@ bottom: 0cm;text-align: center;width: 100%;padding-bottom: 16px;border-top: 0px 
                                     </tr>
                                     <tr style=" margin-top: 5px; display: block; border: 1px solid #ccc;">
                                         <th style="border: 0px solid #ccc;padding: 3px 5px;width: 9cm;font-size: 13px; font-weight: 100;">
-                                            Outstanding Balance of Previous
-                                            Agreement<br>
+                                            Total Sale Price<br>
                                             <p style="    padding: 0;
                                             margin: 0;
                                             font-size: 12px;
-                                            font-weight: normal;">The amount of tuition to be scheduled as installments:</p>
+                                            font-weight: normal;">The total cost of your purchase including down payment(s):</p>
+                                        </th>
+                                        <td style="vertical-align: bottom;border-bottom: 0px solid #ccc; padding: 3px 5px;
+                                          width: 93px;
+                                          height: auto; text-align: center; font-weight: 100; font-size: 12px; ">John</td>
+                                    </tr>
+                                    <tr style=" margin-top: 5px; display: block; border: 1px solid #ccc;">
+                                        <th style="border: 0px solid #ccc;padding: 3px 5px;width: 9cm;font-size: 13px; font-weight: 100;">
+                                            Percentage Rate<br>
+                                            <p style="    padding: 0;
+                                            margin: 0;
+                                            font-size: 12px;
+                                            font-weight: normal;">Percentage rate used to determine service charge(s):</p>
                                         </th>
                                         <td style="vertical-align: bottom;border-bottom: 0px solid #ccc; padding: 3px 5px;
                                           width: 93px;
