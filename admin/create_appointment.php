@@ -120,46 +120,78 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
     header("location:all_schedules.php?view=table");
 } elseif ($FUNCTION_NAME == 'saveSpecialAppointment') {
-    $SPECIAL_APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    $SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
-    $SPECIAL_APPOINTMENT_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
-    $SPECIAL_APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
-    $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
-    $SPECIAL_APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
-    $SPECIAL_APPOINTMENT_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
+    $GROUP_CLASS_DATE_ARRAY = [];
+    if (isset($_POST['IS_STANDING']) && $_POST['IS_STANDING'] == 1) {
+        $STARTING_ON = date('Y-m-d', strtotime($_POST['DATE']));
+        $LENGTH = $_POST['LENGTH'];
+        $FREQUENCY = $_POST['FREQUENCY'];
+        $END_DATE = date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
 
+        $START_TIME = date('H:i', strtotime($_POST['START_TIME']));
+        $END_TIME = date('H:i', strtotime($_POST['END_TIME']));
 
-    if(empty($_GET['id'])){
-        $SPECIAL_APPOINTMENT_DATA['ACTIVE'] = 1;
-        $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
-        $SPECIAL_APPOINTMENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $SPECIAL_APPOINTMENT_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'insert');
-        $PK_SPECIAL_APPOINTMENT = $db_account->insert_ID();
-    }else{
-        //$SPECIAL_APPOINTMENT_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
-        $SPECIAL_APPOINTMENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-        $SPECIAL_APPOINTMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update'," PK_SPECIAL_APPOINTMENT =  '$_GET[id]'");
-        $PK_SPECIAL_APPOINTMENT = $_GET['id'];
-    }
+        if (!empty($_POST['OCCURRENCE'])) {
+            $SERVICE_DATE = date('Y-m-d', strtotime($STARTING_ON));
+            if ($_POST['OCCURRENCE'] == 'WEEKLY') {
+                if (isset($_POST['DAYS'])) {
+                    $DAYS = $_POST['DAYS'];
+                } else {
+                    $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
+                }
+                while ($SERVICE_DATE < $END_DATE) {
+                    $appointment_day = date('l', strtotime($SERVICE_DATE));
+                    if (in_array(strtolower($appointment_day), $DAYS)) {
+                        $GROUP_CLASS_DATE_ARRAY[] = $SERVICE_DATE;
+                    }
+                    $SERVICE_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($SERVICE_DATE)));
+                }
+            } else {
+                $OCCURRENCE_DAYS = (empty($_POST['OCCURRENCE_DAYS'])) ? 7 : $_POST['OCCURRENCE_DAYS'];
 
-    if (isset($_POST['PK_USER'])) {
-        $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
-        for ($i = 0; $i < count($_POST['PK_USER']); $i++) {
-            $SPECIAL_APPOINTMENT_USER['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
-            $SPECIAL_APPOINTMENT_USER['PK_USER'] = $_POST['PK_USER'][$i];
-            db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
+                while ($SERVICE_DATE < $END_DATE) {
+                    $GROUP_CLASS_DATE_ARRAY[] = $SERVICE_DATE;
+                    $SERVICE_DATE = date('Y-m-d', strtotime('+ ' . $OCCURRENCE_DAYS . ' day', strtotime($SERVICE_DATE)));
+                    //echo $SERVICE_DATE . "<br>";
+                }
+            }
         }
+    } else {
+        $GROUP_CLASS_DATE_ARRAY[] = date('Y-m-d', strtotime($_POST['DATE']));
     }
 
-    if (isset($_POST['CUSTOMER_ID'])) {
-        $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_CUSTOMER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
-        for ($i = 0; $i < count($_POST['CUSTOMER_ID']); $i++) {
-            $SPECIAL_APPOINTMENT_CUSTOMER_DATA['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
-            $SPECIAL_APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$i];
-            db_perform_account('DOA_SPECIAL_APPOINTMENT_CUSTOMER', $SPECIAL_APPOINTMENT_CUSTOMER_DATA, 'insert');
+    if (count($GROUP_CLASS_DATE_ARRAY) > 0) {
+        for ($i = 0; $i < count($GROUP_CLASS_DATE_ARRAY); $i++) {
+            $SPECIAL_APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+            $SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
+            $SPECIAL_APPOINTMENT_DATA['DATE'] = $GROUP_CLASS_DATE_ARRAY[$i];
+            $SPECIAL_APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+            $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
+            $SPECIAL_APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
+            $SPECIAL_APPOINTMENT_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
+            $SPECIAL_APPOINTMENT_DATA['ACTIVE'] = 1;
+            $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+            $SPECIAL_APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+            $SPECIAL_APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+            db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'insert');
+            $PK_SPECIAL_APPOINTMENT = $db_account->insert_ID();
+
+            if (isset($_POST['PK_USER'])) {
+                $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
+                for ($j = 0; $j < count($_POST['PK_USER']); $j++) {
+                    $SPECIAL_APPOINTMENT_USER['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
+                    $SPECIAL_APPOINTMENT_USER['PK_USER'] = $_POST['PK_USER'][$j];
+                    db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
+                }
+            }
+
+            if (isset($_POST['CUSTOMER_ID'])) {
+                $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_CUSTOMER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
+                for ($k = 0; $k < count($_POST['CUSTOMER_ID']); $k++) {
+                    $SPECIAL_APPOINTMENT_CUSTOMER_DATA['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
+                    $SPECIAL_APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
+                    db_perform_account('DOA_SPECIAL_APPOINTMENT_CUSTOMER', $SPECIAL_APPOINTMENT_CUSTOMER_DATA, 'insert');
+                }
+            }
         }
     }
     header("location:all_schedules.php?view=table");
