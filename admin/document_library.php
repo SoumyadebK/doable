@@ -166,21 +166,27 @@ if(empty($_GET['id'])){
                                             <a href="javascript:;" class="tag_name" data-tag="{TUITION}" style="font-weight: normal;">{TUITION}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{DISCOUNT}" style="font-weight: normal;">{DISCOUNT}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{BAL_DUE}" style="font-weight: normal;">{BAL_DUE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{TYPE_OF_ENROLLMENT}" style="font-weight: normal;">{TYPE_OF_ENROLLMENT}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{MISC_SERVICES}" style="font-weight: normal;">{MISC_SERVICES}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{TUITION_COST}" style="font-weight: normal;">{TUITION_COST}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{CASH_PRICE}" style="font-weight: normal;">{CASH_PRICE}</a>
-                                            <a href="javascript:;" class="tag_name" data-tag="{OUTSBAL_PREAGREE}" style="font-weight: normal;">{OUTSBAL_PREAGREE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{OUTS_BAL_PRE_AGREE}" style="font-weight: normal;">{OUTS_BAL_PRE_AGREE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{UNEARNED_CHARGE}" style="font-weight: normal;">{UNEARNED_CHARGE}</a>
-                                            <a href="javascript:;" class="tag_name" data-tag="{PREVBAL_RESCH}" style="font-weight: normal;">{PREVBAL_RESCH}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{PREV_BAL_RESCHEDULE}" style="font-weight: normal;">{PREV_BAL_RESCHEDULE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{CONSOLIDATED_PRICE}" style="font-weight: normal;">{CONSOLIDATED_PRICE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{DOWN_PAYMENTS}" style="font-weight: normal;">{DOWN_PAYMENTS}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{PAYMENT_NAME}" style="font-weight: normal;">{PAYMENT_NAME}</a>
-                                            <a href="javascript:;" class="tag_name" data-tag="{NOORAMT_PAYMENT}" style="font-weight: normal;">{NOORAMT_PAYMENT}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{NO_AMT_PAYMENT}" style="font-weight: normal;">{NO_AMT_PAYMENT}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{STARTING_DATE}" style="font-weight: normal;">{STARTING_DATE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{SCHEDULE_AMOUNT}" style="font-weight: normal;">{SCHEDULE_AMOUNT}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{SERVICE_CHARGE}" style="font-weight: normal;">{SERVICE_CHARGE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{TOTAL_PAYMENTS}" style="font-weight: normal;">{TOTAL_PAYMENTS}</a>
-                                            <a href="javascript:;" class="tag_name" data-tag="{TOTAL_SELLPRICE}" style="font-weight: normal;">{TOTAL_SELLPRICE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{TOTAL_SELL_PRICE}" style="font-weight: normal;">{TOTAL_SELL_PRICE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{PERCENTAGE_RATE}" style="font-weight: normal;">{PERCENTAGE_RATE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{CLIENTS_SIGNATURE}" style="font-weight: normal;">{CLIENTS_SIGNATURE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{STUDIO_REPRESENTATIVE}" style="font-weight: normal;">{STUDIO_REPRESENTATIVE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{CO_CLIENT_GUARDIAN}" style="font-weight: normal;">{CO_CLIENT_GUARDIAN}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{VERIFIED_BY}" style="font-weight: normal;">{VERIFIED_BY}</a>
                                         </div>
                                     </div>
                                 </div>
