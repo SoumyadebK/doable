@@ -201,6 +201,11 @@ while (!$row->EOF) {
                             <a href="javascript:;" class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</a>
                         <?php } ?>
                     </td>
+                    <td>
+                        <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
+                            <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
+                        <?php } ?>
+                    </td>
                 </tr>
                 <?php
                 $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
@@ -214,6 +219,11 @@ while (!$row->EOF) {
                         <td style="text-align: center;"><?=$payment_details->fields['PAYMENT_TYPE']?></td>
                         <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
                         <td>
+                        </td>
+                        <td>
+                            <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
+                                <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
+                            <?php } ?>
                         </td>
                     </tr>
                 <?php } ?>
