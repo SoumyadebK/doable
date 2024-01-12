@@ -120,7 +120,7 @@ while (!$row->EOF) {
                             <td style="text-align: right"><?=$serviceCodeData->fields['NUMBER_OF_SESSION']?></td>
                             <td style="text-align: right">
                                 <?php
-                                echo $paid_session = $serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'];
+                                echo $paid_session = ($serviceCodeData->fields['PRICE_PER_SESSION'] > 0) ? number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'], 2, '.', '') : 0;
                                 $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
                                 $total_used_amount += ($serviceCodeData->fields['PRICE_PER_SESSION']*$used_session_count->fields['USED_SESSION_COUNT']);
                                 $total_session_count += $serviceCodeData->fields['NUMBER_OF_SESSION'];
@@ -247,8 +247,14 @@ while (!$row->EOF) {
             <?php
             $appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.EDITED_ON, DOA_APPOINTMENT_MASTER.COMMENT, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.OLD_PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.IS_PAID, DOA_APPOINTMENT_MASTER.CANCELLED_ON, DOA_APPOINTMENT_MASTER.CANCELLED_BY, DOA_APPOINTMENT_MASTER.CHANGED_ON, DOA_APPOINTMENT_MASTER.CHANGED_BY, DOA_APPOINTMENT_MASTER.CREATED_ON, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.PRICE AS SESSION_COST, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE, CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS NAME FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS ON $master_database.DOA_USERS.PK_USER=DOA_APPOINTMENT_MASTER.EDITED_BY WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']."");
             $j=1;
+            $service_code_array = [];
             while (!$appointment_data->EOF) {
-                $per_session_price = $db_account->Execute("SELECT `PRICE_PER_SESSION` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND `PK_SERVICE_CODE` = ".$appointment_data->fields['PK_SERVICE_CODE']);
+                if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
+                    $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] + 1;
+                } else {
+                    $service_code_array[$appointment_data->fields['SERVICE_CODE']] = 1;
+                }
+                $per_session_price = $db_account->Execute("SELECT `PRICE_PER_SESSION`, NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND `PK_SERVICE_CODE` = ".$appointment_data->fields['PK_SERVICE_CODE']);
                 $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
                 $CHANGED_BY = '';
                 while (!$status_data->EOF) {
@@ -257,7 +263,7 @@ while (!$row->EOF) {
                 } ?>
                 <tr onclick="$(this).next().slideToggle();">
                     <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_NAME']?></td>
-                    <td style="text-align: left;"><?=$j.'/'.$total_session_count?></td>
+                    <td style="text-align: left;"><?=$service_code_array[$appointment_data->fields['SERVICE_CODE']].'/'.$per_session_price->fields['NUMBER_OF_SESSION']?></td>
                     <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_CODE']?></td>
                     <td style="text-align: center;"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
                     <td style="text-align: center;"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
@@ -269,7 +275,8 @@ while (!$row->EOF) {
                         <?php }?>
                     </td>
                     <td style="text-align: right;"><?=number_format((float)$per_session_price->fields['PRICE_PER_SESSION'], 2, '.', ',');?></td>
-                    <td style="color:<?=(($total_paid_amount-$total_used_amount)<0)?'red':'black'?>; text-align: right;"><?=number_format((float)($total_paid_amount -= $per_session_price->fields['PRICE_PER_SESSION']), 2, '.', ',');?></td>
+                    <?php $service_credit = $total_paid_amount -= $per_session_price->fields['PRICE_PER_SESSION']; ?>
+                    <td style="color:<?=($service_credit<0)?'red':'black'?>; text-align: right;"><?=number_format((float)($service_credit), 2, '.', ',');?></td>
                 </tr>
                 <tr style="display: none">
                     <?php if (!empty($appointment_data->fields['COMMENT'])) { ?>

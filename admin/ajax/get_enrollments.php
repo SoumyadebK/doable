@@ -13,6 +13,7 @@ while (!$row->EOF) {
         $enrollment_name = "$name"." - ";
     }
     $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_SERVICE`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_SERVICE` = ".$row->fields['PK_ENROLLMENT_SERVICE']);
+
     $used_paid_count = $db_account->Execute("SELECT COUNT(PK_ENROLLMENT_MASTER) AS PAID_COUNT FROM DOA_ENROLLMENT_LEDGER WHERE IS_PAID=1 AND TRANSACTION_TYPE='Payment' AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
     if($used_paid_count->RecordCount()>0) {
         $paid_count = $used_paid_count->fields['PAID_COUNT'];

@@ -112,7 +112,7 @@ if (empty($_GET['PK_USER_MASTER'])) {
                 </div>
             </div>
             <div class="col-2">
-                <label class="col-md-12 mt-3"><input type="checkbox" id="IS_STANDING" name="IS_STANDING" class="form-check-inline"> Is Standing ?</label>
+                <label class="col-md-12 mt-3"><input type="checkbox" id="IS_STANDING" name="IS_STANDING" class="form-check-inline" value="1"> Is Standing ?</label>
             </div>
 
             <div class="row standing" style="display: none;  margin-top: 10px;">
@@ -131,15 +131,15 @@ if (empty($_GET['PK_USER_MASTER'])) {
                 <div class="col-2 occurrence_div">
                     <div class="form-group">
                         <label class="form-label">Select Occurrence<span class="text-danger">*</span></label><br>
-                        <label><input type="radio" name="OCCURRENCE" value="WEEKLY" required> Weekly</label><br>
-                        <label><input type="radio" name="OCCURRENCE" value="DAYS" required> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
+                        <label><input type="radio" class="is_required" name="OCCURRENCE" value="WEEKLY"> Weekly</label><br>
+                        <label><input type="radio" class="is_required" name="OCCURRENCE" value="DAYS"> Every <input type="text" name="OCCURRENCE_DAYS" style="width: 45px;"> Days</label>
                     </div>
                 </div>
                 <div class="col-2">
                     <div class="form-group">
                         <label class="form-label">Length<span class="text-danger">*</span></label><br>
-                        <input type="number" class="form-control" name="LENGTH" style="width: 80px;" required>
-                        <select class="form-control" name="FREQUENCY" style="width: 100px;" required>
+                        <input type="number" class="form-control is_required" name="LENGTH" style="width: 80px;">
+                        <select class="form-control is_required" name="FREQUENCY" style="width: 100px;">
                             <option value="week">Week(S)</option>
                             <option value="month">Month(S)</option>
                             <option value="year">Year(S)</option>
@@ -172,6 +172,16 @@ if (empty($_GET['PK_USER_MASTER'])) {
 
     $('#END_TIME').timepicker({
         timeFormat: 'hh:mm p',
+    });
+
+    $('.DAYS').on('change', function(){
+        if ($('.DAYS').is(':checked')){
+            $("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
+            $('.occurrence_div').addClass('disable-div');
+        } else {
+            $("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
+            $('.occurrence_div').removeClass('disable-div');
+        }
     });
 
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', selectAll: true});
@@ -209,9 +219,11 @@ if (empty($_GET['PK_USER_MASTER'])) {
 
     $('#IS_STANDING').on('change', function(){
         if ($(this).is(':checked')){
+            $('.is_required').prop('required', true);
             $(this).closest('.to_dos_class_setting').find('.standing').show();
             $(this).closest('.to_dos_class_setting').find('.END_TIME').hide();
         } else {
+            $('.is_required').prop('required', false);
             $(this).closest('.to_dos_class_setting').find('.standing').hide();
             $(this).closest('.to_dos_class_setting').find('.END_TIME').show();
         }
