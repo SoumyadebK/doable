@@ -113,7 +113,7 @@ $NOTE = '';
                                             <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
                                                 <option>Select</option>
                                                 <?php
-                                                $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_PACKAGE=DOA_PACKAGE.PK_PACKAGE WHERE DOA_PACKAGE.ACTIVE = 1 ORDER BY DOA_PACKAGE.PACKAGE_NAME");
+                                                $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE WHERE ACTIVE = 1 ORDER BY PACKAGE_NAME");
                                                 while (!$row->EOF) { ?>
                                                     <option value="<?php echo $row->fields['PK_PACKAGE'];?>" <?=($row->fields['PK_PACKAGE'] == $PK_PACKAGE)?'selected':''?>><?=$row->fields['PACKAGE_NAME']?></option>
                                                     <?php $row->MoveNext(); } ?>
@@ -164,7 +164,7 @@ $NOTE = '';
                                                 <label class="form-label">Discount Type</label>
                                             </div>
                                         </div>
-                                        <div class="col-1" style="text-align: center">
+                                        <div class="col-1" style=" text-align: center">
                                             <div class="form-group">
                                                 <label class="form-label">Discount</label>
                                             </div>
@@ -484,19 +484,19 @@ $NOTE = '';
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Balance Payable</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?=$BALANCE_PAYABLE?>" class="form-control" value="0.00" readonly>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                                 <div class="col-3" id="down_payment_div" style="display: <?=($PAYMENT_METHOD == 'One Time')?'none':''?>">
                                                     <div class="form-group">
                                                         <label class="form-label">Down Payment</label>
                                                         <div class="col-md-12">
                                                             <input type="text" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?=$DOWN_PAYMENT?>" class="form-control" onkeyup="calculatePayment()">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Balance Payable</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?=$BALANCE_PAYABLE?>" class="form-control" value="0.00" readonly>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -874,7 +874,6 @@ $NOTE = '';
         }
 
     }
-
 
     function selectThisServiceCode(param) {
         let service_details = $(param).find(':selected').data('service_details');

@@ -88,11 +88,8 @@ while (!$row->EOF) {
                 ?>
                 <table id="myTable" class="table <?php
                 $details = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                if($details->RecordCount()>0){
-                    $paid_count = $details->fields['PAID'];
-                } else {
-                    $paid_count = 0;
-                }
+                $paid_count = $details->RecordCount() > 0 ? $details->fields['PAID'] : 0;
+                $status = $db_account->Execute("SELECT STATUS FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                 if ($paid_count==0) { echo 'table-success' ;}else{echo "table-striped";}?> border">
                     <thead>
                     <tr>
@@ -155,6 +152,10 @@ while (!$row->EOF) {
                 <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
                     <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
                 </div>
+            <?php } elseif ($status->fields['STATUS']=='C') { ?>
+                <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
+                    <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
+                </div>
             <?php } else { ?>
                 <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 5%;">
                     <button class="btn btn-info m-l-10 text-white">Payments Schedule</button>
@@ -198,7 +199,7 @@ while (!$row->EOF) {
                     <td>
                         <?php if($billing_details->fields['IS_PAID']==0 && $billing_details->fields['STATUS']=='A') { ?>
                             <label><input type="checkbox" name="BILLED_AMOUNT[]" class="BILLED_AMOUNT PAYMENT_CHECKBOX_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" data-pk_enrollment_ledger="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>" value="<?=$billing_details->fields['BILLED_AMOUNT']?>"</label>
-                            <a href="javascript:;" class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</a>
+                            <a href="javascript:;" id="payNow" disabled="disabled" class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</a>
                         <?php } ?>
                     </td>
                     <td>
@@ -315,15 +316,18 @@ while (!$row->EOF) {
     function toggleEnrollmentCheckboxes(PK_ENROLLMENT_MASTER) {
         let toggleCheckbox = document.getElementById('toggleEnrollment_'+PK_ENROLLMENT_MASTER);
         let childCheckboxes = document.getElementsByClassName('PAYMENT_CHECKBOX_'+PK_ENROLLMENT_MASTER);
+        let payNow = document.getElementById('payNow');
 
         // If the toggle checkbox is checked, uncheck all child checkboxes
         if (toggleCheckbox.checked) {
             for (let i = 0; i < childCheckboxes.length; i++) {
                 childCheckboxes[i].checked = true;
+                payNow.disabled = true;
             }
         } else {
             for (let i = 0; i < childCheckboxes.length; i++) {
                 childCheckboxes[i].checked = false;
+                payNow.disabled = false;
             }
         }
     }
