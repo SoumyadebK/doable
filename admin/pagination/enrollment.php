@@ -65,7 +65,7 @@ while (!$row->EOF) {
                 <p><?=implode(' || ', $serviceMaster)?></p>
                 <p><?=date('m/d/Y', strtotime($row->fields['CREATED_ON']))?></p>
                 <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                    <a href="../admin/client_enrollment_agreement.php?id=<?=$_GET['master_id']?>" target="_blank">View Agreement</a>
+                    <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
                 <?php } ?>
             </div>
             <div class="col-8">
@@ -88,11 +88,8 @@ while (!$row->EOF) {
                 ?>
                 <table id="myTable" class="table <?php
                 $details = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                if($details->RecordCount()>0){
-                    $paid_count = $details->fields['PAID'];
-                } else {
-                    $paid_count = 0;
-                }
+                $paid_count = $details->RecordCount() > 0 ? $details->fields['PAID'] : 0;
+                $status = $db_account->Execute("SELECT STATUS FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                 if ($paid_count==0) { echo 'table-success' ;}else{echo "table-striped";}?> border">
                     <thead>
                     <tr>
@@ -155,6 +152,10 @@ while (!$row->EOF) {
                 <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
                     <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
                 </div>
+            <?php } elseif ($status->fields['STATUS']=='C') { ?>
+                <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
+                    <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
+                </div>
             <?php } else { ?>
                 <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 5%;">
                     <button class="btn btn-info m-l-10 text-white">Payments Schedule</button>
@@ -198,22 +199,38 @@ while (!$row->EOF) {
                     <td>
                         <?php if($billing_details->fields['IS_PAID']==0 && $billing_details->fields['STATUS']=='A') { ?>
                             <label><input type="checkbox" name="BILLED_AMOUNT[]" class="BILLED_AMOUNT PAYMENT_CHECKBOX_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" data-pk_enrollment_ledger="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>" value="<?=$billing_details->fields['BILLED_AMOUNT']?>"</label>
-                            <a href="javascript:;" class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</a>
+                            <a href="javascript:;" id="payNow" disabled="disabled" class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</a>
+                        <?php } ?>
+                    </td>
+                    <td>
+                        <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
+                            <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">Receipt</a>
                         <?php } ?>
                     </td>
                 </tr>
                 <?php
-                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+               // echo "SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.CHECK_NUMBER FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_BILLING=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_BILLING WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER'];
                 if ($payment_details->RecordCount() > 0){
-                    $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']); ?>
+                    $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']);
+                    if($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
+                        $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".$payment_details->fields['CHECK_NUMBER'];
+                    }else{
+                        $payment_type = $payment_details->fields['PAYMENT_TYPE'];
+                    }?>
                     <tr>
                         <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
                         <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
                         <td></td>
                         <td style="text-align: right;"><?=$payment_details->fields['PAID_AMOUNT']?></td>
-                        <td style="text-align: center;"><?=$payment_details->fields['PAYMENT_TYPE']?></td>
+                        <td style="text-align: center;"><?=$payment_type?></td>
                         <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
                         <td>
+                        </td>
+                        <td>
+                            <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
+                                <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">Receipt</a>
+                            <?php } ?>
                         </td>
                     </tr>
                 <?php } ?>
@@ -305,15 +322,18 @@ while (!$row->EOF) {
     function toggleEnrollmentCheckboxes(PK_ENROLLMENT_MASTER) {
         let toggleCheckbox = document.getElementById('toggleEnrollment_'+PK_ENROLLMENT_MASTER);
         let childCheckboxes = document.getElementsByClassName('PAYMENT_CHECKBOX_'+PK_ENROLLMENT_MASTER);
+        let payNow = document.getElementById('payNow');
 
         // If the toggle checkbox is checked, uncheck all child checkboxes
         if (toggleCheckbox.checked) {
             for (let i = 0; i < childCheckboxes.length; i++) {
                 childCheckboxes[i].checked = true;
+                payNow.disabled = true;
             }
         } else {
             for (let i = 0; i < childCheckboxes.length; i++) {
                 childCheckboxes[i].checked = false;
+                payNow.disabled = false;
             }
         }
     }

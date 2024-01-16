@@ -1208,19 +1208,19 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Balance Payable</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?=$BALANCE_PAYABLE?>" class="form-control" value="0.00" readonly>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
                                                             <div class="col-3" id="down_payment_div" style="display: <?=($PAYMENT_METHOD == 'One Time')?'none':''?>">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Down Payment</label>
                                                                     <div class="col-md-12">
                                                                         <input type="text" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?=$DOWN_PAYMENT?>" class="form-control" onkeyup="calculatePayment()">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Balance Payable</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?=$BALANCE_PAYABLE?>" class="form-control" value="0.00" readonly>
                                                                     </div>
                                                                 </div>
                                                             </div>
