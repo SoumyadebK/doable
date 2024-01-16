@@ -969,6 +969,7 @@ $NOTE = '';
         let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
         let down_payment = parseFloat(($('#DOWN_PAYMENT').val())?$('#DOWN_PAYMENT').val():0);
         let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val())?$('#BALANCE_PAYABLE').val():0);
+        $('#MEMBERSHIP_PAYMENT_AMOUNT').val(parseFloat(total_bill).toFixed(2));
         $('#BALANCE_PAYABLE').val(parseFloat(total_bill-down_payment).toFixed(2));
         calculatePaymentPlans();
     }

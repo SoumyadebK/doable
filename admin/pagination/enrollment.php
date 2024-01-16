@@ -65,7 +65,7 @@ while (!$row->EOF) {
                 <p><?=implode(' || ', $serviceMaster)?></p>
                 <p><?=date('m/d/Y', strtotime($row->fields['CREATED_ON']))?></p>
                 <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                    <a href="../admin/client_enrollment_agreement.php?id=<?=$_GET['master_id']?>" target="_blank">View Agreement</a>
+                    <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
                 <?php } ?>
             </div>
             <div class="col-8">
@@ -204,26 +204,32 @@ while (!$row->EOF) {
                     </td>
                     <td>
                         <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                            <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
+                            <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">Receipt</a>
                         <?php } ?>
                     </td>
                 </tr>
                 <?php
-                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+               // echo "SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.CHECK_NUMBER FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_BILLING=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_BILLING WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER'];
                 if ($payment_details->RecordCount() > 0){
-                    $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']); ?>
+                    $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']);
+                    if($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
+                        $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".$payment_details->fields['CHECK_NUMBER'];
+                    }else{
+                        $payment_type = $payment_details->fields['PAYMENT_TYPE'];
+                    }?>
                     <tr>
                         <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
                         <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
                         <td></td>
                         <td style="text-align: right;"><?=$payment_details->fields['PAID_AMOUNT']?></td>
-                        <td style="text-align: center;"><?=$payment_details->fields['PAYMENT_TYPE']?></td>
+                        <td style="text-align: center;"><?=$payment_type?></td>
                         <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
                         <td>
                         </td>
                         <td>
                             <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                                <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
+                                <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">Receipt</a>
                             <?php } ?>
                         </td>
                     </tr>
