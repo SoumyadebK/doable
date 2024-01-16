@@ -413,6 +413,7 @@ function generatePdf($html){
 
     $mpdf = new Mpdf();
     $mpdf->WriteHTML($html);
+    $mpdf->keep_table_proportions = true;
     $mpdf->AddPage();
 
     $file_name = "enrollment_pdf_".time().".pdf";
