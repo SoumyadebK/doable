@@ -106,20 +106,21 @@ while (!$row->EOF) {
                     <?php
                     //$per_session_cost = $total_amount->fields['TOTAL_AMOUNT']/(($total_session_count==0)?1:$total_session_count);
                     //$total_paid_session_count = ceil($total_bill_and_paid->fields['TOTAL_PAID']/(($per_session_cost==0)?1:$per_session_cost));
-                    $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                    $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                     $total_paid_amount = 0;
                     $total_used_amount = 0;
                     $total_session_count = 0;
                     while (!$serviceCodeData->EOF) {
+                        $PRICE_PER_SESSION = $serviceCodeData->fields['PRICE_PER_SESSION'];
                         $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$serviceCodeData->fields['PK_SERVICE_CODE']); ?>
                         <tr>
                             <td><?=$serviceCodeData->fields['SERVICE_CODE']?></td>
                             <td style="text-align: right"><?=$serviceCodeData->fields['NUMBER_OF_SESSION']?></td>
                             <td style="text-align: right">
                                 <?php
-                                echo $paid_session = ($serviceCodeData->fields['PRICE_PER_SESSION'] > 0) ? number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'], 2, '.', '') : 0;
+                                echo $paid_session = ($PRICE_PER_SESSION > 0) ? number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$PRICE_PER_SESSION, 2, '.', '') : 0;
                                 $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-                                $total_used_amount += ($serviceCodeData->fields['PRICE_PER_SESSION']*$used_session_count->fields['USED_SESSION_COUNT']);
+                                $total_used_amount += ($PRICE_PER_SESSION*$used_session_count->fields['USED_SESSION_COUNT']);
                                 $total_session_count += $serviceCodeData->fields['NUMBER_OF_SESSION'];
                                 /*if ($total_paid_session_count > $serviceCodeData->fields['NUMBER_OF_SESSION']) {
                                     echo $paid_session_count = $serviceCodeData->fields['NUMBER_OF_SESSION'];
@@ -174,7 +175,7 @@ while (!$row->EOF) {
                     <th style="text-align: center;">Balance</th>
                     <th>
                         <?php if ($paid_count > 0) { ?>
-                            <input type="checkbox" id="toggleEnrollment_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" onclick="toggleEnrollmentCheckboxes(<?=$row->fields['PK_ENROLLMENT_MASTER']?>)"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay Selected</button>
+                            <input type="checkbox" class="pay_now_check" id="toggleEnrollment_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" onclick="toggleEnrollmentCheckboxes(<?=$row->fields['PK_ENROLLMENT_MASTER']?>)"/><button type="button" class="btn btn-info m-l-10 text-white pay_selected_btn" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')" disabled> Pay Selected</button>
                         <?php } ?>
                     </th>
                 </tr>
@@ -198,8 +199,8 @@ while (!$row->EOF) {
                     <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
                     <td>
                         <?php if($billing_details->fields['IS_PAID']==0 && $billing_details->fields['STATUS']=='A') { ?>
-                            <label><input type="checkbox" name="BILLED_AMOUNT[]" class="BILLED_AMOUNT PAYMENT_CHECKBOX_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" data-pk_enrollment_ledger="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>" value="<?=$billing_details->fields['BILLED_AMOUNT']?>"</label>
-                            <a href="javascript:;" id="payNow" disabled="disabled" class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</a>
+                            <label><input type="checkbox" name="BILLED_AMOUNT[]" class="pay_now_check BILLED_AMOUNT PAYMENT_CHECKBOX_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" data-pk_enrollment_ledger="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>" value="<?=$billing_details->fields['BILLED_AMOUNT']?>"></label>
+                            <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</button>
                         <?php } ?>
                     </td>
                     <td>
@@ -337,4 +338,14 @@ while (!$row->EOF) {
             }
         }
     }
+
+    $(document).on('change', '.pay_now_check', function (){
+        if ($('.pay_now_check').is(':checked')) {
+            $('.pay_selected_btn').prop('disabled', false);
+            $('.pay_now_button').prop('disabled', true);
+        } else {
+            $('.pay_selected_btn').prop('disabled', true);
+            $('.pay_now_button').prop('disabled', false);
+        }
+    });
 </script>
