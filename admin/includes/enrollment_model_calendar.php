@@ -255,7 +255,7 @@ $NOTE = '';
                                                 </div>
                                                 <div class="col-1 final_div" style="text-align: right;">
                                                     <div class="form-group">
-                                                        <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=($enrollment_service_data->fields['FINAL_AMOUNT']==0.00)?$enrollment_service_data->fields['TOTAL']:$enrollment_service_data->fields['FINAL_AMOUNT']?>" readonly>
+                                                        <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=$enrollment_service_data->fields['FINAL_AMOUNT']?>" readonly>
                                                     </div>
                                                 </div>
                                                 <div class="col-1" style="width: 5%;">
@@ -327,7 +327,7 @@ $NOTE = '';
                                             </div>
                                             <div class="col-1 final_div" style="text-align: right;">
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=($FINAL_AMOUNT==0.00)?$TOTAL:$FINAL_AMOUNT?>" readonly>
+                                                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=$FINAL_AMOUNT?>" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-1 service_div" style="width: 5%; display:none">

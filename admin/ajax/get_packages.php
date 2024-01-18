@@ -60,7 +60,7 @@ while (!$row->EOF) { $i=0; ?>
         </div>
         <div class="col-1 final_div" style="text-align: right;">
             <div class="form-group">
-                <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=($row->fields['FINAL_AMOUNT']==0.00)?$row->fields['TOTAL']:$row->fields['FINAL_AMOUNT']?>" readonly>
+                <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=$row->fields['FINAL_AMOUNT']?>" readonly>
             </div>
         </div>
         <div class="col-1" style="width: 5%;">

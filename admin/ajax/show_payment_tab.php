@@ -155,7 +155,7 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
             </div>
             <div class="col-1">
                 <div class="form-group">
-                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=($enrollment_service_data->fields['FINAL_AMOUNT']==0.00)?$enrollment_service_data->fields['TOTAL']:$enrollment_service_data->fields['FINAL_AMOUNT']?>" readonly>
+                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=$enrollment_service_data->fields['FINAL_AMOUNT']?>" readonly>
                 </div>
             </div>
         </div>
