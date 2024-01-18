@@ -1,5 +1,10 @@
 <?php
 require_once('../global/config.php');
+require_once("../global/stripe-php-master/init.php");
+
+use Square\Models\Address;
+use Square\SquareClient;
+use Square\Environment;
 
 use Dompdf\Dompdf;
 use Mpdf\Mpdf;
@@ -43,6 +48,45 @@ $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
 $ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
 $APP_ID = $account_data->fields['APP_ID'];
 $LOCATION_ID = $account_data->fields['LOCATION_ID'];
+$card_number = '';
+
+if($PAYMENT_GATEWAY == "Stripe") {
+    $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PK_USER_MASTER = '$_GET[master_id]'");
+    if ($user_payment_info_data->RecordCount() > 0) {
+        $SECRET_KEY = $account_data->fields['SECRET_KEY'];
+        $stripe = new \Stripe\StripeClient($SECRET_KEY);
+        $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
+
+        try {
+            $all_payment_methods = $stripe->customers->allPaymentMethods(
+                $CUSTOMER_PAYMENT_ID,
+                ['type' => 'card']
+            );
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            pre_r($e->getMessage());
+        }
+
+        $card_number = $all_payment_methods->card->last4;
+    }
+} elseif ($PAYMENT_GATEWAY == "Square") {
+    $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PK_USER_MASTER = '$_GET[master_id]'");
+
+    if ($user_payment_info_data->RecordCount() > 0) {
+        require_once("../global/vendor/autoload.php");
+        $client = new SquareClient([
+            'accessToken' => $ACCESS_TOKEN,
+            'environment' => Environment::SANDBOX,
+        ]);
+
+        $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
+        $card = new \Square\Models\Card();
+        $card->setCustomerId($CUSTOMER_PAYMENT_ID);
+        $all_payment_methods = $client->getCardsApi()->listCards();
+        $all_payment_methods_array = json_decode($all_payment_methods->getBody());
+
+        $card_number = $all_payment_methods_array->cards->last_4;
+    }
+}
 
 if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
     $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
@@ -133,7 +177,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
     $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
     $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.LOCATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER=DOA_USERS.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION=DOA_USER_LOCATION.PK_LOCATION LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$_POST['PK_ENROLLMENT_MASTER']);
     $enrollment_billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
-    $enrollment_ledger_data = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.* , DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE=DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_LEDGER=".$PK_ENROLLMENT_LEDGER);
+    $enrollment_ledger_data = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.* FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_LEDGER=".$PK_ENROLLMENT_LEDGER);
+    $enrollment_payment_type = $db->Execute("SELECT PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE=".$_POST['PK_PAYMENT_TYPE']);
     $enrollment_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
     $html_template = str_replace('{BUSINESS_NAME}', $business_details->fields['BUSINESS_NAME'], $html_template);
     $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template);
@@ -142,12 +187,12 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
     $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
     $html_template = str_replace('{PHONE}', $user_data->fields['PHONE'], $html_template);
     $html_template = str_replace('{BILLING_REF}', $enrollment_billing_data->fields['BILLING_REF'], $html_template);
-    $html_template = str_replace('{PAYMENT_METHOD}', $enrollment_ledger_data->fields['PAYMENT_TYPE'], $html_template);
-    $html_template = str_replace('{CARD_NUMBER}', $enrollment_payment_data->fields['CARD_NUMBER'], $html_template);
-    $html_template = str_replace('{DETAILS}', $enrollment_payment_data->fields['AMOUNT'], $html_template);
+    $html_template = str_replace('{PAYMENT_METHOD}', $enrollment_payment_type->fields['PAYMENT_TYPE'], $html_template);
+    $html_template = str_replace('{CARD_NUMBER}', $card_number, $html_template);
+    $html_template = str_replace('{DETAILS}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template);
     $html_template = str_replace('{AMOUNT}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template);
-    $html_template = str_replace('{TOTAL}', $enrollment_payment_data->fields['AMOUNT'], $html_template);
-    $html_template = str_replace('{PAYMENT_DATE}', $enrollment_payment_data->fields['PAYMENT_DATE'], $html_template);
+    $html_template = str_replace('{TOTAL}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template);
+    $html_template = str_replace('{PAYMENT_DATE}', $enrollment_ledger_data->fields['DUE_DATE'], $html_template);
     pre_r($html_template);
     //$ENROLLMENT_RECEIPT_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template);
     //db_perform_account('DOA_ENROLLMENT_LEDGER', $ENROLLMENT_RECEIPT_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$_POST[PK_ENROLLMENT_LEDGER]'");
