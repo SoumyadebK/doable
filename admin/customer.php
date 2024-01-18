@@ -50,86 +50,80 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
     //pre_r($PK_ENROLLMENT_LEDGER_ARRAY);
     unset($_POST['PK_ENROLLMENT_LEDGER']);
     $AMOUNT = $_POST['AMOUNT'];
-    $html_template = '<pre>
-
-&nbsp;</pre>
-
-
-
-<table style="width:100%">
-	<tbody>
-		<tr>
-			<td style="text-align:center"><strong>{BUSINESS_NAME}</strong></td>
-		</tr>
-		<tr>
-			<td>&nbsp;</td>
-		</tr>
-		<tr>
-			<td style="text-align:center">{FULL_NAME} {LOCATION_NAME}</td>
-		</tr>
-		<tr>
-			<td style="text-align:center">{LOCATION_NAME}, {STATE} {ZIP}</td>
-		</tr>
-		<tr>
-			<td style="text-align:center">{PHONE}</td>
-		</tr>
-		<tr>
-			<td style="text-align:center"><strong>Sale Transaction</strong></td>
-		</tr>
-		<tr>
-			<td style="text-align:center"><strong>Receipt# {BILLING_REF}</strong></td>
-		</tr>
-		<tr>
-			<td style="text-align:center">{PAYMENT_DATE}</td>
-		</tr>
-	</tbody>
-</table>
-
-<table style="width:100%">
-	<tbody>
-	    <tr>
-			<td>&nbsp;</td>
-		</tr>
-		<tr>
-			<td>Payment Method</td>
-			<td style="text-align:right">{PAYMENT_METHOD}</td>
-		</tr>
-		<tr>
-			<td>Card#:</td>
-			<td style="text-align:right">{CARD_NUMBER}</td>
-		</tr>
-		<tr>
-			<td>Details</td>
-			<td style="text-align:right">{DETAILS}</td>
-		</tr>
-		<tr>
-			<td>Amount(s)</td>
-			<td style="text-align:right">{AMOUNT}</td>
-		</tr>
-		<tr>
-			<td>Total:</td>
-			<td style="text-align:right">{TOTAL}</td>
-		</tr>
-	</tbody>
-</table>
-
-<table style="width:100%">
-	<tbody>
-	    <tr>
-			<td>&nbsp;</td>
-		</tr>
-		<tr>
-			<td style="text-align:center">{FULL_NAME}</td>
-		</tr>
-		<tr>
-			<td style="text-align:center">I agree to pay above total amount according to card<br />
-			issuer agreement (merchant agreement if voucher)</td>
-		</tr>
-		<tr>
-			<td style="text-align:center">*Per authorization on {PAYMENT_DATE} Receipt# {BILLING_REF}</td>
-		</tr>
-	</tbody>
-</table>';
+    $html_template = '<table style="width:100%">
+        <tbody>
+            <tr>
+                <td style="text-align:center"><strong>{BUSINESS_NAME}</strong></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td style="text-align:center">{FULL_NAME} {LOCATION_NAME}</td>
+            </tr>
+            <tr>
+                <td style="text-align:center">{LOCATION_NAME}, {STATE} {ZIP}</td>
+            </tr>
+            <tr>
+                <td style="text-align:center">{PHONE}</td>
+            </tr>
+            <tr>
+                <td style="text-align:center"><strong>Sale Transaction</strong></td>
+            </tr>
+            <tr>
+                <td style="text-align:center"><strong>Receipt# {BILLING_REF}</strong></td>
+            </tr>
+            <tr>
+                <td style="text-align:center">{PAYMENT_DATE}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <table style="width:100%">
+        <tbody>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td>Payment Method</td>
+                <td style="text-align:right">{PAYMENT_METHOD}</td>
+            </tr>
+            <tr>
+                <td>Card#:</td>
+                <td style="text-align:right">{CARD_NUMBER}</td>
+            </tr>
+            <tr>
+                <td>Details</td>
+                <td style="text-align:right">{DETAILS}</td>
+            </tr>
+            <tr>
+                <td>Amount(s)</td>
+                <td style="text-align:right">{AMOUNT}</td>
+            </tr>
+            <tr>
+                <td>Total:</td>
+                <td style="text-align:right">{TOTAL}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <table style="width:100%">
+        <tbody>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td style="text-align:center">{FULL_NAME}</td>
+            </tr>
+            <tr>
+                <td style="text-align:center">I agree to pay above total amount according to card<br />
+                issuer agreement (merchant agreement if voucher)</td>
+            </tr>
+            <tr>
+                <td style="text-align:center">*Per authorization on {PAYMENT_DATE} Receipt# {BILLING_REF}</td>
+            </tr>
+        </tbody>
+    </table>';
     //$ENROLLMENT_RECEIPT_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template);
     //db_perform_account('DOA_ENROLLMENT_LEDGER', $ENROLLMENT_RECEIPT_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$_POST[PK_ENROLLMENT_LEDGER]'");
 

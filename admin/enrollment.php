@@ -105,6 +105,7 @@ if(!empty($_GET['id'])) {
     }
 }
 
+use Mpdf\Mpdf;
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 
@@ -147,11 +148,86 @@ else if ($SQUARE_MODE == 2)
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
 
 if(!empty($_POST['PK_PAYMENT_TYPE'])){
+    $html_template = '<table style="width:100%">
+        <tbody>
+            <tr>
+                <td style="text-align:center"><strong>{BUSINESS_NAME}</strong></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td style="text-align:center">{FULL_NAME} {LOCATION_NAME}</td>
+            </tr>
+            <tr>
+                <td style="text-align:center">{LOCATION_NAME}, {STATE} {ZIP}</td>
+            </tr>
+            <tr>
+                <td style="text-align:center">{PHONE}</td>
+            </tr>
+            <tr>
+                <td style="text-align:center"><strong>Sale Transaction</strong></td>
+            </tr>
+            <tr>
+                <td style="text-align:center"><strong>Receipt# {BILLING_REF}</strong></td>
+            </tr>
+            <tr>
+                <td style="text-align:center">{PAYMENT_DATE}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <table style="width:100%">
+        <tbody>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td>Payment Method</td>
+                <td style="text-align:right">{PAYMENT_METHOD}</td>
+            </tr>
+            <tr>
+                <td>Card#:</td>
+                <td style="text-align:right">{CARD_NUMBER}</td>
+            </tr>
+            <tr>
+                <td>Details</td>
+                <td style="text-align:right">{DETAILS}</td>
+            </tr>
+            <tr>
+                <td>Amount(s)</td>
+                <td style="text-align:right">{AMOUNT}</td>
+            </tr>
+            <tr>
+                <td>Total:</td>
+                <td style="text-align:right">{TOTAL}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <table style="width:100%">
+        <tbody>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td style="text-align:center">{FULL_NAME}</td>
+            </tr>
+            <tr>
+                <td style="text-align:center">I agree to pay above total amount according to card<br />
+                issuer agreement (merchant agreement if voucher)</td>
+            </tr>
+            <tr>
+                <td style="text-align:center">*Per authorization on {PAYMENT_DATE} Receipt# {BILLING_REF}</td>
+            </tr>
+        </tbody>
+    </table>';
 
     $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
 
     unset($_POST['PK_ENROLLMENT_LEDGER']);
     if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
+        $payment_info = '';
         if ($_POST['PK_PAYMENT_TYPE'] == 1) {
             if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
                 require_once("../global/stripe-php-master/init.php");
@@ -217,6 +293,8 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 } catch (Exception $e) {
                     pre_r($e->getMessage());
                 }
+
+                $payment_info = '**** **** **** '.$payment_intent->source->last4;
 
                 //pre_r($payment_intent);
 
@@ -492,6 +570,25 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
         }
 
+        $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
+        $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.LOCATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER=DOA_USERS.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION=DOA_USER_LOCATION.PK_LOCATION LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$_POST['PK_ENROLLMENT_MASTER']);
+        $enrollment_billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
+        $enrollment_ledger_data = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.* , DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE=DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_LEDGER=".$PK_ENROLLMENT_LEDGER);
+        $enrollment_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
+        $html_template = str_replace('{BUSINESS_NAME}', $business_details->fields['BUSINESS_NAME'], $html_template);
+        $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template);
+        $html_template = str_replace('{LOCATION_NAME}', $user_data->fields['LOCATION_NAME'], $html_template);
+        $html_template = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template);
+        $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
+        $html_template = str_replace('{PHONE}', $user_data->fields['PHONE'], $html_template);
+        $html_template = str_replace('{BILLING_REF}', $enrollment_billing_data->fields['BILLING_REF'], $html_template);
+        $html_template = str_replace('{PAYMENT_METHOD}', $enrollment_ledger_data->fields['PAYMENT_TYPE'], $html_template);
+        $html_template = str_replace('{CARD_NUMBER}', $payment_info, $html_template);
+        $html_template = str_replace('{DETAILS}', $enrollment_payment_data->fields['AMOUNT'], $html_template);
+        $html_template = str_replace('{AMOUNT}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template);
+        $html_template = str_replace('{TOTAL}', $enrollment_payment_data->fields['AMOUNT'], $html_template);
+        $html_template = str_replace('{PAYMENT_DATE}', $enrollment_payment_data->fields['PAYMENT_DATE'], $html_template);
+
         $PK_ENROLLMENT_PAYMENT = $db_account->insert_ID();
         $ledger_record = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
         $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
@@ -505,6 +602,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $LEDGER_DATA['IS_PAID'] = 1;
         $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
         $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
+        $LEDGER_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template);
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
         $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
@@ -514,6 +612,18 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     }
 
     header('location:all_enrollments.php');
+}
+
+function generateReceiptPdf($html){
+    require_once('../global/vendor/autoload.php');
+
+    $mpdf = new Mpdf();
+    $mpdf->WriteHTML($html);
+
+    $file_name = "enrollment_receipt_pdf_".time().".pdf";
+    $mpdf->Output("../uploads/enrollment_pdf/".$file_name, 'F');
+
+    return $file_name;
 }
 
 ?>
