@@ -262,10 +262,14 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template);
     $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
     $html_template = str_replace('{CELL_PHONE}', $user_data->fields['PHONE'], $html_template);
-    $html_template = str_replace('{PVT_LESSONS}', $enrollment_details->fields['NUMBER_OF_SESSIONS'], $html_template);
-    $html_template = str_replace('{TUITION}', $enrollment_details->fields['TOTAL'], $html_template);
-    $html_template = str_replace('{DISCOUNT}', ($enrollment_details->fields['TOTAL'] - $enrollment_details->fields['FINAL_AMOUNT']), $html_template);
-    $html_template = str_replace('{BAL_DUE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
+    $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+    while (!$enrollment_service_data->EOF) {
+        $html_template = str_replace('{SERVICE_NAME}', $enrollment_service_data->fields['SERVICE_DETAILS'], $html_template);
+        $html_template = str_replace('{PVT_LESSONS}', $enrollment_service_data->fields['NUMBER_OF_SESSION'], $html_template);
+        $html_template = str_replace('{TUITION}', $enrollment_service_data->fields['TOTAL'], $html_template);
+        $html_template = str_replace('{DISCOUNT}', $enrollment_service_data->fields['DISCOUNT'], $html_template);
+        $html_template = str_replace('{BAL_DUE}', $enrollment_service_data->fields['FINAL_AMOUNT'], $html_template);
+        $enrollment_service_data->MoveNext(); }
     $html_template = str_replace('{TYPE_OF_ENROLLMENT}', '0', $html_template);
     $html_template = str_replace('{MISC_SERVICES}', '0', $html_template);
     $html_template = str_replace('{TUITION_COST}', '0', $html_template);

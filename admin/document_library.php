@@ -162,6 +162,7 @@ if(empty($_GET['id'])){
                                             <a href="javascript:;" class="tag_name" data-tag="{ZIP}" style="font-weight: normal;">{ZIP}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{RES_PHONE}" style="font-weight: normal;">{RES_PHONE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{CELL_PHONE}" style="font-weight: normal;">{CELL_PHONE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{SERVICE_DETAILS}" style="font-weight: normal;">{SERVICE_DETAILS}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{PVT_LESSONS}" style="font-weight: normal;">{PVT_LESSONS}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{TUITION}" style="font-weight: normal;">{TUITION}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{DISCOUNT}" style="font-weight: normal;">{DISCOUNT}</a>

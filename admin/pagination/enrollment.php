@@ -188,7 +188,8 @@ while (!$row->EOF) {
             $billing_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
             while (!$billing_details->EOF) {
                 $billed_amount = $billing_details->fields['BILLED_AMOUNT'];
-                $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance); ?>
+                $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
+                ?>
                 <tr>
                     <td><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
                     <td><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
@@ -203,15 +204,14 @@ while (!$row->EOF) {
                         <?php } ?>
                     </td>
                     <td>
-                        <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                            <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">Receipt</a>
-                        <?php } ?>
                     </td>
                 </tr>
                 <?php
+                $RECEIPT_PDF_LINK = '';
                 $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
                // echo "SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.CHECK_NUMBER FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_BILLING=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_BILLING WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER'];
                 if ($payment_details->RecordCount() > 0){
+                    $RECEIPT_PDF_LINK = $payment_details->fields['RECEIPT_PDF_LINK'];
                     $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']);
                     if($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
                         $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".$payment_details->fields['CHECK_NUMBER'];
@@ -228,8 +228,8 @@ while (!$row->EOF) {
                         <td>
                         </td>
                         <td>
-                            <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                                <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">Receipt</a>
+                            <?php if ($RECEIPT_PDF_LINK != '' && $RECEIPT_PDF_LINK != null) { ?>
+                                <a href="../uploads/enrollment_pdf/<?=$RECEIPT_PDF_LINK?>" target="_blank">Receipt</a>
                             <?php } ?>
                         </td>
                     </tr>
