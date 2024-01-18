@@ -179,7 +179,6 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
     $enrollment_billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
     $enrollment_ledger_data = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.* FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_LEDGER=".$PK_ENROLLMENT_LEDGER);
     $enrollment_payment_type = $db->Execute("SELECT PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE=".$_POST['PK_PAYMENT_TYPE']);
-    $enrollment_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
     $html_template = str_replace('{BUSINESS_NAME}', $business_details->fields['BUSINESS_NAME'], $html_template);
     $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template);
     $html_template = str_replace('{LOCATION_NAME}', $user_data->fields['LOCATION_NAME'], $html_template);
