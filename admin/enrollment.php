@@ -1283,25 +1283,6 @@ function generateReceiptPdf($html){
                                                         <div class="row frequency_div">
                                                             <div class="col-6">
                                                                 <div class="form-group">
-                                                                    <label class="form-label">First Payment Date</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" name="MEMBERSHIP_PAYMENT_DATE" id="MEMBERSHIP_PAYMENT_DATE" value="<?=($FIRST_DUE_DATE)?date('m/d/Y', strtotime($FIRST_DUE_DATE)):''?>" class="form-control datepicker-future">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Amount</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" name="MEMBERSHIP_PAYMENT_AMOUNT" id="MEMBERSHIP_PAYMENT_AMOUNT" value="<?=$INSTALLMENT_AMOUNT?>" class="form-control">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="row session_div">
-                                                            <div class="col-6">
-                                                                <div class="form-group">
                                                                     <label class="form-label">Payment Method</label>
                                                                     <div class="col-md-12">
                                                                         <div class="row">
@@ -1318,81 +1299,74 @@ function generateReceiptPdf($html){
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-3" id="down_payment_div" style="display: <?=($PAYMENT_METHOD == 'One Time')?'none':''?>">
+                                                            <div class="col-6">
                                                                 <div class="form-group">
-                                                                    <label class="form-label">Down Payment</label>
+                                                                    <label class="form-label">Amount</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?=$DOWN_PAYMENT?>" class="form-control" onkeyup="calculatePayment()">
+                                                                        <input type="text" name="MEMBERSHIP_PAYMENT_AMOUNT" id="MEMBERSHIP_PAYMENT_AMOUNT" value="<?=$INSTALLMENT_AMOUNT?>" class="form-control">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row payment_method_div" id="payment_plans_div" style="display: <?=($PAYMENT_METHOD == 'Payment Plans')?'':'none'?>;">
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Payment Term</label>
+                                                                    <div class="col-md-12">
+                                                                        <select class="form-control" name="PAYMENT_TERM" id="PAYMENT_TERM">
+                                                                            <option value="">Select</option>
+                                                                            <option value="Monthly" <?=($PAYMENT_TERM == 'Monthly')?'selected':''?>>Monthly</option>
+                                                                            <option value="Quarterly" <?=($PAYMENT_TERM == 'Quarterly')?'selected':''?>>Quarterly</option>
+                                                                        </select>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div class="col-3">
                                                                 <div class="form-group">
-                                                                    <label class="form-label">Balance Payable</label>
+                                                                    <label class="form-label">Number of Payments</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?=$BALANCE_PAYABLE?>" class="form-control" value="0.00" readonly>
+                                                                        <input type="text" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?=$NUMBER_OF_PAYMENT?>" class="form-control" onkeyup="calculatePaymentPlans();">
+                                                                    </div>
+                                                                    <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">First Payment Date</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?=($FIRST_DUE_DATE)?date('m/d/Y', strtotime($FIRST_DUE_DATE)):''?>" class="form-control datepicker-future">
                                                                     </div>
                                                                 </div>
                                                             </div>
-
-                                                            <div class="row payment_method_div" id="payment_plans_div" style="display: <?=($PAYMENT_METHOD == 'Payment Plans')?'':'none'?>;">
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Payment Term</label>
-                                                                        <div class="col-md-12">
-                                                                            <select class="form-control" name="PAYMENT_TERM" id="PAYMENT_TERM">
-                                                                                <option value="">Select</option>
-                                                                                <option value="Monthly" <?=($PAYMENT_TERM == 'Monthly')?'selected':''?>>Monthly</option>
-                                                                                <option value="Quarterly" <?=($PAYMENT_TERM == 'Quarterly')?'selected':''?>>Quarterly</option>
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Number of Payments</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?=$NUMBER_OF_PAYMENT?>" class="form-control" onkeyup="calculatePaymentPlans();">
-                                                                        </div>
-                                                                        <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">First Payment Date</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?=($FIRST_DUE_DATE)?date('m/d/Y', strtotime($FIRST_DUE_DATE)):''?>" class="form-control datepicker-future">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Installment Amount</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?=$INSTALLMENT_AMOUNT?>" class="form-control" onkeyup="calculateNumberOfPayment(this)">
-                                                                        </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Installment Amount</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?=$INSTALLMENT_AMOUNT?>" class="form-control" onkeyup="calculateNumberOfPayment(this)">
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                        </div>
 
-                                                            <div class="row payment_method_div" id="flexible_plans_div" style="display: <?=($PAYMENT_METHOD == 'Flexible Payments')?'':'none'?>">
-                                                                <div class="row">
-                                                                    <div class="col-3">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Payment Date</label>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-3">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Amount</label>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-3" style="margin-top: -30px;">
-                                                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMorePayments();">Add More</a>
+                                                        <div class="row payment_method_div" id="flexible_plans_div" style="display: <?=($PAYMENT_METHOD == 'Flexible Payments')?'':'none'?>">
+                                                            <div class="row">
+                                                                <div class="col-3">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Payment Date</label>
                                                                     </div>
                                                                 </div>
-                                                                <?php
-                                                                if(!empty($_GET['id'])) {
+                                                                <div class="col-3">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Amount</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-3" style="margin-top: -30px;">
+                                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMorePayments();">Add More</a>
+                                                                </div>
+                                                            </div>
+                                                            <?php
+                                                            if(!empty($_GET['id'])) {
                                                                 $flexible_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
                                                                 while (!$flexible_payment_data->EOF) { ?>
                                                                     <div class="row">
@@ -1414,28 +1388,54 @@ function generateReceiptPdf($html){
                                                                             <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                         </div>
                                                                     </div>
-                                                                <?php $flexible_payment_data->MoveNext(); } ?>
-                                                                <?php } else { ?>
-                                                                    <div class="row">
-                                                                        <div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future">
-                                                                                </div>
+                                                                    <?php $flexible_payment_data->MoveNext(); } ?>
+                                                            <?php } else { ?>
+                                                                <div class="row">
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <div class="col-md-12">
+                                                                                <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future">
                                                                             </div>
-                                                                        </div>
-                                                                        <div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-3" style="padding-top: 5px;">
-                                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                         </div>
                                                                     </div>
-                                                                <?php } ?>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <div class="col-md-12">
+                                                                                <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-3" style="padding-top: 5px;">
+                                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                    </div>
+                                                                </div>
+                                                            <?php } ?>
+                                                        </div>
+
+                                                        <div class="row session_div">
+                                                            <div class="col-6" id="first_payment_date_div">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">First Payment Date</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="MEMBERSHIP_PAYMENT_DATE" id="MEMBERSHIP_PAYMENT_DATE" value="<?=($FIRST_DUE_DATE)?date('m/d/Y', strtotime($FIRST_DUE_DATE)):''?>" class="form-control datepicker-future">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3" id="down_payment_div" style="display: <?=($PAYMENT_METHOD == 'One Time')?'none':''?>">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Down Payment</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?=$DOWN_PAYMENT?>" class="form-control" onkeyup="calculatePayment()">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Balance Payable</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?=$BALANCE_PAYABLE?>" class="form-control" value="0.00" readonly>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -2155,6 +2155,7 @@ function generateReceiptPdf($html){
         $('#IS_ONE_TIME_PAY').val(0);
         if ($(this).val() == 'One Time'){
             let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
+            $('#first_payment_date_div').slideUp();
             $('#DOWN_PAYMENT').val(0.00);
             $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
             $('#down_payment_div').slideUp();

@@ -83,7 +83,7 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
     $total = 0;
     $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
     while (!$enrollment_service_data->EOF) {
-        $total += ($enrollment_service_data->fields['FINAL_AMOUNT']==0.00)?$enrollment_service_data->fields['TOTAL']:$enrollment_service_data->fields['FINAL_AMOUNT']; ?>
+        $total += $enrollment_service_data->fields['FINAL_AMOUNT']; ?>
         <input type="hidden" name="PK_ENROLLMENT_SERVICE[]" value="<?=$enrollment_service_data->fields['PK_ENROLLMENT_SERVICE']?>">
         <div class="row" style="margin-top: -20px;">
             <div class="col-2">

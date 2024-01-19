@@ -329,7 +329,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
         $html_template = str_replace('{DETAILS}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template);
         $html_template = str_replace('{AMOUNT}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template);
         $html_template = str_replace('{TOTAL}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template);
-        $html_template = str_replace('{PAYMENT_DATE}', $enrollment_ledger_data->fields['DUE_DATE'], $html_template);
+        $html_template = str_replace('{PAYMENT_DATE}', date('m-d-Y', strtotime($enrollment_ledger_data->fields['DUE_DATE'])), $html_template);
 
         $PK_ENROLLMENT_PAYMENT = $db_account->insert_ID();
         $ledger_record = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
