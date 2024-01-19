@@ -914,16 +914,16 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         });
 
 
-        $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
+        $('.fc-body').css({"overflow-y":"scroll", "height":"62vh", "display":"block"});
 
         $('.fc-agendaDay-button').click(function () {
-            $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
+            $('.fc-body').css({"overflow-y":"scroll", "height":"62vh", "display":"block"});
         });
         $('.fc-agendaTwoDay-button').click(function () {
-            $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
+            $('.fc-body').css({"overflow-y":"scroll", "height":"62vh", "display":"block"});
         });
         $('.fc-agendaWeek-button').click(function () {
-            $('.fc-body').css({"overflow-y":"scroll", "height":"600px", "display":"block"});
+            $('.fc-body').css({"overflow-y":"scroll", "height":"62vh", "display":"block"});
         });
         $('.fc-month-button').click(function () {
             $('.fc-body').css({"overflow-y":"", "height":"", "display":""});

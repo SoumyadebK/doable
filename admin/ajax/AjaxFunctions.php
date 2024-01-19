@@ -1159,10 +1159,12 @@ function getServiceProviderCount($RESPONSE_DATA){
     $date = date('Y-m-d', strtotime($RESPONSE_DATA['currentDate']));
     $all_service_provider = implode(',', $RESPONSE_DATA['all_service_provider']);
     $service_provider_appointment_count = $db_account->Execute("SELECT COUNT(`PK_APPOINTMENT_MASTER`) AS APPOINTMENT_COUNT, SERVICE_PROVIDER_ID, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER WHERE SERVICE_PROVIDER_ID IN (".$all_service_provider.") AND `DATE` = '$date' GROUP BY SERVICE_PROVIDER_ID");
+    /*$service_provider_special_appointment_count = $db_account->Execute("SELECT COUNT(DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT) AS SPECIAL_APPOINTMENT_COUNT FROM DOA_SPECIAL_APPOINTMENT RIGHT JOIN DOA_SPECIAL_APPOINTMENT_USER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT WHERE DOA_SPECIAL_APPOINTMENT_USER.PK_USER IN (".$all_service_provider.") AND DOA_SPECIAL_APPOINTMENT.DATE = '$date'");
+    $service_provider_group_class_count = $db_account->Execute("SELECT COUNT(DOA_GROUP_CLASS.PK_GROUP_CLASS) AS GROUP_CLASS_COUNT FROM DOA_GROUP_CLASS RIGHT JOIN DOA_GROUP_CLASS_USER ON DOA_GROUP_CLASS.PK_GROUP_CLASS = DOA_GROUP_CLASS_USER.PK_GROUP_CLASS WHERE DOA_GROUP_CLASS_USER.PK_USER IN (".$all_service_provider.") AND DOA_GROUP_CLASS.DATE = '$date'");*/
     $return_data = [];
     $i = 0;
     while (!$service_provider_appointment_count->EOF){
-        $return_data[$i]['APPOINTMENT_COUNT'] = $service_provider_appointment_count->fields['APPOINTMENT_COUNT'];
+        $return_data[$i]['APPOINTMENT_COUNT'] = $service_provider_appointment_count->fields['APPOINTMENT_COUNT']; //+$service_provider_special_appointment_count->fields['SPECIAL_APPOINTMENT_COUNT']+$service_provider_group_class_count->fields['GROUP_CLASS_COUNT'];
         $return_data[$i]['SERVICE_PROVIDER_ID'] = $service_provider_appointment_count->fields['SERVICE_PROVIDER_ID'];
         $return_data[$i]['SERVICE_PROVIDER_NAME'] = $service_provider_appointment_count->fields['SERVICE_PROVIDER_NAME'];
         $service_provider_appointment_count->MoveNext();
