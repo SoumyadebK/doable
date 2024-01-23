@@ -21,6 +21,26 @@ $DATE = $res->fields['DATE'];
 $START_TIME = $res->fields['START_TIME'];
 $END_TIME = $res->fields['END_TIME'];
 $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
+
+if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
+    $PK_USER = $_GET['SERVICE_PROVIDER_ID'];
+} else {
+    $PK_USER = '';
+}
+
+$row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE DATE = '".date('Y-m-d', strtotime($date))."' AND '".date('H:i:s', strtotime($time))."' >= START_TIME AND '".date('H:i:s', strtotime($time))."' <= END_TIME");
+$selected_service_provider = [];
+while (!$row->EOF) {
+    $selected_service_provider[] = $row->fields['SERVICE_PROVIDER_ID'];
+    $row->MoveNext();
+}
+$selected_service_provider_array = implode(',', $selected_service_provider);
+
+if ($row->RecordCount() > 0) {
+    $AND_PK_USER = "AND NOT DOA_USERS.PK_USER IN (".$selected_service_provider_array.")";
+} else {
+    $AND_PK_USER = '';
+}
 ?>
 
 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
@@ -79,6 +99,20 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                             while (!$row->EOF) { ?>
                                 <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($row->fields['PK_LOCATION']==$PK_LOCATION)?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
                             <?php $row->MoveNext(); } ?>
+                        </select>
+                    </div>
+                </div>
+                <input type="hidden" name="PK_GROUP_CLASS[]" value="<?=$row->fields['PK_GROUP_CLASS']?>">
+                <div class="col-3">
+                    <div class="form-group">
+                        <label class="form-label"><?=$service_provider_title?> <span class="text-danger">*</span></label>
+                        <select name="SERVICE_PROVIDER_ID_0[]" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_0" required multiple>
+                            <?php
+                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 ".$AND_PK_USER." AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
+
+                            while (!$row->EOF) { ?>
+                                <option value="<?php echo $row->fields['PK_USER'];?>" <?=($PK_USER == $row->fields['PK_USER'])?"selected":""?>><?=$row->fields['NAME']?></option>
+                                <?php $row->MoveNext(); } ?>
                         </select>
                     </div>
                 </div>
@@ -157,3 +191,7 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
 </form>
+
+<script>
+    $('.SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', selectAll: true, search: true, searchText: 'Search...'});
+</script>

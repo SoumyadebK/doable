@@ -958,11 +958,12 @@ $NOTE = '';
             }
         }
         let TOTAL_AMOUNT = 0;
-        $('.FINAL_AMOUNT').each(function () {
+        $(param).closest('#payment_tab_div').find('.FINAL_AMOUNT').each(function () {
             TOTAL_AMOUNT += parseFloat($(this).val());
         });
         $('#total_bill').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
         $('#BALANCE_PAYABLE').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
+        $('#MEMBERSHIP_PAYMENT_AMOUNT').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
     }
 
     function calculatePayment() {

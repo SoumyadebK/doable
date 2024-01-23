@@ -875,7 +875,7 @@ function generateReceiptPdf($html){
                             <!-- Nav tabs -->
                             <ul class="nav nav-tabs" role="tablist">
                                 <li class="active"> <a class="nav-link active" data-bs-toggle="tab" id="enrollment_link" href="#enrollment" role="tab"><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>
-                                <li> <a class="nav-link" data-bs-toggle="tab" id="billing_link" href="#billing" role="tab" onclick="goToPaymentTab()"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                <li> <a class="nav-link" data-bs-toggle="tab" id="billing_link" href="#billing" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                 <li> <a class="nav-link" data-bs-toggle="tab" id="ledger_link" href="#ledger" role="tab" onclick="goToLedgerTab()"><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Ledger</span></a> </li>
                                 <?php if (!empty($_GET['id'])) { ?>
                                     <li> <a class="nav-link" data-bs-toggle="tab" id="history_link" href="#history" role="tab"><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">History</span></a> </li>
@@ -1240,7 +1240,7 @@ function generateReceiptPdf($html){
                                             <? } ?>
 
                                             <div class="form-group">
-                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Continue</button>
+                                                <a type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Continue</a>
                                                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                             </div>
                                         </div>
@@ -2078,7 +2078,8 @@ function generateReceiptPdf($html){
     $(document).on('submit', '#enrollment_form', function (event) {
         event.preventDefault();
         let form_data = $('#enrollment_form').serialize();
-        $.ajax({
+        $('#billing_link')[0].click();
+        /*$.ajax({
             url: "ajax/AjaxFunctions.php",
             type: 'POST',
             data: form_data,
@@ -2088,7 +2089,7 @@ function generateReceiptPdf($html){
                 $('#MEMBERSHIP_PAYMENT_AMOUNT').val(parseFloat(data.TOTAL_AMOUNT).toFixed(2));
                 $('#billing_link')[0].click();
             }
-        });
+        });*/
     });
 
     function goToPaymentTab() {
@@ -2137,6 +2138,7 @@ function generateReceiptPdf($html){
         });
         $('#total_bill').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
         $('#BALANCE_PAYABLE').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
+        $('#MEMBERSHIP_PAYMENT_AMOUNT').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
     }
 
     function calculatePayment() {
