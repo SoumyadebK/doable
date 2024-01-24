@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once('../global/config.php');
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
@@ -1240,7 +1240,7 @@ function generateReceiptPdf($html){
                                             <? } ?>
 
                                             <div class="form-group">
-                                                <a type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Continue</a>
+                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Continue</button>
                                                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                             </div>
                                         </div>
@@ -2078,8 +2078,7 @@ function generateReceiptPdf($html){
     $(document).on('submit', '#enrollment_form', function (event) {
         event.preventDefault();
         let form_data = $('#enrollment_form').serialize();
-        $('#billing_link')[0].click();
-        /*$.ajax({
+        $.ajax({
             url: "ajax/AjaxFunctions.php",
             type: 'POST',
             data: form_data,
@@ -2089,7 +2088,7 @@ function generateReceiptPdf($html){
                 $('#MEMBERSHIP_PAYMENT_AMOUNT').val(parseFloat(data.TOTAL_AMOUNT).toFixed(2));
                 $('#billing_link')[0].click();
             }
-        });*/
+        });
     });
 
     function goToPaymentTab() {
