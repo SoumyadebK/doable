@@ -83,9 +83,9 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                     </div>
                 </div>
                 <div class="col-6">
-                    <div class="form-group">
-                        <label class="form-label"><?=$service_provider_title?> <span class="text-danger">*</span></label>
-                        <select name="SERVICE_PROVIDER_ID_0[]" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_0" required multiple>
+                    <label class="form-label"><?=$service_provider_title?></label>
+                    <div style="margin-bottom: 15px; margin-top: 10px; width: 480px;">
+                        <select name="SERVICE_PROVIDER_ID[]" class="SERVICE_PROVIDER_ID multi_sumo_select" id="SERVICE_PROVIDER_ID" multiple>
                             <?php
                             $selected_service_provider = [];
                             $selected_service_provider_row = $db_account->Execute("SELECT DOA_GROUP_CLASS_USER.PK_USER FROM DOA_GROUP_CLASS_USER LEFT JOIN $master_database.DOA_USER_MASTER ON DOA_GROUP_CLASS_USER.PK_USER = $master_database.DOA_USER_MASTER.PK_USER WHERE DOA_GROUP_CLASS_USER.PK_GROUP_CLASS = '$PK_GROUP_CLASS'");
@@ -94,14 +94,14 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                                 $selected_service_provider_row->MoveNext();
                             }
                             if (count($selected_service_provider) > 0) {
-                                $orderBy = " ORDER BY FIELD(PK_USER, ".implode(',', $selected_service_provider).") DESC";
+                                $orderBy = " ORDER BY FIELD(DOA_USERS.PK_USER, ".implode(',', $selected_service_provider).") DESC";
                             } else {
                                 $orderBy = "";
                             }
-                            $row = $db->Execute("SELECT   (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
+                            $row = $db->Execute("SELECT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$orderBy);
                             while (!$row->EOF) {?>
                                 <option value="<?php echo $row->fields['PK_USER'];?>" <?=in_array($row->fields['PK_USER'], $selected_service_provider)?"selected":""?>><?=$row->fields['NAME']?></option>
-                                <?php $row->MoveNext(); } ?>
+                            <?php $row->MoveNext(); } ?>
                         </select>
                     </div>
                 </div>

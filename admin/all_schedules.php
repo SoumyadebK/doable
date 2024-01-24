@@ -310,38 +310,33 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAp
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClassData'){
     $PK_GROUP_CLASS = $_POST['PK_GROUP_CLASS'];
     $GROUP_CLASS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
-    $GROUP_CLASS_DATA['GROUP_NAME'] = $_POST['GROUP_NAME'];
-    for ($i = 0; $i < count($_POST['SERVICE_PROVIDER_ID_1']); $i++) {
-        $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
-        $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
-        $GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_1'] = $_POST['SERVICE_PROVIDER_ID_1'];
-        //$GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_2'] = $_POST['SERVICE_PROVIDER_ID_2'];
-        $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
-        $GROUP_CLASS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $GROUP_CLASS_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        if (isset($_POST['GROUP_CLASS_ID'])) {
-            db_perform_account('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " GROUP_CLASS_ID =  '$_POST[GROUP_CLASS_ID]'");
-        } else {
-            $GROUP_CLASS_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
-            db_perform_account('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " PK_GROUP_CLASS =  '$PK_GROUP_CLASS'");
-        }
+    //$GROUP_CLASS_DATA['GROUP_NAME'] = $_POST['GROUP_NAME'];
+    $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+    $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
+    $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+    $GROUP_CLASS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+    $GROUP_CLASS_DATA['EDITED_ON'] = date("Y-m-d H:i");
+    if (isset($_POST['GROUP_CLASS_ID'])) {
+        db_perform_account('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " GROUP_CLASS_ID =  '$_POST[GROUP_CLASS_ID]'");
+    } else {
+        $GROUP_CLASS_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
+        db_perform_account('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'update', " PK_GROUP_CLASS =  '$PK_GROUP_CLASS'");
     }
 
     if (isset($_POST['PK_USER_MASTER'])) {
         $db_account->Execute("DELETE FROM `DOA_GROUP_CLASS_CUSTOMER` WHERE `PK_GROUP_CLASS` = '$PK_GROUP_CLASS'");
         for ($j = 0; $j < count($_POST['PK_USER_MASTER']); $j++) {
-            $GROUP_CLASS_USER_DATA['PK_GROUP_CLASS'] = $PK_GROUP_CLASS;
-            $GROUP_CLASS_USER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$j];
-            db_perform_account('DOA_GROUP_CLASS_CUSTOMER', $GROUP_CLASS_USER_DATA, 'insert');
+            $GROUP_CLASS_CUSTOMER_DATA['PK_GROUP_CLASS'] = $PK_GROUP_CLASS;
+            $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$j];
+            db_perform_account('DOA_GROUP_CLASS_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
         }
     }
 
-    if (isset($_POST['SERVICE_PROVIDER_ID_0'])) {
+    if (isset($_POST['SERVICE_PROVIDER_ID'])) {
         $db_account->Execute("DELETE FROM `DOA_GROUP_CLASS_USER` WHERE `PK_GROUP_CLASS` = '$PK_GROUP_CLASS'");
-        for ($k = 0; $k < count($_POST['SERVICE_PROVIDER_ID_'.$i]); $k++) {
+        for ($k = 0; $k < count($_POST['SERVICE_PROVIDER_ID']); $k++) {
             $GROUP_CLASS_USER_DATA['PK_GROUP_CLASS'] = $PK_GROUP_CLASS;
-            $GROUP_CLASS_USER_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID_'.$i][$k];
-            pre_r($GROUP_CLASS_USER_DATA);
+            $GROUP_CLASS_USER_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID'][$k];
             db_perform_account('DOA_GROUP_CLASS_USER', $GROUP_CLASS_USER_DATA, 'insert');
         }
     }
