@@ -7,6 +7,18 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
+$PK_ENROLLMENT_MASTER_ARRAY = [];
+$not_billed_enrollment = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_MASTER WHERE NOT EXISTS(SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_BILLING WHERE DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER )");
+if ($not_billed_enrollment->RecordCount() > 0) {
+    while (!$not_billed_enrollment->EOF) {
+        $PK_ENROLLMENT_MASTER_ARRAY[] = $not_billed_enrollment->fields['PK_ENROLLMENT_MASTER'];
+        $not_billed_enrollment->MoveNext();
+    }
+
+    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` IN (".implode(',', $PK_ENROLLMENT_MASTER_ARRAY).")");
+    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` IN (".implode(',', $PK_ENROLLMENT_MASTER_ARRAY).")");
+}
+
 $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
