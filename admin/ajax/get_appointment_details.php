@@ -1528,28 +1528,8 @@ z-index: 500;
         </form>
     </div>
 
-    <div class="tab-pane" id="enrollment" role="tabpanel">
-        <div class="row">
-            <div class="col-6 d-flex justify-content-end align-items-center" style="font-weight: bold; font-size: 15px; margin-top: 15px">
-                <?php
-                $row = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT) AS TOTAL_BILL, SUM(DOA_ENROLLMENT_LEDGER.PAID_AMOUNT) AS TOTAL_PAID, SUM(DOA_ENROLLMENT_LEDGER.BALANCE) AS BALANCE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$PK_USER_MASTER'");
-                if($row->RecordCount()>0){
-                    $balance = $row->fields['TOTAL_BILL'] - $row->fields['TOTAL_PAID'];
-                } else{
-                    $balance = 0;
-                }
-                ?>
-                <p>Wallet Balance : $<?=$balance?></p>
-            </div>
-            <div class="col-6 d-flex justify-content-end align-items-center">
-                <?php
-                $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$PK_USER_MASTER' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
-                ?>
-                <input type="checkbox" id="toggleAll" onclick="toggleAllCheckboxes()"/><button type="button" class="btn btn-info m-l-10 text-white" onclick="payAll(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')"> Pay All</button>
-                <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="createEnrollment();" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
-            </div>
-        </div>
-        <div id="enrollment_list" class="p-20">
+    <div class="tab-pane" id="enrollment" role="tabpanel" style="overflow-x: scroll;">
+        <div id="enrollment_list" class="p-20" style="min-width: 1000px;">
 
         </div>
     </div>
@@ -1558,7 +1538,7 @@ z-index: 500;
 
 
     <div class="tab-pane" id="appointment_view" role="tabpanel">
-        <div id="appointment_list_calendar" >
+        <div id="appointment_list_calendar" style="overflow-x: scroll;">
 
         </div>
     </div>
@@ -2759,7 +2739,7 @@ z-index: 500;
     function showEnrollmentList(page) {
         let PK_USER_MASTER=$('.PK_USER_MASTER').val();
         $.ajax({
-            url: "pagination/enrollment_list.php",
+            url: "pagination/enrollment.php",
             type: "GET",
             data: {search_text:'', page:page, master_id:PK_USER_MASTER},
             async: false,
@@ -2775,7 +2755,7 @@ z-index: 500;
     function showAppointmentListView(page) {
         let PK_USER_MASTER=$('.PK_USER_MASTER').val();
         $.ajax({
-            url: "pagination/appointment_list_calendar.php",
+            url: "pagination/appointment.php",
             type: "GET",
             data: {search_text:'', page:page, master_id:PK_USER_MASTER},
             async: false,
