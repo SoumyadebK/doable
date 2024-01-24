@@ -69,7 +69,7 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                         </select>
                     </div>
                 </div>-->
-                <div class="col-4">
+                <div class="col-6">
                     <div class="form-group">
                         <label class="form-label">Location</label>
                         <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
@@ -82,8 +82,7 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                         </select>
                     </div>
                 </div>
-                <input type="hidden" name="PK_GROUP_CLASS[]" value="<?=$row->fields['PK_GROUP_CLASS']?>">
-                <div class="col-4">
+                <div class="col-6">
                     <div class="form-group">
                         <label class="form-label"><?=$service_provider_title?> <span class="text-danger">*</span></label>
                         <select name="SERVICE_PROVIDER_ID_0[]" class="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID_0" required multiple>
@@ -100,10 +99,7 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                                 $orderBy = "";
                             }
                             $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
-                            while (!$row->EOF) {
-                                if (in_array($row->fields['PK_USER'], $selected_service_provider)) {
-                                    $customer_name.= '<p><i class="fa fa-check-square" style="font-size:15px; color: #069419"></i>&nbsp;&nbsp;'.$row->fields['NAME']."<br></p>";
-                                }?>
+                            while (!$row->EOF) {?>
                                 <option value="<?php echo $row->fields['PK_USER'];?>" <?=in_array($row->fields['PK_USER'], $selected_service_provider)?"selected":""?>><?=$row->fields['NAME']?></option>
                                 <?php $row->MoveNext(); } ?>
                         </select>

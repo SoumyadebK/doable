@@ -329,10 +329,20 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
 
     if (isset($_POST['PK_USER_MASTER'])) {
         $db_account->Execute("DELETE FROM `DOA_GROUP_CLASS_CUSTOMER` WHERE `PK_GROUP_CLASS` = '$PK_GROUP_CLASS'");
-        for ($i = 0; $i < count($_POST['PK_USER_MASTER']); $i++) {
+        for ($j = 0; $j < count($_POST['PK_USER_MASTER']); $j++) {
             $GROUP_CLASS_USER_DATA['PK_GROUP_CLASS'] = $PK_GROUP_CLASS;
-            $GROUP_CLASS_USER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$i];
+            $GROUP_CLASS_USER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$j];
             db_perform_account('DOA_GROUP_CLASS_CUSTOMER', $GROUP_CLASS_USER_DATA, 'insert');
+        }
+    }
+
+    if (isset($_POST['SERVICE_PROVIDER_ID_0'])) {
+        $db_account->Execute("DELETE FROM `DOA_GROUP_CLASS_USER` WHERE `PK_GROUP_CLASS` = '$PK_GROUP_CLASS'");
+        for ($k = 0; $k < count($_POST['SERVICE_PROVIDER_ID_'.$i]); $k++) {
+            $GROUP_CLASS_USER_DATA['PK_GROUP_CLASS'] = $PK_GROUP_CLASS;
+            $GROUP_CLASS_USER_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID_'.$i][$k];
+            pre_r($GROUP_CLASS_USER_DATA);
+            db_perform_account('DOA_GROUP_CLASS_USER', $GROUP_CLASS_USER_DATA, 'insert');
         }
     }
     header("location:all_schedules.php?view=table");
