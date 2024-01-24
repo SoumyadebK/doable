@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once('../global/config.php');
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
