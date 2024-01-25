@@ -1643,6 +1643,17 @@ if(!empty($_GET['master_id'])) {
                                             </div>
 
                                             <div class="tab-pane" id="document" role="tabpanel">
+                                                <div class="card-body" style="margin-top: 10PX">
+                                                <a style="font-weight: bold">Client Enrollment Agreements :-</a><br>
+                                                <?php
+                                                $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = '$_GET[master_id]'");
+                                                while (!$res->EOF) {?>
+                                                    <div style="margin-top: 5px">
+                                                    <?=$res->fields['ENROLLMENT_ID']?> - <a href="../uploads/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
+                                                    </div>
+                                                    <?php $res->MoveNext();
+                                                } ?>
+                                                </div>
                                                 <form id="document_form">
                                                     <input type="hidden" name="FUNCTION_NAME" value="saveDocumentData">
                                                     <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
