@@ -392,6 +392,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
             $LEDGER_DATA['PAID_AMOUNT'] = $ledger_record->fields['BILLED_AMOUNT'];
             $LEDGER_DATA['BALANCE'] = 0.00;
             $LEDGER_DATA['IS_PAID'] = 1;
+            $LEDGER_DATA['NOTE'] = $_POST['NOTE'];
             $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
             $LEDGER_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
             $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;

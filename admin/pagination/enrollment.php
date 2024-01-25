@@ -218,7 +218,7 @@ while (!$row->EOF) {
                         $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".$payment_details->fields['CHECK_NUMBER'];
                     }else{
                         $payment_type = $payment_details->fields['PAYMENT_TYPE'];
-                    }?>
+                    } ?>
                     <tr>
                         <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
                         <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
