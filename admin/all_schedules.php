@@ -884,7 +884,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         async: false,
                         cache: false,
                         success: function (data) {
-
+                            window.location.reload();
                         }
                     });
                 } else if (TYPE == "event") {
