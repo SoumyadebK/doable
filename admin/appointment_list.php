@@ -5,7 +5,7 @@ $title = "All Customers";
 $status_check = empty($_GET['status'])?'previous':$_GET['status'];
 
 if ($status_check == 'previous'){
-    $status = "<";
+    $status = "<=";
 } elseif ($status_check == 'future') {
     $status = ">";
 }
