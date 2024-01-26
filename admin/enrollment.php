@@ -1342,7 +1342,7 @@ function generateReceiptPdf($html){
                                                         </div>
 
 
-                                                        <div class="row frequency_div">
+                                                        <div class="row">
                                                             <div class="col-6">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Payment Method</label>
@@ -1474,7 +1474,7 @@ function generateReceiptPdf($html){
                                                             <?php } ?>
                                                         </div>
 
-                                                        <div class="row session_div">
+                                                        <div class="row">
                                                             <div class="col-6" id="first_payment_date_div">
                                                                 <div class="form-group">
                                                                     <label class="form-label">First Payment Date</label>
