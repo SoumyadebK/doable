@@ -649,6 +649,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $LEDGER_DATA['PAID_AMOUNT'] = $ledger_record->fields['BILLED_AMOUNT'];
         $LEDGER_DATA['BALANCE'] = 0.00;
         $LEDGER_DATA['IS_PAID'] = 1;
+        $LEDGER_DATA['NOTE'] = $_POST['NOTE'];
         $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
         $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
         $LEDGER_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template);
@@ -1341,7 +1342,7 @@ function generateReceiptPdf($html){
                                                         </div>
 
 
-                                                        <div class="row frequency_div">
+                                                        <div class="row">
                                                             <div class="col-6">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Payment Method</label>
@@ -1473,7 +1474,7 @@ function generateReceiptPdf($html){
                                                             <?php } ?>
                                                         </div>
 
-                                                        <div class="row session_div">
+                                                        <div class="row">
                                                             <div class="col-6" id="first_payment_date_div">
                                                                 <div class="form-group">
                                                                     <label class="form-label">First Payment Date</label>
@@ -1539,8 +1540,11 @@ function generateReceiptPdf($html){
                                                 $billed_amount = 0;
                                                 $paid_amount = 0;
                                                 $balance = 0;
-                                                $billing_details = $db->Execute("SELECT $account_database.DOA_ENROLLMENT_LEDGER.*, $master_database.DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM $account_database.`DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE ON $account_database.DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = $master_database.DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = '$_GET[id]' AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
-                                                while (!$billing_details->EOF) { $billed_amount = $billing_details->fields['BILLED_AMOUNT']; $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance); ?>
+                                                $billing_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$_GET['id']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+                                                while (!$billing_details->EOF) {
+                                                    $billed_amount = $billing_details->fields['BILLED_AMOUNT'];
+                                                    $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
+                                                    ?>
                                                     <tr>
                                                         <td><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
                                                         <td><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
@@ -1559,8 +1563,17 @@ function generateReceiptPdf($html){
 
                                                     </tr>
                                                     <?php
-                                                    $payment_details = $db->Execute("SELECT $account_database.DOA_ENROLLMENT_LEDGER.*, $master_database.DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM $account_database.`DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE ON $account_database.DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = $master_database.DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE $account_database.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
-                                                    if ($payment_details->RecordCount() > 0){ $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']); ?>
+                                                    $RECEIPT_PDF_LINK = '';
+                                                    $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+                                                    // echo "SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.CHECK_NUMBER FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_BILLING=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_BILLING WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER'];
+                                                    if ($payment_details->RecordCount() > 0){
+                                                        $RECEIPT_PDF_LINK = $payment_details->fields['RECEIPT_PDF_LINK'];
+                                                        $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']);
+                                                        if($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
+                                                            $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".$payment_details->fields['CHECK_NUMBER'];
+                                                        }else{
+                                                            $payment_type = $payment_details->fields['PAYMENT_TYPE'];
+                                                        } ?>
                                                         <tr>
                                                             <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
                                                             <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
@@ -1568,10 +1581,9 @@ function generateReceiptPdf($html){
                                                             <td><?=$payment_details->fields['PAID_AMOUNT']?></td>
                                                             <td><?=number_format((float)$balance, 2, '.', '')?></td>
                                                             <td><?=$payment_details->fields['PAYMENT_TYPE']?></td>
-                                                            <td></td>
+                                                            <td><?=$payment_details->fields['NOTE']?></td>
                                                             <td><?=(($payment_details->fields['TRANSACTION_TYPE']=='Billing')?(($payment_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
-                                                            <td>
-                                                            </td>
+                                                            <td><a href="../uploads/enrollment_pdf/<?=$RECEIPT_PDF_LINK?>" target="_blank">Receipt</a></td>
                                                         </tr>
                                                     <? } ?>
                                                     <?php $billing_details->MoveNext(); } ?>
