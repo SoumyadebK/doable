@@ -64,6 +64,16 @@ while (!$booked_slot_data->EOF) {
     $j++;
 }
 
+$booked_slot_data_group_class = $db_account->Execute("SELECT DOA_GROUP_CLASS.START_TIME, DOA_GROUP_CLASS.END_TIME FROM DOA_GROUP_CLASS LEFT JOIN DOA_GROUP_CLASS_USER ON DOA_GROUP_CLASS.PK_GROUP_CLASS=DOA_GROUP_CLASS_USER.PK_GROUP_CLASS WHERE DOA_GROUP_CLASS_USER.PK_USER = ".$SERVICE_PROVIDER_ID." AND DOA_GROUP_CLASS.DATE = "."'".$date."'");
+$booked_slot_group_class_array = [];
+$k = 0;
+while (!$booked_slot_data_group_class->EOF) {
+    $booked_slot_group_class_array[$k]['START_TIME'] = $booked_slot_data_group_class->fields['START_TIME'];
+    $booked_slot_group_class_array[$k]['END_TIME'] = $booked_slot_data_group_class->fields['END_TIME'];
+    $booked_slot_data_group_class->MoveNext();
+    $k++;
+}
+
 $slot_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_PROVIDER_SERVICES WHERE PK_USER = ".$SERVICE_PROVIDER_ID);
 if ($slot_data->RecordCount() > 0) {
     $SLOT_START = $slot_data->fields[$day . '_START_TIME'];
@@ -93,6 +103,12 @@ foreach ($time_slot_array as $key => $item) {
     }else {
         foreach ($booked_slot_array as $booked_slot_array_data) {
             if ((date('H:i', strtotime($item['slot_start_time'])) == date('H:i', strtotime($booked_slot_array_data['START_TIME']))) && date('H:i', strtotime($item['slot_end_time'])) == date('H:i', strtotime($booked_slot_array_data['END_TIME']))) {
+                $disabled = "pointer-events: none; background-color: blue !important;";
+                $is_disable = 1;
+            }
+        }
+        foreach ($booked_slot_group_class_array as $booked_slot_group_class_array_data) {
+            if ((date('H:i', strtotime($item['slot_start_time'])) == date('H:i', strtotime($booked_slot_group_class_array_data['START_TIME']))) && date('H:i', strtotime($item['slot_end_time'])) == date('H:i', strtotime($booked_slot_group_class_array_data['END_TIME']))) {
                 $disabled = "pointer-events: none; background-color: blue !important;";
                 $is_disable = 1;
             }
