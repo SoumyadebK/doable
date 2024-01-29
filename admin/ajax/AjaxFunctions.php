@@ -298,7 +298,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
 //    $html_template = str_replace('{PERCENTAGE_RATE}','%', $html_template);
     $html_template = str_replace('{PAYMENT_NAME}', $RESPONSE_DATA['PAYMENT_TERM'], $html_template);
     $html_template = str_replace('{NO_AMT_PAYMENT}', $RESPONSE_DATA['NUMBER_OF_PAYMENT'], $html_template);
-    $html_template = str_replace('{STARTING_DATE}', date('Y-m-d', strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])), $html_template);
+    $html_template = str_replace('{STARTING_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])), $html_template);
     $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
 

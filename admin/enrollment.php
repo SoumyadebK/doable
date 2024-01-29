@@ -561,7 +561,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 //    $html_template = str_replace('{PERCENTAGE_RATE}','%', $html_template);
             $html_template = str_replace('{PAYMENT_NAME}', $_POST['PAYMENT_TERM'], $html_template);
             $html_template = str_replace('{NO_AMT_PAYMENT}', $_POST['NUMBER_OF_PAYMENT'], $html_template);
-            $html_template = str_replace('{STARTING_DATE}', date('Y-m-d', strtotime($_POST['BILLING_DATE'])), $html_template);
+            $html_template = str_replace('{STARTING_DATE}', date('m-d-Y', strtotime($_POST['BILLING_DATE'])), $html_template);
             $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
             db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
         }
