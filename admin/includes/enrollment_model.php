@@ -1002,7 +1002,7 @@ $NOTE = '';
             let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
             $('#DOWN_PAYMENT').val(0.00);
             $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
-            $('#down_payment_div').slideUp();
+            $('#down_payment_div').slideDown();
             $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
             $('#payment_confirmation_form_div').slideDown();
             //openModel();

@@ -286,19 +286,32 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{TUITION_COST}', '0', $html_template);
     $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);
     $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
-//    $html_template = str_replace('{OUTS_BAL_PRE_AGREE}', '0', $html_template);
-//    $html_template = str_replace('{UNEARNED_CHARGE}', '0', $html_template);
-//    $html_template = str_replace('{PREV_BAL_RESCHEDULE}', '0', $html_template);
-//    $html_template = str_replace('{CONSOLIDATED_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
-    $html_template = str_replace('{DOWN_PAYMENTS}', $RESPONSE_DATA['DOWN_PAYMENT'], $html_template);
+    if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
+        for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
+            $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($FLEXIBLE_PAYMENT_DATE[$i])), $html_template);
+        }
+    } else {
+        $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])), $html_template);
+    }
+    $html_template = str_replace('{DOWN_PAYMENTS}', number_format((float)$RESPONSE_DATA['DOWN_PAYMENT'], 2, '.', ''), $html_template);
     $html_template = str_replace('{SCHEDULE_AMOUNT}', $RESPONSE_DATA['BALANCE_PAYABLE'], $html_template);
-//    $html_template = str_replace('{SERVICE_CHARGE}', '0', $html_template);
-//    $html_template = str_replace('{TOTAL_PAYMENTS}', '0', $html_template);
-//    $html_template = str_replace('{TOTAL_SELL_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
-//    $html_template = str_replace('{PERCENTAGE_RATE}','%', $html_template);
-    $html_template = str_replace('{PAYMENT_NAME}', $RESPONSE_DATA['PAYMENT_TERM'], $html_template);
-    $html_template = str_replace('{NO_AMT_PAYMENT}', $RESPONSE_DATA['NUMBER_OF_PAYMENT'], $html_template);
-    $html_template = str_replace('{STARTING_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])), $html_template);
+    if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
+        $PAYMENT_METHOD='';
+        $PAYMENT_AMOUNT='';
+        $STARTING_DATE='';
+        for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
+            $PAYMENT_METHOD .= $RESPONSE_DATA['PAYMENT_METHOD']."<br>";
+            $PAYMENT_AMOUNT .= number_format((float)$FLEXIBLE_PAYMENT_AMOUNT[$i], 2, '.', '')."<br>";
+            $STARTING_DATE .= date('m-d-Y', strtotime($FLEXIBLE_PAYMENT_DATE[$i]))."<br>";
+        }
+    } else {
+        $PAYMENT_METHOD = $RESPONSE_DATA['PAYMENT_TERM'];
+        $PAYMENT_AMOUNT = $RESPONSE_DATA['NUMBER_OF_PAYMENT'];
+        $STARTING_DATE = date('m-d-Y', strtotime($RESPONSE_DATA['FIRST_DUE_DATE']));
+    }
+    $html_template = str_replace('{PAYMENT_NAME}', $PAYMENT_METHOD, $html_template);
+    $html_template = str_replace('{NO_AMT_PAYMENT}', $PAYMENT_AMOUNT, $html_template);
+    $html_template = str_replace('{STARTING_DATE}', $STARTING_DATE, $html_template);
     $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
 

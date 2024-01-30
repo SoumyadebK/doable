@@ -168,6 +168,7 @@ if(empty($_GET['id'])){
                                             <a href="javascript:;" class="tag_name" data-tag="{DISCOUNT}" style="font-weight: normal;">{DISCOUNT}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{BAL_DUE}" style="font-weight: normal;">{BAL_DUE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{TOTAL}" style="font-weight: normal;">{TOTAL}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{FIRST_DATE}" style="font-weight: normal;">{FIRST_DATE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{TYPE_OF_ENROLLMENT}" style="font-weight: normal;">{TYPE_OF_ENROLLMENT}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{MISC_SERVICES}" style="font-weight: normal;">{MISC_SERVICES}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{TUITION_COST}" style="font-weight: normal;">{TUITION_COST}</a>
