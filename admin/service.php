@@ -331,7 +331,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
-                                                            <div class="form-group capacity_div" style="display: none">
+                                                            <div class="form-group capacity_div" style="display: <?=(($row->fields['IS_GROUP'] == 1) ? '' : 'none')?>">
                                                                 <div class="col-md-12" >
                                                                     <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY" value="<?=$row->fields['CAPACITY']?>">
                                                                 </div>
@@ -422,7 +422,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
-                                                            <div class="form-group capacity_div" style="display: none">
+                                                            <div class="form-group capacity_div" style="display: <?=(($row->fields['IS_GROUP'] == 1) ? '' : 'none')?>">
                                                                 <div class="col-md-12" >
                                                                     <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY">
                                                                 </div>
@@ -658,7 +658,7 @@ if(empty($_GET['id'])){
                                                 </div>
                                             </div>
                                             <div class="col-1">
-                                                <div class="form-group capacity_div" style="display: none;">
+                                                <div class="form-group capacity_div" style="display: <?=(($row->fields['IS_GROUP'] == 1) ? '' : 'none')?>">
                                                     <div class="col-md-12" >
                                                         <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY">
                                                     </div>

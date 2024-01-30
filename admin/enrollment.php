@@ -549,19 +549,11 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $html_template = str_replace('{TUITION_COST}', '0', $html_template);
             $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);
             $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
-//    $html_template = str_replace('{OUTS_BAL_PRE_AGREE}', '0', $html_template);
-//    $html_template = str_replace('{UNEARNED_CHARGE}', '0', $html_template);
-//    $html_template = str_replace('{PREV_BAL_RESCHEDULE}', '0', $html_template);
-//    $html_template = str_replace('{CONSOLIDATED_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
-            $html_template = str_replace('{DOWN_PAYMENTS}', $_POST['DOWN_PAYMENT'], $html_template);
+            $html_template = str_replace('{DOWN_PAYMENTS}',  $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
             $html_template = str_replace('{SCHEDULE_AMOUNT}', $_POST['BALANCE_PAYABLE'], $html_template);
-//    $html_template = str_replace('{SERVICE_CHARGE}', '0', $html_template);
-//    $html_template = str_replace('{TOTAL_PAYMENTS}', '0', $html_template);
-//    $html_template = str_replace('{TOTAL_SELL_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
-//    $html_template = str_replace('{PERCENTAGE_RATE}','%', $html_template);
             $html_template = str_replace('{PAYMENT_NAME}', $_POST['PAYMENT_TERM'], $html_template);
             $html_template = str_replace('{NO_AMT_PAYMENT}', $_POST['NUMBER_OF_PAYMENT'], $html_template);
-            $html_template = str_replace('{STARTING_DATE}', date('Y-m-d', strtotime($_POST['BILLING_DATE'])), $html_template);
+            $html_template = str_replace('{STARTING_DATE}', date('m-d-Y', strtotime($_POST['BILLING_DATE'])), $html_template);
             $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
             db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
         }
@@ -2249,7 +2241,7 @@ function generateReceiptPdf($html){
             let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
             $('#DOWN_PAYMENT').val(0.00);
             $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
-            $('#down_payment_div').slideUp();
+            $('#down_payment_div').slideDown();
             $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
             $('#payment_confirmation_form_div').slideDown();
             //openModel();
