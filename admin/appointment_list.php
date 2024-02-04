@@ -1,44 +1,91 @@
 <?php
 require_once('../global/config.php');
-$title = "All Customers";
+global $db;
+global $db_account;
+global $master_database;
+global $results_per_page;
 
-$status_check = empty($_GET['status'])?'previous':$_GET['status'];
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
+$title = "All Appointment";
+
+$status_check = empty($_GET['status']) ? '' : $_GET['status'];
+$appointment_time = ' ';
 if ($status_check == 'previous'){
-    $status = "<=";
+    $appointment_time = " AND DOA_APPOINTMENT_MASTER.DATE <= '".date('Y-m-d')."'";
 } elseif ($status_check == 'future') {
-    $status = ">";
+    $appointment_time = " AND DOA_APPOINTMENT_MASTER.DATE > '".date('Y-m-d')."'";
 }
 
-$appointment_status = empty($_GET['appointment_status'])?'1, 3, 5, 7, 8':$_GET['appointment_status'];
+$appointment_status = empty($_GET['appointment_status']) ? '1, 3, 5, 7, 8' : $_GET['appointment_status'];
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
 }
 
-$results_per_page = 100;
-
 $START_DATE = ' ';
 $END_DATE = ' ';
-if (isset($_GET['START_DATE']) && $_GET['START_DATE'] != '') {
+if (!empty($_GET['START_DATE'])) {
     $START_DATE = " AND DOA_APPOINTMENT_MASTER.DATE >= '".date('Y-m-d', strtotime($_GET['START_DATE']))."'";
 }
-if (isset($_GET['END_DATE']) && $_GET['END_DATE'] != '') {
+if (!empty($_GET['END_DATE'])) {
     $END_DATE = " AND DOA_APPOINTMENT_MASTER.DATE <= '".date('Y-m-d', strtotime($_GET['END_DATE']))."'";
 }
 
 $search_text = '';
 $search = $START_DATE.$END_DATE. ' ';
-if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
+if (!empty($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
     $search = $START_DATE.$END_DATE." AND (DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%".$search_text."%' OR CUSTOMER.FIRST_NAME LIKE '%".$search_text."%' OR SERVICE_PROVIDER.FIRST_NAME LIKE '%".$search_text."%' OR CUSTOMER.LAST_NAME LIKE '%".$search_text."%' OR SERVICE_PROVIDER.LAST_NAME LIKE '%".$search_text."%' OR CUSTOMER.EMAIL_ID LIKE '%".$search_text."%' OR CUSTOMER.PHONE LIKE '%".$search_text."%')";
-
 }
 
-$query = $db_account->Execute("SELECT DISTINCT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER), count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS TOTAL_RECORDS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON $master_database.DOA_USER_MASTER.PK_USER = $master_database.CUSTOMER.PK_USER LEFT JOIN $master_database.DOA_USER_LOCATION ON $master_database.CUSTOMER.PK_USER = $master_database.DOA_USER_LOCATION.PK_USER LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON $account_database.DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = $master_database.SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE $master_database.DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN ($appointment_status) AND DOA_APPOINTMENT_MASTER.DATE $status '".date('Y-m-d')."' AND DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search);
+$ALL_APPOINTMENT_QUERY = "SELECT
+                            DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
+                            DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
+                            DOA_APPOINTMENT_MASTER.GROUP_NAME,
+                            DOA_APPOINTMENT_MASTER.SERIAL_NUMBER,
+                            DOA_APPOINTMENT_MASTER.DATE,
+                            DOA_APPOINTMENT_MASTER.START_TIME,
+                            DOA_APPOINTMENT_MASTER.END_TIME,
+                            DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
+                            DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                            DOA_SERVICE_MASTER.SERVICE_NAME,
+                            DOA_SERVICE_CODE.SERVICE_CODE,
+                            DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
+                            DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS,
+                            DOA_APPOINTMENT_STATUS.STATUS_CODE,
+                            DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
+                            DOA_SCHEDULING_CODE.COLOR_CODE,
+                            GROUP_CONCAT(CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) SEPARATOR ',') AS SERVICE_PROVIDER_NAME,
+                            GROUP_CONCAT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) SEPARATOR ',') AS CUSTOMER_NAME
+                        FROM
+                            DOA_APPOINTMENT_MASTER
+                        LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
+                        LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = SERVICE_PROVIDER.PK_USER
+                        
+                        LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
+                        LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                        LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
+                                
+                        LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
+                        LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
+                        LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
+                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+                        LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
+                        WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
+                        AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
+                        AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
+                        $appointment_time
+                        $search
+                        GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
+                        ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC";
 
-$number_of_result =  $query->fields['TOTAL_RECORDS'];
+$query = $db_account->Execute($ALL_APPOINTMENT_QUERY);
+
+$number_of_result =  $query->RecordCount();
 $number_of_page = ceil ($number_of_result / $results_per_page);
 
 if (!isset ($_GET['page']) ) {
@@ -132,48 +179,50 @@ $page_first_result = ($page-1) * $results_per_page;
                 </div>
             </div>
 
-            <div class="row page-titles">
-                <div class="col-md-2 align-self-center">
-                    <?php if ($status_check=='previous') { ?>
-                        <h4 class="text-themecolor">Previous Appointments</h4>
-                    <?php } elseif ($status_check=='future') { ?>
-                        <h4 class="text-themecolor">Future Appointments</h4>
+            <form class="form-material form-horizontal" id="search_form" action="" method="get">
+                <div class="row page-titles">
+                    <div class="col-md-2 align-self-center">
+                        <?php if ($status_check=='previous') { ?>
+                            <h4 class="text-themecolor">Previous Appointments</h4>
+                        <?php } elseif ($status_check=='future') { ?>
+                            <h4 class="text-themecolor">Future Appointments</h4>
+                        <?php } else { ?>
+                            <h4 class="text-themecolor">All Appointments</h4>
+                        <?php } ?>
+                    </div>
+
+                    <?php if (empty($_GET['status']) || $status_check=='future') { ?>
+                        <div class="col-md-2 align-self-center">
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?status=previous'">Previous Appointments</button>
+                        </div>
+                    <?php } elseif ($status_check=='previous') { ?>
+                        <div class="col-md-2 align-self-center">
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?status=future'">Future Appointments</button>
+                        </div>
                     <?php } ?>
-                </div>
 
-                <?php if ($status_check=='previous') { ?>
-                    <div class="col-md-2 align-self-center">
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?status=future'">Future Appointments</button>
-                    </div>
-                <?php } elseif ($status_check=='future') { ?>
-                    <div class="col-md-2 align-self-center">
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?status=previous'">Previous Appointments</button>
-                    </div>
-                <?php } ?>
-
-                <div class="col-2">
-                    <div class="form-material form-horizontal">
-                        <select class="form-control" name="STATUS_CODE" id="STATUS_CODE" onchange="selectStatus(this)">
-                            <option value="">Select Status</option>
-                            <?php
-                            $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
-                            while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($row->fields['PK_APPOINTMENT_STATUS'] == $appointment_status)?"selected":""?>><?=$row->fields['APPOINTMENT_STATUS']?></option>
+                    <div class="col-2">
+                        <div class="form-material form-horizontal">
+                            <select class="form-control" name="appointment_status" id="appointment_status" onchange="$('#search_form').submit()">
+                                <option value="">Select Status</option>
+                                <?php
+                                $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
+                                while (!$row->EOF) { ?>
+                                    <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($row->fields['PK_APPOINTMENT_STATUS'] == $appointment_status)?"selected":""?>><?=$row->fields['APPOINTMENT_STATUS']?></option>
                                 <?php $row->MoveNext(); } ?>
-                        </select>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <div class="col-6">
-                    <form class="form-material form-horizontal" action="" method="get">
+                    <div class="col-6">
                         <div class="input-group">
                             <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?=!empty($_GET['START_DATE'])?$_GET['START_DATE']:''?>">&nbsp;&nbsp;&nbsp;&nbsp;
                             <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date" value="<?=!empty($_GET['END_DATE'])?$_GET['END_DATE']:''?>">&nbsp;&nbsp;&nbsp;&nbsp;
                             <input class="form-control" type="text" id="search_text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
-                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onsubmit="showListView(1)"><i class="fa fa-search"></i></button>
+                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px"><i class="fa fa-search"></i></button>
                         </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
+            </form>
 
             <div class="row">
                 <div id="appointments" class="col-12">
@@ -184,6 +233,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <thead>
                                     <tr>
                                         <th data-type="number" class="sortable" style="cursor: pointer">No</th>
+                                        <th data-type="number" class="sortable" style="cursor: pointer">Service Name</th>
                                         <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
                                         <th data-type="string" class="sortable" style="cursor: pointer">Enrollment ID</th>
                                         <th data-type="string" class="sortable" style="cursor: pointer"><?=$service_provider_title?></th>
@@ -199,22 +249,11 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <tbody>
                                     <?php
                                     $i=$page_first_result+1;
-                                    $appointment_data = $db_account->Execute("SELECT DISTINCT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.IS_PAID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, CONCAT($master_database.CUSTOMER.FIRST_NAME, ' ', $master_database.CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT($master_database.SERVICE_PROVIDER.FIRST_NAME, ' ', $master_database.SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_MASTER.CUSTOMER_ID INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON $master_database.DOA_USER_MASTER.PK_USER = $master_database.CUSTOMER.PK_USER LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = $master_database.SERVICE_PROVIDER.PK_USER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE $master_database.DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN ($appointment_status) AND DOA_APPOINTMENT_MASTER.DATE $status '".date('Y-m-d')."' AND DOA_APPOINTMENT_MASTER.IS_PAID = 0 AND DOA_APPOINTMENT_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search." ORDER BY DATE DESC LIMIT " . $page_first_result . ',' . $results_per_page);
-                                    $paid_session = 0;
-                                    while (!$appointment_data->EOF) {
-                                        $serviceCodeData = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE, NUMBER_OF_SESSION, TOTAL_AMOUNT_PAID, PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = ".$appointment_data->fields['PK_ENROLLMENT_SERVICE']);
-                                        if ($serviceCodeData->RecordCount() > 0) {
-                                            $paid_session = ($serviceCodeData->fields['PRICE_PER_SESSION'] > 0) ? number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $serviceCodeData->fields['PRICE_PER_SESSION'], 2, '.', '') : 0;
-                                            if ($paid_session >= 1) {
-                                                if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
-                                                    $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] - 1;
-                                                } else {
-                                                    $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $paid_session;
-                                                }
-                                            }
-                                        } ?>
+                                    $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
+                                    while (!$appointment_data->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$i;?></td>
+                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL')?'Private Session':'Group Class'?></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
                                             <?php if (!empty($appointment_data->fields['ENROLLMENT_ID'])) { ?>
                                                 <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['ENROLLMENT_ID']." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
@@ -227,7 +266,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
                                             <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=(isset($service_code_array[$appointment_data->fields['SERVICE_CODE']]) && $service_code_array[$appointment_data->fields['SERVICE_CODE']] >= 1)?'Paid':'Unpaid'?></td>
+                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
                                             <td style="text-align: center;">
                                                 <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
                                                     <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>

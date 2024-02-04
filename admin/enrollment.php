@@ -1,5 +1,8 @@
  <?php
 require_once('../global/config.php');
+global $db;
+global $db_account;
+global $master_database;
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -11,9 +14,10 @@ if (empty($_GET['id']))
 else
     $title = "Edit Enrollment";
 
-$PK_USER_MASTER = '';
-if(!empty($_GET['customer_id'])) {
-    $PK_USER_MASTER = $_GET['customer_id'];
+if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
+    $header = 'customer.php?id='.$_GET['id_customer'].'&master_id='.$_GET['master_id_customer'].'&tab=enrollment';
+} else {
+    $header = 'all_enrollments.php';
 }
 
 $package = $db_account->Execute("SELECT IS_PACKAGE FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
@@ -54,6 +58,17 @@ $EXPIRATION_DATE = '';
 $CHECK_NUMBER = '';
 $CHECK_DATE = '';
 $NOTE = '';
+
+ $PK_USER_MASTER = '';
+ if(!empty($_GET['master_id_customer'])) {
+     $PK_USER_MASTER = $_GET['master_id_customer'];
+     $user_location = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
+     if ($user_location->RecordCount() > 0) {
+         $PK_LOCATION = $user_location->fields['PK_LOCATION'];
+     } else {
+         $PK_LOCATION = 0;
+     }
+ }
 
 if(!empty($_GET['id'])) {
     $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
@@ -538,7 +553,8 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $TUITION .= $enrollment_service_data->fields['TOTAL']."<br>";
                 $DISCOUNT .= $enrollment_service_data->fields['DISCOUNT']."<br>";
                 $BAL_DUE .= $enrollment_service_data->fields['FINAL_AMOUNT']."<br>";
-                $enrollment_service_data->MoveNext(); }
+                $enrollment_service_data->MoveNext();
+            }
             $html_template = str_replace('{SERVICE_DETAILS}', $SERVICE_DETAILS, $html_template);
             $html_template = str_replace('{PVT_LESSONS}', $PVT_LESSONS, $html_template);
             $html_template = str_replace('{TUITION}', $TUITION, $html_template);
@@ -592,6 +608,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
             $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID']+$serviceAmount;
             db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update'," PK_ENROLLMENT_SERVICE = ".$enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+            markAppointmentPaid($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
             $enrollmentServiceData->MoveNext();
         }
 
@@ -653,7 +670,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
     }
 
-    header('location:all_enrollments.php');
+    header('location:'.$header);
 }
 
 function generateReceiptPdf($html){
@@ -2297,7 +2314,7 @@ function generateReceiptPdf($html){
                                 $('#AMOUNT_TO_PAY').val(balance_payable.toFixed(2));
                                 $('#payment_confirmation_form_div').slideDown();
                             } else {
-                                window.location.href = 'all_enrollments.php';
+                                window.location.href = '<?=$header?>';
                             }
                         } else {
                             if (($('.PAYMENT_METHOD:checked').val() === 'One Time') || (parseFloat($('#DOWN_PAYMENT').val()) > 0) || ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() === firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth()))) {
@@ -2319,7 +2336,7 @@ function generateReceiptPdf($html){
                                 openModel();
 
                             } else {
-                                window.location.href = 'all_enrollments.php';
+                                window.location.href = '<?=$header?>';
                             }
                         }
                     }

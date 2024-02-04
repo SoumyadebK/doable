@@ -3,6 +3,7 @@ session_start();
 ob_start();
 require_once('query_factory.php');
 require_once('common_functions.php');
+require_once('helper_function.php');
 $db = new queryFactory();
 $master_database = 'DOA_MASTER';
 if($_SERVER['HTTP_HOST'] == 'localhost' ) {
@@ -58,3 +59,5 @@ if ($db->error_number){
         }
     }
 }
+
+$results_per_page = 50;

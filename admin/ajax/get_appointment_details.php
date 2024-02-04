@@ -1,5 +1,8 @@
 <?php
 require_once('../../global/config.php');
+global $db;
+global $db_account;
+global $master_database;
 
 $userType = "Customers";
 $user_role_condition = " AND PK_ROLES = 4";
@@ -8,7 +11,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     header("location:../login.php");
     exit;
 }
-$res = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = '$_POST[PK_APPOINTMENT_MASTER]'");
+
+$res = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.*, DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER AS CUSTOMER_ID, DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER AS SERVICE_PROVIDER_ID FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
 
 if($res->RecordCount() == 0){
     header("location:all_services.php");
@@ -200,7 +204,7 @@ $customer_email = $customer_data->fields['EMAIL_ID'];
 $selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
 $selected_user_id = $customer_data->fields['PK_USER'];
 
-    $res = $db->Execute("SELECT * FROM DOA_USERS JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
+    $res = $db->Execute("SELECT * FROM DOA_USERS JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
 
     if($res->RecordCount() == 0){
         header("location:all_customers.php");
