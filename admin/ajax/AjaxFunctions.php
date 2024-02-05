@@ -320,7 +320,6 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{PAYMENT_NAME}', $PAYMENT_METHOD, $html_template);
     $html_template = str_replace('{NO_AMT_PAYMENT}', $PAYMENT_AMOUNT, $html_template);
     $html_template = str_replace('{STARTING_DATE}', $STARTING_DATE, $html_template);
-    pre_r($html_template);
     $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
 
