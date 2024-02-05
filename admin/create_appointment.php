@@ -257,7 +257,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         }
     }
 
-    markAppointmentPaid($PK_ENROLLMENT_MASTER_ARRAY[1]);
+    markAppointmentPaid($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
 
     //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 

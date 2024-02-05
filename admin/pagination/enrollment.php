@@ -19,6 +19,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
+                            DOA_SERVICE_CODE.PK_SERVICE_CODE,
                             DOA_SERVICE_CODE.SERVICE_CODE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
@@ -302,6 +303,7 @@ while (!$row->EOF) {
                 } else {
                     $service_code_array[$appointment_data->fields['SERVICE_CODE']] = 1;
                 }
+                $per_session_price = $db_account->Execute("SELECT `PRICE_PER_SESSION`, NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND `PK_SERVICE_CODE` = ".$appointment_data->fields['PK_SERVICE_CODE']);
                 $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
                 $CHANGED_BY = '';
                 while (!$status_data->EOF) {
@@ -310,7 +312,7 @@ while (!$row->EOF) {
                 } ?>
                 <tr onclick="$(this).next().slideToggle();">
                     <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_NAME']?></td>
-                    <td style="text-align: left;"><?=$service_code_array[$appointment_data->fields['SERVICE_CODE']].'/'.$serviceCodeData->fields['NUMBER_OF_SESSION']?></td>
+                    <td style="text-align: left;"><?=$service_code_array[$appointment_data->fields['SERVICE_CODE']].'/'.$per_session_price->fields['NUMBER_OF_SESSION']?></td>
                     <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_CODE']?></td>
                     <td style="text-align: center;"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
                     <td style="text-align: center;"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
@@ -321,8 +323,8 @@ while (!$row->EOF) {
                             <a href="javascript:;" class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick='ConfirmUnposted(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);return false;'>Unpost</a>
                         <?php }?>
                     </td>
-                    <td style="text-align: right;"><?=number_format((float)$serviceCodeData->fields['PRICE_PER_SESSION'], 2, '.', ',');?></td>
-                    <?php $service_credit = $total_paid_amount -= $serviceCodeData->fields['PRICE_PER_SESSION']; ?>
+                    <td style="text-align: right;"><?=number_format((float)$per_session_price->fields['PRICE_PER_SESSION'], 2, '.', ',');?></td>
+                    <?php $service_credit = $total_paid_amount -= $per_session_price->fields['PRICE_PER_SESSION']; ?>
                     <td style="color:<?=($service_credit<0)?'red':'black'?>; text-align: right;"><?=number_format((float)($service_credit), 2, '.', ',');?></td>
                 </tr>
                 <tr style="display: none">

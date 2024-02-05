@@ -664,7 +664,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $LEDGER_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template);
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
         $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
     }else{
         db_perform_account('DOA_ENROLLMENT_PAYMENT', $_POST, 'update'," PK_ENROLLMENT_PAYMENT =  '$_POST[PK_ENROLLMENT_PAYMENT]'");
         $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];

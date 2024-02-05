@@ -6,7 +6,7 @@ function markAppointmentPaid($PK_ENROLLMENT_SERVICE)
     if ($serviceCodeData->RecordCount() > 0) {
         $paid_session = ($serviceCodeData->fields['PRICE_PER_SESSION'] > 0) ? ceil($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $serviceCodeData->fields['PRICE_PER_SESSION']) : 0;
         if ($paid_session >= 1) {
-            $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET `IS_PAID` = '1' WHERE APPOINTMENT_TYPE = 'NORMAL' AND PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE' LIMIT $paid_session ORDER BY DATE DESC");
+            $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET `IS_PAID` = '1' WHERE APPOINTMENT_TYPE = 'NORMAL' AND PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE' ORDER BY DATE DESC LIMIT $paid_session");
         }
     }
 }
