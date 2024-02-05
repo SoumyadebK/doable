@@ -14,6 +14,11 @@ if ($appointment_details->RecordCount()==0) {
     $PK_USER_MASTER = $appointment_details->fields['CUSTOMER_ID'];
 }
 
+if (empty($_GET['PK_USER_MASTER'])) {
+    $PK_USER_MASTER = 0;
+} else {
+    $PK_USER_MASTER = $_GET['PK_USER_MASTER'];
+}
 
 if (empty($_GET['PK_USER'])) {
     $PK_USER = 0;

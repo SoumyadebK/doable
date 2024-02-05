@@ -1,5 +1,7 @@
 <?php
 require_once('../global/config.php');
+global $db;
+global $db_account;
 
 use Twilio\Exceptions\ConfigurationException;
 use Twilio\Rest\Client;
@@ -19,7 +21,6 @@ if (!empty($_GET['date'])) {
     $date_array = explode('T', $_GET['date']);
     $date = date("m/d/Y", strtotime($date_array[0]));
     $time = date("h:i A", strtotime($date_array[1]));
-
 } else {
     $date = '';
     $time = '';
@@ -31,6 +32,17 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
     $PK_USER = '';
 }
 
+if (empty($_GET['master_id_customer'])) {
+    $PK_USER_MASTER = 0;
+} else {
+    $PK_USER_MASTER = $_GET['master_id_customer'];
+}
+
+if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
+    $header = 'customer.php?id='.$_GET['id_customer'].'&master_id='.$_GET['master_id_customer'].'&tab=appointment';
+} else {
+    $header = 'all_schedules.php';
+}
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -82,7 +94,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         }
 
         if (count($GROUP_CLASS_DATE_ARRAY) > 0) {
-            $group_class_data = $db_account->Execute("SELECT GROUP_CLASS_ID FROM `DOA_GROUP_CLASS` ORDER BY GROUP_CLASS_ID DESC LIMIT 1");
+            $group_class_data = $db_account->Execute("SELECT GROUP_CLASS_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY GROUP_CLASS_ID DESC LIMIT 1");
             if ($group_class_data->RecordCount() > 0) {
                 $group_class_id = $group_class_data->fields['GROUP_CLASS_ID'] + 1;
             } else {
@@ -92,35 +104,33 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             for ($j = 0; $j < count($GROUP_CLASS_DATE_ARRAY); $j++) {
                 $GROUP_CLASS_DATA['GROUP_CLASS_ID'] = $group_class_id;
                 $GROUP_CLASS_DATA['GROUP_NAME'] = $_POST['GROUP_NAME'];
-                $GROUP_CLASS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
                 $GROUP_CLASS_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
                 $GROUP_CLASS_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
-                //$GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_1'] = $_POST['SERVICE_PROVIDER_ID_1'];
-                //$GROUP_CLASS_DATA['SERVICE_PROVIDER_ID_2'] = $_POST['SERVICE_PROVIDER_ID_2'];
-                $GROUP_CLASS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
+
                 $GROUP_CLASS_DATA['DATE'] = $GROUP_CLASS_DATE_ARRAY[$j];
                 $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
                 $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($END_TIME));
+                $GROUP_CLASS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
                 $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = 1;
                 $GROUP_CLASS_DATA['ACTIVE'] = 1;
+                $GROUP_CLASS_DATA['APPOINTMENT_TYPE'] = 'GROUP';
                 $GROUP_CLASS_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $GROUP_CLASS_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform_account('DOA_GROUP_CLASS', $GROUP_CLASS_DATA, 'insert');
-                $PK_GROUP_CLASS = $db_account->insert_ID();
+                db_perform_account('DOA_APPOINTMENT_MASTER', $GROUP_CLASS_DATA, 'insert');
+                $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
-                $db_account->Execute("DELETE FROM `DOA_GROUP_CLASS_USER` WHERE `PK_GROUP_CLASS` = '$PK_GROUP_CLASS'");
+                $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
                 for ($k = 0; $k < count($_POST['SERVICE_PROVIDER_ID_'.$i]); $k++) {
-                    $GROUP_CLASS_USER_DATA['PK_GROUP_CLASS'] = $PK_GROUP_CLASS;
-                    $GROUP_CLASS_USER_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID_'.$i][$k];
-                    db_perform_account('DOA_GROUP_CLASS_USER', $GROUP_CLASS_USER_DATA, 'insert');
+                    $GROUP_CLASS_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                    $GROUP_CLASS_SP_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID_'.$i][$k];
+                    db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $GROUP_CLASS_SP_DATA, 'insert');
                 }
             }
         }
     }
-
-    header("location:all_schedules.php?view=table");
+    header("location:".$header);
 } elseif ($FUNCTION_NAME == 'saveSpecialAppointment') {
-    $GROUP_CLASS_DATE_ARRAY = [];
+    $SPECIAL_APPOINTMENT_DATE_ARRAY = [];
     if (isset($_POST['IS_STANDING']) && $_POST['IS_STANDING'] == 1) {
         $STARTING_ON = date('Y-m-d', strtotime($_POST['DATE']));
         $LENGTH = $_POST['LENGTH'];
@@ -141,7 +151,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
                 while ($SERVICE_DATE < $END_DATE) {
                     $appointment_day = date('l', strtotime($SERVICE_DATE));
                     if (in_array(strtolower($appointment_day), $DAYS)) {
-                        $GROUP_CLASS_DATE_ARRAY[] = $SERVICE_DATE;
+                        $SPECIAL_APPOINTMENT_DATE_ARRAY[] = $SERVICE_DATE;
                     }
                     $SERVICE_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($SERVICE_DATE)));
                 }
@@ -149,21 +159,21 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
                 $OCCURRENCE_DAYS = (empty($_POST['OCCURRENCE_DAYS'])) ? 7 : $_POST['OCCURRENCE_DAYS'];
 
                 while ($SERVICE_DATE < $END_DATE) {
-                    $GROUP_CLASS_DATE_ARRAY[] = $SERVICE_DATE;
+                    $SPECIAL_APPOINTMENT_DATE_ARRAY[] = $SERVICE_DATE;
                     $SERVICE_DATE = date('Y-m-d', strtotime('+ ' . $OCCURRENCE_DAYS . ' day', strtotime($SERVICE_DATE)));
                     //echo $SERVICE_DATE . "<br>";
                 }
             }
         }
     } else {
-        $GROUP_CLASS_DATE_ARRAY[] = date('Y-m-d', strtotime($_POST['DATE']));
+        $SPECIAL_APPOINTMENT_DATE_ARRAY[] = date('Y-m-d', strtotime($_POST['DATE']));
     }
 
-    if (count($GROUP_CLASS_DATE_ARRAY) > 0) {
-        for ($i = 0; $i < count($GROUP_CLASS_DATE_ARRAY); $i++) {
-            $SPECIAL_APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    if (count($SPECIAL_APPOINTMENT_DATE_ARRAY) > 0) {
+        for ($i = 0; $i < count($SPECIAL_APPOINTMENT_DATE_ARRAY); $i++) {
+            //$SPECIAL_APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
             $SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
-            $SPECIAL_APPOINTMENT_DATA['DATE'] = $GROUP_CLASS_DATE_ARRAY[$i];
+            $SPECIAL_APPOINTMENT_DATA['DATE'] = $SPECIAL_APPOINTMENT_DATE_ARRAY[$i];
             $SPECIAL_APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
             $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
             $SPECIAL_APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
@@ -194,7 +204,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             }
         }
     }
-    header("location:all_schedules.php?view=table");
+    header("location:".$header);
 } elseif ($FUNCTION_NAME == 'saveAppointmentData') {
     unset($_POST['TIME']);
     unset($_POST['FUNCTION_NAME']);
@@ -202,35 +212,56 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         unset($_POST['START_TIME']);
         unset($_POST['END_TIME']);
     }
-    $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
-    $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
+    /*$session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
+    $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];*/
 
     $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
     $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
+    $user_location = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$_POST['CUSTOMER_ID'][0]);
+    if ($user_location->RecordCount() > 0) {
+        $PK_LOCATION = $user_location->fields['PK_LOCATION'];
+    } else {
+        $PK_LOCATION = 0;
+    }
+    $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $_POST['PK_ENROLLMENT_MASTER']);
+    $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[0];
+    $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_MASTER_ARRAY[1];
+    $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[2];
+    $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_ENROLLMENT_MASTER_ARRAY[3];
+    $APPOINTMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
+    $APPOINTMENT_DATA['DATE'] = $_POST['DATE'];
+    $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+    $APPOINTMENT_DATA['ACTIVE'] = 1;
+    $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+    $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+    $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+
     for ($i=0; $i<count($START_TIME_ARRAY); $i++) {
-        $APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-        $APPOINTMENT_DATA['CUSTOMER_ID'] = $_POST['CUSTOMER_ID'];
-
-        $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $_POST['PK_ENROLLMENT_MASTER']);
-        $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[0];
-        $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_MASTER_ARRAY[1];
-        $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[2];
-        $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_ENROLLMENT_MASTER_ARRAY[3];
-
-        $APPOINTMENT_DATA['SERVICE_PROVIDER_ID'] = $_POST['SERVICE_PROVIDER_ID'];
-        $APPOINTMENT_DATA['DATE'] = $_POST['DATE'];
         $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
         $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
-        $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
-        $APPOINTMENT_DATA['ACTIVE'] = 1;
-        $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+        $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
+
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+        for ($j = 0; $j < count($_POST['SERVICE_PROVIDER_ID']); $j++) {
+            $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $APPOINTMENT_SP_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID'][$j];
+            db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+        }
+
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+        for ($k = 0; $k < count($_POST['CUSTOMER_ID']); $k++) {
+            $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
+        }
     }
 
-    rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
+    markAppointmentPaid($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
 
-    header("location:all_schedules.php?view=table");
+    //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
+
+    header("location:".$header);
 } elseif ($FUNCTION_NAME == 'saveAdhocAppointmentData') {
     unset($_POST['TIME']);
     unset($_POST['FUNCTION_NAME']);
@@ -268,7 +299,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
-    header("location:all_schedules.php?view=table");
+    header("location:".$header);
 }
 
 function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
@@ -378,13 +409,13 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
                 url = "ajax/add_special_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
             }
             if (type === 'appointment') {
-                url = "ajax/add_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
+                url = "ajax/add_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>";
             }
             if (type === 'ad_hoc') {
-                url = "ajax/add_ad_hoc_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&id="+PK_APPOINTMENT_MASTER;
+                url = "ajax/add_ad_hoc_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>&id="+PK_APPOINTMENT_MASTER;
             }
             if (type === 'standing') {
-                url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
+                url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>";
             }
             $.ajax({
                 url: url,

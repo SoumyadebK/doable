@@ -1,7 +1,52 @@
 <?php
 require_once('../../global/config.php');
-$PK_USER_MASTER='';
-$results_per_page = 100;
+global $db;
+global $db_account;
+global $master_database;
+global $results_per_page;
+
+$PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
+
+$ALL_APPOINTMENT_QUERY = "SELECT
+                            DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
+                            DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
+                            DOA_APPOINTMENT_MASTER.GROUP_NAME,
+                            DOA_APPOINTMENT_MASTER.SERIAL_NUMBER,
+                            DOA_APPOINTMENT_MASTER.DATE,
+                            DOA_APPOINTMENT_MASTER.START_TIME,
+                            DOA_APPOINTMENT_MASTER.END_TIME,
+                            DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
+                            DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                            DOA_SERVICE_MASTER.SERVICE_NAME,
+                            DOA_SERVICE_CODE.PK_SERVICE_CODE,
+                            DOA_SERVICE_CODE.SERVICE_CODE,
+                            DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_APPOINTMENT_STATUS.STATUS_CODE,
+                            DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
+                            DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
+                            DOA_SCHEDULING_CODE.COLOR_CODE,
+                            GROUP_CONCAT(SERVICE_PROVIDER.PK_USER SEPARATOR ',') AS SERVICE_PROVIDER_ID,
+                            GROUP_CONCAT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) SEPARATOR ',') AS CUSTOMER_NAME
+                        FROM
+                            DOA_APPOINTMENT_MASTER
+                        LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
+                        LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = SERVICE_PROVIDER.PK_USER
+                        
+                        LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
+                        LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                        LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
+                                
+                        LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
+                        LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
+                        LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
+                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+                        LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
+                        %s
+                        AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
+                        AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'NORMAL'
+                        GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
+                        ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.START_TIME";
 
 /*if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
     $search_text = $_GET['search_text'];
@@ -22,7 +67,7 @@ $page_first_result = ($page-1) * $results_per_page;*/
 <?php
 $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
 //$i=$page_first_result+1;
-$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.CREATED_ON FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.CREATED_ON FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
 $AGREEMENT_PDF_LINK = '';
 while (!$row->EOF) {
     $name = $row->fields['ENROLLMENT_NAME'];
@@ -59,7 +104,7 @@ while (!$row->EOF) {
     //$service_credit = $total_bill_and_paid->fields['TOTAL_PAID']-$total_used;
     ?>
     <div class="border" style="margin: 10px;">
-        <div class="row" onclick="$(this).next().slideToggle();" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
+        <div class="row" onclick="$(this).next().slideToggle();$(this).next().next().slideToggle();" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
             <div class="col-2" style="text-align: center; margin-top: 1.5%;">
                 <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>"><?=$enrollment_name.$row->fields['ENROLLMENT_ID']?></a>
                 <p><?=implode(' || ', $serviceMaster)?></p>
@@ -172,7 +217,7 @@ while (!$row->EOF) {
                     <th style="text-align: center;">Paid Amount</th>
                     <th style="text-align: center;">Payment Type</th>
                     <th style="text-align: center;">Balance</th>
-                    <th>
+                    <th style="text-align: center;">
                         <?php if ($paid_count > 0) { ?>
                             <input type="checkbox" class="pay_now_check" id="toggleEnrollment_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" onclick="toggleEnrollmentCheckboxes(<?=$row->fields['PK_ENROLLMENT_MASTER']?>)"/><button type="button" class="btn btn-info m-l-10 text-white pay_selected_btn" onclick="paySelected(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')" disabled> Pay Selected</button>
                         <?php } ?>
@@ -197,13 +242,11 @@ while (!$row->EOF) {
                     <td></td>
                     <td style="text-align: center;"><?=$billing_details->fields['PAYMENT_TYPE']?></td>
                     <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
-                    <td>
+                    <td style="text-align: right;">
                         <?php if($billing_details->fields['IS_PAID']==0 && $billing_details->fields['STATUS']=='A') { ?>
                             <label><input type="checkbox" name="BILLED_AMOUNT[]" class="pay_now_check BILLED_AMOUNT PAYMENT_CHECKBOX_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" data-pk_enrollment_ledger="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>" value="<?=$billing_details->fields['BILLED_AMOUNT']?>"></label>
                             <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</button>
                         <?php } ?>
-                    </td>
-                    <td>
                     </td>
                 </tr>
                 <?php
@@ -224,9 +267,7 @@ while (!$row->EOF) {
                         <td style="text-align: right;"><?=$payment_details->fields['PAID_AMOUNT']?></td>
                         <td style="text-align: center;"><?=$payment_type?></td>
                         <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
-                        <td>
-                        </td>
-                        <td>
+                        <td style="text-align: center;">
                             <?php if ($RECEIPT_PDF_LINK != '' && $RECEIPT_PDF_LINK != null) { ?>
                                 <a href="../uploads/enrollment_pdf/<?=$RECEIPT_PDF_LINK?>" target="_blank">Receipt</a>
                             <?php } ?>
@@ -235,7 +276,9 @@ while (!$row->EOF) {
                 <?php } ?>
                 <?php $billing_details->MoveNext(); } ?>
             </tbody>
+        </table>
 
+        <table id="myTable" class="table table-striped border" style="display: none">
             <thead>
                 <tr>
                     <th style="text-align: left;">Service</th>
@@ -251,7 +294,7 @@ while (!$row->EOF) {
 
             <tbody>
             <?php
-            $appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.EDITED_ON, DOA_APPOINTMENT_MASTER.COMMENT, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.OLD_PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.SERIAL_NUMBER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.IS_PAID, DOA_APPOINTMENT_MASTER.CANCELLED_ON, DOA_APPOINTMENT_MASTER.CANCELLED_BY, DOA_APPOINTMENT_MASTER.CHANGED_ON, DOA_APPOINTMENT_MASTER.CHANGED_BY, DOA_APPOINTMENT_MASTER.CREATED_ON, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.PRICE AS SESSION_COST, DOA_APPOINTMENT_MASTER.ACTIVE, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE, CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS NAME FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS ON $master_database.DOA_USERS.PK_USER=DOA_APPOINTMENT_MASTER.EDITED_BY WHERE DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." ORDER BY DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME");
+            $appointment_data = $db_account->Execute(sprintf($ALL_APPOINTMENT_QUERY, " WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER'].""));
             $j=1;
             $service_code_array = [];
             while (!$appointment_data->EOF) {

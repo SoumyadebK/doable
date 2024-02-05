@@ -335,6 +335,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
 
             $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID']+$serviceAmount;
             db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update'," PK_ENROLLMENT_SERVICE = ".$enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+            markAppointmentPaid($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
             $enrollmentServiceData->MoveNext();
         }
 
@@ -397,7 +398,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
             $LEDGER_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template);
             db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
             $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
-            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER = " .$PK_ENROLLMENT_LEDGER_ARRAY[$i]);
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER = " .$PK_ENROLLMENT_LEDGER_ARRAY[$i]);
         }
     }else{
         db_perform_account('DOA_ENROLLMENT_PAYMENT', $_POST, 'update'," PK_ENROLLMENT_PAYMENT =  '$_POST[PK_ENROLLMENT_PAYMENT]'");
@@ -682,7 +683,7 @@ if(!empty($_GET['master_id'])) {
                                             <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
                                             <?php if(!empty($_GET['id'])) { ?>
                                                 <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Enrollments</span></a> </li>
-                                                <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showListView(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
+                                                <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'unposted')" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
                                                 <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
                                                 <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
                                                 <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
@@ -1615,7 +1616,7 @@ if(!empty($_GET['master_id'])) {
                                                                         <select class="form-control" name="INQUIRY_TAKER_ID">
                                                                             <option>Select</option>
                                                                             <?php
-                                                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                                                             while (!$row->EOF) { ?>
                                                                                 <option value="<?php echo $row->fields['PK_USER'];?>" <?=($row->fields['PK_USER'] == $INQUIRY_TAKER_ID)?'selected':''?>><?=$row->fields['NAME']?></option>
                                                                             <?php $row->MoveNext(); } ?>
@@ -1732,7 +1733,7 @@ if(!empty($_GET['master_id'])) {
                                                         ?>
                                                         <input type="checkbox" id="toggleAll" onclick="toggleAllCheckboxes()"/>
                                                         <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="payAll(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>')">Pay All</a>
-                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="createEnrollment();" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
+                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="enrollment.php?id_customer=<?=$_GET['id']?>&master_id_customer=<?=$_GET['master_id']?>&source=customer" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
                                                     </div>
                                                 </div>
                                                 <div id="enrollment_list" class="p-20">
@@ -1744,16 +1745,16 @@ if(!empty($_GET['master_id'])) {
                                             <div class="tab-pane" id="appointment" role="tabpanel">
                                                 <div class="row">
                                                     <div id="posted" class="col-md-3 align-self-center" style="margin-left: 20%">
-                                                        <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showPosted(1)"> Show Posted</button>
+                                                        <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showAppointment(1, 'posted')"> Show Posted</button>
                                                     </div>
                                                     <div id="unposted" class="col-md-3 align-self-center" style="margin-left: 20%">
-                                                        <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showListView(1)"> Show Unposted</button>
+                                                        <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showAppointment(1, 'unposted')"> Show Unposted</button>
                                                     </div>
                                                     <div id="canceled" class="col-md-2 align-self-center" style="margin-left: -15%">
-                                                        <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showCanceled(1)"> Show Canceled</button>
+                                                        <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showAppointment(1, 'cancelled')"> Show Canceled</button>
                                                     </div>
-                                                    <div class="col-md-4 align-self-center">
-                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createNewAppointment();" style="width: 125px; float: right;"><i class="fa fa-plus-circle"></i> Appointment</a>
+                                                    <div class="col-md-4">
+                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white" href="create_appointment.php?id_customer=<?=$_GET['id']?>&master_id_customer=<?=$_GET['master_id']?>&source=customer" style="width: 125px; float: right;"><i class="fa fa-plus-circle"></i> Appointment</a>
                                                     </div>
                                                 </div>
                                                 <div id="posted_list" style="margin-left: 2%; font-weight: bold;">
@@ -3159,63 +3160,41 @@ if(!empty($_GET['master_id'])) {
             window.scrollTo(0,0);
         }
 
-        function showListView(page) {
+        function showAppointment(page, type) {
             let PK_USER_MASTER=$('.PK_USER_MASTER').val();
             $.ajax({
                 url: "pagination/appointment.php",
                 type: "GET",
-                data: {search_text:'', page:page, master_id:PK_USER_MASTER},
+                data: {search_text:'', page:page, master_id:PK_USER_MASTER, type:type},
                 async: false,
                 cache: false,
                 success: function (result) {
                     $('#appointment_list').html(result)
-                    $('#unposted').hide()
-                    $('#posted').show();
-                    $('#canceled').show();
-                    $('#posted_list').hide();
-                    $('#unposted_list').show();
-                    $('#canceled_list').hide();
-                }
-            });
-            window.scrollTo(0,0);
-        }
-
-        function showPosted(page) {
-            let PK_USER_MASTER=$('.PK_USER_MASTER').val();
-            $.ajax({
-                url: "pagination/posted_appointment.php",
-                type: "GET",
-                data: {search_text:'', page:page, master_id:PK_USER_MASTER},
-                async: false,
-                cache: false,
-                success: function (result) {
-                    $('#appointment_list').html(result);
-                    $('#posted').hide();
-                    $('#unposted').show();
-                    $('#canceled').show();
-                    $('#unposted_list').hide();
-                    $('#posted_list').show();
-                    $('#canceled_list').hide();
-                }
-            });
-            window.scrollTo(0,0);
-        }
-
-        function showCanceled(page) {
-            let PK_USER_MASTER=$('.PK_USER_MASTER').val();
-            $.ajax({
-                url: "pagination/canceled_appointment.php",
-                type: "GET",
-                data: {search_text:'', page:page, master_id:PK_USER_MASTER},
-                async: false,
-                cache: false,
-                success: function (result) {
-                    $('#appointment_list').html(result);
-                    $('#posted').show();
-                    $('#unposted').hide();
-                    $('#unposted_list').hide();
-                    $('#posted_list').hide();
-                    $('#canceled_list').show();
+                    if (type === 'unposted') {
+                        $('#unposted').hide()
+                        $('#posted').show();
+                        $('#canceled').show();
+                        $('#posted_list').hide();
+                        $('#unposted_list').show();
+                        $('#canceled_list').hide();
+                    } else {
+                        if (type === 'posted') {
+                            $('#posted').hide();
+                            $('#unposted').show();
+                            $('#canceled').show();
+                            $('#unposted_list').hide();
+                            $('#posted_list').show();
+                            $('#canceled_list').hide();
+                        } else {
+                            if (type === 'cancelled') {
+                                $('#posted').show();
+                                $('#unposted').hide();
+                                $('#unposted_list').hide();
+                                $('#posted_list').hide();
+                                $('#canceled_list').show();
+                            }
+                        }
+                    }
                 }
             });
             window.scrollTo(0,0);
