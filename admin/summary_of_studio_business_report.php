@@ -5,7 +5,9 @@ $title = "SUMMARY OF STUDIO BUSINESS REPORT";
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
-} ?>
+}
+
+?>
 
 <!DOCTYPE html>
 <html lang="en">

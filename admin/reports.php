@@ -74,26 +74,19 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                 <h4 class="card-title">Electronic Weekly Reports</h4>
                             </div>
                             <div class="row">
-                                <div class="col-3">
-                                    <div>
-                                        <select class="form-control" required name="NAME" id="NAME" onchange="editpage(this);">
-                                            <option value="">ROYALTY / SERVICE REPORT</option>
-                                            <option value="">SUMMARY OF STUDIO BUSINESS REPORT</option>
-                                            <option value="">STAFF PERFORMANCE REPORT</option>
+                                <form class="form-material form-horizontal" action="" method="get">
+                                    <div class="input-group">
+                                        <select class="form-control" required name="NAME" id="NAME">
+                                            <option value="">Select Report</option>
+                                            <option value="0">ROYALTY / SERVICE REPORT</option>
+                                            <option value="1">SUMMARY OF STUDIO BUSINESS REPORT</option>
+                                            <option value="2">STAFF PERFORMANCE REPORT</option>
                                         </select>
+                                        <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?=!empty($_GET['START_DATE'])?$_GET['START_DATE']:''?>">&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">View</button>
+                                        <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Export</button>
                                     </div>
-                                </div>
-                                <div class="col-2">
-                                    <div class="form-group">
-                                        <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date">
-                                    </div>
-                                </div>
-                                <div class="col-1">
-                                    <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">View</button>
-                                </div>
-                                <div class="col-1">
-                                    <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Export</button>
-                                </div>
+                                </form>
                             </div>
                         </div>
                     </div>

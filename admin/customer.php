@@ -298,16 +298,9 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
             $html_template = str_replace('{TUITION_COST}', '0', $html_template);
             $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);
             $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
-//    $html_template = str_replace('{OUTS_BAL_PRE_AGREE}', '0', $html_template);
-//    $html_template = str_replace('{UNEARNED_CHARGE}', '0', $html_template);
-//    $html_template = str_replace('{PREV_BAL_RESCHEDULE}', '0', $html_template);
-//    $html_template = str_replace('{CONSOLIDATED_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
+            $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($_POST['BILLING_DATE'])), $html_template);
             $html_template = str_replace('{DOWN_PAYMENTS}',  $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
             $html_template = str_replace('{SCHEDULE_AMOUNT}', $_POST['BALANCE_PAYABLE'], $html_template);
-//    $html_template = str_replace('{SERVICE_CHARGE}', '0', $html_template);
-//    $html_template = str_replace('{TOTAL_PAYMENTS}', '0', $html_template);
-//    $html_template = str_replace('{TOTAL_SELL_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
-//    $html_template = str_replace('{PERCENTAGE_RATE}','%', $html_template);
             $html_template = str_replace('{PAYMENT_NAME}', $_POST['PAYMENT_TERM'], $html_template);
             $html_template = str_replace('{NO_AMT_PAYMENT}', $_POST['NUMBER_OF_PAYMENT'], $html_template);
             $html_template = str_replace('{STARTING_DATE}', date('m-d-Y', strtotime($_POST['BILLING_DATE'])), $html_template);
@@ -366,6 +359,11 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
         $enrollment_billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
         $enrollment_ledger_data = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.* FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_LEDGER=".$PK_ENROLLMENT_LEDGER);
         $enrollment_payment_type = $db->Execute("SELECT PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE=".$_POST['PK_PAYMENT_TYPE']);
+        if($_POST['PK_PAYMENT_TYPE']==2){
+            $PAYMENT_TYPE = $enrollment_payment_type->fields['PAYMENT_TYPE'].' : '.$_POST['CHECK_NUMBER'];
+        }else{
+            $PAYMENT_TYPE = $enrollment_payment_type->fields['PAYMENT_TYPE'];
+        }
         $html_template = str_replace('{BUSINESS_NAME}', $business_details->fields['BUSINESS_NAME'], $html_template);
         $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template);
         $html_template = str_replace('{LOCATION_NAME}', $user_data->fields['LOCATION_NAME'], $html_template);
@@ -373,7 +371,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
         $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
         $html_template = str_replace('{PHONE}', $user_data->fields['PHONE'], $html_template);
         $html_template = str_replace('{BILLING_REF}', $enrollment_billing_data->fields['BILLING_REF'], $html_template);
-        $html_template = str_replace('{PAYMENT_METHOD}', $enrollment_payment_type->fields['PAYMENT_TYPE'], $html_template);
+        $html_template = str_replace('{PAYMENT_METHOD}', $PAYMENT_TYPE, $html_template);
         $html_template = str_replace('{CARD_NUMBER}', $payment_info, $html_template);
         $html_template = str_replace('{DETAILS}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template);
         $html_template = str_replace('{AMOUNT}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template);

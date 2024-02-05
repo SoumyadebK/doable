@@ -263,6 +263,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template);
     $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
     $html_template = str_replace('{CELL_PHONE}', $user_data->fields['PHONE'], $html_template);
+    $TYPE_OF_ENROLLMENT='';
     $SERVICE_DETAILS='';
     $PVT_LESSONS='';
     $TUITION='';
@@ -270,6 +271,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $BAL_DUE='';
     $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
     while (!$enrollment_service_data->EOF) {
+        $TYPE_OF_ENROLLMENT .= $enrollment_service_data->fields['TYPE_OF_ENROLLMENT']."<br>";
         $SERVICE_DETAILS .= $enrollment_service_data->fields['SERVICE_DETAILS']."<br>";
         $PVT_LESSONS .= $enrollment_service_data->fields['NUMBER_OF_SESSION']."<br>";
         $TUITION .= $enrollment_service_data->fields['TOTAL']."<br>";
@@ -300,9 +302,9 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         $PAYMENT_AMOUNT='';
         $STARTING_DATE='';
         for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
-            $PAYMENT_METHOD .= $RESPONSE_DATA['PAYMENT_METHOD']."<br>";
-            $PAYMENT_AMOUNT .= number_format((float)$FLEXIBLE_PAYMENT_AMOUNT[$i], 2, '.', '')."<br>";
-            $STARTING_DATE .= date('m-d-Y', strtotime($FLEXIBLE_PAYMENT_DATE[$i]))."<br>";
+            $PAYMENT_METHOD = $RESPONSE_DATA['PAYMENT_METHOD'];
+            $PAYMENT_AMOUNT = count($FLEXIBLE_PAYMENT_DATE).' x '.number_format((float)$FLEXIBLE_PAYMENT_AMOUNT[0], 2, '.', '');
+            $STARTING_DATE = date('m-d-Y', strtotime($FLEXIBLE_PAYMENT_DATE[0]));
         }
     } else {
         $PAYMENT_METHOD = $RESPONSE_DATA['PAYMENT_TERM'];
@@ -417,7 +419,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                         $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
                     }
                 }
-                if ($BALANCE < $RESPONSE_DATA['TOTAL_AMOUNT']) {
+                if ($BALANCE < $RESPONSE_DATA['TOTAL_AMOUNT'] && $BALANCE != 0) {
                     $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+1 month", strtotime($FLEXIBLE_PAYMENT_DATE[(count($FLEXIBLE_PAYMENT_DATE)-1)])));
                     $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
                     $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;

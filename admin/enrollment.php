@@ -148,7 +148,7 @@ else if ($SQUARE_MODE == 2)
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
 
 if(!empty($_POST['PK_PAYMENT_TYPE'])){
-    $html_template = '<table style="width:100%">
+    $html_template_receipt = '<table style="width:100%">
         <tbody>
             <tr>
                 <td style="text-align:center"><strong>{BUSINESS_NAME}</strong></td>
@@ -549,6 +549,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $html_template = str_replace('{TUITION_COST}', '0', $html_template);
             $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);
             $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
+            $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($_POST['BILLING_DATE'])), $html_template);
             $html_template = str_replace('{DOWN_PAYMENTS}',  $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
             $html_template = str_replace('{SCHEDULE_AMOUNT}', $_POST['BALANCE_PAYABLE'], $html_template);
             $html_template = str_replace('{PAYMENT_NAME}', $_POST['PAYMENT_TERM'], $html_template);
@@ -616,19 +617,25 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $enrollment_billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
         $enrollment_ledger_data = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.* , DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE=DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_LEDGER=".$PK_ENROLLMENT_LEDGER);
         $enrollment_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
-        $html_template = str_replace('{BUSINESS_NAME}', $business_details->fields['BUSINESS_NAME'], $html_template);
-        $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template);
-        $html_template = str_replace('{LOCATION_NAME}', $user_data->fields['LOCATION_NAME'], $html_template);
-        $html_template = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template);
-        $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
-        $html_template = str_replace('{PHONE}', $user_data->fields['PHONE'], $html_template);
-        $html_template = str_replace('{BILLING_REF}', $enrollment_billing_data->fields['BILLING_REF'], $html_template);
-        $html_template = str_replace('{PAYMENT_METHOD}', $enrollment_ledger_data->fields['PAYMENT_TYPE'], $html_template);
-        $html_template = str_replace('{CARD_NUMBER}', $payment_info, $html_template);
-        $html_template = str_replace('{DETAILS}', $enrollment_payment_data->fields['AMOUNT'], $html_template);
-        $html_template = str_replace('{AMOUNT}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template);
-        $html_template = str_replace('{TOTAL}', $enrollment_payment_data->fields['AMOUNT'], $html_template);
-        $html_template = str_replace('{PAYMENT_DATE}', $enrollment_payment_data->fields['PAYMENT_DATE'], $html_template);
+        $enrollment_payment_type = $db->Execute("SELECT PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE=".$_POST['PK_PAYMENT_TYPE']);
+        if($_POST['PK_PAYMENT_TYPE']==2){
+            $PAYMENT_TYPE = $enrollment_payment_type->fields['PAYMENT_TYPE'].' : '.$_POST['CHECK_NUMBER'];
+        }else{
+            $PAYMENT_TYPE = $enrollment_payment_type->fields['PAYMENT_TYPE'];
+        }
+        $html_template_receipt = str_replace('{BUSINESS_NAME}', $business_details->fields['BUSINESS_NAME'], $html_template_receipt);
+        $html_template_receipt = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template_receipt);
+        $html_template_receipt = str_replace('{LOCATION_NAME}', $user_data->fields['LOCATION_NAME'], $html_template_receipt);
+        $html_template_receipt = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template_receipt);
+        $html_template_receipt = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template_receipt);
+        $html_template_receipt = str_replace('{PHONE}', $user_data->fields['PHONE'], $html_template_receipt);
+        $html_template_receipt = str_replace('{BILLING_REF}', $enrollment_billing_data->fields['BILLING_REF'], $html_template_receipt);
+        $html_template_receipt = str_replace('{PAYMENT_METHOD}', $PAYMENT_TYPE, $html_template_receipt);
+        $html_template_receipt = str_replace('{CARD_NUMBER}', $payment_info, $html_template_receipt);
+        $html_template_receipt = str_replace('{DETAILS}', $enrollment_payment_data->fields['AMOUNT'], $html_template_receipt);
+        $html_template_receipt = str_replace('{AMOUNT}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template_receipt);
+        $html_template_receipt = str_replace('{TOTAL}', $enrollment_payment_data->fields['AMOUNT'], $html_template_receipt);
+        $html_template_receipt = str_replace('{PAYMENT_DATE}', $enrollment_payment_data->fields['PAYMENT_DATE'], $html_template_receipt);
 
         $PK_ENROLLMENT_PAYMENT = $db_account->insert_ID();
         $ledger_record = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
@@ -643,8 +650,9 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $LEDGER_DATA['IS_PAID'] = 1;
         $LEDGER_DATA['NOTE'] = $_POST['NOTE'];
         $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+        $LEDGER_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
         $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
-        $LEDGER_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template);
+        $LEDGER_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template_receipt);
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
         $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
@@ -1362,6 +1370,32 @@ function generateReceiptPdf($html){
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        <div class="row">
+                                                            <!--<div class="col-6" id="first_payment_date_div">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">First Payment Date</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="MEMBERSHIP_PAYMENT_DATE" id="MEMBERSHIP_PAYMENT_DATE" value="<?php /*=($FIRST_DUE_DATE)?date('m/d/Y', strtotime($FIRST_DUE_DATE)):''*/?>" class="form-control datepicker-future">
+                                                                    </div>
+                                                                </div>
+                                                            </div>-->
+                                                            <div class="col-3" id="down_payment_div" style="display: <?=($PAYMENT_METHOD == 'One Time')?'none':''?>">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Down Payment</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?=$DOWN_PAYMENT?>" class="form-control" onkeyup="calculatePayment()">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Balance Payable</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?=$BALANCE_PAYABLE?>" class="form-control" value="0.00" readonly>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
 
                                                         <div class="row payment_method_div" id="payment_plans_div" style="display: <?=($PAYMENT_METHOD == 'Payment Plans')?'':'none'?>;">
                                                             <div class="col-3">
@@ -1466,32 +1500,7 @@ function generateReceiptPdf($html){
                                                             <?php } ?>
                                                         </div>
 
-                                                        <div class="row">
-                                                            <div class="col-6" id="first_payment_date_div">
-                                                                <div class="form-group">
-                                                                    <label class="form-label">First Payment Date</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" name="MEMBERSHIP_PAYMENT_DATE" id="MEMBERSHIP_PAYMENT_DATE" value="<?=($FIRST_DUE_DATE)?date('m/d/Y', strtotime($FIRST_DUE_DATE)):''?>" class="form-control datepicker-future">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-3" id="down_payment_div" style="display: <?=($PAYMENT_METHOD == 'One Time')?'none':''?>">
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Down Payment</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?=$DOWN_PAYMENT?>" class="form-control" onkeyup="calculatePayment()">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Balance Payable</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?=$BALANCE_PAYABLE?>" class="form-control" value="0.00" readonly>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+
                                                     </div>
 
 
@@ -2221,7 +2230,6 @@ function generateReceiptPdf($html){
         $('#IS_ONE_TIME_PAY').val(0);
         if ($(this).val() == 'One Time'){
             let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
-            $('#first_payment_date_div').slideUp();
             $('#DOWN_PAYMENT').val(0.00);
             $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
             $('#down_payment_div').slideUp();
