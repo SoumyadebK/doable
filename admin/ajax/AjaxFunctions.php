@@ -269,15 +269,21 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $TUITION='';
     $DISCOUNT='';
     $BAL_DUE='';
-    $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+    $enrollment_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+    $enrollment_count = $db_account->Execute("SELECT COUNT(PK_USER_MASTER) AS ENROLLMENT_COUNT FROM DOA_ENROLLMENT_MASTER WHERE PK_USER_MASTER=".$enrollment_service_data->fields['PK_USER_MASTER']);
+    $number = $enrollment_count->RecordCount() > 0 ? $enrollment_count->fields['ENROLLMENT_COUNT'] : '';
+    $ends = array('th','st','nd','rd','th','th','th','th','th','th');
+    $abbreviation = ($number % 100) >= 11 && ($number % 100) <= 13 ? $number . 'th' : $number . $ends[$number % 10];
+
     while (!$enrollment_service_data->EOF) {
-        $TYPE_OF_ENROLLMENT .= $enrollment_service_data->fields['TYPE_OF_ENROLLMENT']."<br>";
+        $TYPE_OF_ENROLLMENT .= $enrollment_service_data->fields['ENROLLMENT_NAME']." - ".$abbreviation."<br>";
         $SERVICE_DETAILS .= $enrollment_service_data->fields['SERVICE_DETAILS']."<br>";
         $PVT_LESSONS .= $enrollment_service_data->fields['NUMBER_OF_SESSION']."<br>";
         $TUITION .= $enrollment_service_data->fields['TOTAL']."<br>";
         $DISCOUNT .= $enrollment_service_data->fields['DISCOUNT']."<br>";
         $BAL_DUE .= $enrollment_service_data->fields['FINAL_AMOUNT']."<br>";
         $enrollment_service_data->MoveNext(); }
+    $html_template = str_replace('{TYPE_OF_ENROLLMENT}', $TYPE_OF_ENROLLMENT, $html_template);
     $html_template = str_replace('{SERVICE_DETAILS}', $SERVICE_DETAILS, $html_template);
     $html_template = str_replace('{PVT_LESSONS}', $PVT_LESSONS, $html_template);
     $html_template = str_replace('{TUITION}', $TUITION, $html_template);
@@ -314,6 +320,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{PAYMENT_NAME}', $PAYMENT_METHOD, $html_template);
     $html_template = str_replace('{NO_AMT_PAYMENT}', $PAYMENT_AMOUNT, $html_template);
     $html_template = str_replace('{STARTING_DATE}', $STARTING_DATE, $html_template);
+    pre_r($html_template);
     $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
 
@@ -419,7 +426,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                         $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
                     }
                 }
-                if ($BALANCE < $RESPONSE_DATA['TOTAL_AMOUNT'] && $BALANCE != 0) {
+                if ($BALANCE < $RESPONSE_DATA['TOTAL_AMOUNT']) {
                     $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+1 month", strtotime($FLEXIBLE_PAYMENT_DATE[(count($FLEXIBLE_PAYMENT_DATE)-1)])));
                     $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
                     $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
