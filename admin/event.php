@@ -1,5 +1,7 @@
 <?php
 require_once('../global/config.php');
+global $db;
+global $db_account;
 
 if (empty($_GET['id']))
     $title = "Add Event";
@@ -21,8 +23,8 @@ if(!empty($_POST)){
     $EVENT_DATA['SHARE_WITH_EMPLOYEES'] = isset($_POST['SHARE_WITH_EMPLOYEES'])?1:0;
     $EVENT_DATA['START_DATE'] = date('Y-m-d', strtotime($_POST['START_DATE']));
     $EVENT_DATA['END_DATE'] = !empty($_POST['END_DATE'])?date('Y-m-d', strtotime($_POST['END_DATE'])):NULL;
-    $EVENT_DATA['ALL_DAY'] = $_POST['ALL_DAY'];
-    if ($_POST['ALL_DAY']==1){
+    $EVENT_DATA['ALL_DAY'] = $_POST['ALL_DAY'] ?? 0;
+    if ($EVENT_DATA['ALL_DAY'] == 1){
         $EVENT_DATA['START_TIME'] = '00:00:00';
         $EVENT_DATA['END_TIME'] = '23:30:00';
     }else {
@@ -75,11 +77,8 @@ if(!empty($_POST)){
             db_perform_account('DOA_EVENT_IMAGE', $EVENT_IMAGE_DATA, 'insert');
         }
     }
-
     header("location:all_events.php");
 }
-
-
 
 if(empty($_GET['id'])){
     $HEADER = '';
