@@ -84,35 +84,21 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     $i=1;
                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                     while (!$row->EOF) {
-                                        $balance_data = $db->Execute("SELECT SUM(BALANCE_PAYABLE) AS ENROLLED, SUM(TOTAL_BALANCE_PAID) AS TOTAL_PAID, SUM(TOTAL_BALANCE_USED) AS BALANCE_USED, SUM(AMOUNT) AS AMOUNT, SUM(REMAINING_AMOUNT) AS REMAINING, SUM(PAID_AMOUNT) AS PAID, SUM(BILLED_AMOUNT) AS BILLED FROM `DOA_ENROLLMENT_BALANCE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_MASTER.PK_USER = ".$row->fields['PK_USER']);
-                                        $enrolled = 0.00;
-                                        $total_paid = 0.00;
-                                        $balance_left = 0.00;
-                                        $used = 0.00;
-                                        $balance = 0.00;
-                                        $amount = 0.00;
-                                        $remaining = 0.00;
-                                        $paid_amount = 0.00;
-                                        if ($balance_data->RecordCount() > 0) {
-                                            $enrolled = $balance_data->fields['ENROLLED'];
-                                            $total_paid = $balance_data->fields['TOTAL_PAID'];
-                                            $balance = $balance_data->fields['TOTAL_PAID'];
-                                            $used = $balance_data->fields['BALANCE_USED'];
-                                            $amount = $balance_data->fields['AMOUNT'];
-                                            $remaining = $balance_data->fields['REMAINING'];
-                                            $balance_left = $balance_data->fields['TOTAL_PAID']-$balance_data->fields['BALANCE_USED'];
-                                            $paid_amount = $balance_data->fields['PAID'];
-                                        } ?>
+                                        $private_data = $db->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS PRIVATE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE = DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND DOA_APPOINTMENT_MASTER.DATE BETWEEN ".date('Y-m-d', strtotime($from_date))." AND ".date('Y-m-d', strtotime($to_date))." AND DOA_USER_MASTER.PK_USER = ".$row->fields['PK_USER']);
+                                        $private = $private_data->RecordCount() > 0 ? $private_data->fields['PRIVATE'] : 0;
+                                        $group_data = $db->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE = DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_APPOINTMENT_MASTER.DATE BETWEEN ".date('Y-m-d', strtotime($from_date))." AND ".date('Y-m-d', strtotime($to_date))." AND DOA_USER_MASTER.PK_USER = ".$row->fields['PK_USER']);
+                                        $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
+                                        ?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['LAST_NAME'].', '.$row->fields['FIRST_NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($enrolled , 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($used, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
+                                            <td><?=$row->fields['LAST_NAME'].', '.$row->fields['FIRST_NAME']?></td>
+                                            <td></td>
+                                            <td style="text-align: center"><?=$private?></td>
+                                            <td style="text-align: center"><?=$group?></td>
+                                            <td style="text-align: right"><?=''?></td>
+                                            <td style="text-align: right"><?=''?></td>
+                                            <td style="text-align: right"><?=''?></td>
+                                            <td style="text-align: right"><?=''?></td>
+                                            <td style="text-align: right"><?=''?></td>
                                         </tr>
                                         <?php $row->MoveNext();
                                         $i++; } ?>
@@ -147,15 +133,15 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                             $paid_amount = $balance_data->fields['PAID'];
                                         } ?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['USER_NAME']?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($enrolled , 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($used, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
+                                            <td><?=$row->fields['NAME']?></td>
+                                            <td><?=$row->fields['USER_NAME']?></td>
+                                            <td style="text-align: right"><?=number_format($enrolled , 2)?></td>
+                                            <td style="text-align: right"><?=number_format($used, 2)?></td>
+                                            <td style="text-align: right"><?=number_format($balance_left, 2)?></td>
+                                            <td style="text-align: right"><?=number_format($balance_left, 2)?></td>
+                                            <td style="text-align: right"><?=number_format($balance_left, 2)?></td>
+                                            <td style="text-align: right"><?=number_format($balance_left, 2)?></td>
+                                            <td style="text-align: right"><?=number_format($balance_left, 2)?></td>
                                         </tr>
                                         <?php $row->MoveNext();
                                         $i++; } ?>
