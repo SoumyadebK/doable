@@ -1009,7 +1009,7 @@ function generateReceiptPdf($html){
                                                     <div class="form-group">
                                                         <label class="form-label">Packages</label>
                                                         <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
-                                                            <option>Select</option>
+                                                            <option value="0">Select</option>
                                                             <?php
                                                             $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE WHERE ACTIVE = 1 ORDER BY PACKAGE_NAME");
                                                             while (!$row->EOF) { ?>
@@ -1339,6 +1339,7 @@ function generateReceiptPdf($html){
                                                     <div class="row" id="payment_tab_div">
                                                         <!--Data coming from ajax-->
                                                     </div>
+
                                                     <div class="row" style="margin-top: -50px;">
                                                         <h4><b>Payment Plans</b></h4>
                                                         <div class="col-6">
@@ -1516,8 +1517,6 @@ function generateReceiptPdf($html){
                                                                 </div>
                                                             <?php } ?>
                                                         </div>
-
-
                                                     </div>
 
 
@@ -1966,11 +1965,6 @@ function generateReceiptPdf($html){
                                             <div class="col-2">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" >
-                                                </div>
-                                            </div>
-                                            <div class="col-1 frequency_div" style="display: none;">
-                                                <div class="form-group">
-                                                    <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-1 session_div">

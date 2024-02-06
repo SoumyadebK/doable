@@ -140,7 +140,7 @@ function saveEnrollmentData($RESPONSE_DATA){
     $ENROLLMENT_MASTER_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     $ENROLLMENT_MASTER_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_NAME'] = $RESPONSE_DATA['ENROLLMENT_NAME'];
-    $ENROLLMENT_MASTER_DATA['PK_PACKAGE'] = $RESPONSE_DATA['PK_PACKAGE'];
+    $ENROLLMENT_MASTER_DATA['PK_PACKAGE'] = $RESPONSE_DATA['PK_PACKAGE'] ?? 0;
     $ENROLLMENT_MASTER_DATA['PK_LOCATION'] = $RESPONSE_DATA['PK_LOCATION'];
     $ENROLLMENT_MASTER_DATA['PK_AGREEMENT_TYPE'] = $RESPONSE_DATA['PK_AGREEMENT_TYPE'];
     $ENROLLMENT_MASTER_DATA['PK_DOCUMENT_LIBRARY'] = $RESPONSE_DATA['PK_DOCUMENT_LIBRARY'];
@@ -207,9 +207,9 @@ function saveEnrollmentData($RESPONSE_DATA){
                 $ENROLLMENT_SERVICE_DATA['NUMBER_OF_SESSION'] = $RESPONSE_DATA['NUMBER_OF_SESSION'][$i];
                 $ENROLLMENT_SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
                 $ENROLLMENT_SERVICE_DATA['TOTAL'] = $RESPONSE_DATA['TOTAL'][$i];
-                $ENROLLMENT_SERVICE_DATA['DISCOUNT_TYPE'] = $RESPONSE_DATA['DISCOUNT_TYPE'][$i];
-                $ENROLLMENT_SERVICE_DATA['DISCOUNT'] = $RESPONSE_DATA['DISCOUNT'][$i];
-                $ENROLLMENT_SERVICE_DATA['FINAL_AMOUNT'] = $RESPONSE_DATA['FINAL_AMOUNT'][$i];
+                $ENROLLMENT_SERVICE_DATA['DISCOUNT_TYPE'] = empty($RESPONSE_DATA['DISCOUNT_TYPE'][$i]) ? 0 : $RESPONSE_DATA['DISCOUNT_TYPE'][$i];
+                $ENROLLMENT_SERVICE_DATA['DISCOUNT'] = empty($RESPONSE_DATA['DISCOUNT'][$i]) ? 0 : $RESPONSE_DATA['DISCOUNT'][$i];
+                $ENROLLMENT_SERVICE_DATA['FINAL_AMOUNT'] = empty($RESPONSE_DATA['FINAL_AMOUNT'][$i]) ? $RESPONSE_DATA['TOTAL'][$i] : $RESPONSE_DATA['FINAL_AMOUNT'][$i];
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'insert');
                 $PK_ENROLLMENT_SERVICE = $db_account->insert_ID();
                 if ($DEFAULT_PK_SERVICE_CODE === $RESPONSE_DATA['PK_SERVICE_CODE'][$i]) {
@@ -246,6 +246,15 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $PK_ENROLLMENT_SERVICE = $RESPONSE_DATA['PK_ENROLLMENT_SERVICE'];
     $FLEXIBLE_PAYMENT_DATE = isset($RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE'])?$RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE']:[];
     $FLEXIBLE_PAYMENT_AMOUNT = isset($RESPONSE_DATA['FLEXIBLE_PAYMENT_AMOUNT'])?$RESPONSE_DATA['FLEXIBLE_PAYMENT_AMOUNT']:[];
+    if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'One Time') {
+        $NUMBER_OF_PAYMENT = 0;
+    } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Payment Plans') {
+        $NUMBER_OF_PAYMENT = $RESPONSE_DATA['NUMBER_OF_PAYMENT'];
+    } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
+        $NUMBER_OF_PAYMENT = count($FLEXIBLE_PAYMENT_DATE);
+    } else {
+        $NUMBER_OF_PAYMENT = 0;
+    }
     unset($RESPONSE_DATA['PK_ENROLLMENT_SERVICE']);
     unset($RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE']);
     unset($RESPONSE_DATA['FLEXIBLE_PAYMENT_AMOUNT']);
@@ -333,6 +342,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         $ENROLLMENT_SERVICE_DATA['FINAL_AMOUNT'] = $RESPONSE_DATA['FINAL_AMOUNT'][$i];
         db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'update', " PK_ENROLLMENT_SERVICE =  '$PK_ENROLLMENT_SERVICE[$i]'");
     }
+
     if(empty($RESPONSE_DATA['PK_ENROLLMENT_BILLING'])){
         $ENROLLMENT_BILLING_DATA['PK_ENROLLMENT_MASTER'] = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
         $ENROLLMENT_BILLING_DATA['BILLING_REF'] = $RESPONSE_DATA['BILLING_REF'];
@@ -342,7 +352,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         $ENROLLMENT_BILLING_DATA['TOTAL_AMOUNT'] = $RESPONSE_DATA['TOTAL_AMOUNT'];
         $ENROLLMENT_BILLING_DATA['PAYMENT_METHOD'] = $RESPONSE_DATA['PAYMENT_METHOD'];
         $ENROLLMENT_BILLING_DATA['PAYMENT_TERM'] = $RESPONSE_DATA['PAYMENT_TERM'];
-        $ENROLLMENT_BILLING_DATA['NUMBER_OF_PAYMENT'] = $RESPONSE_DATA['NUMBER_OF_PAYMENT'];
+        $ENROLLMENT_BILLING_DATA['NUMBER_OF_PAYMENT'] = $NUMBER_OF_PAYMENT;
         if ($RESPONSE_DATA['PK_SERVICE_CLASS'] == 1) {
             $ENROLLMENT_BILLING_DATA['FIRST_DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['MEMBERSHIP_PAYMENT_DATE']));
             $ENROLLMENT_BILLING_DATA['INSTALLMENT_AMOUNT'] = $RESPONSE_DATA['MEMBERSHIP_PAYMENT_AMOUNT'];
@@ -1189,32 +1199,48 @@ function completeAppointment($RESPONSE_DATA){
 }
 
 function getServiceProviderCount($RESPONSE_DATA){
+    global $db;
     global $db_account;
     global $master_database;
     $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
     $date = date('Y-m-d', strtotime($RESPONSE_DATA['currentDate']));
     $all_service_provider = implode(',', $RESPONSE_DATA['all_service_provider']);
+    $return_data = [];
 
-    $ALL_APPOINTMENT_QUERY = "SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS APPOINTMENT_COUNT, SERVICE_PROVIDER.PK_USER AS SERVICE_PROVIDER_ID, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME FROM DOA_APPOINTMENT_MASTER
+    $event_count = $db_account->Execute("SELECT COUNT(DOA_EVENT.PK_EVENT) AS APPOINTMENT_COUNT FROM DOA_EVENT
+                            LEFT JOIN DOA_EVENT_LOCATION ON DOA_EVENT.PK_EVENT = DOA_EVENT_LOCATION.PK_EVENT
+                            WHERE SHARE_WITH_SERVICE_PROVIDERS = 1 AND DOA_EVENT_LOCATION.PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND `START_DATE` = '$date'");
+
+    $all_service_provider_details = $db->Execute("SELECT PK_USER AS SERVICE_PROVIDER_ID, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME FROM DOA_USERS AS SERVICE_PROVIDER WHERE PK_USER IN (".$all_service_provider.")");
+    while (!$all_service_provider_details->EOF){
+        $return_data[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT'] = ($event_count->RecordCount() > 0) ? $event_count->fields['APPOINTMENT_COUNT'] : 0; //+$service_provider_special_appointment_count->fields['SPECIAL_APPOINTMENT_COUNT']+$service_provider_group_class_count->fields['GROUP_CLASS_COUNT'];
+        $return_data[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['SERVICE_PROVIDER_ID'] = $all_service_provider_details->fields['SERVICE_PROVIDER_ID'];
+        $return_data[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['SERVICE_PROVIDER_NAME'] = $all_service_provider_details->fields['SERVICE_PROVIDER_NAME'];
+        $all_service_provider_details->MoveNext();
+    }
+
+    $ALL_APPOINTMENT_QUERY = "SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS APPOINTMENT_COUNT, DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER AS SERVICE_PROVIDER_ID FROM DOA_APPOINTMENT_MASTER
                             LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
-                            LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = SERVICE_PROVIDER.PK_USER
                             WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
                             AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7)
-                            AND SERVICE_PROVIDER.PK_USER IN (".$all_service_provider.") AND `DATE` = '$date' GROUP BY SERVICE_PROVIDER.PK_USER";
-
+                            AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (".$all_service_provider.") AND `DATE` = '$date' GROUP BY DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER";
     $service_provider_appointment_count = $db_account->Execute($ALL_APPOINTMENT_QUERY);
-    /*$service_provider_special_appointment_count = $db_account->Execute("SELECT COUNT(DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT) AS SPECIAL_APPOINTMENT_COUNT FROM DOA_SPECIAL_APPOINTMENT RIGHT JOIN DOA_SPECIAL_APPOINTMENT_USER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT WHERE DOA_SPECIAL_APPOINTMENT_USER.PK_USER IN (".$all_service_provider.") AND DOA_SPECIAL_APPOINTMENT.DATE = '$date'");
-    $service_provider_group_class_count = $db_account->Execute("SELECT COUNT(DOA_GROUP_CLASS.PK_GROUP_CLASS) AS GROUP_CLASS_COUNT FROM DOA_GROUP_CLASS RIGHT JOIN DOA_GROUP_CLASS_USER ON DOA_GROUP_CLASS.PK_GROUP_CLASS = DOA_GROUP_CLASS_USER.PK_GROUP_CLASS WHERE DOA_GROUP_CLASS_USER.PK_USER IN (".$all_service_provider.") AND DOA_GROUP_CLASS.DATE = '$date'");*/
-    $return_data = [];
-    $i = 0;
     while (!$service_provider_appointment_count->EOF){
-        $return_data[$i]['APPOINTMENT_COUNT'] = $service_provider_appointment_count->fields['APPOINTMENT_COUNT']; //+$service_provider_special_appointment_count->fields['SPECIAL_APPOINTMENT_COUNT']+$service_provider_group_class_count->fields['GROUP_CLASS_COUNT'];
-        $return_data[$i]['SERVICE_PROVIDER_ID'] = $service_provider_appointment_count->fields['SERVICE_PROVIDER_ID'];
-        $return_data[$i]['SERVICE_PROVIDER_NAME'] = $service_provider_appointment_count->fields['SERVICE_PROVIDER_NAME'];
+        $return_data[$service_provider_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT'] = $return_data[$service_provider_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT']+$service_provider_appointment_count->fields['APPOINTMENT_COUNT'];
         $service_provider_appointment_count->MoveNext();
-        $i++;
     }
-    echo json_encode($return_data);
+
+    $ALL_SPECIAL_APPOINTMENT_QUERY = "SELECT COUNT(DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT) AS APPOINTMENT_COUNT, DOA_SPECIAL_APPOINTMENT_USER.PK_USER AS SERVICE_PROVIDER_ID FROM DOA_SPECIAL_APPOINTMENT
+                            LEFT JOIN DOA_SPECIAL_APPOINTMENT_USER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT
+                            WHERE DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7)
+                            AND DOA_SPECIAL_APPOINTMENT_USER.PK_USER IN (".$all_service_provider.") AND `DATE` = '$date' GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_USER";
+    $service_provider_special_appointment_count = $db_account->Execute($ALL_SPECIAL_APPOINTMENT_QUERY);
+    while (!$service_provider_special_appointment_count->EOF){
+        $return_data[$service_provider_special_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT'] = $return_data[$service_provider_special_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT']+$service_provider_special_appointment_count->fields['APPOINTMENT_COUNT'];
+        $service_provider_special_appointment_count->MoveNext();
+    }
+
+    echo json_encode(array_values($return_data));
 }
 
 function selectDefaultLocation($RESPONSE_DATA){
