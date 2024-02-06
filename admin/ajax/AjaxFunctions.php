@@ -274,9 +274,13 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $number = $enrollment_count->RecordCount() > 0 ? $enrollment_count->fields['ENROLLMENT_COUNT'] : '';
     $ends = array('th','st','nd','rd','th','th','th','th','th','th');
     $abbreviation = ($number % 100) >= 11 && ($number % 100) <= 13 ? $number . 'th' : $number . $ends[$number % 10];
-
+    if(empty($enrollment_service_data->fields['ENROLLMENT_NAME'])){
+        $enrollment_name = $abbreviation;
+    }else{
+        $enrollment_name = $enrollment_service_data->fields['ENROLLMENT_NAME']." - ".$abbreviation;
+    }
     while (!$enrollment_service_data->EOF) {
-        $TYPE_OF_ENROLLMENT .= $enrollment_service_data->fields['ENROLLMENT_NAME']." - ".$abbreviation."<br>";
+        $TYPE_OF_ENROLLMENT = $enrollment_name;
         $SERVICE_DETAILS .= $enrollment_service_data->fields['SERVICE_DETAILS']."<br>";
         $PVT_LESSONS .= $enrollment_service_data->fields['NUMBER_OF_SESSION']."<br>";
         $TUITION .= $enrollment_service_data->fields['TOTAL']."<br>";
