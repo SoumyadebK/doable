@@ -40,6 +40,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.END_TIME,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_APPOINTMENT_MASTER.COMMENT,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.SERVICE_CODE,
@@ -747,7 +748,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 color: '<?=$appointment_data->fields['COLOR_CODE']?>',
                 type: '<?=$type?>',
                 status: '<?=$appointment_data->fields['STATUS_CODE']?>',
-                statusColor: '<?=$appointment_data->fields['APPOINTMENT_COLOR']?> !important'
+                statusColor: '<?=$appointment_data->fields['APPOINTMENT_COLOR']?> !important',
+                comment: '<?=($appointment_data->fields['COMMENT'])?>',
             },
             <?php $appointment_data->MoveNext();
             } ?>
@@ -870,6 +872,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 if (event.status) {
                     element.find(".fc-title").prepend(' <strong style="color: ' + event.statusColor + '">(' + event.status + ')</strong> ');
                 }
+                if (event.comment) {
+                    element.find(".fc-title").prepend(' <i class="fa fa-comment-dots" style="font-size: 15px"></i> ');
+                }
+
             },
 
             eventClick: function(info) {
@@ -960,6 +966,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         $('.fc-body').css({"overflow-y":"scroll", "height":"62vh", "display":"block"});
 
         $('.fc-agendaDay-button').click(function () {
+            getServiceProviderCount();
             $('.fc-body').css({"overflow-y":"scroll", "height":"62vh", "display":"block"});
         });
         $('.fc-agendaTwoDay-button').click(function () {

@@ -39,24 +39,16 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
                 <label class="form-label">Service Details</label>
             </div>
         </div>
-        <?php if($PK_SERVICE_CLASS == 1){ ?>
-            <div class="col-4">
-                <div class="form-group">
-                    <label class="form-label">Frequency</label>
-                </div>
+        <div class="col-1">
+            <div class="form-group">
+                <label class="form-label">Number of Sessions</label>
             </div>
-        <?php }elseif($PK_SERVICE_CLASS == 2){ ?>
-            <div class="col-1">
-                <div class="form-group">
-                    <label class="form-label">Number of Sessions</label>
-                </div>
+        </div>
+        <div class="col-1">
+            <div class="form-group">
+                <label class="form-label">Price Per Sessions</label>
             </div>
-            <div class="col-1">
-                <div class="form-group">
-                    <label class="form-label">Price Per Sessions</label>
-                </div>
-            </div>
-        <?php } ?>
+        </div>
         <div class="col-1">
             <div class="form-group">
                 <label class="form-label">Amount</label>
@@ -115,25 +107,16 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
                     <input type="text" class="form-control SERVICE_DETAILS" value="<?=$enrollment_service_data->fields['SERVICE_DETAILS']?>" disabled>
                 </div>
             </div>
-            <?php if($PK_SERVICE_CLASS == 1){ ?>
-                <div class="col-4">
-                    <div class="form-group">
-                        <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" value="<?=$enrollment_service_data->fields['FREQUENCY']?>" readonly>
-                    </div>
+            <div class="col-1">
+                <div class="form-group">
+                    <input type="text" class="form-control NUMBER_OF_SESSION" value="<?=$enrollment_service_data->fields['NUMBER_OF_SESSION']?>" disabled>
                 </div>
-            <?php }elseif($PK_SERVICE_CLASS == 2){ ?>
-                <div class="col-1">
-                    <div class="form-group">
-                        <input type="text" class="form-control NUMBER_OF_SESSION" value="<?=$enrollment_service_data->fields['NUMBER_OF_SESSION']?>" disabled>
-                    </div>
+            </div>
+            <div class="col-1">
+                <div class="form-group">
+                    <input type="text" class="form-control PRICE_PER_SESSION" value="<?=$enrollment_service_data->fields['PRICE_PER_SESSION']?>" disabled>
                 </div>
-                <div class="col-1">
-                    <div class="form-group">
-                        <input type="text" class="form-control PRICE_PER_SESSION" value="<?=$enrollment_service_data->fields['PRICE_PER_SESSION']?>" disabled>
-                    </div>
-                </div>
-            <?php } ?>
-
+            </div>
             <div class="col-1">
                 <div class="form-group">
                     <input type="text" class="form-control TOTAL" value="<?=$enrollment_service_data->fields['TOTAL']?>" disabled>
