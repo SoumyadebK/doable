@@ -5,7 +5,18 @@ $title = "WEEKLY ROYALTY / SERVICE REPORT";
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
-} ?>
+}
+
+if (!empty($_GET['date'])){
+    $from_date = $_GET['date'];
+    $to_date = date('m/d/y', strtotime("+7 day", strtotime($from_date)));
+    $duedt = explode("/", $from_date);
+    $date  = mktime(0, 0, 0, $duedt[0], $duedt[1], $duedt[2]);
+    $week_number  = (int)date('W', $date);
+}
+$res = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -50,9 +61,9 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
                                     <thead>
                                     <tr>
-                                        <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: Arthur Murray Thousand Oaks</th>
+                                        <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?=$business_name?></th>
                                         <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 1</th>
-                                        <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # (12/24/2023 - 12/30/2023)</th>
+                                        <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?=$week_number?> (<?=$from_date?> - <?=$to_date?>)</th>
                                     </tr>
                                     <tr>
                                         <th style="width:10%; text-align: center; font-weight: bold" rowspan="2">Receipt number</th>
@@ -153,9 +164,9 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
                                     <thead>
                                     <tr>
-                                        <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: Arthur Murray Thousand Oaks</th>
+                                        <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?=$business_name?></th>
                                         <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 2</th>
-                                        <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # (12/24/2023 - 12/30/2023)</th>
+                                        <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?=$week_number?> (<?=$from_date?> - <?=$to_date?>)</th>
                                     </tr>
                                     <tr><th colspan="13">Refunds or credits below completed tuition refund report & photocopy of front & back of caceled cheks must be attached in order to receive credits.
                                             (Identify bank plan, rewrites & cancellation. Attach detail on authorized D-O-R transportation details.)</th>

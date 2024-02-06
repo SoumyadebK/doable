@@ -6,6 +6,16 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     header("location:../login.php");
     exit;
 }
+
+if (!empty($_GET['NAME'])) {
+    if ($_GET['NAME'] == 'royalty_service_report') {
+        header('location:royalty_service_report.php?date='.$_GET['START_DATE']);
+    } elseif ($_GET['NAME'] == 'summary_of_studio_business_report'){
+        header('location:summary_of_studio_business_report.php?date='.$_GET['START_DATE']);
+    } elseif ($_GET['NAME'] == 'staff_performance_report'){
+        header('location:staff_performance_report.php?date='.$_GET['START_DATE']);
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -73,21 +83,29 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                             <div class="col-md-3 col-sm-3 mt-3">
                                 <h4 class="card-title">Electronic Weekly Reports</h4>
                             </div>
-                            <div class="row">
                                 <form class="form-material form-horizontal" action="" method="get">
-                                    <div class="input-group">
-                                        <select class="form-control" required name="NAME" id="NAME">
-                                            <option value="">Select Report</option>
-                                            <option value="0">ROYALTY / SERVICE REPORT</option>
-                                            <option value="1">SUMMARY OF STUDIO BUSINESS REPORT</option>
-                                            <option value="2">STAFF PERFORMANCE REPORT</option>
-                                        </select>
-                                        <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?=!empty($_GET['START_DATE'])?$_GET['START_DATE']:''?>">&nbsp;&nbsp;&nbsp;&nbsp;
-                                        <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">View</button>
-                                        <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Export</button>
+                                    <div class="row">
+                                        <div class="col-4">
+                                            <div class="form-group">
+                                                <select class="form-control" required name="NAME" id="NAME">
+                                                    <option value="">Select Report</option>
+                                                    <option value="royalty_service_report">ROYALTY / SERVICE REPORT</option>
+                                                    <option value="summary_of_studio_business_report">SUMMARY OF STUDIO BUSINESS REPORT</option>
+                                                    <option value="staff_performance_report">STAFF PERFORMANCE REPORT</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="form-group">
+                                                <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?=!empty($_GET['START_DATE'])?$_GET['START_DATE']:''?>">
+                                            </div>
+                                        </div>
+                                        <div class="col-2">
+                                            <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">View</button>
+                                            <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Export</button>
+                                        </div>
                                     </div>
                                 </form>
-                            </div>
                         </div>
                     </div>
                 </div>
