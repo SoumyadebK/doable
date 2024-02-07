@@ -1,12 +1,12 @@
-<div id="myModal" class="modal">
-    <!-- Modal content -->
-    <div class="modal-content" style="margin-top:2%; width: 50%;">
-        <span class="close" style="margin-left: 96%;">&times;</span>
-        <div class="card" id="payment_confirmation_form_div" style="display: none;">
-            <div class="card-body">
-                <h4><b>Payment</b></h4>
-
-                <form id="payment_confirmation_form" role="form" action="" method="post">
+<div class="modal fade" id="payment_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="payment_confirmation_form" role="form" action="" method="post">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Payment</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
                     <input type="hidden" name="sourceId" id="sourceId">
                     <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
                     <input type="hidden" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">
@@ -25,7 +25,7 @@
                                 <div class="form-group">
                                     <label class="form-label">Amount</label>
                                     <div class="col-md-12">
-                                        <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY" value="<?=$AMOUNT?>" class="form-control" readonly>
+                                        <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY" value="<?=($AMOUNT) ?? 0?>" class="form-control" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -39,7 +39,7 @@
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
                                             while (!$row->EOF) { ?>
                                                 <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                            <?php $row->MoveNext(); } ?>
+                                                <?php $row->MoveNext(); } ?>
                                         </select>
                                     </div>
                                     <div id="wallet_balance_div">
@@ -206,8 +206,6 @@
                                 </div>
                             </div>
                         </div>
-
-
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
@@ -218,15 +216,21 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
-                        </div>
                     </div>
-                </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
+
+
+
+
+
 
 <script>
     function getPaymentMethodId(param) {

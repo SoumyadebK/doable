@@ -1778,9 +1778,7 @@ if(!empty($_GET['master_id'])) {
                                             </div>
 
 
-                                            <!--Payment Model-->
-                                            <div id="paymentModel" class="modal">
-                                                <!-- Modal content -->
+                                            <!--<div id="paymentModel" class="modal">
                                                 <div class="modal-content" style="width: 50%;">
                                                     <span class="close" style="margin-left: 96%;">&times;</span>
 
@@ -1788,20 +1786,20 @@ if(!empty($_GET['master_id'])) {
                                                         <div class="card-body">
                                                             <h4><b>Payment</b></h4>
 
-                                                            <form id="payment_confirmation_form_customer" role="form" action="" method="post">
+                                                            <form id="payment_confirmation_form" role="form" action="" method="post">
                                                                 <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
                                                                 <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
                                                                 <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING">
                                                                 <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
-                                                                <input type="hidden" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
-                                                                <input type="hidden" name="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
+                                                                <input type="hidden" name="SECRET_KEY" value="<?php /*=$SECRET_KEY*/?>">
+                                                                <input type="hidden" name="PAYMENT_GATEWAY" value="<?php /*=$PAYMENT_GATEWAY*/?>">
                                                                 <div class="p-20">
                                                                     <div class="row">
                                                                         <div class="col-6">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Customer Name</label>
                                                                                 <div class="col-md-12">
-                                                                                    <p><?=$FIRST_NAME." ".$LAST_NAME?></p>
+                                                                                    <p><?php /*=$FIRST_NAME." ".$LAST_NAME*/?></p>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -1819,7 +1817,7 @@ if(!empty($_GET['master_id'])) {
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Amount</label>
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY_CUSTOMER" class="form-control" readonly>
+                                                                                    <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY" class="form-control" readonly>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -1830,16 +1828,16 @@ if(!empty($_GET['master_id'])) {
                                                                                     <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE_CUSTOMER" onchange="selectPaymentTypeCustomer(this)">
                                                                                         <option value="">Select</option>
                                                                                         <?php
-                                                                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
-                                                                                        while (!$row->EOF) { ?>
-                                                                                            <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                                                            <?php $row->MoveNext(); } ?>
+/*                                                                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                                                                        while (!$row->EOF) { */?>
+                                                                                            <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/?>"><?php /*=$row->fields['PAYMENT_TYPE']*/?></option>
+                                                                                            <?php /*$row->MoveNext(); } */?>
                                                                                     </select>
                                                                                 </div>
-                                                                                <?php $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); ?>
-                                                                                <span id="wallet_balance_span" style="font-size: 10px;color: green; display: none;">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></span>
-                                                                                <input type="hidden" id="WALLET_BALANCE" name="WALLET_BALANCE" value="<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?>">
-                                                                                <input type="hidden" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
+                                                                                <?php /*$wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); */?>
+                                                                                <span id="wallet_balance_span" style="font-size: 10px;color: green; display: none;">Wallet Balance : $<?php /*=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00*/?></span>
+                                                                                <input type="hidden" id="WALLET_BALANCE" name="WALLET_BALANCE" value="<?php /*=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00*/?>">
+                                                                                <input type="hidden" name="PK_USER_MASTER" value="<?php /*=$PK_USER_MASTER*/?>">
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -1862,10 +1860,10 @@ if(!empty($_GET['master_id'])) {
                                                                                     <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING_CUSTOMER" onchange="selectRemainingPaymentType(this)">
                                                                                         <option value="">Select</option>
                                                                                         <?php
-                                                                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
-                                                                                        while (!$row->EOF) { ?>
-                                                                                            <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                                                            <?php $row->MoveNext(); } ?>
+/*                                                                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
+                                                                                        while (!$row->EOF) { */?>
+                                                                                            <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/?>"><?php /*=$row->fields['PAYMENT_TYPE']*/?></option>
+                                                                                            <?php /*$row->MoveNext(); } */?>
                                                                                     </select>
                                                                                 </div>
                                                                             </div>
@@ -1900,7 +1898,7 @@ if(!empty($_GET['master_id'])) {
                                                                     </div>
 
 
-                                                                    <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
+                                                                    <?php /*if ($PAYMENT_GATEWAY == 'Stripe'){ */?>
                                                                         <div class="row payment_type_div" id="credit_card_payment_customer" style="display: none;">
                                                                             <div class="col-12">
                                                                                 <div class="form-group" id="customer_card_div">
@@ -1908,14 +1906,14 @@ if(!empty($_GET['master_id'])) {
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                    <?php } elseif ($PAYMENT_GATEWAY == 'Square'){?>
+                                                                    <?php /*} elseif ($PAYMENT_GATEWAY == 'Square'){*/?>
                                                                         <div class="payment_type_div" id="credit_card_payment_customer" style="display: none;">
                                                                             <div class="row">
                                                                                 <div class="col-12">
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Name (As it appears on your card)</label>
                                                                                         <div class="col-md-12">
-                                                                                            <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$NAME?>">
+                                                                                            <input type="text" name="NAME" id="NAME" class="form-control" value="<?php /*=$NAME*/?>">
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -1925,7 +1923,7 @@ if(!empty($_GET['master_id'])) {
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Card Number</label>
                                                                                         <div class="col-md-12">
-                                                                                            <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?=$CARD_NUMBER?>">
+                                                                                            <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?php /*=$CARD_NUMBER*/?>">
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -1935,7 +1933,7 @@ if(!empty($_GET['master_id'])) {
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Expiration Date</label>
                                                                                         <div class="col-md-12">
-                                                                                            <input type="text" name="EXPIRATION_DATE" id="EXPIRATION_DATE" class="form-control" value="<?=$EXPIRATION_DATE?>" placeholder="MM/YYYY">
+                                                                                            <input type="text" name="EXPIRATION_DATE" id="EXPIRATION_DATE" class="form-control" value="<?php /*=$EXPIRATION_DATE*/?>" placeholder="MM/YYYY">
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -1943,13 +1941,13 @@ if(!empty($_GET['master_id'])) {
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Security Code</label>
                                                                                         <div class="col-md-12">
-                                                                                            <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?=$SECURITY_CODE?>">
+                                                                                            <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?php /*=$SECURITY_CODE*/?>">
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                    <?php } ?>
+                                                                    <?php /*} */?>
 
 
                                                                     <div class="row payment_type_div" id="check_payment_customer" style="display: none;">
@@ -1991,7 +1989,7 @@ if(!empty($_GET['master_id'])) {
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div>-->
 
                                             <div class="tab-pane" id="accounts" role="tabpanel">
                                                 <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="viewPaymentList();" style="width: 150px; float: right;"><i class="fa fa-plus-circle"></i> Create Payment</a>
@@ -2138,6 +2136,9 @@ if(!empty($_GET['master_id'])) {
             </div>
         </div>
     </div>
+
+<!--Payment Model-->
+<?php include('includes/payment.php'); ?>
 
     <style>
         .progress-bar {
@@ -3010,7 +3011,7 @@ if(!empty($_GET['master_id'])) {
             });
 
             // Handle form submission.
-            var form = document.getElementById('payment_confirmation_form_customer');
+            var form = document.getElementById('payment_confirmation_form');
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
                 stripe.createToken(card).then(function (result) {
@@ -3028,7 +3029,7 @@ if(!empty($_GET['master_id'])) {
             // Submit the form with the token ID.
             function stripeTokenHandler(token) {
                 // Insert the token ID into the form so it gets submitted to the server
-                var form = document.getElementById('payment_confirmation_form_customer');
+                var form = document.getElementById('payment_confirmation_form');
                 var hiddenInput = document.createElement('input');
                 hiddenInput.setAttribute('type', 'hidden');
                 hiddenInput.setAttribute('name', 'token');
@@ -3058,9 +3059,10 @@ if(!empty($_GET['master_id'])) {
             $('#enrollment_number').text(ENROLLMENT_ID);
             $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
             $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
-            $('#AMOUNT_TO_PAY_CUSTOMER').val(BILLED_AMOUNT);
+            $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
             $('#payment_confirmation_form_div_customer').slideDown();
-            openPaymentModel();
+            //openPaymentModel();
+            $('#payment_modal').modal('show');
         }
 
         function selectPaymentTypeCustomer(param){
@@ -3080,11 +3082,11 @@ if(!empty($_GET['master_id'])) {
 
                 case 'Wallet':
                     $('#wallet_balance_span').slideDown();
-                    let AMOUNT_TO_PAY_CUSTOMER = parseFloat($('#AMOUNT_TO_PAY_CUSTOMER').val());
+                    let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
                     let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
 
-                    if(AMOUNT_TO_PAY_CUSTOMER > WALLET_BALANCE){
-                        $('#REMAINING_AMOUNT_CUSTOMER').val(AMOUNT_TO_PAY_CUSTOMER-WALLET_BALANCE);
+                    if(AMOUNT_TO_PAY > WALLET_BALANCE){
+                        $('#REMAINING_AMOUNT_CUSTOMER').val(AMOUNT_TO_PAY-WALLET_BALANCE);
                         $('#remaining_amount_div').slideDown();
                         $('#PK_PAYMENT_TYPE_REMAINING_CUSTOMER').prop('required', true);
                     } else {
@@ -3291,9 +3293,10 @@ if(!empty($_GET['master_id'])) {
                 $('#enrollment_number').text(ENROLLMENT_ID);
                 $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
                 $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
-                $('#AMOUNT_TO_PAY_CUSTOMER').val(parseFloat(TOTAL).toFixed(2));
+                $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
                 $('#payment_confirmation_form_div_customer').slideDown();
-                openPaymentModel();
+                //openPaymentModel();
+                $('#payment_modal').modal('show');
             }
         </script>
 
@@ -3316,9 +3319,10 @@ if(!empty($_GET['master_id'])) {
                 $('#enrollment_number').text(ENROLLMENT_ID);
                 $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
                 $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
-                $('#AMOUNT_TO_PAY_CUSTOMER').val(parseFloat(TOTAL).toFixed(2));
+                $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
                 $('#payment_confirmation_form_div_customer').slideDown();
-                openPaymentModel();
+                //openPaymentModel();
+                $('#payment_modal').modal('show');
             }
         </script>
         <script>
