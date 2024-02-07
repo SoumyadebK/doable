@@ -6,7 +6,7 @@ global $master_database;
 global $results_per_page;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
-$type = !empty($_GET['type']) ? $_GET['type'] : 'unposted';
+$type = !empty($_GET['type']) ? $_GET['type'] : '';
 $appointment_type = ' ';
 if ($type === 'posted') {
     $appointment_type = " AND DOA_APPOINTMENT_MASTER.IS_PAID = 1 AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7, 8)";
