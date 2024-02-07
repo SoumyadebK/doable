@@ -302,7 +302,6 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{TUITION}', $TUITION, $html_template);
     $html_template = str_replace('{DISCOUNT}', $DISCOUNT, $html_template);
     $html_template = str_replace('{BAL_DUE}', $BAL_DUE, $html_template);
-    $html_template = str_replace('{TYPE_OF_ENROLLMENT}', '0', $html_template);
     $html_template = str_replace('{MISC_SERVICES}', '0', $html_template);
     $html_template = str_replace('{TUITION_COST}', '0', $html_template);
     $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);

@@ -541,13 +541,24 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $html_template = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template);
             $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
             $html_template = str_replace('{CELL_PHONE}', $user_data->fields['PHONE'], $html_template);
+            $TYPE_OF_ENROLLMENT='';
             $SERVICE_DETAILS='';
             $PVT_LESSONS='';
             $TUITION='';
             $DISCOUNT='';
             $BAL_DUE='';
-            $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
+            $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
+            $enrollment_count = $db_account->Execute("SELECT COUNT(PK_USER_MASTER) AS ENROLLMENT_COUNT FROM DOA_ENROLLMENT_MASTER WHERE PK_USER_MASTER=".$enrollment_service_data->fields['PK_USER_MASTER']);
+            $number = $enrollment_count->RecordCount() > 0 ? $enrollment_count->fields['ENROLLMENT_COUNT'] : '';
+            $ends = array('th','st','nd','rd','th','th','th','th','th','th');
+            $abbreviation = ($number % 100) >= 11 && ($number % 100) <= 13 ? $number . 'th' : $number . $ends[$number % 10];
+            if(empty($enrollment_service_data->fields['ENROLLMENT_NAME'])){
+                $enrollment_name = $abbreviation;
+            }else{
+                $enrollment_name = $enrollment_service_data->fields['ENROLLMENT_NAME']." - ".$abbreviation;
+            }
             while (!$enrollment_service_data->EOF) {
+                $TYPE_OF_ENROLLMENT = $enrollment_name;
                 $SERVICE_DETAILS .= $enrollment_service_data->fields['SERVICE_DETAILS']."<br>";
                 $PVT_LESSONS .= $enrollment_service_data->fields['NUMBER_OF_SESSION']."<br>";
                 $TUITION .= $enrollment_service_data->fields['TOTAL']."<br>";
@@ -555,12 +566,12 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 $BAL_DUE .= $enrollment_service_data->fields['FINAL_AMOUNT']."<br>";
                 $enrollment_service_data->MoveNext();
             }
+            $html_template = str_replace('{TYPE_OF_ENROLLMENT}', $TYPE_OF_ENROLLMENT, $html_template);
             $html_template = str_replace('{SERVICE_DETAILS}', $SERVICE_DETAILS, $html_template);
             $html_template = str_replace('{PVT_LESSONS}', $PVT_LESSONS, $html_template);
             $html_template = str_replace('{TUITION}', $TUITION, $html_template);
             $html_template = str_replace('{DISCOUNT}', $DISCOUNT, $html_template);
             $html_template = str_replace('{BAL_DUE}', $BAL_DUE, $html_template);
-            $html_template = str_replace('{TYPE_OF_ENROLLMENT}', '0', $html_template);
             $html_template = str_replace('{MISC_SERVICES}', '0', $html_template);
             $html_template = str_replace('{TUITION_COST}', '0', $html_template);
             $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);
@@ -570,7 +581,8 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
             $html_template = str_replace('{SCHEDULE_AMOUNT}', $_POST['BALANCE_PAYABLE'], $html_template);
             $html_template = str_replace('{PAYMENT_NAME}', $_POST['PAYMENT_TERM'], $html_template);
             $html_template = str_replace('{NO_AMT_PAYMENT}', $_POST['NUMBER_OF_PAYMENT'], $html_template);
-            $html_template = str_replace('{STARTING_DATE}', date('m-d-Y', strtotime($_POST['BILLING_DATE'])), $html_template);
+            //$html_template = str_replace('{STARTING_DATE}', date('m-d-Y', strtotime($_POST['BILLING_DATE'])), $html_template);
+            $html_template = str_replace('{STARTING_DATE}', '-', $html_template);
             $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
             db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
         }
