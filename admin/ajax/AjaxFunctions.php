@@ -1202,7 +1202,7 @@ function getServiceProviderCount($RESPONSE_DATA){
     global $db_account;
     global $master_database;
     $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
-    $date = date('Y-m-d', strtotime($RESPONSE_DATA['currentDate']));
+    $date = $RESPONSE_DATA['currentDate'];
     $all_service_provider = implode(',', $RESPONSE_DATA['all_service_provider']);
     $return_data = [];
 

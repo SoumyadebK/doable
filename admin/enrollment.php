@@ -2237,7 +2237,7 @@ function generateReceiptPdf($html){
             $('#down_payment_div').slideDown();
             $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
             $('#payment_confirmation_form_div').slideDown();
-            $('#payment_modal').modal('show');
+            //$('#payment_modal').modal('show');
         }
     });
 
