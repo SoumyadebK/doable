@@ -185,18 +185,20 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                                         }else {
                                             $enrollment_name = "$name"." - ";
                                         }
-                                        $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                        $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                                         $serviceCode = [];
                                         $total_used_amount = 0;
+                                        $total_paid_amount = 0;
                                         while (!$serviceCodeData->EOF) {
                                             $PRICE_PER_SESSION = $serviceCodeData->fields['PRICE_PER_SESSION'];
                                             $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE PK_APPOINTMENT_STATUS = 2 AND `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$serviceCodeData->fields['PK_SERVICE_CODE']);
                                             $total_used_amount += ($PRICE_PER_SESSION*$used_session_count->fields['USED_SESSION_COUNT']);
+                                            $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
 
                                             $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'].': '.$serviceCodeData->fields['NUMBER_OF_SESSION'];
                                             $serviceCodeData->MoveNext();
                                         }
-                                        $total_credit_balance = ($row->fields['TOTAL_BALANCE_PAID'])?($row->fields['TOTAL_BALANCE_PAID']-$total_used_amount):0;
+                                        $total_credit_balance = ($total_paid_amount > 0)?($total_paid_amount-$total_used_amount):0;
                                         ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$i;?></td>
@@ -225,7 +227,7 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                                             </td>
                                             <td>
                                                 <?php if ($row->fields['STATUS']=='A') { ?>
-                                                    <a href="javascript:;" onclick="cancelAppointment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>, <?=$total_credit_balance?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px;"></a>
+                                                    <a href="javascript:;" onclick="cancelEnrollment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>, <?=$total_credit_balance?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px;"></a>
                                                 <?php } else { ?>
                                                     <a href="all_enrollments.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>&status=active">Active Enrollment</a>
                                                 <?php } ?>
@@ -264,107 +266,80 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                 </div>
             </div>
 
-            <!--Cancel appointment model-->
-            <div id="myModal" class="modal">
-                <!-- Modal content -->
-                <div class="modal-content" style="width: 50%;">
-                    <span class="close" style="margin-left: 96%;">&times;</span>
-                    <div class="card">
-                        <div class="card-body">
-                            <h4><b>Cancel Enrollment</b></h4>
-                            <form class="p-20" action="" method="post">
-                                <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
-                                <input type="hidden" name="PK_USER_MASTER" class="PK_USER_MASTER">
-                                <input type="hidden" name="CREDIT_BALANCE" class="CREDIT_BALANCE">
-                                <div class="form-group">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label>Cancel Future Appointments?</label>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label><input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="1" required/>&nbsp;Yes</label>&nbsp;&nbsp;
-                                            <label><input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="0" required/>&nbsp;No</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label>Cancel Future Billing?</label>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label><input type="radio" name="CANCEL_FUTURE_BILLING" value="1" required/>&nbsp;Yes</label>&nbsp;&nbsp;
-                                            <label><input type="radio" name="CANCEL_FUTURE_BILLING" value="0" required/>&nbsp;No</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="row">
-                                        <b>Note: Credit balance $<span id="total_credit_balance"></span> will be moved  to Wallet.</b>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="enrollment_cancel_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="p-20" action="" method="post">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Cancel Enrollment</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-body">
+                            <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
+                            <input type="hidden" name="PK_USER_MASTER" class="PK_USER_MASTER">
+                            <input type="hidden" name="CREDIT_BALANCE" class="CREDIT_BALANCE">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label>Cancel Future Appointments?</label>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label><input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="1" required/>&nbsp;Yes</label>&nbsp;&nbsp;
+                                        <label><input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="0" required/>&nbsp;No</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label>Cancel Future Billing?</label>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label><input type="radio" name="CANCEL_FUTURE_BILLING" value="1" required/>&nbsp;Yes</label>&nbsp;&nbsp;
+                                        <label><input type="radio" name="CANCEL_FUTURE_BILLING" value="0" required/>&nbsp;No</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <b>Note: Credit balance $<span id="total_credit_balance"></span> will be moved  to Wallet.</b>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <?php require_once('../includes/footer.php');?>
-<script>
-    // Get the modal
-    var modal = document.getElementById("myModal");
-
-    // Get the <span> element that closes the modal
-    var span = document.getElementsByClassName("close")[0];
-
-    // When the user clicks the button, open the modal
-    function openModel() {
-        modal.style.display = "block";
-    }
-
-    // When the user clicks on <span> (x), close the modal
-    span.onclick = function() {
-        modal.style.display = "none";
-    }
-
-    // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
-</script>
 
 <script>
-    $(function () {
-        $('#myTable').DataTable();
-    });
-    function ConfirmDelete(anchor)
-    {
-        var conf = confirm("Are you sure you want to delete?");
-        if(conf)
-            window.location=anchor.attr("href");
-    }
     function editpage(id){
         //alert(i);
         window.location.href = "enrollment.php?id="+id;
     }
 
-    function cancelAppointment(PK_ENROLLMENT_MASTER, PK_USER_MASTER, total_credit_balance) {
+    function cancelEnrollment(PK_ENROLLMENT_MASTER, PK_USER_MASTER, total_credit_balance) {
         $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
         $('.PK_USER_MASTER').val(PK_USER_MASTER);
         $('.CREDIT_BALANCE').val(total_credit_balance);
         $('#total_credit_balance').text(parseFloat(total_credit_balance).toFixed(2));
-        openModel();
+        $('#enrollment_cancel_modal').modal('show');
     }
 </script>
 
-// start sorting
 <script>
     $(function() {
         const ths = $("th");
@@ -562,6 +537,6 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
 
     });
 </script>
-//end sorting
+
 </body>
 </html>

@@ -1643,10 +1643,6 @@ function generateReceiptPdf($html){
                                     </div>
                                 </div>
                                 <?php } ?>
-
-                                <!--Payment Model-->
-                                <?php include('includes/payment.php'); ?>
-
                             </div>
                         </div>
                     </div>
@@ -1656,49 +1652,15 @@ function generateReceiptPdf($html){
     </div>
 </div>
 
+<!--Payment Model-->
+<?php include('includes/payment.php'); ?>
+
 <?php require_once('../includes/footer.php');?>
 
 <!-- jQuery Modal -->
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
 <script src="https://js.stripe.com/v3/"></script>
-
-<script>
-    // Get the modal
-    var modal = document.getElementById("myModal");
-
-    // Get the <span> element that closes the modal
-    var span = document.getElementsByClassName("close")[0];
-
-    // When the user clicks the button, open the modal
-    function openModel() {
-        $('#PK_PAYMENT_TYPE').val('');
-        $('.payment_type_div').slideUp();
-        $('#wallet_balance_div').slideUp();
-        $('#remaining_amount_div').slideUp();
-        $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
-        modal.style.display = "block";
-    }
-
-    // When the user clicks on <span> (x), close the modal
-    span.onclick = function() {
-        modal.style.display = "none";
-    }
-
-    // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
-
-    $(document).keydown(function(e) {
-        // ESCAPE key pressed
-        if (e.keyCode == 27) {
-            modal.style.display = "none";
-        }
-    });
-</script>
 
 <script type="text/javascript">
     function stripePaymentFunction() {
@@ -2249,7 +2211,7 @@ function generateReceiptPdf($html){
             $('#IS_ONE_TIME_PAY').val(1);
             $('#PAYMENT_BILLING_REF').val($('#BILLING_REF').val());
             $('#PAYMENT_BILLING_DATE').val($('#BILLING_DATE').val());
-            openModel();
+            $('#payment_modal').modal('show');
         }
         if ($(this).val() == 'Payment Plans'){
             $('#FIRST_DUE_DATE').prop('required', true);
@@ -2263,7 +2225,7 @@ function generateReceiptPdf($html){
             $('#down_payment_div').slideDown();
             $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
             $('#payment_confirmation_form_div').slideDown();
-            //openModel();
+            $('#payment_modal').modal('show');
         }
     });
 
@@ -2335,7 +2297,7 @@ function generateReceiptPdf($html){
                                     }
                                 }
                                 $('#payment_confirmation_form_div').slideDown();
-                                openModel();
+                                $('#payment_modal').modal('show');
 
                             } else {
                                 window.location.href = '<?=$header?>';
@@ -2369,7 +2331,12 @@ function generateReceiptPdf($html){
         $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
         $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
         $('#payment_confirmation_form_div').slideDown();
-        openModel();
+        $('#PK_PAYMENT_TYPE').val('');
+        $('.payment_type_div').slideUp();
+        $('#wallet_balance_div').slideUp();
+        $('#remaining_amount_div').slideUp();
+        $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+        $('#payment_modal').modal('show');
     }
 
     function selectPaymentType(param){
