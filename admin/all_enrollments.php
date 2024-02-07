@@ -46,7 +46,7 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
     $PK_ENROLLMENT_MASTER = $_POST['PK_ENROLLMENT_MASTER'];
     $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
     if(empty($enrollment_data->fields['ENROLLMENT_NAME'])){
-        $enrollment_name = ' ';
+        $enrollment_name = '';
     }else {
         $enrollment_name = $enrollment_data->fields['ENROLLMENT_NAME']." - ";
     }
@@ -70,7 +70,7 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
             }
             $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
             $INSERT_DATA['CREDIT'] = $_POST['CREDIT_BALANCE'];
-            $INSERT_DATA['DESCRIPTION'] = "Balance credited for cancellation of enrollment".$enrollment_name.$enrollment_data->fields['ENROLLMENT_ID'];
+            $INSERT_DATA['DESCRIPTION'] = "Balance credited for cancellation of enrollment ".$enrollment_name.$enrollment_data->fields['ENROLLMENT_ID'];
             $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
             db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
@@ -234,7 +234,8 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                                                 <?php if ($row->fields['STATUS']=='A') { ?>
                                                     <a href="javascript:;" onclick="cancelEnrollment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>, <?=$total_credit_balance?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px;"></a>
                                                 <?php } else { ?>
-                                                    <a href="all_enrollments.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>&status=active">Active Enrollment</a>
+                                                        <p style="color: red;">Cancelled</p>
+                                                    <!--<a href="all_enrollments.php?id=<?php /*=$row->fields['PK_ENROLLMENT_MASTER']*/?>&status=active">Active Enrollment</a>-->
                                                 <?php } ?>
                                             </td>
                                         </tr>
