@@ -114,10 +114,10 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     <tr>
                                         <?php
                                         $prev_data = $db_account->Execute("SELECT SUM(PAID_AMOUNT) AS CASH FROM DOA_ENROLLMENT_LEDGER WHERE PK_PAYMENT_TYPE = 3 AND YEAR(DUE_DATE) > DATEADD(year,-1,GETDATE())");
-                                        $net = $prev_data->RecordCount() > 0 ? $prev_data->fields['CASH'] : '0.00';
+                                        $prev = $prev_data->RecordCount() > 0 ? $prev_data->fields['CASH'] : '0.00';
                                         ?>
                                         <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">PRV. Y.T.D.</th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$net?></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$prev?></th>
                                         <th style="width:25%; text-align: center; font-weight: bold"></th>
                                         <th style="width:25%; text-align: center; font-weight: bold"></th>
                                     </tr>
@@ -142,10 +142,18 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                         <th style="width:10%; text-align: center; font-weight: bold"># in class [incl.core]</th>
                                     </tr>
                                     <tr>
+                                        <?php
+                                        $customer_data = $db->Execute("SELECT COUNT(DOA_USERS.PK_USER) AS CUSTOMER FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USER_ROLES.PK_USER=DOA_USERS.PK_USER WHERE DOA_USER_ROLES.PK_ROLES=4 AND DOA_USERS.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $customer = $customer_data->RecordCount() > 0 ? $customer_data->fields['CUSTOMER'] : '0';
+                                        $appointment_data = $db->Execute("SELECT COUNT( DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER ) AS BOOKED FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $account_database.DOA_APPOINTMENT_CUSTOMER AS DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $account_database.DOA_APPOINTMENT_MASTER AS DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_USERS.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $booked = $appointment_data->RecordCount() > 0 ? $appointment_data->fields['BOOKED'] : '0';
+                                        $showed_data = $db->Execute("SELECT COUNT( DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER ) AS SHOWED FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $account_database.DOA_APPOINTMENT_CUSTOMER AS DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $account_database.DOA_APPOINTMENT_MASTER AS DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $showed = $showed_data->RecordCount() > 0 ? $showed_data->fields['SHOWED'] : '0';
+                                        ?>
                                         <th style="width:10%; text-align: center; vertical-align:auto; font-weight: bold">Week</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
+                                        <th style="width:10%; text-align: center; font-weight: bold"><?=$customer?></th>
+                                        <th style="width:10%; text-align: center; font-weight: bold"><?=$booked?></th>
+                                        <th style="width:10%; text-align: center; font-weight: bold"><?=$showed?></th>
                                         <th style="width:10%; text-align: center; font-weight: bold"></th>
                                         <th style="width:10%; text-align: center; font-weight: bold"></th>
                                         <th style="width:10%; text-align: center; font-weight: bold"></th>
