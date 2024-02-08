@@ -11,7 +11,7 @@
                     <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
                     <input type="hidden" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">
                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
-                    <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=$PK_ENROLLMENT_BILLING?>">
+                    <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=($PK_ENROLLMENT_BILLING) ?? 0?>">
                     <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
                     <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
                     <input type="hidden" name="PK_USER_MASTER" class="CUSTOMER_ID" id="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
@@ -39,7 +39,7 @@
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
                                             while (!$row->EOF) { ?>
                                                 <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                <?php $row->MoveNext(); } ?>
+                                            <?php $row->MoveNext(); } ?>
                                         </select>
                                     </div>
                                     <div id="wallet_balance_div">
@@ -227,37 +227,32 @@
     </div>
 </div>
 
-
-
-
-
-
 <script>
     function getPaymentMethodId(param) {
         $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
     }
 
     function selectPaymentType(param){
-        let paymentType = $("#PK_PAYMENT_TYPE option:selected").text();
+        let paymentType = parseInt($(param).val());
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $('.payment_type_div').slideUp();
-        $('#card-element').remove();
+        $(param).closest('#payment_modal').find('.payment_type_div').slideUp();
+        $(param).closest('#payment_modal').find('#card-element').remove();
         switch (paymentType) {
-            case 'Credit Card':
+            case 1:
                 if (PAYMENT_GATEWAY == 'Stripe') {
-                    $('#card_div').html(`<div id="card-element"></div>`);
+                    $(param).closest('#payment_modal').find('#card_div').html(`<div id="card-element"></div>`);
                     stripePaymentFunction();
                 }
 
                 getCreditCardList();
-                $('#credit_card_payment').slideDown();
+                $(param).closest('#payment_modal').find('#credit_card_payment').slideDown();
                 break;
 
-            case 'Check':
-                $('#check_payment').slideDown();
+            case 2:
+                $(param).closest('#payment_modal').find('#check_payment').slideDown();
                 break;
 
-            case 'Wallet':
+            case 7:
                 let PK_USER_MASTER = $('#PK_USER_MASTER').val();
                 $.ajax({
                     url: "ajax/wallet_balance.php",
@@ -282,12 +277,50 @@
                 });
                 break;
 
+            case 3:
+            default:
+                $(param).closest('#payment_modal').find('.payment_type_div').slideUp();
+                $(param).closest('#payment_modal').find('#wallet_balance_div').slideUp();
+                $(param).closest('#payment_modal').find('#remaining_amount_div').slideUp();
+                $(param).closest('#payment_modal').find('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                break;
+        }
+    }
+
+    function getCreditCardList() {
+        let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+        $.ajax({
+            url: "ajax/get_credit_card_list.php",
+            type: 'POST',
+            data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
+            success: function (data) {
+                $('#card_list').html(data);
+            }
+        });
+    }
+
+    function selectRemainingPaymentType(param){
+        let paymentType = $("#PK_PAYMENT_TYPE_REMAINING option:selected").text();
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+        $('.remaining_payment_type_div').slideUp();
+        $('#card-element').remove();
+        switch (paymentType) {
+            case 'Credit Card':
+                if (PAYMENT_GATEWAY == 'Stripe') {
+                    $('#card_div').html(`<div id="card-element"></div>`);
+                    stripePaymentFunction();
+                }
+                $('#remaining_credit_card_payment').slideDown();
+                break;
+
+            case 'Check':
+                $('#remaining_check_payment').slideDown();
+                break;
+
             case 'Cash':
             default:
-                $('.payment_type_div').slideUp();
-                $('#wallet_balance_div').slideUp();
-                $('#remaining_amount_div').slideUp();
-                $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                $('.remaining_payment_type_div').slideUp();
                 break;
         }
     }
