@@ -883,53 +883,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 //viewAppointmentDetails(info);
             },
 
+            eventDragStop: function (info) {
+              console.log(info.resourceIds);
+            },
+
             eventDrop: function (info) {
-                let TYPE = info.type;
-                let PK_APPOINTMENT_MASTER = info.id;
-                let PK_EVENT = info.id;
-                let SERVICE_PROVIDER_ID = info.resourceId;
-                let START_DATE_TIME = info.start.toDate();
-                let END_DATE_TIME = info.end.toDate();
-                let DATE = START_DATE_TIME.getFullYear() + "-" + (START_DATE_TIME.getMonth()+1)  + "-" + START_DATE_TIME.getDate();
-                let END_DATE = END_DATE_TIME.getFullYear() + "-" + (END_DATE_TIME.getMonth()+1)  + "-" + (END_DATE_TIME.getDate()-1);
-                let START_TIME = START_DATE_TIME.getUTCHours() + ":" + START_DATE_TIME.getUTCMinutes() + ":" + START_DATE_TIME.getUTCSeconds();
-                let END_TIME = END_DATE_TIME.getUTCHours() + ":" + END_DATE_TIME.getUTCMinutes() + ":" + END_DATE_TIME.getUTCSeconds();
-
-                console.log(PK_APPOINTMENT_MASTER, SERVICE_PROVIDER_ID, DATE, START_TIME, END_TIME);
-                if (TYPE == "appointment") {
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: "POST",
-                        data: {FUNCTION_NAME:'updateDroppedAppointment', PK_APPOINTMENT_MASTER:PK_APPOINTMENT_MASTER, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, DATE:DATE, START_TIME:START_TIME, END_TIME:END_TIME},
-                        async: false,
-                        cache: false,
-                        success: function (data) {
-
-                        }
-                    });
-                } else if (TYPE == "group_class") {
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: "POST",
-                        data: {FUNCTION_NAME:'updateDroppedGroupClass', PK_APPOINTMENT_MASTER:PK_APPOINTMENT_MASTER, DATE:DATE, START_TIME:START_TIME, END_TIME:END_TIME},
-                        async: false,
-                        cache: false,
-                        success: function (data) {
-                            window.location.reload();
-                        }
-                    });
-                } else if (TYPE == "event") {
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: "POST",
-                        data: {FUNCTION_NAME: 'updateDroppedEvent', PK_EVENT: PK_EVENT, DATE: DATE, END_DATE: END_DATE, START_TIME: START_TIME, END_TIME: END_TIME},
-                        async: false,
-                        cache: false,
-                        success: function (data) {
-
-                        }
-                    });
-                }
+                modifyAppointment(info);
             },
 
             select: function(start, end, jsEvent, view, resource) {
@@ -990,19 +949,37 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         });
     }
 
+    function modifyAppointment(info) {
+        let TYPE = info.type;
+        let PK_ID = info.id;
+        let SERVICE_PROVIDER_ID = info.resourceId;
+        let START_DATE_TIME = info.start.toDate();
+        let END_DATE_TIME = info.end.toDate();
+        let DATE = START_DATE_TIME.getFullYear() + "-" + (START_DATE_TIME.getMonth()+1)  + "-" + START_DATE_TIME.getUTCDate();
+        let START_TIME = START_DATE_TIME.getUTCHours() + ":" + START_DATE_TIME.getUTCMinutes() + ":" + START_DATE_TIME.getUTCSeconds();
+        let END_TIME = END_DATE_TIME.getUTCHours() + ":" + END_DATE_TIME.getUTCMinutes() + ":" + END_DATE_TIME.getUTCSeconds();
+
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: "POST",
+            data: {FUNCTION_NAME:'modifyAppointment', PK_ID:PK_ID, TYPE:TYPE, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, DATE:DATE, START_TIME:START_TIME, END_TIME:END_TIME},
+            async: false,
+            cache: false,
+            success: function (data) {
+                getServiceProviderCount();
+            }
+        });
+    }
+
     function getServiceProviderCount() {
         let currentDate = new Date($('#calendar').fullCalendar('getDate'));
         let day = currentDate.getUTCDate();
         let month = currentDate.getMonth() + 1;
         let year = currentDate.getFullYear();
 
-        //alert(currentDate);
-
         let all_service_provider = $('.fc-resource-cell').map(function(){
             return $(this).data('resource-id');
         }).get();
-
-        console.log(year+'-'+month+'-'+day);
 
         $.ajax({
             url: "ajax/AjaxFunctions.php",
