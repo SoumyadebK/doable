@@ -55,7 +55,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER
                         LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
                         LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
-                        INNER JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
+                        LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
                                 
                         LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
                         
@@ -992,15 +992,17 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
     function getServiceProviderCount() {
         let currentDate = new Date($('#calendar').fullCalendar('getDate'));
-        let day = currentDate.getDate();
+        let day = currentDate.getUTCDate();
         let month = currentDate.getMonth() + 1;
         let year = currentDate.getFullYear();
+
+        //alert(currentDate);
 
         let all_service_provider = $('.fc-resource-cell').map(function(){
             return $(this).data('resource-id');
         }).get();
 
-        console.log(currentDate, all_service_provider);
+        console.log(year+'-'+month+'-'+day);
 
         $.ajax({
             url: "ajax/AjaxFunctions.php",

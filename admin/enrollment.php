@@ -1485,7 +1485,7 @@ function generateReceiptPdf($html){
                                                             </div>
                                                             <?php
                                                             if(!empty($_GET['id'])) {
-                                                                $flexible_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
+                                                                $flexible_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND PK_ENROLLMENT_MASTER = '$_GET[id]'");
                                                                 while (!$flexible_payment_data->EOF) { ?>
                                                                     <div class="row">
                                                                         <div class="col-3">
@@ -2349,99 +2349,6 @@ function generateReceiptPdf($html){
         $('#remaining_amount_div').slideUp();
         $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
         $('#payment_modal').modal('show');
-    }
-
-    function selectPaymentType(param){
-        let paymentType = $("#PK_PAYMENT_TYPE option:selected").text();
-        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $('.payment_type_div').slideUp();
-        $('#card-element').remove();
-        switch (paymentType) {
-            case 'Credit Card':
-                if (PAYMENT_GATEWAY == 'Stripe') {
-                    $('#card_div').html(`<div id="card-element"></div>`);
-                    stripePaymentFunction();
-                }
-
-                getCreditCardList();
-                $('#credit_card_payment').slideDown();
-                break;
-
-            case 'Check':
-                $('#check_payment').slideDown();
-                break;
-
-            case 'Wallet':
-                let PK_USER_MASTER = $('#PK_USER_MASTER').val();
-                $.ajax({
-                    url: "ajax/wallet_balance.php",
-                    type: 'POST',
-                    data: {PK_USER_MASTER: PK_USER_MASTER},
-                    success: function (data) {
-                        $('#wallet_balance_div').html(data);
-                        $('#wallet_balance_div').slideDown();
-
-                        let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
-                        let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
-
-                        if (AMOUNT_TO_PAY > WALLET_BALANCE) {
-                            $('#REMAINING_AMOUNT').val(AMOUNT_TO_PAY - WALLET_BALANCE);
-                            $('#remaining_amount_div').slideDown();
-                            $('#PK_PAYMENT_TYPE_REMAINING').prop('required', true);
-                        } else {
-                            $('#remaining_amount_div').slideUp();
-                            $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
-                        }
-                    }
-                });
-                break;
-
-            case 'Cash':
-            default:
-                $('.payment_type_div').slideUp();
-                $('#wallet_balance_div').slideUp();
-                $('#remaining_amount_div').slideUp();
-                $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
-                break;
-        }
-    }
-
-    function getCreditCardList() {
-        let PK_USER_MASTER = $('#PK_USER_MASTER').val();
-        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $.ajax({
-            url: "ajax/get_credit_card_list.php",
-            type: 'POST',
-            data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
-            success: function (data) {
-                $('#card_list').html(data);
-            }
-        });
-    }
-
-    function selectRemainingPaymentType(param){
-        let paymentType = $("#PK_PAYMENT_TYPE_REMAINING option:selected").text();
-        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $('.remaining_payment_type_div').slideUp();
-        $('#card-element').remove();
-        switch (paymentType) {
-            case 'Credit Card':
-                if (PAYMENT_GATEWAY == 'Stripe') {
-                    $('#card_div').html(`<div id="card-element"></div>`);
-                    stripePaymentFunction();
-                }
-                $('#remaining_credit_card_payment').slideDown();
-                break;
-
-            case 'Check':
-                $('#remaining_check_payment').slideDown();
-                break;
-
-            case 'Cash':
-            default:
-                $('.remaining_payment_type_div').slideUp();
-                break;
-        }
     }
 
     $(document).on('click', '.credit-card', function () {
