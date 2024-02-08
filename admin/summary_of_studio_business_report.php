@@ -7,6 +7,15 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
+if (!empty($_GET['date'])){
+    $from_date = $_GET['date'];
+    $to_date = date('m/d/y', strtotime("+7 day", strtotime($from_date)));
+    $duedt = explode("/", $from_date);
+    $date  = mktime(0, 0, 0, $duedt[0], $duedt[1], $duedt[2]);
+    $week_number  = (int)date('W', $date);
+}
+$res = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
 ?>
 
 <!DOCTYPE html>
@@ -51,9 +60,9 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
                                     <thead>
                                     <tr>
-                                        <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold">Arthur Murray Woodland Hills</th>
-                                        <th style="width:20%; text-align: center; font-weight: bold">12/10/2023 - 12/16/2023</th>
-                                        <th style="width:20%; text-align: center; font-weight: bold">Week # :50</th>
+                                        <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?=$business_name?></th>
+                                        <th style="width:20%; text-align: center; font-weight: bold"><?=$from_date?> - <?=$to_date?></th>
+                                        <th style="width:20%; text-align: center; font-weight: bold">Week # : <?=$week_number?></th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -71,32 +80,44 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <th style="width:30%; text-align: center; font-weight: bold">Total</th>
                                     </tr>
                                     <tr>
+                                        <?php
+                                        $ledger_data = $db_account->Execute("SELECT SUM(PAID_AMOUNT) AS CASH FROM DOA_ENROLLMENT_LEDGER WHERE PK_PAYMENT_TYPE = 3 AND DUE_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $cash = $ledger_data->RecordCount() > 0 ? $ledger_data->fields['CASH'] : '0.00';
+                                        ?>
                                         <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">Week</th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$cash?></th>
                                         <th style="width:25%; text-align: center; font-weight: bold"></th>
                                         <th style="width:25%; text-align: center; font-weight: bold"></th>
                                     </tr>
                                     <tr>
                                         <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">Week Refunds</th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold">0.00</th>
                                         <th style="width:25%; text-align: center; font-weight: bold"></th>
                                         <th style="width:25%; text-align: center; font-weight: bold"></th>
                                     </tr>
                                     <tr>
                                         <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">Transfer out</th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold">0.00</th>
                                         <th style="width:25%; text-align: center; font-weight: bold"></th>
                                         <th style="width:25%; text-align: center; font-weight: bold"></th>
                                     </tr>
                                     <tr>
+                                        <?php
+                                        $net_data = $db_account->Execute("SELECT SUM(PAID_AMOUNT) AS CASH FROM DOA_ENROLLMENT_LEDGER WHERE PK_PAYMENT_TYPE = 3 AND YEAR(DUE_DATE) = YEAR(CURDATE())");
+                                        $net = $net_data->RecordCount() > 0 ? $net_data->fields['CASH'] : '0.00';
+                                        ?>
                                         <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">NET Y.T.D.</th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$net?></th>
                                         <th style="width:25%; text-align: center; font-weight: bold"></th>
                                         <th style="width:25%; text-align: center; font-weight: bold"></th>
                                     </tr>
                                     <tr>
+                                        <?php
+                                        $prev_data = $db_account->Execute("SELECT SUM(PAID_AMOUNT) AS CASH FROM DOA_ENROLLMENT_LEDGER WHERE PK_PAYMENT_TYPE = 3 AND YEAR(DUE_DATE) > DATEADD(year,-1,GETDATE())");
+                                        $net = $prev_data->RecordCount() > 0 ? $prev_data->fields['CASH'] : '0.00';
+                                        ?>
                                         <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">PRV. Y.T.D.</th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$net?></th>
                                         <th style="width:25%; text-align: center; font-weight: bold"></th>
                                         <th style="width:25%; text-align: center; font-weight: bold"></th>
                                     </tr>
