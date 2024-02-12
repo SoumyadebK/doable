@@ -24,6 +24,7 @@ $PK_CUSTOMER_DETAILS = '';
 $USER_NAME = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
+$TYPE = '';
 $EMAIL_ID = '';
 $DISPLAY_ORDER = '';
 $USER_IMAGE = '';
@@ -90,6 +91,7 @@ if(!empty($_GET['id'])) {
     $USER_NAME = $res->fields['USER_NAME'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
+    $TYPE = $res->fields['TYPE'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $DISPLAY_ORDER = $res->fields['DISPLAY_ORDER'];
     $USER_IMAGE = $res->fields['USER_IMAGE'];
@@ -262,7 +264,7 @@ if(!empty($_GET['id'])) {
                                                         <input type="hidden" class="TYPE" name="TYPE" value="1">
                                                         <div class="p-20">
                                                             <div class="row">
-                                                                <div class="col-5">
+                                                                <div class="col-4">
                                                                     <div class="form-group">
                                                                         <label class="form-label">First Name<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
@@ -270,12 +272,22 @@ if(!empty($_GET['id'])) {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-5">
+                                                                <div class="col-4">
                                                                     <div class="form-group">
                                                                         <label class="form-label">Last Name</label>
                                                                         <div class="col-md-12">
                                                                             <input type="text" id="LAST_NAME" name="LAST_NAME" class="form-control" placeholder="Enter Last Name" value="<?=$LAST_NAME?>">
                                                                         </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-2">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Select Type</label>
+                                                                        <select class="form-control" name="TYPE">
+                                                                            <option value="">Select</option>
+                                                                            <option value="C" <?=($TYPE == 'C')?'selected':''?>>Counsellor</option>
+                                                                            <option value="S" <?=($TYPE == 'S')?'selected':''?>>Supervisor</option>
+                                                                        </select>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-md-2">
