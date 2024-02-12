@@ -21,6 +21,7 @@
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 <a class="dropdown-item" href="../admin/all_services.php">Services</a>
                                 <a class="dropdown-item" href="../admin/all_packages.php">Packages</a>
+                                <a class="dropdown-item" href="../admin/all_scheduling_codes.php">Scheduling Codes</a>
                                 <a class="dropdown-item" href="../admin/all_document_library.php">Document Library</a>
                             </div>
                         </li>
@@ -33,7 +34,6 @@
                                 <a class="dropdown-item" href="../admin/all_gift_certificate_setup.php">Gift Certificate Setup</a>
                                 <a class="dropdown-item" href="../admin/all_event_types.php">Event Types</a>
                                 <a class="dropdown-item" href="../admin/all_inquiry_methods.php">Inquiry Method</a>
-                                <a class="dropdown-item" href="../admin/all_scheduling_codes.php">Scheduling Codes</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">

@@ -1,6 +1,10 @@
 <?php
 require_once('../../global/config.php');
+global $db;
+global $db_account;
+global $master_database;
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 function getTimeSlot($interval, $start_time, $end_time)
 {
     global $db;

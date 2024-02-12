@@ -1,5 +1,10 @@
 <?php
 require_once('../../global/config.php');
+global $db;
+global $db_account;
+global $master_database;
+
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 $PK_ENROLLMENT_MASTER = $_POST['PK_ENROLLMENT_MASTER'];
 $PK_SERVICE_CLASS = $_POST['PK_SERVICE_CLASS'];
@@ -29,7 +34,7 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
                 <label class="form-label">Services</label>
             </div>
         </div>
-        <div class="col-2">
+        <div class="col-1">
             <div class="form-group">
                 <label class="form-label">Service Codes</label>
             </div>
@@ -37,6 +42,11 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
         <div class="col-2">
             <div class="form-group">
                 <label class="form-label">Service Details</label>
+            </div>
+        </div>
+        <div class="col-1">
+            <div class="form-group">
+                <label class="form-label">Scheduling Code</label>
             </div>
         </div>
         <div class="col-1">
@@ -90,7 +100,7 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
                     </select>
                 </div>
             </div>
-            <div class="col-2">
+            <div class="col-1">
                 <div class="form-group">
                     <select class="form-control PK_SERVICE_CODE" onchange="selectThisServiceCode(this)" disabled>
                         <option value="">Select</option>
@@ -105,6 +115,18 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
             <div class="col-2">
                 <div class="form-group">
                     <input type="text" class="form-control SERVICE_DETAILS" value="<?=$enrollment_service_data->fields['SERVICE_DETAILS']?>" disabled>
+                </div>
+            </div>
+            <div class="col-1">
+                <div class="form-group">
+                    <select class="form-control PK_SCHEDULING_CODE" disabled>
+                        <option>Select</option>
+                        <?php
+                        $row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE`, `SCHEDULING_CODE`, `SCHEDULING_NAME` FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
+                        while (!$row->EOF) { ?>
+                            <option value="<?php echo $row->fields['PK_SCHEDULING_CODE'];?>" <?=($row->fields['PK_SCHEDULING_CODE'] == $enrollment_service_data->fields['PK_SCHEDULING_CODE'])?'selected':''?>><?=$row->fields['SCHEDULING_CODE'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
+                            <?php $row->MoveNext(); } ?>
+                    </select>
                 </div>
             </div>
             <div class="col-1">
@@ -148,7 +170,7 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
         <div class="form-group">
             <div class="row">
                 <div class="col-md-4">
-                    <label class="form-label" style="float: right;margin-top: 10px;">Total</label>
+                    <label class="form-label" style="float: right; margin-top: 10px;">Total</label>
                 </div>
                 <div class="col-md-8">
                     <input type="text" class="form-control TOTAL_AMOUNT" name="TOTAL_AMOUNT" id="total_bill" value="<?=number_format((float)$total, 2, '.', '');?>" readonly>

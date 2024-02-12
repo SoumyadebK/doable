@@ -1,5 +1,10 @@
 <?php
 require_once('../global/config.php');
+global $db;
+global $db_account;
+global $master_database;
+
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 if (empty($_GET['id']))
     $title = "Add Package";
@@ -13,17 +18,9 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if(empty($_GET['id'])){
     $PACKAGE_NAME = '';
-    $PK_SERVICE_CLASS = '';
-    $IS_SCHEDULE = 1;
-    $DESCRIPTION = '';
     $ACTIVE = '';
-    $IS_PACKAGE = '';
-    $TOTAL = '';
-    $DISCOUNT_TYPE = '';
-    $DISCOUNT = '';
-    $FINAL_AMOUNT = '';
 } else {
-    $res = $db_account->Execute("SELECT * FROM `DOA_PACKAGE_SERVICE` JOIN DOA_PACKAGE ON DOA_PACKAGE_SERVICE.PK_PACKAGE=DOA_PACKAGE.PK_PACKAGE WHERE DOA_PACKAGE_SERVICE.`PK_PACKAGE` = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_PACKAGE` WHERE `PK_PACKAGE` = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_packages.php");
@@ -31,15 +28,6 @@ if(empty($_GET['id'])){
     }
 
     $PACKAGE_NAME = $res->fields['PACKAGE_NAME'];
-    $PK_SERVICE_MASTER = $res->fields['PK_SERVICE_MASTER'];
-    $PK_SERVICE_CODE = $res->fields['PK_SERVICE_CODE'];
-    $SERVICE_DETAILS = $res->fields['SERVICE_DETAILS'];
-    $NUMBER_OF_SESSION = $res->fields['NUMBER_OF_SESSION'];
-    $PRICE_PER_SESSION = $res->fields['PRICE_PER_SESSION'];
-    $TOTAL = $res->fields['TOTAL'];
-    $DISCOUNT_TYPE = $res->fields['DISCOUNT_TYPE'];
-    $DISCOUNT = $res->fields['DISCOUNT'];
-    $FINAL_AMOUNT = $res->fields['FINAL_AMOUNT'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
 
@@ -99,7 +87,7 @@ if(empty($_GET['id'])){
 
                                                 <div class="card-body">
                                                     <div class="row">
-                                                        <div class="col-2">
+                                                        <div class="col-1">
                                                             <div class="form-group">
                                                                 <label class="form-label">Services</label>
                                                             </div>
@@ -109,27 +97,27 @@ if(empty($_GET['id'])){
                                                                 <label class="form-label">Service Codes</label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-2" style="text-align: center;">
+                                                        <div class="col-2">
                                                             <div class="form-group">
                                                                 <label class="form-label">Service Details</label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-1 session_div">
+                                                        <div class="col-1">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Scheduling Code</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
                                                             <div class="form-group">
                                                                 <label class="form-label">Number of Sessions</label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-1 session_div">
+                                                        <div class="col-1">
                                                             <div class="form-group">
                                                                 <label class="form-label">Price Per Sessions</label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-1 frequency_div" style="display: none; text-align: center;">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Frequency</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-1" style="width: 11%; text-align: center;">
+                                                        <div class="col-1">
                                                             <div class="form-group">
                                                                 <label class="form-label">Total</label>
                                                             </div>
@@ -144,7 +132,7 @@ if(empty($_GET['id'])){
                                                                 <label class="form-label">Discount</label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-1">
+                                                        <div class="col-2">
                                                             <div class="form-group">
                                                                 <label class="form-label">Final Amount</label>
                                                             </div>
@@ -152,23 +140,18 @@ if(empty($_GET['id'])){
                                                     </div>
 
                                                     <?php
-                                                    $PK_SERVICE_CLASS = 0;
                                                     if(!empty($_GET['id'])) {
                                                         $package_service_data = $db_account->Execute("SELECT * FROM DOA_PACKAGE_SERVICE WHERE PK_PACKAGE = '$_GET[id]'");
-
-                                                        while (!$package_service_data->EOF) {
-                                                            $service_class = $db_account->Execute("SELECT PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = ".$package_service_data->fields['PK_SERVICE_MASTER']);
-                                                            $PK_SERVICE_CLASS = $service_class->fields['PK_SERVICE_CLASS'];
-                                                            ?>
+                                                        while (!$package_service_data->EOF) { ?>
                                                             <div class="row">
-                                                                <div class="col-2">
+                                                                <div class="col-1">
                                                                     <div class="form-group">
                                                                         <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
-                                                                            <option>Select</option>
+                                                                            <option>Select Service</option>
                                                                             <?php
-                                                                            $row = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM DOA_SERVICE_MASTER JOIN DOA_PACKAGE_SERVICE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER=DOA_PACKAGE_SERVICE.PK_SERVICE_MASTER ");
+                                                                            $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.") AND ACTIVE = 1 AND IS_DELETED = 0");
                                                                             while (!$row->EOF) { ?>
-                                                                                <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>" data-service_code="<?=$package_service_data->fields['PK_SERVICE_CODE']?>" data-is_package="<?=$row->fields['IS_PACKAGE']?>" <?=($row->fields['PK_SERVICE_MASTER'] == $package_service_data->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
+                                                                                <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($row->fields['PK_SERVICE_MASTER'] == $package_service_data->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
                                                                                 <?php $row->MoveNext(); } ?>
                                                                         </select>
                                                                     </div>
@@ -176,58 +159,49 @@ if(empty($_GET['id'])){
                                                                 <div class="col-1">
                                                                     <div class="form-group">
                                                                         <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
-                                                                            <option value="">Select</option>
                                                                             <?php
-                                                                            $row = $db->Execute("SELECT $account_database.DOA_SERVICE_CODE.*, DOA_FREQUENCY.FREQUENCY FROM $account_database.DOA_SERVICE_CODE LEFT JOIN DOA_FREQUENCY ON $account_database.DOA_SERVICE_CODE.PK_FREQUENCY = DOA_FREQUENCY.PK_FREQUENCY WHERE PK_SERVICE_MASTER = ".$package_service_data->fields['PK_SERVICE_MASTER']);
+                                                                            $row = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_MASTER` = ".$package_service_data->fields['PK_SERVICE_MASTER']);
                                                                             while (!$row->EOF) { ?>
-                                                                                <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-service_details="<?=$row->fields['DESCRIPTION']?>" data-frequency="<?=$row->fields['FREQUENCY']?>" data-price="<?=$row->fields['PRICE']?>" <?=($row->fields['PK_SERVICE_CODE'] == $package_service_data->fields['PK_SERVICE_CODE'])?'selected':''?>><?=$row->fields['SERVICE_CODE']?></option>
+                                                                                <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-details="<?=$row->fields['DESCRIPTION']?>" data-price="<?=$row->fields['PRICE']?>" <?=($row->fields['PK_SERVICE_CODE'] == $package_service_data->fields['PK_SERVICE_CODE'])?'selected':''?>><?=$row->fields['SERVICE_CODE']?></option>
+                                                                            <?php $row->MoveNext(); } ?>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <div class="form-group">
+                                                                        <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?=$package_service_data->fields['SERVICE_DETAILS']?>">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <select class="form-control PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]">
+                                                                            <option>Select</option>
+                                                                            <?php
+                                                                            $row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE`, `SCHEDULING_CODE`, `SCHEDULING_NAME` FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
+                                                                            while (!$row->EOF) { ?>
+                                                                                <option value="<?php echo $row->fields['PK_SCHEDULING_CODE'];?>" <?=($row->fields['PK_SCHEDULING_CODE'] == $package_service_data->fields['PK_SCHEDULING_CODE'])?'selected':''?>><?=$row->fields['SCHEDULING_CODE'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
                                                                                 <?php $row->MoveNext(); } ?>
                                                                         </select>
                                                                     </div>
                                                                 </div>
-                                                                <?php if($PK_SERVICE_CLASS == 1){ ?>
-                                                                    <div class="col-1">
-                                                                        <div class="form-group">
-                                                                            <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" value="<?=$package_service_data->fields['FREQUENCY']?>" readonly>
-                                                                        </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" value="<?=$package_service_data->fields['NUMBER_OF_SESSION']?>" onkeyup="calculateServiceTotal(this)">
                                                                     </div>
-                                                                <?php }elseif($PK_SERVICE_CLASS == 2){ ?>
-                                                                    <div class="col-2">
-                                                                        <div class="form-group">
-                                                                            <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?=$package_service_data->fields['SERVICE_DETAILS']?>">
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-1">
-                                                                        <div class="form-group">
-                                                                            <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" value="<?=$package_service_data->fields['NUMBER_OF_SESSION']?>" onkeyup="calculateServiceTotal(this)">
-                                                                        </div>
-                                                                    </div>
-                                                                <?php }elseif($PK_SERVICE_CLASS == 0){ ?>
-                                                                    <div class="col-1">
-                                                                        <div class="form-group">
-                                                                            <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?=$package_service_data->fields['SERVICE_DETAILS']?>">
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-1">
-                                                                        <div class="form-group">
-                                                                            <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" value="<?=$package_service_data->fields['NUMBER_OF_SESSION']?>" onkeyup="calculateServiceTotal(this)">
-                                                                        </div>
-                                                                    </div>
-                                                                <?php } ?>
-
+                                                                </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
                                                                         <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" value="<?=$package_service_data->fields['PRICE_PER_SESSION']?>" onkeyup="calculateServiceTotal(this);">
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-1" style="width: 11%;">
+                                                                <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control TOTAL" value="<?=$package_service_data->fields['TOTAL']?>" name="TOTAL[]">
+                                                                        <input type="text" class="form-control TOTAL" name="TOTAL[]" value="<?=$package_service_data->fields['TOTAL']?>" readonly>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateDiscount(this)">
+                                                                        <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateServiceTotal(this)">
                                                                             <option value="">Select</option>
                                                                             <option value="1" <?=($package_service_data->fields['DISCOUNT_TYPE'] == 1)?'selected':''?>>Fixed</option>
                                                                             <option value="2" <?=($package_service_data->fields['DISCOUNT_TYPE'] == 2)?'selected':''?>>Percent</option>
@@ -236,7 +210,7 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" value="<?=$package_service_data->fields['DISCOUNT']?>" onkeyup="calculateDiscount(this)">
+                                                                        <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" value="<?=$package_service_data->fields['DISCOUNT']?>" onkeyup="calculateServiceTotal(this)">
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1">
@@ -252,84 +226,91 @@ if(empty($_GET['id'])){
                                                             </div>
                                                             <?php $package_service_data->MoveNext(); } ?>
                                                     <?php } else { ?>
-                                                        <div class="row">
-                                                            <div class="col-2 service_name">
-                                                                <div class="form-group">
-                                                                    <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
-                                                                        <option>Select</option>
-                                                                        <?php
-                                                                        $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_MASTER.IS_PACKAGE FROM DOA_SERVICE_MASTER JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
-                                                                        while (!$row->EOF) { ?>
-                                                                            <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>" data-is_package="<?=$row->fields['IS_PACKAGE']?>"><?=$row->fields['SERVICE_NAME']?></option>
+                                                            <div class="row">
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
+                                                                            <option>Select Service</option>
+                                                                            <?php
+                                                                            $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.") AND ACTIVE = 1 AND IS_DELETED = 0");
+                                                                            while (!$row->EOF) { ?>
+                                                                                <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>"><?=$row->fields['SERVICE_NAME']?></option>
                                                                             <?php $row->MoveNext(); } ?>
-                                                                    </select>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
+                                                                            <option value="">Select</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <div class="form-group">
+                                                                        <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" >
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <select class="form-control PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]">
+                                                                            <option>Select</option>
+                                                                            <?php
+                                                                            $row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE`, `SCHEDULING_CODE`, `SCHEDULING_NAME` FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
+                                                                            while (!$row->EOF) { ?>
+                                                                                <option value="<?php echo $row->fields['PK_SCHEDULING_CODE'];?>"><?=$row->fields['SCHEDULING_CODE'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
+                                                                            <?php $row->MoveNext(); } ?>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <input type="text" class="form-control TOTAL" name="TOTAL[]" readonly>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateServiceTotal(this)">
+                                                                            <option value="">Select</option>
+                                                                            <option value="1">Fixed</option>
+                                                                            <option value="2">Percent</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" onkeyup="calculateServiceTotal(this)">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" readonly>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-1">
+                                                                    <div class="form-group">
+                                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-1 service_div">
-                                                                <div class="form-group">
-                                                                    <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
-                                                                        <option value="">Select</option>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-2 service_div">
-                                                                <div class="form-group">
-                                                                    <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" >
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1 frequency_div " style="display: none;">
-                                                                <div class="form-group">
-                                                                    <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" readonly>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1 session_div service_div">
-                                                                <div class="form-group">
-                                                                    <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1 session_div service_div">
-                                                                <div class="form-group">
-                                                                    <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1 service_div" style="width: 11%;">
-                                                                <div class="form-group">
-                                                                    <input type="text" class="form-control TOTAL" name="TOTAL[]">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1">
-                                                                <div class="form-group">
-                                                                    <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateDiscount(this)">
-                                                                        <option value="">Select</option>
-                                                                        <option value="1" <?=($DISCOUNT_TYPE == 1)?'selected':''?>>Fixed</option>
-                                                                        <option value="2" <?=($DISCOUNT_TYPE == 2)?'selected':''?>>Percent</option>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1">
-                                                                <div class="form-group">
-                                                                    <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" value="<?=$DISCOUNT?>" onkeyup="calculateDiscount(this)">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1">
-                                                                <div class="form-group">
-                                                                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=$FINAL_AMOUNT?>" readonly>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1 service_div" style="width: 5%;">
-                                                                <div class="form-group">
-                                                                    <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    <?php } ?>
+                                                        <?php } ?>
 
                                                     <div id="append_service_div" style="margin-top: 0px">
 
                                                     </div>
                                                 </div>
 
-                                                <div class="row" id="add_more">
+                                                <div class="row">
                                                     <div class="col-12">
                                                         <div class="form-group" style="float: right;">
                                                             <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServices();">Add More</a>
@@ -345,13 +326,13 @@ if(empty($_GET['id'])){
                                                         <div class="form-group">
                                                             <label class="col-md-12">Active</label>
                                                             <div class="col-md-12" style="padding: 8px;">
-                                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <? } ?>
+                                            <?php } ?>
 
                                             <div class="form-group">
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Continue</button>
@@ -377,69 +358,59 @@ if(empty($_GET['id'])){
 
     function selectThisService(param) {
         let PK_SERVICE_MASTER = $(param).val();
-        let SERVICE_CODE_RESULT = '';
-        PK_SERVICE_CLASS = $(param).find(':selected').data('service_class');
-        let SERVICE_CODE = ($(param).find(':selected').data('service_code'))?$(param).find(':selected').data('service_code'):0;
-        $('.PK_SERVICE_CLASS').val(PK_SERVICE_CLASS);
-        if (PK_SERVICE_CLASS === 1){
-            $('.session_div').hide();
-            $('.frequency_div').show();
-        }else {
-            if (PK_SERVICE_CLASS === 2){
-                $('.session_div').show();
-                $('.frequency_div').hide();
+        $.ajax({
+            url: "ajax/get_service_codes.php",
+            type: "POST",
+            data: {PK_SERVICE_MASTER: PK_SERVICE_MASTER},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $(param).closest('.row').find('.PK_SERVICE_CODE').empty();
+                $(param).closest('.row').find('.PK_SERVICE_CODE').append(result);
             }
-        }
-
-        if (SERVICE_CODE === 0) {
-            $('#add_more').show();
-            $.ajax({
-                url: "ajax/get_service_codes.php",
-                type: "POST",
-                data: {PK_SERVICE_MASTER: PK_SERVICE_MASTER, SERVICE_CODE: SERVICE_CODE},
-                async: false,
-                cache: false,
-                success: function (result) {
-                    SERVICE_CODE_RESULT = result;
-                    $(param).closest('.row').find('.PK_SERVICE_CODE').empty();
-                    $(param).closest('.row').find('.PK_SERVICE_CODE').append(result);
-                }
-            });
-        }
+        });
     }
 
     function selectThisServiceCode(param) {
-        let service_details = $(param).find(':selected').data('service_details');
+        let service_details = $(param).find(':selected').data('details');
         let price = $(param).find(':selected').data('price');
-        let frequency = $(param).find(':selected').data('frequency');
+
         $(param).closest('.row').find('.SERVICE_DETAILS').val(service_details);
         $(param).closest('.row').find('.PRICE_PER_SESSION').val(price);
-        $(param).closest('.row').find('.FREQUENCY').val(frequency);
-        PK_SERVICE_CLASS = $(param).closest('.row').find('.PK_SERVICE_MASTER').find(':selected').data('service_class');
-        if (PK_SERVICE_CLASS === 1) {
-            $(param).closest('.row').find('.NUMBER_OF_SESSION').val(1);
-        }
+
         calculateServiceTotal(param);
     }
 
     function calculateServiceTotal(param) {
-        let number_of_session = $(param).closest('.row').find('.NUMBER_OF_SESSION').val();
-        number_of_session = (number_of_session)?number_of_session:0;
-        let service_price = $(param).closest('.row').find('.PRICE_PER_SESSION').val();
-        service_price = (service_price)?service_price:0;
-        $(param).closest('.row').find('.TOTAL').val(parseFloat(parseFloat(service_price)* parseFloat(number_of_session)).toFixed(2));
+        let number_of_session = ($(param).closest('.row').find('.NUMBER_OF_SESSION').val() == '') ? 0 : $(param).closest('.row').find('.NUMBER_OF_SESSION').val();
+        let service_price = ($(param).closest('.row').find('.PRICE_PER_SESSION').val()) ?? 0;
+        let TOTAL = parseFloat(number_of_session) * parseFloat(service_price);
+
+        $(param).closest('.row').find('.TOTAL').val(parseFloat(TOTAL).toFixed(2));
+
+        let DISCOUNT = ($(param).closest('.row').find('.DISCOUNT').val()) ?? 0;
+        let DISCOUNT_TYPE = ($(param).closest('.row').find('.DISCOUNT_TYPE').val()) ?? 0;
+        let FINAL_AMOUNT = parseFloat(TOTAL);
+        if (DISCOUNT_TYPE == 1){
+            FINAL_AMOUNT = parseFloat(TOTAL - DISCOUNT);
+        } else {
+            if (DISCOUNT_TYPE == 2) {
+                FINAL_AMOUNT = parseFloat(TOTAL - (TOTAL * (DISCOUNT / 100)));
+            }
+        }
+        $(param).closest('.row').find('.FINAL_AMOUNT').val(FINAL_AMOUNT.toFixed(2));
     }
 
     function addMoreServices() {
         $('#append_service_div').append(`<div class="row">
-                                            <div class="col-2">
+                                            <div class="col-1">
                                                 <div class="form-group">
                                                     <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
-                                                        <option>Select</option>
+                                                        <option>Select Service</option>
                                                         <?php
-        $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME, PK_SERVICE_CLASS, IS_PACKAGE FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
-        while (!$row->EOF) { ?>
-                                                            <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>" data-is_package="<?=$row->fields['IS_PACKAGE']?>"><?=$row->fields['SERVICE_NAME']?></option>
+                                                        $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.") AND ACTIVE = 1 AND IS_DELETED = 0");
+                                                        while (!$row->EOF) { ?>
+                                                            <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>"><?=$row->fields['SERVICE_NAME']?></option>
                                                         <?php $row->MoveNext(); } ?>
                                                     </select>
                                                 </div>
@@ -456,46 +427,53 @@ if(empty($_GET['id'])){
                                                     <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" >
                                                 </div>
                                             </div>
-                                            <div class="col-1 frequency_div" style="display: none;">
+                                            <div class="col-1">
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control FREQUENCY" name="FREQUENCY[]" readonly>
+                                                    <select class="form-control PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]">
+                                                        <option>Select</option>
+                                                        <?php
+                                                        $row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE`, `SCHEDULING_CODE`, `SCHEDULING_NAME` FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
+                                                        while (!$row->EOF) { ?>
+                                                            <option value="<?php echo $row->fields['PK_SCHEDULING_CODE'];?>"><?=$row->fields['SCHEDULING_NAME'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
+                                                        <?php $row->MoveNext(); } ?>
+                                                    </select>
                                                 </div>
                                             </div>
-                                            <div class="col-1 session_div">
+                                            <div class="col-1">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)">
                                                 </div>
                                             </div>
-                                            <div class="col-1 session_div">
+                                            <div class="col-1">
                                                 <div class="form-group">
                                                     <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);">
                                                 </div>
                                             </div>
-                                            <div class="col-1" style="width: 11%;">
+                                            <div class="col-1">
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control TOTAL" name="TOTAL[]">
+                                                    <input type="text" class="form-control TOTAL" name="TOTAL[]" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-1">
-                                            <div class="form-group">
-                                                                    <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateDiscount(this)">
-                                                                        <option value="">Select</option>
-                                                                        <option value="1">Fixed</option>
-                                                                        <option value="2">Percent</option>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1">
-                                                                <div class="form-group">
-                                                                    <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" onkeyup="calculateDiscount(this)">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1">
-                                                                <div class="form-group">
-                                                                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" readonly>
-                                                                </div>
-                                                            </div>
-                                            <div class="col-1" style="width: 5%;">
+                                                <div class="form-group">
+                                                    <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateServiceTotal(this)">
+                                                        <option value="">Select</option>
+                                                        <option value="1">Fixed</option>
+                                                        <option value="2">Percent</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-1">
+                                                <div class="form-group">
+                                                    <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" onkeyup="calculateServiceTotal(this)">
+                                                </div>
+                                            </div>
+                                            <div class="col-1">
+                                                <div class="form-group">
+                                                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="col-1">
                                                 <div class="form-group">
                                                     <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                 </div>
@@ -530,27 +508,7 @@ if(empty($_GET['id'])){
         });
     });
 
-    function calculateDiscount(param) {
-        let DISCOUNT = $(param).closest('.row').find('.DISCOUNT').val();
-        let DISCOUNT_TYPE = $(param).closest('.row').find('.DISCOUNT_TYPE').val();
-        let TOTAL = $(param).closest('.row').find('.TOTAL').val();
 
-        if (DISCOUNT_TYPE == 1){
-            let FINAL_AMOUNT = parseFloat(TOTAL-DISCOUNT);
-            $(param).closest('.row').find('.FINAL_AMOUNT').val(FINAL_AMOUNT.toFixed(2));
-        } else {
-            if (DISCOUNT_TYPE == 2) {
-                let FINAL_AMOUNT = parseFloat(TOTAL - (TOTAL * (DISCOUNT / 100)));
-                $(param).closest('.row').find('.FINAL_AMOUNT').val(FINAL_AMOUNT.toFixed(2));
-            }
-        }
-        let TOTAL_AMOUNT = 0;
-        $('.FINAL_AMOUNT').each(function () {
-            TOTAL_AMOUNT += parseFloat($(this).val());
-        });
-        $('#total_bill').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
-        $('#BALANCE_PAYABLE').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
-    }
 </script>
 </body>
 </html>

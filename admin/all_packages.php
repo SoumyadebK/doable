@@ -1,5 +1,9 @@
 <?php
 require_once('../global/config.php');
+global $db;
+global $db_account;
+global $master_database;
+
 $title = "All Packages";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
@@ -41,11 +45,11 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                             <div class="table-responsive">
                                 <table id="myTable" class="table table-striped border" data-page-length="50">
                                     <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Package Name</th>
-                                        <th>Action</th>
-                                    </tr>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Package Name</th>
+                                            <th>Action</th>
+                                        </tr>
                                     </thead>
 
                                     <tbody>
@@ -57,8 +61,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                             <td onclick="editpage(<?=$row->fields['PK_PACKAGE']?>);"><?=$i;?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_PACKAGE']?>);"><?=$row->fields['PACKAGE_NAME']?></td>
                                             <td>
-                                                <a href="package.php?id=<?=$row->fields['PK_PACKAGE']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="all_packages.php?type=del&id=<?=$row->fields['PK_PACKAGE']?>" onclick='javascript:ConfirmDelete(<?=$row->fields['PK_PACKAGE']?>);return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="package.php?id=<?=$row->fields['PK_PACKAGE']?>"><i class="fa fa-edit" title="Edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="all_packages.php?type=del&id=<?=$row->fields['PK_PACKAGE']?>" onclick='ConfirmDelete(<?=$row->fields['PK_PACKAGE']?>);'><i class="fa fa-trash" title="Delete"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
