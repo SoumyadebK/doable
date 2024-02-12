@@ -63,9 +63,9 @@ function saveServiceCodeData($RESPONSE_DATA){
             $SERVICE_CODE_DATA['IS_DEFAULT'] = isset($RESPONSE_DATA['IS_DEFAULT_'.$i])?1:0;
             //$SERVICE_CODE_DATA['PK_SCHEDULING_CODE'] = $RESPONSE_DATA['PK_SCHEDULING_CODE'][$i];
             $SERVICE_CODE_DATA['DURATION'] = !empty($RESPONSE_DATA['DURATION'][$i]) ? $RESPONSE_DATA['DURATION'][$i] : 0;
-            $SERVICE_CODE_DATA['IS_GROUP'] = $RESPONSE_DATA['IS_GROUP_'.$i];
-            $SERVICE_CODE_DATA['CAPACITY'] = $RESPONSE_DATA['CAPACITY'][$i];
-            $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE_'.$i];
+            $SERVICE_CODE_DATA['IS_GROUP'] = $RESPONSE_DATA['IS_GROUP_'.$i] ?? 0;
+            $SERVICE_CODE_DATA['CAPACITY'] = !empty($RESPONSE_DATA['CAPACITY'][$i]) ? $RESPONSE_DATA['CAPACITY'][$i] : 0;
+            $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE_'.$i] ?? 0;
             $SERVICE_CODE_DATA['PRICE'] = $RESPONSE_DATA['PRICE'][$i];
             $SERVICE_CODE_DATA['NUMBER_OF_SESSIONS'] = !empty($RESPONSE_DATA['NUMBER_OF_SESSIONS'][$i]) ? $RESPONSE_DATA['NUMBER_OF_SESSIONS'][$i] : 0;
             $SERVICE_CODE_DATA['SERVICE_CODE'] = $RESPONSE_DATA['SERVICE_CODE'][$i];
@@ -1227,7 +1227,7 @@ function getServiceProviderCount($RESPONSE_DATA){
         $service_provider_appointment_count->MoveNext();
     }
 
-    $ALL_SPECIAL_APPOINTMENT_QUERY = "SELECT COUNT(DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT) AS APPOINTMENT_COUNT, DOA_SPECIAL_APPOINTMENT_USER.PK_USER AS SERVICE_PROVIDER_ID FROM DOA_SPECIAL_APPOINTMENT
+    /*$ALL_SPECIAL_APPOINTMENT_QUERY = "SELECT COUNT(DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT) AS APPOINTMENT_COUNT, DOA_SPECIAL_APPOINTMENT_USER.PK_USER AS SERVICE_PROVIDER_ID FROM DOA_SPECIAL_APPOINTMENT
                             LEFT JOIN DOA_SPECIAL_APPOINTMENT_USER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT
                             WHERE DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7)
                             AND DOA_SPECIAL_APPOINTMENT_USER.PK_USER IN (".$all_service_provider.") AND `DATE` = '$date' GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_USER";
@@ -1235,7 +1235,7 @@ function getServiceProviderCount($RESPONSE_DATA){
     while (!$service_provider_special_appointment_count->EOF){
         $return_data[$service_provider_special_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT'] = $return_data[$service_provider_special_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT']+$service_provider_special_appointment_count->fields['APPOINTMENT_COUNT'];
         $service_provider_special_appointment_count->MoveNext();
-    }
+    }*/
 
     echo json_encode(array_values($return_data));
 }
