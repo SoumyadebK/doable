@@ -1731,6 +1731,10 @@ if(!empty($_GET['master_id'])) {
                                             </div>
 
                                             <div class="tab-pane" id="enrollment" role="tabpanel">
+                                                <div class="row" style="padding: 35px 35px 0px 35px">
+                                                    <h5>List of Orphan Appointments</h5>
+                                                    <?php require_once('pagination/orphan_appointment.php'); ?>
+                                                </div>
                                                 <div class="row" style="margin-bottom: -30px; margin-top: 10px;">
                                                     <div class="col-12 d-flex justify-content-end">
                                                         <?php
