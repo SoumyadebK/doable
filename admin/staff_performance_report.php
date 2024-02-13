@@ -113,17 +113,22 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     <tbody>
                                     <?php
                                     $j=1;
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.TYPE= 'C' OR  DOA_USERS.TYPE= 'S' AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.TYPE, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.TYPE= 'C' OR  DOA_USERS.TYPE= 'S' AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                     while (!$row->EOF) {
+                                        $type = $row->fields['TYPE'];
+                                        echo $type;
                                         $private_data = $db->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS PRIVATE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE = DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND DOA_APPOINTMENT_MASTER.IS_PAID = 1 AND DOA_APPOINTMENT_MASTER.DATE BETWEEN ".date('Y-m-d', strtotime($from_date))." AND ".date('Y-m-d', strtotime($to_date))." AND DOA_USER_MASTER.PK_USER = ".$row->fields['PK_USER']);
                                         $private = $private_data->RecordCount() > 0 ? $private_data->fields['PRIVATE'] : 0;
                                         $group_data = $db->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE = DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER=DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_APPOINTMENT_MASTER.IS_PAID = 1 AND DOA_APPOINTMENT_MASTER.DATE BETWEEN ".date('Y-m-d', strtotime($from_date))." AND ".date('Y-m-d', strtotime($to_date))." AND DOA_USER_MASTER.PK_USER = ".$row->fields['PK_USER']);
-                                        $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0; ?>
+                                        $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
+                                        $enrollment_data = $db_account->Execute("SELECT SUM( DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION ) AS INTERVIEW FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." ORDER BY DOA_ENROLLMENT_MASTER.CREATED_ON LIMIT 3");
+                                        $interview = $enrollment_data->RecordCount() > 0 ? $enrollment_data->fields['INTERVIEW'] : 0;
+                                        ?>
                                         <tr>
                                             <td><?=$row->fields['LAST_NAME'].', '.$row->fields['FIRST_NAME']?></td>
-                                            <td><?=$row->fields['USER_NAME']?></td>
-                                            <td style="text-align: center"><?=$private?></td>
-                                            <td style="text-align: center"><?=$group?></td>
+                                            <td style="text-align: center">------</td>
+                                            <td style="text-align: center">------</td>
+                                            <td style="text-align: center">------</td>
                                             <td style="text-align: right"></td>
                                             <td style="text-align: right"></td>
                                             <td style="text-align: right"></td>
