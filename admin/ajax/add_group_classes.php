@@ -1,5 +1,9 @@
 <?php
 require_once('../../global/config.php');
+global $db;
+global $db_account;
+
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 if (!empty($_GET['date']) && !empty($_GET['time'])) {
     $date = $_GET['date'];
@@ -38,19 +42,45 @@ $AND_PK_USER = ' ';
     <div class="p-40 " style="padding-top: 10px;">
         <div id="append_service_code">
         <div class="row" style="border-bottom: 1px solid grey;">
-            <div class="col-4">
+            <div class="col-3">
+                <div class="form-group">
+                    <label class="form-label">Service<span class="text-danger">*</span></label><br>
+                    <select class="multi_select" required name="SERVICE_ID">
+                        <option value="">Select Service</option>
+                        <?php
+                        $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_CODE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_SERVICE_LOCATION.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.") AND DOA_SERVICE_MASTER.IS_DELETED = 0");
+                        while (!$row->EOF) { ?>
+                            <option value="<?=$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>"><?=$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE']?></option>
+                        <?php $row->MoveNext(); } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="form-group">
+                    <label class="form-label">Scheduling Code<span class="text-danger">*</span></label><br>
+                    <select class="multi_select" required id="PK_SCHEDULING_CODE" name="SCHEDULING_CODE">
+                        <option value="">Select Scheduling Code</option>
+                        <?php
+                        $row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE`, `SCHEDULING_CODE`, `SCHEDULING_NAME`, `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
+                        while (!$row->EOF) { ?>
+                            <option data-duration="<?=$row->fields['DURATION'];?>" value="<?php echo $row->fields['PK_SCHEDULING_CODE'].','.$row->fields['DURATION'];?>"><?=$row->fields['SCHEDULING_CODE'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
+                        <?php $row->MoveNext(); } ?>
+                    </select>
+                </div>
+            </div>
+            <!--<div class="col-4">
                 <div class="form-group">
                     <label class="form-label">Service <span class="text-danger">*</span></label><br>
                     <select required name="SERVICE_ID" id="SERVICE_ID" onchange="selectThisService(this);">
                         <option value="">Select Service</option>
                         <?php
-                        $row = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.DURATION, DOA_SERVICE_CODE.CAPACITY FROM DOA_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_CODE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.ACTIVE = 1 AND DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_SERVICE_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                        while (!$row->EOF) { ?>
-                            <option value="<?=$row->fields['DURATION'].','.$row->fields['PK_SERVICE_CODE'].','.$row->fields['PK_SERVICE_MASTER'];?>"><?=$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'];?></option>
-                        <?php $row->MoveNext(); } ?>
+/*                        $row = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.DURATION, DOA_SERVICE_CODE.CAPACITY FROM DOA_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_CODE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.ACTIVE = 1 AND DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_SERVICE_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                        while (!$row->EOF) { */?>
+                            <option value="<?php /*=$row->fields['DURATION'].','.$row->fields['PK_SERVICE_CODE'].','.$row->fields['PK_SERVICE_MASTER'];*/?>"><?php /*=$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'];*/?></option>
+                        <?php /*$row->MoveNext(); } */?>
                     </select>
                 </div>
-            </div>
+            </div>-->
             <!--<div class="col-3">
                 <div class="form-group">
                     <label class="form-label">Primary <?php /*=$service_provider_title*/?> <span class="text-danger">*</span></label>
@@ -69,7 +99,7 @@ $AND_PK_USER = ' ';
                     </select>
                 </div>
             </div>-->
-            <div class="col-4">
+            <div class="col-3">
                 <div class="form-group">
                     <label class="form-label">Location</label>
                     <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
@@ -82,7 +112,7 @@ $AND_PK_USER = ' ';
                     </select>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-3">
                 <div class="form-group">
                     <label class="form-label">Group Name</label><br>
                     <input class="form-control" type="text" name="GROUP_NAME" id="GROUP_NAME" placeholder="Group Name">
@@ -172,6 +202,8 @@ $AND_PK_USER = ' ';
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
 <script type="text/javascript">
+    $('.multi_select').SumoSelect({search: true, searchText: 'Search...'});
+
     $('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
     });

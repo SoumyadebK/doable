@@ -1180,7 +1180,7 @@ function generateReceiptPdf($html){
                                                                     <?php
                                                                     $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.") AND IS_DELETED = 0");
                                                                     while (!$row->EOF) { ?>
-                                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" data-service_class="<?=$row->fields['PK_SERVICE_CLASS']?>" data-is_package="<?=$row->fields['IS_PACKAGE']?>"><?=$row->fields['SERVICE_NAME']?></option>
+                                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>"><?=$row->fields['SERVICE_NAME']?></option>
                                                                     <?php $row->MoveNext(); } ?>
                                                                 </select>
                                                             </div>
@@ -1326,8 +1326,8 @@ function generateReceiptPdf($html){
                                                             <label>Active</label>
                                                         </div>
                                                         <div class="col-md-4">
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                         </div>
                                                     </div>
                                                 </div>

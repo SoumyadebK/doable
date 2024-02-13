@@ -1,5 +1,7 @@
 <?php
 require_once('../../global/config.php');
+global $db;
+global $db_account;
 
 if (empty($_GET['PK_USER_MASTER'])) {
     $PK_USER_MASTER = 0;
@@ -73,17 +75,6 @@ $AND_PK_USER = '';
                     <label class="form-label">Enrollment ID<span class="text-danger">*</span></label>
                     <select class="form-control" required name="PK_ENROLLMENT_MASTER" id="PK_ENROLLMENT_MASTER" onchange="selectThisEnrollment(this);">
                         <option value="">Select Enrollment ID</option>
-                        <?php
-                        if ($PK_USER_MASTER > 0) {
-                        $selected_enrollment = '';
-                        $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.DURATION, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
-                        $used_session_count = $db->Execute("SELECT COUNT(`PK_ENROLLMENT_SERVICE`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_SERVICE` = ".$row->fields['PK_ENROLLMENT_SERVICE']);
-
-                        //$row = $db->Execute("SELECT PK_ENROLLMENT_MASTER, ENROLLMENT_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
-                        while (!$row->EOF) { if($PK_USER_MASTER==$row->fields['PK_USER_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
-                            <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-duration="<?=$row->fields['DURATION']?>"><?=$row->fields['ENROLLMENT_ID'].' || '.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$used_session_count->fields['USED_SESSION_COUNT'].'/'.$row->fields['NUMBER_OF_SESSION'];?></option>
-                        <?php $row->MoveNext(); }
-                        } ?>
                     </select>
                 </div>
             </div>

@@ -111,8 +111,8 @@ if(empty($_GET['id'])){
                             <!-- Nav tabs -->
                             <ul class="nav nav-tabs" role="tablist">
                                 <li class="active"> <a class="nav-link active" data-bs-toggle="tab" href="#service_info" role="tab"><span class="hidden-sm-up"><i class="ti-info"></i></span> <span class="hidden-xs-down">Info</span></a> </li>
-                                <li> <a class="nav-link" data-bs-toggle="tab" id="service_codes_link" href="#service_codes" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Service Codes</span></a> </li>
-                                <li> <a class="nav-link" data-bs-toggle="tab" id="service_document_link" href="#service_document" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Service Document</span></a> </li>
+                                <li> <a class="nav-link <?=(!empty($_GET['id']))?'':'disabled'?>" data-bs-toggle="tab" id="service_codes_link" href="#service_codes" role="tab" <?=(!empty($_GET['id']))?'':'disabled'?>><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Service Codes</span></a> </li>
+                                <li> <a class="nav-link <?=(!empty($_GET['id']))?'':'disabled'?>" data-bs-toggle="tab" id="service_document_link" href="#service_document" role="tab" <?=(!empty($_GET['id']))?'':'disabled'?>><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Service Document</span></a> </li>
                             </ul>
 
                             <!-- Tab panes -->
@@ -616,6 +616,7 @@ if(empty($_GET['id'])){
             data: form_data,
             success:function (data) {
                 if (PK_SERVICE_MASTER == 0) {
+                    $('.disabled').attr('disabled', false).removeClass('disabled');
                     $('.PK_SERVICE_MASTER').val(data);
                     $('#service_codes_link')[0].click();
                 }else{
