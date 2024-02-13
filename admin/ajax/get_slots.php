@@ -5,24 +5,28 @@ global $db_account;
 global $master_database;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
-function getTimeSlot($interval, $start_time, $end_time)
+/**
+ * @throws Exception
+ */
+function getTimeSlot($interval, $start_time, $end_time): array
 {
     global $db;
     global $db_account;
     global $account_database;
     global $master_database;
-    /*$start = new DateTime($start_time);
-    $end = new DateTime($end_time);*/
-    $location_operational_hour = $db->Execute("SELECT $account_database.DOA_OPERATIONAL_HOUR.OPEN_TIME, $account_database.DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM $account_database.DOA_OPERATIONAL_HOUR LEFT JOIN $master_database.DOA_LOCATION ON $account_database.DOA_OPERATIONAL_HOUR.PK_LOCATION = $master_database.DOA_LOCATION.PK_LOCATION WHERE $master_database.DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND $account_database.DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY $master_database.DOA_LOCATION.PK_LOCATION LIMIT 1");
-if($location_operational_hour->RecordCount()>0){
 
-    $start = new DateTime($location_operational_hour->fields['OPEN_TIME']);
-    $end = new DateTime($location_operational_hour->fields['CLOSE_TIME']);
-} else {
+    /*$location_operational_hour = $db->Execute("SELECT $account_database.DOA_OPERATIONAL_HOUR.OPEN_TIME, $account_database.DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM $account_database.DOA_OPERATIONAL_HOUR LEFT JOIN $master_database.DOA_LOCATION ON $account_database.DOA_OPERATIONAL_HOUR.PK_LOCATION = $master_database.DOA_LOCATION.PK_LOCATION WHERE $master_database.DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND $account_database.DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY $master_database.DOA_LOCATION.PK_LOCATION LIMIT 1");
+
+    if($location_operational_hour->RecordCount()>0){
+        $start = new DateTime($location_operational_hour->fields['OPEN_TIME']);
+        $end = new DateTime($location_operational_hour->fields['CLOSE_TIME']);
+    } else {
+        $start = new DateTime($start_time);
+        $end = new DateTime($end_time);
+    }*/
+
     $start = new DateTime($start_time);
     $end = new DateTime($end_time);
-}
-
     $startTime = $start->format('H:i');
     $endTime = $end->format('H:i');
     $i=0;
@@ -39,15 +43,6 @@ if($location_operational_hour->RecordCount()>0){
     }
     return $time;
 }
-if (empty($_POST['PK_ENROLLMENT_MASTER'])) {
-    $PK_ENROLLMENT_MASTER_ARRAY = '';
-    $PK_SERVICE_MASTER = '';
-    $PK_SERVICE_CODE = '';
-} else {
-    $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $_POST['PK_ENROLLMENT_MASTER']);
-    $PK_SERVICE_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[2];
-    $PK_SERVICE_CODE = $PK_ENROLLMENT_MASTER_ARRAY[3];
-}
 
 $PK_APPOINTMENT_MASTER = $_POST['PK_APPOINTMENT_MASTER'];
 $SERVICE_PROVIDER_ID = $_POST['SERVICE_PROVIDER_ID'];
@@ -58,7 +53,7 @@ $START_TIME = empty($_POST['START_TIME'])?'09:00:00':$_POST['START_TIME'];
 $END_TIME = empty($_POST['END_TIME'])?'22:00:00':$_POST['END_TIME'];
 $slot_time = empty($_POST['slot_time'])?'':$_POST['slot_time'];
 
-$booked_slot_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME FROM DOA_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = ".$SERVICE_PROVIDER_ID." AND DOA_APPOINTMENT_MASTER.DATE = "."'".$date."'");
+$booked_slot_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS NOT IN (2, 6) AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$SERVICE_PROVIDER_ID." AND DOA_APPOINTMENT_MASTER.DATE = "."'".$date."'");
 $booked_slot_array = [];
 $j = 0;
 while (!$booked_slot_data->EOF) {
@@ -68,28 +63,20 @@ while (!$booked_slot_data->EOF) {
     $j++;
 }
 
-$booked_slot_data_group_class = $db_account->Execute("SELECT DOA_GROUP_CLASS.START_TIME, DOA_GROUP_CLASS.END_TIME FROM DOA_GROUP_CLASS LEFT JOIN DOA_GROUP_CLASS_USER ON DOA_GROUP_CLASS.PK_GROUP_CLASS=DOA_GROUP_CLASS_USER.PK_GROUP_CLASS WHERE DOA_GROUP_CLASS_USER.PK_USER = ".$SERVICE_PROVIDER_ID." AND DOA_GROUP_CLASS.DATE = "."'".$date."'");
-$booked_slot_group_class_array = [];
-$k = 0;
-while (!$booked_slot_data_group_class->EOF) {
-    $booked_slot_group_class_array[$k]['START_TIME'] = $booked_slot_data_group_class->fields['START_TIME'];
-    $booked_slot_group_class_array[$k]['END_TIME'] = $booked_slot_data_group_class->fields['END_TIME'];
-    $booked_slot_data_group_class->MoveNext();
-    $k++;
+$dayNumber = date('N', strtotime($date));
+$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber' AND CLOSED = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].")");
+if ($location_operational_hour->RecordCount() > 0) {
+    $SLOT_START = $location_operational_hour->fields['OPEN_TIME'] ?? '00:00:00';
+    $SLOT_END = $location_operational_hour->fields['CLOSE_TIME'] ?? '23:00:00';
+} else {
+    $SLOT_START = '00:00:00';
+    $SLOT_END = '23:00:00';
 }
 
-$slot_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_PROVIDER_SERVICES WHERE PK_USER = ".$SERVICE_PROVIDER_ID);
-if ($slot_data->RecordCount() > 0) {
-    $SLOT_START = $slot_data->fields[$day . '_START_TIME'];
-    $SLOT_END = $slot_data->fields[$day . '_END_TIME'];
-} else {
-    $SLOT_START = '09:00:00';
-    $SLOT_END = '22:00:00';
-}
 $holiday_data = $db_account->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND HOLIDAY_DATE = "."'".$date."'");
 if ($holiday_data->RecordCount() > 0){
     $SLOT_START = '00:00:00';
-    $SLOT_END = '00:00:00';
+    $SLOT_END = '23:00:00';
 }
 //echo $SLOT_START." - ".$SLOT_END;
 
@@ -98,7 +85,7 @@ $time_slot_array = getTimeSlot($duration, $SLOT_START, $SLOT_END);
 foreach ($time_slot_array as $key => $item) {
     $disabled = '';
     $is_disable = 0;
-    if ($SLOT_START == '00:00:00' && $SLOT_END == '00:00:00'){
+    if ($SLOT_START == '00:00:00' && $SLOT_END == '23:00:00'){
         $disabled = "pointer-events: none; background-color: red !important;";
         $is_disable = 1;
     }elseif((date('H:i',strtotime($item['slot_start_time'])) < date('H:i',strtotime($SLOT_START))) || date('H:i',strtotime($item['slot_end_time'])) > date('H:i',strtotime($SLOT_END))){
@@ -106,20 +93,14 @@ foreach ($time_slot_array as $key => $item) {
         $is_disable = 1;
     }else {
         foreach ($booked_slot_array as $booked_slot_array_data) {
-            if ((date('H:i', strtotime($item['slot_start_time'])) == date('H:i', strtotime($booked_slot_array_data['START_TIME']))) && date('H:i', strtotime($item['slot_end_time'])) == date('H:i', strtotime($booked_slot_array_data['END_TIME']))) {
-                $disabled = "pointer-events: none; background-color: blue !important;";
-                $is_disable = 1;
-            }
-        }
-        foreach ($booked_slot_group_class_array as $booked_slot_group_class_array_data) {
-            if ((date('H:i', strtotime($item['slot_start_time'])) == date('H:i', strtotime($booked_slot_group_class_array_data['START_TIME']))) && date('H:i', strtotime($item['slot_end_time'])) == date('H:i', strtotime($booked_slot_group_class_array_data['END_TIME']))) {
-                $disabled = "pointer-events: none; background-color: blue !important;";
+            if ((date('H:i', strtotime($item['slot_start_time'])) >= date('H:i', strtotime($booked_slot_array_data['START_TIME']))) && date('H:i', strtotime($item['slot_end_time'])) <= date('H:i', strtotime($booked_slot_array_data['END_TIME']))) {
+                $disabled = "pointer-events: none; background-color: blue !important; color: white;";
                 $is_disable = 1;
             }
         }
     }
     $selected = "";
-    if((date('H:i',strtotime($item['slot_start_time'])) == date('H:i',strtotime($START_TIME))) && date('H:i',strtotime($item['slot_end_time'])) == date('H:i',strtotime($END_TIME)) || (date('H:i',strtotime($item['slot_start_time'])) == date('H:i',strtotime($slot_time))) || (date('H:i',strtotime($slot_time)) > date('H:i',strtotime($item['slot_start_time']))) && (date('H:i',strtotime($slot_time)) < date('H:i',strtotime($item['slot_end_time'])))){
+    if((date('H:i',strtotime($item['slot_start_time'])) == date('H:i',strtotime($START_TIME))) && date('H:i',strtotime($item['slot_end_time'])) == date('H:i',strtotime($END_TIME)) || (!empty($slot_time) && date('H:i',strtotime($item['slot_start_time'])) == date('H:i',strtotime($slot_time))) || (!empty($slot_time) && date('H:i',strtotime($slot_time)) > date('H:i',strtotime($item['slot_start_time']))) && (date('H:i',strtotime($slot_time)) < date('H:i',strtotime($item['slot_end_time'])))){
         $selected = "background-color: orange !important;";
     } ?>
     <div class="col-md-6 form-group">

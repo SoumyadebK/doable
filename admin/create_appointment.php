@@ -53,9 +53,12 @@ $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 
 if ($FUNCTION_NAME == 'saveGroupClassData'){
     $SERVICE_ID = explode(',', $_POST['SERVICE_ID']);
-    $DURATION = ($SERVICE_ID[0] > 0) ? $SERVICE_ID[0] : 30;
+    $PK_SERVICE_MASTER = $SERVICE_ID[0];
     $PK_SERVICE_CODE = $SERVICE_ID[1];
-    $PK_SERVICE_MASTER = $SERVICE_ID[2];
+
+    $SCHEDULING_CODE = explode(',', $_POST['SCHEDULING_CODE']);
+    $PK_SCHEDULING_CODE = $SCHEDULING_CODE[0];
+    $DURATION = $SCHEDULING_CODE[1];
 
     for ($i = 0; $i < count($_POST['STARTING_ON']); $i++) {
         $STARTING_ON = $_POST['STARTING_ON'][$i];
@@ -106,6 +109,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
                 $GROUP_CLASS_DATA['GROUP_NAME'] = $_POST['GROUP_NAME'];
                 $GROUP_CLASS_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
                 $GROUP_CLASS_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                $GROUP_CLASS_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
 
                 $GROUP_CLASS_DATA['DATE'] = $GROUP_CLASS_DATE_ARRAY[$j];
                 $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
@@ -228,6 +232,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_MASTER_ARRAY[1];
     $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[2];
     $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_ENROLLMENT_MASTER_ARRAY[3];
+    $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $PK_ENROLLMENT_MASTER_ARRAY[4];
     $APPOINTMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
     $APPOINTMENT_DATA['DATE'] = $_POST['DATE'];
     $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
@@ -269,8 +274,14 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         unset($_POST['START_TIME']);
         unset($_POST['END_TIME']);
     }
-    $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
-    $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
+
+    $SERVICE_ID = explode(',', $_POST['SERVICE_ID']);
+    $PK_SERVICE_MASTER = $SERVICE_ID[0];
+    $PK_SERVICE_CODE = $SERVICE_ID[1];
+
+    $SCHEDULING_CODE = explode(',', $_POST['SCHEDULING_CODE']);
+    $PK_SCHEDULING_CODE = $SCHEDULING_CODE[0];
+    $DURATION = $SCHEDULING_CODE[1];
 
     $default_service_code = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `IS_DEFAULT` = 1 LIMIT 1");
 
@@ -283,8 +294,9 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         //$PK_ENROLLMENT_MASTER_ARRAY = explode(',', $_POST['PK_ENROLLMENT_MASTER']);
         $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
         $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
-        $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = ($default_service_code->RecordCount() > 0) ? $default_service_code->fields['PK_SERVICE_MASTER'] : 0;
-        $APPOINTMENT_DATA['PK_SERVICE_CODE'] = ($default_service_code->RecordCount() > 0) ? $default_service_code->fields['PK_SERVICE_CODE'] : 0;
+        $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+        $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+        $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
 
         $APPOINTMENT_DATA['SERVICE_PROVIDER_ID'] = $_POST['SERVICE_PROVIDER_ID'];
         $APPOINTMENT_DATA['DATE'] = $_POST['DATE'];
@@ -297,7 +309,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
     }
 
-    rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
+    //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
     header("location:".$header);
 }

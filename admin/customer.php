@@ -2152,15 +2152,16 @@ if(!empty($_GET['master_id'])) {
         }
     </style>
     <?php require_once('../includes/footer.php');?>
-    <?php require_once('../admin/includes/enrollment_model.php');?>
-    <?php require_once('../admin/includes/appointment_model.php');?>
-    <?php require_once('../admin/includes/payment_list_model.php');?>
+    <?php /*require_once('../admin/includes/enrollment_model.php');*/?><!--
+    <?php /*require_once('../admin/includes/appointment_model.php');*/?>
+    --><?php /*require_once('../admin/includes/payment_list_model.php');*/?>
 
 
     <script>
         let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
         let PK_USER_MASTER = parseInt(<?=empty($_GET['master_id'])?0:$_GET['master_id']?>);
-        // Get the modal
+
+        /*// Get the modal
         var payment_model = document.getElementById("paymentModel");
 
         // Get the <span> element that closes the payment_model
@@ -2251,11 +2252,11 @@ if(!empty($_GET['master_id'])) {
             if (e.keyCode == 27) {
                 wallet_model.style.display = "none";
             }
-        });
+        });*/
     </script>
 
     <script>
-        // Get the modal
+        /*// Get the modal
         var enrollment_model = document.getElementById("enrollmentModel");
 
         // Get the <span> element that closes the enrollment_model
@@ -2278,16 +2279,16 @@ if(!empty($_GET['master_id'])) {
             }
         }
 
-        /*$(document).keydown(function(e) {
+        /!*$(document).keydown(function(e) {
             // ESCAPE key pressed
             if (e.keyCode == 27) {
                 enrollment_model.style.display = "none";
             }
-        });*/
+        });*!/*/
     </script>
 
         <script>
-            // Get the modal
+            /*// Get the modal
             var appointment_model = document.getElementById("appointmentModel");
 
             // Get the <span> element that closes the enrollment_model
@@ -2315,11 +2316,11 @@ if(!empty($_GET['master_id'])) {
                 if (e.keyCode == 27) {
                     appointment_model.style.display = "none";
                 }
-            });
+            });*/
         </script>
 
         <script>
-            // Get the modal
+            /*// Get the modal
             var payment_list_model = document.getElementById("paymentListModel");
 
             // Get the <span> element that closes the enrollment_model
@@ -2342,12 +2343,12 @@ if(!empty($_GET['master_id'])) {
                 }
             }
 
-            /*$(document).keydown(function(e) {
+            /!*$(document).keydown(function(e) {
                 // ESCAPE key pressed
                 if (e.keyCode == 27) {
                     payment_list_model.style.display = "none";
                 }
-            });*/
+            });*!/*/
         </script>
 
     <script>
