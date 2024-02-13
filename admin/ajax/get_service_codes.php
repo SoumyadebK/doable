@@ -1,9 +1,12 @@
 <?php
 require_once('../../global/config.php');
+global $db;
+global $db_account;
+global $master_database;
 ?>
-<option value="">Select</option>
+<option value="">Select Service Code</option>
 <?php
-$row = $db->Execute("SELECT $account_database.DOA_SERVICE_CODE.*, $master_database.DOA_FREQUENCY.FREQUENCY FROM $account_database.DOA_SERVICE_CODE LEFT JOIN $master_database.DOA_FREQUENCY ON $account_database.DOA_SERVICE_CODE.PK_FREQUENCY = $master_database.DOA_FREQUENCY.PK_FREQUENCY WHERE $account_database.DOA_SERVICE_CODE.PK_SERVICE_MASTER = ".$_POST['PK_SERVICE_MASTER']);
+$row = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_MASTER` = ".$_POST['PK_SERVICE_MASTER']);
 while (!$row->EOF) { ?>
-    <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-service_details="<?=$row->fields['DESCRIPTION']?>" data-frequency="<?=$row->fields['FREQUENCY']?>" data-price="<?=$row->fields['PRICE']?>"><?=$row->fields['SERVICE_CODE']?></option>
+    <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-details="<?=$row->fields['DESCRIPTION']?>" data-price="<?=$row->fields['PRICE']?>"><?=$row->fields['SERVICE_CODE']?></option>
 <?php $row->MoveNext(); } ?>

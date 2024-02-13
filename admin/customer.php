@@ -1,6 +1,11 @@
 <?php
 require_once('../global/config.php');
 require_once("../global/stripe-php-master/init.php");
+global $db;
+global $db_account;
+global $master_database;
+
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 use Square\Models\Address;
 use Square\SquareClient;
