@@ -731,7 +731,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
             $paid_session = 0;
             while (!$appointment_data->EOF) {
-                if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL'){
+                if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL' || $appointment_data->fields['APPOINTMENT_TYPE'] === 'AD-HOC'){
                     $title = $appointment_data->fields['CUSTOMER_NAME'].' ('.$appointment_data->fields['SERVICE_NAME'].'-'.$appointment_data->fields['SERVICE_CODE'].') '.'\n'.(($appointment_data->fields['ENROLLMENT_ID'] === 0) ? '(Ad-Hoc)' : $appointment_data->fields['ENROLLMENT_ID']).' - '.$appointment_data->fields['SERIAL_NUMBER'].(($appointment_data->fields['IS_PAID'] == 1)?' (Paid)':' (Unpaid)');
                     $type = "appointment";
                 } else {
