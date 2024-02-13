@@ -73,7 +73,7 @@ $AND_PK_USER = '';
             <div class="col-5">
                 <div class="form-group">
                     <label class="form-label">Enrollment ID<span class="text-danger">*</span></label>
-                    <select class="form-control" required name="PK_ENROLLMENT_MASTER" id="PK_ENROLLMENT_MASTER" onchange="selectThisEnrollment(this);">
+                    <select class="form-control" required name="PK_ENROLLMENT_MASTER" id="PK_ENROLLMENT_MASTER" onchange="getSlots()">
                         <option value="">Select Enrollment ID</option>
                     </select>
                 </div>
