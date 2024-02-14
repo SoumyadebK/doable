@@ -70,11 +70,24 @@ $AND_PK_USER = '';
                     </select>
                 </div>
             </div>
-            <div class="col-5">
+            <div class="col-3">
                 <div class="form-group">
                     <label class="form-label">Enrollment ID<span class="text-danger">*</span></label>
                     <select class="form-control" required name="PK_ENROLLMENT_MASTER" id="PK_ENROLLMENT_MASTER" onchange="getSlots()">
                         <option value="">Select Enrollment ID</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="form-group">
+                    <label class="form-label">Scheduling Code<span class="text-danger">*</span></label><br>
+                    <select class="multi_select" required id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getSlots()">
+                        <option value="">Select Scheduling Code</option>
+                        <?php
+                        $row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE`, `SCHEDULING_CODE`, `SCHEDULING_NAME`, `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
+                        while (!$row->EOF) { ?>
+                            <option data-duration="<?=$row->fields['DURATION'];?>" value="<?=$row->fields['PK_SCHEDULING_CODE']?>"><?=$row->fields['SCHEDULING_CODE'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
+                        <?php $row->MoveNext(); } ?>
                     </select>
                 </div>
             </div>
@@ -138,6 +151,7 @@ $AND_PK_USER = '';
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
 <script type="text/javascript">
+    $('.multi_select').SumoSelect({search: true, searchText: 'Search...'});
     $('#SELECT_CUSTOMER').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
     $('#SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
 
@@ -242,7 +256,7 @@ $AND_PK_USER = '';
         /*let PK_SERVICE_MASTER = $('#PK_SERVICE_MASTER').val();
         let PK_SERVICE_CODE = $('#PK_SERVICE_CODE').val();*/
         let SERVICE_PROVIDER_ID = $('#SERVICE_PROVIDER_ID').val();
-        let duration = $('#PK_ENROLLMENT_MASTER').find(':selected').data('duration');
+        let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
         let selected_date  = myCalender.value.toDateString();
         let day = (selected_date.toString().split(' ')[0]).toUpperCase();
         let month = selected_date.toString().split(' ')[1];
