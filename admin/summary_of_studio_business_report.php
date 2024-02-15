@@ -198,20 +198,20 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     </tr>
                                     <?php
                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                    $sales_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS T_1 FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
+                                    $sales_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS T_1 FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' AND DOA_APPOINTMENT_CUSTOMER.PK_USER = ".$row->fields['PK_USER']);
                                     $private = $sales_data->RecordCount() > 0 ? $sales_data->fields['T_1'] : 0;
                                     ?>
                                         <th style="width:5%; text-align: center; vertical-align:auto; font-weight: bold" rowspan="3">Week</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T: <?=$private?></th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S: 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : <?=$private?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
                                     </tr>
                                     <tr>
                                         <th style="width:18%; text-align: center; vertical-align:auto; font-weight: bold" colspan="2"></th>
@@ -237,16 +237,16 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     </tr>
                                     <tr>
                                         <th style="width:9%; text-align: center; vertical-align:auto; font-weight: bold" rowspan="3">Net<br><br> YTD</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T: 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S: 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
                                     </tr>
                                     <tr>
                                         <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
@@ -315,7 +315,7 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                     </div>
                 </div>
             </div>
-            <div class="row">
+            <!--<div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
@@ -333,7 +333,7 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     </thead>
                                     <tbody>
                                     <?php
-                                    $i=1;
+/*                                    $i=1;
                                     //$row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                     while (!$row->EOF) {
                                         $balance_data = $db->Execute("SELECT SUM(BALANCE_PAYABLE) AS ENROLLED, SUM(TOTAL_BALANCE_PAID) AS TOTAL_PAID, SUM(TOTAL_BALANCE_USED) AS BALANCE_USED, SUM(AMOUNT) AS AMOUNT, SUM(REMAINING_AMOUNT) AS REMAINING, SUM(PAID_AMOUNT) AS PAID, SUM(BILLED_AMOUNT) AS BILLED FROM `DOA_ENROLLMENT_BALANCE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_MASTER.PK_USER = ".$row->fields['PK_USER']);
@@ -354,22 +354,22 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                             $remaining = $balance_data->fields['REMAINING'];
                                             $balance_left = $balance_data->fields['TOTAL_PAID']-$balance_data->fields['BALANCE_USED'];
                                             $paid_amount = $balance_data->fields['PAID'];
-                                        } ?>
+                                        } */?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['USER_NAME']?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($enrolled , 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($used, 2)?></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_USER']*/?>, <?php /*=$row->fields['PK_USER_MASTER']*/?>);"><?php /*=$row->fields['NAME']*/?></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_USER']*/?>, <?php /*=$row->fields['PK_USER_MASTER']*/?>);"><?php /*=$row->fields['USER_NAME']*/?></td>
+                                            <td style="text-align: right" onclick="editpage(<?php /*=$row->fields['PK_USER']*/?>, <?php /*=$row->fields['PK_USER_MASTER']*/?>);"><?php /*=number_format($enrolled , 2)*/?></td>
+                                            <td style="text-align: right" onclick="editpage(<?php /*=$row->fields['PK_USER']*/?>, <?php /*=$row->fields['PK_USER_MASTER']*/?>);"><?php /*=number_format($used, 2)*/?></td>
                                         </tr>
-                                        <?php $row->MoveNext();
-                                        $i++; } ?>
+                                        <?php /*$row->MoveNext();
+                                        $i++; } */?>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>-->
         </div>
     </div>
 </div>
