@@ -687,7 +687,8 @@ if(!empty($_GET['master_id'])) {
                                             <li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>
                                             <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
                                             <?php if(!empty($_GET['id'])) { ?>
-                                                <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Enrollments</span></a> </li>
+                                                <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Enrollments</span></a> </li>
+                                                <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#completed_enrollment" onclick="showCompletedEnrollmentList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
                                                 <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
                                                 <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
                                                 <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
@@ -1730,7 +1731,12 @@ if(!empty($_GET['master_id'])) {
                                                 </form>
                                             </div>
 
+                                            <!--Enrollment Model-->
                                             <div class="tab-pane" id="enrollment" role="tabpanel">
+                                                <div class="row" style="padding: 35px 35px 0px 35px">
+                                                    <h5>List of Pending Services</h5>
+                                                    <?php require_once('pagination/pending_services.php'); ?>
+                                                </div>
                                                 <div class="row" style="padding: 35px 35px 0px 35px">
                                                     <h5>List of Orphan Appointments</h5>
                                                     <?php require_once('pagination/orphan_appointment.php'); ?>
@@ -1749,7 +1755,13 @@ if(!empty($_GET['master_id'])) {
 
                                                 </div>
                                             </div>
-                                            <!--Enrollment Model-->
+
+                                            <!--Active Enrollment Model-->
+                                            <div class="tab-pane" id="completed_enrollment" role="tabpanel">
+                                                <div id="completed_enrollment_list" class="p-20">
+
+                                                </div>
+                                            </div>
 
                                             <div class="tab-pane" id="appointment" role="tabpanel">
                                                 <div class="row">
@@ -3167,6 +3179,21 @@ if(!empty($_GET['master_id'])) {
                 cache: false,
                 success: function (result) {
                     $('#enrollment_list').html(result)
+                }
+            });
+            window.scrollTo(0,0);
+        }
+
+        function showCompletedEnrollmentList(page) {
+            let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+            $.ajax({
+                url: "pagination/completed_enrollments.php",
+                type: "GET",
+                data: {search_text:'', page:page, master_id:PK_USER_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#completed_enrollment_list').html(result)
                 }
             });
             window.scrollTo(0,0);

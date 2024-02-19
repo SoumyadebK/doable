@@ -271,7 +271,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                                 <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
                                                     <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
                                                 <?php } else { ?>
-                                                    <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>&action=complete" onclick='confirmComplete($(this));return false;'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
+                                                    <a href="javascript:" data-id="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='confirmComplete($(this));'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
                                                 <?php } ?>
                                             </td>
                                             <td>
@@ -535,6 +535,26 @@ $page_first_result = ($page-1) * $results_per_page;
     });
 </script>
 <script>
+    function confirmComplete(param)
+    {
+        let conf = confirm("Do you want to mark this appointment as completed?");
+        if (conf) {
+            let PK_APPOINTMENT_MASTER = $(param).data('id');
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {FUNCTION_NAME: 'markAppointmentCompleted', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                success:function (data) {
+                    if (data == 1){
+                        $(param).closest('td').html('<span class="status-box" style="background-color: #ff0019">Completed</span>');
+                    } else {
+                        alert("Something wrong");
+                    }
+                }
+            });
+        }
+    }
+
     function ConfirmDelete(PK_APPOINTMENT_MASTER)
     {
         var conf = confirm("Are you sure you want to delete this appointment?");
