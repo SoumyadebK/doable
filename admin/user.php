@@ -3,7 +3,7 @@ require_once('../global/config.php');
 global $db;
 
 $userType = "Users";
-$user_role_condition = " AND PK_ROLES IN(2,3,5,6,7,8)";
+$user_role_condition = " AND PK_ROLES IN(2,3,5,6,7,8,9,10)";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -264,7 +264,7 @@ if(!empty($_GET['id'])) {
                                                         <input type="hidden" class="TYPE" name="TYPE" value="1">
                                                         <div class="p-20">
                                                             <div class="row">
-                                                                <div class="col-4">
+                                                                <div class="col-5">
                                                                     <div class="form-group">
                                                                         <label class="form-label">First Name<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
@@ -272,7 +272,7 @@ if(!empty($_GET['id'])) {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-4">
+                                                                <div class="col-5">
                                                                     <div class="form-group">
                                                                         <label class="form-label">Last Name</label>
                                                                         <div class="col-md-12">
@@ -280,16 +280,16 @@ if(!empty($_GET['id'])) {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-md-2">
+                                                                <!--<div class="col-md-2">
                                                                     <div class="form-group">
                                                                         <label class="form-label">Select Type</label>
                                                                         <select class="form-control" name="TYPE">
                                                                             <option value="">Select</option>
-                                                                            <option value="C" <?=($TYPE == 'C')?'selected':''?>>Counsellor</option>
-                                                                            <option value="S" <?=($TYPE == 'S')?'selected':''?>>Supervisor</option>
+                                                                            <option value="C" <?php /*=($TYPE == 'C')?'selected':''*/?>>Counsellor</option>
+                                                                            <option value="S" <?php /*=($TYPE == 'S')?'selected':''*/?>>Supervisor</option>
                                                                         </select>
                                                                     </div>
-                                                                </div>
+                                                                </div>-->
                                                                 <div class="col-md-2">
                                                                     <label class="form-label">Roles<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12 multiselect-box">

@@ -23,6 +23,7 @@
                                 <a class="dropdown-item" href="../admin/all_packages.php">Packages</a>
                                 <a class="dropdown-item" href="../admin/all_scheduling_codes.php">Scheduling Codes</a>
                                 <a class="dropdown-item" href="../admin/all_document_library.php">Document Library</a>
+                                <a class="dropdown-item" href="../admin/all_document_library.php">Document Library</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">
