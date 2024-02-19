@@ -182,14 +182,14 @@ function saveEnrollmentData($RESPONSE_DATA){
         }
     }
 
-    if ($is_default_service_code_selected === 1) {
+    /*if ($is_default_service_code_selected === 1) {
         $ad_hoc_appointment = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE CUSTOMER_ID = ".$RESPONSE_DATA['PK_USER_MASTER']." AND PK_ENROLLMENT_MASTER = 0");
         if ($ad_hoc_appointment->RecordCount() > 0) {
             $UPDATE_APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
             $UPDATE_APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $DEFAULT_ENROLLMENT_SERVICE;
             db_perform_account('DOA_APPOINTMENT_MASTER', $UPDATE_APPOINTMENT_DATA, 'update'," CUSTOMER_ID = ".$RESPONSE_DATA['PK_USER_MASTER']." AND PK_ENROLLMENT_MASTER = 0");
         }
-    }
+    }*/
 
     $return_data['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
     $return_data['TOTAL_AMOUNT'] = $total;
@@ -409,6 +409,8 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         db_perform_account('DOA_ENROLLMENT_BILLING', $RESPONSE_DATA, 'update'," PK_ENROLLMENT_BILLING =  '$RESPONSE_DATA[PK_ENROLLMENT_BILLING]'");
         $PK_ENROLLMENT_BILLING = $RESPONSE_DATA['PK_ENROLLMENT_BILLING'];
     }
+
+    markAdhocAppointmentNormal($RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
 
     $return_data['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
     $return_data['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;

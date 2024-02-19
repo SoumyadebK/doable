@@ -24,7 +24,7 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
     $PK_USER = '';
 }
 
-$row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE DATE = '".date('Y-m-d', strtotime($date))."' AND '".date('H:i:s', strtotime($time))."' >= START_TIME AND '".date('H:i:s', strtotime($time))."' <= END_TIME");
+/*$row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE DATE = '".date('Y-m-d', strtotime($date))."' AND '".date('H:i:s', strtotime($time))."' >= START_TIME AND '".date('H:i:s', strtotime($time))."' <= END_TIME");
 $selected_service_provider = [];
 while (!$row->EOF) {
     $selected_service_provider[] = $row->fields['SERVICE_PROVIDER_ID'];
@@ -36,7 +36,9 @@ if ($row->RecordCount() > 0) {
     $AND_PK_USER = "AND NOT DOA_USERS.PK_USER IN (".$selected_service_provider_array.")";
 } else {
     $AND_PK_USER = '';
-}
+}*/
+
+$AND_PK_USER = '';
 ?>
 
 <form id="multi_appointment_form" method="post" action="">
