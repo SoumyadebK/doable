@@ -1562,7 +1562,7 @@ if(!empty($_GET['master_id'])) {
                                                                             }
                                                                         }
                                                                         $account_business_type = $db->Execute("SELECT PK_BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                                        $row = $db->Execute("SELECT * FROM DOA_INTERESTS WHERE ACTIVE = 1 AND PK_BUSINESS_TYPE = ".$account_business_type->fields['PK_BUSINESS_TYPE']);
+                                                                        $row = $db_account->Execute("SELECT * FROM DOA_INTERESTS WHERE ACTIVE = 1");
                                                                         while (!$row->EOF) { ?>
                                                                             <div class="col-3 mt-3">
                                                                                 <label><input type="checkbox" name="PK_INTERESTS[]" value="<?php echo $row->fields['PK_INTERESTS'];?>" <?=(in_array($row->fields['PK_INTERESTS'], $user_interest_array))?'checked':''?> > <?=$row->fields['INTERESTS']?></label>
@@ -1588,7 +1588,7 @@ if(!empty($_GET['master_id'])) {
                                                                         <select class="form-control" name="PK_SKILL_LEVEL">
                                                                             <option value="">Select</option>
                                                                             <?php
-                                                                            $row = $db->Execute("SELECT * FROM DOA_SKILL_LEVEL WHERE ACTIVE = 1");
+                                                                            $row = $db_account->Execute("SELECT * FROM DOA_SKILL_LEVEL WHERE ACTIVE = 1");
                                                                             while (!$row->EOF) { ?>
                                                                                 <option value="<?php echo $row->fields['PK_SKILL_LEVEL'];?>" <?=($row->fields['PK_SKILL_LEVEL'] == $PK_SKILL_LEVEL)?'selected':''?>><?=$row->fields['SKILL_LEVEL']?></option>
                                                                                 <?php $row->MoveNext(); } ?>
