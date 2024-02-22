@@ -15,7 +15,7 @@
     while (!$pending_service_data->EOF) {
         $PRICE_PER_SESSION = $pending_service_data->fields['PRICE_PER_SESSION'];
         $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE PK_APPOINTMENT_STATUS = 2 AND `PK_ENROLLMENT_MASTER` = ".$pending_service_data->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$pending_service_data->fields['PK_SERVICE_CODE']);
-        $paid_session = ($PRICE_PER_SESSION > 0) ? ceil($pending_service_data->fields['TOTAL_AMOUNT_PAID']/$PRICE_PER_SESSION) : 0;
+        $paid_session = ($PRICE_PER_SESSION > 0) ? number_format($pending_service_data->fields['TOTAL_AMOUNT_PAID']/$PRICE_PER_SESSION, 2) : 0;
         $remain_session = $pending_service_data->fields['NUMBER_OF_SESSION'] - $used_session_count->fields['USED_SESSION_COUNT'];
 
         if ($remain_session > 0) {
@@ -39,7 +39,7 @@
                 <td style="text-align: center;"><?=$service_code['CODE']?></td>
                 <td style="text-align: center;"><?=$service_code['ENROLL']?></td>
                 <td style="text-align: center;"><?=$service_code['REMAIN']?></td>
-                <td style="text-align: center;"><?=$service_code['PAID']?></td>
+                <td style="text-align: center;"><?=number_format($service_code['PAID'], 2)?></td>
             </tr>
         <?php } ?>
     </tbody>

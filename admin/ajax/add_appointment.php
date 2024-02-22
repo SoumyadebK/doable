@@ -156,6 +156,7 @@ $AND_PK_USER = '';
     $('#SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
 
     $(document).ready(function () {
+        $('#SELECT_CUSTOMER').trigger("change");
         getSlots();
     });
     <? if(!empty($DATE_ARR)) { ?>
