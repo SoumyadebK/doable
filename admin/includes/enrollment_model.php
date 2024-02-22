@@ -620,7 +620,7 @@ $NOTE = '';
                     </div>
 
                     <!--Payment Model-->
-                    <?php include('payment.php'); ?>
+                    <?php include('enrollment_payment.php'); ?>
 
                 </div>
             </div>

@@ -5,6 +5,8 @@
             <th style="text-align: center;">Enroll</th>
             <th style="text-align: center;">Remain</th>
             <th style="text-align: center;">Paid</th>
+            <th style="text-align: center;">Used</th>
+            <th style="text-align: center;">Balance</th>
         </tr>
     </thead>
 
@@ -17,6 +19,7 @@
         $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE PK_APPOINTMENT_STATUS = 2 AND `PK_ENROLLMENT_MASTER` = ".$pending_service_data->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$pending_service_data->fields['PK_SERVICE_CODE']);
         $paid_session = ($PRICE_PER_SESSION > 0) ? number_format($pending_service_data->fields['TOTAL_AMOUNT_PAID']/$PRICE_PER_SESSION, 2) : 0;
         $remain_session = $pending_service_data->fields['NUMBER_OF_SESSION'] - $used_session_count->fields['USED_SESSION_COUNT'];
+        $ps_balance = $paid_session - $used_session_count->fields['USED_SESSION_COUNT'];
 
         if ($remain_session > 0) {
             if (isset($pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']])) {
@@ -24,11 +27,15 @@
                 $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['ENROLL'] += $pending_service_data->fields['NUMBER_OF_SESSION'];
                 $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['REMAIN'] += $remain_session;
                 $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['PAID'] += $paid_session;
+                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['USED'] += $used_session_count->fields['USED_SESSION_COUNT'];
+                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['BALANCE'] += $ps_balance;
             } else {
                 $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['CODE'] = $pending_service_data->fields['SERVICE_CODE'];
                 $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['ENROLL'] = $pending_service_data->fields['NUMBER_OF_SESSION'];
                 $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['REMAIN'] = $remain_session;
                 $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['PAID'] = $paid_session;
+                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['USED'] = $used_session_count->fields['USED_SESSION_COUNT'];
+                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['BALANCE'] = $ps_balance;
             }
         }
 
@@ -40,6 +47,8 @@
                 <td style="text-align: center;"><?=$service_code['ENROLL']?></td>
                 <td style="text-align: center;"><?=$service_code['REMAIN']?></td>
                 <td style="text-align: center;"><?=number_format($service_code['PAID'], 2)?></td>
+                <td style="text-align: center;"><?=$service_code['USED']?></td>
+                <td style="text-align: center; color:<?=($service_code['BALANCE']<0)?'red':'black'?>;"><?=$service_code['BALANCE']?></td>
             </tr>
         <?php } ?>
     </tbody>

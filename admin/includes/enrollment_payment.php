@@ -1,6 +1,6 @@
 <div class="modal fade" id="payment_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <form id="payment_confirmation_form" role="form" action="" method="post">
+        <form id="payment_confirmation_form" role="form" action="includes/process_enrollment_payment.php" method="post">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4><b>Payment</b></h4>
@@ -18,6 +18,7 @@
                     <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID">
                     <input type="hidden" name="BILLING_REF" id="PAYMENT_BILLING_REF">
                     <input type="hidden" name="BILLING_DATE" id="PAYMENT_BILLING_DATE">
+                    <input type="hidden" name="header" value="<?=$header?>">
 
                     <div class="p-20">
                         <div class="row">
