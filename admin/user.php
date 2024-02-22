@@ -607,36 +607,68 @@ if(!empty($_GET['id'])) {
                                                                 <?php
                                                                 $i = 0;
                                                                 if(!empty($_GET['id'])) {
-                                                                    $row = $db->Execute("SELECT $master_database.DOA_RATE_TYPE.PK_RATE_TYPE, $master_database.DOA_RATE_TYPE.RATE_NAME, $master_database.DOA_RATE_TYPE.PRICE_TYPE, $account_database.DOA_USER_RATE.RATE, $account_database.DOA_USER_RATE.ACTIVE FROM $master_database.DOA_RATE_TYPE LEFT JOIN $account_database.DOA_USER_RATE ON $master_database.DOA_RATE_TYPE.PK_RATE_TYPE = $account_database.DOA_USER_RATE.PK_RATE_TYPE WHERE $master_database.DOA_RATE_TYPE.ACTIVE = 1 AND $account_database.DOA_USER_RATE.PK_USER = '$_GET[id]' ORDER BY $master_database.DOA_RATE_TYPE.PK_RATE_TYPE ASC");
-                                                                    while (!$row->EOF) { ?>
-                                                                        <div class="col-12">
-                                                                            <div class="row form-group" style="margin-bottom: 10px;">
-                                                                                <div class="col-2" style="margin-top: 10px;">
-                                                                                    <label class="form-label" for="<?=$row->fields['PK_RATE_TYPE']?>"><?=$row->fields['RATE_NAME']?></label>
-                                                                                </div>
-                                                                                <div class="col-1" style="width: 4.5%; margin-top: 7px;">
-                                                                                    <input type="hidden" name="PK_RATE_TYPE[]" value="<?=$row->fields['PK_RATE_TYPE']?>">
-                                                                                    <input type="checkbox" class="form-check-input engagement_terms" name="PK_RATE_TYPE_ACTIVE[<?=$i?>]" id="<?=$row->fields['PK_RATE_TYPE']?>" value="1" <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'':'checked'?>>
-                                                                                </div>
-                                                                                <div class="col-4" style="*display: <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'none':''?>;">
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="input-group">
-                                                                                            <?php if ($row->fields['PRICE_TYPE'] == 1){ ?>
-                                                                                                <span class="input-group-text"><?=$currency?></span>
-                                                                                            <?php } else { ?>
-                                                                                                <span class="input-group-text">%</span>
-                                                                                            <?php } ?>
-                                                                                            <input type="text" class="form-control" oninput="setFormat(this)" name="RATE[]" value="<?=$row->fields['RATE']?>" style="text-align: right; width: 25%;">
+                                                                    $row = $db->Execute("SELECT DOA_RATE_TYPE.PK_RATE_TYPE, DOA_RATE_TYPE.RATE_NAME, DOA_RATE_TYPE.PRICE_TYPE, DOA_USER_RATE.RATE, DOA_USER_RATE.ACTIVE FROM DOA_RATE_TYPE LEFT JOIN $account_database.DOA_USER_RATE AS DOA_USER_RATE ON DOA_RATE_TYPE.PK_RATE_TYPE = DOA_USER_RATE.PK_RATE_TYPE WHERE DOA_RATE_TYPE.ACTIVE = 1 AND DOA_USER_RATE.PK_USER = '$_GET[id]' ORDER BY DOA_RATE_TYPE.PK_RATE_TYPE ASC");
+                                                                    if ($row->RecordCount()>0){
+                                                                        while (!$row->EOF) { ?>
+                                                                            <div class="col-12">
+                                                                                <div class="row form-group" style="margin-bottom: 10px;">
+                                                                                    <div class="col-2" style="margin-top: 10px;">
+                                                                                        <label class="form-label" for="<?=$row->fields['PK_RATE_TYPE']?>"><?=$row->fields['RATE_NAME']?></label>
+                                                                                    </div>
+                                                                                    <div class="col-1" style="width: 4.5%; margin-top: 7px;">
+                                                                                        <input type="hidden" name="PK_RATE_TYPE[]" value="<?=$row->fields['PK_RATE_TYPE']?>">
+                                                                                        <input type="checkbox" class="form-check-input engagement_terms" name="PK_RATE_TYPE_ACTIVE[<?=$i?>]" id="<?=$row->fields['PK_RATE_TYPE']?>" value="1" <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'':'checked'?>>
+                                                                                    </div>
+                                                                                    <div class="col-4" style="*display: <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'none':''?>;">
+                                                                                        <div class="col-md-6">
+                                                                                            <div class="input-group">
+                                                                                                <?php if ($row->fields['PRICE_TYPE'] == 1){ ?>
+                                                                                                    <span class="input-group-text"><?=$currency?></span>
+                                                                                                <?php } else { ?>
+                                                                                                    <span class="input-group-text">%</span>
+                                                                                                <?php } ?>
+                                                                                                <input type="text" class="form-control" oninput="setFormat(this)" name="RATE[]" value="<?=$row->fields['RATE']?>" style="text-align: right; width: 25%;">
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
-                                                                        <?php
-                                                                        $i++;
-                                                                        $row->MoveNext();
+                                                                            <?php
+                                                                            $i++;
+                                                                            $row->MoveNext();
+                                                                        }
+                                                                    } else {
+                                                                        $row = $db->Execute("SELECT * FROM DOA_RATE_TYPE WHERE ACTIVE = 1 ORDER BY PK_RATE_TYPE ASC");
+                                                                        while (!$row->EOF) { ?>
+                                                                            <div class="col-12">
+                                                                                <div class="row form-group" style="margin-bottom: 10px;">
+                                                                                    <div class="col-2" style="margin-top: 10px;">
+                                                                                        <label class="form-label" for="<?=$row->fields['PK_RATE_TYPE']?>"><?=$row->fields['RATE_NAME']?></label>
+                                                                                    </div>
+                                                                                    <div class="col-1" style="width: 4.5%; margin-top: 7px;">
+                                                                                        <input type="hidden" name="PK_RATE_TYPE[]" value="<?=$row->fields['PK_RATE_TYPE']?>">
+                                                                                        <input type="checkbox" class="form-check-input engagement_terms" oninput="setFormat(this)" name="PK_RATE_TYPE_ACTIVE[<?=$i?>]" id="<?=$row->fields['PK_RATE_TYPE']?>" value="1">
+                                                                                    </div>
+                                                                                    <div class="col-4" style="display: <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'none':''?>;">
+                                                                                        <div class="col-md-6">
+                                                                                            <div class="input-group">
+                                                                                                <?php if ($row->fields['PRICE_TYPE'] == 1){ ?>
+                                                                                                    <span class="input-group-text"><?=$currency?></span>
+                                                                                                <?php } else { ?>
+                                                                                                    <span class="input-group-text">%</span>
+                                                                                                <?php } ?>
+                                                                                                <input type="text" class="form-control" name="RATE[]" style="text-align: right; width: 25%;">
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <?php
+                                                                            $i++;
+                                                                            $row->MoveNext();
+                                                                        }
                                                                     }
-                                                                }else {
+                                                                } else {
                                                                     $row = $db->Execute("SELECT * FROM DOA_RATE_TYPE WHERE ACTIVE = 1 ORDER BY PK_RATE_TYPE ASC");
                                                                     while (!$row->EOF) { ?>
                                                                         <div class="col-12">
@@ -693,7 +725,7 @@ if(!empty($_GET['id'])) {
                                                                             <select class="form-control" name="PK_SERVICE_MASTER[]">
                                                                                 <option value="">Select Service</option>
                                                                                 <?php
-                                                                                $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                                                $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE ACTIVE = 1 AND IS_DELETED = 0");
                                                                                 while (!$row->EOF) { ?>
                                                                                     <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($code_commission_data->fields['PK_SERVICE_MASTER']==$row->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
                                                                                     <?php $row->MoveNext(); } ?>
@@ -713,7 +745,7 @@ if(!empty($_GET['id'])) {
                                                                         <select class="form-control" name="PK_SERVICE_MASTER[]">
                                                                             <option value="">Select Service</option>
                                                                             <?php
-                                                                            $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                                            $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE ACTIVE = 1 AND IS_DELETED = 0");
                                                                             while (!$row->EOF) { ?>
                                                                                 <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>"><?=$row->fields['SERVICE_NAME']?></option>
                                                                                 <?php $row->MoveNext(); } ?>
@@ -1348,7 +1380,7 @@ if(!empty($_GET['id'])) {
                                                             <select class="form-control" name="PK_SERVICE_MASTER[]">
                                                                 <option value="">Select Service</option>
                                                                 <?php
-                                                                $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                                $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE ACTIVE = 1 AND IS_DELETED = 0");
                                                                 while (!$row->EOF) { ?>
                                                                     <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>"><?=$row->fields['SERVICE_NAME']?></option>
                                                                 <?php $row->MoveNext(); } ?>
