@@ -82,7 +82,7 @@ $page_first_result = ($page-1) * $results_per_page;*/
         ?>
         <input type="checkbox" id="toggleAll" onclick="toggleAllCheckboxes()"/>
         <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="payAll(<?=$all_row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$all_row->fields['ENROLLMENT_ID']?>')">Pay All</a>
-        <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="enrollment.php?id_customer=<?=$_GET['id']?>&master_id_customer=<?=$_GET['master_id']?>&source=customer" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
+        <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="enrollment.php?id_customer=<?=$_GET['pk_user']?>&master_id_customer=<?=$PK_USER_MASTER?>&source=customer" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
     </div>
 </div>
 
@@ -189,6 +189,7 @@ while (!$row->EOF) {
                                 $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
                                 $total_used_amount += ($PRICE_PER_SESSION*$used_session_count->fields['USED_SESSION_COUNT']);
                                 $total_session_count += $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                                $enr_balance = $paid_session-$used_session_count->fields['USED_SESSION_COUNT'];
                                 /*if ($total_paid_session_count > $serviceCodeData->fields['NUMBER_OF_SESSION']) {
                                     echo $paid_session_count = $serviceCodeData->fields['NUMBER_OF_SESSION'];
                                     $total_paid_session_count -= $serviceCodeData->fields['NUMBER_OF_SESSION'];
@@ -199,9 +200,9 @@ while (!$row->EOF) {
                                 ?>
                             </td>
                             <td style="text-align: right;"><?=$used_session_count->fields['USED_SESSION_COUNT']?></td>
-                            <td style="text-align: right;"><?=$serviceCodeData->fields['NUMBER_OF_SESSION'] - $paid_session?></td>
+                            <td style="text-align: right; color:<?=($enr_balance<0)?'red':'black'?>;"><?=$enr_balance?></td>
                             <!--<td><?php /*=($total_bill_and_paid->fields['TOTAL_BILL']==0) ? 0 : $serviceCodeData->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']*/?></td>-->
-                            <td style="text-align: right;"><?=$paid_session - $used_session_count->fields['USED_SESSION_COUNT']?></td>
+                            <td style="text-align: right;"><?=($enr_balance > 0) ? $enr_balance : 0?></td>
                         </tr>
                     <?php $serviceCodeData->MoveNext();
                     } ?>
@@ -210,8 +211,8 @@ while (!$row->EOF) {
                         <td style="text-align: right;"><?=$total_amount?></td>
                         <td style="text-align: right;"><?=$total_paid_amount?></td>
                         <td style="text-align: right;"><?=$total_used_amount?></td>
-                        <td style="text-align: right;"><?=$total_amount-$total_paid_amount?></td>
-                        <td style="text-align: right;"><?=$total_paid_amount-$total_used_amount ?></td>
+                        <td style="text-align: right; color:<?=($total_paid_amount-$total_used_amount<0)?'red':'black'?>;"><?=$total_paid_amount-$total_used_amount?></td>
+                        <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? $total_paid_amount-$total_used_amount : 0?></td>
                     </tr>
                     </tbody>
                 </table>
@@ -295,8 +296,24 @@ while (!$row->EOF) {
                             <?php } ?>
                         </td>
                     </tr>
-                <?php } ?>
-                <?php $billing_details->MoveNext(); } ?>
+                <?php }
+                $billing_details->MoveNext();
+            }
+            $cancelled_enrollment = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = -1 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+            while (!$cancelled_enrollment->EOF) {
+            ?>
+                <tr>
+                    <td><?=date('m/d/Y', strtotime($cancelled_enrollment->fields['DUE_DATE']))?></td>
+                    <td><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
+                    <td style="text-align: right;"></td>
+                    <td></td>
+                    <td style="text-align: center;"></td>
+                    <td style="text-align: right;"><?=number_format((float)$cancelled_enrollment->fields['BALANCE'], 2, '.', '')?></td>
+                    <td style="text-align: right;"></td>
+                </tr>
+            <?php $cancelled_enrollment->MoveNext();
+            } ?>
+
             </tbody>
         </table>
 
