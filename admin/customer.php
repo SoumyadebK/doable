@@ -294,10 +294,10 @@ if(!empty($_GET['master_id'])) {
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="card">
-                                    <div class="row">
+                                    <!--<div class="row">
                                         <div class="col-12 d-flex justify-content-end align-items-center" style="font-weight: bold; font-size: 15px; margin-top: 15px;">
                                             <?php
-                                            $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+/*                                            $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
 
                                             $total_amount = 0;
                                             $total_paid_amount = 0;
@@ -323,17 +323,17 @@ if(!empty($_GET['master_id'])) {
                                                 }
                                                 $row->MoveNext();
                                             }
-                                            ?>
-                                            <?php if (!empty($_GET['id'])) { ?>
-                                                <div class="col-2 text-center">Enrolled : <?=number_format($total_amount, 2);?></div>
-                                                <div class="col-2 text-center">Paid : <?=number_format($total_paid_amount, 2);?></div>
-                                                <div class="col-2 text-center">Used : <?=number_format((float)$total_used_amount, 2);?></div>
-                                                <div class="col-2 text-center">Balance : <?=number_format($total_amount-$total_paid_amount, 2)?></div>
-                                                <div class="col-2 text-center" style="color:<?=($total_paid_amount-$total_used_amount<0)?'red':'black'?>;">Service Credit : <?=number_format((float)$total_paid_amount-$total_used_amount, 2);?></div>
-                                                <div class="col-2 text-center">Session : <?=$used_session_count.'/'.$total_session_count;?></div>
-                                            <?php }?>
+                                            */?>
+                                            <?php /*if (!empty($_GET['id'])) { */?>
+                                                <div class="col-2 text-center">Enrolled : <?php /*=number_format($total_amount, 2);*/?></div>
+                                                <div class="col-2 text-center">Paid : <?php /*=number_format($total_paid_amount, 2);*/?></div>
+                                                <div class="col-2 text-center">Used : <?php /*=number_format((float)$total_used_amount, 2);*/?></div>
+                                                <div class="col-2 text-center">Balance : <?php /*=number_format($total_amount-$total_paid_amount, 2)*/?></div>
+                                                <div class="col-2 text-center" style="color:<?php /*=($total_paid_amount-$total_used_amount<0)?'red':'black'*/?>;">Service Credit : <?php /*=number_format((float)$total_paid_amount-$total_used_amount, 2);*/?></div>
+                                                <div class="col-2 text-center">Session : <?php /*=$used_session_count.'/'.$total_session_count;*/?></div>
+                                            <?php /*}*/?>
                                         </div>
-                                    </div>
+                                    </div>-->
                                     <div class="card-body">
                                         <!-- Nav tabs -->
                                         <ul class="nav nav-tabs" role="tablist">
