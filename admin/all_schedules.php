@@ -959,6 +959,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         let START_TIME = START_DATE_TIME.getUTCHours() + ":" + START_DATE_TIME.getUTCMinutes() + ":" + START_DATE_TIME.getUTCSeconds();
         let END_TIME = END_DATE_TIME.getUTCHours() + ":" + END_DATE_TIME.getUTCMinutes() + ":" + END_DATE_TIME.getUTCSeconds();
 
+        console.log(DATE, START_TIME, END_TIME);
+
         $.ajax({
             url: "ajax/AjaxFunctions.php",
             type: "POST",
@@ -967,6 +969,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             cache: false,
             success: function (data) {
                 getServiceProviderCount();
+                if (TYPE == 'group_class') {
+                    window.location.href = "all_schedules.php?CHOOSE_DATE="+data;
+                }
             }
         });
     }

@@ -11,7 +11,7 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 $package_service_data = $db_account->Execute("SELECT * FROM DOA_PACKAGE_SERVICE WHERE PK_PACKAGE = ".$_POST['PK_PACKAGE']);
 while (!$package_service_data->EOF) { ?>
     <div class="row package_div">
-        <div class="col-1">
+        <div class="col-2">
             <div class="form-group">
                 <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
                     <option>Select Service</option>
@@ -37,18 +37,6 @@ while (!$package_service_data->EOF) { ?>
         <div class="col-2">
             <div class="form-group">
                 <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?=$package_service_data->fields['SERVICE_DETAILS']?>">
-            </div>
-        </div>
-        <div class="col-1">
-            <div class="form-group">
-                <select class="form-control PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]">
-                    <option>Select</option>
-                    <?php
-                    $row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE`, `SCHEDULING_CODE`, `SCHEDULING_NAME` FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
-                    while (!$row->EOF) { ?>
-                        <option value="<?php echo $row->fields['PK_SCHEDULING_CODE'];?>" <?=($row->fields['PK_SCHEDULING_CODE'] == $package_service_data->fields['PK_SCHEDULING_CODE'])?'selected':''?>><?=$row->fields['SCHEDULING_CODE'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
-                        <?php $row->MoveNext(); } ?>
-                </select>
             </div>
         </div>
         <div class="col-1">

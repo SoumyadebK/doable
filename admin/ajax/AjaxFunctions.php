@@ -1629,6 +1629,7 @@ function updateAppointmentDataUnpost($RESPONSE_DATA) {
 }
 
 function modifyAppointment($RESPONSE_DATA) {
+    global $db_account;
     if ($RESPONSE_DATA['TYPE'] === "appointment" || $RESPONSE_DATA['TYPE'] === "group_class") {
         $APPOINTMENT_DATA['PK_APPOINTMENT_MASTER'] = $RESPONSE_DATA['PK_ID'];
         $APPOINTMENT_DATA['DATE'] = $RESPONSE_DATA['DATE'];
@@ -1646,5 +1647,14 @@ function modifyAppointment($RESPONSE_DATA) {
         $APPOINTMENT_SP_DATA['PK_USER'] = $RESPONSE_DATA['SERVICE_PROVIDER_ID'];
         db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'update', " PK_APPOINTMENT_MASTER = ".$RESPONSE_DATA['PK_ID']);
     }
+    if ($RESPONSE_DATA['TYPE'] === "group_class") {
+        $is_sp_added = $db_account->Execute("SELECT DOA_APPOINTMENT_SERVICE_PROVIDER.* FROM DOA_APPOINTMENT_SERVICE_PROVIDER WHERE PK_APPOINTMENT_MASTER = ".$RESPONSE_DATA['PK_ID']." AND PK_USER = ".$RESPONSE_DATA['SERVICE_PROVIDER_ID']);
+        if ($is_sp_added->RecordCount() <= 0) {
+            $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $RESPONSE_DATA['PK_ID'];
+            $APPOINTMENT_SP_DATA['PK_USER'] = $RESPONSE_DATA['SERVICE_PROVIDER_ID'];
+            db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+        }
+    }
+    echo date('m/d/Y', strtotime($RESPONSE_DATA['DATE']));
 }
 

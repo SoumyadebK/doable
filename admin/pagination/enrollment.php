@@ -65,6 +65,27 @@ $ALL_APPOINTMENT_QUERY = "SELECT
 $page_first_result = ($page-1) * $results_per_page;*/
 ?>
 
+
+<div class="row" style="padding: 35px 35px 0 35px">
+    <h5 style="margin-left: 30%;">List of Pending Services</h5>
+    <?php require_once('pending_services.php'); ?>
+</div>
+<div class="row" style="padding: 35px 35px 0 35px">
+    <h5>List of Orphan Appointments</h5>
+    <?php require_once('orphan_appointment.php'); ?>
+</div>
+
+<div class="row" style="margin-bottom: -15px; margin-top: 10px;">
+    <div class="col-12 d-flex justify-content-end">
+        <?php
+        $all_row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+        ?>
+        <input type="checkbox" id="toggleAll" onclick="toggleAllCheckboxes()"/>
+        <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="payAll(<?=$all_row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$all_row->fields['ENROLLMENT_ID']?>')">Pay All</a>
+        <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="enrollment.php?id_customer=<?=$_GET['id']?>&master_id_customer=<?=$_GET['master_id']?>&source=customer" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
+    </div>
+</div>
+
 <?php
 //$wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
 //$i=$page_first_result+1;

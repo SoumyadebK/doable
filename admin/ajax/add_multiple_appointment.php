@@ -49,7 +49,7 @@ $AND_PK_USER = '';
             <div class="col-3">
                 <div class="form-group">
                     <label class="form-label">Customer<span class="text-danger">*</span></label><br>
-                    <select required name="CUSTOMER_ID[]" id="SUMO_CUSTOMER" onchange="selectThisCustomer(this);">
+                    <select class="multi_select" required name="CUSTOMER_ID[]" id="SELECT_CUSTOMER" onchange="selectThisCustomer(this);">
                         <option value="">Select Customer</option>
                         <?php
                         $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 ORDER BY DOA_USERS.FIRST_NAME");
@@ -159,6 +159,10 @@ $AND_PK_USER = '';
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
 <script type="text/javascript">
+    $(document).ready(function () {
+        $('#SELECT_CUSTOMER').trigger("change");
+    });
+
     $('.multi_select').SumoSelect({search: true, searchText: 'Search...'});
 
     $('.datepicker-normal').datepicker({
@@ -179,7 +183,6 @@ $AND_PK_USER = '';
        }
     });
 
-    $('#SUMO_CUSTOMER').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
     $('#SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
 
     function set_time(id, start_time, end_time){
