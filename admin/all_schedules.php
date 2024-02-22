@@ -244,12 +244,25 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointme
             if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
                 $image_path    = '../uploads/appointment_image/'.$file11;
                 move_uploaded_file($_FILES['IMAGE']['tmp_name'], $image_path);
-                $_POST['IMAGE'] = $image_path;
+                $APPOINTMENT_DATA['IMAGE'] = $image_path;
             }
         }
-        $_POST['EDITED_BY']	= $_SESSION['PK_USER'];
-        $_POST['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_APPOINTMENT_MASTER', $_POST, 'update'," PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
+        $time = $db_account->Execute("SELECT DURATION FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = ".$_POST['PK_SCHEDULING_CODE']);
+        $duration = $time->fields['DURATION'];
+        $startTime = date('H:i:s', strtotime($_POST['START_TIME']));
+        if ($duration > 0){
+            $convertedTime = date('H:i:s',strtotime('+'.$duration.'minutes', strtotime($startTime)));
+        } else {
+            $convertedTime = date('H:i:s',strtotime('+30 minutes', strtotime($startTime)));
+        }
+        $APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($convertedTime));
+        $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
+        $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+        $APPOINTMENT_DATA['NO_SHOW'] = $_POST['NO_SHOW'];
+        $APPOINTMENT_DATA['COMMENT'] = $_POST['COMMENT'];
+        $APPOINTMENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+        $APPOINTMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
 
         $APPOINTMENT_SP_DATA['PK_USER'] = $SERVICE_PROVIDER_ID;
         db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
@@ -368,13 +381,23 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAp
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClassData'){
     $PK_APPOINTMENT_MASTER = $_POST['PK_APPOINTMENT_MASTER'];
+    $time = $db_account->Execute("SELECT DURATION FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = ".$_POST['PK_SCHEDULING_CODE']);
+    $duration = $time->fields['DURATION'];
+    $startTime = date('H:i:s', strtotime($_POST['START_TIME']));
+    if ($duration > 0){
+        $convertedTime = date('H:i:s',strtotime('+'.$duration.'minutes', strtotime($startTime)));
+    } else {
+        $convertedTime = date('H:i:s',strtotime('+30 minutes', strtotime($startTime)));
+    }
     $GROUP_CLASS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
     //$GROUP_CLASS_DATA['GROUP_NAME'] = $_POST['GROUP_NAME'];
     $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
-    $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
+    $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($convertedTime));
     $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+    $GROUP_CLASS_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
     $GROUP_CLASS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
     $GROUP_CLASS_DATA['EDITED_ON'] = date("Y-m-d H:i");
+    //pre_r($GROUP_CLASS_DATA);
     if (isset($_POST['GROUP_CLASS_ID'])) {
         db_perform_account('DOA_APPOINTMENT_MASTER', $GROUP_CLASS_DATA, 'update', " GROUP_CLASS_ID =  '$_POST[GROUP_CLASS_ID]'");
     } else {

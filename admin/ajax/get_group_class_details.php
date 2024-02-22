@@ -4,7 +4,7 @@ global $db;
 global $db_account;
 global $master_database;
 
-$res = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.GROUP_CLASS_ID, DOA_APPOINTMENT_MASTER.PK_LOCATION, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
+$res = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.GROUP_CLASS_ID, DOA_APPOINTMENT_MASTER.PK_LOCATION, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
 
 if($res->RecordCount() == 0){
     header("location:all_schedule.php");
@@ -16,6 +16,7 @@ $GROUP_CLASS_ID = $res->fields['GROUP_CLASS_ID'];
 $PK_SERVICE_MASTER = $res->fields['PK_SERVICE_MASTER'];
 $SERVICE_NAME = $res->fields['SERVICE_NAME'];
 $PK_SERVICE_CODE = $res->fields['PK_SERVICE_CODE'];
+$PK_SCHEDULING_CODE = $res->fields['PK_SCHEDULING_CODE'];
 $SERVICE_CODE = $res->fields['SERVICE_CODE'];
 $PK_LOCATION = $res->fields['PK_LOCATION'];
 $DATE = $res->fields['DATE'];
@@ -30,16 +31,34 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
     <div class="row">
         <div class="col-12">
             <div class="row">
-                <div class="col-6">
+                <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">Service Name</label>
                         <p><?=$SERVICE_NAME?></p>
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">Service Code</label>
                         <p><?=$SERVICE_CODE?></p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-group">
+                        <label class="form-label">Scheduling Code : <span id="change_scheduling_code" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>
+                            <span id="cancel_change_scheduling_code" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeSchedulingCode()">Cancel</a></span></label>
+                        <div id="scheduling_code_select" style="display: none;">
+                            <select class="form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
+                                <option value="">Select Scheduling Code</option>
+                                <?php
+                                $selected_scheduling_code = '';
+                                $row = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
+                                while (!$row->EOF) { if($PK_SCHEDULING_CODE==$row->fields['PK_SCHEDULING_CODE']){$selected_scheduling_code = $row->fields['SCHEDULING_CODE'];} ?>
+                                    <option value="<?php echo $row->fields['PK_SCHEDULING_CODE'];?>" data-duration="<?php echo $row->fields['DURATION'];?>" <?=($PK_SCHEDULING_CODE==$row->fields['PK_SCHEDULING_CODE'])?'selected':''?>><?=$row->fields['SCHEDULING_CODE']?></option>
+                                    <?php $row->MoveNext(); } ?>
+                            </select>
+                        </div>
+                        <p id="scheduling_code_name"><?=$selected_scheduling_code?></p>
                     </div>
                 </div>
             </div>
@@ -91,7 +110,7 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                 <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">Start Time</label>
-                        <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" required value="<?php echo ($START_TIME)?date('h:i A', strtotime($START_TIME)):''?>">
+                        <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" required value="<?php echo ($START_TIME)?date('h:i A', strtotime($START_TIME)):''?>">
                     </div>
                 </div>
                 <div class="col-4">
@@ -158,4 +177,43 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
 
 <script>
     $('.SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', selectAll: true, search: true, searchText: 'Search...'});
+
+    function changeSchedulingCode(){
+        $('#change_scheduling_code').hide();
+        $('#cancel_change_scheduling_code').show();
+        $('#scheduling_code_select').slideDown();
+        $('#scheduling_code_name').slideUp();
+        $('#date_time_div').slideUp();
+        $('#schedule_div').slideDown();
+    }
+
+    function cancelChangeSchedulingCode() {
+        $('#change_scheduling_code').show();
+        $('#cancel_change_scheduling_code').hide();
+        $('#scheduling_code_select').slideUp();
+        $('#scheduling_code_name').slideDown();
+        $('#date_time_div').slideDown();
+        $('#schedule_div').slideUp();
+    }
+
+    function calculateEndTime() {
+        let start_time = $('#START_TIME').val();
+        let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
+        duration = (duration)?duration:30;
+
+        if (start_time && duration) {
+            start_time = moment(start_time, ["h:mm A"]).format("HH:mm");
+            let end_time = addMinutes(start_time, duration);
+            end_time = moment(end_time, ["HH:mm"]).format("h:mm A");
+            $('#END_TIME').val(end_time);
+        }
+    }
+
+    function addMinutes(time, minsToAdd) {
+        function D(J){ return (J<10? '0':'') + J;};
+        var piece = time.split(':');
+        var mins = piece[0]*60 + +piece[1] + +minsToAdd;
+
+        return D(mins%(24*60)/60 | 0) + ':' + D(mins%60);
+    }
 </script>

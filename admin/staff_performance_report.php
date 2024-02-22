@@ -88,7 +88,7 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                         $private = $private_data->RecordCount() > 0 ? $private_data->fields['PRIVATE'] : 0;
                                         $group_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
                                         $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
-                                        $enrollment_data = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_SUM FROM (SELECT TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 3) ");
+                                        $enrollment_data = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) FROM (SELECT TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 3) AS TOTAL_SUM");
                                         $interview = $enrollment_data->RecordCount() > 0 ? $enrollment_data->fields['TOTAL_SUM'] : 0;
                                         ?>
                                         <tr>

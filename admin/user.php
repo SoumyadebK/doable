@@ -1395,6 +1395,10 @@ if(!empty($_GET['id'])) {
                                                     </div>`);
         }
 
+        function removeThis(param) {
+            $(param).closest('.row').remove();
+        }
+
         $(document).on('submit', '#engagement_form', function (event) {
             event.preventDefault();
             let form_data = $('#engagement_form').serialize();

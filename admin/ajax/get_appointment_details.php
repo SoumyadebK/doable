@@ -50,6 +50,7 @@ $PK_ENROLLMENT_MASTER = $res->fields['PK_ENROLLMENT_MASTER'];
 $SERIAL_NUMBER = $res->fields['SERIAL_NUMBER'];
 $PK_SERVICE_MASTER = $res->fields['PK_SERVICE_MASTER'];
 $PK_SERVICE_CODE = $res->fields['PK_SERVICE_CODE'];
+$PK_SCHEDULING_CODE = $res->fields['PK_SCHEDULING_CODE'];
 $SERVICE_PROVIDER_ID = $res->fields['SERVICE_PROVIDER_ID'];
 $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
 $NO_SHOW = $res->fields['NO_SHOW'];
@@ -390,7 +391,7 @@ z-index: 500;
                                 <p><?=$selected_service?></p>
                             </div>
                         </div>
-                        <div class="col-6">
+                        <div class="col-4">
                             <div class="form-group">
                                 <label class="form-label">Service Code : </label>
                                 <?php if ($PK_SERVICE_CODE==0) {
@@ -412,8 +413,25 @@ z-index: 500;
                                 <p><?=$selected_service_code?></p>
                             </div>
                         </div>
-
-                        <div class="col-6">
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label class="form-label">Scheduling Code : <span id="change_scheduling_code" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>
+                                    <span id="cancel_change_scheduling_code" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeSchedulingCode()">Cancel</a></span></label>
+                                <div id="scheduling_code_select" style="display: none;">
+                                    <select class="form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE">
+                                        <option value="">Select Scheduling Code</option>
+                                        <?php
+                                        $selected_scheduling_code = '';
+                                        $row = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
+                                        while (!$row->EOF) { if($PK_SCHEDULING_CODE==$row->fields['PK_SCHEDULING_CODE']){$selected_scheduling_code = $row->fields['SCHEDULING_CODE'];} ?>
+                                            <option value="<?php echo $row->fields['PK_SCHEDULING_CODE'];?>" <?=($PK_SCHEDULING_CODE==$row->fields['PK_SCHEDULING_CODE'])?'selected':''?>><?=$row->fields['SCHEDULING_CODE']?></option>
+                                            <?php $row->MoveNext(); } ?>
+                                    </select>
+                                </div>
+                                <p id="scheduling_code_name"><?=$selected_scheduling_code?></p>
+                            </div>
+                        </div>
+                        <div class="col-4">
                             <div class="form-group">
                                 <label class="form-label"><?=$service_provider_title?> : <span id="change_service_provider" style="margin-left: 30px;"><a href="javascript:;" onclick="changeServiceProvider()">Change</a></span>
                                     <span id="cancel_change_service_provider" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeServiceProvider()">Cancel</a></span></label>
@@ -434,16 +452,28 @@ z-index: 500;
                     </div>
                     <!--<span id="cancel_reschedule" style="display: none;"><a href="javascript:;" onclick="cancelReschedule()">Cancel</a></span>-->
                     <div class="row" id="date_time_div">
-                        <div class="col-3">
+                        <div class="col-4">
                             <div class="form-group">
                                 <label class="form-label">Date : </label>
                                 <p><?=$DATE?></p>
                             </div>
                         </div>
-                        <div class="col-6">
+                        <!--<div class="col-6">
                             <div class="form-group">
                                 <label class="form-label">Time : </label>
-                                <p><?=date('h:i A', strtotime($START_TIME)).' - '.date('h:i A', strtotime($END_TIME))?></p>
+                                <p><?php /*=date('h:i A', strtotime($START_TIME)).' - '.date('h:i A', strtotime($END_TIME))*/?></p>
+                            </div>
+                        </div>-->
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label class="form-label">Start Time</label>
+                                <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" value="<?php echo ($START_TIME)?date('h:i A', strtotime($START_TIME)):''?>" readonly>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label class="form-label">End Time</label>
+                                <input type="text" id="END_TIME" name="END_TIME" class="form-control time-picker" value="<?php echo ($END_TIME)?date('h:i A', strtotime($END_TIME)):''?>" readonly>
                             </div>
                         </div>
                         <!--<div class="col-3">
@@ -2761,6 +2791,24 @@ z-index: 500;
         $('#cancel_change_service_provider').hide();
         $('#service_provider_select').slideUp();
         $('#service_provider_name').slideDown();
+        $('#date_time_div').slideDown();
+        $('#schedule_div').slideUp();
+    }
+
+    function changeSchedulingCode(){
+        $('#change_scheduling_code').hide();
+        $('#cancel_change_scheduling_code').show();
+        $('#scheduling_code_select').slideDown();
+        $('#scheduling_code_name').slideUp();
+        $('#date_time_div').slideUp();
+        $('#schedule_div').slideDown();
+    }
+
+    function cancelChangeSchedulingCode() {
+        $('#change_scheduling_code').show();
+        $('#cancel_change_scheduling_code').hide();
+        $('#scheduling_code_select').slideUp();
+        $('#scheduling_code_name').slideDown();
         $('#date_time_div').slideDown();
         $('#schedule_div').slideUp();
     }
