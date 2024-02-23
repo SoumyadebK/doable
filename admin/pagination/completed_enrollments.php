@@ -25,9 +25,9 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
     $complete_service_code_array = [];
     while (!$completed_service_data->EOF) {
         $PRICE_PER_SESSION = $completed_service_data->fields['PRICE_PER_SESSION'];
-        $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE PK_APPOINTMENT_STATUS = 2 AND `PK_ENROLLMENT_MASTER` = ".$completed_service_data->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$completed_service_data->fields['PK_SERVICE_CODE']);
+        //$used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE PK_APPOINTMENT_STATUS = 2 AND `PK_ENROLLMENT_MASTER` = ".$completed_service_data->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$completed_service_data->fields['PK_SERVICE_CODE']);
         $paid_session = ($PRICE_PER_SESSION > 0) ? number_format($completed_service_data->fields['TOTAL_AMOUNT_PAID']/$PRICE_PER_SESSION, 2) : 0;
-        $remain_session = $completed_service_data->fields['NUMBER_OF_SESSION'] - $used_session_count->fields['USED_SESSION_COUNT'];
+        $remain_session = $completed_service_data->fields['NUMBER_OF_SESSION'] - $completed_service_data->fields['SESSION_COMPLETED'];
 
         if ($remain_session <= 0) {
             if (isset($complete_service_code_array[$completed_service_data->fields['SERVICE_CODE']])) {

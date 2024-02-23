@@ -44,3 +44,92 @@ function markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER)
         $enrollmentServiceData->MoveNext();
     }
 }
+
+function updateSessionCreatedCount($PK_ENROLLMENT_SERVICE)
+{
+    global $db_account;
+    $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.SESSION_CREATED, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
+    if ($serviceCodeData->RecordCount() > 0) {
+        if ($serviceCodeData->fields['SESSION_CREATED'] > 0) {
+            $ENR_SERVICE_DATA['SESSION_CREATED'] = $serviceCodeData->fields['SESSION_CREATED'] + 1;
+        } else {
+            $ENR_SERVICE_DATA['SESSION_CREATED'] = 1;
+        }
+        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_DATA, 'update'," PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
+    }
+}
+
+function updateSessionCompletedCount($PK_APPOINTMENT_MASTER)
+{
+    global $db_account;
+    $appointmentData = $db_account->Execute("SELECT `PK_ENROLLMENT_SERVICE` FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
+    $PK_ENROLLMENT_SERVICE = $appointmentData->fields['PK_ENROLLMENT_SERVICE'];
+    $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
+    if ($serviceCodeData->RecordCount() > 0) {
+        $is_count_done = checkCountAdded($PK_APPOINTMENT_MASTER, $serviceCodeData->fields['PK_USER_MASTER'], $PK_ENROLLMENT_SERVICE, 'COMPLETED');
+        if ($is_count_done === 0) {
+            if ($serviceCodeData->fields['SESSION_COMPLETED'] > 0) {
+                $ENR_SERVICE_DATA['SESSION_COMPLETED'] = $serviceCodeData->fields['SESSION_COMPLETED'] + 1;
+            } else {
+                $ENR_SERVICE_DATA['SESSION_COMPLETED'] = 1;
+            }
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $PK_ENROLLMENT_SERVICE);
+        }
+    }
+}
+
+function updateSessionCreatedCountGroupClass($PK_APPOINTMENT_MASTER, $PK_USER_MASTER)
+{
+    global $db_account;
+    $appointmentData = $db_account->Execute("SELECT `PK_SERVICE_MASTER`, `PK_SERVICE_CODE` FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
+    $PK_SERVICE_MASTER = $appointmentData->fields['PK_SERVICE_MASTER'];
+    $PK_SERVICE_CODE = $appointmentData->fields['PK_SERVICE_CODE'];
+    $serviceCodeData = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE, SESSION_CREATED FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = $PK_SERVICE_MASTER AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = $PK_SERVICE_CODE AND `NUMBER_OF_SESSION` > `SESSION_CREATED` ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 1");
+    if ($serviceCodeData->RecordCount() > 0) {
+        $is_count_done = checkCountAdded($PK_APPOINTMENT_MASTER, $PK_USER_MASTER, $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'], 'CREATED');
+        if ($is_count_done === 0) {
+            if ($serviceCodeData->fields['SESSION_CREATED'] > 0) {
+                $ENR_SERVICE_DATA['SESSION_CREATED'] = $serviceCodeData->fields['SESSION_CREATED'] + 1;
+            } else {
+                $ENR_SERVICE_DATA['SESSION_CREATED'] = 1;
+            }
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+        }
+    }
+}
+
+function updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $PK_USER_MASTER)
+{
+    global $db_account;
+    $appointmentData = $db_account->Execute("SELECT `PK_SERVICE_MASTER`, `PK_SERVICE_CODE` FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
+    $PK_SERVICE_MASTER = $appointmentData->fields['PK_SERVICE_MASTER'];
+    $PK_SERVICE_CODE = $appointmentData->fields['PK_SERVICE_CODE'];
+    $serviceCodeData = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE, SESSION_COMPLETED FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = $PK_SERVICE_MASTER AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = $PK_SERVICE_CODE AND `NUMBER_OF_SESSION` > `SESSION_COMPLETED` ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 1");
+    if ($serviceCodeData->RecordCount() > 0) {
+        $is_count_done = checkCountAdded($PK_APPOINTMENT_MASTER, $PK_USER_MASTER, $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'], 'COMPLETED');
+        if ($is_count_done === 0) {
+            if ($serviceCodeData->fields['SESSION_COMPLETED'] > 0) {
+                $ENR_SERVICE_DATA['SESSION_COMPLETED'] = $serviceCodeData->fields['SESSION_COMPLETED'] + 1;
+            } else {
+                $ENR_SERVICE_DATA['SESSION_COMPLETED'] = 1;
+            }
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+        }
+    }
+}
+
+function checkCountAdded($PK_APPOINTMENT_MASTER, $PK_USER_MASTER, $PK_ENROLLMENT_SERVICE, $TYPE): int
+{
+    global $db_account;
+    $count_data = $db_account->Execute("SELECT * FROM DOA_SESSION_COUNT_DATA WHERE PK_APPOINTMENT_MASTER = $PK_APPOINTMENT_MASTER AND PK_USER_MASTER = $PK_USER_MASTER AND PK_ENROLLMENT_SERVICE = $PK_ENROLLMENT_SERVICE AND TYPE = '$TYPE'");
+    if ($count_data->RecordCount() > 0) {
+        return 1;
+    } else {
+        $SESSION_COUNT_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+        $SESSION_COUNT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+        $SESSION_COUNT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
+        $SESSION_COUNT_DATA['TYPE'] = $TYPE;
+        db_perform_account('DOA_SESSION_COUNT_DATA', $SESSION_COUNT_DATA, 'insert');
+        return 0;
+    }
+}
