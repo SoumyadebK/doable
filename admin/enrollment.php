@@ -17,9 +17,9 @@ else
     $title = "Edit Enrollment";
 
 if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
-    $header = '../customer.php?id='.$_GET['id_customer'].'&master_id='.$_GET['master_id_customer'].'&tab=enrollment';
+    $header = 'customer.php?id='.$_GET['id_customer'].'&master_id='.$_GET['master_id_customer'].'&tab=enrollment';
 } else {
-    $header = '../all_enrollments.php';
+    $header = 'all_enrollments.php';
 }
 
 $ENROLLMENT_NAME = '';

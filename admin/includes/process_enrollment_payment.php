@@ -5,7 +5,7 @@ require_once('../../global/config.php');
 global $db;
 global $db_account;
 
-$header = $_POST['header'];
+$header = '../'.$_POST['header'];
 
 $SQUARE_MODE 			= 2;
 if ($SQUARE_MODE == 1)
