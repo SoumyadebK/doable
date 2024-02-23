@@ -88,8 +88,10 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                         $private = $private_data->RecordCount() > 0 ? $private_data->fields['PRIVATE'] : 0;
                                         $group_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
                                         $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
-                                        $enrollment_data = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) FROM (SELECT TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 3) AS TOTAL_SUM");
+                                        $enrollment_data = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_SUM FROM ( SELECT TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER= DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 3) AS TOTAL_SUM");
+                                        $enrollment_data_1 = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_SUM FROM ( SELECT TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER= DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 3,18446744073709551615) AS TOTAL_SUM");
                                         $interview = $enrollment_data->RecordCount() > 0 ? $enrollment_data->fields['TOTAL_SUM'] : 0;
+                                        $renewal = $enrollment_data_1->RecordCount() > 0 ? $enrollment_data_1->fields['TOTAL_SUM'] : 0;
                                         ?>
                                         <tr>
                                             <td><?=$row->fields['LAST_NAME'].', '.$row->fields['FIRST_NAME']?></td>
@@ -100,7 +102,7 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                             <td style="text-align: right"><?=''?></td>
                                             <td style="text-align: right"><?=''?></td>
                                             <td style="text-align: right"><?=number_format($interview , 2)?></td>
-                                            <td style="text-align: right"><?=''?></td>
+                                            <td style="text-align: right"><?=number_format($renewal , 2)?></td>
                                         </tr>
                                         <?php $row->MoveNext();
                                         $i++; } ?>
@@ -113,15 +115,25 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     <tbody>
                                     <?php
                                     $j=1;
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.TYPE, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES IN (9,10) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.TYPE, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USER_ROLES.PK_ROLES FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES IN (9,10) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
                                     while (!$row->EOF) {
-                                        $type = $row->fields['TYPE'];
+                                        $role = $row->fields['PK_ROLES'];
                                         $private_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS PRIVATE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'NORMAL' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
                                         $private = $private_data->RecordCount() > 0 ? $private_data->fields['PRIVATE'] : 0;
                                         $group_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
                                         $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
-                                        $enrollment_data = $db_account->Execute("SELECT SUM( DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION ) AS INTERVIEW FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." ORDER BY DOA_ENROLLMENT_MASTER.CREATED_ON LIMIT 3");
-                                        $interview = $enrollment_data->RecordCount() > 0 ? $enrollment_data->fields['INTERVIEW'] : 0;
+                                        $enrollment_data = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_SUM FROM ( SELECT TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER= DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 3) AS TOTAL_SUM");
+                                        $enrollment_data_1 = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_SUM FROM ( SELECT TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER= DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 5,18446744073709551615) AS TOTAL_SUM");
+                                        if ($role=9){
+                                            $interview = $enrollment_data->RecordCount() > 0 ? $enrollment_data->fields['TOTAL_SUM'] : 0;
+                                        } else{
+                                            $interview = 0;
+                                        }
+                                        if ($role=10){
+                                            $renewal = $enrollment_data_1->RecordCount() > 0 ? $enrollment_data_1->fields['TOTAL_SUM'] : 0;
+                                        } else{
+                                            $renewal = 0;
+                                        }
                                         ?>
                                         <tr>
                                             <td><?=$row->fields['LAST_NAME'].', '.$row->fields['FIRST_NAME']?></td>
@@ -131,8 +143,8 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                             <td style="text-align: right"></td>
                                             <td style="text-align: right"></td>
                                             <td style="text-align: right"></td>
-                                            <td style="text-align: right"></td>
-                                            <td style="text-align: right"></td>
+                                            <td style="text-align: right"><?=number_format($interview , 2)?></td>
+                                            <td style="text-align: right"><?=number_format($renewal , 2)?></td>
                                         </tr>
                                         <?php $row->MoveNext();
                                         $j++; } ?>
@@ -146,29 +158,6 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
         </div>
     </div>
 </div>
-
 <?php require_once('../includes/footer.php');?>
-
-<script>
-    // $(function () {
-    //     $('#myTable').DataTable({
-    //         "columnDefs": [
-    //             { "targets": [0,2,5], "searchable": false }
-    //         ]
-    //     });
-    // });
-    function ConfirmDelete(anchor)
-    {
-        let conf = confirm("Are you sure you want to delete?");
-        if(conf)
-            window.location=anchor.attr("href");
-    }
-    // function editpage(id, master_id){
-    //     window.location.href = "customer.php?id="+id+"&master_id="+master_id;
-    //
-    // }
-
-</script>
-
 </body>
 </html>
