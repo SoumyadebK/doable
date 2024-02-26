@@ -171,13 +171,13 @@ $page_first_result = ($page-1) * $results_per_page;
                                                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php endif; ?>
 
-                                                <a href="customer.php?id=<?=$row->fields['PK_USER']?>&master_id=<?=$row->fields['PK_USER_MASTER']?>"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;
+                                                <a href="customer.php?id=<?=$row->fields['PK_USER']?>&master_id=<?=$row->fields['PK_USER_MASTER']?>" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
                                                     <span class="active-box-red"></span>
                                                 <?php } ?>
-                                                <a href="all_services.php?type=del&id=<?=$row->fields['PK_SERVICE_MASTER']?>" onclick='javascript:ConfirmDelete(<?=$row->fields['PK_USER']?>);return false;'><img src="../assets/images/delete.png" title="Delete"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="all_services.php?type=del&id=<?=$row->fields['PK_SERVICE_MASTER']?>" onclick='ConfirmDelete(<?=$row->fields['PK_USER']?>);' title="Delete"><i class="ti-trash" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
                                         <?php $row->MoveNext();

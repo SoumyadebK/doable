@@ -20,9 +20,9 @@ if (!empty($_GET['id']) && !empty($_GET['action'])){
     }
 }
 
-$appointment_status = empty($_GET['appointment_status'])?'1, 2, 3, 5, 7':$_GET['appointment_status'];
+$appointment_status = empty($_GET['appointment_status']) ? '1, 2, 3, 5, 7, 8' : $_GET['appointment_status'];
 
-$appointment_type = empty($_GET['appointment_type'])?'':$_GET['appointment_type'];
+$appointment_type = empty($_GET['appointment_type']) ? '' : $_GET['appointment_type'];
 
 if (!empty($_GET['view'])){
     $view = $_GET['view'];

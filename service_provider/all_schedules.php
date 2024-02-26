@@ -95,27 +95,6 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAp
     }
     header("location:all_schedules.php?view=table");
 }
-
-function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
-    global $db_account;
-    $appointment_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
-    $total_bill_and_paid = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
-    $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
-    $total_paid_appointment = intval($total_paid/$price_per_session);
-    $i = 1;
-    while (!$appointment_data->EOF){
-        $UPDATE_DATA['SERIAL_NUMBER'] = $i;
-        if ($i <= $total_paid_appointment){
-            $UPDATE_DATA['IS_PAID'] = 1;
-        } else {
-            $UPDATE_DATA['IS_PAID'] = 0;
-        }
-        db_perform_account('DOA_APPOINTMENT_MASTER', $UPDATE_DATA, 'update'," PK_APPOINTMENT_MASTER =  ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
-        $appointment_data->MoveNext();
-        $i++;
-    }
-}
-
 function displayDates($date1, $date2, $format = 'm/d/Y' ) {
     $dates = array();
     $current = strtotime($date1);
