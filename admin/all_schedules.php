@@ -433,6 +433,76 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     header("location:all_schedules.php?view=table");
 }
 
+if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData'){
+    $PK_EVENT = $_POST['PK_EVENT'];
+    if(!empty($_POST)){
+        $EVENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $EVENT_DATA['HEADER'] = $_POST['HEADER'];
+        $EVENT_DATA['PK_EVENT_TYPE'] = $_POST['PK_EVENT_TYPE'];
+        $EVENT_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
+        $EVENT_DATA['SHARE_WITH_CUSTOMERS'] = isset($_POST['SHARE_WITH_CUSTOMERS'])?1:0;
+        $EVENT_DATA['SHARE_WITH_SERVICE_PROVIDERS'] = isset($_POST['SHARE_WITH_SERVICE_PROVIDERS'])?1:0;
+        $EVENT_DATA['SHARE_WITH_EMPLOYEES'] = isset($_POST['SHARE_WITH_EMPLOYEES'])?1:0;
+        $EVENT_DATA['START_DATE'] = date('Y-m-d', strtotime($_POST['START_DATE']));
+        $EVENT_DATA['END_DATE'] = !empty($_POST['END_DATE'])?date('Y-m-d', strtotime($_POST['END_DATE'])):NULL;
+        $EVENT_DATA['ALL_DAY'] = $_POST['ALL_DAY'] ?? 0;
+        if ($EVENT_DATA['ALL_DAY'] == 1){
+            $EVENT_DATA['START_TIME'] = '00:00:00';
+            $EVENT_DATA['END_TIME'] = '23:30:00';
+        }else {
+            $EVENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+            $EVENT_DATA['END_TIME'] = !empty($_POST['END_TIME'])?date('H:i:s', strtotime($_POST['END_TIME'])):NULL;
+        }
+        if(empty($PK_EVENT)){
+            $EVENT_DATA['ACTIVE'] = 1;
+            $EVENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+            $EVENT_DATA['CREATED_ON']  = date("Y-m-d H:i");
+            db_perform_account('DOA_EVENT', $EVENT_DATA, 'insert');
+            $PK_EVENT = $db_account->insert_ID();
+        }else{
+            $EVENT_DATA['ACTIVE'] = $_POST['ACTIVE'];
+            $EVENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+            $EVENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
+            db_perform_account('DOA_EVENT', $EVENT_DATA, 'update'," PK_EVENT =  '$PK_EVENT'");
+            $PK_EVENT = $_GET['id'];
+        }
+
+        $db_account->Execute("DELETE FROM `DOA_EVENT_LOCATION` WHERE `PK_EVENT` = '$PK_EVENT'");
+        if(isset($_POST['PK_LOCATION'])){
+            $PK_LOCATION = $_POST['PK_LOCATION'];
+            for($i = 0; $i < count($PK_LOCATION); $i++){
+                $EVENT_LOCATION_DATA['PK_EVENT'] = $PK_EVENT;
+                $EVENT_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+                db_perform_account('DOA_EVENT_LOCATION', $EVENT_LOCATION_DATA, 'insert');
+            }
+        }
+
+        if (isset($_FILES['IMAGE']['name'])){
+            $db_account->Execute("DELETE FROM `DOA_EVENT_IMAGE` WHERE `PK_EVENT` = '$PK_EVENT'");
+            for($i = 0; $i < count($_FILES['IMAGE']['name']); $i++){
+                $EVENT_IMAGE_DATA['PK_EVENT'] = $PK_EVENT;
+                if(!empty($_FILES['IMAGE']['name'][$i])){
+                    $extn 			= explode(".",$_FILES['IMAGE']['name'][$i]);
+                    $iindex			= count($extn) - 1;
+                    $rand_string 	= time()."-".rand(100000,999999);
+                    $file11			= 'event_image_'.$PK_EVENT.'_'.$rand_string.".".$extn[$iindex];
+                    $extension   	= strtolower($extn[$iindex]);
+
+                    $image_path    = '../uploads/event_image/'.$file11;
+                    move_uploaded_file($_FILES['IMAGE']['tmp_name'][$i], $image_path);
+                    $EVENT_IMAGE_DATA['IMAGE'] = $image_path;
+                } else {
+                    $EVENT_IMAGE_DATA['IMAGE'] = $_POST['IMAGE_PATH'][$i];
+                }
+                $EVENT_IMAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+                $EVENT_IMAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
+                db_perform_account('DOA_EVENT_IMAGE', $EVENT_IMAGE_DATA, 'insert');
+            }
+        }
+        header("location:all_schedules.php?view=table");
+    }
+}
+
 function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
     global $db;
     global $db_account;
@@ -716,6 +786,37 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             });
                         }
                     });
+                } else {
+                    if (info.type === 'event') {
+                        $('#appointment_list_half').removeClass('col-12');
+                        $('#appointment_list_half').addClass('col-6');
+                        $.ajax({
+                            url: "ajax/get_event_details.php",
+                            type: "POST",
+                            data: {PK_EVENT: info.id},
+                            async: false,
+                            cache: false,
+                            success: function (result) {
+                                $('#appointment_details_div').html(result);
+                                $('#edit_appointment_half').show();
+
+                                $(document).ready(function(){
+                                    $("#START_DATE").datepicker({
+                                        numberOfMonths: 1,
+                                        onSelect: function(selected) {
+                                            $("#END_DATE").datepicker("option","minDate", selected)
+                                        }
+                                    });
+                                    $("#END_DATE").datepicker({
+                                        numberOfMonths: 1,
+                                        onSelect: function(selected) {
+                                            $("#START_DATE").datepicker("option","maxDate", selected)
+                                        }
+                                    });
+                                });
+                            }
+                        });
+                    }
                 }
             }
         }

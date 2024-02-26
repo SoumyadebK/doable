@@ -73,7 +73,7 @@ $AND_PK_USER = '';
                     <select class="multi_select" required id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getDuration()">
                         <option value="">Select Scheduling Code</option>
                         <?php
-                        $row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE`, `SCHEDULING_CODE`, `SCHEDULING_NAME`, `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
+                        $row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE`, `SCHEDULING_CODE`, `SCHEDULING_NAME`, `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1 AND TO_DOS = 0 AND IS_GROUP = 0");
                         while (!$row->EOF) { ?>
                             <option data-duration="<?=$row->fields['DURATION'];?>" value="<?=$row->fields['PK_SCHEDULING_CODE']?>"><?=$row->fields['SCHEDULING_CODE'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
                             <?php $row->MoveNext(); } ?>

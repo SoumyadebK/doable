@@ -20,6 +20,7 @@ if (!empty($_POST)) {
         $SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
         $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
         $SCHEDULING_DATA['TO_DOS'] = $_POST['TO_DOS'];
+        $SCHEDULING_DATA['IS_GROUP'] = $_POST['IS_GROUP'];
         $SCHEDULING_DATA['IS_DEFAULT'] = $_POST['IS_DEFAULT'];
         $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
         $SCHEDULING_DATA['DURATION'] = $_POST['DURATION'];
@@ -34,6 +35,7 @@ if (!empty($_POST)) {
         $SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
         $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
         $SCHEDULING_DATA['TO_DOS'] = isset($_POST['TO_DOS'])?1:0;
+        $SCHEDULING_DATA['IS_GROUP'] = isset($_POST['IS_GROUP'])?1:0;
         $SCHEDULING_DATA['IS_DEFAULT'] = isset($_POST['IS_DEFAULT'])?1:0;
         $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
         $SCHEDULING_DATA['DURATION'] = $_POST['DURATION'];
@@ -52,6 +54,7 @@ if (empty($_GET['id'])) {
     $PK_SCHEDULING_EVENT     = '';
     $PK_EVENT_ACTION            = '';
     $TO_DOS = '';
+    $IS_GROUP = '';
     $IS_DEFAULT = '';
     $COLOR_CODE = '';
     $DURATION = '';
@@ -67,6 +70,7 @@ if (empty($_GET['id'])) {
     $PK_SCHEDULING_EVENT  = $res->fields['PK_SCHEDULING_EVENT'];
     $PK_EVENT_ACTION      = $res->fields['PK_EVENT_ACTION'];
     $TO_DOS      = $res->fields['TO_DOS'];
+    $IS_GROUP      = $res->fields['IS_GROUP'];
     $IS_DEFAULT      = $res->fields['IS_DEFAULT'];
     $COLOR_CODE           = $res->fields['COLOR_CODE'];
     $DURATION           = $res->fields['DURATION'];
@@ -158,6 +162,10 @@ if (empty($_GET['id'])) {
                                 <div class="form-group">
                                     <label class="" for="example-text">To Dos</label>
                                     <input type="checkbox" id="TO_DOS" name="TO_DOS" class="form-check-inline" style="margin-left: 10px;" <?=($TO_DOS == 1)?'checked':''?>
+                                </div>
+                                <div class="form-group" style="margin-top: 15px">
+                                    <label class="" for="example-text">Is Group</label>
+                                    <input type="checkbox" id="IS_GROUP" name="IS_GROUP" class="form-check-inline" style="margin-left: 10px;" <?=($IS_GROUP == 1)?'checked':''?>
                                 </div>
                                 <div class="form-group">
                                     <label class="" for="example-text">Customer Required</label>
