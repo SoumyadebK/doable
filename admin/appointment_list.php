@@ -275,11 +275,11 @@ $page_first_result = ($page-1) * $results_per_page;
                                                 <?php } ?>
                                             </td>
                                             <td>
-                                                <?php if(empty($appointment_data->fields['ENROLLMENT_ID'])) { ?>
-                                                    <a href="create_appointment.php?type=ad_hoc&id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <?php } else { ?>
-                                                    <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <?php } ?>
+                                                <?php /*if(empty($appointment_data->fields['ENROLLMENT_ID'])) { */?><!--
+                                                    <a href="create_appointment.php?type=ad_hoc&id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php /*} else { */?>
+                                                    <a href="add_schedule.php?id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                --><?php /*} */?>
                                                 <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);return false;'><img src="../assets/images/delete.png" title="Delete"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>

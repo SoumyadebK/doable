@@ -287,6 +287,10 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointme
             $APPOINTMENT_STATUS_HISTORY_DATA['TIME_STAMP'] = date("Y-m-d H:i");
             db_perform_account('DOA_APPOINTMENT_STATUS_HISTORY', $APPOINTMENT_STATUS_HISTORY_DATA, 'insert');
         }
+
+        if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
+            updateSessionCompletedCount($_POST['PK_APPOINTMENT_MASTER']);
+        }
     }
 
     //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
@@ -411,6 +415,10 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
             $GROUP_CLASS_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
             $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$j];
             db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
+            updateSessionCreatedCountGroupClass($PK_APPOINTMENT_MASTER, $_POST['PK_USER_MASTER'][$j]);
+            if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
+                updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $_POST['PK_USER_MASTER'][$j]);
+            }
         }
     }
 

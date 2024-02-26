@@ -173,13 +173,13 @@ while (!$row->EOF) {
                     <?php
                     //$per_session_cost = $total_amount->fields['TOTAL_AMOUNT']/(($total_session_count==0)?1:$total_session_count);
                     //$total_paid_session_count = ceil($total_bill_and_paid->fields['TOTAL_PAID']/(($per_session_cost==0)?1:$per_session_cost));
-                    $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                    $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                     $total_paid_amount = 0;
                     $total_used_amount = 0;
                     $total_session_count = 0;
                     while (!$serviceCodeData->EOF) {
                         $PRICE_PER_SESSION = $serviceCodeData->fields['PRICE_PER_SESSION'];
-                        $used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE PK_APPOINTMENT_STATUS = 2 AND `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$serviceCodeData->fields['PK_SERVICE_CODE']); ?>
+                        //$used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE PK_APPOINTMENT_STATUS = 2 AND `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$serviceCodeData->fields['PK_SERVICE_CODE']); ?>
                         <tr>
                             <td><?=$serviceCodeData->fields['SERVICE_CODE']?></td>
                             <td style="text-align: right"><?=$serviceCodeData->fields['NUMBER_OF_SESSION']?></td>
@@ -187,9 +187,9 @@ while (!$row->EOF) {
                                 <?php
                                 echo $paid_session = ($PRICE_PER_SESSION > 0) ? number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$PRICE_PER_SESSION, 2, '.', '') : 0;
                                 $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-                                $total_used_amount += ($PRICE_PER_SESSION*$used_session_count->fields['USED_SESSION_COUNT']);
+                                $total_used_amount += ($PRICE_PER_SESSION*$serviceCodeData->fields['SESSION_COMPLETED']);
                                 $total_session_count += $serviceCodeData->fields['NUMBER_OF_SESSION'];
-                                $enr_balance = $paid_session-$used_session_count->fields['USED_SESSION_COUNT'];
+                                $enr_balance = $paid_session-$serviceCodeData->fields['SESSION_COMPLETED'];
                                 /*if ($total_paid_session_count > $serviceCodeData->fields['NUMBER_OF_SESSION']) {
                                     echo $paid_session_count = $serviceCodeData->fields['NUMBER_OF_SESSION'];
                                     $total_paid_session_count -= $serviceCodeData->fields['NUMBER_OF_SESSION'];
@@ -199,7 +199,7 @@ while (!$row->EOF) {
                                 }*/
                                 ?>
                             </td>
-                            <td style="text-align: right;"><?=$used_session_count->fields['USED_SESSION_COUNT']?></td>
+                            <td style="text-align: right;"><?=$serviceCodeData->fields['SESSION_COMPLETED']?></td>
                             <td style="text-align: right; color:<?=($enr_balance<0)?'red':'black'?>;"><?=$enr_balance?></td>
                             <!--<td><?php /*=($total_bill_and_paid->fields['TOTAL_BILL']==0) ? 0 : $serviceCodeData->fields['NUMBER_OF_SESSION']-$used_session_count->fields['USED_SESSION_COUNT']*/?></td>-->
                             <td style="text-align: right;"><?=($enr_balance > 0) ? $enr_balance : 0?></td>
