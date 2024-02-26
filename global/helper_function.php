@@ -24,6 +24,7 @@ function checkAdhocAppointmentStatus($PK_APPOINTMENT_MASTER, $PK_SERVICE_MASTER,
             $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
             db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update'," PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER);
             markAppointmentPaid($enrollment_data->fields['PK_ENROLLMENT_SERVICE']);
+            rearrangeSerialNumber($APPOINTMENT_DATA['PK_ENROLLMENT_MASTER']);
         }
     }
 }
@@ -43,6 +44,7 @@ function markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER)
 
         $enrollmentServiceData->MoveNext();
     }
+    rearrangeSerialNumber($PK_ENROLLMENT_MASTER);
 }
 
 function updateSessionCreatedCount($PK_ENROLLMENT_SERVICE)
@@ -131,5 +133,17 @@ function checkCountAdded($PK_APPOINTMENT_MASTER, $PK_USER_MASTER, $PK_ENROLLMENT
         $SESSION_COUNT_DATA['TYPE'] = $TYPE;
         db_perform_account('DOA_SESSION_COUNT_DATA', $SESSION_COUNT_DATA, 'insert');
         return 0;
+    }
+}
+
+function rearrangeSerialNumber($PK_ENROLLMENT_MASTER){
+    global $db_account;
+    $appointment_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
+    $i = 1;
+    while (!$appointment_data->EOF){
+        $UPDATE_DATA['SERIAL_NUMBER'] = $i;
+        db_perform_account('DOA_APPOINTMENT_MASTER', $UPDATE_DATA, 'update'," PK_APPOINTMENT_MASTER =  ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
+        $appointment_data->MoveNext();
+        $i++;
     }
 }

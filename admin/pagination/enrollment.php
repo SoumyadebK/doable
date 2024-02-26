@@ -336,14 +336,19 @@ while (!$row->EOF) {
             $appointment_data = $db_account->Execute(sprintf($ALL_APPOINTMENT_QUERY, " WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER'].""));
             $j=1;
             $service_code_array = [];
+            $service_credit_array = [];
             while (!$appointment_data->EOF) {
+                $per_session_price = $db_account->Execute("SELECT `PRICE_PER_SESSION`, NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND `PK_SERVICE_CODE` = ".$appointment_data->fields['PK_SERVICE_CODE']);
+
                 $enrolled_session_for_service = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS ENROLLED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$appointment_data->fields['PK_SERVICE_CODE']);
                 if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
                     $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] - 1;
+                    $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] - $per_session_price->fields['PRICE_PER_SESSION'];
                 } else {
                     $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $enrolled_session_for_service->fields['ENROLLED_SESSION_COUNT'];
+                    $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $total_paid_amount;
                 }
-                $per_session_price = $db_account->Execute("SELECT `PRICE_PER_SESSION`, NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND `PK_SERVICE_CODE` = ".$appointment_data->fields['PK_SERVICE_CODE']);
+
                 $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
                 $CHANGED_BY = '';
                 while (!$status_data->EOF) {

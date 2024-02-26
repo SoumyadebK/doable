@@ -1122,27 +1122,6 @@ function saveAdhocAppointmentData($RESPONSE_DATA){
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 }
 
-function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
-    global $db;
-    global $db_account;
-    $appointment_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
-    $total_bill_and_paid = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
-    $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
-    $total_paid_appointment = intval($total_paid/$price_per_session);
-    $i = 1;
-    while (!$appointment_data->EOF){
-        $UPDATE_DATA['SERIAL_NUMBER'] = $i;
-        if ($i <= $total_paid_appointment){
-            $UPDATE_DATA['IS_PAID'] = 1;
-        } else {
-            $UPDATE_DATA['IS_PAID'] = 0;
-        }
-        db_perform_account('DOA_APPOINTMENT_MASTER', $UPDATE_DATA, 'update'," PK_APPOINTMENT_MASTER =  ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
-        $appointment_data->MoveNext();
-        $i++;
-    }
-}
-
 function cancelAppointment($RESPONSE_DATA){
     global $db;
     global $db_account;
@@ -1523,6 +1502,7 @@ function saveMultiAppointmentData($RESPONSE_DATA){
             }
             updateSessionCreatedCount($PK_ENROLLMENT_SERVICE);
             markAppointmentPaid($PK_ENROLLMENT_SERVICE);
+            markAppointmentPaid($PK_ENROLLMENT_MASTER);
             /*$session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
             $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
             rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);*/

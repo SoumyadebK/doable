@@ -25,8 +25,10 @@ function getTimeSlot($interval, $start_time, $end_time): array
         $end = new DateTime($end_time);
     }*/
 
-    $start = new DateTime($start_time);
-    $end = new DateTime($end_time);
+    /*$start = new DateTime($start_time);
+    $end = new DateTime($end_time);*/
+    $start = new DateTime('06:00:00');
+    $end = new DateTime('22:00:00');
     $startTime = $start->format('H:i');
     $endTime = $end->format('H:i');
     $i=0;
