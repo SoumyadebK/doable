@@ -800,19 +800,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                 $('#appointment_details_div').html(result);
                                 $('#edit_appointment_half').show();
 
-                                $(document).ready(function(){
-                                    $("#START_DATE").datepicker({
-                                        numberOfMonths: 1,
-                                        onSelect: function(selected) {
-                                            $("#END_DATE").datepicker("option","minDate", selected)
-                                        }
-                                    });
-                                    $("#END_DATE").datepicker({
-                                        numberOfMonths: 1,
-                                        onSelect: function(selected) {
-                                            $("#START_DATE").datepicker("option","maxDate", selected)
-                                        }
-                                    });
+                                $('.datepicker-normal').datepicker({
+                                    format: 'mm/dd/yyyy',
+                                });
+
+                                $('.timepicker-normal').timepicker({
+                                    timeFormat: 'hh:mm p',
                                 });
                             }
                         });

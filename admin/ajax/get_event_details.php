@@ -226,6 +226,7 @@ if ($location_operational_hour->RecordCount() > 0) {
 </form>
 <script>
 
+/*
     $(document).ready(function(){
         $("#START_DATE").datepicker({
             numberOfMonths: 1,
@@ -240,19 +241,20 @@ if ($location_operational_hour->RecordCount() > 0) {
             }
         });
     });
+*/
 
 
     /*$('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
     });*/
-    let open_time = '<?=$OPEN_TIME?>';
+/*    let open_time = '<?=$OPEN_TIME?>';
     let close_time = '<?=$CLOSE_TIME?>';
 
     $('.time-picker').timepicker({
         timeFormat: 'hh:mm p',
         minTime: open_time,
         maxTime: close_time
-    });
+    });*/
 
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Location', selectAll: true});
 
@@ -282,11 +284,11 @@ if ($location_operational_hour->RecordCount() > 0) {
         }
     }
 
-    ClassicEditor
+/*    ClassicEditor
         .create( document.querySelector( '#DESCRIPTION' ) )
         .catch( error => {
             console.error( error );
-        } );
+        } );*/
 
     function addMoreImages() {
         $('#add_more_image').append(`<div class="row">
