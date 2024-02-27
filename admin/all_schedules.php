@@ -681,7 +681,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         format: 'mm/dd/yyyy',
     });
 </script>
-<script src="https://cdn.ckeditor.com/ckeditor5/34.2.0/classic/ckeditor.js"></script>
 <script src='../assets/full_calendar_new/moment.min.js'></script>
 <script src='../assets/full_calendar_new/jquery.min.js'></script>
 <script src='../assets/full_calendar_new/fullcalendar.min.js'></script>
@@ -784,12 +783,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                 $('.timepicker-normal').timepicker({
                                     timeFormat: 'hh:mm p',
                                 });
-
-                                ClassicEditor
-                                    .create( document.querySelector( '#DESCRIPTION' ) )
-                                    .catch( error => {
-                                        console.error( error );
-                                    } );
                             }
                         });
                     }
