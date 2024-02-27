@@ -1502,10 +1502,10 @@ function saveMultiAppointmentData($RESPONSE_DATA){
                     $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
                     db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
                 }
+                updateSessionCreatedCount($PK_ENROLLMENT_SERVICE);
+                markAppointmentPaid($PK_ENROLLMENT_SERVICE);
             }
-            updateSessionCreatedCount($PK_ENROLLMENT_SERVICE);
-            markAppointmentPaid($PK_ENROLLMENT_SERVICE);
-            markAppointmentPaid($PK_ENROLLMENT_MASTER);
+
             /*$session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
             $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
             rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);*/

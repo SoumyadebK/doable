@@ -253,7 +253,7 @@ while (!$row->EOF) {
             $billed_amount = 0;
             $paid_amount = 0;
             $balance = 0;
-            $billing_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+            $billing_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE (DOA_ENROLLMENT_LEDGER.STATUS = 'A' OR (DOA_ENROLLMENT_LEDGER.STATUS = 'C' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0)) AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
             while (!$billing_details->EOF) {
                 $billed_amount = $billing_details->fields['BILLED_AMOUNT'];
                 $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
@@ -305,9 +305,9 @@ while (!$row->EOF) {
                 <tr>
                     <td><?=date('m/d/Y', strtotime($cancelled_enrollment->fields['DUE_DATE']))?></td>
                     <td><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
-                    <td style="text-align: right;"></td>
-                    <td></td>
-                    <td style="text-align: center;"></td>
+                    <td style="text-align: right;"><?=$total_amount?></td>
+                    <td style="text-align: right;"><?=$total_paid_amount?></td>
+                    <td style="text-align: center;">Cancelled</td>
                     <td style="text-align: right;"><?=number_format((float)$cancelled_enrollment->fields['BALANCE'], 2, '.', '')?></td>
                     <td style="text-align: right;"></td>
                 </tr>
@@ -335,10 +335,13 @@ while (!$row->EOF) {
             <?php
             $appointment_data = $db_account->Execute(sprintf($ALL_APPOINTMENT_QUERY, " WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER'].""));
             $j=1;
+            $amount_used = 0;
             $service_code_array = [];
             $service_credit_array = [];
             while (!$appointment_data->EOF) {
-                $per_session_price = $db_account->Execute("SELECT `PRICE_PER_SESSION`, NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND `PK_SERVICE_CODE` = ".$appointment_data->fields['PK_SERVICE_CODE']);
+                $per_session_price = $db_account->Execute("SELECT `PRICE_PER_SESSION`, NUMBER_OF_SESSION, SESSION_CREATED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND `PK_SERVICE_CODE` = ".$appointment_data->fields['PK_SERVICE_CODE']);
+                $PRICE_PER_SESSION = $per_session_price->fields['PRICE_PER_SESSION'];
+                $total_amount_needed = $per_session_price->fields['SESSION_CREATED'] * $PRICE_PER_SESSION;
 
                 $enrolled_session_for_service = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS ENROLLED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$appointment_data->fields['PK_SERVICE_CODE']);
                 if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
@@ -346,7 +349,7 @@ while (!$row->EOF) {
                     $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] - $per_session_price->fields['PRICE_PER_SESSION'];
                 } else {
                     $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $enrolled_session_for_service->fields['ENROLLED_SESSION_COUNT'];
-                    $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $total_paid_amount;
+                    $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $total_amount_needed;
                 }
 
                 $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
@@ -368,8 +371,8 @@ while (!$row->EOF) {
                             <a href="javascript:;" class="btn btn-info waves-effect waves-light m-l-10 text-white" onclick='ConfirmUnposted(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);return false;'>Unpost</a>
                         <?php }?>
                     </td>
-                    <td style="text-align: right;"><?=number_format((float)$per_session_price->fields['PRICE_PER_SESSION'], 2, '.', ',');?></td>
-                    <?php $service_credit = $total_paid_amount -= $per_session_price->fields['PRICE_PER_SESSION']; ?>
+                    <td style="text-align: right;"><?=number_format((float)$PRICE_PER_SESSION, 2, '.', ',');?></td>
+                    <?php $service_credit = $total_paid_amount - $service_credit_array[$appointment_data->fields['SERVICE_CODE']]; ?>
                     <td style="color:<?=($service_credit<0)?'red':'black'?>; text-align: right;"><?=number_format((float)($service_credit), 2, '.', ',');?></td>
                 </tr>
                 <tr style="display: none">
