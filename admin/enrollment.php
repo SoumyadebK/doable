@@ -85,6 +85,9 @@ if(!empty($_GET['id'])) {
     $PK_DOCUMENT_LIBRARY = $res->fields['PK_DOCUMENT_LIBRARY'];
     $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
     $ENROLLMENT_BY_ID = $res->fields['ENROLLMENT_BY_ID'];
+    $ENROLLMENT_BY_PERCENTAGE = $res->fields['ENROLLMENT_BY_PERCENTAGE'];
+    $SERVICE_PROVIDER_ID = $res->fields['SERVICE_PROVIDER_ID'];
+    $SERVICE_PROVIDER_PERCENTAGE = $res->fields['SERVICE_PROVIDER_PERCENTAGE'];
     $MEMO = $res->fields['MEMO'];
     $ACTIVE = $res->fields['ACTIVE'];
 
@@ -670,7 +673,7 @@ if($user_payment_gateway->RecordCount() > 0){
 
 
                                             <div class="row">
-                                                <div class="col-4">
+                                                <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">Agreement Type<span class="text-danger">*</span></label>
                                                         <select class="form-control" required name="PK_AGREEMENT_TYPE" id="PK_AGREEMENT_TYPE">
@@ -683,7 +686,7 @@ if($user_payment_gateway->RecordCount() > 0){
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div class="col-4">
+                                                <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">Agreement Template<span class="text-danger">*</span></label>
                                                         <select class="form-control" required name="PK_DOCUMENT_LIBRARY" id="PK_DOCUMENT_LIBRARY">
@@ -699,7 +702,7 @@ if($user_payment_gateway->RecordCount() > 0){
                                                         <?php } ?>
                                                     </div>
                                                 </div>
-                                                <div class="col-4">
+                                                <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">Enrollment By<span class="text-danger">*</span></label>
                                                         <select class="form-control" required name="ENROLLMENT_BY_ID" id="ENROLLMENT_BY_ID">
@@ -710,6 +713,34 @@ if($user_payment_gateway->RecordCount() > 0){
                                                                 <option value="<?php echo $row->fields['PK_USER'];?>" <?=($ENROLLMENT_BY_ID == $row->fields['PK_USER'])?'selected':''?>><?=$row->fields['NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>
                                                         </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Percentage<span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control ENROLLMENT_BY_PERCENTAGE" name="ENROLLMENT_BY_PERCENTAGE" value="<?=$ENROLLMENT_BY_PERCENTAGE?>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label"><?=$service_provider_title?><span class="text-danger">*</span></label>
+                                                        <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID">
+                                                            <option value="">Select</option>
+                                                            <?php
+                                                            $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
+                                                            while (!$row->EOF) { ?>
+                                                                <option value="<?php echo $row->fields['PK_USER'];?>" <?=($SERVICE_PROVIDER_ID == $row->fields['PK_USER'])?'selected':''?>><?=$row->fields['NAME']?></option>
+                                                                <?php $row->MoveNext(); } ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Percentage<span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE" value="<?=$SERVICE_PROVIDER_PERCENTAGE?>">
                                                     </div>
                                                 </div>
                                             </div>

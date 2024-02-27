@@ -464,7 +464,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData
             $EVENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
             $EVENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
             db_perform_account('DOA_EVENT', $EVENT_DATA, 'update'," PK_EVENT =  '$PK_EVENT'");
-            $PK_EVENT = $_GET['id'];
+            $PK_EVENT = $_POST['PK_EVENT'];
         }
 
         $db_account->Execute("DELETE FROM `DOA_EVENT_LOCATION` WHERE `PK_EVENT` = '$PK_EVENT'");
@@ -477,33 +477,31 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData
             }
         }
 
-        if (isset($_FILES['IMAGE']['name'])){
-            $db_account->Execute("DELETE FROM `DOA_EVENT_IMAGE` WHERE `PK_EVENT` = '$PK_EVENT'");
-            for($i = 0; $i < count($_FILES['IMAGE']['name']); $i++){
-                $EVENT_IMAGE_DATA['PK_EVENT'] = $PK_EVENT;
-                if(!empty($_FILES['IMAGE']['name'][$i])){
-                    $extn 			= explode(".",$_FILES['IMAGE']['name'][$i]);
-                    $iindex			= count($extn) - 1;
-                    $rand_string 	= time()."-".rand(100000,999999);
-                    $file11			= 'event_image_'.$PK_EVENT.'_'.$rand_string.".".$extn[$iindex];
-                    $extension   	= strtolower($extn[$iindex]);
+        $db_account->Execute("DELETE FROM `DOA_EVENT_IMAGE` WHERE `PK_EVENT` = '$PK_EVENT'");
+        for($i = 0; $i < count($_FILES['IMAGE']['name']); $i++){
+            $EVENT_IMAGE_DATA['PK_EVENT'] = $PK_EVENT;
+            if(!empty($_FILES['IMAGE']['name'][$i])){
+                $extn 			= explode(".",$_FILES['IMAGE']['name'][$i]);
+                $iindex			= count($extn) - 1;
+                $rand_string 	= time()."-".rand(100000,999999);
+                $file11			= 'event_image_'.$PK_EVENT.'_'.$rand_string.".".$extn[$iindex];
+                $extension   	= strtolower($extn[$iindex]);
 
-                    $image_path    = '../uploads/event_image/'.$file11;
-                    move_uploaded_file($_FILES['IMAGE']['tmp_name'][$i], $image_path);
-                    $EVENT_IMAGE_DATA['IMAGE'] = $image_path;
-                } else {
-                    $EVENT_IMAGE_DATA['IMAGE'] = $_POST['IMAGE_PATH'][$i];
-                }
-                $EVENT_IMAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-                $EVENT_IMAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-                db_perform_account('DOA_EVENT_IMAGE', $EVENT_IMAGE_DATA, 'insert');
+                $image_path    = '../uploads/event_image/'.$file11;
+                move_uploaded_file($_FILES['IMAGE']['tmp_name'][$i], $image_path);
+                $EVENT_IMAGE_DATA['IMAGE'] = $image_path;
+            } else {
+                $EVENT_IMAGE_DATA['IMAGE'] = $_POST['IMAGE_PATH'][$i];
             }
+            $EVENT_IMAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+            $EVENT_IMAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
+            db_perform_account('DOA_EVENT_IMAGE', $EVENT_IMAGE_DATA, 'insert');
         }
         header("location:all_schedules.php?view=table");
     }
 }
 
-function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
+/*function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
     global $db;
     global $db_account;
     $appointment_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
@@ -522,7 +520,7 @@ function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
         $appointment_data->MoveNext();
         $i++;
     }
-}
+}*/
 
 $dayNumber = date('N');
 $location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber' AND CLOSED = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].")");
@@ -704,7 +702,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         format: 'mm/dd/yyyy',
     });
 </script>
-
+<script src="https://cdn.ckeditor.com/ckeditor5/34.2.0/classic/ckeditor.js"></script>
 <script src='../assets/full_calendar_new/moment.min.js'></script>
 <script src='../assets/full_calendar_new/jquery.min.js'></script>
 <script src='../assets/full_calendar_new/fullcalendar.min.js'></script>
@@ -807,6 +805,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                 $('.timepicker-normal').timepicker({
                                     timeFormat: 'hh:mm p',
                                 });
+
+                                ClassicEditor
+                                    .create( document.querySelector( '#DESCRIPTION' ) )
+                                    .catch( error => {
+                                        console.error( error );
+                                    } );
                             }
                         });
                     }

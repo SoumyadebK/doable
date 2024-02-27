@@ -34,6 +34,14 @@ if ($location_operational_hour->RecordCount() > 0) {
 }
 
 ?>
+<style>
+    .ck-editor__editable_inline {
+        min-height: 300px;
+    }
+    .SumoSelect {
+        width: 50%;
+    }
+</style>
 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
     <input type="hidden" name="FUNCTION_NAME" value="saveEventData">
     <input type="hidden" name="PK_EVENT" class="PK_EVENT" value="<?=$PK_EVENT?>">
@@ -154,14 +162,14 @@ if ($location_operational_hour->RecordCount() > 0) {
                                         <input type="hidden" name="IMAGE_PATH[]" value="<?=$row->fields['IMAGE']?>">
                                     </div>
                                 </div>
-                                <div class="col-2">
+                                <div class="col-2" style="margin-top: 20px">
                                     <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                 </div>
                             </div>
                             <?php
                             $row->MoveNext(); } ?>
                         <div class="row m-15">
-                            <div class="col-2" style="margin-left: 26%;">
+                            <div class="col-12">
                                 <a href="javascript:;" onclick="addMoreImages()"><i class="ti-plus"></i> Add More</a>
                             </div>
                         </div>
@@ -173,7 +181,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                                     <input class="form-control-file" type="file" name="IMAGE[]">
                                 </div>
                             </div>
-                            <div class="col-2">
+                            <div class="col-2" style="margin-left: 20px">
                                 <a href="javascript:;" onclick="addMoreImages()"><i class="ti-plus"></i> Add More</a>
                             </div>
                         </div>
@@ -186,7 +194,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                                 <input class="form-control-file" type="file" name="IMAGE[]">
                             </div>
                         </div>
-                        <div class="col-2">
+                        <div class="col-2" style="margin-left: 20px">
                             <a href="javascript:;" onclick="addMoreImages()"><i class="ti-plus"></i> Add More</a>
                         </div>
                     </div>
@@ -224,38 +232,8 @@ if ($location_operational_hour->RecordCount() > 0) {
     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
 </form>
+<script src="https://cdn.ckeditor.com/ckeditor5/34.2.0/classic/ckeditor.js"></script>
 <script>
-
-/*
-    $(document).ready(function(){
-        $("#START_DATE").datepicker({
-            numberOfMonths: 1,
-            onSelect: function(selected) {
-                $("#END_DATE").datepicker("option","minDate", selected)
-            }
-        });
-        $("#END_DATE").datepicker({
-            numberOfMonths: 1,
-            onSelect: function(selected) {
-                $("#START_DATE").datepicker("option","maxDate", selected)
-            }
-        });
-    });
-*/
-
-
-    /*$('.datepicker-normal').datepicker({
-        format: 'mm/dd/yyyy',
-    });*/
-/*    let open_time = '<?=$OPEN_TIME?>';
-    let close_time = '<?=$CLOSE_TIME?>';
-
-    $('.time-picker').timepicker({
-        timeFormat: 'hh:mm p',
-        minTime: open_time,
-        maxTime: close_time
-    });*/
-
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Location', selectAll: true});
 
     function checkAll(ele) {
@@ -298,7 +276,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                                                 <input class="form-control-file" type="file" name="IMAGE[]">
                                             </div>
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col-2" style="margin-top: 20px">
                                             <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                         </div>
                                     </div>`);

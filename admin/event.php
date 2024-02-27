@@ -55,27 +55,26 @@ if(!empty($_POST)){
         }
     }
 
-    if (isset($_FILES['IMAGE']['name'])){
-        $db_account->Execute("DELETE FROM `DOA_EVENT_IMAGE` WHERE `PK_EVENT` = '$PK_EVENT'");
-        for($i = 0; $i < count($_FILES['IMAGE']['name']); $i++){
-            $EVENT_IMAGE_DATA['PK_EVENT'] = $PK_EVENT;
-            if(!empty($_FILES['IMAGE']['name'][$i])){
-                $extn 			= explode(".",$_FILES['IMAGE']['name'][$i]);
-                $iindex			= count($extn) - 1;
-                $rand_string 	= time()."-".rand(100000,999999);
-                $file11			= 'event_image_'.$PK_EVENT.'_'.$rand_string.".".$extn[$iindex];
-                $extension   	= strtolower($extn[$iindex]);
+    $db_account->Execute("DELETE FROM `DOA_EVENT_IMAGE` WHERE `PK_EVENT` = '$PK_EVENT'");
+    for($i = 0; $i < count($_FILES['IMAGE']['name']); $i++){
+        $EVENT_IMAGE_DATA['PK_EVENT'] = $PK_EVENT;
+        if(!empty($_FILES['IMAGE']['name'][$i])){
+            $extn 			= explode(".",$_FILES['IMAGE']['name'][$i]);
+            $iindex			= count($extn) - 1;
+            $rand_string 	= time()."-".rand(100000,999999);
+            $file11			= 'event_image_'.$PK_EVENT.'_'.$rand_string.".".$extn[$iindex];
+            $extension   	= strtolower($extn[$iindex]);
 
-                $image_path    = '../uploads/event_image/'.$file11;
-                move_uploaded_file($_FILES['IMAGE']['tmp_name'][$i], $image_path);
-                $EVENT_IMAGE_DATA['IMAGE'] = $image_path;
-            } else {
-                $EVENT_IMAGE_DATA['IMAGE'] = $_POST['IMAGE_PATH'][$i];
-            }
-            $EVENT_IMAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-            $EVENT_IMAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-            db_perform_account('DOA_EVENT_IMAGE', $EVENT_IMAGE_DATA, 'insert');
+            $image_path    = '../uploads/event_image/'.$file11;
+            move_uploaded_file($_FILES['IMAGE']['tmp_name'][$i], $image_path);
+            $EVENT_IMAGE_DATA['IMAGE'] = $image_path;
+        } else {
+            $EVENT_IMAGE_DATA['IMAGE'] = $_POST['IMAGE_PATH'][$i];
         }
+        $EVENT_IMAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        $EVENT_IMAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        //pre_r($EVENT_IMAGE_DATA);
+        db_perform_account('DOA_EVENT_IMAGE', $EVENT_IMAGE_DATA, 'insert');
     }
     header("location:all_events.php");
 }
