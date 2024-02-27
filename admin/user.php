@@ -24,7 +24,7 @@ $PK_CUSTOMER_DETAILS = '';
 $USER_NAME = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
-$TYPE = '';
+//$TYPE = '';
 $EMAIL_ID = '';
 $DISPLAY_ORDER = '';
 $USER_IMAGE = '';
@@ -91,7 +91,7 @@ if(!empty($_GET['id'])) {
     $USER_NAME = $res->fields['USER_NAME'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
-    $TYPE = $res->fields['TYPE'];
+    //$TYPE = $res->fields['TYPE'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $DISPLAY_ORDER = $res->fields['DISPLAY_ORDER'];
     $USER_IMAGE = $res->fields['USER_IMAGE'];
@@ -1544,6 +1544,15 @@ if(!empty($_GET['id'])) {
                     $("#uname_result").html("");
                 }
             });
+        });
+
+        $(document).on('change', '.engagement_terms', function () {
+            if ($(this).attr('id') == 4 && $(this).is(':checked')) {
+                $('#5').prop('checked', false);
+            }
+            if ($(this).attr('id') == 5 && $(this).is(':checked')) {
+                $('#4').prop('checked', false);
+            }
         });
     </script>
 </body>
