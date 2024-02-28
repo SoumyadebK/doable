@@ -242,6 +242,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
     for ($i=0; $i<count($START_TIME_ARRAY); $i++) {
+        $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
         $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
         $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
         db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
@@ -261,7 +262,6 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
         }
     }
-    rearrangeSerialNumber($APPOINTMENT_DATA['PK_ENROLLMENT_MASTER']);
     updateSessionCreatedCount($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
     markAppointmentPaid($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
 

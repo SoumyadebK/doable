@@ -1483,6 +1483,7 @@ function saveMultiAppointmentData($RESPONSE_DATA){
             $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
             for ($i = 0; $i < $SESSION_WILL_CREATE; $i++) {
+                $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
                 $APPOINTMENT_DATA['DATE'] = $APPOINTMENT_DATE_ARRAY[$i];
                 $APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
                 $APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($END_TIME));

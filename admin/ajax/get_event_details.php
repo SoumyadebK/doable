@@ -138,6 +138,15 @@ if ($location_operational_hour->RecordCount() > 0) {
                 <? } ?>
             </div>
 
+            <div class="row">
+                <div class="col-12">
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <?=$DESCRIPTION?>
+                    </div>
+                </div>
+            </div>
+
             <div id="add_more_image">
                 <div class="row" style="float: right;">
                     <div class="col-12">
@@ -150,7 +159,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                     if ($row->RecordCount() > 0) {
                         while (!$row->EOF) { ?>
                             <div class="row">
-                                <div class="col-4">
+                                <div class="col-8">
                                     <div class="form-group">
                                         <label class="form-label">Images</label>
                                         <input class="form-control-file" type="file" name="IMAGE[]">
@@ -166,7 +175,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                             $row->MoveNext(); } ?>
                     <?php } else { ?>
                         <div class="row">
-                            <div class="col-4">
+                            <div class="col-8">
                                 <div class="form-group">
                                     <label class="form-label">Images</label>
                                     <input class="form-control-file" type="file" name="IMAGE[]">
@@ -176,7 +185,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                     <?php }
                 } else { ?>
                     <div class="row">
-                        <div class="col-4">
+                        <div class="col-8">
                             <div class="form-group">
                                 <label class="form-label">Images</label>
                                 <input class="form-control-file" type="file" name="IMAGE[]">
@@ -217,6 +226,7 @@ if ($location_operational_hour->RecordCount() > 0) {
     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
 </form>
+<script src="https://cdn.ckeditor.com/ckeditor5/34.2.0/classic/ckeditor.js"></script>
 <script>
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Location', selectAll: true});
 
@@ -270,4 +280,3 @@ if ($location_operational_hour->RecordCount() > 0) {
         $(param).closest('.row').remove();
     }
 </script>
-</html>

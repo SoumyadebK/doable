@@ -776,13 +776,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                 $('#appointment_details_div').html(result);
                                 $('#edit_appointment_half').show();
 
-                                $('.datepicker-normal').datepicker({
+                                /*$('.datepicker-normal').datepicker({
                                     format: 'mm/dd/yyyy',
                                 });
 
                                 $('.timepicker-normal').timepicker({
                                     timeFormat: 'hh:mm p',
-                                });
+                                });*/
                             }
                         });
                     }
