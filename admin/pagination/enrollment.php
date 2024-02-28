@@ -8,6 +8,14 @@ global $results_per_page;
 $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
+if ($_GET['type'] == 'completed') {
+    $enr_condition = " (DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 1 OR DOA_ENROLLMENT_MASTER.STATUS = 'C') ";
+    $completed_condition = " (DOA_ENROLLMENT_LEDGER.STATUS = 'C' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1) ";
+} else {
+    $enr_condition = " DOA_ENROLLMENT_MASTER.STATUS = 'A' ";
+    $completed_condition = " DOA_ENROLLMENT_LEDGER.STATUS = 'A' ";
+}
+
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
                             DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
@@ -65,31 +73,37 @@ $ALL_APPOINTMENT_QUERY = "SELECT
 $page_first_result = ($page-1) * $results_per_page;*/
 ?>
 
-
-<div class="row" style="padding: 35px 35px 0 35px">
-    <h5 style="margin-left: 30%;">List of Pending Services</h5>
-    <?php require_once('pending_services.php'); ?>
-</div>
-<div class="row" style="padding: 35px 35px 0 35px">
-    <h5>List of Orphan Appointments</h5>
-    <?php require_once('orphan_appointment.php'); ?>
-</div>
-
-<div class="row" style="margin-bottom: -15px; margin-top: 10px;">
-    <div class="col-12 d-flex justify-content-end">
-        <?php
-        $all_row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
-        ?>
-        <input type="checkbox" id="toggleAll" onclick="toggleAllCheckboxes()"/>
-        <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="payAll(<?=$all_row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$all_row->fields['ENROLLMENT_ID']?>')">Pay All</a>
-        <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="enrollment.php?id_customer=<?=$_GET['pk_user']?>&master_id_customer=<?=$PK_USER_MASTER?>&source=customer" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
+<?php
+if ($_GET['type'] == 'normal') { ?>
+    <div class="row" style="padding: 35px 35px 0 35px">
+        <h5 style="margin-left: 30%;">List of Pending Services</h5>
+        <?php require_once('pending_services.php'); ?>
     </div>
-</div>
+    <div class="row" style="padding: 35px 35px 0 35px">
+        <h5>List of Orphan Appointments</h5>
+        <?php require_once('orphan_appointment.php'); ?>
+    </div>
+    <div class="row" style="margin-bottom: -15px; margin-top: 10px;">
+        <div class="col-12 d-flex justify-content-end">
+            <?php
+            $all_row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+            ?>
+            <input type="checkbox" id="toggleAll" onclick="toggleAllCheckboxes()"/>
+            <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="payAll(<?=$all_row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$all_row->fields['ENROLLMENT_ID']?>')">Pay All</a>
+            <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="enrollment.php?id_customer=<?=$_GET['pk_user']?>&master_id_customer=<?=$PK_USER_MASTER?>&source=customer" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
+        </div>
+    </div>
+<?php } else { ?>
+    <div class="row" style="padding: 35px 35px 0 35px">
+        <h5 style="margin-left: 30%;">List of Completed Services</h5>
+        <?php require_once('completed_services.php'); ?>
+    </div>
+<?php } ?>
 
 <?php
 //$wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
 //$i=$page_first_result+1;
-$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.CREATED_ON FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.CREATED_ON FROM `DOA_ENROLLMENT_MASTER` WHERE ".$enr_condition." AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
 $AGREEMENT_PDF_LINK = '';
 while (!$row->EOF) {
     $name = $row->fields['ENROLLMENT_NAME'];
@@ -253,7 +267,7 @@ while (!$row->EOF) {
             $billed_amount = 0;
             $paid_amount = 0;
             $balance = 0;
-            $billing_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE (DOA_ENROLLMENT_LEDGER.STATUS = 'A' OR (DOA_ENROLLMENT_LEDGER.STATUS = 'C' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0)) AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+            $billing_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE ".$completed_condition." AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
             while (!$billing_details->EOF) {
                 $billed_amount = $billing_details->fields['BILLED_AMOUNT'];
                 $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);

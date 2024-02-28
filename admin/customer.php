@@ -343,8 +343,8 @@ if(!empty($_GET['master_id'])) {
                                             <li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>
                                             <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
                                             <?php if(!empty($_GET['id'])) { ?>
-                                                <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Enrollments</span></a> </li>
-                                                <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#completed_enrollment" onclick="showCompletedEnrollmentList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
+                                                <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Enrollments</span></a> </li>
+                                                <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#completed_enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" ><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
                                                 <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
                                                 <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
                                                 <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
@@ -2807,22 +2807,28 @@ if(!empty($_GET['master_id'])) {
             }
         }
 
-        function showEnrollmentList(page) {
+        function showEnrollmentList(page, type) {
             let PK_USER_MASTER=$('.PK_USER_MASTER').val();
             $.ajax({
                 url: "pagination/enrollment.php",
                 type: "GET",
-                data: {search_text:'', page:page, pk_user:PK_USER, master_id:PK_USER_MASTER},
+                data: {search_text:'', page:page, type:type, pk_user:PK_USER, master_id:PK_USER_MASTER},
                 async: false,
                 cache: false,
                 success: function (result) {
-                    $('#enrollment_list').html(result)
+                    if (type == 'completed') {
+                        $('#completed_enrollment_list').html(result);
+                    } else {
+                        $('#enrollment_list').html(result)
+                    }
+
+
                 }
             });
             window.scrollTo(0,0);
         }
 
-        function showCompletedEnrollmentList(page) {
+        /*function showCompletedEnrollmentList(page) {
             let PK_USER_MASTER=$('.PK_USER_MASTER').val();
             $.ajax({
                 url: "pagination/completed_enrollments.php",
@@ -2835,7 +2841,7 @@ if(!empty($_GET['master_id'])) {
                 }
             });
             window.scrollTo(0,0);
-        }
+        }*/
 
         function showAppointment(page, type) {
             let PK_USER_MASTER=$('.PK_USER_MASTER').val();
