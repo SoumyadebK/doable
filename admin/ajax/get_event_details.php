@@ -138,16 +138,12 @@ if ($location_operational_hour->RecordCount() > 0) {
                 <? } ?>
             </div>
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="form-group">
-                        <label class="form-label">Description</label>
-                        <textarea class="ckeditor" id="DESCRIPTION" name="DESCRIPTION"><?=$DESCRIPTION?></textarea>
+            <div id="add_more_image">
+                <div class="row" style="float: right;">
+                    <div class="col-12">
+                        <a href="javascript:;" onclick="addMoreImages()"><i class="ti-plus"></i> Add More</a>
                     </div>
                 </div>
-            </div>
-
-            <div id="add_more_image">
                 <?php
                 if(!empty($_POST['PK_EVENT'])) {
                     $row = $db_account->Execute("SELECT * FROM DOA_EVENT_IMAGE WHERE PK_EVENT = ".$_POST['PK_EVENT']);
@@ -168,11 +164,6 @@ if ($location_operational_hour->RecordCount() > 0) {
                             </div>
                             <?php
                             $row->MoveNext(); } ?>
-                        <div class="row m-15">
-                            <div class="col-12">
-                                <a href="javascript:;" onclick="addMoreImages()"><i class="ti-plus"></i> Add More</a>
-                            </div>
-                        </div>
                     <?php } else { ?>
                         <div class="row">
                             <div class="col-4">
@@ -180,9 +171,6 @@ if ($location_operational_hour->RecordCount() > 0) {
                                     <label class="form-label">Images</label>
                                     <input class="form-control-file" type="file" name="IMAGE[]">
                                 </div>
-                            </div>
-                            <div class="col-2" style="margin-left: 20px">
-                                <a href="javascript:;" onclick="addMoreImages()"><i class="ti-plus"></i> Add More</a>
                             </div>
                         </div>
                     <?php }
@@ -193,9 +181,6 @@ if ($location_operational_hour->RecordCount() > 0) {
                                 <label class="form-label">Images</label>
                                 <input class="form-control-file" type="file" name="IMAGE[]">
                             </div>
-                        </div>
-                        <div class="col-2" style="margin-left: 20px">
-                            <a href="javascript:;" onclick="addMoreImages()"><i class="ti-plus"></i> Add More</a>
                         </div>
                     </div>
                 <?php } ?>
@@ -232,7 +217,6 @@ if ($location_operational_hour->RecordCount() > 0) {
     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
 </form>
-<script src="https://cdn.ckeditor.com/ckeditor5/34.2.0/classic/ckeditor.js"></script>
 <script>
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Location', selectAll: true});
 
