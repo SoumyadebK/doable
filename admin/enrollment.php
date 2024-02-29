@@ -718,7 +718,7 @@ if($user_payment_gateway->RecordCount() > 0){
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div class="col-3">
+                                                <div class="col-1">
                                                     <div class="form-group">
                                                         <label class="form-label">Percentage<span class="text-danger">*</span></label>
                                                         <input type="text" class="form-control ENROLLMENT_BY_PERCENTAGE" name="ENROLLMENT_BY_PERCENTAGE" value="<?=$ENROLLMENT_BY_PERCENTAGE?>">
@@ -726,25 +726,85 @@ if($user_payment_gateway->RecordCount() > 0){
                                                 </div>
                                             </div>
 
-                                            <div class="row">
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label"><?=$service_provider_title?><span class="text-danger">*</span></label>
-                                                        <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID">
-                                                            <option value="">Select</option>
-                                                            <?php
-                                                            $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
-                                                            while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_USER'];?>" <?=($SERVICE_PROVIDER_ID == $row->fields['PK_USER'])?'selected':''?>><?=$row->fields['NAME']?></option>
-                                                                <?php $row->MoveNext(); } ?>
-                                                        </select>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label"><?=$service_provider_title?></label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-1">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Percentage</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-1">
+                                                        <div class="form-group" style="float: right">
+                                                            <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServiceProviders();">Add More</a>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Percentage<span class="text-danger">*</span></label>
-                                                        <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE" value="<?=$SERVICE_PROVIDER_PERCENTAGE?>">
+
+                                                <?php
+                                                if(!empty($_GET['id'])) {
+                                                $enrollment_service_provider_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE_PROVIDER WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
+                                                while (!$enrollment_service_provider_data->EOF) { ?>
+                                                <div class="row">
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <select class="form-control" required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
+                                                                <option value="">Select</option>
+                                                                <?php
+                                                                $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
+                                                                while (!$row->EOF) { ?>
+                                                                    <option value="<?php echo $row->fields['PK_USER'];?>" <?=($row->fields['PK_USER'] == $enrollment_service_provider_data->fields['SERVICE_PROVIDER_ID'])?'selected':''?>><?=$row->fields['NAME']?></option>
+                                                                    <?php $row->MoveNext(); } ?>
+                                                            </select>
+                                                        </div>
                                                     </div>
+                                                    <div class="col-1">
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]" value="<?=$enrollment_service_provider_data->fields['SERVICE_PROVIDER_PERCENTAGE']?>">
+                                                            <span class="form-control input-group-text">%</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-1">
+                                                        <div class="form-group">
+                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                    <?php $enrollment_service_provider_data->MoveNext(); } ?>
+                                                <?php } else { ?>
+                                                <div class="row individual_service_provider_div">
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <select class="form-control" required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
+                                                                <option value="">Select</option>
+                                                                <?php
+                                                                $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
+                                                                while (!$row->EOF) { ?>
+                                                                    <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
+                                                                    <?php $row->MoveNext(); } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-1">
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]">
+                                                            <span class="form-control input-group-text">%</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-1">
+                                                        <div class="form-group">
+                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <?php } ?>
+
+                                                <div id="append_service_provider_div">
+
                                                 </div>
                                             </div>
 
@@ -1417,6 +1477,34 @@ if($user_payment_gateway->RecordCount() > 0){
                                                 </div>
                                             </div>
                                             <div class="col-1">
+                                                <div class="form-group">
+                                                    <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                </div>
+                                            </div>
+                                        </div>`);
+    }
+
+    function addMoreServiceProviders() {
+        $('#append_service_provider_div').append(`<div class="row individual_service_provider_div">
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <select class="form-control" required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
+                                                            <option value="">Select</option>
+                                                            <?php
+        $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
+        while (!$row->EOF) { ?>
+                                                                <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
+                                                                <?php $row->MoveNext(); } ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-1">
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]">
+                                                        <span class="form-control input-group-text">%</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-1" style="margin-top: 5px">
                                                 <div class="form-group">
                                                     <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                 </div>
