@@ -89,8 +89,6 @@ if(!empty($_GET['id'])) {
     $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
     $ENROLLMENT_BY_ID = $res->fields['ENROLLMENT_BY_ID'];
     $ENROLLMENT_BY_PERCENTAGE = $res->fields['ENROLLMENT_BY_PERCENTAGE'];
-    $SERVICE_PROVIDER_ID = $res->fields['SERVICE_PROVIDER_ID'];
-    $SERVICE_PROVIDER_PERCENTAGE = $res->fields['SERVICE_PROVIDER_PERCENTAGE'];
     $MEMO = $res->fields['MEMO'];
     $ACTIVE = $res->fields['ACTIVE'];
 
@@ -721,7 +719,10 @@ if($user_payment_gateway->RecordCount() > 0){
                                                 <div class="col-1">
                                                     <div class="form-group">
                                                         <label class="form-label">Percentage<span class="text-danger">*</span></label>
+                                                    </div>
+                                                    <div class="input-group" style="margin-top: -25px">
                                                         <input type="text" class="form-control ENROLLMENT_BY_PERCENTAGE" name="ENROLLMENT_BY_PERCENTAGE" value="<?=$ENROLLMENT_BY_PERCENTAGE?>">
+                                                        <span class="form-control input-group-text">%</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -764,7 +765,7 @@ if($user_payment_gateway->RecordCount() > 0){
                                                     </div>
                                                     <div class="col-1">
                                                         <div class="input-group">
-                                                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]" value="<?=$enrollment_service_provider_data->fields['SERVICE_PROVIDER_PERCENTAGE']?>">
+                                                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]" value="<?=number_format((float)$enrollment_service_provider_data->fields['SERVICE_PROVIDER_PERCENTAGE'], 2, '.', '')?>">
                                                             <span class="form-control input-group-text">%</span>
                                                         </div>
                                                     </div>
