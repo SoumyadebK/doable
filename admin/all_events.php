@@ -10,6 +10,8 @@ if ($status_check == 'active'){
     $status = 0;
 }
 
+$event_status = empty($_GET['event_status']) ? '1' : $_GET['event_status'];
+
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
@@ -141,7 +143,7 @@ $page_first_result = ($page-1) * $results_per_page;
                         <div class="col-2">
                             <div class="form-material form-horizontal">
                                 <label class="form-label">Event Status</label>
-                                <select class="form-control" name="PK_EVENT_STATUS" id="PK_EVENT_STATUS">
+                                <select class="form-control" name="PK_EVENT_STATUS" id="PK_EVENT_STATUS" onchange="selectStatus(this)">
                                     <option value="">Select Event Status</option>
                                     <option value="1">Active</option>
                                     <option value="0">Inactive</option>
@@ -164,7 +166,7 @@ $page_first_result = ($page-1) * $results_per_page;
                         <div class="col-4" >
                             <form class="form-material form-horizontal" action="" method="get">
                                 <label class="form-label">Search</label>
-                                <div class="input-group" style="margin-top: 6px">
+                                <div class="input-group">
                                     <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
                                     <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
                                 </div>
@@ -340,6 +342,11 @@ $page_first_result = ($page-1) * $results_per_page;
     function editpage(id){
         window.location.href = "event.php?id="+id;
     }
+
+    function selectStatus(param){
+        var status = $(param).val();
+        window.location.href = "all_events.php?event_status="+status;
+    }
 </script>
 
 // start sorting
@@ -474,9 +481,6 @@ $page_first_result = ($page-1) * $results_per_page;
         return z;
     };
 
-
-
-
     var aoColumns = [];
 
     var $tableTh = $(".data-table th , .dataTable th");
@@ -493,8 +497,6 @@ $page_first_result = ($page-1) * $results_per_page;
 
 
     };
-
-
 
     if(aoColumns.length > 0) {
 
@@ -520,8 +522,6 @@ $page_first_result = ($page-1) * $results_per_page;
             "fnDrawCallback": function(){DataTableTruncate.initTrigger();}
         });
     }
-
-
 </script>
 <script>
     var sortable = $('.sortable');

@@ -546,9 +546,23 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
     }
 
+    savePercentageData($_POST['PK_ENROLLMENT_MASTER'], $_POST['AMOUNT']);
+
     markAdhocAppointmentNormal($_POST['PK_ENROLLMENT_MASTER']);
 
     header('location:'.$header);
+}
+
+function savePercentageData($PK_ENROLLMENT_MASTER, $AMOUNT){
+    global $db_account;
+    $row = $db_account->Execute("SELECT SERVICE_PROVIDER_ID, SERVICE_PROVIDER_PERCENTAGE FROM DOA_ENROLLMENT_SERVICE_PROVIDER WHERE PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
+    while (!$row->EOF) {
+        $PERCENTAGE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+        $PERCENTAGE_DATA['SERVICE_PROVIDER_ID'] = $row->fields['SERVICE_PROVIDER_ID'];
+        $PERCENTAGE_DATA['PERCENTAGE_AMOUNT'] = ($AMOUNT * $row->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100;
+        db_perform_account('DOA_SERVICE_PROVIDER_AMOUNT', $PERCENTAGE_DATA, 'insert');
+        $row->MoveNext();
+    }
 }
 
 function generateReceiptPdf($html){
