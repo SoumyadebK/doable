@@ -265,9 +265,8 @@ while (!$row->EOF) {
             <tbody>
             <?php
             $billed_amount = 0;
-            $paid_amount = 0;
             $balance = 0;
-            $billing_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE ".$completed_condition." AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+            $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE ".$completed_condition." AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
             while (!$billing_details->EOF) {
                 $billed_amount = $billing_details->fields['BILLED_AMOUNT'];
                 $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
@@ -277,7 +276,7 @@ while (!$row->EOF) {
                     <td><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
                     <td style="text-align: right;"><?=$billing_details->fields['BILLED_AMOUNT']?></td>
                     <td></td>
-                    <td style="text-align: center;"><?=$billing_details->fields['PAYMENT_TYPE']?></td>
+                    <td style="text-align: center;"></td>
                     <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
                     <td style="text-align: right;">
                         <?php if($billing_details->fields['IS_PAID']==0 && $billing_details->fields['STATUS']=='A') { ?>
@@ -288,12 +287,13 @@ while (!$row->EOF) {
                 </tr>
                 <?php
                 $RECEIPT_PDF_LINK = '';
-                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.RECEIPT_PDF_LINK, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
                 if ($payment_details->RecordCount() > 0){
                     $RECEIPT_PDF_LINK = $payment_details->fields['RECEIPT_PDF_LINK'];
                     $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']);
                     if($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
-                        $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".$payment_details->fields['CHECK_NUMBER'];
+                        $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
+                        $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".$payment_info->CHECK_NUMBER;
                     }else{
                         $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                     } ?>
