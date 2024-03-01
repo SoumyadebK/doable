@@ -26,24 +26,20 @@ $ENROLLMENT_NAME = '';
 $PK_LOCATION = '';
 $PK_PACKAGE = '';
 $TOTAL = '';
-$DISCOUNT_TYPE = '';
-$DISCOUNT = '';
 $FINAL_AMOUNT = '';
 $PK_AGREEMENT_TYPE = '';
 $PK_DOCUMENT_LIBRARY = '';
 $AGREEMENT_PDF_LINK = '';
 $ENROLLMENT_BY_ID = $_SESSION['PK_USER'];
 $ENROLLMENT_BY_PERCENTAGE = '';
-$SERVICE_PROVIDER_ID = '';
-$SERVICE_PROVIDER_PERCENTAGE = '';
 $MEMO = '';
 $ACTIVE = '';
 
 $PK_ENROLLMENT_BILLING = '';
 $BILLING_REF = '';
 $BILLING_DATE = '';
-$DOWN_PAYMENT = 0;
-$BALANCE_PAYABLE = '';
+$DOWN_PAYMENT = 0.00;
+$BALANCE_PAYABLE = 0.00;
 $PAYMENT_METHOD = '';
 $PAYMENT_TERM = '';
 $NUMBER_OF_PAYMENT = '';
@@ -61,25 +57,23 @@ $CHECK_NUMBER = '';
 $CHECK_DATE = '';
 $NOTE = '';
 
- $PK_USER_MASTER = '';
- if(!empty($_GET['master_id_customer'])) {
-     $PK_USER_MASTER = $_GET['master_id_customer'];
-     $user_location = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
-     if ($user_location->RecordCount() > 0) {
-         $PK_LOCATION = $user_location->fields['PK_LOCATION'];
-     } else {
-         $PK_LOCATION = 0;
-     }
- }
+$PK_USER_MASTER = '';
+if(!empty($_GET['master_id_customer'])) {
+    $PK_USER_MASTER = $_GET['master_id_customer'];
+    $user_location = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
+    if ($user_location->RecordCount() > 0) {
+        $PK_LOCATION = $user_location->fields['PK_LOCATION'];
+    } else {
+        $PK_LOCATION = 0;
+    }
+}
 
 if(!empty($_GET['id'])) {
     $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
-
     if($res->RecordCount() == 0){
         header("location:all_enrollments.php");
         exit;
     }
-
     $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
     $ENROLLMENT_NAME = $res->fields['ENROLLMENT_NAME'];
     $PK_LOCATION = $res->fields['PK_LOCATION'];
@@ -89,13 +83,10 @@ if(!empty($_GET['id'])) {
     $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
     $ENROLLMENT_BY_ID = $res->fields['ENROLLMENT_BY_ID'];
     $ENROLLMENT_BY_PERCENTAGE = $res->fields['ENROLLMENT_BY_PERCENTAGE'];
-    $SERVICE_PROVIDER_ID = $res->fields['SERVICE_PROVIDER_ID'];
-    $SERVICE_PROVIDER_PERCENTAGE = $res->fields['SERVICE_PROVIDER_PERCENTAGE'];
     $MEMO = $res->fields['MEMO'];
     $ACTIVE = $res->fields['ACTIVE'];
 
     $billing_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
-
     if($billing_data->RecordCount() > 0){
         $PK_ENROLLMENT_BILLING = $billing_data->fields['PK_ENROLLMENT_BILLING'];
         $BILLING_REF = $billing_data->fields['BILLING_REF'];
@@ -110,27 +101,13 @@ if(!empty($_GET['id'])) {
     }
 
     $payment_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_PAYMENT` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
-
     if($payment_data->RecordCount() > 0){
         $PK_ENROLLMENT_PAYMENT = $payment_data->fields['PK_ENROLLMENT_PAYMENT'];
         $PK_PAYMENT_TYPE = $payment_data->fields['PK_PAYMENT_TYPE'];
         $AMOUNT = $payment_data->fields['AMOUNT'];
-        $NAME = $payment_data->fields['NAME'];
-        $CARD_NUMBER = $payment_data->fields['CARD_NUMBER'];
-        $SECURITY_CODE = $payment_data->fields['SECURITY_CODE'];
-        $EXPIRATION_DATE = $payment_data->fields['EXPIRATION_DATE'];
-        $CHECK_NUMBER = $payment_data->fields['CHECK_NUMBER'];
-        $CHECK_DATE = $payment_data->fields['CHECK_DATE'];
         $NOTE = $payment_data->fields['NOTE'];
     }
 }
-
-use Mpdf\Mpdf;
-use net\authorize\api\contract\v1 as AnetAPI;
-use net\authorize\api\controller as AnetController;
-
-use Square\SquareClient;
-use Square\Environment;
 
 $user_payment_gateway = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER, DOA_LOCATION.PAYMENT_GATEWAY_TYPE, DOA_LOCATION.SECRET_KEY, DOA_LOCATION.PUBLISHABLE_KEY, DOA_LOCATION.ACCESS_TOKEN, DOA_LOCATION.APP_ID, DOA_LOCATION.LOCATION_ID, DOA_LOCATION.LOGIN_ID, DOA_LOCATION.TRANSACTION_KEY, DOA_LOCATION.AUTHORIZE_CLIENT_KEY FROM DOA_LOCATION INNER JOIN DOA_USER_MASTER ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
 if($user_payment_gateway->RecordCount() > 0){
@@ -160,7 +137,6 @@ if($user_payment_gateway->RecordCount() > 0){
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
-<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=PT+Mono&display=swap" rel="stylesheet">
 <style>
     #advice-required-entry-ACCEPT_HANDLING{width: 150px;top: 20px;position: absolute;}
@@ -749,58 +725,58 @@ if($user_payment_gateway->RecordCount() > 0){
                                                 if(!empty($_GET['id'])) {
                                                 $enrollment_service_provider_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE_PROVIDER WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
                                                 while (!$enrollment_service_provider_data->EOF) { ?>
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <select class="form-control" required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
-                                                                <option value="">Select</option>
-                                                                <?php
-                                                                $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
-                                                                while (!$row->EOF) { ?>
-                                                                    <option value="<?php echo $row->fields['PK_USER'];?>" <?=($row->fields['PK_USER'] == $enrollment_service_provider_data->fields['SERVICE_PROVIDER_ID'])?'selected':''?>><?=$row->fields['NAME']?></option>
-                                                                    <?php $row->MoveNext(); } ?>
-                                                            </select>
+                                                    <div class="row">
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <select class="form-control" required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
+                                                                    <option value="">Select</option>
+                                                                    <?php
+                                                                    $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
+                                                                    while (!$row->EOF) { ?>
+                                                                        <option value="<?php echo $row->fields['PK_USER'];?>" <?=($row->fields['PK_USER'] == $enrollment_service_provider_data->fields['SERVICE_PROVIDER_ID'])?'selected':''?>><?=$row->fields['NAME']?></option>
+                                                                        <?php $row->MoveNext(); } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="input-group">
+                                                                <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]" value="<?=$enrollment_service_provider_data->fields['SERVICE_PROVIDER_PERCENTAGE']?>">
+                                                                <span class="form-control input-group-text">%</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="form-group">
+                                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-1">
-                                                        <div class="input-group">
-                                                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]" value="<?=$enrollment_service_provider_data->fields['SERVICE_PROVIDER_PERCENTAGE']?>">
-                                                            <span class="form-control input-group-text">%</span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-1">
-                                                        <div class="form-group">
-                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                                     <?php $enrollment_service_provider_data->MoveNext(); } ?>
                                                 <?php } else { ?>
-                                                <div class="row individual_service_provider_div">
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <select class="form-control" required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
-                                                                <option value="">Select</option>
-                                                                <?php
-                                                                $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
-                                                                while (!$row->EOF) { ?>
-                                                                    <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
-                                                                    <?php $row->MoveNext(); } ?>
-                                                            </select>
+                                                    <div class="row individual_service_provider_div">
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <select class="form-control" required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
+                                                                    <option value="">Select</option>
+                                                                    <?php
+                                                                    $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
+                                                                    while (!$row->EOF) { ?>
+                                                                        <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
+                                                                        <?php $row->MoveNext(); } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="input-group">
+                                                                <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]">
+                                                                <span class="form-control input-group-text">%</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="form-group">
+                                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-1">
-                                                        <div class="input-group">
-                                                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]">
-                                                            <span class="form-control input-group-text">%</span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-1">
-                                                        <div class="form-group">
-                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                                 <?php } ?>
 
                                                 <div id="append_service_provider_div">
@@ -847,7 +823,6 @@ if($user_payment_gateway->RecordCount() > 0){
                                                 <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
                                                 <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                                 <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=$PK_ENROLLMENT_BILLING?>">
-                                                <input type="hidden" name="PK_SERVICE_CLASS" class="PK_SERVICE_CLASS" value="<?=$PK_SERVICE_CLASS?>">
                                                 <div class="p-20">
                                                     <div class="row" id="payment_tab_div">
                                                         <!--Data coming from ajax-->
@@ -896,20 +871,12 @@ if($user_payment_gateway->RecordCount() > 0){
                                                                 <div class="form-group">
                                                                     <label class="form-label">Amount</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" name="MEMBERSHIP_PAYMENT_AMOUNT" id="MEMBERSHIP_PAYMENT_AMOUNT" value="<?=$INSTALLMENT_AMOUNT?>" class="form-control">
+                                                                        <input type="text" id="AMOUNT_SHOW" value="<?=$INSTALLMENT_AMOUNT?>" class="form-control">
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="row">
-                                                            <!--<div class="col-6" id="first_payment_date_div">
-                                                                <div class="form-group">
-                                                                    <label class="form-label">First Payment Date</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" name="MEMBERSHIP_PAYMENT_DATE" id="MEMBERSHIP_PAYMENT_DATE" value="<?php /*=($FIRST_DUE_DATE)?date('m/d/Y', strtotime($FIRST_DUE_DATE)):''*/?>" class="form-control datepicker-future">
-                                                                    </div>
-                                                                </div>
-                                                            </div>-->
                                                             <div class="col-3" id="down_payment_div" style="display: <?=($PAYMENT_METHOD == 'One Time')?'none':''?>">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Down Payment</label>
@@ -922,7 +889,7 @@ if($user_payment_gateway->RecordCount() > 0){
                                                                 <div class="form-group">
                                                                     <label class="form-label">Balance Payable</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?=$BALANCE_PAYABLE?>" class="form-control" value="0.00" readonly>
+                                                                        <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?=$BALANCE_PAYABLE?>" class="form-control" readonly>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1068,9 +1035,8 @@ if($user_payment_gateway->RecordCount() > 0){
                                                 <tbody>
                                                 <?php
                                                 $billed_amount = 0;
-                                                $paid_amount = 0;
                                                 $balance = 0;
-                                                $billing_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$_GET['id']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+                                                $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = ".$_GET['id']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
                                                 while (!$billing_details->EOF) {
                                                     $billed_amount = $billing_details->fields['BILLED_AMOUNT'];
                                                     $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
@@ -1081,26 +1047,25 @@ if($user_payment_gateway->RecordCount() > 0){
                                                         <td><?=$billing_details->fields['BILLED_AMOUNT']?></td>
                                                         <td></td>
                                                         <td><?=number_format((float)$balance, 2, '.', '')?></td>
-                                                        <td><?=$billing_details->fields['PAYMENT_TYPE']?></td>
+                                                        <td></td>
                                                         <td></td>
                                                         <td><?=(($billing_details->fields['TRANSACTION_TYPE']=='Billing')?(($billing_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
-
                                                         <td>
                                                             <?php if($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS'] == 'A') { ?>
-                                                            <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white myBtn" onclick="payNow(<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>);">Pay Now</a>
+                                                                <a href="javascript:" class="btn btn-info waves-effect waves-light m-r-10 text-white myBtn" onclick="payNow(<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>);">Pay Now</a>
                                                             <?php } ?>
                                                         </td>
 
                                                     </tr>
                                                     <?php
                                                     $RECEIPT_PDF_LINK = '';
-                                                    $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
-                                                    // echo "SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.CHECK_NUMBER FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_BILLING=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_BILLING WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER'];
+                                                    $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.RECEIPT_PDF_LINK, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
                                                     if ($payment_details->RecordCount() > 0){
                                                         $RECEIPT_PDF_LINK = $payment_details->fields['RECEIPT_PDF_LINK'];
                                                         $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']);
                                                         if($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
-                                                            $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".$payment_details->fields['CHECK_NUMBER'];
+                                                            $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
+                                                            $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".$payment_info->CHECK_NUMBER;
                                                         }else{
                                                             $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                                                         } ?>
@@ -1110,13 +1075,14 @@ if($user_payment_gateway->RecordCount() > 0){
                                                             <td></td>
                                                             <td><?=$payment_details->fields['PAID_AMOUNT']?></td>
                                                             <td><?=number_format((float)$balance, 2, '.', '')?></td>
-                                                            <td><?=$payment_details->fields['PAYMENT_TYPE']?></td>
+                                                            <td><?=$payment_type?></td>
                                                             <td><?=$payment_details->fields['NOTE']?></td>
-                                                            <td><?=(($payment_details->fields['TRANSACTION_TYPE']=='Billing')?(($payment_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
+                                                            <td></td>
                                                             <td><a href="../uploads/enrollment_pdf/<?=$RECEIPT_PDF_LINK?>" target="_blank">Receipt</a></td>
                                                         </tr>
-                                                    <? } ?>
-                                                    <?php $billing_details->MoveNext(); } ?>
+                                                    <?php }
+                                                        $billing_details->MoveNext();
+                                                    } ?>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -1170,8 +1136,6 @@ if($user_payment_gateway->RecordCount() > 0){
 
 <?php require_once('../includes/footer.php');?>
 
-<!-- jQuery Modal -->
-<script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
 <script src="https://js.stripe.com/v3/"></script>
 
@@ -1392,7 +1356,6 @@ if($user_payment_gateway->RecordCount() > 0){
 
 <script>
     let PK_ENROLLMENT_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
-    var PK_SERVICE_CLASS = parseInt(<?=empty($PK_SERVICE_CLASS)?0:$PK_SERVICE_CLASS?>);
     /*if (PK_ENROLLMENT_MASTER > 0){
         selectThisService($('.PK_SERVICE_MASTER'));
     }*/
@@ -1491,8 +1454,8 @@ if($user_payment_gateway->RecordCount() > 0){
                                                         <select class="form-control" required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
                                                             <option value="">Select</option>
                                                             <?php
-        $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
-        while (!$row->EOF) { ?>
+                                                            $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
+                                                            while (!$row->EOF) { ?>
                                                                 <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
                                                                 <?php $row->MoveNext(); } ?>
                                                         </select>
@@ -1631,7 +1594,6 @@ if($user_payment_gateway->RecordCount() > 0){
             dataType: 'json',
             success:function (data) {
                 $('.PK_ENROLLMENT_MASTER').val(data.PK_ENROLLMENT_MASTER);
-                $('#MEMBERSHIP_PAYMENT_AMOUNT').val(parseFloat(data.TOTAL_AMOUNT).toFixed(2));
                 $('#billing_link')[0].click();
             }
         });
@@ -1643,9 +1605,10 @@ if($user_payment_gateway->RecordCount() > 0){
             $.ajax({
                 url: "ajax/show_payment_tab.php",
                 type: 'POST',
-                data: {PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER, PK_SERVICE_CLASS:PK_SERVICE_CLASS},
+                data: {PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER},
                 success: function (data) {
                     $('#payment_tab_div').html(data);
+                    $('#AMOUNT_SHOW').val($('.TOTAL_AMOUNT').val());
                     calculatePayment();
                 }
             });
@@ -1683,14 +1646,12 @@ if($user_payment_gateway->RecordCount() > 0){
         });
         $('#total_bill').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
         $('#BALANCE_PAYABLE').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
-        $('#MEMBERSHIP_PAYMENT_AMOUNT').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
     }
 
     function calculatePayment() {
         let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
         let down_payment = parseFloat(($('#DOWN_PAYMENT').val())?$('#DOWN_PAYMENT').val():0);
         let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val())?$('#BALANCE_PAYABLE').val():0);
-        $('#MEMBERSHIP_PAYMENT_AMOUNT').val(parseFloat(total_bill).toFixed(2));
         $('#BALANCE_PAYABLE').val(parseFloat(total_bill-down_payment).toFixed(2));
         calculatePaymentPlans();
     }
@@ -1699,18 +1660,18 @@ if($user_payment_gateway->RecordCount() > 0){
         $('.payment_method_div').slideUp();
         $('#down_payment_div').slideDown();
         $('#FIRST_DUE_DATE').prop('required', false);
-        $('#IS_ONE_TIME_PAY').val(0);
+        //$('#IS_ONE_TIME_PAY').val(0);
         if ($(this).val() == 'One Time'){
             let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
             $('#DOWN_PAYMENT').val(0.00);
             $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
             $('#down_payment_div').slideUp();
             $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
-            $('#payment_confirmation_form_div').slideDown();
-            $('#IS_ONE_TIME_PAY').val(1);
+            //$('#payment_confirmation_form_div').slideDown();
+            //$('#IS_ONE_TIME_PAY').val(1);
             $('#PAYMENT_BILLING_REF').val($('#BILLING_REF').val());
             $('#PAYMENT_BILLING_DATE').val($('#BILLING_DATE').val());
-            $('#payment_modal').modal('show');
+            //$('#payment_modal').modal('show');
         }
         if ($(this).val() == 'Payment Plans'){
             $('#FIRST_DUE_DATE').prop('required', true);
@@ -1723,7 +1684,7 @@ if($user_payment_gateway->RecordCount() > 0){
             $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
             $('#down_payment_div').slideDown();
             $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
-            $('#payment_confirmation_form_div').slideDown();
+            //$('#payment_confirmation_form_div').slideDown();
             //$('#payment_modal').modal('show');
         }
     });
@@ -1770,37 +1731,25 @@ if($user_payment_gateway->RecordCount() > 0){
                         let today = new Date();
                         let firstPaymentDate = new Date($('#FIRST_DUE_DATE').val());
 
-                        if (PK_SERVICE_CLASS == 1) {
-                            let paymentDate = new Date($('#MEMBERSHIP_PAYMENT_DATE').val());
-                            if ((today.getDate() + '/' + today.getMonth() === paymentDate.getDate() + '/' + paymentDate.getMonth())) {
-                                let balance_payable = parseFloat(($('#MEMBERSHIP_PAYMENT_AMOUNT').val()) ? $('#MEMBERSHIP_PAYMENT_AMOUNT').val() : 0);
+                        if (($('.PAYMENT_METHOD:checked').val() === 'One Time') || (parseFloat($('#DOWN_PAYMENT').val()) > 0) || ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() === firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth()))) {
+                            if ($('.PAYMENT_METHOD:checked').val() === 'One Time') {
+                                let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
                                 $('#AMOUNT_TO_PAY').val(balance_payable.toFixed(2));
-                                $('#payment_confirmation_form_div').slideDown();
                             } else {
-                                window.location.href = '<?=$header?>';
-                            }
-                        } else {
-                            if (($('.PAYMENT_METHOD:checked').val() === 'One Time') || (parseFloat($('#DOWN_PAYMENT').val()) > 0) || ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() === firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth()))) {
-                                if ($('.PAYMENT_METHOD:checked').val() === 'One Time') {
-                                    let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
-                                    $('#AMOUNT_TO_PAY').val(balance_payable.toFixed(2));
+                                if (parseFloat($('#DOWN_PAYMENT').val()) > 0) {
+                                    let down_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
+                                    $('#AMOUNT_TO_PAY').val(down_payment.toFixed(2));
                                 } else {
-                                    if (parseFloat($('#DOWN_PAYMENT').val()) > 0) {
-                                        let down_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
-                                        $('#AMOUNT_TO_PAY').val(down_payment.toFixed(2));
-                                    } else {
-                                        if ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() === firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth())) {
-                                            let installment_amount = parseFloat(($('#INSTALLMENT_AMOUNT').val()) ? $('#INSTALLMENT_AMOUNT').val() : 0);
-                                            $('#AMOUNT_TO_PAY').val(installment_amount.toFixed(2));
-                                        }
+                                    if ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() === firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth())) {
+                                        let installment_amount = parseFloat(($('#INSTALLMENT_AMOUNT').val()) ? $('#INSTALLMENT_AMOUNT').val() : 0);
+                                        $('#AMOUNT_TO_PAY').val(installment_amount.toFixed(2));
                                     }
                                 }
-                                $('#payment_confirmation_form_div').slideDown();
-                                $('#payment_modal').modal('show');
-
-                            } else {
-                                window.location.href = '<?=$header?>';
                             }
+                            $('#payment_modal').modal('show');
+
+                        } else {
+                            window.location.href = '<?=$header?>';
                         }
                     }
                 });

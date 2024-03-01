@@ -9,7 +9,7 @@
                 <div class="modal-body">
                     <input type="hidden" name="sourceId" id="sourceId">
                     <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
-                    <input type="hidden" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">
+                    <!--<input type="hidden" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">-->
                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                     <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=($PK_ENROLLMENT_BILLING) ?? 0?>">
                     <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">

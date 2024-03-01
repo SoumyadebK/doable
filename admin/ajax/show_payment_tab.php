@@ -7,7 +7,6 @@ global $master_database;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 $PK_ENROLLMENT_MASTER = $_POST['PK_ENROLLMENT_MASTER'];
-$PK_SERVICE_CLASS = $_POST['PK_SERVICE_CLASS'];
 $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
 //$enrollment_number = $enrollment_data->fields['ENROLLMENT_ID'];
 ?>
