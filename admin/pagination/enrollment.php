@@ -12,8 +12,8 @@ if ($_GET['type'] == 'completed') {
     $enr_condition = " (DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 1 OR DOA_ENROLLMENT_MASTER.STATUS = 'C') ";
     $completed_condition = " (DOA_ENROLLMENT_LEDGER.STATUS = 'C' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1) ";
 } else {
-    $enr_condition = " DOA_ENROLLMENT_MASTER.STATUS = 'A' ";
-    $completed_condition = " DOA_ENROLLMENT_LEDGER.STATUS = 'A' ";
+    $enr_condition = " DOA_ENROLLMENT_MASTER.STATUS != 'C' ";
+    $completed_condition = " DOA_ENROLLMENT_LEDGER.STATUS != 'C' ";
 }
 
 $ALL_APPOINTMENT_QUERY = "SELECT
