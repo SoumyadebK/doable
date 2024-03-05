@@ -21,7 +21,7 @@
         $remain_session = $pending_service_data->fields['NUMBER_OF_SESSION'] - $pending_service_data->fields['SESSION_COMPLETED'];
         $ps_balance = $paid_session - $pending_service_data->fields['SESSION_COMPLETED'];
 
-        if ($remain_session > 0) {
+        //if ($remain_session > 0) {
             if (isset($pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']])) {
                 $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['CODE'] = $pending_service_data->fields['SERVICE_CODE'];
                 $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['ENROLL'] += $pending_service_data->fields['NUMBER_OF_SESSION'];
@@ -37,7 +37,7 @@
                 $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['USED'] = $pending_service_data->fields['SESSION_COMPLETED'];
                 $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['BALANCE'] = $ps_balance;
             }
-        }
+        //}
 
         $pending_service_data->MoveNext();
     } ?>

@@ -1,5 +1,10 @@
 <?php
 require_once('../global/config.php');
+global $db;
+global $db_account;
+global $master_database;
+global $results_per_page;
+
 $title = "All Enrollments";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
@@ -18,8 +23,6 @@ if ($not_billed_enrollment->RecordCount() > 0) {
     $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` IN (".implode(',', $PK_ENROLLMENT_MASTER_ARRAY).")");
     $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` IN (".implode(',', $PK_ENROLLMENT_MASTER_ARRAY).")");
 }
-
-$results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
@@ -75,16 +78,17 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
     db_perform_account('DOA_ENROLLMENT_SERVICE', $UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
     db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
 
-    if ($_POST['CANCEL_FUTURE_BILLING'] == 1){
+    if ($_POST['CANCEL_FUTURE_BILLING'] == 1) {
         $LEDGER_DATA['TRANSACTION_TYPE'] = 'Canceled';
         $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = -1;
         $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
         $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
         $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
-        $LEDGER_DATA['IS_PAID'] = 0;
+        $LEDGER_DATA['IS_PAID'] = 1;
         $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
         $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
         $LEDGER_DATA['BALANCE'] = $BALANCE;
+        $LEDGER_DATA['STATUS'] = $UPDATE_DATA['STATUS'];
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
 
         $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
@@ -102,13 +106,29 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
             $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
             db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
-            /*$enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
-            if ($enrollment_balance->RecordCount() > 0) {
-                $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_USED'] = $enrollment_balance->fields['TOTAL_BALANCE_USED'] + $BALANCE;
-                $ENROLLMENT_BALANCE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-                $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-                db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
-            }*/
+            $LEDGER_DATA_REFUND['TRANSACTION_TYPE'] = 'Refund';
+            $LEDGER_DATA_REFUND['ENROLLMENT_LEDGER_PARENT'] = -1;
+            $LEDGER_DATA_REFUND['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $LEDGER_DATA_REFUND['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+            $LEDGER_DATA_REFUND['PAID_AMOUNT'] = 0.00;
+            $LEDGER_DATA_REFUND['IS_PAID'] = 1;
+            $LEDGER_DATA_REFUND['DUE_DATE'] = date('Y-m-d');
+            $LEDGER_DATA_REFUND['BILLED_AMOUNT'] = 0.00;
+            $LEDGER_DATA_REFUND['BALANCE'] = $BALANCE;
+            $LEDGER_DATA_REFUND['STATUS'] = $UPDATE_DATA['STATUS'];
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_REFUND, 'insert');
+        } else {
+            $LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = 'Billing';
+            $LEDGER_DATA_BILLING['ENROLLMENT_LEDGER_PARENT'] = -1;
+            $LEDGER_DATA_BILLING['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $LEDGER_DATA_BILLING['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+            $LEDGER_DATA_BILLING['PAID_AMOUNT'] = 0.00;
+            $LEDGER_DATA_BILLING['IS_PAID'] = 0;
+            $LEDGER_DATA_BILLING['STATUS'] = 'A';
+            $LEDGER_DATA_BILLING['DUE_DATE'] = date('Y-m-d');
+            $LEDGER_DATA_BILLING['BILLED_AMOUNT'] = abs($BALANCE);
+            $LEDGER_DATA_BILLING['BALANCE'] = abs($BALANCE);
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_BILLING, 'insert');
         }
     }
     header('location:all_enrollments.php');
@@ -324,7 +344,7 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                             <div class="form-group">
                                 <div class="row">
                                     <div class="col-md-8">
-                                        <label>Cancel All Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="1" onclick="checkCancelStatus()"/></label>
+                                        <label>Cancel All Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="1" onclick="checkCancelStatus()" checked/></label>
                                     </div>
                                 </div>
                             </div>
@@ -332,6 +352,13 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
                                 <div class="row">
                                     <div class="col-md-8">
                                         <label>Cancel Only Unpaid Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="2" onclick="checkCancelStatus()"/></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <label>Use available credits to pay pending balances? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="3" onclick="checkCancelStatus()"/></label>
                                     </div>
                                 </div>
                             </div>
@@ -411,6 +438,7 @@ if(!empty($_GET['id']) && !empty($_GET['status'])) {
         $('.CREDIT_BALANCE').val(total_credit_balance);
         $('.CREDIT_BALANCE_SESSION_CREATED').val(total_credit_balance_session_created);
         $('#enrollment_cancel_modal').modal('show');
+        checkCancelStatus();
     }
 
     function checkCancelStatus(){

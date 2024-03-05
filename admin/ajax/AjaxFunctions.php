@@ -385,7 +385,9 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                 $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
                 $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
                 db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+                if ($RESPONSE_DATA['DOWN_PAYMENT'] <= 0) {
+                    $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+                }
             }
         }
     }else{
