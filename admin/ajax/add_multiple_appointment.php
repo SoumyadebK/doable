@@ -62,7 +62,7 @@ $AND_PK_USER = '';
             <div class="col-3">
                 <div class="form-group">
                     <label class="form-label">Enrollment ID<span class="text-danger">*</span></label>
-                    <select class="form-control" required name="PK_ENROLLMENT_MASTER" id="PK_ENROLLMENT_MASTER" onchange="getDuration()">
+                    <select class="form-control" required name="PK_ENROLLMENT_MASTER" id="PK_ENROLLMENT_MASTER" onchange="selectThisEnrollment(this)">
                         <option value="">Select Enrollment ID</option>
                     </select>
                 </div>
@@ -72,11 +72,6 @@ $AND_PK_USER = '';
                     <label class="form-label">Scheduling Code<span class="text-danger">*</span></label><br>
                     <select class="multi_select" required id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getDuration()">
                         <option value="">Select Scheduling Code</option>
-                        <?php
-                        $row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE`, `SCHEDULING_CODE`, `SCHEDULING_NAME`, `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1 AND TO_DOS = 0 AND IS_GROUP = 0");
-                        while (!$row->EOF) { ?>
-                            <option data-duration="<?=$row->fields['DURATION'];?>" value="<?=$row->fields['PK_SCHEDULING_CODE']?>"><?=$row->fields['SCHEDULING_CODE'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
-                            <?php $row->MoveNext(); } ?>
                     </select>
                 </div>
             </div>
@@ -212,6 +207,22 @@ $AND_PK_USER = '';
             success: function (result) {
                 $('#PK_ENROLLMENT_MASTER').empty();
                 $('#PK_ENROLLMENT_MASTER').append(result);
+            }
+        });
+    }
+
+    function selectThisEnrollment(param) {
+        let PK_ENROLLMENT_MASTER = $(param).val();
+        $.ajax({
+            url: "ajax/get_scheduling_codes.php",
+            type: "POST",
+            data: {PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#PK_SCHEDULING_CODE').empty();
+                $('#PK_SCHEDULING_CODE').append(result);
+                $('#PK_SCHEDULING_CODE')[0].sumo.reload();
             }
         });
     }

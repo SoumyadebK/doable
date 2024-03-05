@@ -1,7 +1,13 @@
 <?php
 require_once('../../global/config.php');
-$PK_ENROLLMENT_MASTER_ARRAY = explode(',', $_POST['PK_ENROLLMENT_MASTER']);
-$PK_SERVICE_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[2];
+
+if (isset($_POST['PK_ENROLLMENT_MASTER'])) {
+    $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $_POST['PK_ENROLLMENT_MASTER']);
+    $PK_SERVICE_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[2];
+} elseif (isset($_POST['PK_SERVICE_MASTER'])){
+    $PK_SERVICE_MASTER_ARRAY = explode(',', $_POST['PK_SERVICE_MASTER']);
+    $PK_SERVICE_MASTER = $PK_SERVICE_MASTER_ARRAY[0];
+}
 ?>
 <option value="">Select Scheduling Code</option>
 <?php

@@ -86,7 +86,7 @@ $AND_PK_USER = '';
             <div class="col-3">
                 <div class="form-group">
                     <label class="form-label">Service<span class="text-danger">*</span></label><br>
-                    <select class="multi_select" required name="SERVICE_ID">
+                    <select class="multi_select" required name="SERVICE_ID" onchange="selectThisService(this)">
                         <option value="">Select Service</option>
                         <?php
                         $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_CODE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND DOA_SERVICE_LOCATION.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.") AND DOA_SERVICE_MASTER.IS_DELETED = 0");
@@ -101,11 +101,6 @@ $AND_PK_USER = '';
                     <label class="form-label">Scheduling Code<span class="text-danger">*</span></label><br>
                     <select class="multi_select" required id="PK_SCHEDULING_CODE" name="SCHEDULING_CODE" onchange="getSlots()">
                         <option value="">Select Scheduling Code</option>
-                        <?php
-                        $row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE`, `SCHEDULING_CODE`, `SCHEDULING_NAME`, `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1 AND TO_DOS = 0 AND IS_GROUP = 0");
-                        while (!$row->EOF) { ?>
-                            <option data-duration="<?=$row->fields['DURATION'];?>" value="<?php echo $row->fields['PK_SCHEDULING_CODE'].','.$row->fields['DURATION'];?>"><?=$row->fields['SCHEDULING_CODE'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
-                            <?php $row->MoveNext(); } ?>
                     </select>
                 </div>
             </div>
@@ -263,6 +258,22 @@ $AND_PK_USER = '';
                 $('#SERVICE_PROVIDER_ID').empty();
                 $('#SERVICE_PROVIDER_ID').append(result);
                 $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
+            }
+        });
+    }
+
+    function selectThisService(param) {
+        let PK_SERVICE_MASTER = $(param).val();
+        $.ajax({
+            url: "ajax/get_scheduling_codes.php",
+            type: "POST",
+            data: {PK_SERVICE_MASTER: PK_SERVICE_MASTER},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#PK_SCHEDULING_CODE').empty();
+                $('#PK_SCHEDULING_CODE').append(result);
+                $('#PK_SCHEDULING_CODE')[0].sumo.reload();
             }
         });
     }
