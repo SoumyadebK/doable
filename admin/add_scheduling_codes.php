@@ -45,7 +45,16 @@ if (!empty($_POST)) {
         db_perform_account('DOA_SCHEDULING_CODE', $SCHEDULING_DATA, 'update', " PK_SCHEDULING_CODE = '$_GET[id]'");
         header("location:all_scheduling_codes.php");
     }
+}
 
+if (isset($_POST['PK_SERVICE_MASTER'])) {
+    $db_account->Execute("DELETE FROM `DOA_SCHEDULING_SERVICE` WHERE `PK_SCHEDULING_CODE` = '$_GET[id]'");
+    $PK_SERVICE_MASTER = $_POST['PK_SERVICE_MASTER'];
+    for($i = 0; $i < count($PK_SERVICE_MASTER); $i++){
+        $SCHEDULING_SERVICE_DATA['PK_SCHEDULING_CODE'] = $_GET['id'];
+        $SCHEDULING_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER[$i];
+        db_perform_account('DOA_SCHEDULING_SERVICE', $SCHEDULING_SERVICE_DATA, 'insert');
+    }
 }
 
 if (empty($_GET['id'])) {
@@ -53,9 +62,6 @@ if (empty($_GET['id'])) {
     $SCHEDULING_NAME            = '';
     $PK_SCHEDULING_EVENT     = '';
     $PK_EVENT_ACTION            = '';
-    $TO_DOS = '';
-    $IS_GROUP = '';
-    $IS_DEFAULT = '';
     $COLOR_CODE = '';
     $DURATION = '';
     $ACTIVE             = '';
@@ -69,9 +75,6 @@ if (empty($_GET['id'])) {
     $SCHEDULING_NAME      = $res->fields['SCHEDULING_NAME'];
     $PK_SCHEDULING_EVENT  = $res->fields['PK_SCHEDULING_EVENT'];
     $PK_EVENT_ACTION      = $res->fields['PK_EVENT_ACTION'];
-    $TO_DOS      = $res->fields['TO_DOS'];
-    $IS_GROUP      = $res->fields['IS_GROUP'];
-    $IS_DEFAULT      = $res->fields['IS_DEFAULT'];
     $COLOR_CODE           = $res->fields['COLOR_CODE'];
     $DURATION           = $res->fields['DURATION'];
     $ACTIVE            = $res->fields['ACTIVE'];
@@ -159,18 +162,39 @@ if (empty($_GET['id'])) {
                                             <?php $row->MoveNext(); } ?>
                                     </select>
                                 </div>
-                                <div class="form-group">
+
+                                <div class="col-6">
+                                    <label class="col-md-12">Services</label>
+                                    <div class="col-md-12 multiselect-box" style="width: 100%;">
+                                        <select class="multi_sumo_select" name="PK_SERVICE_MASTER[]" id="PK_SERVICE_MASTER" multiple required>
+                                            <?php
+                                            $selected_services = [];
+                                            if(!empty($_GET['id'])) {
+                                                $selected_service_row = $db_account->Execute("SELECT `PK_SERVICE_MASTER` FROM `DOA_SCHEDULING_SERVICE` WHERE `PK_SCHEDULING_CODE` = '$_GET[id]'");
+                                                while (!$selected_service_row->EOF) {
+                                                    $selected_services[] = $selected_service_row->fields['PK_SERVICE_MASTER'];
+                                                    $selected_service_row->MoveNext();
+                                                }
+                                            }
+                                            $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE ACTIVE = 1");
+                                            while (!$row->EOF) { ?>
+                                                <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=in_array($row->fields['PK_SERVICE_MASTER'], $selected_services)?"selected":""?>><?=$row->fields['SERVICE_NAME']?></option>
+                                                <?php $row->MoveNext(); } ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!--<div class="form-group">
                                     <label class="" for="example-text">To Dos</label>
-                                    <input type="checkbox" id="TO_DOS" name="TO_DOS" class="form-check-inline" style="margin-left: 10px;" <?=($TO_DOS == 1)?'checked':''?>
+                                    <input type="checkbox" id="TO_DOS" name="TO_DOS" class="form-check-inline" style="margin-left: 10px;" <?php /*=($TO_DOS == 1)?'checked':''*/?>
                                 </div>
                                 <div class="form-group" style="margin-top: 15px">
                                     <label class="" for="example-text">Is Group</label>
-                                    <input type="checkbox" id="IS_GROUP" name="IS_GROUP" class="form-check-inline" style="margin-left: 10px;" <?=($IS_GROUP == 1)?'checked':''?>
+                                    <input type="checkbox" id="IS_GROUP" name="IS_GROUP" class="form-check-inline" style="margin-left: 10px;" <?php /*=($IS_GROUP == 1)?'checked':''*/?>
                                 </div>
                                 <div class="form-group">
                                     <label class="" for="example-text">Customer Required</label>
-                                    <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" class="form-check-inline" style="margin-left: 10px; margin-top: 15px" <?=($IS_DEFAULT == 1)?'checked':''?>
-                                </div>
+                                    <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" class="form-check-inline" style="margin-left: 10px; margin-top: 15px" <?php /*=($IS_DEFAULT == 1)?'checked':''*/?>
+                                </div>-->
                                 <div class="form-group" style="margin-top: 10px">
                                     <label class="col-md-12" for="example-text">Color Code<span class="text-danger">*</span>
                                     </label>
@@ -220,3 +244,7 @@ if (empty($_GET['id'])) {
 <?php require_once('../includes/footer.php');?>
 </body>
 </html>
+
+<script>
+    $('.multi_sumo_select').SumoSelect({placeholder: 'Select Services', selectAll: true});
+</script>
