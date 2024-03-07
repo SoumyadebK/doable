@@ -265,7 +265,7 @@ if(!empty($_GET['master_id'])) {
                             echo "Edit ".$FIRST_NAME." ".$LAST_NAME;
                         }?></h4>
                 </div>
-                <div class="col-md-4 align-self-center">
+                <div class="col-md-4 align-self-center" style="position: sticky; z-index: 1;">
                 <?php if(!empty($_GET['id'])) { ?>
                     <select required name="NAME" id="NAME" onchange="editpage(this);">
                         <option value="">Select Customer</option>
