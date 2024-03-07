@@ -422,7 +422,7 @@ z-index: 500;
                                         <option value="">Select Scheduling Code</option>
                                         <?php
                                         $selected_scheduling_code = '';
-                                        $row = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
+                                        $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=".$PK_SERVICE_MASTER);
                                         while (!$row->EOF) { if($PK_SCHEDULING_CODE==$row->fields['PK_SCHEDULING_CODE']){$selected_scheduling_code = $row->fields['SCHEDULING_CODE'];} ?>
                                             <option value="<?php echo $row->fields['PK_SCHEDULING_CODE'];?>" <?=($PK_SCHEDULING_CODE==$row->fields['PK_SCHEDULING_CODE'])?'selected':''?>><?=$row->fields['SCHEDULING_CODE']?></option>
                                             <?php $row->MoveNext(); } ?>

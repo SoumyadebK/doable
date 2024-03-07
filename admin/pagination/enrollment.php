@@ -127,6 +127,7 @@ while (!$row->EOF) {
                 <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
                     <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
                 <?php } ?>
+                <button class="btn btn-danger m-l-10 text-white" style="background-color: #f44336; margin-top: 20px">View Payment Schedule</button>
             </div>
             <div class="col-8">
                 <table id="myTable" class="table <?php
@@ -184,9 +185,8 @@ while (!$row->EOF) {
                     <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
             <?php } elseif ($row->fields['STATUS'] == 'C') { ?>
                     <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
-            <?php } else { ?>
-                    <button class="btn btn-info m-l-10 text-white">Payments Schedule</button>
-            <?php }
+            <?php } ?>
+            <?php
                 if($row->fields['STATUS'] === 'C') { ?>
                     <p style="color: red; margin-top: 25%;">Cancelled</p>
             <?php } ?>

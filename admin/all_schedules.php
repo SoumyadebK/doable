@@ -49,6 +49,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
                             DOA_SCHEDULING_CODE.COLOR_CODE,
+                            DOA_SCHEDULING_CODE.SCHEDULING_CODE,
                             GROUP_CONCAT(DISTINCT(DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER) SEPARATOR ',') AS SERVICE_PROVIDER_ID,
                             GROUP_CONCAT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) SEPARATOR ',') AS CUSTOMER_NAME
                         FROM
@@ -850,6 +851,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 status: '<?=$appointment_data->fields['STATUS_CODE']?>',
                 statusColor: '<?=$appointment_data->fields['APPOINTMENT_COLOR']?> !important',
                 comment: '<?=($appointment_data->fields['COMMENT'])?>',
+                statusCode : '<?=$appointment_data->fields['SCHEDULING_CODE']?>',
             },
             <?php $appointment_data->MoveNext();
             } ?>
@@ -974,6 +976,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 }
                 if (event.comment) {
                     element.find(".fc-title").prepend(' <i class="fa fa-comment-dots" style="font-size: 15px"></i> ');
+                }
+                if (event.statusCode) {
+                    element.find(".fc-title").append(' <br><strong style="font-size: 13px">(' + event.statusCode + ')</strong> ');
                 }
 
             },

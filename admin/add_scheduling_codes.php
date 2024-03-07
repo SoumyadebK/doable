@@ -176,7 +176,7 @@ if (empty($_GET['id'])) {
                                                     $selected_service_row->MoveNext();
                                                 }
                                             }
-                                            $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE ACTIVE = 1");
+                                            $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE ACTIVE = 1  AND IS_DELETED=0");
                                             while (!$row->EOF) { ?>
                                                 <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=in_array($row->fields['PK_SERVICE_MASTER'], $selected_services)?"selected":""?>><?=$row->fields['SERVICE_NAME']?></option>
                                                 <?php $row->MoveNext(); } ?>
