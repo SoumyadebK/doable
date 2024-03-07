@@ -68,4 +68,4 @@ $ACTUAL_CREDIT_BALANCE = $_GET['ACTUAL_CREDIT_BALANCE'];
     </tbody>
 </table>
 
-<input type="text" id="FINAL_CREDIT_BALANCE" value="<?=$ACTUAL_CREDIT_BALANCE?>">
+<input type="hidden" id="FINAL_CREDIT_BALANCE" value="<?=$ACTUAL_CREDIT_BALANCE?>">
