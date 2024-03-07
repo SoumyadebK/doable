@@ -17,11 +17,16 @@ if (!empty($_GET['date']) && !empty($_GET['time'])) {
     $time = '';
 }
 
-
 if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
     $PK_USER = $_GET['SERVICE_PROVIDER_ID'];
 } else {
     $PK_USER = '';
+}
+
+if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
+    $header = 'customer.php?id='.$_GET['id_customer'].'&master_id='.$_GET['PK_USER_MASTER'].'&tab=appointment';
+} else {
+    $header = 'all_schedules.php';
 }
 
 /*$row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE DATE = '".date('Y-m-d', strtotime($date))."' AND '".date('H:i:s', strtotime($time))."' >= START_TIME AND '".date('H:i:s', strtotime($time))."' <= END_TIME");
@@ -263,7 +268,7 @@ $AND_PK_USER = '';
             type: 'POST',
             data: form_data,
             success:function (data) {
-                window.location.href='all_schedules.php';
+                window.location.href='<?=$header?>';
             }
         });
     }

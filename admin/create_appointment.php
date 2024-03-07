@@ -40,8 +40,12 @@ if (empty($_GET['master_id_customer'])) {
 
 if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
     $header = 'customer.php?id='.$_GET['id_customer'].'&master_id='.$_GET['master_id_customer'].'&tab=appointment';
+    $source = 'customer';
+    $id_customer = $_GET['id_customer'];
 } else {
     $header = 'all_schedules.php';
+    $source = '';
+    $id_customer = '';
 }
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
@@ -429,7 +433,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
                 url = "ajax/add_ad_hoc_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>&id="+PK_APPOINTMENT_MASTER;
             }
             if (type === 'standing') {
-                url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>";
+                url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>&source=<?=$source?>&id_customer=<?=$id_customer?>";
             }
             $.ajax({
                 url: url,
