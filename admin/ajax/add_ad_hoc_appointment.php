@@ -169,9 +169,9 @@ $AND_PK_USER = '';
     $(document).ready(function () {
         getSlots();
     });
-    <? if(!empty($DATE_ARR)) { ?>
+    <?php if(!empty($DATE_ARR)) { ?>
     def_date = new Date(<?=$DATE_ARR[0]?>,<?=$DATE_ARR[1]?>,<?=$DATE_ARR[2]?>);
-    <? } ?>
+    <?php } ?>
     myCalender = new CalendarPicker('#myCalendarWrapper', {
         // If max < min or min > max then the only available day will be today.
         default_date: def_date,

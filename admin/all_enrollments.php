@@ -262,9 +262,10 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
                                         $total_paid_amount = 0;
                                         while (!$serviceCodeData->EOF) {
                                             $PRICE_PER_SESSION = $serviceCodeData->fields['PRICE_PER_SESSION'];
+                                            $USED_AMOUNT = (($PRICE_PER_SESSION * $serviceCodeData->fields['SESSION_COMPLETED']) <= $serviceCodeData->fields['TOTAL_AMOUNT_PAID']) ? $PRICE_PER_SESSION * $serviceCodeData->fields['SESSION_COMPLETED'] : $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
                                             //$used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE PK_APPOINTMENT_STATUS = 2 AND `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$serviceCodeData->fields['PK_SERVICE_CODE']);
                                             $total_session_created_amount += ($PRICE_PER_SESSION * $serviceCodeData->fields['SESSION_CREATED']);
-                                            $total_used_amount += ($PRICE_PER_SESSION * $serviceCodeData->fields['SESSION_COMPLETED']);
+                                            $total_used_amount += $USED_AMOUNT;
                                             $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
 
                                             $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'].': '.$serviceCodeData->fields['NUMBER_OF_SESSION'];
@@ -421,7 +422,7 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
                                 </div>
 
                                 <div class="form-group credit_balance_div" style="display: none;">
-                                    <label class="form-label">How you want your refund?</label>
+                                    <label class="form-label">Refund Method?</label>
                                     <div class="col-md-8">
                                         <select class="form-control" name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE">
                                             <option value="">Select</option>
@@ -509,7 +510,7 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
                 } else {
                     $('.credit_balance_div').slideUp();
                     $('.negative_balance_div').slideDown();
-                    $('#total_negative_balance').text(parseFloat(total_credit_balance).toFixed(2));
+                    $('#total_negative_balance').text(Math.abs(parseFloat(total_credit_balance).toFixed(2)));
                 }
             }
         } else {
@@ -525,7 +526,7 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
                 } else {
                     $('.credit_balance_div').slideUp();
                     $('.negative_balance_div').slideDown();
-                    $('#total_negative_balance').text(parseFloat(total_credit_balance_session_created).toFixed(2));
+                    $('#total_negative_balance').text(Math.abs(parseFloat(total_credit_balance_session_created).toFixed(2)));
                 }
             }
         }

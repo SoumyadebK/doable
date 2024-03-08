@@ -10,30 +10,13 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
  */
 function getTimeSlot($interval, $start_time, $end_time): array
 {
-    global $db;
-    global $db_account;
-    global $account_database;
-    global $master_database;
-
-    /*$location_operational_hour = $db->Execute("SELECT $account_database.DOA_OPERATIONAL_HOUR.OPEN_TIME, $account_database.DOA_OPERATIONAL_HOUR.CLOSE_TIME FROM $account_database.DOA_OPERATIONAL_HOUR LEFT JOIN $master_database.DOA_LOCATION ON $account_database.DOA_OPERATIONAL_HOUR.PK_LOCATION = $master_database.DOA_LOCATION.PK_LOCATION WHERE $master_database.DOA_LOCATION.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND $account_database.DOA_OPERATIONAL_HOUR.CLOSED = 0 ORDER BY $master_database.DOA_LOCATION.PK_LOCATION LIMIT 1");
-
-    if($location_operational_hour->RecordCount()>0){
-        $start = new DateTime($location_operational_hour->fields['OPEN_TIME']);
-        $end = new DateTime($location_operational_hour->fields['CLOSE_TIME']);
-    } else {
-        $start = new DateTime($start_time);
-        $end = new DateTime($end_time);
-    }*/
-
-    /*$start = new DateTime($start_time);
-    $end = new DateTime($end_time);*/
-    $start = new DateTime('06:00:00');
-    $end = new DateTime('22:00:00');
+    $start = new DateTime($start_time);
+    $end = new DateTime($end_time);
     $startTime = $start->format('H:i');
     $endTime = $end->format('H:i');
     $i=0;
     $time = [];
-    while(strtotime($startTime) <= strtotime($endTime)){
+    while((strtotime($startTime) <= strtotime($endTime)) && ((strtotime($endTime)-strtotime($startTime) >= ($interval*60)))){
         $start = $startTime;
         $end = date('H:i',strtotime('+'.$interval.' minutes',strtotime($startTime)));
         $startTime = date('H:i',strtotime('+'.$interval.' minutes',strtotime($startTime)));
@@ -82,7 +65,7 @@ if ($holiday_data->RecordCount() > 0){
 }
 //echo $SLOT_START." - ".$SLOT_END;
 
-$time_slot_array = getTimeSlot($duration, $SLOT_START, $SLOT_END);
+$time_slot_array = getTimeSlot($duration, $SLOT_START, $SLOT_END, $dayNumber);
 
 foreach ($time_slot_array as $key => $item) {
     $disabled = '';

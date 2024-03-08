@@ -31,15 +31,19 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
-$header = 'customer.php?id='.$_GET['id'].'&master_id='.$_GET['master_id'].'&tab=enrollment';
+
 
 $CREATE_LOGIN = 0;
 $user_doc_count = 0;
 
-if (empty($_GET['id']))
-    $title = "Add ".$userType;
-else
-    $title = "Edit ".$userType;
+if (empty($_GET['id'])) {
+    $title = "Add " . $userType;
+    $header = '';
+}
+else {
+    $title = "Edit " . $userType;
+    $header = 'customer.php?id=' . $_GET['id'] . '&master_id=' . $_GET['master_id'] . '&tab=enrollment';
+}
 
 if (!empty($_GET['tab']))
     $title = $userType;
