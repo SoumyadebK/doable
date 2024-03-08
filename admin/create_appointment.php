@@ -11,12 +11,6 @@ if (empty($_GET['id']))
 else
     $title = "Edit Appointment";
 
-if (!empty($_GET['type'])) {
-    $type = $_GET['type'];
-} else {
-    $type = '';
-}
-
 if (!empty($_GET['date'])) {
     $date_array = explode('T', $_GET['date']);
     $date = date("m/d/Y", strtotime($date_array[0]));
@@ -401,12 +395,6 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     </div>
     <?php require_once('../includes/footer.php');?>
     <script>
-        let type = '<?=$type?>';
-        $(window).on('load', function () {
-            let param = $('#'+type);
-            createAppointment(type, param)
-        })
-
         let PK_APPOINTMENT_MASTER = 0;
         const nextYear 	= new Date().getFullYear() + 2;
         const month 	= new Date().getMonth();
