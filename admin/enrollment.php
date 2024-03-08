@@ -731,7 +731,7 @@ if($user_payment_gateway->RecordCount() > 0){
                                                     <div class="row">
                                                         <div class="col-3">
                                                             <div class="form-group">
-                                                                <select class="form-control" required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
+                                                                <select class="form-control" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
                                                                     <option value="">Select</option>
                                                                     <?php
                                                                     $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
@@ -758,7 +758,7 @@ if($user_payment_gateway->RecordCount() > 0){
                                                     <div class="row individual_service_provider_div">
                                                         <div class="col-3">
                                                             <div class="form-group">
-                                                                <select class="form-control" required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
+                                                                <select class="form-control" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
                                                                     <option value="">Select</option>
                                                                     <?php
                                                                     $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
@@ -816,6 +816,31 @@ if($user_payment_gateway->RecordCount() > 0){
                                             </div>
                                         </div>
                                     </form>
+                                </div>
+
+                                <!--Confirm Model-->
+                                <div class="modal fade" id="confirm_modal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <form class="p-20" action="" method="post">
+
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="card">
+                                                        <div class="card-body">
+                                                            <div>
+                                                                <label>Are you sure you want to proceed without selecting <?=$service_provider_title?> ?</label>
+                                                                <button type="submit" class="btn btn-info waves-effect waves-light m-l-10 text-white" style="float: right;">Yes</button>
+                                                                <button type="button" class="btn btn-info waves-effect waves-light m-l-10 text-white" style="float: right;" data-bs-dismiss="modal">No</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
 
                                 <!--Billing Tab-->
@@ -1454,7 +1479,7 @@ if($user_payment_gateway->RecordCount() > 0){
         $('#append_service_provider_div').append(`<div class="row individual_service_provider_div">
                                                 <div class="col-3">
                                                     <div class="form-group">
-                                                        <select class="form-control" required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
+                                                        <select class="form-control" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
                                                             <option value="">Select</option>
                                                             <?php
                                                             $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
@@ -1600,6 +1625,11 @@ if($user_payment_gateway->RecordCount() > 0){
                 $('#billing_link')[0].click();
             }
         });
+        let service_provider = $('#SERVICE_PROVIDER_ID').val();
+        if(service_provider===null){
+            $('#confirm_modal').modal('show');
+        }
+
     });
 
     function goToPaymentTab() {

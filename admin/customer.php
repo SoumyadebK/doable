@@ -151,6 +151,7 @@ $USER_NAME = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
 $CUSTOMER_ID = '';
+$UNIQUE_ID = '';
 $EMAIL_ID = '';
 $USER_IMAGE = '';
 $GENDER = '';
@@ -196,6 +197,7 @@ if(!empty($_GET['id'])) {
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
     $CUSTOMER_ID = $res->fields['USER_ID'];
+    $UNIQUE_ID = $res->fields['UNIQUE_ID'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $USER_IMAGE = $res->fields['USER_IMAGE'];
     $GENDER = $res->fields['GENDER'];
@@ -387,6 +389,12 @@ if(!empty($_GET['master_id'])) {
                                                                         <div id="uname_result"></div>
                                                                     </div>
                                                                     <span id="lblError" style="color: red"></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-1">
+                                                                <div class="form-group">
+                                                                    <label class="form-label" style="font-size: 16px"><strong>#<?=$UNIQUE_ID?></strong></label>
+                                                                    <input type="hidden" id="UNIQUE_ID" name="UNIQUE_ID" value="<?=$UNIQUE_ID?>">
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-2">

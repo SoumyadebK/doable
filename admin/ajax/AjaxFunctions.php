@@ -524,6 +524,15 @@ function saveProfileData($RESPONSE_DATA){
     $USER_DATA['ZIP'] = $RESPONSE_DATA['ZIP'];
     $USER_DATA['NOTES'] = $RESPONSE_DATA['NOTES'];
 
+    if(empty($RESPONSE_DATA['UNIQUE_ID'])){
+        $row = $db->Execute("SELECT UNIQUE_ID FROM DOA_USERS ORDER BY UNIQUE_ID DESC LIMIT 1");
+        if ($row->RecordCount()>0 && $row->fields['UNIQUE_ID']>0) {
+            $USER_DATA['UNIQUE_ID']  =  intval($row->fields['UNIQUE_ID']) + 1;
+        } else {
+            $USER_DATA['UNIQUE_ID']  =  300580;
+        }
+    }
+
     $PK_USER_MASTER = 0;
     $PK_CUSTOMER_DETAILS = 0;
     if(empty($RESPONSE_DATA['PK_USER'])){
