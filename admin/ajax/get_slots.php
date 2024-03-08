@@ -16,7 +16,7 @@ function getTimeSlot($interval, $start_time, $end_time): array
     $endTime = $end->format('H:i');
     $i=0;
     $time = [];
-    while(strtotime($startTime) <= strtotime($endTime)){
+    while((strtotime($startTime) <= strtotime($endTime)) && ((strtotime($endTime)-strtotime($startTime) >= ($interval*60)))){
         $start = $startTime;
         $end = date('H:i',strtotime('+'.$interval.' minutes',strtotime($startTime)));
         $startTime = date('H:i',strtotime('+'.$interval.' minutes',strtotime($startTime)));
