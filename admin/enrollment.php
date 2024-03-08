@@ -821,25 +821,23 @@ if($user_payment_gateway->RecordCount() > 0){
                                 <!--Confirm Model-->
                                 <div class="modal fade" id="confirm_modal" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog">
-                                        <form class="p-20" action="" method="post">
-
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <div class="card">
-                                                        <div class="card-body">
-                                                            <div>
-                                                                <label>Are you sure you want to proceed without selecting <?=$service_provider_title?> ?</label>
-                                                                <button type="submit" class="btn btn-info waves-effect waves-light m-l-10 text-white" style="float: right;">Yes</button>
-                                                                <button type="button" class="btn btn-info waves-effect waves-light m-l-10 text-white" style="float: right;" data-bs-dismiss="modal">No</button>
-                                                            </div>
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="card">
+                                                    <div class="card-body">
+                                                        <div>
+                                                            <input type="hidden" id="is_confirm" value="0">
+                                                            <label>Are you sure you want to proceed without selecting <?=$service_provider_title?> ?</label>
+                                                            <button type="button" class="btn btn-info waves-effect waves-light m-l-20 text-white" onclick="$('#is_confirm').val(1); $('#enrollment_form').submit();">Yes</button>
+                                                            <button type="button" class="btn btn-danger waves-effect waves-light m-l-10 text-white" data-bs-dismiss="modal" aria-label="No">No</button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </form>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1250,7 +1248,6 @@ if($user_payment_gateway->RecordCount() > 0){
 
 </script>
 
-<script type="text/javascript" src="<?=$URL?>"></script>
 <script>
     const appId = '<?=$SQUARE_APP_ID ?>';
     const locationId = '<?=$SQUARE_LOCATION_ID ?>';
@@ -1614,22 +1611,24 @@ if($user_payment_gateway->RecordCount() > 0){
 
     $(document).on('submit', '#enrollment_form', function (event) {
         event.preventDefault();
-        let form_data = $('#enrollment_form').serialize();
-        $.ajax({
-            url: "ajax/AjaxFunctions.php",
-            type: 'POST',
-            data: form_data,
-            dataType: 'json',
-            success:function (data) {
-                $('.PK_ENROLLMENT_MASTER').val(data.PK_ENROLLMENT_MASTER);
-                $('#billing_link')[0].click();
-            }
-        });
         let service_provider = $('#SERVICE_PROVIDER_ID').val();
-        if(service_provider===null){
+        let is_confirm = $('#is_confirm').val();
+        if(service_provider == '' && is_confirm == 0){
             $('#confirm_modal').modal('show');
+        } else {
+            $('#confirm_modal').modal('hide');
+            let form_data = $('#enrollment_form').serialize();
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                dataType: 'json',
+                success: function (data) {
+                    $('.PK_ENROLLMENT_MASTER').val(data.PK_ENROLLMENT_MASTER);
+                    $('#billing_link')[0].click();
+                }
+            });
         }
-
     });
 
     function goToPaymentTab() {
