@@ -152,7 +152,7 @@ $AND_PK_USER = '';
 
     $(document).ready(function () {
         $('#SELECT_CUSTOMER').trigger("change");
-        getSlots();
+        //getSlots();
     });
     <? if(!empty($DATE_ARR)) { ?>
     def_date = new Date(<?=$DATE_ARR[0]?>,<?=$DATE_ARR[1]?>,<?=$DATE_ARR[2]?>);
@@ -178,13 +178,19 @@ $AND_PK_USER = '';
     });
 
     function set_time(param, id, start_time, end_time, PK_APPOINTMENT_MASTER){
+        //alert($(param).data('is_selected'));
         if ($(param).data('is_selected') == 0) {
-            start_time_array.push(start_time);
-            end_time_array.push(end_time);
-            $('#START_TIME').val(start_time_array);
-            $('#END_TIME').val(end_time_array);
-            $('#slot_btn_' + id).data('is_selected', 1);
-            document.getElementById('slot_btn_' + id).style.setProperty('background-color', 'orange', 'important');
+            const start_time_index = start_time_array.indexOf(start_time);
+            const end_time_index = end_time_array.indexOf(end_time);
+
+            if (start_time_index === -1 && end_time_index === -1) {
+                start_time_array.push(start_time);
+                end_time_array.push(end_time);
+                $('#START_TIME').val(start_time_array);
+                $('#END_TIME').val(end_time_array);
+                $('#slot_btn_' + id).data('is_selected', 1);
+                document.getElementById('slot_btn_' + id).style.setProperty('background-color', 'orange', 'important');
+            }
         } else {
             const start_time_index = start_time_array.indexOf(start_time);
             if (start_time_index > -1) {
@@ -330,11 +336,11 @@ $AND_PK_USER = '';
         }else {
             $('#slot_div').html('');
         }
+        $('.selected_slot').trigger('click').removeClass('selected_slot');
     }
 
     $(document).on('submit', '#appointment_form', function (event) {
         //event.preventDefault();
-        $('.selected_slot').trigger('click');
         let selected_date  = myCalender.value.toDateString()
         let month = selected_date.toString().split(' ')[1];
         if(month == 'Jan')

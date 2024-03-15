@@ -63,9 +63,11 @@ if ($holiday_data->RecordCount() > 0){
     $SLOT_START = '00:00:00';
     $SLOT_END = '23:00:00';
 }
+
+$SLOT_START = ($slot_time) ? $slot_time : $SLOT_START;
 //echo $SLOT_START." - ".$SLOT_END;
 
-$time_slot_array = getTimeSlot($duration, $SLOT_START, $SLOT_END, $dayNumber);
+$time_slot_array = getTimeSlot($duration, $SLOT_START, $SLOT_END);
 
 foreach ($time_slot_array as $key => $item) {
     $disabled = '';
