@@ -810,7 +810,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         defaultResources = [
             <?php
             if(isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != ''){
-                $SERVICE_PROVIDER_ID = "AND DOA_USERS.PK_USER = ".$_GET['SERVICE_PROVIDER_ID'];
+                $SERVICE_PROVIDER_ID = " AND DOA_USERS.PK_USER = ".$_GET['SERVICE_PROVIDER_ID'];
             } else {
                 $SERVICE_PROVIDER_ID = ' ';
             }
