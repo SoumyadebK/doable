@@ -194,7 +194,7 @@ while (!$row->EOF) {
         </div>
 
         <table id="myTable" class="table table-striped border" style="display: none">
-            <thead>
+            <thead style="background-color: #f44336">
                 <tr>
                     <th>Due Date</th>
                     <th>Transaction Type</th>
@@ -284,7 +284,7 @@ while (!$row->EOF) {
         </table>
 
         <table id="myTable" class="table table-striped border" style="display: none">
-            <thead>
+            <thead style="background-color: #FF0000">
                 <tr>
                     <th style="text-align: left;">Service</th>
                     <th style="text-align: left;">Apt #</th>

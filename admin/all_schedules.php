@@ -30,6 +30,15 @@ if (!empty($_GET['view'])){
     $view = 'list';
 }
 
+if(isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != ''){
+    $service_providers = implode(',', $_GET['SERVICE_PROVIDER_ID']);
+    $SERVICE_PROVIDER_ID = " AND DOA_USERS.PK_USER IN (".$service_providers.") ";
+    $APPOINTMENT_SERVICE_PROVIDER_ID = " AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (".$service_providers.") ";
+} else {
+    $SERVICE_PROVIDER_ID = ' ';
+    $APPOINTMENT_SERVICE_PROVIDER_ID = ' ';
+}
+
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
                             DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
@@ -67,7 +76,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
                         WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
                         AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
-                        AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
+                        AND DOA_APPOINTMENT_MASTER.STATUS = 'A' ".$APPOINTMENT_SERVICE_PROVIDER_ID."
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
                         ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC";
 
@@ -606,18 +615,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                     <form class="form-material form-horizontal" action="" method="get">
                                         <div class="input-group">
                                             <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
-                                            <select class="form-control" name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID">
-                                                <option value="">Select <?=$service_provider_title?></option>
+                                            <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" multiple>
                                                 <?php
-                                                $selected_service_provider = '';
                                                 $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
-                                                $selected = $db->Execute("SELECT CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS WHERE PK_USER = ".$_GET['SERVICE_PROVIDER_ID']);
-                                                $NAME = $selected->fields['NAME'];
                                                 while (!$row->EOF) { ?>
-                                                    <option value="<?=$row->fields['PK_USER']?>" <?=($row->fields['NAME'] == $NAME)?"selected":""?>><?=$row->fields['NAME']?></option>
+                                                    <option value="<?=$row->fields['PK_USER']?>" <?=(!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers)))?"selected":""?>><?=$row->fields['NAME']?></option>
                                                     <?php $row->MoveNext(); } ?>
                                             </select>
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" style="margin-bottom: 1px" onsubmit="showCalendarView()"><i class="fa fa-search"></i></button>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="margin-left: 2px; height: 33px" onsubmit="showCalendarView()"><i class="fa fa-search"></i></button>
                                         </div>
                                     </form>
                                 </div>
@@ -691,6 +696,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
 
 <script>
+    $('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
+
     let view = '<?=$view?>';
     $(window).on('load', function () {
         if (view === 'list'){
@@ -809,12 +816,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     function getAllCalendarData(){
         defaultResources = [
             <?php
-            if(isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != ''){
-                $SERVICE_PROVIDER_ID = "AND DOA_USERS.PK_USER = ".$_GET['SERVICE_PROVIDER_ID'];
-            } else {
-                $SERVICE_PROVIDER_ID = ' ';
-            }
-
             $service_provider_data = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ".$SERVICE_PROVIDER_ID." AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']. " ORDER BY DISPLAY_ORDER");
             $resourceIdArray = [];
             while (!$service_provider_data->EOF) {
