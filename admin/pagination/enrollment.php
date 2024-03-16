@@ -264,7 +264,7 @@ while (!$row->EOF) {
             $cancelled_enrollment = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = -1 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
             while (!$cancelled_enrollment->EOF) {
             ?>
-                <tr>
+                <tr style="color: <?=(($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund') ? 'green' : (($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Billing') ? 'red' : ''))?>;">
                     <td><?=date('m/d/Y', strtotime($cancelled_enrollment->fields['DUE_DATE']))?></td>
                     <td><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
                     <td style="text-align: right;"><?=$total_amount?></td>

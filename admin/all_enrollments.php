@@ -440,6 +440,8 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
                                     </div>
                                 </div>
 
+                                <button type="submit" class="btn btn-info waves-effect waves-light m-l-10 text-white" style="float: right;">Cancel and Store Info only</button>
+
                                 <button type="submit" class="btn btn-info waves-effect waves-light m-l-10 text-white" style="float: right;">Submit</button>
                                 <a href="javascript:" class="btn btn-info waves-effect waves-light text-white prev" style="float: right;" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
                             </div>
