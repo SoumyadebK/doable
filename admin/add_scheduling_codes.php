@@ -167,7 +167,7 @@ if (empty($_GET['id'])) {
                                     <label class="col-md-12">Services</label>
                                     <div class="col-md-12 multiselect-box" style="width: 100%;">
                                         <select class="multi_sumo_select" name="PK_SERVICE_MASTER[]" id="PK_SERVICE_MASTER" multiple required>
-                                            <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>">To-Dos</option>
+
                                             <?php
                                             $selected_services = [];
                                             if(!empty($_GET['id'])) {
@@ -181,6 +181,7 @@ if (empty($_GET['id'])) {
                                             while (!$row->EOF) { ?>
                                                 <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=in_array($row->fields['PK_SERVICE_MASTER'], $selected_services)?"selected":""?>><?=$row->fields['SERVICE_NAME']?></option>
                                                 <?php $row->MoveNext(); } ?>
+                                            <option value="0" <?=($selected_service_row->fields['PK_SERVICE_MASTER']==0)?"selected":""?>>To-Dos</option>
                                         </select>
                                     </div>
                                 </div>
