@@ -15,9 +15,9 @@ $ACTUAL_CREDIT_BALANCE = $_GET['ACTUAL_CREDIT_BALANCE'];
         <tr>
             <th></th>
             <th style="text-align: right;">Enrolled</th>
-            <th style="text-align: right;">Paid</th>
             <th style="text-align: right;">Used</th>
             <th style="text-align: right;">Balance</th>
+            <th style="text-align: right;">Paid</th>
             <th style="text-align: right;">Service Credit</th>
         </tr>
     </thead>
@@ -50,9 +50,9 @@ $ACTUAL_CREDIT_BALANCE = $_GET['ACTUAL_CREDIT_BALANCE'];
         <tr>
             <td><?=$serviceCodeData->fields['SERVICE_CODE']?></td>
             <td style="text-align: right"><?=$serviceCodeData->fields['NUMBER_OF_SESSION']?></td>
-            <td style="text-align: right"><?=number_format($TOTAL_PAID_SESSION, 2)?></td>
             <td style="text-align: right;"><?=$serviceCodeData->fields['SESSION_COMPLETED']?></td>
             <td style="text-align: right; color:<?=($ENR_BALANCE < 0)?'red':'black'?>;"><?=number_format($TOTAL_PAID_SESSION - $serviceCodeData->fields['SESSION_COMPLETED'], 2)?></td>
+            <td style="text-align: right">$<?=number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'], 2)?></td>
             <td style="text-align: right;"><?=($ENR_BALANCE > 0) ? number_format($ENR_BALANCE, 2) : 0?></td>
         </tr>
     <?php $serviceCodeData->MoveNext();

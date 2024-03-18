@@ -10,11 +10,53 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 if ($_GET['type'] == 'completed') {
     $enr_condition = " (DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 1 OR DOA_ENROLLMENT_MASTER.STATUS = 'C') ";
-    $ledger_condition = " (DOA_ENROLLMENT_LEDGER.STATUS = 'C' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1) ";
+    $ledger_condition = " ((DOA_ENROLLMENT_LEDGER.STATUS = 'C' OR DOA_ENROLLMENT_LEDGER.STATUS = 'A') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1) ";
 } else {
-    $enr_condition = " DOA_ENROLLMENT_MASTER.STATUS != 'C' ";
+    $enr_condition = " DOA_ENROLLMENT_MASTER.STATUS != 'C' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ";
     $ledger_condition = " DOA_ENROLLMENT_LEDGER.STATUS != 'C' ";
 }
+
+$ALL_GROUP_CLASS_QUERY = "SELECT
+                            DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
+                            DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_MASTER,
+                            DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_SERVICE,
+                            DOA_APPOINTMENT_MASTER.GROUP_NAME,
+                            DOA_APPOINTMENT_MASTER.SERIAL_NUMBER,
+                            DOA_APPOINTMENT_MASTER.DATE,
+                            DOA_APPOINTMENT_MASTER.START_TIME,
+                            DOA_APPOINTMENT_MASTER.END_TIME,
+                            DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
+                            DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                            DOA_SERVICE_MASTER.SERVICE_NAME,
+                            DOA_SERVICE_CODE.PK_SERVICE_CODE,
+                            DOA_SERVICE_CODE.SERVICE_CODE,
+                            DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_APPOINTMENT_STATUS.STATUS_CODE,
+                            DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
+                            DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
+                            DOA_SCHEDULING_CODE.COLOR_CODE,
+                            GROUP_CONCAT(SERVICE_PROVIDER.PK_USER SEPARATOR ',') AS SERVICE_PROVIDER_ID,
+                            GROUP_CONCAT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) SEPARATOR ',') AS CUSTOMER_NAME
+                        FROM
+                            DOA_APPOINTMENT_MASTER
+                        LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
+                        LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = SERVICE_PROVIDER.PK_USER
+                        
+                        LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
+                        LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                        LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
+                        
+                        LEFT JOIN DOA_APPOINTMENT_ENROLLMENT ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER
+                        LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
+                        LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
+                        LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
+                        LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
+                        %s
+                        AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
+                        AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP'
+                        GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
+                        ORDER BY DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE, DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.START_TIME";
 
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
@@ -46,7 +88,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
                         LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
                         LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
-                                
+                        
                         LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
                         LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
                         LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
@@ -138,9 +180,9 @@ while (!$row->EOF) {
                         <tr>
                             <th></th>
                             <th style="text-align: right;">Enrolled</th>
-                            <th style="text-align: right;">Paid</th>
                             <th style="text-align: right;">Used</th>
                             <th style="text-align: right;">Balance</th>
+                            <th style="text-align: right;">Paid</th>
                             <th style="text-align: right;">Service Credit</th>
                         </tr>
                     </thead>
@@ -162,9 +204,9 @@ while (!$row->EOF) {
                         <tr>
                             <td><?=$serviceCodeData->fields['SERVICE_CODE']?></td>
                             <td style="text-align: right"><?=$serviceCodeData->fields['NUMBER_OF_SESSION']?></td>
-                            <td style="text-align: right"><?=number_format($TOTAL_PAID_SESSION, 2)?></td>
                             <td style="text-align: right;"><?=$serviceCodeData->fields['SESSION_COMPLETED']?></td>
                             <td style="text-align: right; color:<?=($ENR_BALANCE < 0)?'red':'black'?>;"><?=number_format($ENR_BALANCE, 2)?></td>
+                            <td style="text-align: right">$<?=number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'], 2)?></td>
                             <td style="text-align: right;"><?=($ENR_BALANCE > 0) ? number_format($ENR_BALANCE, 2) : 0?></td>
                         </tr>
                     <?php $serviceCodeData->MoveNext();
@@ -172,9 +214,9 @@ while (!$row->EOF) {
                     <tr>
                         <td>Amount</td>
                         <td style="text-align: right;"><?=$total_amount?></td>
-                        <td style="text-align: right;"><?=$total_paid_amount?></td>
                         <td style="text-align: right;"><?=$total_used_amount?></td>
                         <td style="text-align: right; color:<?=($total_paid_amount-$total_used_amount<0)?'red':'black'?>;"><?=$total_paid_amount-$total_used_amount?></td>
+                        <td style="text-align: right;">$<?=number_format($total_paid_amount, 2)?></td>
                         <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? $total_paid_amount-$total_used_amount : 0?></td>
                     </tr>
                     </tbody>
@@ -268,7 +310,7 @@ while (!$row->EOF) {
                     <td><?=date('m/d/Y', strtotime($cancelled_enrollment->fields['DUE_DATE']))?></td>
                     <td><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
                     <td style="text-align: right;"><?=$total_amount?></td>
-                    <td style="text-align: right;"><?=$total_paid_amount?></td>
+                    <td style="text-align: right;"></td>
                     <td style="text-align: center;"><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
                     <td style="text-align: right;"><?=number_format((float)$cancelled_enrollment->fields['BALANCE'], 2, '.', '')?></td>
                     <td style="text-align: right;">
@@ -299,7 +341,61 @@ while (!$row->EOF) {
 
             <tbody>
             <?php
-            $appointment_data = $db_account->Execute(sprintf($ALL_APPOINTMENT_QUERY, " WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER'].""));
+            $group_class_data = $db_account->Execute(sprintf($ALL_GROUP_CLASS_QUERY, " WHERE DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." "));
+            $j=1;
+            $amount_used = 0;
+            $service_code_array = [];
+            $service_credit_array = [];
+            $total_amount_paid_array = [];
+            while (!$group_class_data->EOF) {
+                $per_session_price = $db_account->Execute("SELECT TOTAL_AMOUNT_PAID, PRICE_PER_SESSION, NUMBER_OF_SESSION, SESSION_CREATED, SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$group_class_data->fields['PK_ENROLLMENT_MASTER']." AND `PK_ENROLLMENT_SERVICE` = ".$group_class_data->fields['PK_ENROLLMENT_SERVICE']);
+                $PRICE_PER_SESSION = $per_session_price->fields['PRICE_PER_SESSION'];
+                $total_amount_needed = $per_session_price->fields['SESSION_CREATED'] * $PRICE_PER_SESSION;
+
+                if (isset($service_code_array[$group_class_data->fields['SERVICE_CODE']])) {
+                    $service_code_array[$group_class_data->fields['SERVICE_CODE']] = $service_code_array[$group_class_data->fields['SERVICE_CODE']] - 1;
+                    $service_credit_array[$group_class_data->fields['SERVICE_CODE']] = $service_credit_array[$group_class_data->fields['SERVICE_CODE']] - $per_session_price->fields['PRICE_PER_SESSION'];
+                } else {
+                    $service_code_array[$group_class_data->fields['SERVICE_CODE']] = $per_session_price->fields['SESSION_CREATED'];
+                    $service_credit_array[$group_class_data->fields['SERVICE_CODE']] = $total_amount_needed;
+                }
+
+                if (!isset($total_amount_paid_array[$group_class_data->fields['SERVICE_CODE']])) {
+                    $total_amount_paid_array[$group_class_data->fields['SERVICE_CODE']] = $per_session_price->fields['TOTAL_AMOUNT_PAID'];
+                }
+
+                $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = ".$group_class_data->fields['PK_APPOINTMENT_MASTER']);
+                $CHANGED_BY = '';
+                while (!$status_data->EOF) {
+                    $CHANGED_BY .= "(".$status_data->fields['APPOINTMENT_STATUS']." by ".$status_data->fields['NAME']." at ".date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])).")<br>";
+                    $status_data->MoveNext();
+                } ?>
+                <tr>
+                    <td style="text-align: left;"><?=$group_class_data->fields['SERVICE_NAME']?></td>
+                    <td style="text-align: left;"><?=$service_code_array[$group_class_data->fields['SERVICE_CODE']].'/'.$per_session_price->fields['NUMBER_OF_SESSION']?></td>
+                    <td style="text-align: left;"><?=$group_class_data->fields['SERVICE_CODE']?></td>
+                    <td style="text-align: center;"><?=date('m/d/Y', strtotime($group_class_data->fields['DATE']))?></td>
+                    <td style="text-align: center;"><?=date('h:i A', strtotime($group_class_data->fields['START_TIME']))." - ".date('h:i A', strtotime($group_class_data->fields['END_TIME']))?></td>
+                    <td style="text-align: left;"><?=$group_class_data->fields['APPOINTMENT_STATUS']?></td>
+                    <td style="text-align: right;"><?=number_format((float)$PRICE_PER_SESSION, 2, '.', ',');?></td>
+                    <?php $service_credit = $total_amount_paid_array[$group_class_data->fields['SERVICE_CODE']] - $service_credit_array[$group_class_data->fields['SERVICE_CODE']]; ?>
+                    <td style="color:<?=($service_credit<0)?'red':'black'?>; text-align: right;"><?=number_format((float)($service_credit), 2, '.', ',');?></td>
+                </tr>
+                <tr style="display: none">
+                    <?php if (!empty($group_class_data->fields['COMMENT'])) { ?>
+                        <td>Comment : <?=$group_class_data->fields['COMMENT']?></td>
+                    <?php } ?>
+                    <?php if (!empty($CHANGED_BY)) {?>
+                        <td><?=$CHANGED_BY?></td>
+                    <?php } ?>
+                </tr>
+                <?php $group_class_data->MoveNext();
+                $j++; } ?>
+            </tbody>
+
+            <tbody>
+            <?php
+            $appointment_data = $db_account->Execute(sprintf($ALL_APPOINTMENT_QUERY, " WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." "));
             $j=1;
             $amount_used = 0;
             $service_code_array = [];
