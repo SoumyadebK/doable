@@ -27,7 +27,6 @@ $ALL_GROUP_CLASS_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.END_TIME,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
-                            DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.PK_SERVICE_CODE,
                             DOA_SERVICE_CODE.SERVICE_CODE,
