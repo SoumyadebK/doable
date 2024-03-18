@@ -58,6 +58,7 @@ $page_first_result = ($page-1) * $results_per_page;
         <th data-type="number" style="cursor: pointer">No</i></th>
         <th data-type="string" style="cursor: pointer">Customer</th>
         <th data-type="string" style="cursor: pointer">Service</th>
+        <th data-type="string" style="cursor: pointer">Service Code</th>
         <th data-type="string" style="cursor: pointer"><?=$service_provider_title?></th>
         <th data-type="string" style="cursor: pointer">Day</th>
         <th data-date data-order style="cursor: pointer">Date</th>
@@ -73,13 +74,8 @@ $page_first_result = ($page-1) * $results_per_page;
         <tr>
             <td onclick="editpage(<?=$orphan_appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$i;?></td>
             <td onclick="editpage(<?=$orphan_appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$orphan_appointment_data->fields['CUSTOMER_NAME']?></td>
-            <?php if (!empty($orphan_appointment_data->fields['ENROLLMENT_ID'])) { ?>
-                <td onclick="editpage(<?=$orphan_appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$orphan_appointment_data->fields['ENROLLMENT_ID']." || ".$orphan_appointment_data->fields['SERVICE_NAME']." || ".$orphan_appointment_data->fields['SERVICE_CODE']?></td>
-            <?php } elseif (empty($orphan_appointment_data->fields['SERVICE_NAME']) && empty($orphan_appointment_data->fields['SERVICE_CODE'])) { ?>
-                <td onclick="editpage(<?=$orphan_appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$orphan_appointment_data->fields['SERVICE_NAME']."  ".$orphan_appointment_data->fields['SERVICE_CODE']?></td>
-            <?php } else {?>
-                <td onclick="editpage(<?=$orphan_appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$orphan_appointment_data->fields['SERVICE_NAME']." || ".$orphan_appointment_data->fields['SERVICE_CODE']?></td>
-            <?php }?>
+            <td onclick="editpage(<?=$orphan_appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$orphan_appointment_data->fields['SERVICE_NAME']?></td>
+            <td onclick="editpage(<?=$orphan_appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$orphan_appointment_data->fields['SERVICE_CODE']?></td>
             <td onclick="editpage(<?=$orphan_appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$orphan_appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
             <td onclick="editpage(<?=$orphan_appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('l', strtotime($orphan_appointment_data->fields['DATE']))?></td>
             <td onclick="editpage(<?=$orphan_appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('m/d/Y', strtotime($orphan_appointment_data->fields['DATE']))?></td>

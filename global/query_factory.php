@@ -261,6 +261,10 @@ class queryFactory
         return @mysqli_insert_id($this->link);
     }
 
+    public function affected_rows()
+    {
+        return @mysqli_affected_rows($this->link);
+    }
 }
 class queryFactoryResult
 {
