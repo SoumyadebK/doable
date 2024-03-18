@@ -167,6 +167,7 @@ if (empty($_GET['id'])) {
                                     <label class="col-md-12">Services</label>
                                     <div class="col-md-12 multiselect-box" style="width: 100%;">
                                         <select class="multi_sumo_select" name="PK_SERVICE_MASTER[]" id="PK_SERVICE_MASTER" multiple required>
+                                            <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>">To-Dos</option>
                                             <?php
                                             $selected_services = [];
                                             if(!empty($_GET['id'])) {

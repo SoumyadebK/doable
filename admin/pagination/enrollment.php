@@ -284,7 +284,7 @@ while (!$row->EOF) {
         </table>
 
         <table id="myTable" class="table table-striped border" style="display: none">
-            <thead style="background-color: #FF0000">
+            <thead style="background-color: #1E90FF">
                 <tr>
                     <th style="text-align: left;">Service</th>
                     <th style="text-align: left;">Apt #</th>
