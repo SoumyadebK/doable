@@ -997,7 +997,7 @@ if($user_payment_gateway->RecordCount() > 0){
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-3" style="padding-top: 5px;">
-                                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                            <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                         </div>
                                                                     </div>
                                                                     <?php $flexible_payment_data->MoveNext(); } ?>
@@ -1013,12 +1013,12 @@ if($user_payment_gateway->RecordCount() > 0){
                                                                     <div class="col-3">
                                                                         <div class="form-group">
                                                                             <div class="col-md-12">
-                                                                                <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT">
+                                                                                <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);">
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-3" style="padding-top: 5px;">
-                                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                        <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                     </div>
                                                                 </div>
                                                             <?php } ?>
@@ -1504,6 +1504,17 @@ if($user_payment_gateway->RecordCount() > 0){
         $(param).closest('.row').remove();
     }
 
+    function removeThisAmount(param) {
+        $(param).closest('.row').remove();
+        let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
+        let total_flexible_payment = 0;
+        $('.FLEXIBLE_PAYMENT_AMOUNT').each(function () {
+            total_flexible_payment += parseFloat($(this).val());
+        });
+        total_flexible_payment = isNaN(total_flexible_payment)?0:total_flexible_payment;
+        $('#BALANCE_PAYABLE').val(parseFloat(total_bill-total_flexible_payment).toFixed(2));
+    }
+
     function selectThisServiceCode(param) {
         let service_details = $(param).find(':selected').data('details');
         let price = $(param).find(':selected').data('price');
@@ -1592,12 +1603,12 @@ if($user_payment_gateway->RecordCount() > 0){
                                             <div class="col-3">
                                                 <div class="form-group">
                                                     <div class="col-md-12">
-                                                        <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" required>
+                                                        <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this)" required>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="col-3" style="padding-top: 5px;">
-                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                             </div>
                                         </div>`);
             $('.datepicker-future').datepicker({
@@ -1720,6 +1731,16 @@ if($user_payment_gateway->RecordCount() > 0){
             //$('#payment_modal').modal('show');
         }
     });
+
+    function calculateBalancePayable() {
+        let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
+        let total_flexible_payment = 0;
+        $('.FLEXIBLE_PAYMENT_AMOUNT').each(function () {
+            total_flexible_payment += parseFloat($(this).val());
+        });
+        total_flexible_payment = isNaN(total_flexible_payment)?0:total_flexible_payment;
+        $('#BALANCE_PAYABLE').val(parseFloat(total_bill-total_flexible_payment).toFixed(2));
+    }
 
     function calculatePaymentPlans() {
         let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val())?$('#BALANCE_PAYABLE').val():0);
