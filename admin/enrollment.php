@@ -907,7 +907,7 @@ if($user_payment_gateway->RecordCount() > 0){
                                                                 <div class="form-group">
                                                                     <label class="form-label">Down Payment</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?=$DOWN_PAYMENT?>" class="form-control" onkeyup="calculatePayment(this)">
+                                                                        <input type="text" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?=$DOWN_PAYMENT?>" class="form-control" onkeyup="calculatePayment()">
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1695,12 +1695,6 @@ if($user_payment_gateway->RecordCount() > 0){
         let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
         let down_payment = parseFloat(($('#DOWN_PAYMENT').val())?$('#DOWN_PAYMENT').val():0);
         let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val())?$('#BALANCE_PAYABLE').val():0);
-        let total_flexible_payment = 0;
-        $('.FLEXIBLE_PAYMENT_AMOUNT').each(function () {
-            total_flexible_payment += parseFloat($(this).val());
-        });
-        total_flexible_payment = isNaN(total_flexible_payment)?0:total_flexible_payment;
-        total_bill -= total_flexible_payment;
         $('#BALANCE_PAYABLE').val(parseFloat(total_bill-down_payment).toFixed(2));
         calculatePaymentPlans();
     }
@@ -1739,9 +1733,7 @@ if($user_payment_gateway->RecordCount() > 0){
     });
 
     function calculateBalancePayable() {
-        let down_payment = parseFloat(($('#DOWN_PAYMENT').val())?$('#DOWN_PAYMENT').val():0);
         let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
-        total_bill -= down_payment;
         let total_flexible_payment = 0;
         $('.FLEXIBLE_PAYMENT_AMOUNT').each(function () {
             total_flexible_payment += parseFloat($(this).val());
