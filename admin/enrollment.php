@@ -1734,7 +1734,7 @@ if($user_payment_gateway->RecordCount() > 0){
 
     function calculateBalancePayable() {
         let total_bill = parseFloat(($('#total_bill').val())?$('#total_bill').val():0);
-        let total_flexible_payment = 0;
+        let total_flexible_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
         $('.FLEXIBLE_PAYMENT_AMOUNT').each(function () {
             total_flexible_payment += parseFloat($(this).val());
         });
