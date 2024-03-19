@@ -1328,6 +1328,7 @@ function markAllAppointmentCompleted($RESPONSE_DATA) {
     $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
     for($i=0; $i < count($PK_APPOINTMENT_MASTER); $i++){
         $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER[$i]);
+        updateSessionCompletedCount($PK_APPOINTMENT_MASTER[$i]);
     }
     echo 1;
 }
