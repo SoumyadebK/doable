@@ -228,8 +228,12 @@ while (!$row->EOF) {
                     <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
             <?php } ?>
             <?php
-                if($row->fields['STATUS'] === 'C') { ?>
+                if($row->fields['STATUS'] === 'C' || $row->fields['STATUS'] === 'CA') { ?>
                     <p style="color: red; margin-top: 25%;">Cancelled</p>
+            <?php } ?>
+            <?php
+                if($row->fields['STATUS'] === 'CA') { ?>
+                    <p style="color: green; margin-top: 20%;">Refund Credit Available</p>
             <?php } ?>
             </div>
         </div>
