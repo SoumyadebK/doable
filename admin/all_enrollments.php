@@ -45,7 +45,7 @@ if (!isset ($_GET['page']) ) {
 
 $page_first_result = ($page-1) * $results_per_page;
 
-if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
+if (isset($_POST['SUBMIT'])){
     $PK_ENROLLMENT_MASTER = $_POST['PK_ENROLLMENT_MASTER'];
     $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
     if(empty($enrollment_data->fields['ENROLLMENT_NAME'])){
@@ -53,43 +53,29 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
     }else {
         $enrollment_name = $enrollment_data->fields['ENROLLMENT_NAME']." - ";
     }
+    $TOTAL_POSITIVE_BALANCE = $_POST['TOTAL_POSITIVE_BALANCE'];
+    $TOTAL_NEGATIVE_BALANCE = $_POST['TOTAL_NEGATIVE_BALANCE'];
+
+    if (($TOTAL_POSITIVE_BALANCE == 0 && $TOTAL_NEGATIVE_BALANCE == 0) && $_POST['SUBMIT'] == 'Submit') {
+        $UPDATE_DATA['STATUS'] = 'C';
+    } else {
+        $UPDATE_DATA['STATUS'] = 'CA';
+    }
 
     if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1){
-        $BALANCE = $_POST['CREDIT_BALANCE'];
-        if ($_POST['CREDIT_BALANCE'] > 0) {
-            $UPDATE_DATA['STATUS'] = 'C';
-        } else {
-            $UPDATE_DATA['STATUS'] = 'CA';
-        }
         $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND PK_APPOINTMENT_STATUS != 2";
     } else {
-        $BALANCE = $_POST['CREDIT_BALANCE_SESSION_CREATED'];
-        if ($_POST['CREDIT_BALANCE_SESSION_CREATED'] > 0) {
-            $UPDATE_DATA['STATUS'] = 'C';
-        } else {
-            $UPDATE_DATA['STATUS'] = 'CA';
-        }
         $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND PK_APPOINTMENT_STATUS != 2 AND IS_PAID = 0";
     }
 
-    if ($_POST['USE_AVAILABLE_CREDIT'] == 1 && $BALANCE > 0) {
-        $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
-
-        while (!$serviceCodeData->EOF) {
-            $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 1 : $serviceCodeData->fields['PRICE_PER_SESSION'];
-            $TOTAL_PAID_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? $serviceCodeData->fields['NUMBER_OF_SESSION'] : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'], 2);
-            if ($serviceCodeData->fields['SESSION_COMPLETED'] > $TOTAL_PAID_SESSION) {
-                $total_needed_amount = $serviceCodeData->fields['SESSION_COMPLETED'] * $serviceCodeData->fields['PRICE_PER_SESSION'];
-                $adjustable_amount = $total_needed_amount - $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-                if ($adjustable_amount < $BALANCE) {
-                    $TOTAL_AMOUNT_PAID = $total_needed_amount;
-                    $UPDATE_AMOUNT['TOTAL_AMOUNT_PAID'] = $TOTAL_AMOUNT_PAID;
-                    db_perform_account('DOA_ENROLLMENT_SERVICE', $UPDATE_AMOUNT, 'update'," PK_ENROLLMENT_SERVICE = ".$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
-                }
-            }
-            $serviceCodeData->MoveNext();
+    $BALANCE = $TOTAL_POSITIVE_BALANCE + $TOTAL_NEGATIVE_BALANCE;
+    if ($_POST['USE_AVAILABLE_CREDIT'] == 1) {
+        $TOTAL_POSITIVE_BALANCE += $TOTAL_NEGATIVE_BALANCE;
+        $TOTAL_NEGATIVE_BALANCE = $TOTAL_POSITIVE_BALANCE;
+        for ($i = 0; $i < count($_POST['PK_ENROLLMENT_SERVICE']); $i++) {
+            $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'] = $_POST['TOTAL_AMOUNT_PAID'][$i];
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE, 'update'," PK_ENROLLMENT_SERVICE = ".$_POST['PK_ENROLLMENT_SERVICE'][$i]);
         }
-        $BALANCE = $_POST['FINAL_BALANCE'];
     }
 
     db_perform_account('DOA_APPOINTMENT_MASTER', $UPDATE_DATA, 'update', $CONDITION);
@@ -111,21 +97,21 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
     db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
 
     $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
-    if ($BALANCE > 0) {
+    if ($TOTAL_POSITIVE_BALANCE > 0) {
         $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
         if ($wallet_data->RecordCount() > 0) {
             $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
         } else {
-            $INSERT_DATA['CURRENT_BALANCE'] = $BALANCE;
+            $INSERT_DATA['CURRENT_BALANCE'] = $TOTAL_POSITIVE_BALANCE;
         }
         $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-        $INSERT_DATA['CREDIT'] = $BALANCE;
+        $INSERT_DATA['CREDIT'] = $TOTAL_POSITIVE_BALANCE;
         $INSERT_DATA['DESCRIPTION'] = "Balance credited for cancellation of enrollment ".$enrollment_name.$enrollment_data->fields['ENROLLMENT_ID'];
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
-        $LEDGER_DATA_REFUND['TRANSACTION_TYPE'] = 'Refund';
+        $LEDGER_DATA_REFUND['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund';
         $LEDGER_DATA_REFUND['ENROLLMENT_LEDGER_PARENT'] = -1;
         $LEDGER_DATA_REFUND['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
         $LEDGER_DATA_REFUND['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
@@ -133,11 +119,12 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
         $LEDGER_DATA_REFUND['IS_PAID'] = 1;
         $LEDGER_DATA_REFUND['DUE_DATE'] = date('Y-m-d');
         $LEDGER_DATA_REFUND['BILLED_AMOUNT'] = 0.00;
-        $LEDGER_DATA_REFUND['BALANCE'] = $BALANCE;
+        $LEDGER_DATA_REFUND['BALANCE'] = $TOTAL_POSITIVE_BALANCE;
         $LEDGER_DATA_REFUND['STATUS'] = $UPDATE_DATA['STATUS'];
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_REFUND, 'insert');
-    } else {
-        $LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = 'Billing';
+    }
+    if ($TOTAL_NEGATIVE_BALANCE < 0) {
+        $LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Billing';
         $LEDGER_DATA_BILLING['ENROLLMENT_LEDGER_PARENT'] = -1;
         $LEDGER_DATA_BILLING['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
         $LEDGER_DATA_BILLING['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
@@ -145,8 +132,8 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
         $LEDGER_DATA_BILLING['IS_PAID'] = 0;
         $LEDGER_DATA_BILLING['STATUS'] = 'A';
         $LEDGER_DATA_BILLING['DUE_DATE'] = date('Y-m-d');
-        $LEDGER_DATA_BILLING['BILLED_AMOUNT'] = abs($BALANCE);
-        $LEDGER_DATA_BILLING['BALANCE'] = abs($BALANCE);
+        $LEDGER_DATA_BILLING['BILLED_AMOUNT'] = abs($TOTAL_NEGATIVE_BALANCE);
+        $LEDGER_DATA_BILLING['BALANCE'] = abs($TOTAL_NEGATIVE_BALANCE);
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_BILLING, 'insert');
     }
     header('location:all_enrollments.php');
@@ -257,23 +244,10 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
                                         }
                                         $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.SESSION_CREATED, DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                                         $serviceCode = [];
-                                        $total_session_created_amount = 0;
-                                        $total_used_amount = 0;
-                                        $total_paid_amount = 0;
                                         while (!$serviceCodeData->EOF) {
-                                            $PRICE_PER_SESSION = $serviceCodeData->fields['PRICE_PER_SESSION'];
-                                            $USED_AMOUNT = (($PRICE_PER_SESSION * $serviceCodeData->fields['SESSION_COMPLETED']) <= $serviceCodeData->fields['TOTAL_AMOUNT_PAID']) ? $PRICE_PER_SESSION * $serviceCodeData->fields['SESSION_COMPLETED'] : $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-                                            //$used_session_count = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE PK_APPOINTMENT_STATUS = 2 AND `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$serviceCodeData->fields['PK_SERVICE_CODE']);
-                                            $total_session_created_amount += ($PRICE_PER_SESSION * $serviceCodeData->fields['SESSION_CREATED']);
-                                            $total_used_amount += $USED_AMOUNT;
-                                            $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-
                                             $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'].': '.$serviceCodeData->fields['NUMBER_OF_SESSION'];
                                             $serviceCodeData->MoveNext();
-                                        }
-                                        $total_credit_balance = $total_paid_amount - $total_used_amount; // if we chose to cancel all appointment
-                                        $total_credit_balance_session_created = $total_paid_amount - $total_session_created_amount; // if we chose to cancel only unpaid appointment
-                                        ?>
+                                        } ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$i;?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$enrollment_name.$row->fields['ENROLLMENT_ID']." || ".implode(', ', $serviceCode)?></td>
@@ -301,7 +275,7 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
                                             </td>
                                             <td>
                                                 <?php if ($row->fields['STATUS']=='A') { ?>
-                                                    <a href="javascript:;" onclick="cancelEnrollment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>, <?=$total_credit_balance?>, <?=$total_credit_balance_session_created?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px;"></a>
+                                                    <a href="javascript:;" onclick="cancelEnrollment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px;"></a>
                                                 <?php } else { ?>
                                                         <p style="color: red;">Cancelled</p>
                                                     <!--<a href="all_enrollments.php?id=<?php /*=$row->fields['PK_ENROLLMENT_MASTER']*/?>&status=active">Active Enrollment</a>-->
@@ -361,10 +335,6 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
                             <div id="step_1">
                                 <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
                                 <input type="hidden" name="PK_USER_MASTER" class="PK_USER_MASTER">
-                                <input type="hidden" name="CREDIT_BALANCE" class="CREDIT_BALANCE">
-                                <input type="hidden" name="CREDIT_BALANCE_SESSION_CREATED" class="CREDIT_BALANCE_SESSION_CREATED">
-                                <input type="hidden" name="ACTUAL_CREDIT_BALANCE" class="ACTUAL_CREDIT_BALANCE" value="0">
-                                <input type="hidden" name="FINAL_BALANCE" class="FINAL_BALANCE" value="0">
                                 <div class="form-group">
                                     <div class="row">
                                         <div class="col-md-8">
@@ -440,9 +410,8 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
                                     </div>
                                 </div>
 
-                                <button type="submit" class="btn btn-info waves-effect waves-light m-l-10 text-white" style="float: right;">Cancel and Store Info only</button>
-
-                                <button type="submit" class="btn btn-info waves-effect waves-light m-l-10 text-white" style="float: right;">Submit</button>
+                                <input type="submit" name="SUBMIT" value="Cancel and Store Info only" class="btn btn-info waves-effect waves-light m-l-10 text-white" style="float: right;"/>
+                                <input type="submit" name="SUBMIT" value="Submit" class="btn btn-info waves-effect waves-light m-l-10 text-white" style="float: right;"/>
                                 <a href="javascript:" class="btn btn-info waves-effect waves-light text-white prev" style="float: right;" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
                             </div>
 
@@ -466,35 +435,46 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
         window.location.href = "enrollment.php?id="+id;
     }
 
-    function cancelEnrollment(PK_ENROLLMENT_MASTER, PK_USER_MASTER, total_credit_balance, total_credit_balance_session_created) {
+    function cancelEnrollment(PK_ENROLLMENT_MASTER, PK_USER_MASTER) {
         $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
         $('.PK_USER_MASTER').val(PK_USER_MASTER);
-        $('.CREDIT_BALANCE').val(total_credit_balance);
-        $('.CREDIT_BALANCE_SESSION_CREATED').val(total_credit_balance_session_created);
         $('#enrollment_cancel_modal').modal('show');
     }
 
     function showEnrollmentServiceDetails() {
-        checkCancelStatus();
         let PK_ENROLLMENT_MASTER = $('.PK_ENROLLMENT_MASTER').val();
         let USE_AVAILABLE_CREDIT = $('input[name="USE_AVAILABLE_CREDIT"]:checked').val();
-        let ACTUAL_CREDIT_BALANCE = $('.ACTUAL_CREDIT_BALANCE').val();
+        let CANCEL_FUTURE_APPOINTMENT = $('input[name="CANCEL_FUTURE_APPOINTMENT"]:checked').val();
         $.ajax({
             url: "includes/enrollment_service_details.php",
             type: 'GET',
-            data: {PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER, USE_AVAILABLE_CREDIT:USE_AVAILABLE_CREDIT, ACTUAL_CREDIT_BALANCE:ACTUAL_CREDIT_BALANCE},
+            data: {PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER, USE_AVAILABLE_CREDIT:USE_AVAILABLE_CREDIT, CANCEL_FUTURE_APPOINTMENT:CANCEL_FUTURE_APPOINTMENT},
             success: function (data) {
                 $('#enrollment_service_details').html(data);
-                let FINAL_CREDIT_BALANCE = $('#FINAL_CREDIT_BALANCE').val();
-                $('.FINAL_BALANCE').val(FINAL_CREDIT_BALANCE);
-                if (FINAL_CREDIT_BALANCE >= 0) {
-                    $('#total_credit_balance').text(parseFloat(FINAL_CREDIT_BALANCE).toFixed(2));
+                $('.negative_balance_div').slideUp();
+                $('.credit_balance_div').slideUp();
+
+                let TOTAL_POSITIVE_BALANCE = parseFloat($('#TOTAL_POSITIVE_BALANCE').val());
+                let TOTAL_NEGATIVE_BALANCE = parseFloat($('#TOTAL_NEGATIVE_BALANCE').val());
+
+                if (USE_AVAILABLE_CREDIT == 1) {
+                    TOTAL_POSITIVE_BALANCE += TOTAL_NEGATIVE_BALANCE;
+                    TOTAL_NEGATIVE_BALANCE = TOTAL_POSITIVE_BALANCE;
+                }
+
+                if (TOTAL_POSITIVE_BALANCE > 0) {
+                    $('.credit_balance_div').slideDown();
+                    $('#total_credit_balance').text(parseFloat(TOTAL_POSITIVE_BALANCE).toFixed(2));
+                }
+                if (TOTAL_NEGATIVE_BALANCE < 0) {
+                    $('.negative_balance_div').slideDown();
+                    $('#total_negative_balance').text(Math.abs(parseFloat(TOTAL_NEGATIVE_BALANCE).toFixed(2)));
                 }
             }
         });
     }
 
-    function checkCancelStatus(){
+    /*function checkCancelStatus(){
         let CANCEL_FUTURE_APPOINTMENT = $('input[name="CANCEL_FUTURE_APPOINTMENT"]:checked').val();
         let total_credit_balance = $('.CREDIT_BALANCE').val();
         let total_credit_balance_session_created = $('.CREDIT_BALANCE_SESSION_CREATED').val();
@@ -532,7 +512,7 @@ if (isset($_POST['CANCEL_FUTURE_APPOINTMENT'])){
                 }
             }
         }
-    }
+    }*/
 
 </script>
 

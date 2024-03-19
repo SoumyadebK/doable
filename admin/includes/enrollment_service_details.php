@@ -7,7 +7,7 @@ global $results_per_page;
 
 $PK_ENROLLMENT_MASTER = $_GET['PK_ENROLLMENT_MASTER'];
 $USE_AVAILABLE_CREDIT = $_GET['USE_AVAILABLE_CREDIT'];
-$ACTUAL_CREDIT_BALANCE = $_GET['ACTUAL_CREDIT_BALANCE'];
+$CANCEL_FUTURE_APPOINTMENT = $_GET['CANCEL_FUTURE_APPOINTMENT'];
 ?>
 
 <table id="myTable" class="table table-striped border">
@@ -28,44 +28,105 @@ $ACTUAL_CREDIT_BALANCE = $_GET['ACTUAL_CREDIT_BALANCE'];
     $total_amount = 0;
     $total_paid_amount = 0;
     $total_used_amount = 0;
+    $service_code_array = [];
     while (!$serviceCodeData->EOF) {
-        $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 1 : $serviceCodeData->fields['PRICE_PER_SESSION'];
-        $TOTAL_PAID_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? $serviceCodeData->fields['NUMBER_OF_SESSION'] : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'], 2);
-        if ($USE_AVAILABLE_CREDIT == 1 && $ACTUAL_CREDIT_BALANCE > 0 && ($serviceCodeData->fields['SESSION_COMPLETED'] > $TOTAL_PAID_SESSION)) {
-            $total_needed_amount = $serviceCodeData->fields['SESSION_COMPLETED'] * $serviceCodeData->fields['PRICE_PER_SESSION'];
-            $adjustable_amount = $total_needed_amount - $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-            if ($adjustable_amount < $ACTUAL_CREDIT_BALANCE) {
-                $ACTUAL_CREDIT_BALANCE -= $adjustable_amount;
-                $TOTAL_PAID_SESSION = $serviceCodeData->fields['SESSION_COMPLETED'];
-            } else {
-                $TOTAL_PAID_SESSION = number_format(($serviceCodeData->fields['TOTAL_AMOUNT_PAID']+$ACTUAL_CREDIT_BALANCE)/$serviceCodeData->fields['PRICE_PER_SESSION'], 2);
-                $ACTUAL_CREDIT_BALANCE = 0;
+        if ($CANCEL_FUTURE_APPOINTMENT == 1) {
+            $used_session_amount = $serviceCodeData->fields['SESSION_COMPLETED'] * $serviceCodeData->fields['PRICE_PER_SESSION'];
+        } else {
+            $session_created_amount = $serviceCodeData->fields['SESSION_CREATED'] * $serviceCodeData->fields['PRICE_PER_SESSION'];
+            $session_completed_amount = $serviceCodeData->fields['SESSION_COMPLETED'] * $serviceCodeData->fields['PRICE_PER_SESSION'];
+            $used_session_amount = (($session_completed_amount > $serviceCodeData->fields['TOTAL_AMOUNT_PAID']) ? $session_completed_amount : (($session_created_amount > $serviceCodeData->fields['TOTAL_AMOUNT_PAID']) ? $serviceCodeData->fields['TOTAL_AMOUNT_PAID'] : $session_created_amount));
+        }
+        $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['SERVICE_CODE'] = $serviceCodeData->fields['SERVICE_CODE'];
+        $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['NUMBER_OF_SESSION'] = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+        $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['PRICE_PER_SESSION'] = $serviceCodeData->fields['PRICE_PER_SESSION'];
+        $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['TOTAL_AMOUNT_PAID'] = $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+        $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['SESSION_COMPLETED'] = $serviceCodeData->fields['SESSION_COMPLETED'];
+        $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['USED_AMOUNT'] = $used_session_amount;
+        $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['BALANCE'] = $serviceCodeData->fields['TOTAL_AMOUNT_PAID'] - $used_session_amount;
+        $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['FINAL_AMOUNT'] = $serviceCodeData->fields['FINAL_AMOUNT'];
+
+        $serviceCodeData->MoveNext();
+    }
+
+    $total_positive_balance = 0;
+    $total_negative_balance = 0;
+    foreach ($service_code_array as $key => $value) {
+        if ($value['BALANCE'] < 0) {
+            $total_negative_balance += $value['BALANCE'];
+
+            if ($USE_AVAILABLE_CREDIT == 1) {
+                [$index, $balance] = checkForAdjustableService($service_code_array);
+                if ($index > 0) {
+                    if ($balance > abs($value['BALANCE'])) {
+                        $adjustable_amount = abs($value['BALANCE']);
+                        $leftover_amount = $balance - abs($value['BALANCE']);
+                    } else {
+                        $adjustable_amount = $balance;
+                        $leftover_amount = 0;
+                    }
+                    $service_code_array[$key]['BALANCE'] = $value['BALANCE'] + $adjustable_amount;
+                    $service_code_array[$key]['ADJUSTABLE_AMOUNT'] = $adjustable_amount;
+
+                    $service_code_array[$index]['BALANCE'] = $leftover_amount;
+                    $service_code_array[$index]['ADJUSTABLE_AMOUNT'] = -$adjustable_amount;
+                }
+            }
+
+        } else {
+            $total_positive_balance += $value['BALANCE'];
+        }
+    }
+
+    function checkForAdjustableService($service_code_array): array
+    {
+        foreach ($service_code_array as $key => $value) {
+            if ($value['BALANCE'] > 0) {
+                return [$key, $value['BALANCE']];
             }
         }
-        $ENR_BALANCE = $TOTAL_PAID_SESSION - $serviceCodeData->fields['SESSION_COMPLETED'];
+        return [0, 0];
+    }
 
-        $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
-        $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-        $total_used_amount +=  ($PRICE_PER_SESSION * $serviceCodeData->fields['SESSION_COMPLETED']); ?>
+    /*echo $total_positive_balance." ".$total_negative_balance;
+    pre_r($service_code_array);*/
+
+    foreach ($service_code_array as $key => $value) {
+        $PRICE_PER_SESSION = ($value['PRICE_PER_SESSION'] <= 0) ? 1 : $value['PRICE_PER_SESSION'];
+        $TOTAL_PAID_SESSION = ($value['PRICE_PER_SESSION'] <= 0) ? $value['NUMBER_OF_SESSION'] : number_format($value['TOTAL_AMOUNT_PAID']/$value['PRICE_PER_SESSION'], 2);
+        $ENR_BALANCE = $value['BALANCE'];
+
+        $total_amount += $value['FINAL_AMOUNT'];
+        $total_paid_amount += $value['TOTAL_AMOUNT_PAID'];
+        $total_used_amount +=  ($PRICE_PER_SESSION * $value['SESSION_COMPLETED']);
+        if (isset($value['ADJUSTABLE_AMOUNT'])) {
+            $adjusted_amount = "<span style='margin-left: 8px; padding: 5px; background-color: ".(($value['ADJUSTABLE_AMOUNT'] > 0) ? 'green' : 'red')."; border-radius: 5px; color: white;'>".$value['ADJUSTABLE_AMOUNT']."</span>"; ?>
+            <input type="hidden" name="PK_ENROLLMENT_SERVICE[]" value="<?=$key?>">
+            <input type="hidden" name="TOTAL_AMOUNT_PAID[]" value="<?=$value['TOTAL_AMOUNT_PAID']+$value['ADJUSTABLE_AMOUNT']?>">
+        <?php } else {
+            $adjusted_amount = '';
+        }
+        ?>
         <tr>
-            <td><?=$serviceCodeData->fields['SERVICE_CODE']?></td>
-            <td style="text-align: right"><?=$serviceCodeData->fields['NUMBER_OF_SESSION']?></td>
-            <td style="text-align: right;"><?=$serviceCodeData->fields['SESSION_COMPLETED']?></td>
-            <td style="text-align: right; color:<?=($ENR_BALANCE < 0)?'red':'black'?>;"><?=number_format($TOTAL_PAID_SESSION - $serviceCodeData->fields['SESSION_COMPLETED'], 2)?></td>
-            <td style="text-align: right">$<?=number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'], 2)?></td>
+            <td><?=$value['SERVICE_CODE']?></td>
+            <td style="text-align: right"><?=$value['NUMBER_OF_SESSION']?></td>
+            <td style="text-align: right;"><?=$value['SESSION_COMPLETED']?></td>
+            <td style="text-align: right; color:<?=($ENR_BALANCE < 0)?'red':'black'?>;"><?=number_format($ENR_BALANCE, 2).$adjusted_amount?></td>
+            <td style="text-align: right">$<?=number_format($value['TOTAL_AMOUNT_PAID'], 2)?></td>
             <td style="text-align: right;"><?=($ENR_BALANCE > 0) ? number_format($ENR_BALANCE, 2) : 0?></td>
         </tr>
-    <?php $serviceCodeData->MoveNext();
+    <?php
     } ?>
     <tr>
         <td>Amount</td>
         <td style="text-align: right;"><?=$total_amount?></td>
-        <td style="text-align: right;"><?=$total_paid_amount?></td>
         <td style="text-align: right;"><?=$total_used_amount?></td>
         <td style="text-align: right; color:<?=($total_paid_amount-$total_used_amount<0)?'red':'black'?>;"><?=$total_paid_amount-$total_used_amount?></td>
+        <td style="text-align: right;"><?=$total_paid_amount?></td>
         <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? $total_paid_amount-$total_used_amount : 0?></td>
     </tr>
     </tbody>
 </table>
 
-<input type="hidden" id="FINAL_CREDIT_BALANCE" value="<?=$ACTUAL_CREDIT_BALANCE?>">
+<input type="hidden" id="TOTAL_POSITIVE_BALANCE" name="TOTAL_POSITIVE_BALANCE" value="<?=$total_positive_balance?>">
+<input type="hidden" id="TOTAL_NEGATIVE_BALANCE" name="TOTAL_NEGATIVE_BALANCE" value="<?=$total_negative_balance?>">

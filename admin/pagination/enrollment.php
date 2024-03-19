@@ -27,7 +27,6 @@ $ALL_GROUP_CLASS_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.END_TIME,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
-                            DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.PK_SERVICE_CODE,
                             DOA_SERVICE_CODE.SERVICE_CODE,
@@ -229,8 +228,12 @@ while (!$row->EOF) {
                     <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
             <?php } ?>
             <?php
-                if($row->fields['STATUS'] === 'C') { ?>
+                if($row->fields['STATUS'] === 'C' || $row->fields['STATUS'] === 'CA') { ?>
                     <p style="color: red; margin-top: 25%;">Cancelled</p>
+            <?php } ?>
+            <?php
+                if($row->fields['STATUS'] === 'CA') { ?>
+                    <p style="color: green; margin-top: 20%;">Refund Credit Available</p>
             <?php } ?>
             </div>
         </div>
