@@ -1925,6 +1925,8 @@ z-index: 500;
 <?php require_once('../../includes/footer.php');?>
 
 <script>
+    let PK_USER = parseInt(<?=empty($PK_USER)?0:$PK_USER?>);
+
     function createUserComment() {
         $('#comment_header').text("Add Comment");
         $('#PK_COMMENT').val(0);
@@ -2710,7 +2712,7 @@ z-index: 500;
         $.ajax({
             url: "pagination/enrollment.php",
             type: "GET",
-            data: {search_text:'', page:page, type:type, master_id:PK_USER_MASTER},
+            data: {search_text:'', page:page, type:type, pk_user:PK_USER, master_id:PK_USER_MASTER},
             async: false,
             cache: false,
             success: function (result) {
