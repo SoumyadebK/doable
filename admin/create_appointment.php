@@ -259,8 +259,8 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
             db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
         }
+        updateSessionCreatedCount($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
     }
-    updateSessionCreatedCount($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
     markAppointmentPaid($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
 
     //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
