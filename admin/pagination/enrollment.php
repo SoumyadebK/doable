@@ -13,7 +13,7 @@ if ($_GET['type'] == 'completed') {
     $ledger_condition = " ((DOA_ENROLLMENT_LEDGER.STATUS = 'C' OR DOA_ENROLLMENT_LEDGER.STATUS = 'A') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1) ";
 } else {
     $enr_condition = " DOA_ENROLLMENT_MASTER.STATUS != 'C' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ";
-    $ledger_condition = " DOA_ENROLLMENT_LEDGER.STATUS != 'C' ";
+    $ledger_condition = " DOA_ENROLLMENT_LEDGER.STATUS != 'C' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1 ";
 }
 
 $ALL_GROUP_CLASS_QUERY = "SELECT
@@ -232,8 +232,12 @@ while (!$row->EOF) {
                     <p style="color: red; margin-top: 25%;">Cancelled</p>
             <?php } ?>
             <?php
-                if($row->fields['STATUS'] === 'CA') { ?>
-                    <p style="color: green; margin-top: 20%;">Refund Credit Available</p>
+                if($row->fields['STATUS'] === 'CA') {
+                    if ($total_paid_amount-$total_used_amount > 0) { ?>
+                        <p style="color: green; margin-top: 20%;">Refund Credit Available</p>
+                    <?php } else { ?>
+                        <p style="color: red; margin-top: 20%;">Balance Owned</p>
+                    <?php } ?>
             <?php } ?>
             </div>
         </div>
@@ -309,10 +313,10 @@ while (!$row->EOF) {
             $cancelled_enrollment = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = -1 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
             while (!$cancelled_enrollment->EOF) {
             ?>
-                <tr style="color: <?=(($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund') ? 'green' : (($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Billing') ? 'red' : ''))?>;">
+                <tr style="color: <?=(($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Balance Owned') ? 'red' : ''))?>;">
                     <td><?=date('m/d/Y', strtotime($cancelled_enrollment->fields['DUE_DATE']))?></td>
                     <td><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
-                    <td style="text-align: right;"><?=$total_amount?></td>
+                    <td style="text-align: right;"><?=$total_used_amount?></td>
                     <td style="text-align: right;"></td>
                     <td style="text-align: center;"><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
                     <td style="text-align: right;"><?=number_format((float)$cancelled_enrollment->fields['BALANCE'], 2, '.', '')?></td>
@@ -338,7 +342,7 @@ while (!$row->EOF) {
                     <th style="text-align: center;">Time</th>
                     <th style="text-align: left;">Status</th>
                     <th style="text-align: right;">Session Cost</th>
-                    <th style="text-align: right;">Service Credit</th>
+                    <th style="text-align: right;">Amount $</th>
                 </tr>
             </thead>
 

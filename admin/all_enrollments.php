@@ -56,15 +56,17 @@ if (isset($_POST['SUBMIT'])){
     $TOTAL_POSITIVE_BALANCE = $_POST['TOTAL_POSITIVE_BALANCE'];
     $TOTAL_NEGATIVE_BALANCE = $_POST['TOTAL_NEGATIVE_BALANCE'];
 
-    if (($TOTAL_POSITIVE_BALANCE == 0 && $TOTAL_NEGATIVE_BALANCE == 0) && $_POST['SUBMIT'] == 'Submit') {
+    if (($TOTAL_POSITIVE_BALANCE == 0 && $TOTAL_NEGATIVE_BALANCE == 0) || $_POST['SUBMIT'] == 'Submit') {
         $UPDATE_DATA['STATUS'] = 'C';
     } else {
         $UPDATE_DATA['STATUS'] = 'CA';
     }
 
     if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1){
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER' AND TYPE = 'CREATED'");
         $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND PK_APPOINTMENT_STATUS != 2";
     } else {
+
         $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND PK_APPOINTMENT_STATUS != 2 AND IS_PAID = 0";
     }
 
@@ -124,7 +126,7 @@ if (isset($_POST['SUBMIT'])){
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_REFUND, 'insert');
     }
     if ($TOTAL_NEGATIVE_BALANCE < 0) {
-        $LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Billing';
+        $LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Balance Owned' : 'Billing';
         $LEDGER_DATA_BILLING['ENROLLMENT_LEDGER_PARENT'] = -1;
         $LEDGER_DATA_BILLING['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
         $LEDGER_DATA_BILLING['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
