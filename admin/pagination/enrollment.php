@@ -13,7 +13,7 @@ if ($_GET['type'] == 'completed') {
     $ledger_condition = " ((DOA_ENROLLMENT_LEDGER.STATUS = 'C' OR DOA_ENROLLMENT_LEDGER.STATUS = 'A') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1) ";
 } else {
     $enr_condition = " DOA_ENROLLMENT_MASTER.STATUS != 'C' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ";
-    $ledger_condition = " DOA_ENROLLMENT_LEDGER.STATUS != 'C' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1 ";
+    $ledger_condition = " (((DOA_ENROLLMENT_LEDGER.STATUS = 'C' OR DOA_ENROLLMENT_LEDGER.STATUS = 'CA') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1) OR DOA_ENROLLMENT_LEDGER.STATUS = 'A')";
 }
 
 $ALL_GROUP_CLASS_QUERY = "SELECT
@@ -122,7 +122,6 @@ if ($_GET['type'] == 'normal') { ?>
         <?php require_once('pending_services.php'); ?>
     </div>
     <div class="row" style="padding: 35px 35px 0 35px">
-        <h5>List of Orphan Appointments</h5>
         <?php require_once('orphan_appointment.php'); ?>
     </div>
     <div class="row" style="margin-bottom: -15px; margin-top: 10px;">
@@ -235,7 +234,7 @@ while (!$row->EOF) {
                 if($row->fields['STATUS'] === 'CA') {
                     if ($total_paid_amount-$total_used_amount > 0) { ?>
                         <p style="color: green; margin-top: 20%;">Refund Credit Available</p>
-                    <?php } else { ?>
+                    <?php } elseif ($total_paid_amount-$total_used_amount < 0) { ?>
                         <p style="color: red; margin-top: 20%;">Balance Owned</p>
                     <?php } ?>
             <?php } ?>

@@ -1063,10 +1063,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         let START_DATE_TIME = info.start.toDate();
         let END_DATE_TIME = info.end.toDate();
         let DATE = START_DATE_TIME.getFullYear() + "-" + (START_DATE_TIME.getMonth()+1)  + "-" + START_DATE_TIME.getUTCDate();
-        let START_TIME = START_DATE_TIME.getUTCHours() + ":" + START_DATE_TIME.getUTCMinutes() + ":" + START_DATE_TIME.getUTCSeconds();
-        let END_TIME = END_DATE_TIME.getUTCHours() + ":" + END_DATE_TIME.getUTCMinutes() + ":" + END_DATE_TIME.getUTCSeconds();
+        let START_TIME = START_DATE_TIME.getUTCHours() + ":" + START_DATE_TIME.getUTCMinutes() + ":00";
+        let END_TIME = END_DATE_TIME.getUTCHours() + ":" + END_DATE_TIME.getUTCMinutes() + ":00";
 
-        console.log(DATE, START_TIME, END_TIME);
+        console.log(info, DATE, START_DATE_TIME.toUTCString(), START_TIME, END_DATE_TIME, END_TIME);
 
         $.ajax({
             url: "ajax/AjaxFunctions.php",
