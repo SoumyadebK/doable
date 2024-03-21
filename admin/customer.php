@@ -1822,7 +1822,7 @@ if(!empty($_GET['master_id'])) {
 
         /*// Get the modal
         var payment_model = document.getElementById("paymentModel");
-PK_USER
+
         // Get the <span> element that closes the payment_model
         var payment_span = document.getElementsByClassName("close")[0];
 
@@ -2817,7 +2817,7 @@ PK_USER
             $.ajax({
                 url: "pagination/enrollment.php",
                 type: "GET",
-                data: {search_text:'', page:page, type:type, pk_user:, master_id:PK_USER_MASTER},
+                data: {search_text:'', page:page, type:type, pk_user:PK_USER, master_id:PK_USER_MASTER},
                 async: false,
                 cache: false,
                 success: function (result) {
