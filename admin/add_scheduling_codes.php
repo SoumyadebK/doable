@@ -14,44 +14,34 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 if (!empty($_POST)) {
     //$SCHEDULING_DATA = $_POST;
     $SCHEDULING_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    $SCHEDULING_DATA['SCHEDULING_CODE'] = $_POST['SCHEDULING_CODE'];
+    $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
+    $SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
+    $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
+    $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
+    $SCHEDULING_DATA['DURATION'] = $_POST['DURATION'];
     if ($_GET['id'] == '') {
-        $SCHEDULING_DATA['SCHEDULING_CODE'] = $_POST['SCHEDULING_CODE'];
-        $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
-        $SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
-        $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
-        $SCHEDULING_DATA['TO_DOS'] = $_POST['TO_DOS'];
-        $SCHEDULING_DATA['IS_GROUP'] = $_POST['IS_GROUP'];
-        $SCHEDULING_DATA['IS_DEFAULT'] = $_POST['IS_DEFAULT'];
-        $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
-        $SCHEDULING_DATA['DURATION'] = $_POST['DURATION'];
         $SCHEDULING_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $SCHEDULING_DATA['CREATED_ON'] = date("Y-m-d H:i");
         $SCHEDULING_DATA['ACTIVE'] = 1;
         db_perform_account('DOA_SCHEDULING_CODE', $SCHEDULING_DATA, 'insert');
+        $PK_SCHEDULING_CODE = $db_account->insert_ID();
         header("location:all_scheduling_codes.php");
     } else {
-        $SCHEDULING_DATA['SCHEDULING_CODE'] = $_POST['SCHEDULING_CODE'];
-        $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
-        $SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
-        $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
-        $SCHEDULING_DATA['TO_DOS'] = isset($_POST['TO_DOS'])?1:0;
-        $SCHEDULING_DATA['IS_GROUP'] = isset($_POST['IS_GROUP'])?1:0;
-        $SCHEDULING_DATA['IS_DEFAULT'] = isset($_POST['IS_DEFAULT'])?1:0;
-        $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
-        $SCHEDULING_DATA['DURATION'] = $_POST['DURATION'];
         $SCHEDULING_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $SCHEDULING_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $SCHEDULING_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_SCHEDULING_CODE', $SCHEDULING_DATA, 'update', " PK_SCHEDULING_CODE = '$_GET[id]'");
-        header("location:all_scheduling_codes.php");
+        $PK_SCHEDULING_CODE = $_GET['id'];
+        header("location:add_scheduling_codes.php?id=".$_GET['id']);
     }
 }
 
 if (isset($_POST['PK_SERVICE_MASTER'])) {
-    $db_account->Execute("DELETE FROM `DOA_SCHEDULING_SERVICE` WHERE `PK_SCHEDULING_CODE` = '$_GET[id]'");
+    $db_account->Execute("DELETE FROM `DOA_SCHEDULING_SERVICE` WHERE `PK_SCHEDULING_CODE` = ".$PK_SCHEDULING_CODE);
     $PK_SERVICE_MASTER = $_POST['PK_SERVICE_MASTER'];
     for($i = 0; $i < count($PK_SERVICE_MASTER); $i++){
-        $SCHEDULING_SERVICE_DATA['PK_SCHEDULING_CODE'] = $_GET['id'];
+        $SCHEDULING_SERVICE_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
         $SCHEDULING_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER[$i];
         db_perform_account('DOA_SCHEDULING_SERVICE', $SCHEDULING_SERVICE_DATA, 'insert');
     }
@@ -176,7 +166,7 @@ if (empty($_GET['id'])) {
                                                     $selected_service_row->MoveNext();
                                                 }
                                             } ?>
-                                            <option value="0" <?=($selected_service_row->RecordCount() > 0 && $selected_service_row->fields['PK_SERVICE_MASTER']==0)?"selected":""?>>To-Dos</option>
+                                            <option value="0" <?=in_array(0, $selected_services)?"selected":""?>>To-Dos</option>
                                             <?php
                                             $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE ACTIVE = 1  AND IS_DELETED=0");
                                             while (!$row->EOF) { ?>
