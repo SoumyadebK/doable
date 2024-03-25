@@ -230,57 +230,57 @@ $customer_email = $customer_data->fields['EMAIL_ID'];
 $selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
 $selected_user_id = $customer_data->fields['PK_USER'];
 
-    $res = $db->Execute("SELECT * FROM DOA_USERS JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
+$res = $db->Execute("SELECT * FROM DOA_USERS JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
 
-    if($res->RecordCount() == 0){
-        header("location:all_customers.php");
-        exit;
-    }
-    $PK_USER = $res->fields['PK_USER'];
-    $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
-    $USER_NAME = $res->fields['USER_NAME'];
-    $FIRST_NAME = $res->fields['FIRST_NAME'];
-    $LAST_NAME = $res->fields['LAST_NAME'];
-    $EMAIL_ID = $res->fields['EMAIL_ID'];
-    $USER_IMAGE = $res->fields['USER_IMAGE'];
-    $GENDER = $res->fields['GENDER'];
-    $DOB = $res->fields['DOB'];
-    $ADDRESS = $res->fields['ADDRESS'];
-    $ADDRESS_1 = $res->fields['ADDRESS_1'];
-    $PK_COUNTRY = $res->fields['PK_COUNTRY'];
-    $PK_STATES = $res->fields['PK_STATES'];
-    $CITY = $res->fields['CITY'];
-    $ZIP = $res->fields['ZIP'];
-    $PHONE = $res->fields['PHONE'];
-    $NOTES = $res->fields['NOTES'];
-    $ACTIVE = $res->fields['ACTIVE'];
-    $PASSWORD = $res->fields['PASSWORD'];
-    $INACTIVE_BY_ADMIN = $res->fields['INACTIVE_BY_ADMIN'];
-    $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
+if($res->RecordCount() == 0){
+    header("location:all_customers.php");
+    exit;
+}
+$PK_USER = $res->fields['PK_USER'];
+$PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
+$USER_NAME = $res->fields['USER_NAME'];
+$FIRST_NAME = $res->fields['FIRST_NAME'];
+$LAST_NAME = $res->fields['LAST_NAME'];
+$EMAIL_ID = $res->fields['EMAIL_ID'];
+$USER_IMAGE = $res->fields['USER_IMAGE'];
+$GENDER = $res->fields['GENDER'];
+$DOB = $res->fields['DOB'];
+$ADDRESS = $res->fields['ADDRESS'];
+$ADDRESS_1 = $res->fields['ADDRESS_1'];
+$PK_COUNTRY = $res->fields['PK_COUNTRY'];
+$PK_STATES = $res->fields['PK_STATES'];
+$CITY = $res->fields['CITY'];
+$ZIP = $res->fields['ZIP'];
+$PHONE = $res->fields['PHONE'];
+$NOTES = $res->fields['NOTES'];
+$ACTIVE = $res->fields['ACTIVE'];
+$PASSWORD = $res->fields['PASSWORD'];
+$INACTIVE_BY_ADMIN = $res->fields['INACTIVE_BY_ADMIN'];
+$CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
 
-    $user_interest_other_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_INTEREST_OTHER_DATA` WHERE `PK_USER_MASTER` = '$CUSTOMER_ID'");
-    if($user_interest_other_data->RecordCount() > 0){
-        $WHAT_PROMPTED_YOU_TO_INQUIRE = $user_interest_other_data->fields['WHAT_PROMPTED_YOU_TO_INQUIRE'];
-        $PK_SKILL_LEVEL = $user_interest_other_data->fields['PK_SKILL_LEVEL'];
-        $PK_INQUIRY_METHOD = $user_interest_other_data->fields['PK_INQUIRY_METHOD'];
-        $INQUIRY_TAKER_ID = $user_interest_other_data->fields['INQUIRY_TAKER_ID'];
-    }
+$user_interest_other_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_INTEREST_OTHER_DATA` WHERE `PK_USER_MASTER` = '$CUSTOMER_ID'");
+if($user_interest_other_data->RecordCount() > 0){
+    $WHAT_PROMPTED_YOU_TO_INQUIRE = $user_interest_other_data->fields['WHAT_PROMPTED_YOU_TO_INQUIRE'];
+    $PK_SKILL_LEVEL = $user_interest_other_data->fields['PK_SKILL_LEVEL'];
+    $PK_INQUIRY_METHOD = $user_interest_other_data->fields['PK_INQUIRY_METHOD'];
+    $INQUIRY_TAKER_ID = $user_interest_other_data->fields['INQUIRY_TAKER_ID'];
+}
 
-    $customer_details = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$CUSTOMER_ID'");
-    if($customer_data->RecordCount() > 0){
-        $PK_CUSTOMER_DETAILS = $customer_details->fields['PK_CUSTOMER_DETAILS'];
-        $CALL_PREFERENCE = $customer_details->fields['CALL_PREFERENCE'];
-        $REMINDER_OPTION = $customer_details->fields['REMINDER_OPTION'];
-        $ATTENDING_WITH = $customer_details->fields['ATTENDING_WITH'];
-        $PARTNER_FIRST_NAME = $customer_details->fields['PARTNER_FIRST_NAME'];
-        $PARTNER_LAST_NAME = $customer_details->fields['PARTNER_LAST_NAME'];
-        $PARTNER_GENDER = $customer_details->fields['PARTNER_GENDER'];
-        $PARTNER_DOB = $customer_details->fields['PARTNER_DOB'];
-    }
+$customer_details = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$CUSTOMER_ID'");
+if($customer_data->RecordCount() > 0){
+    $PK_CUSTOMER_DETAILS = $customer_details->fields['PK_CUSTOMER_DETAILS'];
+    $CALL_PREFERENCE = $customer_details->fields['CALL_PREFERENCE'];
+    $REMINDER_OPTION = $customer_details->fields['REMINDER_OPTION'];
+    $ATTENDING_WITH = $customer_details->fields['ATTENDING_WITH'];
+    $PARTNER_FIRST_NAME = $customer_details->fields['PARTNER_FIRST_NAME'];
+    $PARTNER_LAST_NAME = $customer_details->fields['PARTNER_LAST_NAME'];
+    $PARTNER_GENDER = $customer_details->fields['PARTNER_GENDER'];
+    $PARTNER_DOB = $customer_details->fields['PARTNER_DOB'];
+}
 
 
-    $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = '$CUSTOMER_ID'");
-    $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
+$selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = '$CUSTOMER_ID'");
+$primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
 
 ?>
 
@@ -1427,7 +1427,7 @@ z-index: 500;
                         <div class="col-md-12" style="margin-bottom: 0px;">
                             <div class="row">
                                 <?php
-                                $PK_USER = empty($_GET['id'])?0:$_GET['id'];
+                                //$PK_USER = empty($_GET['id'])?0:$_GET['id'];
                                 $user_interest = $db_account->Execute("SELECT PK_INTERESTS FROM `DOA_CUSTOMER_INTEREST` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
                                 $user_interest_array = [];
                                 if ($user_interest->RecordCount() > 0){
@@ -1925,7 +1925,7 @@ z-index: 500;
 <?php require_once('../../includes/footer.php');?>
 
 <script>
-    let PK_USER = parseInt(<?=empty($PK_USER)?0:$PK_USER?>);
+    var PK_USER = parseInt(<?=empty($PK_USER)?0:$PK_USER?>);
 
     function createUserComment() {
         $('#comment_header').text("Add Comment");
