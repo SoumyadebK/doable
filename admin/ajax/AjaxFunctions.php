@@ -1318,7 +1318,16 @@ function markAppointmentCompleted($RESPONSE_DATA) {
     global $db_account;
     $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
     $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER);
-    updateSessionCompletedCount($PK_APPOINTMENT_MASTER);
+
+    $appointment_details = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE, DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_APPOINTMENT_MASTER RIGHT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
+    while (!$appointment_details->EOF) {
+        if ($appointment_details->fields['APPOINTMENT_TYPE'] === 'GROUP') {
+            updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $appointment_details->fields['PK_USER_MASTER']);
+        } else {
+            updateSessionCompletedCount($PK_APPOINTMENT_MASTER);
+        }
+        $appointment_details->MoveNext();
+    }
     echo 1;
 }
 
@@ -1328,7 +1337,16 @@ function markAllAppointmentCompleted($RESPONSE_DATA) {
     $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
     for($i=0; $i < count($PK_APPOINTMENT_MASTER); $i++){
         $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER[$i]);
-        updateSessionCompletedCount($PK_APPOINTMENT_MASTER[$i]);
+
+        $appointment_details = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE, DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_APPOINTMENT_MASTER RIGHT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER[$i]'");
+        while (!$appointment_details->EOF) {
+            if ($appointment_details->fields['APPOINTMENT_TYPE'] === 'GROUP') {
+                updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER[$i], $appointment_details->fields['PK_USER_MASTER']);
+            } else {
+                updateSessionCompletedCount($PK_APPOINTMENT_MASTER[$i]);
+            }
+            $appointment_details->MoveNext();
+        }
     }
     echo 1;
 }

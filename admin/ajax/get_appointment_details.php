@@ -16,6 +16,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.*,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
+                            DOA_SERVICE_MASTER.PK_SERVICE_MASTER,
                             DOA_SERVICE_CODE.SERVICE_CODE,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
@@ -384,10 +385,10 @@ z-index: 500;
                                     <option value="">Select Service</option>
                                     <?php
                                     $selected_service = '';
-                                    $row = $db_account->Execute("SELECT DISTINCT(DOA_SERVICE_MASTER.PK_SERVICE_MASTER), DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                    $row = $db_account->Execute("SELECT DISTINCT(DOA_SERVICE_MASTER.PK_SERVICE_MASTER), DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER");
                                     while (!$row->EOF) { if($PK_SERVICE_MASTER==$row->fields['PK_SERVICE_MASTER']){$selected_service = $row->fields['SERVICE_NAME'];} ?>
                                         <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($PK_SERVICE_MASTER==$row->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
-                                        <?php $row->MoveNext(); } ?>
+                                    <?php $row->MoveNext(); } ?>
                                 </select>
                                 <p><?=$selected_service?></p>
                             </div>

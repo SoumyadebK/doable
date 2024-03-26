@@ -88,6 +88,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.END_TIME,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.SERVICE_CODE,
@@ -115,6 +116,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
                         WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
                         AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN (1, 3, 4, 5, 7, 8)
+                        AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('GROUP', 'NORMAL')
                         AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
                         AND DOA_APPOINTMENT_MASTER.DATE <= '".date('Y-m-d')."'
                         $appointment_time
@@ -286,7 +288,6 @@ function currentWeekRange($date): array
                                         <th data-type="datetime" class="sortable" style="cursor: pointer">Date</th>
                                         <th data-type="time" class="sortable" style="cursor: pointer">Time</th>
                                         <th>Paid</th>
-                                        <th>Actions</th>
                                     </tr>
                                     </thead>
 
@@ -302,23 +303,24 @@ function currentWeekRange($date): array
                                         $pk_appointment_status = $appointment_data->fields['PK_APPOINTMENT_STATUS'];
                                         ?>
                                         <tr style="background-color: <?=($date==$current_date)?'limegreen': ( $no_show=='Charge' || $no_show=='No Charge' ? 'yellow' : ( $pk_appointment_status==6 ? 'red' : '' ) );?>">
-                                            <td <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"></label></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
-                                            <? if (!empty($appointment_data->fields['ENROLLMENT_ID'])) { ?>
-                                                <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['ENROLLMENT_ID']." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
-                                            <? } elseif (empty($appointment_data->fields['SERVICE_NAME']) && empty($appointment_data->fields['SERVICE_CODE'])) { ?>
-                                                <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']."  ".$appointment_data->fields['SERVICE_CODE']?></td>
-                                            <? } else {?>
-                                                <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
-                                            <? }?>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
                                             <td>
-                                                <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php if ($appointment_data->fields['CUSTOMER_NAME']) { ?>
+                                                    <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"></label>
+                                                <?php } ?>
                                             </td>
+                                            <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
+                                            <?php if (!empty($appointment_data->fields['ENROLLMENT_ID']) || !empty($appointment_data->fields['ENROLLMENT_NAME'])) { ?>
+                                                <td><?=$appointment_data->fields['ENROLLMENT_NAME'].' - '.$appointment_data->fields['ENROLLMENT_ID']." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
+                                            <?php } elseif (empty($appointment_data->fields['SERVICE_NAME']) && empty($appointment_data->fields['SERVICE_CODE'])) { ?>
+                                                <td><?=$appointment_data->fields['SERVICE_NAME']."  ".$appointment_data->fields['SERVICE_CODE']?></td>
+                                            <?php } else { ?>
+                                                <td><?=$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
+                                            <?php } ?>
+                                            <td><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
+                                            <td><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
+                                            <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
+                                            <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
+                                            <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
                                         </tr>
                                         <?php $appointment_data->MoveNext();
                                         $i++; } ?>
