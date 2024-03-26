@@ -282,8 +282,10 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
             $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($FLEXIBLE_PAYMENT_DATE[$i])), $html_template);
         }
-    } else {
+    } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Payment Plans') {
         $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])), $html_template);
+    } else{
+        $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['BILLING_DATE'])), $html_template);
     }
     $html_template = str_replace('{DOWN_PAYMENTS}', number_format((float)$RESPONSE_DATA['DOWN_PAYMENT'], 2, '.', ''), $html_template);
     $html_template = str_replace('{SCHEDULE_AMOUNT}', $RESPONSE_DATA['BALANCE_PAYABLE'], $html_template);
@@ -298,14 +300,26 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
             $PAYMENT_AMOUNT = count($FLEXIBLE_PAYMENT_DATE).' x '.number_format((float)$FLEXIBLE_PAYMENT_AMOUNT[0], 2, '.', '');
             $STARTING_DATE = date('m-d-Y', strtotime($FLEXIBLE_PAYMENT_DATE[0]));
         }
-    } else {
+    } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Payment Plans') {
         $PAYMENT_METHOD = $RESPONSE_DATA['PAYMENT_TERM'];
         $PAYMENT_AMOUNT = $RESPONSE_DATA['NUMBER_OF_PAYMENT'];
         $STARTING_DATE = date('m-d-Y', strtotime($RESPONSE_DATA['FIRST_DUE_DATE']));
+    } else{
+        $STARTING_DATE = date('m-d-Y', strtotime($RESPONSE_DATA['BILLING_DATE']));
     }
     $html_template = str_replace('{PAYMENT_NAME}', $PAYMENT_METHOD, $html_template);
     $html_template = str_replace('{NO_AMT_PAYMENT}', $PAYMENT_AMOUNT, $html_template);
     $html_template = str_replace('{STARTING_DATE}', $STARTING_DATE, $html_template);
+
+    $business_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.BUSINESS_NAME, DOA_LOCATION.ADDRESS, DOA_LOCATION.ZIP_CODE, DOA_LOCATION.CITY, DOA_STATES.STATE_NAME, DOA_COUNTRY.COUNTRY_NAME, DOA_LOCATION.PHONE FROM DOA_LOCATION INNER JOIN DOA_STATES ON DOA_STATES.PK_STATES = DOA_LOCATION.PK_STATES INNER JOIN DOA_COUNTRY ON DOA_COUNTRY.PK_COUNTRY = DOA_LOCATION.PK_COUNTRY INNER JOIN DOA_ACCOUNT_MASTER ON DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER = DOA_LOCATION.PK_ACCOUNT_MASTER WHERE DOA_LOCATION.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+    $business_phone = !empty($business_data->fields['PHONE']) ? 'Tel. '.$business_data->fields['PHONE'] : '';
+    $html_template = str_replace('{BUSINESS_NAME}', $business_data->fields['BUSINESS_NAME'], $html_template);
+    $html_template = str_replace('{BUSINESS_ADD}', $business_data->fields['ADDRESS'], $html_template);
+    $html_template = str_replace('{BUSINESS_CITY}', $business_data->fields['CITY'], $html_template);
+    $html_template = str_replace('{BUSINESS_STATE}', $business_data->fields['STATE_NAME'], $html_template);
+    $html_template = str_replace('{BUSINESS_COUNTRY}', $business_data->fields['COUNTRY_NAME'], $html_template);
+    $html_template = str_replace('{BUSINESS_ZIP}', $business_data->fields['ZIP_CODE'], $html_template);
+    $html_template = str_replace('{BUSINESS_PHONE}', $business_phone, $html_template);
     $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
 

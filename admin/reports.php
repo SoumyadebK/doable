@@ -65,9 +65,9 @@ if (!empty($_GET['NAME'])) {
                                         <li><a href="customer_summary_report.php">Customer Reports</a></li>
                                         <li><a href="student_mailing_list.php">Student Mailing List</a></li>
                                         <li><a href="total_open_liability.php">Total Open Liability Since Last Activity</a></li>
-                                        <li><a href="royalty_service_report.php">Royalty / Service Report</a></li>
+                                        <!--<li><a href="royalty_service_report.php">Royalty / Service Report</a></li>
                                         <li><a href="summary_of_studio_business_report.php">Summary of Studio Business Report</a></li>
-                                        <li><a href="staff_performance_report.php">Staff Performance Report</a></li>
+                                        <li><a href="staff_performance_report.php">Staff Performance Report</a></li>-->
                                     </ul>
                                 </div>
                             </div>

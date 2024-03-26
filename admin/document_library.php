@@ -186,6 +186,13 @@ if(empty($_GET['id'])){
                                             <a href="javascript:;" class="tag_name" data-tag="{TOTAL_PAYMENTS}" style="font-weight: normal;">{TOTAL_PAYMENTS}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{TOTAL_SELL_PRICE}" style="font-weight: normal;">{TOTAL_SELL_PRICE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{PERCENTAGE_RATE}" style="font-weight: normal;">{PERCENTAGE_RATE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{BUSINESS_NAME}" style="font-weight: normal;">{BUSINESS_NAME}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{BUSINESS_ADD}" style="font-weight: normal;">{BUSINESS_ADD}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{BUSINESS_CITY}" style="font-weight: normal;">{BUSINESS_CITY}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{BUSINESS_STATE}" style="font-weight: normal;">{BUSINESS_STATE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{BUSINESS_COUNTRY}" style="font-weight: normal;">{BUSINESS_COUNTRY}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{BUSINESS_ZIP}" style="font-weight: normal;">{BUSINESS_ZIP}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{BUSINESS_PHONE}" style="font-weight: normal;">{BUSINESS_PHONE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{CLIENTS_SIGNATURE}" style="font-weight: normal;">{CLIENTS_SIGNATURE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{STUDIO_REPRESENTATIVE}" style="font-weight: normal;">{STUDIO_REPRESENTATIVE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{CO_CLIENT_GUARDIAN}" style="font-weight: normal;">{CO_CLIENT_GUARDIAN}</a>
