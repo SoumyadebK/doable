@@ -881,13 +881,13 @@ if($user_payment_gateway->RecordCount() > 0){
                                                                     <div class="col-md-12">
                                                                         <div class="row">
                                                                             <div class="col-md-3">
-                                                                                <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="One Time" <?=($PAYMENT_METHOD == 'One Time')?'checked':''?>>One Time</label>
+                                                                                <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="One Time" <?=($PAYMENT_METHOD == 'One Time')?'checked':''?> required>One Time</label>
                                                                             </div>
                                                                             <div class="col-md-4">
-                                                                                <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Payment Plans" <?=($PAYMENT_METHOD == 'Payment Plans')?'checked':''?>>Payment Plans</label>
+                                                                                <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Payment Plans" <?=($PAYMENT_METHOD == 'Payment Plans')?'checked':''?> required>Payment Plans</label>
                                                                             </div>
                                                                             <div class="col-md-5">
-                                                                                <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Flexible Payments" <?=($PAYMENT_METHOD == 'Flexible Payments')?'checked':''?>>Flexible Payments</label>
+                                                                                <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Flexible Payments" <?=($PAYMENT_METHOD == 'Flexible Payments')?'checked':''?> required>Flexible Payments</label>
                                                                             </div>
                                                                         </div>
                                                                     </div>

@@ -430,7 +430,7 @@ while (!$row->EOF) {
                     $CHANGED_BY .= "(".$status_data->fields['APPOINTMENT_STATUS']." by ".$status_data->fields['NAME']." at ".date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])).")<br>";
                     $status_data->MoveNext();
                 } ?>
-                <tr>
+                <tr style="background-color: lightgray;">
                     <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_NAME']?></td>
                     <td style="text-align: left;"><?=$service_code_array[$appointment_data->fields['SERVICE_CODE']].'/'.$per_session_price->fields['NUMBER_OF_SESSION']?></td>
                     <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_CODE']?></td>

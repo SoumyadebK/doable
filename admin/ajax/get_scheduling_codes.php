@@ -13,5 +13,5 @@ if (isset($_POST['PK_ENROLLMENT_MASTER'])) {
 <?php
 $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=".$PK_SERVICE_MASTER);
 while (!$row->EOF) { ?>
-    <option data-duration="<?=$row->fields['DURATION'];?>" value="<?=$row->fields['PK_SCHEDULING_CODE']?>"><?=$row->fields['SCHEDULING_NAME'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
-    <?php $row->MoveNext(); } ?>
+    <option data-duration="<?=$row->fields['DURATION'];?>" value="<?=$row->fields['PK_SCHEDULING_CODE'].','.$row->fields['DURATION']?>"><?=$row->fields['SCHEDULING_NAME'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
+<?php $row->MoveNext(); } ?>

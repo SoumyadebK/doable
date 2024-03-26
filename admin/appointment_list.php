@@ -50,6 +50,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.END_TIME,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.SERVICE_CODE,
@@ -252,27 +253,30 @@ $page_first_result = ($page-1) * $results_per_page;
                                     $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
                                     while (!$appointment_data->EOF) { ?>
                                         <tr>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$i;?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL')?'Private Session':'Group Class'?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
-                                            <?php if (!empty($appointment_data->fields['ENROLLMENT_ID'])) { ?>
-                                                <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['ENROLLMENT_ID']." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
+                                            <td><?=$i;?></td>
+                                            <td><?=($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL')?'Private Session':'Group Class'?></td>
+                                            <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
+                                            <?php if (!empty($appointment_data->fields['ENROLLMENT_ID']) || !empty($appointment_data->fields['ENROLLMENT_NAME'])) { ?>
+                                                <td><?=$appointment_data->fields['ENROLLMENT_NAME'].' - '.$appointment_data->fields['ENROLLMENT_ID']." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
                                             <?php } elseif (empty($appointment_data->fields['SERVICE_NAME']) && empty($appointment_data->fields['SERVICE_CODE'])) { ?>
-                                                <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']."  ".$appointment_data->fields['SERVICE_CODE']?></td>
-                                            <?php } else {?>
-                                                <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
-                                            <?php }?>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                                            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
+                                                <td><?=$appointment_data->fields['SERVICE_NAME']."  ".$appointment_data->fields['SERVICE_CODE']?></td>
+                                            <?php } else { ?>
+                                                <td><?=$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
+                                            <?php } ?>
+                                            <td><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
+                                            <td><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
+                                            <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
+                                            <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
+                                            <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
                                             <td style="text-align: center;">
-                                                <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
-                                                    <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
-                                                <?php } else { ?>
-                                                    <a href="javascript:" data-id="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='confirmComplete($(this));'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
-                                                <?php } ?>
+                                                <?php
+                                                if ($appointment_data->fields['CUSTOMER_NAME']) {
+                                                    if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
+                                                        <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
+                                                    <?php } else { ?>
+                                                        <a href="javascript:" data-id="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='confirmComplete($(this));'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
+                                                    <?php }
+                                                } ?>
                                             </td>
                                             <td>
                                                 <?php /*if(empty($appointment_data->fields['ENROLLMENT_ID'])) { */?><!--

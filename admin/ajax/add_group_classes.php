@@ -205,8 +205,6 @@ $AND_PK_USER = ' ';
 
     $('.timepicker-normal').timepicker({
         timeFormat: 'hh:mm p',
-        minTime: '01:00 PM',
-        maxTime: '09:00 PM'
     });
 
     $('.DAYS').on('change', function(){
@@ -337,8 +335,6 @@ $AND_PK_USER = ' ';
 
         $('.timepicker-normal').timepicker({
             timeFormat: 'hh:mm p',
-            minTime: '01:00 PM',
-            maxTime: '09:00 PM'
         });
 
         $('.DAYS').on('change', function(){
