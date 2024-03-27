@@ -547,6 +547,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 
     $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
+    $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
     db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT'");
 
     //markAdhocAppointmentNormal($_POST['PK_ENROLLMENT_MASTER']);

@@ -347,7 +347,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         $LEDGER_DATA['IS_PAID'] = 0;
         $LEDGER_DATA['STATUS'] = 'A';
         if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'One Time') {
-            $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
+            $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE']));
             $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
             $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
             db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
@@ -1666,5 +1666,37 @@ function modifyAppointment($RESPONSE_DATA) {
         }
     }
     echo date('m/d/Y', strtotime($RESPONSE_DATA['DATE']));
+}
+
+function makeRefundToWallet($RESPONSE_DATA)
+{
+    global $db_account;
+    $PK_ENROLLMENT_MASTER = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
+    $PK_ENROLLMENT_LEDGER = $RESPONSE_DATA['PK_ENROLLMENT_LEDGER'];
+    $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
+    $BALANCE = $RESPONSE_DATA['BALANCE'];
+
+    $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    if(empty($enrollment_data->fields['ENROLLMENT_NAME'])){
+        $enrollment_name = '';
+    }else {
+        $enrollment_name = $enrollment_data->fields['ENROLLMENT_NAME']." - ";
+    }
+
+    $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+    if ($wallet_data->RecordCount() > 0) {
+        $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
+    } else {
+        $INSERT_DATA['CURRENT_BALANCE'] = $BALANCE;
+    }
+    $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+    $INSERT_DATA['CREDIT'] = $BALANCE;
+    $INSERT_DATA['DESCRIPTION'] = "Balance credited for cancellation of enrollment ".$enrollment_name.$enrollment_data->fields['ENROLLMENT_ID'];
+    $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+    $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+    db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+
+    $UPDATE_DATA['IS_PAID'] = 1;
+    db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
 }
 

@@ -16,7 +16,7 @@ if ($_GET['type'] == 'completed') {
     $ledger_condition = " (((DOA_ENROLLMENT_LEDGER.STATUS = 'C' OR DOA_ENROLLMENT_LEDGER.STATUS = 'CA') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1) OR DOA_ENROLLMENT_LEDGER.STATUS = 'A')";
 }
 
-$ALL_GROUP_CLASS_QUERY = "SELECT
+/*$ALL_GROUP_CLASS_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
                             DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_MASTER,
                             DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_SERVICE,
@@ -55,7 +55,7 @@ $ALL_GROUP_CLASS_QUERY = "SELECT
                         AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
                         AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP'
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
-                        ORDER BY DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE, DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.START_TIME";
+                        ORDER BY DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE, DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.START_TIME";*/
 
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
@@ -179,7 +179,7 @@ while (!$row->EOF) {
                     $enrollment_service_array = [];
                     while (!$serviceCodeData->EOF) {
                         $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
-                        $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 1 : $serviceCodeData->fields['PRICE_PER_SESSION'];
+                        $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData->fields['PRICE_PER_SESSION'];
                         $TOTAL_PAID_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? $serviceCodeData->fields['NUMBER_OF_SESSION'] : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'], 2);
                         $ENR_BALANCE = $TOTAL_PAID_SESSION - $serviceCodeData->fields['SESSION_COMPLETED'];
 
@@ -309,6 +309,8 @@ while (!$row->EOF) {
                     <td style="text-align: right;">
                         <?php if($cancelled_enrollment->fields['IS_PAID'] == 0) { ?>
                             <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$cancelled_enrollment->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_LEDGER']?>, <?=$cancelled_enrollment->fields['BILLED_AMOUNT']?>, '');">Pay Now</button>
+                        <?php } elseif($cancelled_enrollment->fields['IS_PAID'] == 2) { ?>
+                            <button class="btn btn-success waves-effect waves-light m-l-10 text-white" onclick="makeRefund(<?=$cancelled_enrollment->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=$cancelled_enrollment->fields['BALANCE']?>)">Refund</button>
                         <?php } ?>
                     </td>
                 </tr>
@@ -478,4 +480,15 @@ while (!$row->EOF) {
             $('.pay_now_button').prop('disabled', false);
         }
     });
+
+    function makeRefund(PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, PK_USER_MASTER, BALANCE) {
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {FUNCTION_NAME: 'makeRefundToWallet', PK_ENROLLMENT_MASTER:PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER:PK_ENROLLMENT_LEDGER, PK_USER_MASTER: PK_USER_MASTER, BALANCE:BALANCE},
+            success: function (data) {
+                window.location.reload();
+            }
+        });
+    }
 </script>
