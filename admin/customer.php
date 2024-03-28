@@ -2625,12 +2625,12 @@ if(!empty($_GET['master_id'])) {
     </script>
 
 
-    <script src="https://js.stripe.com/v3/"></script>
+    <!--<script src="https://js.stripe.com/v3/"></script>
     <script type="text/javascript">
         function stripePaymentFunction() {
 
             // Create a Stripe client.
-            var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
+            var stripe = Stripe('<?php /*=$PUBLISHABLE_KEY*/?>');
 
             // Create an instance of Elements.
             var elements = stripe.elements();
@@ -2707,7 +2707,7 @@ if(!empty($_GET['master_id'])) {
             }
         }
 
-    </script>
+    </script>-->
     <script>
         $('#NAME').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
 

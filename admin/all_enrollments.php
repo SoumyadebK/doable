@@ -56,7 +56,7 @@ if (isset($_POST['SUBMIT'])){
     $TOTAL_POSITIVE_BALANCE = $_POST['TOTAL_POSITIVE_BALANCE'];
     $TOTAL_NEGATIVE_BALANCE = $_POST['TOTAL_NEGATIVE_BALANCE'];
 
-    if (($TOTAL_POSITIVE_BALANCE == 0 && $TOTAL_NEGATIVE_BALANCE == 0) || $_POST['SUBMIT'] == 'Submit') {
+    if ($TOTAL_POSITIVE_BALANCE == 0 && $TOTAL_NEGATIVE_BALANCE == 0) {
         $UPDATE_DATA['STATUS'] = 'C';
     } else {
         $UPDATE_DATA['STATUS'] = 'CA';
@@ -99,7 +99,7 @@ if (isset($_POST['SUBMIT'])){
 
     $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
     if ($TOTAL_POSITIVE_BALANCE > 0) {
-        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+        /*$wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
         if ($wallet_data->RecordCount() > 0) {
             $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
         } else {
@@ -110,14 +110,14 @@ if (isset($_POST['SUBMIT'])){
         $INSERT_DATA['DESCRIPTION'] = "Balance credited for cancellation of enrollment ".$enrollment_name.$enrollment_data->fields['ENROLLMENT_ID'];
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');*/
 
         $LEDGER_DATA_REFUND['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund';
         $LEDGER_DATA_REFUND['ENROLLMENT_LEDGER_PARENT'] = -1;
         $LEDGER_DATA_REFUND['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
         $LEDGER_DATA_REFUND['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
         $LEDGER_DATA_REFUND['PAID_AMOUNT'] = 0.00;
-        $LEDGER_DATA_REFUND['IS_PAID'] = 1;
+        $LEDGER_DATA_REFUND['IS_PAID'] = 2;
         $LEDGER_DATA_REFUND['DUE_DATE'] = date('Y-m-d');
         $LEDGER_DATA_REFUND['BILLED_AMOUNT'] = 0.00;
         $LEDGER_DATA_REFUND['BALANCE'] = $TOTAL_POSITIVE_BALANCE;
