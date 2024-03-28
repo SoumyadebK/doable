@@ -1785,8 +1785,9 @@ if($user_payment_gateway->RecordCount() > 0){
                         $('.PK_ENROLLMENT_LEDGER').val(data.PK_ENROLLMENT_LEDGER);
                         let today = new Date();
                         let firstPaymentDate = new Date($('#FIRST_DUE_DATE').val());
+                        let billingDate = new Date($('#BILLING_DATE').val());
 
-                        if (($('.PAYMENT_METHOD:checked').val() === 'One Time') || (parseFloat($('#DOWN_PAYMENT').val()) > 0) || ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() === firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth()))) {
+                        if (($('.PAYMENT_METHOD:checked').val() === 'One Time' && (today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear())) || (parseFloat($('#DOWN_PAYMENT').val()) > 0) || ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() === firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth()))) {
                             if ($('.PAYMENT_METHOD:checked').val() === 'One Time') {
                                 let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
                                 $('#AMOUNT_TO_PAY').val(balance_payable.toFixed(2));
@@ -1802,7 +1803,6 @@ if($user_payment_gateway->RecordCount() > 0){
                                 }
                             }
                             $('#payment_modal').modal('show');
-
                         } else {
                             window.location.href = '<?=$header?>';
                         }
