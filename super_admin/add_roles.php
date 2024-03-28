@@ -14,11 +14,13 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 if(!empty($_POST)){
     $ROLES_DATA = $_POST;
     if(empty($_GET['id'])){
+        $ROLES_DATA['IS_MANAGEMENT'] = $_POST['IS_MANAGEMENT'];
         $ROLES_DATA['ACTIVE'] = 1;
         $ROLES_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $ROLES_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform('DOA_ROLES', $ROLES_DATA, 'insert');
     }else{
+        $ROLES_DATA['IS_MANAGEMENT'] = isset($_POST['IS_MANAGEMENT'])?1:0;
         $ROLES_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $ROLES_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $ROLES_DATA['EDITED_ON'] = date("Y-m-d H:i");
@@ -31,6 +33,7 @@ $ROLES	       = '';
 
 if(empty($_GET['id'])){
     $ROLES = '';
+    $IS_MANAGEMENT = '';
     $ACTIVE = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_ROLES` WHERE PK_ROLES = '$_GET[id]'");
@@ -39,6 +42,7 @@ if(empty($_GET['id'])){
         exit;
     }
     $ROLES = $res->fields['ROLES'];
+    $IS_MANAGEMENT = $res->fields['IS_MANAGEMENT'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
 ?>
@@ -85,8 +89,13 @@ if(empty($_GET['id'])){
                                     </div>
                                 </div>
 
+                                <div class="form-group">
+                                    <label class="" for="example-text">Management</label>
+                                    <input type="checkbox" id="IS_MANAGEMENT" name="IS_MANAGEMENT" class="form-check-inline" style="margin-left: 10px;" <?=($IS_MANAGEMENT == 1)?'checked':''?>
+                                </div>
+
                                 <?php if(!empty($_GET['id'])) { ?>
-                                    <div class="row" style="margin-bottom: 15px;">
+                                    <div class="row" style="margin-bottom: 15px; margin-top: 10px">
                                         <div class="col-6">
                                             <div class="col-md-2">
                                                 <label>Active</label>
