@@ -990,9 +990,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 //viewAppointmentDetails(info);
             },
 
-            eventDragStop: function (info) {
+            /*eventDragStop: function (info) {
               console.log(info.resourceIds);
-            },
+            },*/
 
             eventDrop: function (info) {
                 modifyAppointment(info);
@@ -1060,23 +1060,24 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         let TYPE = info.type;
         let PK_ID = info.id;
         let SERVICE_PROVIDER_ID = info.resourceId;
-        let START_DATE_TIME = info.start.toDate();
-        let END_DATE_TIME = info.end.toDate();
-        let DATE = START_DATE_TIME.getFullYear() + "-" + (START_DATE_TIME.getMonth()+1)  + "-" + START_DATE_TIME.getUTCDate();
+        let START_DATE_TIME = info.start.format();
+        let END_DATE_TIME = info.end.format();
+        /*let DATE = START_DATE_TIME.getFullYear() + "-" + (START_DATE_TIME.getMonth()+1)  + "-" + START_DATE_TIME.getDate();
         let START_TIME = START_DATE_TIME.getUTCHours() + ":" + START_DATE_TIME.getUTCMinutes() + ":00";
-        let END_TIME = END_DATE_TIME.getUTCHours() + ":" + END_DATE_TIME.getUTCMinutes() + ":00";
+        let END_TIME = END_DATE_TIME.getUTCHours() + ":" + END_DATE_TIME.getUTCMinutes() + ":00";*/
 
-        console.log(info, DATE, START_DATE_TIME.toUTCString(), START_TIME, END_DATE_TIME, END_TIME);
+        console.log(info.start.format(), info.end.format());
 
         $.ajax({
             url: "ajax/AjaxFunctions.php",
             type: "POST",
-            data: {FUNCTION_NAME:'modifyAppointment', PK_ID:PK_ID, TYPE:TYPE, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, DATE:DATE, START_TIME:START_TIME, END_TIME:END_TIME},
+            data: {FUNCTION_NAME:'modifyAppointment', PK_ID:PK_ID, TYPE:TYPE, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, START_DATE_TIME:START_DATE_TIME, END_DATE_TIME:END_DATE_TIME},
             async: false,
             cache: false,
             success: function (data) {
+                console.log(data);
                 getServiceProviderCount();
-                if (TYPE == 'group_class') {
+                if (TYPE === 'group_class') {
                     window.location.href = "all_schedules.php?CHOOSE_DATE="+data;
                 }
             }
