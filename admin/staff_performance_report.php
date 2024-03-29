@@ -88,10 +88,10 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                         $private = $private_data->RecordCount() > 0 ? $private_data->fields['PRIVATE'] : 0;
                                         $group_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
                                         $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
-                                        $enrollment_data = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_SUM FROM ( SELECT TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER= DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 3) AS TOTAL_SUM");
-                                        $enrollment_data_1 = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_SUM FROM ( SELECT TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER= DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 3,18446744073709551615) AS TOTAL_SUM");
-                                        $interview = $enrollment_data->RecordCount() > 0 ? $enrollment_data->fields['TOTAL_SUM'] : 0;
-                                        $renewal = $enrollment_data_1->RecordCount() > 0 ? $enrollment_data_1->fields['TOTAL_SUM'] : 0;
+                                        $enrollment_data = $db_account->Execute("SELECT SUM(PERCENTAGE_AMOUNT) AS TOTAL_PERCENTAGE_AMOUNT FROM ( SELECT PERCENTAGE_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$row->fields['PK_USER']." ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER ASC LIMIT 3) AS TOTAL_PERCENTAGE_AMOUNT");
+                                        $enrollment_data_1 = $db_account->Execute("SELECT SUM(PERCENTAGE_AMOUNT) AS TOTAL_PERCENTAGE_AMOUNT FROM ( SELECT PERCENTAGE_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$row->fields['PK_USER']." ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER ASC LIMIT 3,18446744073709551615) AS TOTAL_PERCENTAGE_AMOUNT");
+                                        $interview = $enrollment_data->RecordCount() > 0 ? $enrollment_data->fields['TOTAL_PERCENTAGE_AMOUNT'] : 0;
+                                        $renewal = $enrollment_data_1->RecordCount() > 0 ? $enrollment_data_1->fields['TOTAL_PERCENTAGE_AMOUNT'] : 0;
                                         ?>
                                         <tr>
                                             <td><?=$row->fields['LAST_NAME'].', '.$row->fields['FIRST_NAME']?></td>
@@ -123,14 +123,17 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                         $group_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
                                         $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
                                         $enrollment_data = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_SUM FROM ( SELECT TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER= DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 3) AS TOTAL_SUM");
+                                        $enrollment_percentage = $db_account->Execute("SELECT SUM(ENROLLMENT_BY_PERCENTAGE) AS TOTAL_PERCENTAGE FROM ( SELECT ENROLLMENT_BY_PERCENTAGE FROM DOA_ENROLLMENT_MASTER WHERE ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." ORDER BY PK_ENROLLMENT_MASTER ASC LIMIT 3) AS TOTAL_PERCENTAGE");
+                                        $result = ($enrollment_data->fields['TOTAL_SUM'] * $enrollment_percentage->fields['TOTAL_PERCENTAGE']) / 100;
                                         $enrollment_data_1 = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_SUM FROM ( SELECT TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER= DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." ORDER BY PK_ENROLLMENT_SERVICE ASC LIMIT 5,18446744073709551615) AS TOTAL_SUM");
-                                        if ($role=9){
-                                            $interview = $enrollment_data->RecordCount() > 0 ? $enrollment_data->fields['TOTAL_SUM'] : 0;
+                                        $result_1 = ($enrollment_data_1->fields['TOTAL_SUM'] * $enrollment_percentage->fields['TOTAL_PERCENTAGE']) / 100;
+                                        if ($role==9){
+                                            $interview = $enrollment_data->RecordCount() > 0 ? $result : 0;
                                         } else{
                                             $interview = 0;
                                         }
-                                        if ($role=10){
-                                            $renewal = $enrollment_data_1->RecordCount() > 0 ? $enrollment_data_1->fields['TOTAL_SUM'] : 0;
+                                        if ($role==10){
+                                            $renewal = $enrollment_data_1->RecordCount() > 0 ? $result_1 : 0;
                                         } else{
                                             $renewal = 0;
                                         }
