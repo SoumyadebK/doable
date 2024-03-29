@@ -1638,19 +1638,34 @@ function updateAppointmentDataUnpost($RESPONSE_DATA) {
     echo 1;
 }
 
+/**
+ * @throws Exception
+ */
 function modifyAppointment($RESPONSE_DATA) {
     global $db_account;
+
+    $start_date_time = $RESPONSE_DATA['START_DATE_TIME'];
+    $end_date_time = $RESPONSE_DATA['END_DATE_TIME'];
+    $utc_tz =  new DateTimeZone('UTC');
+
+    $start_dt = new DateTime($start_date_time, $utc_tz);
+    $end_dt = new DateTime($end_date_time, $utc_tz);
+
+    $DATE = $start_dt->format('Y-m-d');
+    $START_TIME = $start_dt->format('H:i:s');
+    $END_TIME = $end_dt->format('H:i:s');
+
     if ($RESPONSE_DATA['TYPE'] === "appointment" || $RESPONSE_DATA['TYPE'] === "group_class") {
         $APPOINTMENT_DATA['PK_APPOINTMENT_MASTER'] = $RESPONSE_DATA['PK_ID'];
-        $APPOINTMENT_DATA['DATE'] = $RESPONSE_DATA['DATE'];
-        $APPOINTMENT_DATA['START_TIME'] = $RESPONSE_DATA['START_TIME'];
-        $APPOINTMENT_DATA['END_TIME'] = $RESPONSE_DATA['END_TIME'];
+        $APPOINTMENT_DATA['DATE'] = $DATE;
+        $APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+        $APPOINTMENT_DATA['END_TIME'] = $END_TIME;
         db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update', " PK_APPOINTMENT_MASTER = " . $RESPONSE_DATA['PK_ID']);
     } elseif('event' === $RESPONSE_DATA['TYPE']) {
         $EVENT_DATA['PK_EVENT'] = $RESPONSE_DATA['PK_ID'];
-        $EVENT_DATA['START_DATE'] = $RESPONSE_DATA['DATE'];
-        $EVENT_DATA['START_TIME'] = $RESPONSE_DATA['START_TIME'];
-        $EVENT_DATA['END_TIME'] = $RESPONSE_DATA['END_TIME'];
+        $EVENT_DATA['START_DATE'] = $DATE;
+        $EVENT_DATA['START_TIME'] = $START_TIME;
+        $EVENT_DATA['END_TIME'] = $END_TIME;
         db_perform_account('DOA_EVENT', $EVENT_DATA, 'update', " PK_EVENT = ".$RESPONSE_DATA['PK_ID']);
     }
     if ($RESPONSE_DATA['TYPE'] === "appointment") {
@@ -1665,7 +1680,7 @@ function modifyAppointment($RESPONSE_DATA) {
             db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
         }
     }
-    echo date('m/d/Y', strtotime($RESPONSE_DATA['DATE']));
+    echo date('m/d/Y', strtotime($DATE));
 }
 
 function makeRefundToWallet($RESPONSE_DATA)
