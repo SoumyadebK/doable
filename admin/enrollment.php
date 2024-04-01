@@ -496,9 +496,11 @@ if($user_payment_gateway->RecordCount() > 0){
                                                 </div>
 
                                                 <?php
+                                                $total = 0;
                                                 if(!empty($_GET['id'])) {
                                                 $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
-                                                while (!$enrollment_service_data->EOF) { ?>
+                                                while (!$enrollment_service_data->EOF) {
+                                                    $total += $enrollment_service_data->fields['FINAL_AMOUNT']; ?>
                                                     <div class="row">
                                                         <div class="col-2">
                                                             <div class="form-group">
@@ -639,6 +641,19 @@ if($user_payment_gateway->RecordCount() > 0){
 
                                                 <div id="append_service_div">
 
+                                                </div>
+                                            </div>
+
+                                            <div class="col-3" style="margin-left: 75%; margin-top: -15px;">
+                                                <div class="form-group">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label" style="float: right; margin-top: 10px;">Total</label>
+                                                        </div>
+                                                        <div class="col-md-8">
+                                                            <input type="text" class="form-control TOTAL_AMOUNT" value="<?=number_format((float)$total, 2, '.', '');?>" readonly style="width: 44%;">
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -945,7 +960,7 @@ if($user_payment_gateway->RecordCount() > 0){
                                                             </div>
                                                             <div class="col-3">
                                                                 <div class="form-group">
-                                                                    <label class="form-label">First Payment Date</label>
+                                                                    <label class="form-label">First Scheduled Payment Date</label>
                                                                     <div class="col-md-12">
                                                                         <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?=($FIRST_DUE_DATE)?date('m/d/Y', strtotime($FIRST_DUE_DATE)):''?>" class="form-control datepicker-future">
                                                                     </div>
@@ -1580,6 +1595,12 @@ if($user_payment_gateway->RecordCount() > 0){
             }
         }
         $(param).closest('.row').find('.FINAL_AMOUNT').val(FINAL_AMOUNT.toFixed(2));
+
+        let TOTAL_AMOUNT = 0;
+        $(param).closest('#enrollment_form').find('.FINAL_AMOUNT').each(function () {
+            TOTAL_AMOUNT += parseFloat($(this).val());
+        });
+        $('.TOTAL_AMOUNT').val(TOTAL_AMOUNT.toFixed(2));
     }
 
     $(document).on('click', '#cancel_button', function () {
@@ -1787,7 +1808,7 @@ if($user_payment_gateway->RecordCount() > 0){
                         let firstPaymentDate = new Date($('#FIRST_DUE_DATE').val());
                         let billingDate = new Date($('#BILLING_DATE').val());
 
-                        if (($('.PAYMENT_METHOD:checked').val() === 'One Time' && (today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear())) || (parseFloat($('#DOWN_PAYMENT').val()) > 0) || ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() === firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth()))) {
+                        if (($('.PAYMENT_METHOD:checked').val() === 'One Time' && (today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear())) || (parseFloat($('#DOWN_PAYMENT').val()) > 0 && (today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear())) || ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() === firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth()))) {
                             if ($('.PAYMENT_METHOD:checked').val() === 'One Time') {
                                 let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
                                 $('#AMOUNT_TO_PAY').val(balance_payable.toFixed(2));
