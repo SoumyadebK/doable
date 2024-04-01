@@ -359,7 +359,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
             $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
         } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Payment Plans') {
             if ($RESPONSE_DATA['DOWN_PAYMENT'] > 0) {
-                $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
+                $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE']));
                 $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
                 $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['DOWN_PAYMENT'];
                 db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
@@ -382,7 +382,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
             }
         } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
             if ($RESPONSE_DATA['DOWN_PAYMENT'] > 0) {
-                $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
+                $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE']));
                 $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
                 $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['DOWN_PAYMENT'];
                 db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
@@ -1447,7 +1447,10 @@ function saveMultiAppointmentData($RESPONSE_DATA){
     $PK_SERVICE_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[2];
     $PK_SERVICE_CODE = $PK_ENROLLMENT_MASTER_ARRAY[3];
 
-    $DURATION = $RESPONSE_DATA['DURATION'];
+    $SCHEDULING_CODE = explode(',', $_POST['PK_SCHEDULING_CODE']);
+    $PK_SCHEDULING_CODE = $SCHEDULING_CODE[0];
+    $DURATION = $SCHEDULING_CODE[1];
+
     $NUMBER_OF_SESSION = $RESPONSE_DATA['NUMBER_OF_SESSION'];
     $STARTING_ON = $RESPONSE_DATA['STARTING_ON'];
     $LENGTH = $RESPONSE_DATA['LENGTH'];
@@ -1503,7 +1506,7 @@ function saveMultiAppointmentData($RESPONSE_DATA){
             $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
             $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
             $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
-            $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $RESPONSE_DATA['PK_SCHEDULING_CODE'];
+            $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
             $APPOINTMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
             $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
             $APPOINTMENT_DATA['ACTIVE'] = 1;
