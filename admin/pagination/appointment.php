@@ -106,14 +106,15 @@ $page_first_result = ($page-1) * $results_per_page;
 <table id="myTable" class="table table-striped border" data-page-length='50'>
     <thead>
         <tr>
-            <th data-type="number" style="cursor: pointer">No</i></th>
-            <th data-type="string" style="cursor: pointer">Customer</th>
-            <th data-type="string" style="cursor: pointer">Enrollment ID</th>
-            <th style="text-align: left;">Apt #</th>
-            <th data-type="string" style="cursor: pointer"><?=$service_provider_title?></th>
-            <th data-type="string" style="cursor: pointer">Day</th>
-            <th data-date data-order style="cursor: pointer">Date</th>
-            <th data-type="string" style="cursor: pointer">Time</th>
+            <th data-type="number" class="sortable" style="cursor: pointer">No</i></th>
+            <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
+            <th data-type="string" class="sortable" style="cursor: pointer">Enrollment ID</th>
+            <th data-type="string" class="sortable" style="text-align: left;">Apt #</th>
+            <th data-type="number" class="sortable" style="cursor: pointer">Serial No</i></th>
+            <th data-type="string" class="sortable" style="cursor: pointer"><?=$service_provider_title?></th>
+            <th data-type="string" class="sortable" style="cursor: pointer">Day</th>
+            <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
+            <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
             <th data-type="string" class="sortable" style="cursor: pointer">Comment & Uploads</th>
             <th>Paid</th>
             <th>Completed</th>
@@ -121,7 +122,7 @@ $page_first_result = ($page-1) * $results_per_page;
         </tr>
     </thead>
 
-    <tbody >
+    <tbody id="apt_tbody">
         <?php
         $service_code_array = [];
         $i=$page_first_result+1;
@@ -156,13 +157,14 @@ $page_first_result = ($page-1) * $results_per_page;
                 <td><?=$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
             <?php } ?>
             <td><?=$service_code_array[$PK_ENROLLMENT_SERVICE].'/'.$enr_service_data->fields['NUMBER_OF_SESSION']?></td>
+            <td><?=$appointment_data->fields['SERIAL_NUMBER']?></td>
             <td><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
             <td><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
             <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
             <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
             <td><?=$appointment_data->fields['COMMENT']?>
                 <?php if ($IMAGE_LINK != '' && $IMAGE_LINK != null) { ?>
-                    <a href="<?=$IMAGE_LINK?>" target="_blank">View Upload</a>
+                    (<a href="<?=$IMAGE_LINK?>" target="_blank">View Upload</a>)
                 <?php } ?></td>
             <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
             <td style="text-align: center;">
@@ -240,7 +242,7 @@ $page_first_result = ($page-1) * $results_per_page;
         })
 
         function sortRows(th) {
-            const rows = $.makeArray($('tbody > tr'));
+            const rows = $.makeArray($('#apt_tbody > tr'));
             const col = th.cellIndex;
             const type = th.dataset.type;
             rows.sort(function(a, b) {
@@ -271,7 +273,7 @@ $page_first_result = ($page-1) * $results_per_page;
         }
 
         function rebuildTbody(rows) {
-            const tbody = $("tbody");
+            const tbody = $("#apt_tbody");
             while (tbody.firstChild) {
                 tbody.remove(tbody.firstChild);
             }
