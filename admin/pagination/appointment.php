@@ -39,6 +39,7 @@ $PK_USER_MASTER = $_GET['master_id'];
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
                             DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
+                            DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_SERVICE AS APT_ENR_SERVICE,
                             DOA_APPOINTMENT_MASTER.GROUP_NAME,
                             DOA_APPOINTMENT_MASTER.SERIAL_NUMBER,
                             DOA_APPOINTMENT_MASTER.DATE,
@@ -85,7 +86,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'GROUP') 
                         $search
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
-                        ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC";
+                        ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC";
 
 $query = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 
@@ -105,6 +106,7 @@ $page_first_result = ($page-1) * $results_per_page;
         <th data-type="number" style="cursor: pointer">No</i></th>
         <th data-type="string" style="cursor: pointer">Customer</th>
         <th data-type="string" style="cursor: pointer">Enrollment ID</th>
+        <th style="text-align: left;">Apt #</th>
         <th data-type="string" style="cursor: pointer"><?=$service_provider_title?></th>
         <th data-type="string" style="cursor: pointer">Day</th>
         <th data-date data-order style="cursor: pointer">Date</th>
@@ -117,16 +119,27 @@ $page_first_result = ($page-1) * $results_per_page;
 
     <tbody >
         <?php
+        $service_code_array = [];
         $i=$page_first_result+1;
         $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
         while (!$appointment_data->EOF) {
             if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
+                $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
                 $ENROLLMENT_ID = $appointment_data->fields['ENROLLMENT_ID'];
                 $ENROLLMENT_NAME = $appointment_data->fields['ENROLLMENT_NAME'];
             } else {
+                $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
                 $ENROLLMENT_ID = $appointment_data->fields['APT_ENR_NAME'];
                 $ENROLLMENT_NAME = $appointment_data->fields['APT_ENR_ID'];
-            }?>
+            }
+
+            $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, SESSION_CREATED, SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
+
+            if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
+                $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - 1;
+            } else {
+                $service_code_array[$PK_ENROLLMENT_SERVICE] = $enr_service_data->fields['SESSION_CREATED'];
+            } ?>
         <tr>
             <td><?=$i;?></td>
             <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
@@ -137,6 +150,7 @@ $page_first_result = ($page-1) * $results_per_page;
             <?php } else { ?>
                 <td><?=$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
             <?php } ?>
+            <td><?=$service_code_array[$PK_ENROLLMENT_SERVICE].'/'.$enr_service_data->fields['NUMBER_OF_SESSION']?></td>
             <td><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
             <td><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
             <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
