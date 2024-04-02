@@ -83,7 +83,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         %s
                         AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
-                        ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC";
+                        ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC";
 
 /*if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
     $search_text = $_GET['search_text'];

@@ -46,10 +46,15 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.END_TIME,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
+                            DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                            APT_ENR.ENROLLMENT_NAME AS APT_ENR_NAME,
+                            APT_ENR.ENROLLMENT_ID AS APT_ENR_ID,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.SERVICE_CODE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS,
+                            DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
                             DOA_SCHEDULING_CODE.COLOR_CODE,
@@ -63,6 +68,11 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
                         LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
                         LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
+                                
+                        LEFT JOIN DOA_APPOINTMENT_ENROLLMENT ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP'
+                        LEFT JOIN DOA_ENROLLMENT_MASTER AS APT_ENR ON DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_MASTER = APT_ENR.PK_ENROLLMENT_MASTER AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP'
+                                
+                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'NORMAL'
                                 
                         LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
                         LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
@@ -94,8 +104,7 @@ $page_first_result = ($page-1) * $results_per_page;
     <tr>
         <th data-type="number" style="cursor: pointer">No</i></th>
         <th data-type="string" style="cursor: pointer">Customer</th>
-        <th data-type="string" style="cursor: pointer">Service</th>
-        <th data-type="string" style="cursor: pointer">Service Code</th>
+        <th data-type="string" style="cursor: pointer">Enrollment ID</th>
         <th data-type="string" style="cursor: pointer"><?=$service_provider_title?></th>
         <th data-type="string" style="cursor: pointer">Day</th>
         <th data-date data-order style="cursor: pointer">Date</th>
@@ -110,17 +119,29 @@ $page_first_result = ($page-1) * $results_per_page;
         <?php
         $i=$page_first_result+1;
         $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
-        while (!$appointment_data->EOF) { ?>
+        while (!$appointment_data->EOF) {
+            if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
+                $ENROLLMENT_ID = $appointment_data->fields['ENROLLMENT_ID'];
+                $ENROLLMENT_NAME = $appointment_data->fields['ENROLLMENT_NAME'];
+            } else {
+                $ENROLLMENT_ID = $appointment_data->fields['APT_ENR_NAME'];
+                $ENROLLMENT_NAME = $appointment_data->fields['APT_ENR_ID'];
+            }?>
         <tr>
-            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$i;?></td>
-            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
-            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_NAME']?></td>
-            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_CODE']?></td>
-            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
-            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
-            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
-            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-            <td onclick="editpage(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
+            <td><?=$i;?></td>
+            <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
+            <?php if (!empty($ENROLLMENT_ID) || !empty($ENROLLMENT_NAME)) { ?>
+                <td><?=(($ENROLLMENT_NAME) ? $ENROLLMENT_NAME.' - ' : '').$ENROLLMENT_ID." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
+            <?php } elseif (empty($appointment_data->fields['SERVICE_NAME']) && empty($appointment_data->fields['SERVICE_CODE'])) { ?>
+                <td><?=$appointment_data->fields['SERVICE_NAME']."  ".$appointment_data->fields['SERVICE_CODE']?></td>
+            <?php } else { ?>
+                <td><?=$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
+            <?php } ?>
+            <td><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
+            <td><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
+            <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
+            <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
+            <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
             <td style="text-align: center;">
                 <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
                     <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
@@ -129,7 +150,7 @@ $page_first_result = ($page-1) * $results_per_page;
                 <?php } ?>
             </td>
             <td>
-                <?php if(empty($appointment_data->fields['ENROLLMENT_ID'])) { ?>
+                <?php if(empty($ENROLLMENT_ID)) { ?>
                 <a href="create_appointment.php?type=ad_hoc&id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <?php } else { ?>
                 <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

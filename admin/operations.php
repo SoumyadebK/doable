@@ -107,11 +107,12 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_APPOINTMENT_MASTER.NO_SHOW,
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS,
+                            DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
                             DOA_SCHEDULING_CODE.COLOR_CODE,
-                            GROUP_CONCAT(CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) SEPARATOR ',') AS SERVICE_PROVIDER_NAME,
-                            GROUP_CONCAT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) SEPARATOR ',') AS CUSTOMER_NAME
+                            GROUP_CONCAT(DISTINCT(CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME)) SEPARATOR ',') AS SERVICE_PROVIDER_NAME,
+                            GROUP_CONCAT(DISTINCT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME)) SEPARATOR ',') AS CUSTOMER_NAME
                         FROM
                             DOA_APPOINTMENT_MASTER
                         LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
@@ -290,7 +291,7 @@ function currentWeekRange($date): array
                                         ?>
                                         <tr style="background-color: <?=($date==$current_date)?'limegreen': ( $no_show=='Charge' || $no_show=='No Charge' ? 'yellow' : ( $pk_appointment_status==6 ? 'red' : '' ) );?>">
                                             <td>
-                                                <?php if ($appointment_data->fields['CUSTOMER_NAME'] && !is_null($appointment_data->fields['ENROLLMENT_ID'])) { ?>
+                                                <?php if ($appointment_data->fields['CUSTOMER_NAME'] && $appointment_data->fields['APPOINTMENT_TYPE'] !== 'AD-HOC') { ?>
                                                     <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"></label>
                                                 <?php } ?>
                                             </td>
