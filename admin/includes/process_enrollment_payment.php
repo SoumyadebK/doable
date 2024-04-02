@@ -459,8 +459,6 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         $enrollmentServiceData->MoveNext();
     }
 
-    markEnrollmentComplete($_POST['PK_ENROLLMENT_MASTER']);
-
     savePercentageData($_POST['PK_ENROLLMENT_MASTER'], $_POST['AMOUNT']);
 
     /*$enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
@@ -551,6 +549,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
     $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
     db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT'");
+
+    markEnrollmentComplete($_POST['PK_ENROLLMENT_MASTER']);
 
     //markAdhocAppointmentNormal($_POST['PK_ENROLLMENT_MASTER']);
 
