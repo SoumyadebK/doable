@@ -82,7 +82,8 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
                         %s
                         AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
-                        GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER";
+                        GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
+                        ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC";
 
 /*if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
     $search_text = $_GET['search_text'];

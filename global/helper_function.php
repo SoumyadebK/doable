@@ -147,7 +147,9 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER)
 {
     global $db_account;
     $enrollment_count_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION, SUM(`SESSION_COMPLETED`) AS COMPLETED_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
-    if ($enrollment_count_data->fields['TOTAL_SESSION'] == $enrollment_count_data->fields['COMPLETED_SESSION']) {
+    $details = $db_account->Execute("SELECT PK_ENROLLMENT_LEDGER FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    $paid_count = $details->RecordCount() > 0 ? 1 : 0;
+    if (($enrollment_count_data->fields['TOTAL_SESSION'] == $enrollment_count_data->fields['COMPLETED_SESSION']) && ($paid_count === 0)) {
         $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
     }
