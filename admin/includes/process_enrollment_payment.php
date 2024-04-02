@@ -459,6 +459,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         $enrollmentServiceData->MoveNext();
     }
 
+    markEnrollmentComplete($_POST['PK_ENROLLMENT_MASTER']);
+
     savePercentageData($_POST['PK_ENROLLMENT_MASTER'], $_POST['AMOUNT']);
 
     /*$enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
