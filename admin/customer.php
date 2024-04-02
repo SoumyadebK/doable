@@ -251,11 +251,45 @@ if(!empty($_GET['master_id'])) {
 
 ?>
 <!DOCTYPE html>
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 <html lang="en">
 <style>
     .commentModel {
         z-index: 1011
     }
+</style>
+<style>
+    table th{
+        font-weight:bold;
+    }
+
+    /* Table sort indicators */
+
+    th.sortable {
+        position: relative;
+        cursor: pointer;
+    }
+
+    th.sortable::after {
+        font-family: FontAwesome;
+        content: "\f0dc";
+        position: absolute;
+        right: 8px;
+        color: #999;
+    }
+
+    th.sortable.asc::after {
+        content: "\f0d8";
+    }
+
+    th.sortable.desc::after {
+        content: "\f0d7";
+    }
+
+    th.sortable:hover::after {
+        color: #333;
+    }
+
 </style>
 <?php require_once('../includes/header.php');?>
 <body class="skin-default-dark fixed-layout">

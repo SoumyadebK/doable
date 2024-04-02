@@ -44,6 +44,8 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.DATE,
                             DOA_APPOINTMENT_MASTER.START_TIME,
                             DOA_APPOINTMENT_MASTER.END_TIME,
+                            DOA_APPOINTMENT_MASTER.COMMENT,
+                            DOA_APPOINTMENT_MASTER.IMAGE,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
@@ -99,17 +101,19 @@ if (!isset ($_GET['page']) ) {
 }
 $page_first_result = ($page-1) * $results_per_page;
 ?>
+
 <table id="myTable" class="table table-striped border" data-page-length='50'>
     <thead>
     <tr>
-        <th data-type="number" style="cursor: pointer">No</i></th>
-        <th data-type="string" style="cursor: pointer">Customer</th>
-        <th data-type="string" style="cursor: pointer">Enrollment ID</th>
-        <th data-type="string" style="cursor: pointer"><?=$service_provider_title?></th>
-        <th data-type="string" style="cursor: pointer">Day</th>
-        <th data-date data-order style="cursor: pointer">Date</th>
-        <th data-type="string" style="cursor: pointer">Time</th>
-        <th>Paid</th>
+        <th data-type="number" class="sortable" style="cursor: pointer">No</i></th>
+        <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
+        <th data-type="string" class="sortable" style="cursor: pointer">Enrollment ID</th>
+        <th data-type="string" class="sortable" style="cursor: pointer"><?=$service_provider_title?></th>
+        <th data-type="string" class="sortable" style="cursor: pointer">Day</th>
+        <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
+        <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
+        <th data-type="string" class="sortable" style="cursor: pointer">Comment & Uploads</th>
+        <th class="sortable">Paid</th>
         <th>Completed</th>
         <th>Actions</th>
     </tr>
@@ -120,6 +124,7 @@ $page_first_result = ($page-1) * $results_per_page;
         $i=$page_first_result+1;
         $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
         while (!$appointment_data->EOF) {
+            $IMAGE_LINK = $appointment_data->fields['IMAGE'];
             if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
                 $ENROLLMENT_ID = $appointment_data->fields['ENROLLMENT_ID'];
                 $ENROLLMENT_NAME = $appointment_data->fields['ENROLLMENT_NAME'];
@@ -141,6 +146,10 @@ $page_first_result = ($page-1) * $results_per_page;
             <td><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
             <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
             <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
+            <td><?=$appointment_data->fields['COMMENT']?>
+                <?php if ($IMAGE_LINK != '' && $IMAGE_LINK != null) { ?>
+                    <a href="<?=$IMAGE_LINK?>" target="_blank">View Upload</a>
+                <?php } ?></td>
             <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
             <td style="text-align: center;">
                 <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
@@ -203,4 +212,201 @@ $page_first_result = ($page-1) * $results_per_page;
             });
         }
     }
+</script>
+<script>
+    $(function() {
+        const ths = $("th");
+        let sortOrder = 1;
+
+        ths.on("click", function() {
+            const rows = sortRows(this);
+            rebuildTbody(rows);
+            //updateClassName(this);
+            sortOrder *= -1; //反転
+        })
+
+        function sortRows(th) {
+            const rows = $.makeArray($('tbody > tr'));
+            const col = th.cellIndex;
+            const type = th.dataset.type;
+            rows.sort(function(a, b) {
+                return compare(a, b, col, type) * sortOrder;
+            });
+            return rows;
+        }
+
+        function compare(a, b, col, type) {
+            let _a = a.children[col].textContent;
+            let _b = b.children[col].textContent;
+            if (type === "number") {
+                _a *= 1;
+                _b *= 1;
+            } else if (type === "string") {
+                //全て小文字に揃えている。toLowerCase()
+                _a = _a.toLowerCase();
+                _b = _b.toLowerCase();
+            }
+
+            if (_a < _b) {
+                return -1;
+            }
+            if (_a > _b) {
+                return 1;
+            }
+            return 0;
+        }
+
+        function rebuildTbody(rows) {
+            const tbody = $("tbody");
+            while (tbody.firstChild) {
+                tbody.remove(tbody.firstChild);
+            }
+
+            let j;
+            for (j=0; j<rows.length; j++) {
+                tbody.append(rows[j]);
+            }
+        }
+
+        /*function updateClassName(th) {
+            let k;
+            for (k=0; k<ths.length; k++) {
+                ths[k].className = "";
+            }
+            th.className = sortOrder === 1 ? "sortable asc" : "sortable desc";
+        }*/
+
+    });
+</script>
+<script>
+    function Checktrim(str) {
+        str = str.replace(/^\s+/, '');
+        for (var i = str.length - 1; i >= 0; i--) {
+            if (/\S/.test(str.charAt(i))) {
+                str = str.substring(0, i + 1);
+                break;
+            }
+        }
+        return str;
+    }
+    function stringMonth(month) {
+
+        if(month=="jan" || month=="Jan"){month=01;}
+        else if(month=="feb" || month=="Feb"){month=02;}
+        else if(month=="mar" || month=="Mar"){month=03;}
+        else if(month=="apr" || month=="Apr"){month=04;}
+        else if(month=="may" || month=="May"){month=05;}
+        else if(month=="jun" || month=="Jun"){month=06;}
+        else if(month=="jul" || month=="Jul"){month=07;}
+        else if(month=="aug" || month=="Aug"){month=08;}
+        else if(month=="sep" || month=="Sep"){month=09;}
+        else if(month=="oct" || month=="Oct"){month=10;}
+        else if(month=="nov" || month=="Nov"){month=11;}
+        else{month=12;}
+
+
+        return month;
+    }
+
+    function dateHeight(dateStr){
+
+
+        if (Checktrim(dateStr) != ''  && Checktrim(dateStr) != '(none)' && (Checktrim(dateStr)).indexOf(',') > -1 ) {
+
+            var frDateParts = Checktrim(dateStr).split(',');
+
+            var day = frDateParts[0].substring(3) * 60 * 24;
+            var strMonth=frDateParts[0].substring(0,3);
+            var month = stringMonth(strMonth) * 60 * 24 * 31;
+            var year = (frDateParts[1].trim()).substring(0,4) * 60 * 24 * 366;
+
+            var x = day+month+year;
+
+
+        } else {
+            var x =0; //highest value posible
+        }
+
+        return x;
+    }
+
+    jQuery.fn.dataTableExt.oSort['data-date-asc'] = function(a, b) {
+        var x = dateHeight(a) === 0 ? dateHeight(b)+1 : dateHeight(a) ;
+        var y = dateHeight(b)=== 0 ? dateHeight(a)+1 : dateHeight(b);
+        var z = ((x < y) ? -1 : ((x > y) ? 1 : 0));
+        return z;
+    };
+
+    jQuery.fn.dataTableExt.oSort['data-date-desc'] = function(a, b) {
+        var x = dateHeight(a);
+        var y = dateHeight(b);
+        var z = ((x < y) ? 1 : ((x > y) ? -1 : 0));
+        return z;
+    };
+
+
+
+
+    var aoColumns = [];
+
+    var $tableTh = $(".data-table th , .dataTable th");
+    if($tableTh.length) {
+        $tableTh.each(function(index,elem) {
+            if($(elem).hasClass('sortable-false')) {
+                aoColumns.push({"bSortable": false });
+            } else if($(elem).attr('data-date') !== undefined) {
+                aoColumns.push({"sType": "data-date" });
+            }else{
+                aoColumns.push(null);
+            }
+        });
+
+
+    };
+
+
+
+    if(aoColumns.length > 0) {
+
+        var indexProperty=0;
+        var valueProperty='asc';
+        $('.data-table').find('th').each(function(index){
+
+
+            if($(this).attr('data-order')!== undefined){
+                indexProperty=index;
+                valueProperty = $(this).attr('data-order') !== undefined? $(this).attr('data-order') : valueProperty;
+            }});
+
+
+
+        $('.data-table').dataTable({
+            "aoColumns": aoColumns,
+            "order":[[indexProperty,valueProperty]],
+            "oLanguage": {
+                "sSearch": "Keyword Search"
+            },
+            "dom": '<"top"<"row"<"component-4"<"dataTableAction">><"component-4"<"dataTableLength"l<"clear">>> <"component-4"<"dataTableFilter"f<"clear">>>>>rt<"bottom"ip<"clear">>',
+            "fnDrawCallback": function(){DataTableTruncate.initTrigger();}
+        });
+    }
+
+
+</script>
+<script>
+    var sortable = $('.sortable');
+
+    sortable.on('click', function(){
+
+        var sort = $(this);
+        var asc = sort.hasClass('asc');
+        var desc = sort.hasClass('desc');
+        sortable.removeClass('asc').removeClass('desc');
+        if (desc || (!asc && !desc)) {
+            sort.addClass('asc');
+        } else {
+            sort.addClass('desc');
+        }
+
+    });
 </script>
