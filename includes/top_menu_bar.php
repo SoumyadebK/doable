@@ -123,7 +123,7 @@ if (!empty($_GET['view'])) {
                             <?php /*} */?>
                         </li>-->
                         <li>
-                            <a class="waves-effect waves-dark" href="../admin/all_schedules.php?view=table" aria-expanded="false">
+                            <a class="waves-effect waves-dark" href="../admin/all_schedules.php" aria-expanded="false">
                                 <i class="icon-calender"></i>
                                 <span class="hide-menu">Calendar</span>
                             </a>
