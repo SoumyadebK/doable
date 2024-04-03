@@ -13,30 +13,21 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
-if (!empty($_GET['id']) && !empty($_GET['action'])){
-    if ($_GET['action'] == 'complete'){
-        $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2 WHERE PK_APPOINTMENT_MASTER = ".$_GET['id']);
-        header("location:all_schedules.php?view=table");
-    }
+$appointment_status = empty($_GET['STATUS_CODE']) ? '1, 2, 3, 5, 7, 8' : $_GET['STATUS_CODE'];
+
+$appointment_type = '';
+$APPOINTMENT_TYPE_QUERY = " AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'AD-HOC', 'GROUP') ";
+if (isset($_GET['APPOINTMENT_TYPE']) && $_GET['APPOINTMENT_TYPE'] != '') {
+    $appointment_type = $_GET['APPOINTMENT_TYPE'];
+    $APPOINTMENT_TYPE_QUERY = " AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = '$appointment_type' ";
 }
 
-$appointment_status = empty($_GET['appointment_status']) ? '1, 2, 3, 5, 7, 8' : $_GET['appointment_status'];
-
-$appointment_type = empty($_GET['appointment_type']) ? '' : $_GET['appointment_type'];
-
-if (!empty($_GET['view'])){
-    $view = $_GET['view'];
-}else{
-    $view = 'list';
-}
-
+$SERVICE_PROVIDER_ID = ' ';
+$APPOINTMENT_SERVICE_PROVIDER_ID = ' ';
 if(isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != ''){
     $service_providers = implode(',', $_GET['SERVICE_PROVIDER_ID']);
     $SERVICE_PROVIDER_ID = " AND DOA_USERS.PK_USER IN (".$service_providers.") ";
     $APPOINTMENT_SERVICE_PROVIDER_ID = " AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (".$service_providers.") ";
-} else {
-    $SERVICE_PROVIDER_ID = ' ';
-    $APPOINTMENT_SERVICE_PROVIDER_ID = ' ';
 }
 
 $ALL_APPOINTMENT_QUERY = "SELECT
@@ -76,6 +67,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
                         WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
                         AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
+                        ".$APPOINTMENT_TYPE_QUERY." 
                         AND DOA_APPOINTMENT_MASTER.STATUS = 'A' ".$APPOINTMENT_SERVICE_PROVIDER_ID."
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
                         ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC";
@@ -95,134 +87,6 @@ $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                 LEFT JOIN DOA_SCHEDULING_CODE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE
                                 AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
                                 GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT";
-
-if(isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment'){
-    $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
-    $PK_ENROLLMENT_LEDGER_ARRAY = explode(',', $PK_ENROLLMENT_LEDGER);
-    //pre_r($PK_ENROLLMENT_LEDGER_ARRAY);
-    unset($_POST['PK_ENROLLMENT_LEDGER']);
-    $AMOUNT = $_POST['AMOUNT'];
-    if(empty($_POST['PK_ENROLLMENT_PAYMENT'])) {
-        if ($_POST['PK_PAYMENT_TYPE'] == 1) {
-            if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
-                require_once("../global/stripe-php-master/init.php");
-                \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
-                $STRIPE_TOKEN = $_POST['token'];
-                try {
-                    $charge = \Stripe\Charge::create([
-                        'amount' => ($AMOUNT * 100),
-                        'currency' => 'usd',
-                        'description' => $_POST['NOTE'],
-                        'source' => $STRIPE_TOKEN
-                    ]);
-                } catch (Exception $e) {
-
-                }
-                if ($charge->paid == 1) {
-                    $PAYMENT_INFO = $charge->id;
-                } else {
-                    $PAYMENT_INFO = 'Payment Unsuccessful.';
-                }
-            }
-        } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
-            $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
-            $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
-
-            if ($_POST['PK_PAYMENT_TYPE_REMAINING'] == 1) {
-                require_once("../global/stripe-php-master/init.php");
-                \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
-                $STRIPE_TOKEN = $_POST['token'];
-                $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
-                try {
-                    $charge = \Stripe\Charge::create([
-                        'amount' => ($REMAINING_AMOUNT * 100),
-                        'currency' => 'usd',
-                        'description' => $_POST['NOTE'],
-                        'source' => $STRIPE_TOKEN
-                    ]);
-                } catch (Exception $e) {
-
-                }
-                if ($charge->paid == 1) {
-                    $PAYMENT_INFO = $charge->id;
-                } else {
-                    $PAYMENT_INFO = 'Payment Unsuccessful.';
-                }
-            }
-            $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
-            $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-            $DEBIT_AMOUNT = ($WALLET_BALANCE > $AMOUNT) ? $AMOUNT : $WALLET_BALANCE;
-            if ($wallet_data->RecordCount() > 0) {
-                $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
-            }
-            $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-            $INSERT_DATA['DEBIT'] = $DEBIT_AMOUNT;
-            $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment " . $_POST['PK_ENROLLMENT_MASTER'];
-            $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-            $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
-        } else {
-            $PAYMENT_INFO = 'Payment Done.';
-        }
-
-        $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-        $BILLING_DATA = $db_account->Execute("SELECT PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_BILLING WHERE `PK_ENROLLMENT_MASTER`=" . $_POST['PK_ENROLLMENT_MASTER']);
-        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = ($BILLING_DATA->RecordCount() > 0) ? $BILLING_DATA->fields['PK_ENROLLMENT_BILLING'] : 0;
-        $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-        $PAYMENT_DATA['AMOUNT'] = $AMOUNT;
-        if ($_POST['PK_PAYMENT_TYPE'] == 7) {
-            $PAYMENT_DATA['REMAINING_AMOUNT'] = $_POST['REMAINING_AMOUNT'];
-            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER_REMAINING'];
-            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE_REMAINING']));
-        } else {
-            $PAYMENT_DATA['REMAINING_AMOUNT'] = 0.00;
-            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
-            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));
-        }
-        $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
-        $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-        $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-        db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
-
-        $enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
-        if ($enrollment_balance->RecordCount() > 0) {
-            $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $enrollment_balance->fields['TOTAL_BALANCE_PAID'] + $_POST['AMOUNT'];
-            $ENROLLMENT_BALANCE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
-        } else {
-            $ENROLLMENT_BALANCE_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-            $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $_POST['AMOUNT'];
-            $ENROLLMENT_BALANCE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-            $ENROLLMENT_BALANCE_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
-        }
-
-        $PK_ENROLLMENT_PAYMENT = $db_account->insert_ID();
-        $ledger_record = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
-        for ($i = 0; $i < count($PK_ENROLLMENT_LEDGER_ARRAY); $i++) {
-            $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
-            $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $PK_ENROLLMENT_LEDGER;
-            $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-            $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
-            $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
-            $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
-            $LEDGER_DATA['PAID_AMOUNT'] = $ledger_record->fields['BILLED_AMOUNT'];
-            $LEDGER_DATA['BALANCE'] = 0.00;
-            $LEDGER_DATA['IS_PAID'] = 1;
-            $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-            $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
-            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-            $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
-            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER = " .$PK_ENROLLMENT_LEDGER_ARRAY[$i]);
-        }
-    }else{
-        db_perform_account('DOA_ENROLLMENT_PAYMENT', $_POST, 'update'," PK_ENROLLMENT_PAYMENT =  '$_POST[PK_ENROLLMENT_PAYMENT]'");
-        $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
-    }
-
-    header("location:all_schedules.php?view=table");
-}
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointmentData'){
     unset($_POST['TIME']);
@@ -527,7 +391,6 @@ if (isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '') {
     $CHOOSE_DATE = date("Y-m-d");
 }
 
-
 $interval = $db->Execute("SELECT TIME_SLOT_INTERVAL FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
 if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     $INTERVAL = "00:15:00";
@@ -595,24 +458,24 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 <div id="appointment_list_half" class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="col-12 row m-10">
-                                <div class="col-2">
-                                    <h5 class="card-title"><?=$title?></h5>
-                                </div>
-                                <div class="col-2" >
-                                    <div class="form-material form-horizontal">
-                                        <select class="form-control" name="STATUS_CODE" id="STATUS_CODE" onchange="selectStatus(this)">
-                                            <option value="">Select Status</option>
-                                            <?php
-                                            $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
-                                            while (!$row->EOF) { ?>
-                                                <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($row->fields['PK_APPOINTMENT_STATUS'] == $appointment_status)?"selected":""?>><?=$row->fields['APPOINTMENT_STATUS']?></option>
-                                                <?php $row->MoveNext(); } ?>
-                                        </select>
+                            <form id="search_form" class="form-material form-horizontal" action="" method="get">
+                                <div class="col-12 row m-10">
+                                    <div class="col-2">
+                                        <h5 class="card-title"><?=$title?></h5>
                                     </div>
-                                </div>
-                                <div class="col-5">
-                                    <form class="form-material form-horizontal" action="" method="get">
+                                    <div class="col-2" >
+                                        <div class="form-material form-horizontal">
+                                            <select class="form-control" name="STATUS_CODE" id="STATUS_CODE" onchange="$('#search_form').submit();">
+                                                <option value="">Select Status</option>
+                                                <?php
+                                                $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
+                                                while (!$row->EOF) { ?>
+                                                    <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($row->fields['PK_APPOINTMENT_STATUS'] == $appointment_status)?"selected":""?>><?=$row->fields['APPOINTMENT_STATUS']?></option>
+                                                    <?php $row->MoveNext(); } ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-5">
                                         <div class="input-group">
                                             <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" multiple>
@@ -620,23 +483,24 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                                 $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
                                                 while (!$row->EOF) { ?>
                                                     <option value="<?=$row->fields['PK_USER']?>" <?=(!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers)))?"selected":""?>><?=$row->fields['NAME']?></option>
-                                                    <?php $row->MoveNext(); } ?>
+                                                <?php $row->MoveNext(); } ?>
                                             </select>
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="margin-left: 2px; height: 33px" onsubmit="showCalendarView()"><i class="fa fa-search"></i></button>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="margin-left: 2px; height: 33px"><i class="fa fa-search"></i></button>
                                         </div>
-                                    </form>
-                                </div>
-                                <div class="col-2" >
-                                    <div class="form-material form-horizontal">
-                                        <select class="form-control" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="selectAppointmentType(this)">
-                                            <option value="">Select Appointment Type</option>
-                                            <option value="appointment" <?php if($appointment_type=="appointment"){echo "selected";}?>>Appointment</option>
-                                            <option value="group_class" <?php if($appointment_type=="group_class"){echo "selected";}?>>Group Class</option>
-                                            <option value="to_dos" <?php if($appointment_type=="to_dos"){echo "selected";}?>>To Dos</option>
-                                        </select>
+                                    </div>
+                                    <div class="col-2" >
+                                        <div class="form-material form-horizontal">
+                                            <select class="form-control" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();">
+                                                <option value="">Select Appointment Type</option>
+                                                <option value="NORMAL" <?php if($appointment_type=="NORMAL"){echo "selected";}?>>Appointment</option>
+                                                <option value="GROUP" <?php if($appointment_type=="GROUP"){echo "selected";}?>>Group Class</option>
+                                                <option value="TO-DO" <?php if($appointment_type=="TO-DO"){echo "selected";}?>>To Dos</option>
+                                                <option value="EVENT" <?php if($appointment_type=="EVENT"){echo "selected";}?>>Event</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </form>
 
                           <!--  <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
 
@@ -684,6 +548,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
 <script>
     $('.datepicker-normal').datepicker({
+        onSelect: function () {
+            $("#search_form").submit();
+        },
         format: 'mm/dd/yyyy',
     });
 </script>
@@ -698,14 +565,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 <script>
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
 
-    let view = '<?=$view?>';
     $(window).on('load', function () {
-        if (view === 'list'){
-            showCalendarView();
-        }else {
-            showCalendarView();
-        }
+        showCalendarView();
     });
+
     function showAppointmentEdit(info) {
         if (info.type === 'appointment') {
             $('#appointment_list_half').removeClass('col-12');
@@ -828,7 +691,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             } $resourceIdArray = json_encode($resourceIdArray) ?>
         ];
 
-        let appointmentArray = [
+        let appointmentArray = [];
+        <?php if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointment_type == '') { ?>
+        appointmentArray = [
             <?php
             $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 
@@ -857,8 +722,11 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             <?php $appointment_data->MoveNext();
             } ?>
         ];
+        <?php } ?>
 
-        let specialAppointmentArray = [
+        let specialAppointmentArray = [];
+        <?php if ($appointment_type == 'TO-DO' || $appointment_type == '') { ?>
+        specialAppointmentArray = [
             <?php $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
             while (!$special_appointment_data->EOF) { ?>
             {
@@ -870,13 +738,16 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 color: '<?=$special_appointment_data->fields['COLOR_CODE']?>',
                 type: 'special_appointment',
                 status: '<?=$special_appointment_data->fields['STATUS_CODE']?>',
-                statusColor: '<?=$special_appointment_data->fields['APPOINTMENT_COLOR']?> !important'
+                statusColor: '<?=$special_appointment_data->fields['APPOINTMENT_COLOR']?> !important',
             },
             <?php $special_appointment_data->MoveNext();
             } ?>
         ];
+        <?php } ?>
 
-        let eventArray = [
+        let eventArray = [];
+        <?php if ($appointment_type == 'EVENT' || $appointment_type == '') { ?>
+        eventArray = [
             <?php $event_data = $db_account->Execute("SELECT DISTINCT DOA_EVENT.*, DOA_EVENT_TYPE.EVENT_TYPE, DOA_EVENT_TYPE.COLOR_CODE FROM DOA_EVENT INNER JOIN DOA_EVENT_LOCATION ON DOA_EVENT.PK_EVENT = DOA_EVENT_LOCATION.PK_EVENT LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.ACTIVE = 1 AND DOA_EVENT_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_EVENT.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' ORDER BY DOA_EVENT.START_DATE DESC LIMIT 2000");
             while (!$event_data->EOF) {
             if (isset($event_data->fields['END_DATE']) && $event_data->fields['ALL_DAY'] == 1) {
@@ -900,19 +771,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             <?php $event_data->MoveNext();
             } ?>
         ];
-
-        let groupClassArray = [];
-
-        <?php if ($appointment_type=="appointment") { ?>
-        finalArray = appointmentArray;
-        <?php } elseif ($appointment_type=="group_class") {?>
-        finalArray = groupClassArray;
-        <?php } elseif ($appointment_type=="to_dos") {?>
-        finalArray = specialAppointmentArray;
-        <?php } else { ?>
-        finalArray = appointmentArray.concat(eventArray).concat(specialAppointmentArray).concat(groupClassArray);
         <?php } ?>
-        console.log(appointmentArray);
+
+        finalArray = appointmentArray.concat(eventArray).concat(specialAppointmentArray);
     }
 
     function showCalendarAppointment() {
@@ -1109,66 +970,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         });
     }
 
-    /*function showListView(page) {
-        let search_text = $('#search_text').val();
-        let START_DATE = $('#START_DATE').val();
-        let END_DATE = $('#END_DATE').val();
-        $.ajax({
-            url: "pagination/appointment.php",
-            type: "GET",
-            data: {search_text:search_text, page:page, START_DATE:START_DATE, END_DATE:END_DATE},
-            async: false,
-            cache: false,
-            beforeSend: function (){
-                $('.preloader').show();
-            },
-            success: function (result) {
-                $('#appointment_list').html(result);
-            },
-            complete: function () {
-                $('.preloader').hide();
-            }
-        });
-        window.scrollTo(0,0);
-        $('#appointment_list').show();
-        $('#calender').hide();
-    }*/
-
-    function editpage(id){
-        window.location.href = "add_schedule.php?id="+id;
-    }
-
-    function confirmComplete(anchor)
-    {
-        let conf = confirm("Do you want to mark this appointment as completed?");
-        if(conf)
-            window.location=anchor.attr("href");
-    }
-</script>
-
-<script>
-    var modal = document.getElementById("myModal");
-    var span = document.getElementsByClassName("close")[0];
-    function openModel() {
-        modal.style.display = "block";
-    }
-    span.onclick = function() {
-        modal.style.display = "none";
-    }
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
-    $(document).keydown(function(e) {
-        // ESCAPE key pressed
-        if (e.keyCode == 27) {
-            modal.style.display = "none";
-        }
-    });
-</script>
-
-<script>
     function createAppointment(type, param) {
         $('.btn').removeClass('button-selected');
         $(param).addClass('button-selected');
@@ -1198,32 +999,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 $('#create_form_div').html(data);
             }
         });
-    }
-</script>
-<script>
-    function ConfirmDelete(PK_APPOINTMENT_MASTER)
-    {
-        var conf = confirm("Are you sure you want to delete this appointment?");
-        if(conf) {
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: {FUNCTION_NAME: 'deleteAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
-                success: function (data) {
-                    window.location.href = 'all_schedules.php?view=list';
-                }
-            });
-        }
-    }
-
-    function selectStatus(param){
-        var status = $(param).val();
-        window.location.href = "all_schedules.php?appointment_status="+status;
-    }
-
-    function selectAppointmentType(param){
-        var type = $(param).val();
-        window.location.href = "all_schedules.php?appointment_type="+type;
     }
 </script>
 

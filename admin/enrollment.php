@@ -1569,6 +1569,12 @@ if($user_payment_gateway->RecordCount() > 0){
                 success: function (result) {
                     $('.individual_service_div').remove();
                     $('#append_service_div').html(result);
+
+                    let TOTAL_AMOUNT = 0;
+                    $(param).closest('#enrollment_form').find('.FINAL_AMOUNT').each(function () {
+                        TOTAL_AMOUNT += parseFloat($(this).val());
+                    });
+                    $('.TOTAL_AMOUNT').val(TOTAL_AMOUNT.toFixed(2));
                 }
             });
         } else {
