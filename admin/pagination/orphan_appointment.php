@@ -71,7 +71,7 @@ if ($orphan_appointment_data->RecordCount() > 0) {
 
     <tbody>
     <?php
-    $i=$page_first_result+1;
+    $i=$orphan_appointment_data->RecordCount();
     while (!$orphan_appointment_data->EOF) { ?>
         <tr>
             <td onclick="editpage(<?=$orphan_appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=$i;?></td>
@@ -84,7 +84,7 @@ if ($orphan_appointment_data->RecordCount() > 0) {
             <td onclick="editpage(<?=$orphan_appointment_data->fields['PK_APPOINTMENT_MASTER']?>);"><?=date('h:i A', strtotime($orphan_appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($orphan_appointment_data->fields['END_TIME']))?></td>
         </tr>
         <?php $orphan_appointment_data->MoveNext();
-        $i++; } ?>
+        $i--; } ?>
     </tbody>
 </table>
 <?php } ?>

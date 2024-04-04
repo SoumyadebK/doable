@@ -218,7 +218,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAdhocAppo
         }
     }
 
-    rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
+    //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
     header("location:all_schedules.php?view=table");
 }
@@ -954,6 +954,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         let all_service_provider = $('.fc-resource-cell').map(function(){
             return $(this).data('resource-id');
         }).get();
+
+        $("#CHOOSE_DATE").val(month+'/'+day+'/'+year);
 
         $.ajax({
             url: "ajax/AjaxFunctions.php",
