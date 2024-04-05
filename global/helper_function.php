@@ -85,6 +85,18 @@ function updateSessionCompletedCount($PK_APPOINTMENT_MASTER)
     }
 }
 
+function updateSessionCreatedCountByStatus($PK_APPOINTMENT_MASTER)
+{
+    global $db_account;
+    $appointmentData = $db_account->Execute("SELECT `PK_ENROLLMENT_SERVICE` FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
+    $PK_ENROLLMENT_SERVICE = $appointmentData->fields['PK_ENROLLMENT_SERVICE'];
+    $serviceCodeData = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE, SESSION_CREATED FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
+    if ($serviceCodeData->RecordCount() > 0) {
+        $ENR_SERVICE_DATA['SESSION_CREATED'] = $serviceCodeData->fields['SESSION_CREATED'] - 1;
+        }
+    db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $PK_ENROLLMENT_SERVICE);
+}
+
 function updateSessionCreatedCountGroupClass($PK_APPOINTMENT_MASTER, $PK_USER_MASTER)
 {
     global $db_account;

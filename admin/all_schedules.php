@@ -164,6 +164,8 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointme
 
         if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
             updateSessionCompletedCount($_POST['PK_APPOINTMENT_MASTER']);
+        } elseif ($_POST['PK_APPOINTMENT_STATUS'] == 6) {
+            updateSessionCreatedCountByStatus($_POST['PK_APPOINTMENT_MASTER']);
         }
     }
 

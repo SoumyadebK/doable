@@ -405,8 +405,10 @@ while (!$row->EOF) {
                     $total_amount_needed = $per_session_price->fields['SESSION_CREATED'] * $PRICE_PER_SESSION;
 
                     if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
-                        $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] - 1;
-                        $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] - $per_session_price->fields['PRICE_PER_SESSION'];
+                        if($appointment_data->fields['APPOINTMENT_STATUS']!='Cancelled'){
+                            $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] - 1;
+                            $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] - $per_session_price->fields['PRICE_PER_SESSION'];
+                        }
                     } else {
                         $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $per_session_price->fields['SESSION_CREATED'];
                         $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $total_amount_needed;
@@ -417,14 +419,26 @@ while (!$row->EOF) {
                     } ?>
                     <tr>
                         <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_NAME']?></td>
+                        <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled') {?>
+                            <td></td>
+                        <?php } else {?>
                         <td style="text-align: left;"><?=$service_code_array[$appointment_data->fields['SERVICE_CODE']].'/'.$per_session_price->fields['NUMBER_OF_SESSION']?></td>
+                        <?php }?>
                         <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_CODE']?></td>
                         <td style="text-align: center;"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
                         <td style="text-align: center;"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
                         <td style="text-align: left;"><?=$appointment_data->fields['APPOINTMENT_STATUS']?></td>
+                        <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled') {?>
+                            <td></td>
+                        <?php } else {?>
                         <td style="text-align: right;"><?=number_format((float)$PRICE_PER_SESSION, 2, '.', ',');?></td>
-                        <?php $service_credit = $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']]; ?>
+                        <?php }?>
+                        <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled') {?>
+                            <td></td>
+                        <?php } else {
+                         $service_credit = $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']]; ?>
                         <td style="color:<?=($service_credit<0)?'red':'black'?>; text-align: right;"><?=number_format((float)($service_credit), 2, '.', ',');?></td>
+                        <?php }?>
                     </tr>
                     <?php $appointment_data->MoveNext();
                     $j++; } ?>

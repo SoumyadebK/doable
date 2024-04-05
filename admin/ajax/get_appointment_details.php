@@ -508,7 +508,7 @@ z-index: 500;
                 <div class="row m-t-25">
                     <div class="col-8">
                         <div class="form-group">
-                            <label class="form-label">Status : <span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span>
+                            <label class="form-label">Status : <?php if($PK_APPOINTMENT_STATUS!=2) {?><span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span><?php }?>
                                 <span id="cancel_change_status" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeStatus()">Cancel</a></span></label><br>
                             <select class="form-control" name="PK_APPOINTMENT_STATUS" id="PK_APPOINTMENT_STATUS" style="display: none;" onchange="changeAppointmentStatus(this)">
                                 <option value="">Select Status</option>
