@@ -460,7 +460,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 <div id="appointment_list_half" class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <form id="search_form" class="form-material form-horizontal" action="" method="get">
+                            <form id="search_form" class="form-material form-horizontal" action="" method="get" style="margin-bottom: -30px;">
                                 <div class="col-12 row m-10">
                                     <div class="col-2">
                                         <h5 class="card-title"><?=$title?></h5>
@@ -508,8 +508,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
                             </div>-->
 
-                            <div id="calender" class="card-body b-l calender-sidebar">
-                                <div id="calendar"></div>
+                            <div id="calendar" class="card-body">
                             </div>
                         </div>
                     </div>
@@ -673,7 +672,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     function  showCalendarView() {
         showCalendarAppointment();
         $('#appointment_list').hide();
-        $('#calender').show();
+        $('#calendar').show();
     }
 
     let finalArray = [];
@@ -778,11 +777,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         finalArray = appointmentArray.concat(eventArray).concat(specialAppointmentArray);
     }
 
+
     function showCalendarAppointment() {
         getAllCalendarData();
         let open_time = '<?=$OPEN_TIME?>';
         let close_time = '<?=$CLOSE_TIME?>';
         let clickCount = 0;
+
         $('#calendar').fullCalendar({
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
             defaultView: 'agendaDay',
@@ -800,6 +801,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 center: 'title',
                 right: 'agendaDay,agendaTwoDay,agendaWeek,month'
             },
+            //height: '100%',
+            contentHeight: 665,
+            windowResize: true,
+            droppable: true,
             views: {
                 agendaTwoDay: {
                     type: 'agenda',
@@ -891,7 +896,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         });
 
 
-        $('.fc-body').css({"overflow-y":"scroll", "height":"62vh", "display":"block"});
+        /*$('.fc-body').css({"overflow-y":"scroll", "height":"62vh", "display":"block"});
 
         $('.fc-agendaDay-button').click(function () {
             getServiceProviderCount();
@@ -905,7 +910,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         });
         $('.fc-month-button').click(function () {
             $('.fc-body').css({"overflow-y":"", "height":"", "display":""});
-        });
+        });*/
 
         getServiceProviderCount();
         $('.fc-prev-button').click(function () {
