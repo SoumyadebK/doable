@@ -405,23 +405,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 <html lang="en">
 <?php require_once('../includes/header.php');?>
 
-<link href='../assets/packages/core/main.css' rel='stylesheet' />
-<link href='../assets/packages/daygrid/main.css' rel='stylesheet' />
-<link href='../assets/packages/timegrid/main.css' rel='stylesheet' />
-<link href='../assets/packages/timeline/main.css' rel='stylesheet' />
-<link href='../assets/packages/resource-timeline/main.css' rel='stylesheet' />
-<script src='../assets/packages/core/main.js'></script>
-<script src='../assets/packages/interaction/main.js'></script>
-<script src='../assets/packages/daygrid/main.js'></script>
-<script src='../assets/packages/timegrid/main.js'></script>
-<script src='../assets/packages/resource-common/main.js'></script>
-<script src='../assets/packages/resource-daygrid/main.js'></script>
-<script src='../assets/packages/resource-timegrid/main.js'></script>
-<script src='../assets/packages/timeline/main.js'></script>
-<script src='../assets/packages/resource-common/main.js'></script>
-<script src='../assets/packages/resource-timeline/main.js'></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.css">
 
-<!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.css">-->
 
 
 <style>
@@ -500,7 +485,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                                 $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
                                                 while (!$row->EOF) { ?>
                                                     <option value="<?=$row->fields['PK_USER']?>" <?=(!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers)))?"selected":""?>><?=$row->fields['NAME']?></option>
-                                                <?php $row->MoveNext(); } ?>
+                                                    <?php $row->MoveNext(); } ?>
                                             </select>
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="margin-left: 2px; height: 33px"><i class="fa fa-search"></i></button>
                                         </div>
@@ -518,34 +503,34 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                     </div>
                                 </div>
                             </form>
-                        </div>
 
-                          <!--  <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
+                            <!--  <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
 
+                              </div>-->
+
+                            <!--<div id="calendar" class="card-body">
                             </div>-->
 
-                            <div class="card-body row">
-                                <div class="col-md-10" id='calendar-container'>
-                                    <div id='calendar'></div>
-                                </div>
-
-                                <div class="col-md-2" id='external-events'>
-                                    <h5>Copy OR Move Events</h5>
-                                    <div class='fc-event fc-h-event'>My Event 1</div>
-                                    <div class='fc-event fc-h-event'>My Event 2</div>
-                                    <div class='fc-event fc-h-event'>My Event 3</div>
-                                    <div class='fc-event fc-h-event'>My Event 4</div>
-                                    <div class='fc-event fc-h-event'>My Event 5</div>
-                                    <p>
-                                        <input type='radio' name="copy_move" id='drop-copy' checked/>
-                                        <label for='drop-copy'>Copy</label>
-
-                                        <input type='radio' name="copy_move" id='drop-remove'/>
-                                        <label for='drop-remove'>Move</label>
-                                    </p>
-                                </div>
+                            <div id='external-events'>
+                                <p>
+                                    <strong>Draggable Events</strong>
+                                </p>
+                                <div class='fc-event fc-h-event fc-timeline-event'>My Event 1</div>
+                                <div class='fc-event fc-h-event fc-timeline-event'>My Event 2</div>
+                                <div class='fc-event fc-h-event fc-timeline-event'>My Event 3</div>
+                                <div class='fc-event fc-h-event fc-timeline-event'>My Event 4</div>
+                                <div class='fc-event fc-h-event fc-timeline-event'>My Event 5</div>
+                                <p>
+                                    <input type='checkbox' id='drop-remove' />
+                                    <label for='drop-remove'>remove after drop</label>
+                                </p>
                             </div>
 
+                            <div id='calendar-container'>
+                                <div id='calendar'></div>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
 
@@ -591,18 +576,231 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     });
 </script>
 
-<!--<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/locales-all.min.js"></script>-->
 
-<!--<script src='../assets/full_calendar_new/moment.min.js'></script>
-<script src='../assets/full_calendar_new/jquery.min.js'></script>
-<script src='../assets/full_calendar_new/fullcalendar.min.js'></script>
-<script src='../assets/full_calendar_new/scheduler.min.js'></script>
-<script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>-->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.js"></script>
 
-<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/resource-timegrid@5.7.2/main.global.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/locales-all.min.js"></script>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+        crossorigin="anonymous"></script>
 
 <script>
+    //declare var FullCalendar: any;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        getAllCalendarData();
+        let open_time = '<?=$OPEN_TIME?>';
+        let close_time = '<?=$CLOSE_TIME?>';
+        let clickCount = 0;
+
+
+        var Calendar = FullCalendar.Calendar;
+        var Draggable = FullCalendar.Draggable;
+
+        var containerEl = document.getElementById('external-events');
+        var calendarEl = document.getElementById('calendar');
+        var checkbox = document.getElementById('drop-remove');
+
+        //var resourceTimeGridPlugin = FullCalendar.timeGrid;
+
+        // initialize the external events
+        // -----------------------------------------------------------------
+
+        new Draggable(containerEl, {
+            itemSelector: '.fc-event',
+            eventData: function(eventEl) {
+                return {
+                    title: eventEl.innerText
+                };
+            }
+        });
+
+        // initialize the calendar
+        // -----------------------------------------------------------------
+
+        var calendar = new Calendar(calendarEl, {
+
+            schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
+            //defaultView: 'agendaDay',
+            slotMinTime: open_time,
+            slotMaxTime: close_time,
+            slotDuration: '<?=$INTERVAL?>',
+            slotLabelInterval: 5,
+            slotMinutes: 5,
+            defaultDate: '<?=$CHOOSE_DATE?>',
+            editable: true,
+            selectable: true,
+            eventLimit: true, // allow "more" link when too many events
+            /*header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'agendaDay,agendaTwoDay,agendaWeek,month'
+            },*/
+            aspectRatio: 1.5,
+            //plugins: [ resourceTimeGridPlugin ],
+            initialView: 'timeGridDay',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            //resourceAreaHeaderContent: 'Rooms',
+            //height: '100%',
+            contentHeight: 665,
+            windowResize: true,
+            droppable: true,
+            /*views: {
+                agendaTwoDay: {
+                    type: 'agenda',
+                    duration: { days: 2 },
+
+                    // views that are more than a day will NOT do this behavior by default
+                    // so, we need to explicitly enable it
+                    groupByResource: true
+
+                    //// uncomment this line to group by day FIRST with resources underneath
+                    //groupByDateAndResource: true
+                },
+                day: {
+                    titleFormat: 'dddd, MMMM Do YYYY'
+                }
+            },*/
+            viewRender: function(view) {
+                if(view.type == 'agendaDay') {
+                    $('#calendar').fullCalendar( 'removeEventSource', ev1 );
+                    $('#calendar').fullCalendar( 'addEventSource', ev2 );
+                    return;
+                } else {
+                    $('#calendar').fullCalendar( 'removeEventSource', ev2 );
+                    $('#calendar').fullCalendar( 'addEventSource', ev1 );
+                    return;
+                }
+            },
+
+            //// uncomment this line to hide the all-day slot
+            //allDaySlot: false,
+
+            resources: defaultResources,
+            events: finalArray,
+
+            eventRender: function(event, element) {
+                if (event.status) {
+                    element.find(".fc-title").prepend(' <strong style="color: ' + event.statusColor + '">(' + event.status + ')</strong> ');
+                }
+                if (event.comment) {
+                    element.find(".fc-title").prepend(' <i class="fa fa-comment-dots" style="font-size: 15px"></i> ');
+                }
+                if (event.statusCode) {
+                    element.find(".fc-title").append(' <br><strong style="font-size: 13px">(' + event.statusCode + ')</strong> ');
+                }
+
+            },
+
+            eventClick: function(info) {
+                showAppointmentEdit(info);
+                // window.location.href = "add_schedule.php?id="+info.id;
+                //viewAppointmentDetails(info);
+            },
+
+            eventDragStop: function (info) {
+                console.log(info.resourceIds);
+            },
+
+            eventDrop: function (info) {
+                modifyAppointment(info);
+            },
+
+            select: function(start, end, jsEvent, view, resource) {
+                console.log(
+                    'select',
+                    start.format(),
+                    end.format(),
+                    resource ? resource.id : '(no resource)'
+                );
+            },
+            dayClick: function(date, jsEvent, view, resource) {
+                clickCount++;
+                let singleClickTimer;
+                if (clickCount === 1) {
+                    singleClickTimer = setTimeout(function () {
+                        clickCount = 0;
+                    }, 400);
+                } else if (clickCount === 2) {
+                    clearTimeout(singleClickTimer);
+                    clickCount = 0;
+                    window.location.href = "create_appointment.php?date="+date.format()+"&SERVICE_PROVIDER_ID="+resource.id;
+                    //openModel();
+                }
+                console.log(
+                    'dayClick',
+                    date.format(),
+                    resource ? resource.id : '(no resource)'
+                );
+            },
+
+
+            /*timeZone: 'UTC',
+            //initialView: 'agendaDay',
+            aspectRatio: 1.5,
+            headerToolbar: {
+                left: 'prev,next',
+                center: 'title',
+                right: 'resourceTimelineDay,resourceTimelineWeek,resourceTimelineMonth'
+            },
+            resourceAreaHeaderContent: 'Rooms',
+            resources: 'https://fullcalendar.io/api/demo-feeds/resources.json?with-nesting&with-colors',
+            editable: true,
+            droppable: true, // this allows things to be dropped onto the calendar
+            drop: function(info) {
+                // is the "remove after drop" checkbox checked?
+                if (checkbox.checked) {
+                    // if so, remove the element from the "Draggable Events" list
+                    info.draggedEl.parentNode.removeChild(info.draggedEl);
+                }
+            }*/
+        });
+
+        calendar.render();
+
+
+        /*var calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'fr',
+            eventDisplay: 'block',
+            firstDay: 1,
+
+
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            editable: false,
+            droppable: false, // this allows things to be dropped onto the calendar
+            eventClick: function (el) {
+                el.jsEvent.preventDefault();
+                $("#showEventModal").modal('show');
+                $("#showEventModal").on('shown.bs.modal', function (e) {
+                    $('#loading_zone').hide();
+                    $('#target_zone').show();
+                });
+                $("#target_zone").load(decodeURIComponent( el.event.id));
+
+                console.log($("#target_zone"));
+            }
+        });
+
+        calendar.render();*/
+    });
+
+
+
+
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
 
     $(window).on('load', function () {
@@ -610,14 +808,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     });
 
     function showAppointmentEdit(info) {
-        let event_data = info.event.extendedProps;
-        if (event_data.type === 'appointment') {
+        if (info.type === 'appointment') {
             $('#appointment_list_half').removeClass('col-12');
             $('#appointment_list_half').addClass('col-6');
             $.ajax({
                 url: "ajax/get_appointment_details.php",
                 type: "POST",
-                data: {PK_APPOINTMENT_MASTER: info.event.id},
+                data: {PK_APPOINTMENT_MASTER: info.id},
                 async: false,
                 cache: false,
                 success: function (result) {
@@ -626,13 +823,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 }
             });
         } else {
-            if (event_data.type === 'special_appointment') {
+            if (info.type === 'special_appointment') {
                 $('#appointment_list_half').removeClass('col-12');
                 $('#appointment_list_half').addClass('col-6');
                 $.ajax({
                     url: "ajax/get_special_appointment_details.php",
                     type: "POST",
-                    data: {PK_APPOINTMENT_MASTER: info.event.id},
+                    data: {PK_APPOINTMENT_MASTER: info.id},
                     async: false,
                     cache: false,
                     success: function (result) {
@@ -651,13 +848,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     }
                 });
             } else {
-                if (event_data.type === 'group_class') {
+                if (info.type === 'group_class') {
                     $('#appointment_list_half').removeClass('col-12');
                     $('#appointment_list_half').addClass('col-6');
                     $.ajax({
                         url: "ajax/get_group_class_details.php",
                         type: "POST",
-                        data: {PK_APPOINTMENT_MASTER: info.event.id},
+                        data: {PK_APPOINTMENT_MASTER: info.id},
                         async: false,
                         cache: false,
                         success: function (result) {
@@ -675,13 +872,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         }
                     });
                 } else {
-                    if (event_data.type === 'event') {
+                    if (info.type === 'event') {
                         $('#appointment_list_half').removeClass('col-12');
                         $('#appointment_list_half').addClass('col-6');
                         $.ajax({
                             url: "ajax/get_event_details.php",
                             type: "POST",
-                            data: {PK_EVENT: info.event.id},
+                            data: {PK_EVENT: info.id},
                             async: false,
                             cache: false,
                             success: function (result) {
@@ -723,12 +920,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             $service_provider_data = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ".$SERVICE_PROVIDER_ID." AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']. " ORDER BY DISPLAY_ORDER");
             $resourceIdArray = [];
             while (!$service_provider_data->EOF) {
-                $resourceIdArray[] = $service_provider_data->fields['PK_USER'];?>
-                {
-                    id: <?=$service_provider_data->fields['PK_USER']?>,
-                    title: '<?=$service_provider_data->fields['NAME'].' - 0'?>',
-                },
-                <?php $service_provider_data->MoveNext();
+            $resourceIdArray[] = $service_provider_data->fields['PK_USER'];?>
+            {
+                id: <?=$service_provider_data->fields['PK_USER']?>,
+                title: '<?=$service_provider_data->fields['NAME'].' - 0'?>',
+            },
+            <?php $service_provider_data->MoveNext();
             } $resourceIdArray = json_encode($resourceIdArray) ?>
         ];
 
@@ -740,13 +937,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
             $paid_session = 0;
             while (!$appointment_data->EOF) {
-                if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL' || $appointment_data->fields['APPOINTMENT_TYPE'] === 'AD-HOC'){
-                    $title = $appointment_data->fields['CUSTOMER_NAME'].' ('.$appointment_data->fields['SERVICE_NAME'].'-'.$appointment_data->fields['SERVICE_CODE'].') '.'\n'.(($appointment_data->fields['ENROLLMENT_ID'] === 0) ? '(Ad-Hoc)' : $appointment_data->fields['ENROLLMENT_ID']).' - '.$appointment_data->fields['SERIAL_NUMBER'].(($appointment_data->fields['IS_PAID'] == 1)?' (Paid)':' (Unpaid)');
-                    $type = "appointment";
-                } else {
-                    $title = count(explode(',', $appointment_data->fields['CUSTOMER_NAME'])).' - '.$appointment_data->fields['GROUP_NAME'].' - '.$appointment_data->fields['SERVICE_NAME'].' - '.$appointment_data->fields['SERVICE_CODE'];
-                    $type = "group_class";
-                } ?>
+            if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL' || $appointment_data->fields['APPOINTMENT_TYPE'] === 'AD-HOC'){
+                $title = $appointment_data->fields['CUSTOMER_NAME'].' ('.$appointment_data->fields['SERVICE_NAME'].'-'.$appointment_data->fields['SERVICE_CODE'].') '.'\n'.(($appointment_data->fields['ENROLLMENT_ID'] === 0) ? '(Ad-Hoc)' : $appointment_data->fields['ENROLLMENT_ID']).' - '.$appointment_data->fields['SERIAL_NUMBER'].(($appointment_data->fields['IS_PAID'] == 1)?' (Paid)':' (Unpaid)');
+                $type = "appointment";
+            } else {
+                $title = count(explode(',', $appointment_data->fields['CUSTOMER_NAME'])).' - '.$appointment_data->fields['GROUP_NAME'].' - '.$appointment_data->fields['SERVICE_NAME'].' - '.$appointment_data->fields['SERVICE_CODE'];
+                $type = "group_class";
+            } ?>
             {
                 id: <?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>,
                 resourceIds: <?=json_encode(explode(',', $appointment_data->fields['SERVICE_PROVIDER_ID']))?>,
@@ -817,80 +1014,51 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         finalArray = appointmentArray.concat(eventArray).concat(specialAppointmentArray);
     }
 
-    var calendar;
-    document.addEventListener('DOMContentLoaded', function() {
+
+    /*function showCalendarAppointment() {
         getAllCalendarData();
         let open_time = '<?=$OPEN_TIME?>';
         let close_time = '<?=$CLOSE_TIME?>';
         let clickCount = 0;
 
-
-        var Calendar = FullCalendar.Calendar;
-        var Draggable = FullCalendarInteraction.Draggable;
-
-        var containerEl = document.getElementById('external-events');
-        var calendarEl = document.getElementById('calendar');
-        var checkbox = document.getElementById('drop-remove');
-
-        //var resourceTimeGridPlugin = FullCalendar.timeGrid;
-
-        // initialize the external events
-        // -----------------------------------------------------------------
-
-        new Draggable(containerEl, {
-            itemSelector: '.fc-event',
-            eventData: function(eventEl) {
-                return {
-                    title: eventEl.innerText
-                };
-            }
-        });
-
-        // initialize the calendar
-        // -----------------------------------------------------------------
-
-        calendar = new Calendar(calendarEl, {
+        $('#calendar').fullCalendar({
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
-            plugins: [ 'interaction', 'dayGrid', 'timeGrid', 'resourceTimeline' ],
-            timeZone: 'UTC',
+            defaultView: 'agendaDay',
+            minTime: open_time,
+            maxTime: close_time,
+            slotDuration: '<?=$INTERVAL?>',
+            slotLabelInterval: 5,
+            slotMinutes: 5,
+            defaultDate: '<?=$CHOOSE_DATE?>',
             editable: true,
-            scrollTime: '00:00',
+            selectable: true,
+            eventLimit: true, // allow "more" link when too many events
             header: {
-                left: 'today prev,next',
+                left: 'prev,next today',
                 center: 'title',
-                right: 'resourceTimelineDay,resourceTimelineThreeDays,timeGridWeek,dayGridMonth'
+                right: 'agendaDay,agendaTwoDay,agendaWeek,month'
             },
-            defaultView: 'resourceTimelineDay',
-            //slotLabelInterval: '02:30:00',
-            slotLabelInterval: {minutes: 15},
-            /*slotLabelFormat: [
-                { weekday: 'short', day: 'numeric' }, // top level of text
-                {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    omitZeroMinute: false,
-                    meridiem: 'short'
-                } // lower level of text
-            ],*/
-            slotMinTime: '08:00:00',
-            slotMaxTime: '17:00:00',
-            resourceAreaWidth: '20%',
-            resourceAreaHeaderContent: 'Service Provider',
-            //defaultView: 'resourceTimelineDay',
-
-            //resourceAreaWidth: '15%',
+            //height: '100%',
             contentHeight: 665,
             windowResize: true,
             droppable: true,
-            drop: function(info) {
-                // is the "remove after drop" checkbox checked?
-                if (checkbox.checked) {
-                    // if so, remove the element from the "Draggable Events" list
-                    info.draggedEl.parentNode.removeChild(info.draggedEl);
+            views: {
+                agendaTwoDay: {
+                    type: 'agenda',
+                    duration: { days: 2 },
+
+                    // views that are more than a day will NOT do this behavior by default
+                    // so, we need to explicitly enable it
+                    groupByResource: true
+
+                    //// uncomment this line to group by day FIRST with resources underneath
+                    //groupByDateAndResource: true
+                },
+                day: {
+                    titleFormat: 'dddd, MMMM Do YYYY'
                 }
             },
-
-            /*viewRender: function(view) {
+            viewRender: function(view) {
                 if(view.type == 'agendaDay') {
                     $('#calendar').fullCalendar( 'removeEventSource', ev1 );
                     $('#calendar').fullCalendar( 'addEventSource', ev2 );
@@ -900,7 +1068,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     $('#calendar').fullCalendar( 'addEventSource', ev1 );
                     return;
                 }
-            },*/
+            },
 
             //// uncomment this line to hide the all-day slot
             //allDaySlot: false,
@@ -908,19 +1076,16 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             resources: defaultResources,
             events: finalArray,
 
-            eventRender: function(info) {
-                /*console.log(info.el);
-                let event_data = info.event.extendedProps;
-                let element = info.el;
-                if (event_data.status) {
-                    element.find(".fc-title").prepend(' <strong style="color: ' + event_data.statusColor + '">(' + event_data.status + ')</strong> ');
+            eventRender: function(event, element) {
+                if (event.status) {
+                    element.find(".fc-title").prepend(' <strong style="color: ' + event.statusColor + '">(' + event.status + ')</strong> ');
                 }
-                if (event_data.comment) {
+                if (event.comment) {
                     element.find(".fc-title").prepend(' <i class="fa fa-comment-dots" style="font-size: 15px"></i> ');
                 }
-                if (event_data.statusCode) {
-                    element.find(".fc-title").append(' <br><strong style="font-size: 13px">(' + event_data.statusCode + ')</strong> ');
-                }*/
+                if (event.statusCode) {
+                    element.find(".fc-title").append(' <br><strong style="font-size: 13px">(' + event.statusCode + ')</strong> ');
+                }
 
             },
 
@@ -930,9 +1095,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 //viewAppointmentDetails(info);
             },
 
-            /*eventDragStop: function (info) {
+            eventDragStop: function (info) {
               console.log(info.resourceIds);
-            },*/
+            },
 
             eventDrop: function (info) {
                 modifyAppointment(info);
@@ -967,8 +1132,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             },
         });
 
-        calendar.render();
-
         getServiceProviderCount();
         $('.fc-prev-button').click(function () {
             getServiceProviderCount();
@@ -979,7 +1142,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         $('.fc-today-button').click(function () {
             getServiceProviderCount();
         });
-    });
+    }*/
 
     function modifyAppointment(info) {
         let TYPE = info.type;
@@ -1010,7 +1173,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     }
 
     function getServiceProviderCount() {
-        let currentDate = new Date(calendar.getDate());
+        let currentDate = new Date($('#calendar').fullCalendar('getDate'));
         let day = currentDate.getUTCDate();
         let month = currentDate.getMonth() + 1;
         let year = currentDate.getFullYear();
@@ -1030,7 +1193,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             success: function (result) {
                 let appointment_data = JSON.parse(result);
                 for(let i=0; i<appointment_data.length; i++) {
-                    $('tr[data-resource-id="'+appointment_data[i].SERVICE_PROVIDER_ID+'"]').text(appointment_data[i].SERVICE_PROVIDER_NAME+' - '+appointment_data[i].APPOINTMENT_COUNT);
+                    $('.fc-resource-cell[data-resource-id="'+appointment_data[i].SERVICE_PROVIDER_ID+'"]').text(appointment_data[i].SERVICE_PROVIDER_NAME+' - '+appointment_data[i].APPOINTMENT_COUNT);
                 }
             }
         });
