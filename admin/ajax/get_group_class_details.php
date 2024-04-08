@@ -4,7 +4,7 @@ global $db;
 global $db_account;
 global $master_database;
 
-$res = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.GROUP_CLASS_ID, DOA_APPOINTMENT_MASTER.PK_LOCATION, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
+$res = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.GROUP_CLASS_ID, DOA_APPOINTMENT_MASTER.PK_LOCATION, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.COMMENT, DOA_APPOINTMENT_MASTER.IMAGE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
 
 if($res->RecordCount() == 0){
     header("location:all_schedule.php");
@@ -23,6 +23,15 @@ $DATE = $res->fields['DATE'];
 $START_TIME = $res->fields['START_TIME'];
 $END_TIME = $res->fields['END_TIME'];
 $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
+$COMMENT = $res->fields['COMMENT'];
+$IMAGE = $res->fields['IMAGE'];
+
+$status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
+$CHANGED_BY = '';
+while (!$status_data->EOF) {
+    $CHANGED_BY .= "(".$status_data->fields['APPOINTMENT_STATUS']." by ".$status_data->fields['NAME']." at ".date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])).")<br>";
+    $status_data->MoveNext();
+}
 ?>
 
 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
@@ -149,8 +158,11 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                             $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_MASTER.PK_USER_MASTER IN (".$user_master_id.") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'".$orderBy);
                             $customer_name = '';
                             while (!$row->EOF) {
+
                                 if (in_array($row->fields['PK_USER_MASTER'], $selected_customer)) {
-                                    $customer_name.= '<p><i class="fa fa-check-square" style="font-size:15px; color: #069419"></i>&nbsp;&nbsp;'.$row->fields['NAME']."<br></p>";
+                                    $selected_customer_id = $row->fields['PK_USER_MASTER'];
+                                    $selected_user_id = $row->fields['PK_USER'];
+                                    $customer_name.= '<p><i class="fa fa-check-square" style="font-size:15px; color: #069419"></i>&nbsp;&nbsp;<a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank">'.$row->fields['NAME']."<br></a></p>";
                                 }?>
                                 <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" <?=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""?>><?=$row->fields['NAME']?></option>
                             <?php $row->MoveNext(); } ?>
@@ -171,6 +183,28 @@ $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
                                 <?php $row->MoveNext(); } ?>
                         </select>
                         <p id="appointment_status"><?=$selected_status?></p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-group m-t-30">
+                        <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="$('#add_info_div').slideToggle();">Add Info</a>
+                    </div>
+                </div>
+                <div class="row" id="add_info_div" style="display: <?=($COMMENT)?'':'none'?>;">
+                    <div class="col-8">
+                        <div class="form-group">
+                            <label class="form-label">Comment</label>
+                            <textarea class="form-control" name="COMMENT" rows="6"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-group">
+                            <label class="form-label">Upload Image</label>
+                            <input type="file" class="form-control" name="IMAGE" id="IMAGE">
+                            <a href="<?=$IMAGE?>" target="_blank">
+                                <img src="<?=$IMAGE?>" style="margin-top: 15px; width: 150px; height: auto;">
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

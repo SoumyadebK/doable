@@ -64,6 +64,7 @@ $START_TIME = $res->fields['START_TIME'];
 $END_TIME = $res->fields['END_TIME'];
 $COMMENT = $res->fields['COMMENT'];
 $IMAGE = $res->fields['IMAGE'];
+$VIDEO = $res->fields['VIDEO'];
 
 $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
 $CHANGED_BY = '';
@@ -548,7 +549,7 @@ z-index: 500;
                 </div>
 
                 <div class="row" id="add_info_div" style="display: <?=($COMMENT)?'':'none'?>;">
-                    <div class="col-8">
+                    <div class="col-4">
                         <div class="form-group">
                             <label class="form-label">Comment</label>
                             <textarea class="form-control" name="COMMENT" rows="6"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
@@ -560,6 +561,19 @@ z-index: 500;
                             <input type="file" class="form-control" name="IMAGE" id="IMAGE">
                             <a href="<?=$IMAGE?>" target="_blank">
                                 <img src="<?=$IMAGE?>" style="margin-top: 15px; width: 150px; height: auto;">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-group">
+                            <label class="form-label">Upload Video</label>
+                            <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
+                            <a href="<?=$VIDEO?>" target="_blank">
+                                <?php if($VIDEO != '') {?>
+                                <video width="240" height="135" controls>
+                                    <source src="<?=$VIDEO?>" type="video/mp4">
+                                </video>
+                                <?php }?>
                             </a>
                         </div>
                     </div>

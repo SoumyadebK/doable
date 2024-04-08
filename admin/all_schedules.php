@@ -121,6 +121,20 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointme
                 $APPOINTMENT_DATA['IMAGE'] = $image_path;
             }
         }
+
+        if($_FILES['VIDEO']['name'] != ''){
+            $extn 			= explode(".",$_FILES['VIDEO']['name']);
+            $iindex			= count($extn) - 1;
+            $rand_string 	= time()."-".rand(100000,999999);
+            $file11			= 'appointment_video_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
+            $extension   	= strtolower($extn[$iindex]);
+
+            if($extension == "mp4" || $extension == "avi" || $extension == "mov" || $extension == "wmv") {
+                $video_path    = '../uploads/appointment_video/'.$file11;
+                move_uploaded_file($_FILES["VIDEO"]["tmp_name"], $video_path);
+                $APPOINTMENT_DATA['VIDEO'] = $video_path;
+            }
+        }
         $time = $db_account->Execute("SELECT DURATION FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = ".$_POST['PK_SCHEDULING_CODE']);
         $duration = $time->fields['DURATION'];
         $startTime = date('H:i:s', strtotime($_POST['START_TIME']));
@@ -275,6 +289,20 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($convertedTime));
     $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
     $GROUP_CLASS_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
+    $GROUP_CLASS_DATA['COMMENT'] = $_POST['COMMENT'];
+    if($_FILES['IMAGE']['name'] != ''){
+        $extn 			= explode(".",$_FILES['IMAGE']['name']);
+        $iindex			= count($extn) - 1;
+        $rand_string 	= time()."-".rand(100000,999999);
+        $file11			= 'appointment_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
+        $extension   	= strtolower($extn[$iindex]);
+
+        if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
+            $image_path    = '../uploads/appointment_image/'.$file11;
+            move_uploaded_file($_FILES['IMAGE']['tmp_name'], $image_path);
+            $GROUP_CLASS_DATA['IMAGE'] = $image_path;
+        }
+    }
     $GROUP_CLASS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
     $GROUP_CLASS_DATA['EDITED_ON'] = date("Y-m-d H:i");
     //pre_r($GROUP_CLASS_DATA);
@@ -306,6 +334,24 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
             db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $GROUP_CLASS_USER_DATA, 'insert');
         }
     }
+
+    if (isset($_POST['PK_APPOINTMENT_STATUS'])) {
+        $appointment_data = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
+        if ($appointment_data->RecordCount() > 0) {
+            $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_MASTER'] = $appointment_data->fields['PK_APPOINTMENT_MASTER'];
+            $APPOINTMENT_STATUS_HISTORY_DATA['PK_USER'] = $_SESSION['PK_USER'];
+            $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+            $APPOINTMENT_STATUS_HISTORY_DATA['TIME_STAMP'] = date("Y-m-d H:i");
+            db_perform_account('DOA_APPOINTMENT_STATUS_HISTORY', $APPOINTMENT_STATUS_HISTORY_DATA, 'insert');
+        }
+
+        if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
+            updateSessionCompletedCount($_POST['PK_APPOINTMENT_MASTER']);
+        } elseif ($_POST['PK_APPOINTMENT_STATUS'] == 6) {
+            updateSessionCreatedCountByStatus($_POST['PK_APPOINTMENT_MASTER']);
+        }
+    }
+
     header("location:all_schedules.php?view=table");
 }
 

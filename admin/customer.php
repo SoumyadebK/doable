@@ -257,6 +257,15 @@ if(!empty($_GET['master_id'])) {
     .commentModel {
         z-index: 1011
     }
+    .nav-tabs {
+        position: fixed;
+        top:16%;
+        left: 20%;
+        width: auto;
+        background-color: whitesmoke;
+        z-index: 1000; /* Ensure it's above other content */
+    }
+
 </style>
 <style>
     table th{
@@ -300,12 +309,12 @@ if(!empty($_GET['master_id'])) {
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid body_content">
             <div class="row page-titles">
-                <div class="col-md-4 align-self-center">
-                    <h4 class="text-themecolor"><?php if(!empty($_GET['id'])) {
+                <!--<div class="col-md-6 align-self-center">
+                    <h4 class="text-themecolor"><?php /*if(!empty($_GET['id'])) {
                             echo "Edit ".$FIRST_NAME." ".$LAST_NAME;
-                        }?></h4>
-                </div>
-                <div class="col-md-4 align-self-center" style="position: sticky; z-index: 1;">
+                        }*/?></h4>
+                </div>-->
+                <div class="col-md-3 align-self-end" style="position: sticky; z-index: 1;">
                 <?php if(!empty($_GET['id'])) { ?>
                     <select required name="NAME" id="NAME" onchange="editpage(this);">
                         <option value="">Select Customer</option>
@@ -317,7 +326,7 @@ if(!empty($_GET['master_id'])) {
                     </select>
                 <?php } ?>
                 </div>
-            <div class="col-md-4 align-self-center text-end">
+            <div class="col-md-9 align-self-center text-end">
                 <div class="d-flex justify-content-end align-items-center">
                     <ol class="breadcrumb justify-content-end">
                         <li class="breadcrumb-item active"><a href="all_customers.php">All Customers</a></li>
