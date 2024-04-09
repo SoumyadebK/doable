@@ -1,8 +1,9 @@
+
 <div class="container-fluid body_content p-0" style="margin-top: 67px;">
     <div class="row">
         <div class="col-12 new-top-menu">
             <nav class="navbar navbar-expand-lg navbar-light bg-light px-2 py-1 d-non">
-                <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <div class="collapse col-6 navbar-collapse" id="navbarNavDropdown">
                     <ul class="navbar-nav">
                         <li id="menu-products" class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -24,7 +25,7 @@
                                 <a class="dropdown-item" href="../admin/all_scheduling_codes.php">Scheduling Codes</a>
                                 <a class="dropdown-item" href="../admin/all_document_library.php">Document Library</a>
                                 <a class="dropdown-item" href="../admin/all_interests.php">Interests</a>
-                                <a class="dropdown-item" href="../admin/all_skill_levels.php">Skills</a>
+                                <a class="dropdown-item" href="../admin/all_skill_levels.php">Skill Levels</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">
@@ -49,8 +50,51 @@
                             </div>
                         </li>
                     </ul>
+                    <div style="margin-left: 15%;">
+                        <?php
+                        $currentURL = $_SERVER['REQUEST_URI'];
+                        $url = explode("/", $currentURL);
+                        $address = $url[3];
+                        if ($address == "business_profile.php" || $address == "all_locations.php" || $address == "all_users.php") { ?>
+                            <ul class="nav nav-tabs justify-content-center">
+                                <li class="nav-item"><a class="nav-link" href="../admin/business_profile.php">Business Profile</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_locations.php">Locations</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_users.php">Users</a></li>
+                            </ul>
+                        <?php } elseif ($address == "all_services.php" || $address == "all_packages.php" || $address == "all_scheduling_codes.php" || $address == "all_document_library.php" || $address == "all_interests.php" || $address == "all_skill_levels.php") { ?>
+                            <ul class="nav nav-tabs justify-content-center">
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_services.php">Services</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_packages.php">Packages</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_scheduling_codes.php">Scheduling Codes</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_document_library.php">Document Library</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_interests.php">Interests</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_skill_levels.php">Skill Levels</a></li>
+                            </ul>
+                        <?php } elseif ($address == "all_gift_certificates.php" || $address == "all_gift_certificate_setup.php" || $address == "all_event_types.php" || $address == "all_inquiry_methods.php") { ?>
+                            <ul class="nav nav-tabs justify-content-center">
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_gift_certificates.php">Gift Certificate</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_gift_certificate_setup.php">Gift Certificate Setup</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_event_types.php">Event Types</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_inquiry_methods.php">Inquiry Method</a></li>
+                            </ul>
+                        <?php } elseif ($address == "all_email_accounts.php" || $address == "all_email_templates.php" || $address == "all_text_templates.php") { ?>
+                            <ul class="nav nav-tabs justify-content-center">
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_email_accounts.php">Email Accounts</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_email_templates.php">Email Templates</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_text_templates.php">Text Templates</a></li>
+                            </ul>
+                        <?php } ?>
+                    </div>
                 </div>
             </nav>
         </div>
     </div>
 </div>
+
+<style>
+    .nav-tabs li {
+        display: inline-block; /* Display list items as inline-block */
+        background-color: whitesmoke;
+    }
+</style>
+

@@ -158,11 +158,10 @@ while (!$status_data->EOF) {
                             $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_MASTER.PK_USER_MASTER IN (".$user_master_id.") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'".$orderBy);
                             $customer_name = '';
                             while (!$row->EOF) {
-
                                 if (in_array($row->fields['PK_USER_MASTER'], $selected_customer)) {
                                     $selected_customer_id = $row->fields['PK_USER_MASTER'];
                                     $selected_user_id = $row->fields['PK_USER'];
-                                    $customer_name.= '<p><i class="fa fa-check-square" style="font-size:15px; color: #069419"></i>&nbsp;&nbsp;<a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank">'.$row->fields['NAME']."<br></a></p>";
+                                    $customer_name.= '<p><i class="fa fa-check-square" style="font-size:15px; color: #069419"></i>&nbsp;&nbsp;<a href="customer.php?id='.$selected_user_id.'&master_id='.$selected_customer_id.'&tab=profile" target="_blank">'.$row->fields['NAME'].'<br></a></p>';
                                 }?>
                                 <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" <?=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""?>><?=$row->fields['NAME']?></option>
                             <?php $row->MoveNext(); } ?>
