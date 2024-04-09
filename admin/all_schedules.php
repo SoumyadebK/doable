@@ -584,6 +584,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                 </div>
 
                                 <div class="col-2" id='external-events' style="display: none;">
+                                    <a href="javascript:;" onclick="closeCopyPasteDiv()" style="float: right; font-size: 25px;">&times;</a>
                                     <h5>Copy OR Move Events</h5>
                                     <p>
                                         <input type='radio' name="copy_move" id='drop-copy' checked/>
@@ -601,7 +602,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 <div id="edit_appointment_half" class="col-6" style="display: none;">
                     <div class="card">
                         <div class="card-body">
-                            <a href="javascript:;" onclick="closeEditAppointment()" style="float: right;">&times;</a>
+                            <a href="javascript:;" onclick="closeEditAppointment()" style="float: right; font-size: 25px;">&times;</a>
                             <div class="card-body" id="appointment_details_div">
 
                             </div>
@@ -779,8 +780,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         new Draggable(containerEl, {
             itemSelector: '.fc-event',
             eventData: function(eventEl) {
+                let color = eventEl.attributes["data-color"].value;
+                let type = eventEl.attributes["data-type"].value;
                 return {
-                    title: eventEl.innerText
+                    title: eventEl.innerText,
+                    backgroundColor: color,
+                    type: type
                 };
             }
         });
@@ -789,9 +794,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         // -----------------------------------------------------------------
 
         calendar = new Calendar(calendarEl, {
+            //timeZone: 'UTC',
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
             //plugins: [ 'interaction', 'dayGrid', 'timeGrid', 'resourceTimeline' ],
-            timeZone: 'UTC',
             editable: true,
             selectable: true,
             eventLimit: true,
@@ -825,11 +830,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             windowResize: true,
             droppable: true,
             drop: function(info) {
-                // is the "remove after drop" checkbox checked?
                 if (checkbox.checked) {
-                    // if so, remove the element from the "Draggable Events" list
                     info.draggedEl.parentNode.removeChild(info.draggedEl);
                 }
+                copyAppointment(info);
             },
 
             /*viewRender: function(view) {
@@ -881,7 +885,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     clickCount = 0;
                     $('#calendar-container').removeClass('col-12').addClass('col-10');
                     let event_data = info.event;
-                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' style='background-color: "+event_data.backgroundColor+"'>"+event_data.title+"</div>");
+                    let event_data_ext_prop = info.event.extendedProps;
+                    let TYPE = event_data_ext_prop.type;
+
+                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='"+event_data.id+"' data-color='"+event_data.backgroundColor+"' data-type='"+TYPE+"' style='background-color: "+event_data.backgroundColor+"'>"+event_data.title+"</div>"+'<a href="javascript:;" onclick="closeEditAppointment()" style="float: right; font-size: 25px;">&times;</a>');
                 }
             },
 
@@ -1021,23 +1028,24 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
     function closeEditAppointment() {
         $('#edit_appointment_half').hide();
-        $('#appointment_list_half').removeClass('col-6');
-        $('#appointment_list_half').addClass('col-12');
+        $('#appointment_list_half').removeClass('col-6').addClass('col-12');
+    }
+
+    function closeCopyPasteDiv() {
+        $('#calendar-container').removeClass('col-10').addClass('col-12');
+        $('#external-events').hide();
     }
 
     function modifyAppointment(info) {
-        console.log(info.event.range);
         let event_data = info.event.extendedProps;
         let TYPE = event_data.type;
         let PK_ID = info.event.id;
-        let SERVICE_PROVIDER_ID = info.newResource.id;
-        let START_DATE_TIME = info.event.range.start.format();
-        let END_DATE_TIME = info.event.range.end.format();
+        let SERVICE_PROVIDER_ID = (info.newResource) ? info.newResource.id : 0;
+        let START_DATE_TIME = moment.utc(info.event._instance.range.start).format();
+        let END_DATE_TIME = moment.utc(info.event._instance.range.end).format();
         /*let DATE = START_DATE_TIME.getFullYear() + "-" + (START_DATE_TIME.getMonth()+1)  + "-" + START_DATE_TIME.getDate();
         let START_TIME = START_DATE_TIME.getUTCHours() + ":" + START_DATE_TIME.getUTCMinutes() + ":00";
         let END_TIME = END_DATE_TIME.getUTCHours() + ":" + END_DATE_TIME.getUTCMinutes() + ":00";*/
-
-        console.log(info.start.format(), info.end.format());
 
         $.ajax({
             url: "ajax/AjaxFunctions.php",
@@ -1051,6 +1059,33 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 if (TYPE === 'group_class') {
                     window.location.href = "all_schedules.php?CHOOSE_DATE="+data;
                 }
+            }
+        });
+    }
+
+    function copyAppointment(info) {
+        console.log(info);
+        let eventEl = info.draggedEl;
+        let PK_ID = eventEl.attributes["data-id"].value;
+        let TYPE = eventEl.attributes["data-type"].value;
+
+        let SERVICE_PROVIDER_ID = info.resource.id;
+        let START_DATE_TIME = info.dateStr;
+
+        console.log(TYPE,PK_ID,SERVICE_PROVIDER_ID,START_DATE_TIME);
+
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: "POST",
+            data: {FUNCTION_NAME:'copyAppointment', PK_ID:PK_ID, TYPE:TYPE, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, START_DATE_TIME:START_DATE_TIME},
+            async: false,
+            cache: false,
+            success: function (data) {
+                /*console.log(data);
+                getServiceProviderCount();
+                if (TYPE === 'group_class') {
+                    window.location.href = "all_schedules.php?CHOOSE_DATE="+data;
+                }*/
             }
         });
     }
