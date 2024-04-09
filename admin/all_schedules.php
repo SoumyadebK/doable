@@ -405,7 +405,15 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 <html lang="en">
 <?php require_once('../includes/header.php');?>
 
-<link href='../assets/packages/core/main.css' rel='stylesheet' />
+
+<script src='../assets/full_calendar_new/moment.min.js'></script>
+
+<link href='../assets/fullcalendar4/fullcalendar.min.css' rel='stylesheet' />
+<link href='../assets/fullcalendar4/scheduler.min.css' rel='stylesheet' />
+<script src='../assets/fullcalendar4/fullcalendar.min.js'></script>
+<script src='../assets/fullcalendar4/scheduler.min.js'></script>
+
+<!--<link href='../assets/packages/core/main.css' rel='stylesheet' />
 <link href='../assets/packages/daygrid/main.css' rel='stylesheet' />
 <link href='../assets/packages/timegrid/main.css' rel='stylesheet' />
 <link href='../assets/packages/timeline/main.css' rel='stylesheet' />
@@ -419,7 +427,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 <script src='../assets/packages/resource-timegrid/main.js'></script>
 <script src='../assets/packages/timeline/main.js'></script>
 <script src='../assets/packages/resource-common/main.js'></script>
-<script src='../assets/packages/resource-timeline/main.js'></script>
+<script src='../assets/packages/resource-timeline/main.js'></script>-->
 
 <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.css">-->
 
@@ -525,17 +533,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             </div>-->
 
                             <div class="card-body row">
-                                <div class="col-md-10" id='calendar-container'>
+                                <div class="col-12" id='calendar-container'>
                                     <div id='calendar'></div>
                                 </div>
 
-                                <div class="col-md-2" id='external-events'>
+                                <div class="col-2" id='external-events' style="display: none;">
                                     <h5>Copy OR Move Events</h5>
-                                    <div class='fc-event fc-h-event'>My Event 1</div>
-                                    <div class='fc-event fc-h-event'>My Event 2</div>
-                                    <div class='fc-event fc-h-event'>My Event 3</div>
-                                    <div class='fc-event fc-h-event'>My Event 4</div>
-                                    <div class='fc-event fc-h-event'>My Event 5</div>
                                     <p>
                                         <input type='radio' name="copy_move" id='drop-copy' checked/>
                                         <label for='drop-copy'>Copy</label>
@@ -604,116 +607,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
 <script>
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
-
-    $(window).on('load', function () {
-        showCalendarView();
-    });
-
-    function showAppointmentEdit(info) {
-        let event_data = info.event.extendedProps;
-        if (event_data.type === 'appointment') {
-            $('#appointment_list_half').removeClass('col-12');
-            $('#appointment_list_half').addClass('col-6');
-            $.ajax({
-                url: "ajax/get_appointment_details.php",
-                type: "POST",
-                data: {PK_APPOINTMENT_MASTER: info.event.id},
-                async: false,
-                cache: false,
-                success: function (result) {
-                    $('#appointment_details_div').html(result);
-                    $('#edit_appointment_half').show();
-                }
-            });
-        } else {
-            if (event_data.type === 'special_appointment') {
-                $('#appointment_list_half').removeClass('col-12');
-                $('#appointment_list_half').addClass('col-6');
-                $.ajax({
-                    url: "ajax/get_special_appointment_details.php",
-                    type: "POST",
-                    data: {PK_APPOINTMENT_MASTER: info.event.id},
-                    async: false,
-                    cache: false,
-                    success: function (result) {
-                        $('#appointment_details_div').html(result);
-                        $('#edit_appointment_half').show();
-                        $('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
-                        $('.PK_SCHEDULING_CODE').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
-
-                        $('.datepicker-normal').datepicker({
-                            format: 'mm/dd/yyyy',
-                        });
-
-                        $('.timepicker-normal').timepicker({
-                            timeFormat: 'hh:mm p',
-                        });
-                    }
-                });
-            } else {
-                if (event_data.type === 'group_class') {
-                    $('#appointment_list_half').removeClass('col-12');
-                    $('#appointment_list_half').addClass('col-6');
-                    $.ajax({
-                        url: "ajax/get_group_class_details.php",
-                        type: "POST",
-                        data: {PK_APPOINTMENT_MASTER: info.event.id},
-                        async: false,
-                        cache: false,
-                        success: function (result) {
-                            $('#appointment_details_div').html(result);
-                            $('#edit_appointment_half').show();
-                            $('.multi_sumo_select').SumoSelect({placeholder: 'Select Customer', selectAll: true, search:true, searchText:"Search Customer"});
-
-                            $('.datepicker-normal').datepicker({
-                                format: 'mm/dd/yyyy',
-                            });
-
-                            $('.timepicker-normal').timepicker({
-                                timeFormat: 'hh:mm p',
-                            });
-                        }
-                    });
-                } else {
-                    if (event_data.type === 'event') {
-                        $('#appointment_list_half').removeClass('col-12');
-                        $('#appointment_list_half').addClass('col-6');
-                        $.ajax({
-                            url: "ajax/get_event_details.php",
-                            type: "POST",
-                            data: {PK_EVENT: info.event.id},
-                            async: false,
-                            cache: false,
-                            success: function (result) {
-                                $('#appointment_details_div').html(result);
-                                $('#edit_appointment_half').show();
-
-                                /*$('.datepicker-normal').datepicker({
-                                    format: 'mm/dd/yyyy',
-                                });
-
-                                $('.timepicker-normal').timepicker({
-                                    timeFormat: 'hh:mm p',
-                                });*/
-                            }
-                        });
-                    }
-                }
-            }
-        }
-    }
-
-    function closeEditAppointment() {
-        $('#edit_appointment_half').hide();
-        $('#appointment_list_half').removeClass('col-6');
-        $('#appointment_list_half').addClass('col-12');
-    }
-
-    function  showCalendarView() {
-        //showCalendarAppointment();
-        $('#appointment_list').hide();
-        $('#calendar').show();
-    }
 
     let finalArray = [];
     let defaultResources = [];
@@ -826,7 +719,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
 
         var Calendar = FullCalendar.Calendar;
-        var Draggable = FullCalendarInteraction.Draggable;
+        var Draggable = FullCalendar.Draggable;
 
         var containerEl = document.getElementById('external-events');
         var calendarEl = document.getElementById('calendar');
@@ -851,17 +744,20 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         calendar = new Calendar(calendarEl, {
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
-            plugins: [ 'interaction', 'dayGrid', 'timeGrid', 'resourceTimeline' ],
+            //plugins: [ 'interaction', 'dayGrid', 'timeGrid', 'resourceTimeline' ],
             timeZone: 'UTC',
             editable: true,
+            selectable: true,
+            eventLimit: true,
             scrollTime: '00:00',
             header: {
-                left: 'today prev,next',
+                left: 'prev,next today',
                 center: 'title',
-                right: 'resourceTimelineDay,resourceTimelineThreeDays,timeGridWeek,dayGridMonth'
+                right: 'agendaDay,agendaWeek,month'
             },
-            defaultView: 'resourceTimelineDay',
+            defaultView: 'agendaDay',
             //slotLabelInterval: '02:30:00',
+            slotDuration: '<?=$INTERVAL?>',
             slotLabelInterval: {minutes: 15},
             /*slotLabelFormat: [
                 { weekday: 'short', day: 'numeric' }, // top level of text
@@ -925,9 +821,22 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             },
 
             eventClick: function(info) {
-                showAppointmentEdit(info);
-                // window.location.href = "add_schedule.php?id="+info.id;
-                //viewAppointmentDetails(info);
+                clickCount++;
+                let singleClickTimer;
+                if (clickCount === 1) {
+                    singleClickTimer = setTimeout(function () {
+                        if (clickCount === 1) {
+                            showAppointmentEdit(info);
+                        }
+                        clickCount = 0;
+                    }, 500);
+                } else if (clickCount === 2) {
+                    clearTimeout(singleClickTimer);
+                    clickCount = 0;
+                    $('#calendar-container').removeClass('col-12').addClass('col-10');
+                    let event_data = info.event;
+                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' style='background-color: "+event_data.backgroundColor+"'>"+event_data.title+"</div>");
+                }
             },
 
             /*eventDragStop: function (info) {
@@ -938,15 +847,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 modifyAppointment(info);
             },
 
-            select: function(start, end, jsEvent, view, resource) {
-                console.log(
-                    'select',
-                    start.format(),
-                    end.format(),
-                    resource ? resource.id : '(no resource)'
-                );
-            },
-            dayClick: function(date, jsEvent, view, resource) {
+            dateClick: function(data) {
+                let date = data.date;
+                let resource_id = data.resource.id;
                 clickCount++;
                 let singleClickTimer;
                 if (clickCount === 1) {
@@ -956,14 +859,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    window.location.href = "create_appointment.php?date="+date.format()+"&SERVICE_PROVIDER_ID="+resource.id;
+                    window.location.href = "create_appointment.php?date="+moment(date).format()+"&SERVICE_PROVIDER_ID="+resource_id;
                     //openModel();
                 }
-                console.log(
-                    'dayClick',
-                    date.format(),
-                    resource ? resource.id : '(no resource)'
-                );
             },
         });
 
@@ -981,12 +879,114 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         });
     });
 
+    function showAppointmentEdit(info) {
+        let event_data = info.event.extendedProps;
+        if (event_data.type === 'appointment') {
+            $('#appointment_list_half').removeClass('col-12');
+            $('#appointment_list_half').addClass('col-6');
+            $.ajax({
+                url: "ajax/get_appointment_details.php",
+                type: "POST",
+                data: {PK_APPOINTMENT_MASTER: info.event.id},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#appointment_details_div').html(result);
+                    $('#edit_appointment_half').show();
+                }
+            });
+        } else {
+            if (event_data.type === 'special_appointment') {
+                $('#appointment_list_half').removeClass('col-12');
+                $('#appointment_list_half').addClass('col-6');
+                $.ajax({
+                    url: "ajax/get_special_appointment_details.php",
+                    type: "POST",
+                    data: {PK_APPOINTMENT_MASTER: info.event.id},
+                    async: false,
+                    cache: false,
+                    success: function (result) {
+                        $('#appointment_details_div').html(result);
+                        $('#edit_appointment_half').show();
+                        $('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
+                        $('.PK_SCHEDULING_CODE').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
+
+                        $('.datepicker-normal').datepicker({
+                            format: 'mm/dd/yyyy',
+                        });
+
+                        $('.timepicker-normal').timepicker({
+                            timeFormat: 'hh:mm p',
+                        });
+                    }
+                });
+            } else {
+                if (event_data.type === 'group_class') {
+                    $('#appointment_list_half').removeClass('col-12');
+                    $('#appointment_list_half').addClass('col-6');
+                    $.ajax({
+                        url: "ajax/get_group_class_details.php",
+                        type: "POST",
+                        data: {PK_APPOINTMENT_MASTER: info.event.id},
+                        async: false,
+                        cache: false,
+                        success: function (result) {
+                            $('#appointment_details_div').html(result);
+                            $('#edit_appointment_half').show();
+                            $('.multi_sumo_select').SumoSelect({placeholder: 'Select Customer', selectAll: true, search:true, searchText:"Search Customer"});
+
+                            $('.datepicker-normal').datepicker({
+                                format: 'mm/dd/yyyy',
+                            });
+
+                            $('.timepicker-normal').timepicker({
+                                timeFormat: 'hh:mm p',
+                            });
+                        }
+                    });
+                } else {
+                    if (event_data.type === 'event') {
+                        $('#appointment_list_half').removeClass('col-12');
+                        $('#appointment_list_half').addClass('col-6');
+                        $.ajax({
+                            url: "ajax/get_event_details.php",
+                            type: "POST",
+                            data: {PK_EVENT: info.event.id},
+                            async: false,
+                            cache: false,
+                            success: function (result) {
+                                $('#appointment_details_div').html(result);
+                                $('#edit_appointment_half').show();
+
+                                /*$('.datepicker-normal').datepicker({
+                                    format: 'mm/dd/yyyy',
+                                });
+
+                                $('.timepicker-normal').timepicker({
+                                    timeFormat: 'hh:mm p',
+                                });*/
+                            }
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    function closeEditAppointment() {
+        $('#edit_appointment_half').hide();
+        $('#appointment_list_half').removeClass('col-6');
+        $('#appointment_list_half').addClass('col-12');
+    }
+
     function modifyAppointment(info) {
-        let TYPE = info.type;
-        let PK_ID = info.id;
-        let SERVICE_PROVIDER_ID = info.resourceId;
-        let START_DATE_TIME = info.start.format();
-        let END_DATE_TIME = info.end.format();
+        console.log(info.event.range);
+        let event_data = info.event.extendedProps;
+        let TYPE = event_data.type;
+        let PK_ID = info.event.id;
+        let SERVICE_PROVIDER_ID = info.newResource.id;
+        let START_DATE_TIME = info.event.range.start.format();
+        let END_DATE_TIME = info.event.range.end.format();
         /*let DATE = START_DATE_TIME.getFullYear() + "-" + (START_DATE_TIME.getMonth()+1)  + "-" + START_DATE_TIME.getDate();
         let START_TIME = START_DATE_TIME.getUTCHours() + ":" + START_DATE_TIME.getUTCMinutes() + ":00";
         let END_TIME = END_DATE_TIME.getUTCHours() + ":" + END_DATE_TIME.getUTCMinutes() + ":00";*/
