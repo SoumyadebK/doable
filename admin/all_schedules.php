@@ -888,7 +888,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     let event_data_ext_prop = info.event.extendedProps;
                     let TYPE = event_data_ext_prop.type;
 
-                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='"+event_data.id+"' data-color='"+event_data.backgroundColor+"' data-type='"+TYPE+"' style='background-color: "+event_data.backgroundColor+"'>"+event_data.title+"</div>"+'<a href="javascript:;" onclick="closeEditAppointment()" style="float: right; font-size: 25px;">&times;</a>');
+                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='"+event_data.id+"' data-color='"+event_data.backgroundColor+"' data-type='"+TYPE+"' style='background-color: "+event_data.backgroundColor+";'>"+event_data.title+"<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
                 }
             },
 
@@ -1034,6 +1034,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     function closeCopyPasteDiv() {
         $('#calendar-container').removeClass('col-10').addClass('col-12');
         $('#external-events').hide();
+    }
+
+    function removeFromHere(param) {
+        $(param).parent().parent().remove();
     }
 
     function modifyAppointment(info) {
