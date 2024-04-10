@@ -837,8 +837,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             drop: function(info) {
                 if (checkbox.checked) {
                     info.draggedEl.parentNode.removeChild(info.draggedEl);
+                    copyAppointment(info, 'move');
+                } else {
+                    copyAppointment(info, 'copy');
                 }
-                copyAppointment(info);
             },
             eventReceive: function(arg) { // called when a proper external event is dropped
                 console.log('eventReceive', arg.event);
@@ -928,7 +930,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         calendar.render();
 
-        function copyAppointment(info) {
+        function copyAppointment(info, operation) {
             //console.log(info);
             let eventEl = info.draggedEl;
             let PK_ID = eventEl.attributes["data-id"].value;
@@ -942,7 +944,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: "POST",
-                data: {FUNCTION_NAME:'copyAppointment', PK_ID:PK_ID, TYPE:TYPE, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, START_DATE_TIME:START_DATE_TIME},
+                data: {FUNCTION_NAME:'copyAppointment', OPERATION:operation, PK_ID:PK_ID, TYPE:TYPE, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, START_DATE_TIME:START_DATE_TIME},
                 async: false,
                 cache: false,
                 success: function (data) {

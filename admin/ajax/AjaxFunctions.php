@@ -1700,6 +1700,7 @@ function copyAppointment($RESPONSE_DATA) {
     $PK_ID = $RESPONSE_DATA['PK_ID'];
     $SERVICE_PROVIDER_ID = $RESPONSE_DATA['SERVICE_PROVIDER_ID'];
     $TYPE = $RESPONSE_DATA['TYPE'];
+    $OPERATION = $RESPONSE_DATA['OPERATION'];
     $start_date_time = $RESPONSE_DATA['START_DATE_TIME'];
 
     $utc_tz =  new DateTimeZone('UTC');
@@ -1708,7 +1709,7 @@ function copyAppointment($RESPONSE_DATA) {
     $DATE = $start_dt->format('Y-m-d');
     $START_TIME = $start_dt->format('H:i');
 
-    if ($TYPE === "appointment" || $TYPE === "group_class") {
+    if ($OPERATION === 'copy' && ($TYPE === "appointment" || $TYPE === "group_class")) {
         $appointment_details = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_ID);
         $appointment_customer_details = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_ID);
 
@@ -1767,25 +1768,27 @@ function copyAppointment($RESPONSE_DATA) {
 
         markAppointmentPaid($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
 
-    } /*elseif('event' === $TYPE) {
-        $EVENT_DATA['PK_EVENT'] = $RESPONSE_DATA['PK_ID'];
-        $EVENT_DATA['START_DATE'] = $DATE;
-        $EVENT_DATA['START_TIME'] = $START_TIME;
-        $EVENT_DATA['END_TIME'] = $END_TIME;
-        db_perform_account('DOA_EVENT', $EVENT_DATA, 'update', " PK_EVENT = ".$RESPONSE_DATA['PK_ID']);
+    } elseif ($OPERATION === 'move' && ($TYPE === "appointment" || $TYPE === "group_class")) {
+        $appointment_details = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_ID);
+
+        //$APPOINTMENT_DATA['PK_APPOINTMENT_MASTER'] = $PK_ID;
+        $APPOINTMENT_DATA['DATE'] = $DATE;
+
+        $scheduling_code = $db_account->Execute("SELECT `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = ".$appointment_details->fields['PK_SCHEDULING_CODE']);
+        $duration = $scheduling_code->fields['DURATION'];
+
+        $APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+        $APPOINTMENT_DATA['END_TIME'] = date('H:i', strtotime($START_TIME)+(60*$duration));
+
+        db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update', " PK_APPOINTMENT_MASTER = " . $PK_ID);
+
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_ID);
+        $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_ID;
+        $APPOINTMENT_SP_DATA['PK_USER'] = $SERVICE_PROVIDER_ID;
+        db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
     }
-    if ($TYPE === "appointment" && $RESPONSE_DATA['SERVICE_PROVIDER_ID'] > 0) {
-        $APPOINTMENT_SP_DATA['PK_USER'] = $RESPONSE_DATA['SERVICE_PROVIDER_ID'];
-        db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'update', " PK_APPOINTMENT_MASTER = ".$RESPONSE_DATA['PK_ID']);
-    }
-    if ($TYPE === "group_class" && $RESPONSE_DATA['SERVICE_PROVIDER_ID'] > 0) {
-        $is_sp_added = $db_account->Execute("SELECT DOA_APPOINTMENT_SERVICE_PROVIDER.* FROM DOA_APPOINTMENT_SERVICE_PROVIDER WHERE PK_APPOINTMENT_MASTER = ".$RESPONSE_DATA['PK_ID']." AND PK_USER = ".$RESPONSE_DATA['SERVICE_PROVIDER_ID']);
-        if ($is_sp_added->RecordCount() <= 0) {
-            $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $RESPONSE_DATA['PK_ID'];
-            $APPOINTMENT_SP_DATA['PK_USER'] = $RESPONSE_DATA['SERVICE_PROVIDER_ID'];
-            db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
-        }
-    }*/
+
+
     echo date('m/d/Y', strtotime($DATE));
 }
 
