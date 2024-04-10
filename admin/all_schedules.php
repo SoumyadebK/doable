@@ -684,7 +684,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     $title = $appointment_data->fields['CUSTOMER_NAME'].' ('.$appointment_data->fields['SERVICE_NAME'].'-'.$appointment_data->fields['SERVICE_CODE'].') '.'\n'.(($appointment_data->fields['ENROLLMENT_ID'] === 0) ? '(Ad-Hoc)' : $appointment_data->fields['ENROLLMENT_ID']).' - '.$appointment_data->fields['SERIAL_NUMBER'].(($appointment_data->fields['IS_PAID'] == 1)?' (Paid)':' (Unpaid)');
                     $type = "appointment";
                 } else {
-                    $title = count(explode(',', $appointment_data->fields['CUSTOMER_NAME'])).' - '.$appointment_data->fields['GROUP_NAME'].' - '.$appointment_data->fields['SERVICE_NAME'].' - '.$appointment_data->fields['SERVICE_CODE'];
+                    $title = (($appointment_data->fields['CUSTOMER_NAME'] !== null) ? (count(explode(',', $appointment_data->fields['CUSTOMER_NAME']))) : '0').' - '.$appointment_data->fields['GROUP_NAME'].' - '.$appointment_data->fields['SERVICE_NAME'].' - '.$appointment_data->fields['SERVICE_CODE'];
                     $type = "group_class";
                 } ?>
             {
