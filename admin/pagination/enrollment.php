@@ -404,14 +404,14 @@ while (!$row->EOF) {
                     $PRICE_PER_SESSION = $per_session_price->fields['PRICE_PER_SESSION'];
                     $total_amount_needed = $per_session_price->fields['SESSION_CREATED'] * $PRICE_PER_SESSION;
 
-                    if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
-                        if($appointment_data->fields['APPOINTMENT_STATUS']!='Cancelled'){
+                    if($appointment_data->fields['APPOINTMENT_STATUS']!='Cancelled') {
+                        if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
                             $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] - 1;
                             $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] - $per_session_price->fields['PRICE_PER_SESSION'];
+                        } else {
+                            $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $per_session_price->fields['SESSION_CREATED'];
+                            $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $total_amount_needed;
                         }
-                    } else {
-                        $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $per_session_price->fields['SESSION_CREATED'];
-                        $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $total_amount_needed;
                     }
 
                     if (!isset($total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']])) {
