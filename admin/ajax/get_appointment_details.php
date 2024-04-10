@@ -549,13 +549,13 @@ z-index: 500;
                 </div>
 
                 <div class="row" id="add_info_div" style="display: <?=($COMMENT)?'':'none'?>;">
-                    <div class="col-4">
+                    <div class="col-12">
                         <div class="form-group">
                             <label class="form-label">Comment</label>
                             <textarea class="form-control" name="COMMENT" rows="6"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Upload Image</label>
                             <input type="file" class="form-control" name="IMAGE" id="IMAGE">
@@ -564,7 +564,7 @@ z-index: 500;
                             </a>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Upload Video</label>
                             <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
