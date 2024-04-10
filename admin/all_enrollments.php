@@ -24,10 +24,14 @@ if ($not_billed_enrollment->RecordCount() > 0) {
     $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` IN (".implode(',', $PK_ENROLLMENT_MASTER_ARRAY).")");
 }
 
-if (isset($_GET['search_text'])) {
+if (isset($_GET['search_text']) || isset($_GET['FROM_DATE']) || isset($_GET['END_DATE'])) {
+    $FROM_DATE = date('Y-m-d', strtotime($_GET['FROM_DATE']));
+    $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
     $search_text = $_GET['search_text'];
-    $search = " AND DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%'OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%'";
+    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%'OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%')". " AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '$FROM_DATE' AND '$END_DATE'";
 } else {
+    $FROM_DATE='';
+    $END_DATE='';
     $search_text = '';
     $search = ' ';
 }
@@ -194,32 +198,31 @@ if (isset($_POST['SUBMIT'])){
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid body_content">
             <div class="row page-titles">
-                <div class="col-md-2 align-self-center">
+                <div class="col-md-4 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
-                <div class="col-md-5 align-self-center text-end">
+                <div class="col-md-5 align-self-center">
+                    <form class="form-material form-horizontal" action="" method="get">
+                        <div class="input-group">
+                            <div style="margin-right: 10px">
+                                <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-past" value="<?=($FROM_DATE == '' || $FROM_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($FROM_DATE))?>">
+                            </div>
+                            <div style="margin-right: 10px">
+                                <input type="text" id="END_DATE" name="END_DATE" placeholder="To Date" class="form-control datepicker-normal" value="<?=($END_DATE == '' || $END_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($END_DATE))?>">
+                            </div>
+                            <div style="margin-right: 10px">
+                                <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
+                            </div>
+                            <div style="margin-right: 10px">
+                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-3 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='enrollment.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
                     </div>
-                </div>
-                <div class="col-md-2 align-self-center text-end">
-                    <form class="form-material form-horizontal" action="" method="get">
-                        <div class="row"></div>
-                        <div class="input-group">
-                            <div class="col-md-1 from_date">
-                                <div class="form-group">
-                                    <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-past" value="<?=($FROM_DATE == '' || $FROM_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($FROM_DATE))?>">
-                                </div>
-                            </div>
-                            <div class="col-md-1 end_date">
-                                <div class="form-group">
-                                    <input type="text" id="END_DATE" name="END_DATE" placeholder="To Date" class="form-control datepicker-normal" value="<?=($END_DATE == '' || $END_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($END_DATE))?>">
-                                </div>
-                            </div>
-                            <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
-                            <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
-                        </div>
-                    </form>
                 </div>
             </div>
 
@@ -442,6 +445,22 @@ if (isset($_POST['SUBMIT'])){
 <?php require_once('../includes/footer.php');?>
 
 <script>
+    $(document).ready(function(){
+        $("#FROM_DATE").datepicker({
+            numberOfMonths: 1,
+            onSelect: function(selected) {
+                $("#END_DATE").datepicker("option","minDate", selected);
+                $("#FROM_DATE, #END_DATE").trigger("change");
+            }
+        });
+        $("#END_DATE").datepicker({
+            numberOfMonths: 1,
+            onSelect: function(selected) {
+                $("#FROM_DATE").datepicker("option","maxDate", selected)
+            }
+        });
+    });
+
     function editpage(id){
         //alert(i);
         window.location.href = "enrollment.php?id="+id;

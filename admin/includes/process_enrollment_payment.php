@@ -40,7 +40,10 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 <td style="text-align:center"><strong>Sale Transaction</strong></td>
             </tr>
             <tr>
-                <td style="text-align:center"><strong>Receipt# {BILLING_REF}</strong></td>
+                <td style="text-align:center"><strong>Billing Ref# {BILLING_REF}</strong></td>
+            </tr>
+            <tr>
+                <td style="text-align:center"><strong>Receipt# {RECEIPT_NUMBER}</strong></td>
             </tr>
             <tr>
                 <td style="text-align:center">{PAYMENT_DATE}</td>
@@ -89,7 +92,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 issuer agreement (merchant agreement if voucher)</td>
             </tr>
             <tr>
-                <td style="text-align:center">*Per authorization on {PAYMENT_DATE} Receipt# {BILLING_REF}</td>
+                <td style="text-align:center">*Per authorization on {PAYMENT_DATE} Billing Ref# {BILLING_REF}</td>
             </tr>
         </tbody>
     </table>';
@@ -486,6 +489,13 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     }else{
         $PAYMENT_TYPE = $enrollment_payment_type->fields['PAYMENT_TYPE'];
     }
+    $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT ORDER BY PK_ENROLLMENT_PAYMENT DESC LIMIT 1");
+    if ($receipt->RecordCount() > 0) {
+        $lastSerialNumber = $receipt->fields['RECEIPT_NUMBER'];
+        $RECEIPT_NUMBER = $lastSerialNumber + 1;
+    } else {
+        $RECEIPT_NUMBER = 1;
+    }
     $html_template_receipt = str_replace('{BUSINESS_NAME}', $business_details->fields['BUSINESS_NAME'], $html_template_receipt);
     $html_template_receipt = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template_receipt);
     $html_template_receipt = str_replace('{LOCATION_NAME}', $user_data->fields['LOCATION_NAME'], $html_template_receipt);
@@ -493,12 +503,13 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $html_template_receipt = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template_receipt);
     $html_template_receipt = str_replace('{PHONE}', $user_data->fields['PHONE'], $html_template_receipt);
     $html_template_receipt = str_replace('{BILLING_REF}', $enrollment_billing_data->fields['BILLING_REF'], $html_template_receipt);
+    $html_template_receipt = str_replace('{RECEIPT_NUMBER}', $RECEIPT_NUMBER, $html_template_receipt);
     $html_template_receipt = str_replace('{PAYMENT_METHOD}', $PAYMENT_TYPE, $html_template_receipt);
     $html_template_receipt = str_replace('{CARD_NUMBER}', $payment_info, $html_template_receipt);
     $html_template_receipt = str_replace('{DETAILS}', $_POST['AMOUNT'], $html_template_receipt);
     $html_template_receipt = str_replace('{AMOUNT}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template_receipt);
     $html_template_receipt = str_replace('{TOTAL}', $_POST['AMOUNT'], $html_template_receipt);
-    $html_template_receipt = str_replace('{PAYMENT_DATE}', date('Y-m-d'), $html_template_receipt);
+    $html_template_receipt = str_replace('{PAYMENT_DATE}', date('m-d-Y'), $html_template_receipt);
 
     $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
     $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT;
@@ -536,6 +547,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
     $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
     $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+    $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
     $PAYMENT_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template_receipt);
 
     /*if($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
