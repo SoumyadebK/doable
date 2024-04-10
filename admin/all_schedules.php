@@ -755,10 +755,15 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         <?php } ?>
 
         finalArray = appointmentArray.concat(eventArray).concat(specialAppointmentArray);
+        console.log(finalArray);
     }
 
-    var calendar;
     document.addEventListener('DOMContentLoaded', function() {
+        loadCalendar();
+    });
+
+    var calendar;
+    function loadCalendar () {
         getAllCalendarData();
         let open_time = '<?=$OPEN_TIME?>';
         let close_time = '<?=$CLOSE_TIME?>';
@@ -834,6 +839,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     info.draggedEl.parentNode.removeChild(info.draggedEl);
                 }
                 copyAppointment(info);
+            },
+            eventReceive: function(arg) { // called when a proper external event is dropped
+                console.log('eventReceive', arg.event);
             },
 
             /*viewRender: function(view) {
@@ -920,6 +928,32 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         calendar.render();
 
+        function copyAppointment(info) {
+            //console.log(info);
+            let eventEl = info.draggedEl;
+            let PK_ID = eventEl.attributes["data-id"].value;
+            let TYPE = eventEl.attributes["data-type"].value;
+
+            let SERVICE_PROVIDER_ID = info.resource.id;
+            let START_DATE_TIME = info.dateStr;
+
+            //console.log(TYPE,PK_ID,SERVICE_PROVIDER_ID,START_DATE_TIME);
+
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: "POST",
+                data: {FUNCTION_NAME:'copyAppointment', PK_ID:PK_ID, TYPE:TYPE, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, START_DATE_TIME:START_DATE_TIME},
+                async: false,
+                cache: false,
+                success: function (data) {
+                    getAllCalendarData();
+                    calendar.refetchEvents();
+                    calendar.render();
+
+                }
+            });
+        }
+
         getServiceProviderCount();
         $('.fc-prev-button').click(function () {
             getServiceProviderCount();
@@ -930,9 +964,11 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         $('.fc-today-button').click(function () {
             getServiceProviderCount();
         });
-    });
+    }
 
     function showAppointmentEdit(info) {
+        $('#calendar-container').removeClass('col-10').addClass('col-12');
+        $('#external-events').hide();
         let event_data = info.event.extendedProps;
         if (event_data.type === 'appointment') {
             $('#appointment_list_half').removeClass('col-12');
@@ -1063,33 +1099,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 if (TYPE === 'group_class') {
                     window.location.href = "all_schedules.php?CHOOSE_DATE="+data;
                 }
-            }
-        });
-    }
-
-    function copyAppointment(info) {
-        console.log(info);
-        let eventEl = info.draggedEl;
-        let PK_ID = eventEl.attributes["data-id"].value;
-        let TYPE = eventEl.attributes["data-type"].value;
-
-        let SERVICE_PROVIDER_ID = info.resource.id;
-        let START_DATE_TIME = info.dateStr;
-
-        console.log(TYPE,PK_ID,SERVICE_PROVIDER_ID,START_DATE_TIME);
-
-        $.ajax({
-            url: "ajax/AjaxFunctions.php",
-            type: "POST",
-            data: {FUNCTION_NAME:'copyAppointment', PK_ID:PK_ID, TYPE:TYPE, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, START_DATE_TIME:START_DATE_TIME},
-            async: false,
-            cache: false,
-            success: function (data) {
-                /*console.log(data);
-                getServiceProviderCount();
-                if (TYPE === 'group_class') {
-                    window.location.href = "all_schedules.php?CHOOSE_DATE="+data;
-                }*/
             }
         });
     }
