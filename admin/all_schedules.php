@@ -303,6 +303,19 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
             $GROUP_CLASS_DATA['IMAGE'] = $image_path;
         }
     }
+    if($_FILES['VIDEO']['name'] != ''){
+        $extn 			= explode(".",$_FILES['VIDEO']['name']);
+        $iindex			= count($extn) - 1;
+        $rand_string 	= time()."-".rand(100000,999999);
+        $file11			= 'appointment_video_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
+        $extension   	= strtolower($extn[$iindex]);
+
+        if($extension == "mp4" || $extension == "avi" || $extension == "mov" || $extension == "wmv") {
+            $video_path    = '../uploads/appointment_video/'.$file11;
+            move_uploaded_file($_FILES["VIDEO"]["tmp_name"], $video_path);
+            $GROUP_CLASS_DATA['VIDEO'] = $video_path;
+        }
+    }
     $GROUP_CLASS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
     $GROUP_CLASS_DATA['EDITED_ON'] = date("Y-m-d H:i");
     //pre_r($GROUP_CLASS_DATA);

@@ -279,7 +279,13 @@ if (isset($_POST['SUBMIT'])){
                                                     <span class="active-box-red"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php } ?>
 
-                                                <a href="enrollment.php?customer_id=<?=$row->fields['PK_USER_MASTER']?>" title="Add Enrollment" style="font-size:18px"><i class="fa fa-plus-circle"></i></a>
+                                                <a href="enrollment.php?customer_id=<?=$row->fields['PK_USER_MASTER']?>" title="Add Enrollment" style="font-size:18px"><i class="fa fa-plus-circle"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php
+                                                $res = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_PAID, SUM(SESSION_COMPLETED) AS COMPLETED FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                                if($res->fields['TOTAL_PAID']==0 && $res->fields['COMPLETED']==0){
+                                                ?>
+                                                <a href="all_enrollments.php?type=del&id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>" onclick='javascript:ConfirmDelete(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);return false;' title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php } ?>
                                             </td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);">
                                                 <?php if ($row->fields['STATUS']=='A') { ?>
@@ -445,6 +451,21 @@ if (isset($_POST['SUBMIT'])){
 <?php require_once('../includes/footer.php');?>
 
 <script>
+    function ConfirmDelete(PK_ENROLLMENT_MASTER)
+    {
+        var conf = confirm("Are you sure you want to delete?");
+        if(conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {FUNCTION_NAME: 'deleteEnrollmentData', PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER},
+                success: function (data) {
+                    window.location.href = `all_enrollments.php`;
+                }
+            });
+        }
+    }
+
     $(document).ready(function(){
         $("#FROM_DATE").datepicker({
             numberOfMonths: 1,
