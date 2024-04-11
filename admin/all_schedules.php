@@ -4,8 +4,6 @@ global $db;
 global $db_account;
 global $master_database;
 
-$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
-
 $title = "All Appointments";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
@@ -13,80 +11,13 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
-$appointment_status = empty($_GET['STATUS_CODE']) ? '1, 2, 3, 5, 7, 8' : $_GET['STATUS_CODE'];
-
-$appointment_type = '';
-$APPOINTMENT_TYPE_QUERY = " AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'AD-HOC', 'GROUP') ";
-if (isset($_GET['APPOINTMENT_TYPE']) && $_GET['APPOINTMENT_TYPE'] != '') {
-    $appointment_type = $_GET['APPOINTMENT_TYPE'];
-    $APPOINTMENT_TYPE_QUERY = " AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = '$appointment_type' ";
-}
-
 $SERVICE_PROVIDER_ID = ' ';
-$APPOINTMENT_SERVICE_PROVIDER_ID = ' ';
 if(isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != ''){
     $service_providers = implode(',', $_GET['SERVICE_PROVIDER_ID']);
     $SERVICE_PROVIDER_ID = " AND DOA_USERS.PK_USER IN (".$service_providers.") ";
-    $APPOINTMENT_SERVICE_PROVIDER_ID = " AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (".$service_providers.") ";
 }
 
-$ALL_APPOINTMENT_QUERY = "SELECT
-                            DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
-                            DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
-                            DOA_APPOINTMENT_MASTER.GROUP_NAME,
-                            DOA_APPOINTMENT_MASTER.SERIAL_NUMBER,
-                            DOA_APPOINTMENT_MASTER.DATE,
-                            DOA_APPOINTMENT_MASTER.START_TIME,
-                            DOA_APPOINTMENT_MASTER.END_TIME,
-                            DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
-                            DOA_APPOINTMENT_MASTER.IS_PAID,
-                            DOA_APPOINTMENT_MASTER.COMMENT,
-                            DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
-                            DOA_SERVICE_MASTER.SERVICE_NAME,
-                            DOA_SERVICE_CODE.SERVICE_CODE,
-                            DOA_APPOINTMENT_MASTER.IS_PAID,
-                            DOA_APPOINTMENT_STATUS.STATUS_CODE,
-                            DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
-                            DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
-                            DOA_SCHEDULING_CODE.COLOR_CODE,
-                            DOA_SCHEDULING_CODE.SCHEDULING_CODE,
-                            GROUP_CONCAT(DISTINCT(DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER) SEPARATOR ',') AS SERVICE_PROVIDER_ID,
-                            GROUP_CONCAT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) SEPARATOR ',') AS CUSTOMER_NAME
-                        FROM
-                            DOA_APPOINTMENT_MASTER
-                        LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
-                        LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
-                        LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
-                                
-                        LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
-                        
-                        LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
-                        LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
-                        LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
-                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
-                        LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
-                        WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
-                        AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
-                        ".$APPOINTMENT_TYPE_QUERY." 
-                        AND DOA_APPOINTMENT_MASTER.STATUS = 'A' ".$APPOINTMENT_SERVICE_PROVIDER_ID."
-                        GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
-                        ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC";
-
-$SPECIAL_APPOINTMENT_QUERY = "SELECT
-                                    DOA_SPECIAL_APPOINTMENT.*,
-                                    DOA_APPOINTMENT_STATUS.STATUS_CODE,
-                                    DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
-                                    DOA_SCHEDULING_CODE.COLOR_CODE,
-                                    DOA_SCHEDULING_CODE.DURATION,
-                                    GROUP_CONCAT(SERVICE_PROVIDER.PK_USER SEPARATOR ',') AS SERVICE_PROVIDER_ID
-                                FROM
-                                    `DOA_SPECIAL_APPOINTMENT`
-                                LEFT JOIN DOA_SPECIAL_APPOINTMENT_USER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT
-                                LEFT JOIN DOA_MASTER.DOA_USERS AS SERVICE_PROVIDER ON DOA_SPECIAL_APPOINTMENT_USER.PK_USER = SERVICE_PROVIDER.PK_USER
-                                LEFT JOIN DOA_MASTER.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS
-                                LEFT JOIN DOA_SCHEDULING_CODE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE
-                                AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
-                                GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT";
+$appointment_type = '';
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointmentData'){
     unset($_POST['TIME']);
@@ -472,25 +403,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 <script src='../assets/fullcalendar4/fullcalendar.min.js'></script>
 <script src='../assets/fullcalendar4/scheduler.min.js'></script>
 
-<!--<link href='../assets/packages/core/main.css' rel='stylesheet' />
-<link href='../assets/packages/daygrid/main.css' rel='stylesheet' />
-<link href='../assets/packages/timegrid/main.css' rel='stylesheet' />
-<link href='../assets/packages/timeline/main.css' rel='stylesheet' />
-<link href='../assets/packages/resource-timeline/main.css' rel='stylesheet' />
-<script src='../assets/packages/core/main.js'></script>
-<script src='../assets/packages/interaction/main.js'></script>
-<script src='../assets/packages/daygrid/main.js'></script>
-<script src='../assets/packages/timegrid/main.js'></script>
-<script src='../assets/packages/resource-common/main.js'></script>
-<script src='../assets/packages/resource-daygrid/main.js'></script>
-<script src='../assets/packages/resource-timegrid/main.js'></script>
-<script src='../assets/packages/timeline/main.js'></script>
-<script src='../assets/packages/resource-common/main.js'></script>
-<script src='../assets/packages/resource-timeline/main.js'></script>-->
-
-<!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.css">-->
-
-
 <style>
     .fc-basic-view .fc-day-number {
         display: table-cell;
@@ -554,7 +466,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                                 <?php
                                                 $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
                                                 while (!$row->EOF) { ?>
-                                                    <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($row->fields['PK_APPOINTMENT_STATUS'] == $appointment_status)?"selected":""?>><?=$row->fields['APPOINTMENT_STATUS']?></option>
+                                                    <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>"><?=$row->fields['APPOINTMENT_STATUS']?></option>
                                                     <?php $row->MoveNext(); } ?>
                                             </select>
                                         </div>
@@ -654,134 +566,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     });
 </script>
 
-<!--<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/locales-all.min.js"></script>-->
-
-<!--<script src='../assets/full_calendar_new/moment.min.js'></script>
-<script src='../assets/full_calendar_new/jquery.min.js'></script>
-<script src='../assets/full_calendar_new/fullcalendar.min.js'></script>
-<script src='../assets/full_calendar_new/scheduler.min.js'></script>
-<script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>-->
-
-<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
-
 <script>
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
 
-    let finalArray = [];
-    let defaultResources = [];
-    function getAllCalendarData(){
-        defaultResources = [
-            <?php
-            $service_provider_data = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ".$SERVICE_PROVIDER_ID." AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']. " ORDER BY DISPLAY_ORDER");
-            $resourceIdArray = [];
-            while (!$service_provider_data->EOF) {
-                $resourceIdArray[] = $service_provider_data->fields['PK_USER'];?>
-                {
-                    id: <?=$service_provider_data->fields['PK_USER']?>,
-                    title: '<?=$service_provider_data->fields['NAME'].' - 0'?>',
-                },
-                <?php $service_provider_data->MoveNext();
-            } $resourceIdArray = json_encode($resourceIdArray) ?>
-        ];
-
-        let appointmentArray = [];
-        <?php if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointment_type == '') { ?>
-        appointmentArray = [
-            <?php
-            $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
-
-            $paid_session = 0;
-            while (!$appointment_data->EOF) {
-                if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL' || $appointment_data->fields['APPOINTMENT_TYPE'] === 'AD-HOC'){
-                    $title = $appointment_data->fields['CUSTOMER_NAME'].' ('.$appointment_data->fields['SERVICE_NAME'].'-'.$appointment_data->fields['SERVICE_CODE'].') '.'\n'.(($appointment_data->fields['ENROLLMENT_ID'] === 0) ? '(Ad-Hoc)' : $appointment_data->fields['ENROLLMENT_ID']).' - '.$appointment_data->fields['SERIAL_NUMBER'].(($appointment_data->fields['IS_PAID'] == 1)?' (Paid)':' (Unpaid)');
-                    $type = "appointment";
-                } else {
-                    $title = (($appointment_data->fields['CUSTOMER_NAME'] !== null) ? (count(explode(',', $appointment_data->fields['CUSTOMER_NAME']))) : '0').' - '.$appointment_data->fields['GROUP_NAME'].' - '.$appointment_data->fields['SERVICE_NAME'].' - '.$appointment_data->fields['SERVICE_CODE'];
-                    $type = "group_class";
-                } ?>
-            {
-                id: <?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>,
-                resourceIds: <?=json_encode(explode(',', $appointment_data->fields['SERVICE_PROVIDER_ID']))?>,
-                title: '<?=$title?>',
-                start: new Date(<?=date("Y",strtotime($appointment_data->fields['DATE']))?>,<?=intval((date("m",strtotime($appointment_data->fields['DATE'])) - 1))?>,<?=intval(date("d",strtotime($appointment_data->fields['DATE'])))?>,<?=date("H",strtotime($appointment_data->fields['START_TIME']))?>,<?=date("i",strtotime($appointment_data->fields['START_TIME']))?>,1,1),
-                end: new Date(<?=date("Y",strtotime($appointment_data->fields['DATE']))?>,<?=intval((date("m",strtotime($appointment_data->fields['DATE'])) - 1))?>,<?=intval(date("d",strtotime($appointment_data->fields['DATE'])))?>,<?=date("H",strtotime($appointment_data->fields['END_TIME']))?>,<?=date("i",strtotime($appointment_data->fields['END_TIME']))?>,1,1),
-                color: '<?=$appointment_data->fields['COLOR_CODE']?>',
-                type: '<?=$type?>',
-                status: '<?=$appointment_data->fields['STATUS_CODE']?>',
-                statusColor: '<?=$appointment_data->fields['APPOINTMENT_COLOR']?> !important',
-                comment: '<?=($appointment_data->fields['COMMENT'])?>',
-                statusCode : '<?=$appointment_data->fields['SCHEDULING_CODE']?>',
-            },
-            <?php $appointment_data->MoveNext();
-            } ?>
-        ];
-        <?php } ?>
-
-        let specialAppointmentArray = [];
-        <?php if ($appointment_type == 'TO-DO' || $appointment_type == '') { ?>
-        specialAppointmentArray = [
-            <?php $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
-            while (!$special_appointment_data->EOF) { ?>
-            {
-                id: <?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>,
-                resourceIds: <?=json_encode(explode(',', $special_appointment_data->fields['SERVICE_PROVIDER_ID']))?>,
-                title: '<?=$special_appointment_data->fields['TITLE']?>',
-                start: new Date(<?=date("Y",strtotime($special_appointment_data->fields['DATE']))?>,<?=intval((date("m",strtotime($special_appointment_data->fields['DATE'])) - 1))?>,<?=intval(date("d",strtotime($special_appointment_data->fields['DATE'])))?>,<?=date("H",strtotime($special_appointment_data->fields['START_TIME']))?>,<?=date("i",strtotime($special_appointment_data->fields['START_TIME']))?>,1,1),
-                end: new Date(<?=date("Y",strtotime($special_appointment_data->fields['DATE']))?>,<?=intval((date("m",strtotime($special_appointment_data->fields['DATE'])) - 1))?>,<?=intval(date("d",strtotime($special_appointment_data->fields['DATE'])))?>,<?=date("H",strtotime($special_appointment_data->fields['END_TIME']))?>,<?=date("i",strtotime($special_appointment_data->fields['END_TIME']))?>,1,1),
-                color: '<?=$special_appointment_data->fields['COLOR_CODE']?>',
-                type: 'special_appointment',
-                status: '<?=$special_appointment_data->fields['STATUS_CODE']?>',
-                statusColor: '<?=$special_appointment_data->fields['APPOINTMENT_COLOR']?> !important',
-            },
-            <?php $special_appointment_data->MoveNext();
-            } ?>
-        ];
-        <?php } ?>
-
-        let eventArray = [];
-        <?php if ($appointment_type == 'EVENT' || $appointment_type == '') { ?>
-        eventArray = [
-            <?php $event_data = $db_account->Execute("SELECT DISTINCT DOA_EVENT.*, DOA_EVENT_TYPE.EVENT_TYPE, DOA_EVENT_TYPE.COLOR_CODE FROM DOA_EVENT INNER JOIN DOA_EVENT_LOCATION ON DOA_EVENT.PK_EVENT = DOA_EVENT_LOCATION.PK_EVENT LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT.ACTIVE = 1 AND DOA_EVENT_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_EVENT.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' ORDER BY DOA_EVENT.START_DATE DESC LIMIT 2000");
-            while (!$event_data->EOF) {
-            if (isset($event_data->fields['END_DATE']) && $event_data->fields['ALL_DAY'] == 1) {
-                $END_DATE = date('Y-m-d', strtotime($event_data->fields['END_DATE'].'+1 day'));
-            }else {
-                $END_DATE = ($event_data->fields['END_DATE'] == '0000-00-00') ? $event_data->fields['START_DATE'] : $event_data->fields['END_DATE'];
-            }
-            $END_TIME = ($event_data->fields['END_TIME'] == '00:00:00')?$event_data->fields['START_TIME']:$event_data->fields['END_TIME'];
-            $open_close_time_diff = (strtotime($CLOSE_TIME) - strtotime($OPEN_TIME));
-            $start_end_time_diff = strtotime($END_DATE.' '.$END_TIME) - strtotime($event_data->fields['START_DATE'].' '.$event_data->fields['START_TIME']);?>
-            {
-                id: <?=$event_data->fields['PK_EVENT']?>,
-                resourceIds: <?=$resourceIdArray?>,
-                title: '<?=$event_data->fields['HEADER']?>',
-                start: new Date(<?=date("Y",strtotime($event_data->fields['START_DATE']))?>,<?=intval((date("m",strtotime($event_data->fields['START_DATE'])) - 1))?>,<?=intval(date("d",strtotime($event_data->fields['START_DATE'])))?>,<?=date("H",strtotime($event_data->fields['START_TIME']))?>,<?=date("i",strtotime($event_data->fields['START_TIME']))?>,1,1),
-                end: new Date(<?=date("Y",strtotime($END_DATE))?>,<?=intval((date("m",strtotime($END_DATE)) - 1))?>,<?=intval(date("d",strtotime($END_DATE)))?>,<?=date("H",strtotime($END_TIME))?>,<?=date("i",strtotime($END_TIME))?>,1,1),
-                color: '<?=$event_data->fields['COLOR_CODE']?>',
-                type: 'event',
-                allDay: <?=(($event_data->fields['ALL_DAY'] == 1) ? 1 : (($start_end_time_diff >= $open_close_time_diff) ? 1 : 0))?>
-            },
-            <?php $event_data->MoveNext();
-            } ?>
-        ];
-        <?php } ?>
-
-        finalArray = appointmentArray.concat(eventArray).concat(specialAppointmentArray);
-        console.log(finalArray);
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        loadCalendar();
-    });
-
     var calendar;
-    function loadCalendar () {
-        getAllCalendarData();
+    document.addEventListener('DOMContentLoaded', function() {
         let open_time = '<?=$OPEN_TIME?>';
         let close_time = '<?=$CLOSE_TIME?>';
         let clickCount = 0;
-
 
         var Calendar = FullCalendar.Calendar;
         var Draggable = FullCalendar.Draggable;
@@ -789,11 +581,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         var containerEl = document.getElementById('external-events');
         var calendarEl = document.getElementById('calendar');
         var checkbox = document.getElementById('drop-remove');
-
-        //var resourceTimeGridPlugin = FullCalendar.timeGrid;
-
-        // initialize the external events
-        // -----------------------------------------------------------------
 
         new Draggable(containerEl, {
             itemSelector: '.fc-event',
@@ -808,13 +595,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             }
         });
 
-        // initialize the calendar
-        // -----------------------------------------------------------------
-
         calendar = new Calendar(calendarEl, {
-            //timeZone: 'UTC',
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
-            //plugins: [ 'interaction', 'dayGrid', 'timeGrid', 'resourceTimeline' ],
             editable: true,
             selectable: true,
             eventLimit: true,
@@ -825,25 +607,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 right: 'agendaDay,agendaWeek,month'
             },
             defaultView: 'agendaDay',
-            //slotLabelInterval: '02:30:00',
             slotDuration: '<?=$INTERVAL?>',
             slotLabelInterval: {minutes: 15},
-            /*slotLabelFormat: [
-                { weekday: 'short', day: 'numeric' }, // top level of text
-                {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    omitZeroMinute: false,
-                    meridiem: 'short'
-                } // lower level of text
-            ],*/
-            slotMinTime: '08:00:00',
-            slotMaxTime: '17:00:00',
-            resourceAreaWidth: '20%',
-            resourceAreaHeaderContent: 'Service Provider',
-            //defaultView: 'resourceTimelineDay',
-
-            //resourceAreaWidth: '15%',
+            slotMinTime: open_time,
+            slotMaxTime: close_time,
             contentHeight: 665,
             windowResize: true,
             droppable: true,
@@ -856,26 +623,53 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 }
             },
             eventReceive: function(arg) { // called when a proper external event is dropped
-                console.log('eventReceive', arg.event);
+                arg.event.remove();
             },
 
-            /*viewRender: function(view) {
-                if(view.type == 'agendaDay') {
-                    $('#calendar').fullCalendar( 'removeEventSource', ev1 );
-                    $('#calendar').fullCalendar( 'addEventSource', ev2 );
-                    return;
-                } else {
-                    $('#calendar').fullCalendar( 'removeEventSource', ev2 );
-                    $('#calendar').fullCalendar( 'addEventSource', ev1 );
-                    return;
-                }
-            },*/
+            resources: function (info, successCallback, failureCallback) {
+                let selected_service_provider = [];
+                let selectedOptions = $('#SERVICE_PROVIDER_ID').find('option:selected');
+                selectedOptions.each(function(){
+                    selected_service_provider.push($(this).val());
+                });
 
-            //// uncomment this line to hide the all-day slot
-            //allDaySlot: false,
+                $.ajax({
+                    url: "pagination/get_resource_data.php",
+                    type: "POST",
+                    data: {selected_service_provider: selected_service_provider},
+                    dataType: 'json',
+                    success: function (result) {
+                        console.log(result);
+                        successCallback(result);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+            },
+            events: function (info, successCallback, failureCallback) {
+                let STATUS_CODE = $('#STATUS_CODE').val();
+                let APPOINTMENT_TYPE = $('#APPOINTMENT_TYPE').val();
 
-            resources: defaultResources,
-            events: finalArray,
+                let START_DATE = moment(info.start).format();
+                let END_DATE = moment(info.end).format();
+
+                $.ajax({
+                    url: "pagination/get_calendar_data.php",
+                    type: "POST",
+                    data: {START_DATE: START_DATE, END_DATE: END_DATE, STATUS_CODE: STATUS_CODE, APPOINTMENT_TYPE: APPOINTMENT_TYPE},
+                    dataType: 'json',
+                    success: function (result) {
+                        console.log(result);
+                        successCallback(result);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+            },
 
             eventRender: function(info) {
                 /*console.log(info.el);
@@ -915,10 +709,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 }
             },
 
-            /*eventDragStop: function (info) {
-              console.log(info.resourceIds);
-            },*/
-
             eventDrop: function (info) {
                 modifyAppointment(info);
             },
@@ -943,32 +733,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         calendar.render();
 
-        function copyAppointment(info, operation) {
-            //console.log(info);
-            let eventEl = info.draggedEl;
-            let PK_ID = eventEl.attributes["data-id"].value;
-            let TYPE = eventEl.attributes["data-type"].value;
-
-            let SERVICE_PROVIDER_ID = info.resource.id;
-            let START_DATE_TIME = info.dateStr;
-
-            //console.log(TYPE,PK_ID,SERVICE_PROVIDER_ID,START_DATE_TIME);
-
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: "POST",
-                data: {FUNCTION_NAME:'copyAppointment', OPERATION:operation, PK_ID:PK_ID, TYPE:TYPE, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, START_DATE_TIME:START_DATE_TIME},
-                async: false,
-                cache: false,
-                success: function (data) {
-                    getAllCalendarData();
-                    calendar.refetchEvents();
-                    calendar.render();
-
-                }
-            });
-        }
-
         getServiceProviderCount();
         $('.fc-prev-button').click(function () {
             getServiceProviderCount();
@@ -979,7 +743,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         $('.fc-today-button').click(function () {
             getServiceProviderCount();
         });
-    }
+    });
 
     function showAppointmentEdit(info) {
         $('#calendar-container').removeClass('col-10').addClass('col-12');
@@ -1091,6 +855,25 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         $(param).parent().parent().remove();
     }
 
+    function copyAppointment(info, operation) {
+        let eventEl = info.draggedEl;
+        let PK_ID = eventEl.attributes["data-id"].value;
+        let TYPE = eventEl.attributes["data-type"].value;
+        let SERVICE_PROVIDER_ID = info.resource.id;
+        let START_DATE_TIME = info.dateStr;
+        //console.log(TYPE,PK_ID,SERVICE_PROVIDER_ID,START_DATE_TIME);
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: "POST",
+            data: {FUNCTION_NAME:'copyAppointment', OPERATION:operation, PK_ID:PK_ID, TYPE:TYPE, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, START_DATE_TIME:START_DATE_TIME},
+            async: false,
+            cache: false,
+            success: function (data) {
+                calendar.refetchEvents();
+            }
+        });
+    }
+
     function modifyAppointment(info) {
         let event_data = info.event.extendedProps;
         let TYPE = event_data.type;
@@ -1098,9 +881,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         let SERVICE_PROVIDER_ID = (info.newResource) ? info.newResource.id : 0;
         let START_DATE_TIME = moment.utc(info.event._instance.range.start).format();
         let END_DATE_TIME = moment.utc(info.event._instance.range.end).format();
-        /*let DATE = START_DATE_TIME.getFullYear() + "-" + (START_DATE_TIME.getMonth()+1)  + "-" + START_DATE_TIME.getDate();
-        let START_TIME = START_DATE_TIME.getUTCHours() + ":" + START_DATE_TIME.getUTCMinutes() + ":00";
-        let END_TIME = END_DATE_TIME.getUTCHours() + ":" + END_DATE_TIME.getUTCMinutes() + ":00";*/
 
         $.ajax({
             url: "ajax/AjaxFunctions.php",
@@ -1109,11 +889,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             async: false,
             cache: false,
             success: function (data) {
-                console.log(data);
                 getServiceProviderCount();
-                if (TYPE === 'group_class') {
-                    window.location.href = "all_schedules.php?CHOOSE_DATE="+data;
-                }
+                calendar.refetchEvents();
             }
         });
     }
@@ -1128,7 +905,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             return $(this).data('resource-id');
         }).get();
 
-        $("#CHOOSE_DATE").val(month+'/'+day+'/'+year);
+        //$("#CHOOSE_DATE").val(month+'/'+day+'/'+year);
 
         $.ajax({
             url: "ajax/AjaxFunctions.php",
@@ -1144,6 +921,23 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             }
         });
     }
+
+    $(document).on('submit', '#search_form', function (event) {
+        event.preventDefault();
+        let CHOOSE_DATE = $('#CHOOSE_DATE').val();
+        if (CHOOSE_DATE) {
+            let currentDate = new Date(CHOOSE_DATE);
+            let day = currentDate.getDate()+1;
+            let month = currentDate.getMonth() + 1;
+            let year = currentDate.getFullYear();
+
+            calendar.gotoDate(year+'-'+month+'-'+day);
+            $('#CHOOSE_DATE').val('');
+        } else {
+            calendar.refetchEvents();
+        }
+        calendar.refetchResources();
+    });
 
     function createAppointment(type, param) {
         $('.btn').removeClass('button-selected');
