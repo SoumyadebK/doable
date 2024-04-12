@@ -1643,6 +1643,13 @@ function deleteAppointment($RESPONSE_DATA) {
     echo 1;
 }
 
+function scheduleAppointment($RESPONSE_DATA) {
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $location_data = $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS=1 WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
+    echo 1;
+}
+
 function deleteCustomer($RESPONSE_DATA) {
     global $db;
     $PK_USER = $RESPONSE_DATA['PK_USER'];

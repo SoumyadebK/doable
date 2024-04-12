@@ -176,12 +176,15 @@ $page_first_result = ($page-1) * $results_per_page;
             </td>
             <td>
                 <?php if(empty($ENROLLMENT_ID)) { ?>
-                <a href="create_appointment.php?type=ad_hoc&id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <?php } else { ?>
-                <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <a href="create_appointment.php?type=ad_hoc&id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <?php } else { ?>
+                        <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <?php } ?>
+                    <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <?php if ($type == 'cancelled' && $enr_service_data->fields['NUMBER_OF_SESSION']>$enr_service_data->fields['SESSION_COMPLETED']) { ?>
+                    <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmScheduled(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);' style="font-size: 18px"><i class="far fa-calendar-check"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <?php } ?>
-                <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </td>
         </tr>
         <?php $appointment_data->MoveNext();
@@ -222,6 +225,21 @@ $page_first_result = ($page-1) * $results_per_page;
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
                 data: {FUNCTION_NAME: 'deleteAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                success: function (data) {
+                    window.location.href = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER+'&tab=appointment';
+                }
+            });
+        }
+    }
+
+    function ConfirmScheduled(PK_APPOINTMENT_MASTER)
+    {
+        var conf = confirm("Are you sure you want to Schedule this appointment?");
+        if(conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {FUNCTION_NAME: 'scheduleAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
                 success: function (data) {
                     window.location.href = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER+'&tab=appointment';
                 }
