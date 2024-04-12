@@ -140,7 +140,6 @@ $page_first_result = ($page-1) * $results_per_page;
             }
 
             $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, SESSION_CREATED, SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
-
             if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
                 $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - 1;
             } else {
@@ -182,8 +181,8 @@ $page_first_result = ($page-1) * $results_per_page;
                     <?php } ?>
                     <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <?php if ($type == 'cancelled' && $enr_service_data->fields['NUMBER_OF_SESSION']>$enr_service_data->fields['SESSION_COMPLETED']) { ?>
-                    <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmScheduled(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);' style="font-size: 18px"><i class="far fa-calendar-check"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <?php if ($type == 'cancelled' && $enr_service_data->fields['NUMBER_OF_SESSION']!=$enr_service_data->fields['SESSION_CREATED']) { ?>
+                    <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmScheduled(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>,<?=$PK_ENROLLMENT_SERVICE?>);' style="font-size: 18px"><i class="far fa-calendar-check"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <?php } ?>
             </td>
         </tr>
@@ -232,14 +231,14 @@ $page_first_result = ($page-1) * $results_per_page;
         }
     }
 
-    function ConfirmScheduled(PK_APPOINTMENT_MASTER)
+    function ConfirmScheduled(PK_APPOINTMENT_MASTER, PK_ENROLLMENT_SERVICE)
     {
         var conf = confirm("Are you sure you want to Schedule this appointment?");
         if(conf) {
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
-                data: {FUNCTION_NAME: 'scheduleAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                data: {FUNCTION_NAME: 'scheduleAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER, PK_ENROLLMENT_SERVICE: PK_ENROLLMENT_SERVICE},
                 success: function (data) {
                     window.location.href = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER+'&tab=appointment';
                 }
