@@ -473,6 +473,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                     </div>
                                     <div class="col-5">
                                         <div class="input-group">
+                                            <input type="hidden" id="IS_SELECTED" value="0">
                                             <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" multiple>
                                                 <?php
@@ -560,6 +561,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 <script>
     $('.datepicker-normal').datepicker({
         onSelect: function () {
+            $('#IS_SELECTED').val(1);
             $("#search_form").submit();
         },
         format: 'mm/dd/yyyy',
@@ -924,15 +926,16 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
     $(document).on('submit', '#search_form', function (event) {
         event.preventDefault();
-        let CHOOSE_DATE = $('#CHOOSE_DATE').val();
-        if (CHOOSE_DATE) {
+        let IS_SELECTED = $('#IS_SELECTED').val();
+        if (IS_SELECTED == 1) {
+            let CHOOSE_DATE = $('#CHOOSE_DATE').val();
             let currentDate = new Date(CHOOSE_DATE);
             let day = currentDate.getDate()+1;
             let month = currentDate.getMonth() + 1;
             let year = currentDate.getFullYear();
 
             calendar.gotoDate(year+'-'+month+'-'+day);
-            $('#CHOOSE_DATE').val('');
+            $('#IS_SELECTED').val(0);
         } else {
             calendar.refetchEvents();
         }
