@@ -185,16 +185,12 @@ while (!$status_data->EOF) {
                         <p id="appointment_status"><?=$selected_status?></p>
                     </div>
                 </div>
-                <div class="col-4">
-                    <div class="form-group m-t-30">
-                        <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="$('#add_info_div').slideToggle();">Add Info</a>
-                    </div>
-                </div>
-                <div class="row" id="add_info_div" style="display: <?=($COMMENT)?'':'none'?>;">
+
+                <div class="row" id="add_info_div">
                     <div class="col-12">
                         <div class="form-group">
                             <label class="form-label">Comment</label>
-                            <textarea class="form-control" name="COMMENT" rows="6"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
+                            <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
                         </div>
                     </div>
                     <div class="col-6">
