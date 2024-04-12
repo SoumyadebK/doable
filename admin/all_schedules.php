@@ -116,7 +116,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAppointme
 
     //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
-    header("location:all_schedules.php?view=table");
+    header("location:all_schedules.php");
 }
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAdhocAppointmentData'){
@@ -167,7 +167,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAdhocAppo
 
     //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
-    header("location:all_schedules.php?view=table");
+    header("location:all_schedules.php");
 }
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAppointmentData'){
@@ -201,7 +201,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAp
             db_perform_account('DOA_SPECIAL_APPOINTMENT_CUSTOMER', $SPECIAL_APPOINTMENT_CUSTOMER_DATA, 'insert');
         }
     }
-    header("location:all_schedules.php?view=table");
+    header("location:all_schedules.php");
 }
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClassData'){
@@ -296,7 +296,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         }
     }
 
-    header("location:all_schedules.php?view=table");
+    header("location:all_schedules.php");
 }
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData'){
@@ -363,7 +363,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData
             $EVENT_IMAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
             db_perform_account('DOA_EVENT_IMAGE', $EVENT_IMAGE_DATA, 'insert');
         }
-        header("location:all_schedules.php?view=table");
+        header("location:all_schedules.php");
     }
 }
 
@@ -394,7 +394,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
-
 
 <script src='../assets/full_calendar_new/moment.min.js'></script>
 
@@ -558,6 +557,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
 <?php require_once('../includes/footer.php');?>
 
+<script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
+<script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
+
 <script>
     $('.datepicker-normal').datepicker({
         onSelect: function () {
@@ -589,10 +591,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             eventData: function(eventEl) {
                 let color = eventEl.attributes["data-color"].value;
                 let type = eventEl.attributes["data-type"].value;
+                let duration = eventEl.attributes["data-duration"].value;
                 return {
                     title: eventEl.innerText,
                     backgroundColor: color,
-                    type: type
+                    type: type,
+                    duration: '00:'+duration
                 };
             }
         });
@@ -608,11 +612,16 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 center: 'title',
                 right: 'agendaDay,agendaWeek,month'
             },
+            views: {
+                agendaDay: {
+                    titleFormat: { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }
+                }
+            },
             defaultView: 'agendaDay',
             slotDuration: '<?=$INTERVAL?>',
             slotLabelInterval: {minutes: 15},
-            slotMinTime: open_time,
-            slotMaxTime: close_time,
+            minTime: open_time,
+            maxTime: close_time,
             contentHeight: 665,
             windowResize: true,
             droppable: true,
@@ -627,8 +636,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             eventReceive: function(arg) { // called when a proper external event is dropped
                 arg.event.remove();
             },
-
             resources: function (info, successCallback, failureCallback) {
+                //console.log(info);
                 let selected_service_provider = [];
                 let selectedOptions = $('#SERVICE_PROVIDER_ID').find('option:selected');
                 selectedOptions.each(function(){
@@ -641,7 +650,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     data: {selected_service_provider: selected_service_provider},
                     dataType: 'json',
                     success: function (result) {
-                        console.log(result);
+                        //console.log(result);
                         successCallback(result);
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
@@ -663,7 +672,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     data: {START_DATE: START_DATE, END_DATE: END_DATE, STATUS_CODE: STATUS_CODE, APPOINTMENT_TYPE: APPOINTMENT_TYPE},
                     dataType: 'json',
                     success: function (result) {
-                        console.log(result);
+                        //console.log(result);
                         successCallback(result);
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
@@ -672,23 +681,27 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     }
                 });
             },
-
             eventRender: function(info) {
-                /*console.log(info.el);
                 let event_data = info.event.extendedProps;
                 let element = info.el;
+
                 if (event_data.status) {
-                    element.find(".fc-title").prepend(' <strong style="color: ' + event_data.statusColor + '">(' + event_data.status + ')</strong> ');
+                    $(element).find(".fc-title").prepend(' <strong style="color: ' + event_data.statusColor + '">(' + event_data.status + ')</strong> ');
                 }
                 if (event_data.comment) {
-                    element.find(".fc-title").prepend(' <i class="fa fa-comment-dots" style="font-size: 15px"></i> ');
+                    $(element).find(".fc-title").prepend(' <i class="fa fa-comment-dots" style="font-size: 15px"></i> ');
+                    $(info.el).popover({
+                        title: info.event.title,
+                        placement: 'top',
+                        trigger: 'hover',
+                        content: event_data.comment,
+                        container: 'body'
+                    });
                 }
                 if (event_data.statusCode) {
-                    element.find(".fc-title").append(' <br><strong style="font-size: 13px">(' + event_data.statusCode + ')</strong> ');
-                }*/
-
+                    $(element).find(".fc-title").append(' <br><strong style="font-size: 13px">(' + event_data.statusCode + ')</strong> ');
+                }
             },
-
             eventClick: function(info) {
                 clickCount++;
                 let singleClickTimer;
@@ -707,14 +720,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     let event_data_ext_prop = info.event.extendedProps;
                     let TYPE = event_data_ext_prop.type;
 
-                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='"+event_data.id+"' data-color='"+event_data.backgroundColor+"' data-type='"+TYPE+"' style='background-color: "+event_data.backgroundColor+";'>"+event_data.title+"<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='"+event_data.id+"' data-duration='"+event_data_ext_prop.duration+"' data-color='"+event_data.backgroundColor+"' data-type='"+TYPE+"' style='background-color: "+event_data.backgroundColor+";'>"+event_data.title+"<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
                 }
             },
-
             eventDrop: function (info) {
                 modifyAppointment(info);
             },
-
             dateClick: function(data) {
                 let date = data.date;
                 let resource_id = data.resource.id;
@@ -731,11 +742,17 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     //openModel();
                 }
             },
+            loading: function( isLoading ) {
+                if (isLoading === true) {
+                    //alert('asd');
+                } else {
+                    getServiceProviderCount();
+                }
+            }
         });
 
         calendar.render();
 
-        getServiceProviderCount();
         $('.fc-prev-button').click(function () {
             getServiceProviderCount();
         });
@@ -871,6 +888,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             async: false,
             cache: false,
             success: function (data) {
+                getServiceProviderCount();
                 calendar.refetchEvents();
             }
         });
@@ -899,8 +917,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
     function getServiceProviderCount() {
         let currentDate = new Date(calendar.getDate());
-        let day = currentDate.getUTCDate();
-        let month = currentDate.getMonth() + 1;
+        let day = currentDate.getDate();
+        let month = currentDate.getMonth()+1;
         let year = currentDate.getFullYear();
 
         let all_service_provider = $('.fc-resource-cell').map(function(){
@@ -918,7 +936,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             success: function (result) {
                 let appointment_data = JSON.parse(result);
                 for(let i=0; i<appointment_data.length; i++) {
-                    $('tr[data-resource-id="'+appointment_data[i].SERVICE_PROVIDER_ID+'"]').text(appointment_data[i].SERVICE_PROVIDER_NAME+' - '+appointment_data[i].APPOINTMENT_COUNT);
+                    $('th[data-resource-id="'+appointment_data[i].SERVICE_PROVIDER_ID+'"]').text(appointment_data[i].SERVICE_PROVIDER_NAME+' - '+appointment_data[i].APPOINTMENT_COUNT);
                 }
             }
         });
@@ -931,7 +949,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             let CHOOSE_DATE = $('#CHOOSE_DATE').val();
             let currentDate = new Date(CHOOSE_DATE);
             let day = currentDate.getDate()+1;
-            let month = currentDate.getMonth() + 1;
+            let month = currentDate.getMonth()+1;
             let year = currentDate.getFullYear();
 
             calendar.gotoDate(year+'-'+month+'-'+day);

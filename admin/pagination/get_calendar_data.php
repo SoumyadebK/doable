@@ -63,6 +63,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
                             DOA_SCHEDULING_CODE.COLOR_CODE,
                             DOA_SCHEDULING_CODE.SCHEDULING_CODE,
+                            DOA_SCHEDULING_CODE.DURATION,
                             GROUP_CONCAT(DISTINCT(DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER) SEPARATOR ',') AS SERVICE_PROVIDER_ID,
                             GROUP_CONCAT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) SEPARATOR ',') AS CUSTOMER_NAME
                         FROM
@@ -140,6 +141,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             'statusColor' => $appointment_data->fields['APPOINTMENT_COLOR'],
             'comment' => $appointment_data->fields['COMMENT'],
             'statusCode' => $appointment_data->fields['SCHEDULING_CODE'],
+            'duration' => $appointment_data->fields['DURATION'],
         ];
         $appointment_data->MoveNext();
     }
@@ -160,6 +162,7 @@ if ($appointment_type == 'TO-DO' || $appointment_type == '') {
             'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],
             'comment' => '',
             'statusCode' => '',
+            'duration' => $special_appointment_data->fields['DURATION'],
         ];
         $special_appointment_data->MoveNext();
     }

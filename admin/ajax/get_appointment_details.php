@@ -334,7 +334,7 @@ z-index: 500;
 <!-- Tab panes -->
 <div class="tab-content tabcontent-border">
     <div class="tab-pane active" id="edit_appointment" role="tabpanel">
-        <form id="appointment_form" action="" method="post" enctype="multipart/form-data">
+        <form class="form-material form-horizontal" id="appointment_form" action="" method="post" enctype="multipart/form-data">
             <input type="hidden" name="FUNCTION_NAME" value="saveAppointmentData">
             <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=$PK_APPOINTMENT_MASTER?>">
             <div style="padding-top: 10px;">
@@ -528,11 +528,6 @@ z-index: 500;
                             <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="cancelAppointment()">Cancel Appointments</a>
                         </div>
                     </div> -->
-                    <div class="col-4">
-                        <div class="form-group m-t-30">
-                            <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="$('#add_info_div').slideToggle();">Add Info</a>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="row" id="no_show_div" style="display: <?=($PK_APPOINTMENT_STATUS==4)?'':'none'?>;">
@@ -548,11 +543,11 @@ z-index: 500;
                     </div>
                 </div>
 
-                <div class="row" id="add_info_div" style="display: <?=($COMMENT)?'':'none'?>;">
+                <div class="row" id="add_info_div">
                     <div class="col-12">
                         <div class="form-group">
                             <label class="form-label">Comment</label>
-                            <textarea class="form-control" name="COMMENT" rows="6"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
+                            <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
                         </div>
                     </div>
                     <div class="col-6">
