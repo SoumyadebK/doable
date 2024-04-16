@@ -97,9 +97,14 @@ if (!empty($_GET['NAME'])) {
                                         </div>
                                         <div class="col-3">
                                             <div class="form-group">
-                                                <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?=!empty($_GET['START_DATE'])?$_GET['START_DATE']:''?>">
+                                                <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?=!empty($_GET['START_DATE'])?$_GET['START_DATE']:''?>">
                                             </div>
                                         </div>
+
+                                        <!--<div class="week-picker"></div>
+                                        <br /><br />
+                                        <label>Week :</label> <span id="startDate"></span> - <span id="endDate"></span>-->
+
                                         <div class="col-2">
                                             <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">View</button>
                                             <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Export</button>
@@ -116,14 +121,12 @@ if (!empty($_GET['NAME'])) {
 <?php require_once('../includes/footer.php');?>
 </body>
 </html>
-
 <script>
-    $(document).ready(function(){
-        $("#START_DATE").datepicker({
-            numberOfMonths: 1,
-            onSelect: function(selected) {
-                $("#END_DATE").datepicker("option","minDate", selected)
-            }
-        });
+    $(".week-picker").datepicker({
+        showWeek: true,
+        onSelect: function(dateText, inst) {
+            $(this).val("Week Number " + $.datepicker.iso8601Week(new Date(dateText)));
+            console.log(inst);
+        }
     });
 </script>
