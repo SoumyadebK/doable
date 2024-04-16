@@ -554,7 +554,7 @@ if(empty($_GET['id'])){
     function selectServiceClass(param) {
         let PK_SERVICE_CLASS = parseInt($(param).val());
 
-        if (PK_SERVICE_CLASS === 1){
+        if (PK_SERVICE_CLASS === 1 || PK_SERVICE_CLASS === 5){
             $('#frequency_duration_label').text('Frequency');
             $('.duration_div').hide();
             $('.frequency_div').show();

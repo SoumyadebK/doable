@@ -174,12 +174,12 @@ $page_first_result = ($page-1) * $results_per_page;
                 <?php } ?>
             </td>
             <td>
-                <?php if(empty($ENROLLMENT_ID)) { ?>
-                        <a href="create_appointment.php?type=ad_hoc&id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <?php } else { ?>
-                        <a href="add_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <?php } ?>
-                    <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <?php /*if(empty($ENROLLMENT_ID)) { */?><!--
+                        <a href="create_appointment.php?type=ad_hoc&id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <?php /*} else { */?>
+                        <a href="add_schedule.php?id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <?php /*} */?>
+                    <a href="copy_schedule.php?id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
                     <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <?php if ($type == 'cancelled' && $enr_service_data->fields['NUMBER_OF_SESSION']!=$enr_service_data->fields['SESSION_CREATED']) { ?>
                     <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmScheduled(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>,<?=$PK_ENROLLMENT_SERVICE?>);' style="font-size: 18px"><i class="far fa-calendar-check"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
