@@ -948,16 +948,18 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         if (IS_SELECTED == 1) {
             let CHOOSE_DATE = $('#CHOOSE_DATE').val();
             let currentDate = new Date(CHOOSE_DATE);
-            let day = currentDate.getDate()+1;
+
+            let day = currentDate.getDate();
             let month = currentDate.getMonth()+1;
             let year = currentDate.getFullYear();
 
-            calendar.gotoDate(year+'-'+month+'-'+day);
+            calendar.gotoDate(month+'/'+day+'/'+year);
             $('#IS_SELECTED').val(0);
         } else {
             calendar.refetchEvents();
         }
         calendar.refetchResources();
+        getServiceProviderCount();
     });
 
     function createAppointment(type, param) {

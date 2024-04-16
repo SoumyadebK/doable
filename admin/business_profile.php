@@ -65,6 +65,9 @@ if(!empty($_POST)){
         $SETTINGS_DATA['LOGIN_ID'] = $_POST['LOGIN_ID'];
         $SETTINGS_DATA['APPOINTMENT_REMINDER'] = $_POST['APPOINTMENT_REMINDER'];
         $SETTINGS_DATA['HOUR'] = $_POST['HOUR'];
+        $SETTINGS_DATA['AM_USER_NAME'] = $_POST['AM_USER_NAME'];
+        $SETTINGS_DATA['AM_PASSWORD'] = $_POST['AM_PASSWORD'];
+        $SETTINGS_DATA['AM_REFRESH_TOKEN'] = $_POST['AM_REFRESH_TOKEN'];
         $SETTINGS_DATA['ACTIVE'] = 1;
         $SETTINGS_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $SETTINGS_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -154,6 +157,10 @@ $APPOINTMENT_REMINDER = $res->fields['APPOINTMENT_REMINDER'];
 $HOUR = $res->fields['HOUR'];
 $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
 $TIME_SLOT_INTERVAL = $res->fields['TIME_SLOT_INTERVAL'];
+
+$AM_USER_NAME = $res->fields['AM_USER_NAME'];
+$AM_PASSWORD = $res->fields['AM_PASSWORD'];
+$AM_REFRESH_TOKEN = $res->fields['AM_REFRESH_TOKEN'];
 
 $SMTP_HOST = '';
 $SMTP_PORT = '';
@@ -604,6 +611,30 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                     <div class="form-group">
                                                         <label class="form-label">SMTP PASSWORD</label>
                                                         <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?=$SMTP_PASSWORD?>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row smtp" id="smtp" >
+                                                <div class="form-group">
+                                                    <label class="form-label">Arthur Murray API Setup</label>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">User Name</label>
+                                                        <input type="text" class="form-control" name="AM_USER_NAME" value="<?=$AM_USER_NAME?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Password</label>
+                                                        <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Refresh Token</label>
+                                                        <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?=$AM_REFRESH_TOKEN?>">
                                                     </div>
                                                 </div>
                                             </div>

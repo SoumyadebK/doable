@@ -8,12 +8,15 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 }
 
 if (!empty($_GET['NAME'])) {
+    $type = isset($_GET['view']) ? 'view' : 'export';
+    $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
+
     if ($_GET['NAME'] == 'royalty_service_report') {
-        header('location:royalty_service_report.php?date='.$_GET['START_DATE']);
+        header('location:royalty_service_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
     } elseif ($_GET['NAME'] == 'summary_of_studio_business_report'){
-        header('location:summary_of_studio_business_report.php?date='.$_GET['START_DATE']);
+        header('location:summary_of_studio_business_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
     } elseif ($_GET['NAME'] == 'staff_performance_report'){
-        header('location:staff_performance_report.php?date='.$_GET['START_DATE']);
+        header('location:staff_performance_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
     }
 }
 ?>
@@ -83,29 +86,29 @@ if (!empty($_GET['NAME'])) {
                             <div class="col-md-3 col-sm-3 mt-3">
                                 <h4 class="card-title">Electronic Weekly Reports</h4>
                             </div>
-                                <form class="form-material form-horizontal" action="" method="get">
-                                    <div class="row">
-                                        <div class="col-4">
-                                            <div class="form-group">
-                                                <select class="form-control" required name="NAME" id="NAME">
-                                                    <option value="">Select Report</option>
-                                                    <option value="royalty_service_report">ROYALTY / SERVICE REPORT</option>
-                                                    <option value="summary_of_studio_business_report">SUMMARY OF STUDIO BUSINESS REPORT</option>
-                                                    <option value="staff_performance_report">STAFF PERFORMANCE REPORT</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?=!empty($_GET['START_DATE'])?$_GET['START_DATE']:''?>">
-                                            </div>
-                                        </div>
-                                        <div class="col-2">
-                                            <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">View</button>
-                                            <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Export</button>
+                            <form class="form-material form-horizontal" action="" method="get">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <select class="form-control" required name="NAME" id="NAME">
+                                                <option value="">Select Report</option>
+                                                <option value="royalty_service_report">ROYALTY / SERVICE REPORT</option>
+                                                <option value="summary_of_studio_business_report">SUMMARY OF STUDIO BUSINESS REPORT</option>
+                                                <option value="staff_performance_report">STAFF PERFORMANCE REPORT</option>
+                                            </select>
                                         </div>
                                     </div>
-                                </form>
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <input type="text" id="WEEK_NUMBER" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''?>" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="submit" name="view" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" value="View">
+                                        <input type="submit" name="export" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" value="Export">
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -116,14 +119,31 @@ if (!empty($_GET['NAME'])) {
 <?php require_once('../includes/footer.php');?>
 </body>
 </html>
-
 <script>
-    $(document).ready(function(){
-        $("#START_DATE").datepicker({
-            numberOfMonths: 1,
-            onSelect: function(selected) {
-                $("#END_DATE").datepicker("option","minDate", selected)
+    $(".week-picker").datepicker({
+        showWeek: true,
+        beforeShowDay: function (date) {
+            if (date.getDay() === 0) {
+                return [true, ''];
+            }
+            return [false, ''];
+        },
+        onSelect: function(dateText, inst) {
+            $(this).val("Week Number " + $.datepicker.iso8601Week(new Date(dateText)));
+        }
+    });
+
+    function generateReport(){
+        let week_number = $('#WEEK_NUMBER').val();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: "POST",
+            data: {FUNCTION_NAME:'generateAmReport', week_number:week_number},
+            async: false,
+            cache: false,
+            success: function (result) {
+                console.log(result);
             }
         });
-    });
+    }
 </script>
