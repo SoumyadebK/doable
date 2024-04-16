@@ -47,6 +47,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.END_TIME,
                             DOA_APPOINTMENT_MASTER.COMMENT,
                             DOA_APPOINTMENT_MASTER.IMAGE,
+                            DOA_APPOINTMENT_MASTER.VIDEO,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
@@ -128,7 +129,14 @@ $page_first_result = ($page-1) * $results_per_page;
         $i=$page_first_result+1;
         $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
         while (!$appointment_data->EOF) {
+            $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
+            $CHANGED_BY = '';
+            while (!$status_data->EOF) {
+                $CHANGED_BY .= "(".$status_data->fields['APPOINTMENT_STATUS']." by ".$status_data->fields['NAME']." at ".date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])).")<br>";
+                $status_data->MoveNext();
+            }
             $IMAGE_LINK = $appointment_data->fields['IMAGE'];
+            $VIDEO_LINK = $appointment_data->fields['VIDEO'];
             if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
                 $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
                 $ENROLLMENT_ID = $appointment_data->fields['ENROLLMENT_ID'];
@@ -145,7 +153,7 @@ $page_first_result = ($page-1) * $results_per_page;
             } else {
                 $service_code_array[$PK_ENROLLMENT_SERVICE] = $enr_service_data->fields['SESSION_CREATED'];
             } ?>
-        <tr>
+        <tr onclick="$(this).next().slideToggle();">
             <td><?=$i;?></td>
             <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
             <?php if (!empty($ENROLLMENT_ID) || !empty($ENROLLMENT_NAME)) { ?>
@@ -161,10 +169,9 @@ $page_first_result = ($page-1) * $results_per_page;
             <td><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
             <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
             <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-            <td><?=$appointment_data->fields['COMMENT']?>
-                <?php if ($IMAGE_LINK != '' && $IMAGE_LINK != null) { ?>
-                    (<a href="<?=$IMAGE_LINK?>" target="_blank">View Upload</a>)
-                <?php } ?></td>
+            <td style="cursor: pointer"><?php if($appointment_data->fields['COMMENT'] != '' || $IMAGE_LINK!='' || $VIDEO_LINK!='' || $CHANGED_BY!='') { ?>
+                Click to view <?php } ?>
+            </td>
             <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
             <td style="text-align: center;">
                 <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
@@ -186,6 +193,20 @@ $page_first_result = ($page-1) * $results_per_page;
                 <?php } ?>
             </td>
         </tr>
+            <tr style="display: none">
+                <td style="vertical-align: middle; text-align: center;" colspan="13"><?=$appointment_data->fields['COMMENT']?>
+                    <?php if ($IMAGE_LINK != '' && $IMAGE_LINK != null) { ?>
+                        (<a href="<?=$IMAGE_LINK?>" target="_blank">View Image</a>)
+                    <?php } ?>
+                    <?php if ($VIDEO_LINK != '' && $VIDEO_LINK != null) { ?>
+                        (<a href="<?=$VIDEO_LINK?>" target="_blank">View Video</a>)
+                    <?php } ?>
+                    <br><span><?=$CHANGED_BY?></span>
+                </td>
+            </tr>
+            <tr style="display: none">
+
+            </tr>
         <?php $appointment_data->MoveNext();
         $i++; } ?>
     </tbody>
