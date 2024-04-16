@@ -11,6 +11,9 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
+$account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
+
 if (!empty($_GET['week_number'])){
     $week_number = $_GET['week_number'];
     $type = $_GET['type'];
@@ -21,12 +24,44 @@ if (!empty($_GET['week_number'])){
     $dto->modify('+6 days');
     $to_date = $dto->format('Y-m-d');
     if ($type === 'export') {
-        echo 'export';
+        $client_id = constant('client_id');
+        $client_secret = constant('client_secret');
+        $ami_api_url = constant('ami_api_url').'/oauth/v2/token';
+
+        $AM_USER_NAME = $account_data->fields['AM_USER_NAME'];
+        $AM_PASSWORD = $account_data->fields['AM_PASSWORD'];
+        $AM_REFRESH_TOKEN = $account_data->fields['AM_REFRESH_TOKEN'];
+
+        $user_credential = [
+            'client_id' => $client_id,
+            'client_secret' => $client_secret,
+            'grant_type' => 'password',
+            'username' => $AM_USER_NAME,
+            'password' => $AM_PASSWORD
+        ];
+
+        $auth_data = callArturMurrayApi($ami_api_url, $user_credential, 'GET');
+        $access_token = json_decode($auth_data)->access_token;
+
+        //pre_r($access_token);
+
+        $data = [
+            'type' => 'royalty',
+            'week_number' => 2,
+            'week_year' => 2023
+        ];
+        $url = 'https://api.arthurmurrayfranchisee.com/api/v1/reports';
+        $authorization = "Authorization: Bearer ".$access_token;
+
+        $get_data = callArturMurrayApi($url, $data, 'GET', $authorization);
+
+        pre_r($get_data);
+
+        die();
     }
 }
 
-$res = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-$business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
+
 ?>
 
 <!DOCTYPE html>
