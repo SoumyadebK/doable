@@ -176,3 +176,35 @@ function getAppointmentSerialNumber($PK_USER_MASTER){
         return 1;
     }
 }
+
+function callArturMurrayApi(string $url, array $data, string $method, string $access_token = '')
+{
+    $params = http_build_query($data);
+
+// Initialize cURL session
+    $ch = curl_init();
+
+// Set cURL options
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Return response as a string
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST'); // Use custom request method
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $params); // Set request body data
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array($access_token));
+
+    // Execute the cURL session
+    $response = curl_exec($ch);
+
+// Check for errors
+    if(curl_errno($ch)){
+        echo 'Curl error: ' . curl_error($ch);
+    }
+
+// Close cURL session
+    curl_close($ch);
+
+
+
+    //pre_r($server_output);
+
+    return $response;
+}

@@ -29,6 +29,18 @@ if (!empty($_SESSION['DB_NAME'])) {
     }
 }
 
+$env = 'dev';
+
+if ($env === 'dev') {
+    define("client_id", "5c896c023b775026fc5e3352_gcd6pouyir4s8c0cwg04ss0ck8s0gcgkoog4wcw00ko0ssksg");
+    define("client_secret", "62d7w06sfssg8k4gcgg88kokocg48gg0gk08c80wgosgks4ok4");
+    define("ami_api_url", "https://api.arthurmurrayfranchisee.com");
+} else {
+    define("client_id", "5c896bf53b775025ca4ebd0f_1nw82cn6cbz4os80w0wc4www88gwgo4wgc48kg88sg884ss48c");
+    define("client_secret", "16ovel8dax340o8kko8w0c8g8s80ss00k8w8kw84ocgc8k8w80");
+    define("ami_api_url", "https://reporting.arthurmurray.com");
+}
+
 if ($db->error_number){
     die("Master Database Connection Error");
 }else{
