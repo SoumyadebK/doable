@@ -197,8 +197,7 @@ $page_first_result = ($page-1) * $results_per_page;
                 <td style="vertical-align: middle; text-align: center;" colspan="13">
                     <div class="col-12">
                         <div class="form-group">
-                            <label class="form-label">Comment</label>
-                            <textarea class="form-control" name="COMMENT" rows="4"><?=$appointment_data->fields['COMMENT']?></textarea><span><?=$CHANGED_BY?></span>
+                            <textarea class="form-control" name="COMMENT" rows="3"><?=$appointment_data->fields['COMMENT']?></textarea><span><?=$CHANGED_BY?></span>
                         </div>
                     </div>
                     <div class="row">
