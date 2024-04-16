@@ -194,14 +194,43 @@ $page_first_result = ($page-1) * $results_per_page;
             </td>
         </tr>
             <tr style="display: none">
-                <td style="vertical-align: middle; text-align: center;" colspan="13"><?=$appointment_data->fields['COMMENT']?>
-                    <?php if ($IMAGE_LINK != '' && $IMAGE_LINK != null) { ?>
-                        (<a href="<?=$IMAGE_LINK?>" target="_blank">View Image</a>)
-                    <?php } ?>
-                    <?php if ($VIDEO_LINK != '' && $VIDEO_LINK != null) { ?>
-                        (<a href="<?=$VIDEO_LINK?>" target="_blank">View Video</a>)
-                    <?php } ?>
-                    <br><span><?=$CHANGED_BY?></span>
+                <td style="vertical-align: middle; text-align: center;" colspan="13">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="form-label">Comment</label>
+                            <textarea class="form-control" name="COMMENT" rows="4"><?=$appointment_data->fields['COMMENT']?></textarea><span><?=$CHANGED_BY?></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <a href="<?=$IMAGE_LINK?>" target="_blank">
+                                    <img src="<?=$IMAGE_LINK?>" style="margin-top: 15px; width: 150px; height: auto;">
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <a href="<?=$VIDEO_LINK?>" target="_blank">
+                                    <?php if($VIDEO_LINK != '') {?>
+                                        <video width="240" height="135" controls>
+                                            <source src="<?=$VIDEO_LINK?>" type="video/mp4">
+                                        </video>
+                                    <?php }?>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <?php /*=$appointment_data->fields['COMMENT']*/?><!--
+                    <?php /*if ($IMAGE_LINK != '' && $IMAGE_LINK != null) { */?>
+                        (<a href="<?php /*=$IMAGE_LINK*/?>" target="_blank">View Image</a>)
+                    <?php /*} */?>
+                    <?php /*if ($VIDEO_LINK != '' && $VIDEO_LINK != null) { */?>
+                        (<a href="<?php /*=$VIDEO_LINK*/?>" target="_blank">View Video</a>)
+                    <?php /*} */?>
+                    <br><span><?php /*=$CHANGED_BY*/?></span>-->
                 </td>
             </tr>
             <tr style="display: none">
