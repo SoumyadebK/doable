@@ -1,5 +1,9 @@
 <?php
 require_once('../global/config.php');
+global $db;
+global $db_account;
+global $master_database;
+
 $title = "STAFF PERFORMANCE REPORT";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
@@ -7,12 +11,15 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
-if (!empty($_GET['date'])){
-    $from_date = $_GET['date'];
-    $to_date = date('m/d/y', strtotime("+7 day", strtotime($from_date)));
-    $duedt = explode("/", $from_date);
-    $date  = mktime(0, 0, 0, $duedt[0], $duedt[1], $duedt[2]);
-    $week_number  = (int)date('W', $date);
+if (!empty($_GET['week_number'])){
+    $week_number = $_GET['week_number'];
+    $YEAR = date('Y');
+    $dto = new DateTime();
+    $dto->setISODate($YEAR, $week_number);
+    $from_date = $dto->modify('-1 day')->format('Y-m-d');
+    $dto->modify('+6 days');
+    $to_date = $dto->format('Y-m-d');
+
     $date_between = "AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
     $appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
 } else {

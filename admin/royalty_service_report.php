@@ -1,5 +1,9 @@
 <?php
 require_once('../global/config.php');
+global $db;
+global $db_account;
+global $master_database;
+
 $title = "WEEKLY ROYALTY / SERVICE REPORT";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
@@ -7,13 +11,20 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
-if (!empty($_GET['date'])){
-    $from_date = $_GET['date'];
-    $to_date = date('m/d/y', strtotime("+7 day", strtotime($from_date)));
-    $duedt = explode("/", $from_date);
-    $date  = mktime(0, 0, 0, $duedt[0], $duedt[1], $duedt[2]);
-    $week_number  = (int)date('W', $date);
+if (!empty($_GET['week_number'])){
+    $week_number = $_GET['week_number'];
+    $type = $_GET['type'];
+    $YEAR = date('Y');
+    $dto = new DateTime();
+    $dto->setISODate($YEAR, $week_number);
+    $from_date = $dto->modify('-1 day')->format('Y-m-d');
+    $dto->modify('+6 days');
+    $to_date = $dto->format('Y-m-d');
+    if ($type === 'export') {
+        echo 'export';
+    }
 }
+
 $res = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
 ?>

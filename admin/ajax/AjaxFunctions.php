@@ -1853,3 +1853,26 @@ function makeRefundToWallet($RESPONSE_DATA)
     db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
 }
 
+function generateAmReport($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+
+    $WEEK_NUMBER = explode(' ', $RESPONSE_DATA['week_number'])[2];
+    $YEAR = date('Y');
+    $START_END_DATE = getStartAndEndDate($WEEK_NUMBER+1, $YEAR);
+
+    pre_r($START_END_DATE);
+}
+
+function getStartAndEndDate($week, $year): array
+{
+    $dto = new DateTime();
+    $dto->setISODate($year, $week);
+    $ret['week_start'] = $dto->modify('-1 day')->format('Y-m-d');
+    $dto->modify('+6 days');
+    $ret['week_end'] = $dto->format('Y-m-d');
+    return $ret;
+}
+
+
