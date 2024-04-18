@@ -31,6 +31,24 @@ if (!empty($_GET['week_number'])){
 }
 $res = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
+$location_name='';
+$results = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$resultsArray = [];
+while (!$results->EOF) {
+    $resultsArray[] = $results->fields['LOCATION_NAME'];
+    $results->MoveNext();
+}
+$totalResults = count($resultsArray);
+$concatenatedResults = "";
+foreach ($resultsArray as $key => $result) {
+    // Append the current result to the concatenated string
+    $concatenatedResults .= $result;
+
+    // If it's not the last result, append a comma
+    if ($key < $totalResults - 1) {
+        $concatenatedResults .= ", ";
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -71,7 +89,7 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
                                     <thead>
                                     <tr>
-                                        <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="5">Franchisee: <?=$business_name?></th>
+                                        <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="5">Franchisee: <?=$business_name." (".$concatenatedResults.")"?></th>
                                         <th style="width:50%; text-align: center; font-weight: bold" colspan="4">Week # <?=$week_number?> (<?=$from_date?> - <?=$to_date?>)</th>
                                     </tr>
                                     <tr>
@@ -103,10 +121,28 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                         $private = $private_data->RecordCount() > 0 ? $private_data->fields['PRIVATE'] : 0;
                                         $group_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 ".$appointment_date." AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
                                         $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
-                                        $enrollment_data = $db_account->Execute("SELECT SUM(PERCENTAGE_AMOUNT) AS TOTAL_PERCENTAGE_AMOUNT FROM (SELECT (DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT * DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE) / 100 AS PERCENTAGE_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER= DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$row->fields['PK_USER']." $date_between ORDER BY DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC LIMIT 3) AS TOTAL_PERCENTAGE_AMOUNT");
-                                        $enrollment_data_1 = $db_account->Execute("SELECT SUM(PERCENTAGE_AMOUNT) AS TOTAL_PERCENTAGE_AMOUNT FROM (SELECT (DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT * DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE) / 100 AS PERCENTAGE_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER= DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$row->fields['PK_USER']." $date_between ORDER BY DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC LIMIT 3,18446744073709551615) AS TOTAL_PERCENTAGE_AMOUNT");
-                                        $interview = $enrollment_data->RecordCount() > 0 ? $enrollment_data->fields['TOTAL_PERCENTAGE_AMOUNT'] : 0;
-                                        $renewal = $enrollment_data_1->RecordCount() > 0 ? $enrollment_data_1->fields['TOTAL_PERCENTAGE_AMOUNT'] : 0;
+
+                                        $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE, DOA_ENROLLMENT_SERVICE.STATUS FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$row->fields['PK_USER']." $date_between ORDER BY DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
+                                        $INTERVIEW_TOTAL=0;
+                                        $RENEWAL_TOTAL=0;
+                                        $j=1;
+                                        while (!$enrollment_data->EOF) {
+                                            if($j <= 3) {
+                                                if($enrollment_data->fields['STATUS']=='A'){
+                                                    $INTERVIEW_TOTAL += $enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100;
+                                                } else {
+                                                    $INTERVIEW_TOTAL += $enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100;
+                                                }
+                                            } else {
+                                                if($enrollment_data->fields['STATUS']=='A'){
+                                                    $RENEWAL_TOTAL += $enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100;
+                                                } else {
+                                                    $RENEWAL_TOTAL += $enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100;
+                                                }
+                                            }
+                                            $j++;
+                                            $enrollment_data->MoveNext();
+                                        }
                                         ?>
                                         <tr>
                                             <td><?=$row->fields['LAST_NAME'].', '.$row->fields['FIRST_NAME']?></td>
@@ -116,8 +152,8 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                             <td style="text-align: right"><?=''?></td>
                                             <td style="text-align: right"><?=''?></td>
                                             <td style="text-align: right"><?=''?></td>
-                                            <td style="text-align: right"><?=number_format($interview , 2)?></td>
-                                            <td style="text-align: right"><?=number_format($renewal , 2)?></td>
+                                            <td style="text-align: right"><?=number_format($INTERVIEW_TOTAL , 2)?></td>
+                                            <td style="text-align: right"><?=number_format($RENEWAL_TOTAL , 2)?></td>
                                         </tr>
                                         <?php $row->MoveNext();
                                         $i++; } ?>
@@ -137,20 +173,28 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                         $private = $private_data->RecordCount() > 0 ? $private_data->fields['PRIVATE'] : 0;
                                         $group_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
                                         $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
-                                        $enrollment_data = $db_account->Execute("SELECT SUM(PERCENTAGE_AMOUNT) AS TOTAL_PERCENTAGE FROM (SELECT (DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT * DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_PERCENTAGE) / 100 AS PERCENTAGE_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER= DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." $date_between ORDER BY DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC LIMIT 3) AS TOTAL_PERCENTAGE");
-                                        $result = $enrollment_data->fields['TOTAL_PERCENTAGE'];
-                                        $enrollment_data_1 = $db_account->Execute("SELECT SUM(PERCENTAGE_AMOUNT) AS TOTAL_PERCENTAGE FROM (SELECT (DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT * DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_PERCENTAGE) / 100 AS PERCENTAGE_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER= DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." $date_between ORDER BY DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC LIMIT 3,18446744073709551615) AS TOTAL_PERCENTAGE");
-                                        $result_1 = $enrollment_data_1->fields['TOTAL_PERCENTAGE'];
-                                        /*if ($role==9){
-                                            $interview = $enrollment_data->fields['TOTAL_PERCENTAGE'] > 0 ? $result : 0;
-                                        } else{
-                                            $interview = 0;
+
+                                        $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_PERCENTAGE, DOA_ENROLLMENT_SERVICE.STATUS FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." $date_between ORDER BY DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
+                                        $INTERVIEW_TOTAL=0;
+                                        $RENEWAL_TOTAL=0;
+                                        $j=1;
+                                        while (!$enrollment_data->EOF) {
+                                            if($j <= 3) {
+                                                if($enrollment_data->fields['STATUS']=='A'){
+                                                    $INTERVIEW_TOTAL += $enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['ENROLLMENT_BY_PERCENTAGE'] / 100;
+                                                } else {
+                                                    $INTERVIEW_TOTAL += $enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['ENROLLMENT_BY_PERCENTAGE'] / 100;
+                                                }
+                                            } else {
+                                                if($enrollment_data->fields['STATUS']=='A'){
+                                                    $RENEWAL_TOTAL += $enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['ENROLLMENT_BY_PERCENTAGE'] / 100;
+                                                } else {
+                                                    $RENEWAL_TOTAL += $enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['ENROLLMENT_BY_PERCENTAGE'] / 100;
+                                                }
+                                            }
+                                            $j++;
+                                            $enrollment_data->MoveNext();
                                         }
-                                        if ($role==10){
-                                            $renewal = $enrollment_data_1->fields['TOTAL_PERCENTAGE'] > 0 ? $result_1 : 0;
-                                        } else{
-                                            $renewal = 0;
-                                        }*/
                                         ?>
                                         <tr>
                                             <td><?=$row->fields['LAST_NAME'].', '.$row->fields['FIRST_NAME']?></td>
@@ -160,8 +204,8 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                             <td style="text-align: right"></td>
                                             <td style="text-align: right"></td>
                                             <td style="text-align: right"></td>
-                                            <td style="text-align: right"><?=number_format($result, 2)?></td>
-                                            <td style="text-align: right"><?=number_format($result_1, 2)?></td>
+                                            <td style="text-align: right"><?=number_format($INTERVIEW_TOTAL, 2)?></td>
+                                            <td style="text-align: right"><?=number_format($RENEWAL_TOTAL, 2)?></td>
                                         </tr>
                                         <?php $row->MoveNext();
                                         $j++; } ?>

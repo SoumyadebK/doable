@@ -254,6 +254,8 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $TUITION='';
     $DISCOUNT='';
     $BAL_DUE='';
+    $MISC_SERVICES='';
+    $TUITION_COST='';
     $enrollment_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
     $enrollment_count = $db_account->Execute("SELECT COUNT(PK_USER_MASTER) AS ENROLLMENT_COUNT FROM DOA_ENROLLMENT_MASTER WHERE PK_USER_MASTER=".$enrollment_service_data->fields['PK_USER_MASTER']);
     $number = $enrollment_count->RecordCount() > 0 ? $enrollment_count->fields['ENROLLMENT_COUNT'] : '';
@@ -273,14 +275,20 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         $BAL_DUE .= $enrollment_service_data->fields['FINAL_AMOUNT']."<br>";
         $enrollment_service_data->MoveNext();
     }
+    $misc_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.* FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER=DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 5 AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+    while (!$misc_service_data->EOF) {
+        $MISC_SERVICES .= $misc_service_data->fields['SERVICE_DETAILS']."<br>";
+        $TUITION_COST .= $misc_service_data->fields['FINAL_AMOUNT']."<br>";
+        $misc_service_data->MoveNext();
+    }
     $html_template = str_replace('{TYPE_OF_ENROLLMENT}', $TYPE_OF_ENROLLMENT, $html_template);
     $html_template = str_replace('{SERVICE_DETAILS}', $SERVICE_DETAILS, $html_template);
     $html_template = str_replace('{PVT_LESSONS}', $PVT_LESSONS, $html_template);
     $html_template = str_replace('{TUITION}', $TUITION, $html_template);
     $html_template = str_replace('{DISCOUNT}', $DISCOUNT, $html_template);
     $html_template = str_replace('{BAL_DUE}', $BAL_DUE, $html_template);
-    $html_template = str_replace('{MISC_SERVICES}', '0', $html_template);
-    $html_template = str_replace('{TUITION_COST}', '0', $html_template);
+    $html_template = str_replace('{MISC_SERVICES}', $MISC_SERVICES, $html_template);
+    $html_template = str_replace('{TUITION_COST}', $TUITION_COST, $html_template);
     $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);
     $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
