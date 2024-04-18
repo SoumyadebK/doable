@@ -4,62 +4,120 @@ global $db;
 global $db_account;
 global $master_database;
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+
 $title = "WEEKLY ROYALTY / SERVICE REPORT";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2){
     header("location:../login.php");
     exit;
 }
 
+$type = $_GET['type'];
+
+$week_number = $_GET['week_number'];
+$YEAR = date('Y');
+$dto = new DateTime();
+$dto->setISODate($YEAR, $week_number);
+$from_date = $dto->modify('-1 day')->format('Y-m-d');
+$dto->modify('+6 days');
+$to_date = $dto->format('Y-m-d');
+
+
+$ENROLLMENT_QUERY = "SELECT DISTINCT
+                        DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
+                        DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
+                        DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                        DOA_ENROLLMENT_MASTER.ACTIVE,
+                        DOA_ENROLLMENT_MASTER.STATUS,
+                        DOA_ENROLLMENT_MASTER.PK_USER_MASTER,
+                        DOA_ENROLLMENT_MASTER.CREATED_ON,
+                        DOA_USERS.FIRST_NAME,
+                        DOA_USERS.LAST_NAME,
+                        DOA_USERS.EMAIL_ID,
+                        DOA_USERS.PHONE,
+                        DOA_LOCATION.LOCATION_NAME,
+                        DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID,
+                        DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED,
+                        DOA_USER_MASTER.PK_USER_MASTER,
+                        DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT
+                    FROM
+                        DOA_ENROLLMENT_MASTER
+                    INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                    INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
+                    LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
+                    LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER
+                    LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+                    WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$DEFAULT_LOCATION_ID.") 
+                    AND DOA_USERS.ACTIVE = 1 
+                    AND DOA_USERS.IS_DELETED = 0 
+                    AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
+
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
 
-if (!empty($_GET['week_number'])){
-    $week_number = $_GET['week_number'];
-    $type = $_GET['type'];
-    $YEAR = date('Y');
-    $dto = new DateTime();
-    $dto->setISODate($YEAR, $week_number);
-    $from_date = $dto->modify('-1 day')->format('Y-m-d');
-    $dto->modify('+6 days');
-    $to_date = $dto->format('Y-m-d');
-    if ($type === 'export') {
-        $client_id = constant('client_id');
-        $client_secret = constant('client_secret');
-        $ami_api_url = constant('ami_api_url').'/oauth/v2/token';
 
-        $AM_USER_NAME = $account_data->fields['AM_USER_NAME'];
-        $AM_PASSWORD = $account_data->fields['AM_PASSWORD'];
-        $AM_REFRESH_TOKEN = $account_data->fields['AM_REFRESH_TOKEN'];
+if ($type === 'export') {
+    $client_id = constant('client_id');
+    $client_secret = constant('client_secret');
+    $ami_api_url = constant('ami_api_url').'/oauth/v2/token';
 
-        $user_credential = [
-            'client_id' => $client_id,
-            'client_secret' => $client_secret,
-            'grant_type' => 'password',
-            'username' => $AM_USER_NAME,
-            'password' => $AM_PASSWORD
-        ];
+    $AM_USER_NAME = $account_data->fields['AM_USER_NAME'];
+    $AM_PASSWORD = $account_data->fields['AM_PASSWORD'];
+    $AM_REFRESH_TOKEN = $account_data->fields['AM_REFRESH_TOKEN'];
 
-        $auth_data = callArturMurrayApi($ami_api_url, $user_credential, 'GET');
-        $access_token = json_decode($auth_data)->access_token;
+    $user_credential = [
+        'client_id' => $client_id,
+        'client_secret' => $client_secret,
+        'grant_type' => 'password',
+        'username' => $AM_USER_NAME,
+        'password' => $AM_PASSWORD
+    ];
 
-        //pre_r($access_token);
+    /*$auth_data = callArturMurrayApi($ami_api_url, $user_credential, 'GET');
+    $access_token = json_decode($auth_data)->access_token;*/
 
-        $data = [
-            'type' => 'royalty',
-            'week_number' => 2,
-            'week_year' => 2023
-        ];
-        $url = 'https://api.arthurmurrayfranchisee.com/api/v1/reports';
-        $authorization = "Authorization: Bearer ".$access_token;
 
-        $get_data = callArturMurrayApi($url, $data, 'GET', $authorization);
+    $enrollment_data = $db_account->Execute($ENROLLMENT_QUERY);
 
-        pre_r($get_data);
-
-        die();
+    while (!$enrollment_data->EOF) {
+        $enrollment_service_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_UNIT, SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, SUM(`TOTAL_AMOUNT_PAID`) AS TOTAL_PAID FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$enrollment_data->fields['PK_ENROLLMENT_MASTER']);
+        $line_item[] = array(
+            "receipt_number" => $enrollment_data->fields['ENROLLMENT_ID'],
+            "date_paid" => $enrollment_data->fields['CREATED_ON'],
+            "students_full_name" => $enrollment_data->fields['FIRST_NAME'].' '.$enrollment_data->fields['LAST_NAME'],
+            //"executive" => $enrollment_data->fields['ENROLLMENT_ID'],
+            //"staff_members" => $enrollment_data->fields['ENROLLMENT_ID'],
+            "sale_code" => 'PRI',
+            "custom_package" => 'TEST',
+            "number_of_units" => $enrollment_service_data->fields['TOTAL_UNIT'],
+            "sale_value" => $enrollment_service_data->fields['TOTAL_AMOUNT'],
+            "cash" => $enrollment_service_data->fields['TOTAL_PAID'],
+            "miscellaneous_services" => 0,
+            "sundry" => 0,
+        );
+        $enrollment_data->MoveNext();
     }
+
+    $data = [
+        'type' => 'royalty',
+        'prepared_by' => $user_data->fields['FIRST_NAME'].' '.$user_data->fields['LAST_NAME'],
+        'week_number' => 2,
+        'week_year' => 2023,
+        'line_items' => $line_item
+    ];
+
+    $url = 'https://api.arthurmurrayfranchisee.com/api/v1/reports';
+    $authorization = "Authorization: Bearer YTM4YWEyNzU4MWFhZTZkNjhlMWJlYWQ5NWU4ODJkYmE3MzBlYzYxYTZmMWNlMWYyMTJkZGI5N2JiMWYyMjE3ZA";
+
+    $get_data = callArturMurrayApi($url, $data, 'GET', $authorization);
+
+    pre_r($get_data);
+
+    die();
 }
+
 
 
 ?>
@@ -98,9 +156,17 @@ if (!empty($_GET['week_number'])){
 
 
                         <div class="card-body">
-                            <div>
-                                <img src="../assets/images/background/doable_logo.png" style="margin-bottom:-35px; height: 60px; width: auto;">
-                                <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?=$title?></h3>
+                            <div class="row">
+                                <div class="col-2" style="padding-bottom: 20px;">
+                                    <img src="../assets/images/background/doable_logo.png" style="height: 60px; width: auto;">
+                                </div>
+
+                                <div class="col-8" style="padding-top: 10px;">
+                                    <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?=$title?></h3>
+                                </div>
+                                <div class="col-2" style="padding-bottom: 20px;">
+                                    <img src="../assets/images/background/doable_logo.png" style="float: right; height: 60px; width: auto;">
+                                </div>
                             </div>
 
                             <div class="table-responsive">
@@ -142,52 +208,28 @@ if (!empty($_GET['week_number'])){
                                     </thead>
                                     <tbody>
                                     <?php
-                                    $i=1;
-                                    //$row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                    while (!$row->EOF) {
-                                        $balance_data = $db->Execute("SELECT SUM(BALANCE_PAYABLE) AS ENROLLED, SUM(TOTAL_BALANCE_PAID) AS TOTAL_PAID, SUM(TOTAL_BALANCE_USED) AS BALANCE_USED, SUM(AMOUNT) AS AMOUNT, SUM(REMAINING_AMOUNT) AS REMAINING, SUM(PAID_AMOUNT) AS PAID, SUM(BILLED_AMOUNT) AS BILLED FROM `DOA_ENROLLMENT_BALANCE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_MASTER.PK_USER = ".$row->fields['PK_USER']);
-                                        $enrolled = 0.00;
-                                        $total_paid = 0.00;
-                                        $balance_left = 0.00;
-                                        $used = 0.00;
-                                        $balance = 0.00;
-                                        $amount = 0.00;
-                                        $remaining = 0.00;
-                                        $paid_amount = 0.00;
-                                        if ($balance_data->RecordCount() > 0) {
-                                            $enrolled = $balance_data->fields['ENROLLED'];
-                                            $total_paid = $balance_data->fields['TOTAL_PAID'];
-                                            $balance = $balance_data->fields['TOTAL_PAID'];
-                                            $used = $balance_data->fields['BALANCE_USED'];
-                                            $amount = $balance_data->fields['AMOUNT'];
-                                            $remaining = $balance_data->fields['REMAINING'];
-                                            $balance_left = $balance_data->fields['TOTAL_PAID']-$balance_data->fields['BALANCE_USED'];
-                                            $paid_amount = $balance_data->fields['PAID'];
-                                        } ?>
+                                    $enrollment_data = $db_account->Execute($ENROLLMENT_QUERY);
+
+                                    while (!$enrollment_data->EOF) {
+                                         ?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['USER_NAME']?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($enrolled , 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($used, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($paid_amount, 2)?></td>
+                                            <td><?=$enrollment_data->fields['ENROLLMENT_ID']?></td>
+                                            <td><?=date('m/d/Y', strtotime($enrollment_data->fields['CREATED_ON']))?></td>
+                                            <td><?=$enrollment_data->fields['FIRST_NAME'].' '.$enrollment_data->fields['LAST_NAME']?></td>
                                         </tr>
-                                        <?php $row->MoveNext();
-                                        $i++; } ?>
-                                    <tr>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="7">Daily Totals</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
-                                    </tr>
+                                        <?php
+                                        $enrollment_data->MoveNext();
+                                    }
+                                    ?>
+                                        <tr>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="7">Daily Totals</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -198,7 +240,6 @@ if (!empty($_GET['week_number'])){
             <div class="row">
                 <div class="col-12">
                     <div class="card">
-
 
                         <div class="card-body">
                             <div>
