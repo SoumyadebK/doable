@@ -564,13 +564,13 @@ if(!empty($_GET['id'])) {
                                                             <?php } else { ?>
                                                                 <div class="row">
                                                                     <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: none;">
-                                                                        <div class="col-3">
+                                                                        <!--<div class="col-3">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Old Password</label>
-                                                                                <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?=$PASSWORD?>">
+                                                                                <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?php /*=$PASSWORD*/?>">
                                                                                 <input type="password" name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
                                                                             </div>
-                                                                        </div>
+                                                                        </div>-->
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">New Password</label>
@@ -1326,31 +1326,6 @@ if(!empty($_GET['id'])) {
             let PASSWORD = $('#PASSWORD').val();
             let CONFIRM_PASSWORD = $('#CONFIRM_PASSWORD').val();
             if (PASSWORD === CONFIRM_PASSWORD) {
-                let SAVED_OLD_PASSWORD = $('#SAVED_OLD_PASSWORD').val();
-                let OLD_PASSWORD = $('#OLD_PASSWORD').val();
-                if (SAVED_OLD_PASSWORD && OLD_PASSWORD)
-                {
-                    $.ajax({
-                        url: "ajax/check_old_password.php",
-                        type: 'POST',
-                        data: {ENTERED_PASSWORD: OLD_PASSWORD, SAVED_PASSWORD: SAVED_OLD_PASSWORD},
-                        success: function (data) {
-                            if (data == 0){
-                                $('#password_error').text('Old Password not matched');
-                            }else{
-                                let form_data = $('#login_form').serialize();
-                                $.ajax({
-                                    url: "ajax/AjaxFunctions.php",
-                                    type: 'POST',
-                                    data: form_data,
-                                    success: function (data) {
-                                        window.location.href = 'all_users.php';
-                                    }
-                                });
-                            }
-                        }
-                    });
-                }else {
                     let form_data = $('#login_form').serialize();
                     $.ajax({
                         url: "ajax/AjaxFunctions.php",
@@ -1368,8 +1343,7 @@ if(!empty($_GET['id'])) {
                             }
                         }
                     });
-                }
-            }else{
+            } else{
                 $('#password_error').text('Password and Confirm Password not matched');
             }
         });

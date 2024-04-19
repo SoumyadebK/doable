@@ -302,7 +302,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     }
     $html_template = str_replace('{DOWN_PAYMENTS}', number_format((float)$RESPONSE_DATA['DOWN_PAYMENT'], 2, '.', ''), $html_template);
     $html_template = str_replace('{SCHEDULE_AMOUNT}', $RESPONSE_DATA['BALANCE_PAYABLE'], $html_template);
-
+    $html_template = str_replace('{REMAINING_BALANCE}', number_format((float)$RESPONSE_DATA['BALANCE_PAYABLE'], 2, '.', ''), $html_template);
 
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
         $PAYMENT_METHOD='';
@@ -322,6 +322,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     }
     $html_template = str_replace('{PAYMENT_NAME}', $PAYMENT_METHOD, $html_template);
     $html_template = str_replace('{NO_AMT_PAYMENT}', $PAYMENT_AMOUNT, $html_template);
+    $html_template = str_replace('{INSTALLMENT_AMOUNT}', number_format((float)$RESPONSE_DATA['INSTALLMENT_AMOUNT'], 2, '.', ''), $html_template);
     $html_template = str_replace('{STARTING_DATE}', $STARTING_DATE, $html_template);
 
     $business_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.BUSINESS_NAME, DOA_LOCATION.ADDRESS, DOA_LOCATION.ZIP_CODE, DOA_LOCATION.CITY, DOA_STATES.STATE_NAME, DOA_COUNTRY.COUNTRY_NAME, DOA_LOCATION.PHONE FROM DOA_LOCATION INNER JOIN DOA_STATES ON DOA_STATES.PK_STATES = DOA_LOCATION.PK_STATES INNER JOIN DOA_COUNTRY ON DOA_COUNTRY.PK_COUNTRY = DOA_LOCATION.PK_COUNTRY INNER JOIN DOA_ACCOUNT_MASTER ON DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER = DOA_LOCATION.PK_ACCOUNT_MASTER WHERE DOA_LOCATION.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);

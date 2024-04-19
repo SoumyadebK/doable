@@ -178,8 +178,10 @@ if(empty($_GET['id'])){
                                             <a href="javascript:;" class="tag_name" data-tag="{PREV_BAL_RESCHEDULE}" style="font-weight: normal;">{PREV_BAL_RESCHEDULE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{CONSOLIDATED_PRICE}" style="font-weight: normal;">{CONSOLIDATED_PRICE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{DOWN_PAYMENTS}" style="font-weight: normal;">{DOWN_PAYMENTS}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{REMAINING_BALANCE}" style="font-weight: normal;">{REMAINING_BALANCE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{PAYMENT_NAME}" style="font-weight: normal;">{PAYMENT_NAME}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{NO_AMT_PAYMENT}" style="font-weight: normal;">{NO_AMT_PAYMENT}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{INSTALLMENT_AMOUNT}" style="font-weight: normal;">{INSTALLMENT_AMOUNT}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{STARTING_DATE}" style="font-weight: normal;">{STARTING_DATE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{SCHEDULE_AMOUNT}" style="font-weight: normal;">{SCHEDULE_AMOUNT}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{SERVICE_CHARGE}" style="font-weight: normal;">{SERVICE_CHARGE}</a>

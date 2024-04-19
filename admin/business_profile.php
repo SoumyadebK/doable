@@ -144,6 +144,8 @@ $OPERATION_TAB_TITLE = $res->fields['OPERATION_TAB_TITLE'];
 $PK_CURRENCY            = $res->fields['PK_CURRENCY'];
 $ENROLLMENT_ID_CHAR     = $res->fields['ENROLLMENT_ID_CHAR'];
 $ENROLLMENT_ID_NUM      = $res->fields['ENROLLMENT_ID_NUM'];
+$MISCELLANEOUS_ID_CHAR = $res->fields['MISCELLANEOUS_ID_CHAR'];
+$MISCELLANEOUS_ID_NUM      = $res->fields['MISCELLANEOUS_ID_NUM'];
 $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
 $SECRET_KEY             = $res->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY        = $res->fields['PUBLISHABLE_KEY'];
@@ -499,7 +501,26 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                     <div class="form-group">
                                                         <label class="col-md-12">Enrollment Id Number</label>
                                                         <div class="col-md-12">
-                                                            <input type="number" id="ENROLLMENT_ID_NUM" name="ENROLLMENT_ID_NUM" class="form-control" placeholder="Enrollment Id Number" value="<?php echo $ENROLLMENT_ID_NUM?>">
+                                                            <input type="number" id="MISCELLANEOUS_ID_NUM" name="ENROLLMENT_ID_NUM" class="form-control" placeholder="Enrollment Id Number" value="<?php echo $ENROLLMENT_ID_NUM?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Miscellaneous Id Character</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="MISCELLANEOUS_ID_CHAR" name="MISCELLANEOUS_ID_CHAR" class="form-control" placeholder="Miscellaneous Id Character" value="<?php echo $MISCELLANEOUS_ID_CHAR?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Miscellaneous Id Number</label>
+                                                        <div class="col-md-12">
+                                                            <input type="number" id="MISCELLANEOUS_ID_NUM" name="MISCELLANEOUS_ID_NUM" class="form-control" placeholder="Miscellaneous Id Number" value="<?php echo $MISCELLANEOUS_ID_NUM?>">
                                                         </div>
                                                     </div>
                                                 </div>
