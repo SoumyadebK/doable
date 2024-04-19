@@ -132,13 +132,23 @@ function saveEnrollmentData($RESPONSE_DATA){
     $ENROLLMENT_MASTER_DATA['STATUS'] = 'A';
 
     if(empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER']) || $RESPONSE_DATA['PK_ENROLLMENT_MASTER'] == 0){
-        $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM, MISCELLANEOUS_ID_CHAR FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
         $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-        if ($enrollment_data->RecordCount() > 0){
-            $last_enrollment_id = str_replace($account_data->fields['ENROLLMENT_ID_CHAR'], '', $enrollment_data->fields['ENROLLMENT_ID']) ;
-            $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR'].(intval($last_enrollment_id)+1);
-        }else{
-            $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR'].$account_data->fields['ENROLLMENT_ID_NUM'];
+        $misc_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.* FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER=DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 5 AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+        if ($misc_service_data->RecordCount() > 0){
+            if ($enrollment_data->RecordCount() > 0){
+                $last_enrollment_id = str_replace($account_data->fields['MISCELLANEOUS_ID_CHAR'], '', $enrollment_data->fields['ENROLLMENT_ID']) ;
+                $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR'].(intval($last_enrollment_id)+1);
+            }else{
+                $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR'].$account_data->fields['ENROLLMENT_ID_NUM'];
+            }
+        } else {
+            if ($enrollment_data->RecordCount() > 0){
+                $last_enrollment_id = str_replace($account_data->fields['ENROLLMENT_ID_CHAR'], '', $enrollment_data->fields['ENROLLMENT_ID']) ;
+                $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR'].(intval($last_enrollment_id)+1);
+            }else{
+                $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR'].$account_data->fields['ENROLLMENT_ID_NUM'];
+            }
         }
         $ENROLLMENT_MASTER_DATA['ACTIVE'] = 1;
         $ENROLLMENT_MASTER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
@@ -248,6 +258,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template);
     $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
     $html_template = str_replace('{CELL_PHONE}', $user_data->fields['PHONE'], $html_template);
+
     $TYPE_OF_ENROLLMENT='';
     $SERVICE_DETAILS='';
     $PVT_LESSONS='';
@@ -256,6 +267,9 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $BAL_DUE='';
     $MISC_SERVICES='';
     $TUITION_COST='';
+    $DUE_DATE='';
+    $BILLED_AMOUNT='';
+
     $enrollment_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
     $enrollment_count = $db_account->Execute("SELECT COUNT(PK_USER_MASTER) AS ENROLLMENT_COUNT FROM DOA_ENROLLMENT_MASTER WHERE PK_USER_MASTER=".$enrollment_service_data->fields['PK_USER_MASTER']);
     $number = $enrollment_count->RecordCount() > 0 ? $enrollment_count->fields['ENROLLMENT_COUNT'] : '';
@@ -266,6 +280,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     }else{
         $enrollment_name = $enrollment_service_data->fields['ENROLLMENT_NAME']." - ".$abbreviation;
     }
+
     while (!$enrollment_service_data->EOF) {
         $TYPE_OF_ENROLLMENT = $enrollment_name;
         $SERVICE_DETAILS .= $enrollment_service_data->fields['SERVICE_DETAILS']."<br>";
@@ -275,12 +290,14 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         $BAL_DUE .= $enrollment_service_data->fields['FINAL_AMOUNT']."<br>";
         $enrollment_service_data->MoveNext();
     }
+
     $misc_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.* FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER=DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 5 AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
     while (!$misc_service_data->EOF) {
         $MISC_SERVICES .= $misc_service_data->fields['SERVICE_DETAILS']."<br>";
         $TUITION_COST .= $misc_service_data->fields['FINAL_AMOUNT']."<br>";
         $misc_service_data->MoveNext();
     }
+
     $html_template = str_replace('{TYPE_OF_ENROLLMENT}', $TYPE_OF_ENROLLMENT, $html_template);
     $html_template = str_replace('{SERVICE_DETAILS}', $SERVICE_DETAILS, $html_template);
     $html_template = str_replace('{PVT_LESSONS}', $PVT_LESSONS, $html_template);
@@ -291,6 +308,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{TUITION_COST}', $TUITION_COST, $html_template);
     $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);
     $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
+
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
         for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
             $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($FLEXIBLE_PAYMENT_DATE[$i])), $html_template);
@@ -334,8 +352,8 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{BUSINESS_COUNTRY}', $business_data->fields['COUNTRY_NAME'], $html_template);
     $html_template = str_replace('{BUSINESS_ZIP}', $business_data->fields['ZIP_CODE'], $html_template);
     $html_template = str_replace('{BUSINESS_PHONE}', $business_phone, $html_template);
-    $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
-    db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+
+
 
 
     if(empty($RESPONSE_DATA['PK_ENROLLMENT_BILLING'])){
@@ -418,6 +436,16 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                 }
             }
         }
+        $date_amount = $db_account->Execute("SELECT DUE_DATE, BILLED_AMOUNT FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+        while (!$date_amount->EOF) {
+            $DUE_DATE .= $date_amount->fields['DUE_DATE']."<br>";
+            $BILLED_AMOUNT .= $date_amount->fields['BILLED_AMOUNT']."<br>";
+            $date_amount->MoveNext();
+        }
+        $html_template = str_replace('{DUE_DATE}', $DUE_DATE, $html_template);
+        $html_template = str_replace('{BILLED_AMOUNT}', $BILLED_AMOUNT, $html_template);
+        $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
     }else{
         db_perform_account('DOA_ENROLLMENT_BILLING', $RESPONSE_DATA, 'update'," PK_ENROLLMENT_BILLING =  '$RESPONSE_DATA[PK_ENROLLMENT_BILLING]'");
         $PK_ENROLLMENT_BILLING = $RESPONSE_DATA['PK_ENROLLMENT_BILLING'];
