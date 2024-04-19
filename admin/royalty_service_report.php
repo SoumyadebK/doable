@@ -18,40 +18,31 @@ $type = $_GET['type'];
 $week_number = $_GET['week_number'];
 $YEAR = date('Y');
 $dto = new DateTime();
-$dto->setISODate($YEAR, $week_number);
+$dto->setISODate($YEAR, $week_number+1);
 $from_date = $dto->modify('-1 day')->format('Y-m-d');
 $dto->modify('+6 days');
 $to_date = $dto->format('Y-m-d');
 
 
-$ENROLLMENT_QUERY = "SELECT DISTINCT
-                        DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
-                        DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
-                        DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
-                        DOA_ENROLLMENT_MASTER.ACTIVE,
-                        DOA_ENROLLMENT_MASTER.STATUS,
-                        DOA_ENROLLMENT_MASTER.PK_USER_MASTER,
-                        DOA_ENROLLMENT_MASTER.CREATED_ON,
+$ENROLLMENT_QUERY = "SELECT
+                        DOA_ENROLLMENT_PAYMENT.AMOUNT,
+                        DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
+                        DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                        DOA_PAYMENT_TYPE.PAYMENT_TYPE,
                         DOA_USERS.FIRST_NAME,
                         DOA_USERS.LAST_NAME,
-                        DOA_USERS.EMAIL_ID,
-                        DOA_USERS.PHONE,
-                        DOA_LOCATION.LOCATION_NAME,
-                        DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID,
-                        DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED,
-                        DOA_USER_MASTER.PK_USER_MASTER,
-                        DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT
+                        CLOSER.FIRST_NAME,
+                        CLOSER.LAST_NAME,
+                        DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER
                     FROM
-                        DOA_ENROLLMENT_MASTER
+                        DOA_ENROLLMENT_PAYMENT
+                    LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+                    LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+                    INNER JOIN $master_database.DOA_USERS AS CLOSER ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER
                     INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
                     INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
-                    LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
-                    LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER
-                    LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
-                    WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$DEFAULT_LOCATION_ID.") 
-                    AND DOA_USERS.ACTIVE = 1 
-                    AND DOA_USERS.IS_DELETED = 0 
-                    AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
+                    WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$DEFAULT_LOCATION_ID.")
+                    AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
