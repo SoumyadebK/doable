@@ -162,7 +162,6 @@ function saveEnrollmentData($RESPONSE_DATA){
         $ENROLLMENT_MASTER_DATA['ACTIVE'] = 1;
         $ENROLLMENT_MASTER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $ENROLLMENT_MASTER_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        pre_r($ENROLLMENT_MASTER_DATA);
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'insert');
         $PK_ENROLLMENT_MASTER = $db_account->insert_ID();
         createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER,'DOA_ENROLLMENT_MASTER', 'PK_ENROLLMENT_MASTER', $PK_ENROLLMENT_MASTER, $ENROLLMENT_MASTER_DATA, 'insert');
