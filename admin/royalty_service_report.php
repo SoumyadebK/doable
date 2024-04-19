@@ -24,23 +24,29 @@ $dto->modify('+6 days');
 $to_date = $dto->format('Y-m-d');
 
 
-$ENROLLMENT_QUERY = "SELECT
+$PAYMENT_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.AMOUNT,
                         DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                         DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
                         DOA_PAYMENT_TYPE.PAYMENT_TYPE,
-                        DOA_USERS.FIRST_NAME,
-                        DOA_USERS.LAST_NAME,
-                        CLOSER.FIRST_NAME,
-                        CLOSER.LAST_NAME,
+                        CONCAT(DOA_USERS.FIRST_NAME, ' ' ,DOA_USERS.LAST_NAME) AS STUDENT_NAME,
+                        CONCAT(CLOSER.FIRST_NAME, ' ' ,CLOSER.LAST_NAME) AS CLOSER_NAME,
+                        GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME,
+                        DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
                         DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER
                     FROM
                         DOA_ENROLLMENT_PAYMENT
                     LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+                            
                     LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
                     INNER JOIN $master_database.DOA_USERS AS CLOSER ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER
+                            
+                    LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER
+                    LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER
+                            
                     INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
                     INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
+                    
                     WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$DEFAULT_LOCATION_ID.")
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
 
@@ -70,16 +76,16 @@ if ($type === 'export') {
     $access_token = json_decode($auth_data)->access_token;*/
 
 
-    $enrollment_data = $db_account->Execute($ENROLLMENT_QUERY);
+    $payment_data = $db_account->Execute($PAYMENT_QUERY);
 
-    while (!$enrollment_data->EOF) {
-        $enrollment_service_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_UNIT, SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, SUM(`TOTAL_AMOUNT_PAID`) AS TOTAL_PAID FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$enrollment_data->fields['PK_ENROLLMENT_MASTER']);
+    while (!$payment_data->EOF) {
+        $enrollment_service_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_UNIT, SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, SUM(`TOTAL_AMOUNT_PAID`) AS TOTAL_PAID FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
         $line_item[] = array(
-            "receipt_number" => $enrollment_data->fields['ENROLLMENT_ID'],
-            "date_paid" => $enrollment_data->fields['CREATED_ON'],
-            "students_full_name" => $enrollment_data->fields['FIRST_NAME'].' '.$enrollment_data->fields['LAST_NAME'],
-            //"executive" => $enrollment_data->fields['ENROLLMENT_ID'],
-            //"staff_members" => $enrollment_data->fields['ENROLLMENT_ID'],
+            "receipt_number" => $payment_data->fields['ENROLLMENT_ID'],
+            "date_paid" => $payment_data->fields['CREATED_ON'],
+            "students_full_name" => $payment_data->fields['FIRST_NAME'].' '.$payment_data->fields['LAST_NAME'],
+            //"executive" => $payment_data->fields['ENROLLMENT_ID'],
+            //"staff_members" => $payment_data->fields['ENROLLMENT_ID'],
             "sale_code" => 'PRI',
             "custom_package" => 'TEST',
             "number_of_units" => $enrollment_service_data->fields['TOTAL_UNIT'],
@@ -88,7 +94,7 @@ if ($type === 'export') {
             "miscellaneous_services" => 0,
             "sundry" => 0,
         );
-        $enrollment_data->MoveNext();
+        $payment_data->MoveNext();
     }
 
     $data = [
@@ -199,27 +205,64 @@ if ($type === 'export') {
                                     </thead>
                                     <tbody>
                                     <?php
-                                    $enrollment_data = $db_account->Execute($ENROLLMENT_QUERY);
+                                    $payment_data = $db_account->Execute($PAYMENT_QUERY);
+                                    $REGULAR_TOTAL = 0;
+                                    $MISC_TOTAL = 0;
+                                    $TOTAL_AMOUNT = 0;
+                                    while (!$payment_data->EOF) {
+                                        $AMOUNT = $payment_data->fields['AMOUNT'];
+                                        $TOTAL_AMOUNT += $AMOUNT;
+                                        $enrollment_service_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_UNIT, SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
+                                        if($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5) {
+                                            $MISC_TOTAL += $AMOUNT;
+                                        } else {
+                                            $REGULAR_TOTAL += $AMOUNT;
+                                        } ?>
+                                        <tr style="text-align: center;">
+                                            <td><?=$payment_data->fields['RECEIPT_NUMBER']?></td>
+                                            <td><?=date('m/d/Y', strtotime($payment_data->fields['PAYMENT_DATE']))?></td>
+                                            <td><?=$payment_data->fields['STUDENT_NAME']?></td>
+                                            <td><?=$payment_data->fields['PAYMENT_TYPE']?></td>
+                                            <td><?=$payment_data->fields['CLOSER_NAME']?></td>
+                                            <td><?=$payment_data->fields['TEACHER_NAME']?></td>
+                                            <td>
+                                                <?php
+                                                switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
+                                                    case 1:
+                                                        echo '1/PORI';
+                                                        break;
+                                                    case 2:
+                                                        echo '2/ORI';
+                                                        break;
+                                                    case 3:
+                                                        echo '3/EXT';
+                                                        break;
 
-                                    while (!$enrollment_data->EOF) {
-                                         ?>
-                                        <tr>
-                                            <td><?=$enrollment_data->fields['ENROLLMENT_ID']?></td>
-                                            <td><?=date('m/d/Y', strtotime($enrollment_data->fields['CREATED_ON']))?></td>
-                                            <td><?=$enrollment_data->fields['FIRST_NAME'].' '.$enrollment_data->fields['LAST_NAME']?></td>
+                                                    default:
+                                                        echo $payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER'].'/REN';
+                                                        break;
+                                                }
+                                                ?>
+                                            </td>
+                                            <td><?=$enrollment_service_data->fields['TOTAL_UNIT'].' / $'.$enrollment_service_data->fields['TOTAL_AMOUNT']?></td>
+                                            <td><?=($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5) ? '0.00' : '$'.$AMOUNT?></td>
+                                            <td>0.00</td>
+                                            <td><?=($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5) ? '$'.$AMOUNT : '0.00'?></td>
+                                            <td><?='$'.$AMOUNT?></td>
+                                            <td><?='$'.number_format($TOTAL_AMOUNT, 2)?></td>
                                         </tr>
                                         <?php
-                                        $enrollment_data->MoveNext();
+                                        $payment_data->MoveNext();
                                     }
                                     ?>
                                         <tr>
                                             <th style="width:10%; text-align: center; font-weight: bold" colspan="7">Daily Totals</th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_AMOUNT, 2)?></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($REGULAR_TOTAL, 2)?></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1">$0.00</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($MISC_TOTAL, 2)?></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_AMOUNT, 2)?></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_AMOUNT, 2)?></th>
                                         </tr>
                                     </tbody>
                                 </table>
