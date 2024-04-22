@@ -31,7 +31,6 @@ $PAYMENT_QUERY = "SELECT
                         DOA_PAYMENT_TYPE.PAYMENT_TYPE,
                         CONCAT(DOA_USERS.FIRST_NAME, ' ' ,DOA_USERS.LAST_NAME) AS STUDENT_NAME,
                         CONCAT(CLOSER.FIRST_NAME, ' ' ,CLOSER.LAST_NAME) AS CLOSER_NAME,
-                        GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME,
                         DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
                         DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER
                     FROM
@@ -39,13 +38,10 @@ $PAYMENT_QUERY = "SELECT
                     LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
                             
                     LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
-                    INNER JOIN $master_database.DOA_USERS AS CLOSER ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER
-                            
-                    LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER
-                    LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER
-                            
-                    INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
-                    INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
+                    LEFT JOIN $master_database.DOA_USERS AS CLOSER ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER
+                    
+                    LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                    LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
                     
                     WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$DEFAULT_LOCATION_ID.")
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
@@ -172,7 +168,7 @@ if ($type === 'export') {
                                     <tr>
                                         <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?=$business_name?></th>
                                         <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 1</th>
-                                        <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?=$week_number?> (<?=$from_date?> - <?=$to_date?>)</th>
+                                        <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?=$week_number?> (<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</th>
                                     </tr>
                                     <tr>
                                         <th style="width:10%; text-align: center; font-weight: bold" rowspan="2">Receipt number</th>
@@ -207,16 +203,25 @@ if ($type === 'export') {
                                     <?php
                                     $payment_data = $db_account->Execute($PAYMENT_QUERY);
                                     $REGULAR_TOTAL = 0;
+                                    $SUNDRY_TOTAL = 0;
                                     $MISC_TOTAL = 0;
+                                    $TOTAL_RS_FEE = 0;
                                     $TOTAL_AMOUNT = 0;
                                     while (!$payment_data->EOF) {
+                                        $teacher_data = $db_account->Execute("SELECT GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
                                         $AMOUNT = $payment_data->fields['AMOUNT'];
                                         $TOTAL_AMOUNT += $AMOUNT;
-                                        $enrollment_service_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_UNIT, SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
-                                        if($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5) {
+                                        $enrollment_service_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_UNIT, SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_MASTER.IS_SUNDRY FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
+                                        if($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5 && $enrollment_service_data->fields['IS_SUNDRY'] == 0) {
                                             $MISC_TOTAL += $AMOUNT;
+                                        } elseif($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5 && $enrollment_service_data->fields['IS_SUNDRY'] == 1) {
+                                            $SUNDRY_TOTAL += $AMOUNT;
                                         } else {
                                             $REGULAR_TOTAL += $AMOUNT;
+                                        }
+
+                                        if($enrollment_service_data->fields['IS_SUNDRY'] == 0) {
+                                            $TOTAL_RS_FEE += $AMOUNT;
                                         } ?>
                                         <tr style="text-align: center;">
                                             <td><?=$payment_data->fields['RECEIPT_NUMBER']?></td>
@@ -224,7 +229,7 @@ if ($type === 'export') {
                                             <td><?=$payment_data->fields['STUDENT_NAME']?></td>
                                             <td><?=$payment_data->fields['PAYMENT_TYPE']?></td>
                                             <td><?=$payment_data->fields['CLOSER_NAME']?></td>
-                                            <td><?=$payment_data->fields['TEACHER_NAME']?></td>
+                                            <td><?=$teacher_data->fields['TEACHER_NAME']?></td>
                                             <td>
                                                 <?php
                                                 switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
@@ -246,8 +251,8 @@ if ($type === 'export') {
                                             </td>
                                             <td><?=$enrollment_service_data->fields['TOTAL_UNIT'].' / $'.$enrollment_service_data->fields['TOTAL_AMOUNT']?></td>
                                             <td><?=($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5) ? '0.00' : '$'.$AMOUNT?></td>
-                                            <td>0.00</td>
-                                            <td><?=($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5) ? '$'.$AMOUNT : '0.00'?></td>
+                                            <td><?=($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5 && $enrollment_service_data->fields['IS_SUNDRY'] == 1) ? '$'.$AMOUNT : '0.00'?></td>
+                                            <td><?=($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5 && $enrollment_service_data->fields['IS_SUNDRY'] == 0) ? '$'.$AMOUNT : '0.00'?></td>
                                             <td><?='$'.$AMOUNT?></td>
                                             <td><?='$'.number_format($TOTAL_AMOUNT, 2)?></td>
                                         </tr>
@@ -259,9 +264,9 @@ if ($type === 'export') {
                                             <th style="width:10%; text-align: center; font-weight: bold" colspan="7">Daily Totals</th>
                                             <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_AMOUNT, 2)?></th>
                                             <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($REGULAR_TOTAL, 2)?></th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1">$0.00</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($SUNDRY_TOTAL, 2)?></th>
                                             <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($MISC_TOTAL, 2)?></th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_AMOUNT, 2)?></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_RS_FEE, 2)?></th>
                                             <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_AMOUNT, 2)?></th>
                                         </tr>
                                     </tbody>

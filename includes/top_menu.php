@@ -78,12 +78,23 @@
             <!-- User profile and search -->
             <!-- ============================================================== -->
             <ul class="navbar-nav my-lg-0">
-                <?php if ($_SESSION["PK_ROLES"] == 2) { ?>
+                <?php if ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 3) { ?>
                     <li class="nav-item m-t-15">
                         <div id="location" class="multiselect-box" style="width: 300px">
                             <select class="multi_select_location" onchange="selectDefaultLocation(this);" multiple>
                                 <?php
-                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                if ($_SESSION["PK_ROLES"] == 3) {
+                                    $selected_location = [];
+                                    $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = ".$_SESSION['PK_USER']);
+                                    while (!$selected_location_row->EOF) {
+                                        echo $selected_location_row->fields['PK_LOCATION'];
+                                        $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                        $selected_location_row->MoveNext();
+                                    }
+                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_LOCATION IN (".implode(',', $selected_location).")");
+                                } else {
+                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                }
                                 while (!$row->EOF) { ?>
                                     <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=(!empty($_SESSION['DEFAULT_LOCATION_ID']) && in_array($row->fields['PK_LOCATION'], explode(',', $_SESSION['DEFAULT_LOCATION_ID'])))?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
                                 <?php $row->MoveNext(); } ?>
