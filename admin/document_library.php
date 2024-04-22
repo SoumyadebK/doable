@@ -183,6 +183,7 @@ if(empty($_GET['id'])){
                                             <a href="javascript:;" class="tag_name" data-tag="{NO_AMT_PAYMENT}" style="font-weight: normal;">{NO_AMT_PAYMENT}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{INSTALLMENT_AMOUNT}" style="font-weight: normal;">{INSTALLMENT_AMOUNT}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{STARTING_DATE}" style="font-weight: normal;">{STARTING_DATE}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{BILLING_DATE}" style="font-weight: normal;">{BILLING_DATE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{SCHEDULE_AMOUNT}" style="font-weight: normal;">{SCHEDULE_AMOUNT}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{SERVICE_CHARGE}" style="font-weight: normal;">{SERVICE_CHARGE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{TOTAL_PAYMENTS}" style="font-weight: normal;">{TOTAL_PAYMENTS}</a>

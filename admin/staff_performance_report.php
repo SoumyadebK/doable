@@ -90,7 +90,7 @@ foreach ($resultsArray as $key => $result) {
                                     <thead>
                                     <tr>
                                         <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="5">Franchisee: <?=$business_name." (".$concatenatedResults.")"?></th>
-                                        <th style="width:50%; text-align: center; font-weight: bold" colspan="4">Week # <?=$week_number?> (<?=$from_date?> - <?=$to_date?>)</th>
+                                        <th style="width:50%; text-align: center; font-weight: bold" colspan="4">Week # <?=$week_number?> (<?=date('m-d-Y', strtotime($from_date))?> - <?=date('m-d-Y', strtotime($to_date))?>)</th>
                                     </tr>
                                     <tr>
                                         <th style="width:10%; text-align: center" rowspan="2">Staff name</th>

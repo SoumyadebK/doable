@@ -131,21 +131,21 @@ function saveEnrollmentData($RESPONSE_DATA){
 
     if(empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER']) || $RESPONSE_DATA['PK_ENROLLMENT_MASTER'] == 0){
 
-        $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM, MISCELLANEOUS_ID_CHAR FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-        $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+        $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM, MISCELLANEOUS_ID_CHAR, MISCELLANEOUS_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        $id_data = $db_account->Execute("SELECT ENROLLMENT_ID, MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
         $misc_service_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_CLASS = 5 AND PK_SERVICE_MASTER = ".$RESPONSE_DATA['PK_SERVICE_MASTER'][0]);
 
         if ($misc_service_data->RecordCount() > 0){
-            if ($enrollment_data->RecordCount() > 0){
-                $enrollment_id = explode("-", $enrollment_data->fields['ENROLLMENT_ID']);
-                $last_enrollment_id = $enrollment_id[1];
-                $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".(intval($last_enrollment_id)+1);
+            if ($id_data->fields['MISC_ID'] != ' '){
+                $misc_id = explode("-", $id_data->fields['MISC_ID']);
+                $last_misc_id = $misc_id[1];
+                $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".(intval($last_misc_id)+1);
             }else{
-                $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".$account_data->fields['ENROLLMENT_ID_NUM'];
+                $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".$account_data->fields['MISCELLANEOUS_ID_NUM'];
             }
         } else {
-            if ($enrollment_data->RecordCount() > 0){
-                $enrollment_id = explode("-", $enrollment_data->fields['ENROLLMENT_ID']);
+            if ($id_data->fields['ENROLLMENT_ID'] != ' '){
+                $enrollment_id = explode("-", $id_data->fields['ENROLLMENT_ID']);
                 $last_enrollment_id = $enrollment_id[1];
                 $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR']."-".(intval($last_enrollment_id)+1);
             }else{
@@ -153,8 +153,8 @@ function saveEnrollmentData($RESPONSE_DATA){
             }
         }
 
-        if ($enrollment_data->RecordCount() > 0){
-            $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = $enrollment_data->fields['CUSTOMER_ENROLLMENT_NUMBER'] + 1;
+        if ($id_data->RecordCount() > 0){
+            $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = $id_data->fields['CUSTOMER_ENROLLMENT_NUMBER'] + 1;
         }else{
             $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
         }
@@ -317,6 +317,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{TUITION_COST}', $TUITION_COST, $html_template);
     $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);
     $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
+    $html_template = str_replace('{BILLING_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['BILLING_DATE'])), $html_template);
 
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
         for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
@@ -329,7 +330,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     }
     $html_template = str_replace('{DOWN_PAYMENTS}', number_format((float)$RESPONSE_DATA['DOWN_PAYMENT'], 2, '.', ''), $html_template);
     $html_template = str_replace('{SCHEDULE_AMOUNT}', $RESPONSE_DATA['BALANCE_PAYABLE'], $html_template);
-    $html_template = str_replace('{REMAINING_BALANCE}', number_format((float)$RESPONSE_DATA['BALANCE_PAYABLE'], 2, '.', ''), $html_template);
+    $html_template = str_replace('{REMAINING_BALANCE}', $enrollment_details->fields['FINAL_AMOUNT']-$RESPONSE_DATA['DOWN_PAYMENT'], $html_template);
 
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
         $PAYMENT_METHOD='';
@@ -361,8 +362,6 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{BUSINESS_COUNTRY}', $business_data->fields['COUNTRY_NAME'], $html_template);
     $html_template = str_replace('{BUSINESS_ZIP}', $business_data->fields['ZIP_CODE'], $html_template);
     $html_template = str_replace('{BUSINESS_PHONE}', $business_phone, $html_template);
-
-
 
 
     if(empty($RESPONSE_DATA['PK_ENROLLMENT_BILLING'])){
@@ -447,7 +446,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         }
         $date_amount = $db_account->Execute("SELECT DUE_DATE, BILLED_AMOUNT FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
         while (!$date_amount->EOF) {
-            $DUE_DATE .= $date_amount->fields['DUE_DATE']."<br>";
+            $DUE_DATE .= date('m-d-Y', strtotime($date_amount->fields['DUE_DATE']))."<br>";
             $BILLED_AMOUNT .= $date_amount->fields['BILLED_AMOUNT']."<br>";
             $date_amount->MoveNext();
         }
