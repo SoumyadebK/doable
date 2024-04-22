@@ -133,11 +133,10 @@ function saveEnrollmentData($RESPONSE_DATA){
     if(empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER']) || $RESPONSE_DATA['PK_ENROLLMENT_MASTER'] == 0){
 
         $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM, MISCELLANEOUS_ID_CHAR, MISCELLANEOUS_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-        $id_data = $db_account->Execute("SELECT ENROLLMENT_ID, MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-
         $misc_service_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_CLASS = 5 AND PK_SERVICE_MASTER = ".$RESPONSE_DATA['PK_SERVICE_MASTER'][0]);
 
         if ($misc_service_data->RecordCount() > 0){
+            $id_data = $db_account->Execute("SELECT MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE ENROLLMENT_ID IS NULL AND PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
             if ($id_data->fields['MISC_ID'] != ' '){
                 $misc_id = explode("-", $id_data->fields['MISC_ID']);
                 $last_misc_id = $misc_id[1];
@@ -146,6 +145,7 @@ function saveEnrollmentData($RESPONSE_DATA){
                 $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".$account_data->fields['MISCELLANEOUS_ID_NUM'];
             }
         } else {
+            $id_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE MISC_ID IS NULL AND PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
             if ($id_data->fields['ENROLLMENT_ID'] != ' '){
                 $enrollment_id = explode("-", $id_data->fields['ENROLLMENT_ID']);
                 $last_enrollment_id = $enrollment_id[1];
