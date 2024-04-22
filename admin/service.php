@@ -54,6 +54,7 @@ if(empty($_GET['id'])){
     $IS_SCHEDULE = 1;
     $DESCRIPTION = '';
     $ACTIVE = '';
+    $IS_SUNDRY = 0;
     //$IS_PACKAGE = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
@@ -64,6 +65,7 @@ if(empty($_GET['id'])){
     $SERVICE_NAME = $res->fields['SERVICE_NAME'];
     $PK_SERVICE_CLASS = $res->fields['PK_SERVICE_CLASS'];
     $IS_SCHEDULE = $res->fields['IS_SCHEDULE'];
+    $IS_SUNDRY = $res->fields['IS_SUNDRY'];
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
     //$IS_PACKAGE = $res->fields['IS_PACKAGE'];
@@ -165,11 +167,20 @@ if(empty($_GET['id'])){
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div class="col-3" id="schedule_div">
+
+                                                <div class="col-3" id="schedule_div" style="display: <?=($PK_SERVICE_CLASS == 5) ? 'none' : ''?>">
                                                     <div class="form-group">
                                                         <label class="form-label">Schedule</label><br>
                                                         <label><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="1" <?=($IS_SCHEDULE == 1)?'checked':''?>/>&nbsp;Yes</label>
                                                         <label class="m-l-40"><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="0" <?=($IS_SCHEDULE == 0)?'checked':''?>/>&nbsp;No</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-3" id="sundry_div" style="display: <?=($PK_SERVICE_CLASS != 5) ? 'none' : ''?>">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Is Sundry?</label><br>
+                                                        <label><input type="radio" class="IS_SUNDRY" name="IS_SUNDRY" value="1" <?=($IS_SUNDRY == 1)?'checked':''?>/>&nbsp;Yes</label>
+                                                        <label class="m-l-40"><input type="radio" class="IS_SUNDRY" name="IS_SUNDRY" value="0" <?=($IS_SUNDRY == 0)?'checked':''?>/>&nbsp;No</label>
                                                     </div>
                                                 </div>
                                             </div>
@@ -566,6 +577,12 @@ if(empty($_GET['id'])){
                 $('.frequency_div').hide();
                 $('#schedule_div').slideDown();
             }
+        }
+
+        if (PK_SERVICE_CLASS === 5) {
+            $('#sundry_div').show();
+        } else {
+            $('#sundry_div').hide();
         }
     }
 

@@ -28,7 +28,11 @@ if ($FUNCTION_NAME == 'loginFunction'){
                     $_SESSION['PK_ROLES'] = 2;
                     $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
                     $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
-                } elseif (in_array(4, $selected_roles)) {
+                } /*elseif (in_array(3, $selected_roles)) {
+                    $_SESSION['PK_ROLES'] = 3;
+                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
+                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
+                }*/ elseif (in_array(4, $selected_roles)) {
                     $customer_account_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER, DOA_ACCOUNT_MASTER.DB_NAME FROM DOA_ACCOUNT_MASTER INNER JOIN DOA_USER_MASTER ON DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  = DOA_USER_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USER_MASTER.PK_USER = '$PK_USER' LIMIT 1");
                     $_SESSION['PK_ROLES'] = 4;
                     $_SESSION['DB_NAME'] = $customer_account_data->fields['DB_NAME'];
@@ -54,7 +58,7 @@ if ($FUNCTION_NAME == 'loginFunction'){
 
                 if ($_SESSION['PK_ROLES'] == 1) {
                     header("location: super_admin/all_accounts.php");
-                } elseif ($_SESSION['PK_ROLES'] == 2) {
+                } elseif ($_SESSION['PK_ROLES'] == 2 || $_SESSION['PK_ROLES'] == 3) {
                     header("location: admin/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 4) {
                     $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$result->fields['PK_USER']." LIMIT 1");
