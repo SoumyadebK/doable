@@ -63,6 +63,7 @@ $DATE_ARR[2] = date("d",strtotime($res->fields['DATE']));
 $START_TIME = $res->fields['START_TIME'];
 $END_TIME = $res->fields['END_TIME'];
 $COMMENT = $res->fields['COMMENT'];
+$INTERNAL_COMMENT = $res->fields['INTERNAL_COMMENT'];
 $IMAGE = $res->fields['IMAGE'];
 $VIDEO = $res->fields['VIDEO'];
 
@@ -544,10 +545,16 @@ z-index: 500;
                 </div>
 
                 <div class="row" id="add_info_div">
-                    <div class="col-12">
+                    <div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Comment</label>
                             <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label class="form-label">Internal Comment</label>
+                            <textarea class="form-control" name="INTERNAL_COMMENT" rows="4"><?=$INTERNAL_COMMENT?></textarea>
                         </div>
                     </div>
                     <div class="col-6">

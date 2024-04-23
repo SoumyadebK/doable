@@ -18,6 +18,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if(empty($_GET['id'])){
     $PACKAGE_NAME = '';
+    $SORT_ORDER = '';
     $ACTIVE = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM `DOA_PACKAGE` WHERE `PK_PACKAGE` = '$_GET[id]'");
@@ -28,6 +29,7 @@ if(empty($_GET['id'])){
     }
 
     $PACKAGE_NAME = $res->fields['PACKAGE_NAME'];
+    $SORT_ORDER = $res->fields['SORT_ORDER'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
 
@@ -82,6 +84,12 @@ if(empty($_GET['id'])){
                                                     <div class="form-group">
                                                         <label class="form-label">Package Name<span class="text-danger">*</span></label>
                                                         <input type="text" id="PK_PACKAGE" name="PACKAGE_NAME" class="form-control" placeholder="Enter Package name" required value="<?php echo $PACKAGE_NAME?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Sort Order</label>
+                                                        <input type="text" id="SORT_ORDER" name="SORT_ORDER" class="form-control" placeholder="Enter Sort Order" required value="<?php echo $SORT_ORDER?>">
                                                     </div>
                                                 </div>
 

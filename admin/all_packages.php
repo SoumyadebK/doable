@@ -48,6 +48,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <tr>
                                             <th>No</th>
                                             <th>Package Name</th>
+                                            <th>Sort Order</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -60,6 +61,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_PACKAGE']?>);"><?=$i;?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_PACKAGE']?>);"><?=$row->fields['PACKAGE_NAME']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_PACKAGE']?>);"><?=$row->fields['SORT_ORDER']?></td>
                                             <td>
                                                 <a href="package.php?id=<?=$row->fields['PK_PACKAGE']?>"><i class="fa fa-edit" title="Edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <a href="all_packages.php?type=del&id=<?=$row->fields['PK_PACKAGE']?>" onclick='ConfirmDelete(<?=$row->fields['PK_PACKAGE']?>);'><i class="fa fa-trash" title="Delete"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

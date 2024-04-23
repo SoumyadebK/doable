@@ -54,7 +54,7 @@ if(empty($_GET['id'])){
     $IS_SCHEDULE = 1;
     $DESCRIPTION = '';
     $ACTIVE = '';
-    $IS_SUNDRY = 0;
+    //$IS_SUNDRY = 0;
     //$IS_PACKAGE = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
@@ -65,7 +65,7 @@ if(empty($_GET['id'])){
     $SERVICE_NAME = $res->fields['SERVICE_NAME'];
     $PK_SERVICE_CLASS = $res->fields['PK_SERVICE_CLASS'];
     $IS_SCHEDULE = $res->fields['IS_SCHEDULE'];
-    $IS_SUNDRY = $res->fields['IS_SUNDRY'];
+    //$IS_SUNDRY = $res->fields['IS_SUNDRY'];
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
     //$IS_PACKAGE = $res->fields['IS_PACKAGE'];
@@ -175,14 +175,6 @@ if(empty($_GET['id'])){
                                                         <label class="m-l-40"><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="0" <?=($IS_SCHEDULE == 0)?'checked':''?>/>&nbsp;No</label>
                                                     </div>
                                                 </div>
-
-                                                <div class="col-3" id="sundry_div" style="display: <?=($PK_SERVICE_CLASS != 5) ? 'none' : ''?>">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Is Sundry?</label><br>
-                                                        <label><input type="radio" class="IS_SUNDRY" name="IS_SUNDRY" value="1" <?=($IS_SUNDRY == 1)?'checked':''?>/>&nbsp;Yes</label>
-                                                        <label class="m-l-40"><input type="radio" class="IS_SUNDRY" name="IS_SUNDRY" value="0" <?=($IS_SUNDRY == 0)?'checked':''?>/>&nbsp;No</label>
-                                                    </div>
-                                                </div>
                                             </div>
 
                                             <div class="row">
@@ -229,14 +221,19 @@ if(empty($_GET['id'])){
                                                             <label>Service Code</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-3" style="text-align: center;">
+                                                    <div class="col-2" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label>Description</label>
                                                         </div>
                                                     </div>
                                                     <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
-                                                            <label>Is Group</label>
+                                                            <label>Is Group?</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-1" style="text-align: center;">
+                                                        <div class="form-group">
+                                                            <label>Is Sundry?</label>
                                                         </div>
                                                     </div>
                                                     <div class="col-2" style="text-align: center;">
@@ -246,7 +243,7 @@ if(empty($_GET['id'])){
                                                     </div>
                                                     <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
-                                                            <label>Is Chargeable</label>
+                                                            <label>Is Chargeable?</label>
                                                         </div>
                                                     </div>
                                                     <div class="col-2" style="text-align: center;">
@@ -274,7 +271,7 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code" value="<?=$row->fields['SERVICE_CODE']?>">
                                                             </div>
                                                         </div>
-                                                        <div class="col-3">
+                                                        <div class="col-2">
                                                             <div class="form-group">
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description" value="<?=$row->fields['DESCRIPTION']?>">
                                                             </div>
@@ -287,6 +284,14 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        <div class="col-1">
+                                                            <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
+                                                                <div class="col-md-12">
+                                                                    <label><input type="radio" name="IS_SUNDRY_<?=$i?>" class="IS_SUNDRY" value="1" <?=(($row->fields['IS_SUNDRY'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="IS_SUNDRY_<?=$i?>" class="IS_SUNDRY" value="0"  <?=(($row->fields['IS_SUNDRY'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                         <div class="col-2">
                                                             <div class="form-group capacity_div" style="display: <?=(($row->fields['IS_GROUP'] == 1) ? '' : 'none')?>">
                                                                 <div class="col-md-12" >
@@ -296,7 +301,7 @@ if(empty($_GET['id'])){
                                                         </div>
                                                         <div class="col-1" >
                                                             <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
-                                                                <div class="col-md-12" style="margin-bottom: 10px">
+                                                                <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="1" <?=(($row->fields['IS_CHARGEABLE'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
                                                                     <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="0" <?=(($row->fields['IS_CHARGEABLE'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
                                                                 </div>
@@ -328,7 +333,7 @@ if(empty($_GET['id'])){
                                                                 <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code">
                                                             </div>
                                                         </div>
-                                                        <div class="col-3">
+                                                        <div class="col-2">
                                                             <div class="form-group">
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
                                                             </div>
@@ -338,6 +343,14 @@ if(empty($_GET['id'])){
                                                                 <div class="col-md-12">
                                                                     <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
                                                                     <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
+                                                                <div class="col-md-12">
+                                                                    <label><input type="radio" name="IS_SUNDRY_0" class="IS_SUNDRY" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="IS_SUNDRY_0" class="IS_SUNDRY" value="0" checked/>&nbsp;No</label>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -509,7 +522,7 @@ if(empty($_GET['id'])){
                                                     <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code">
                                                 </div>
                                             </div>
-                                            <div class="col-3">
+                                            <div class="col-2">
                                                 <div class="form-group">
                                                     <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
                                                 </div>
@@ -519,6 +532,14 @@ if(empty($_GET['id'])){
                                                     <div class="col-md-12">
                                                         <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                             <div class="col-1 sundry_div">
+                                                <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
+                                                    <div class="col-md-12">
+                                                        <label><input type="radio" name="IS_SUNDRY_${counter}" class="IS_SUNDRY" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <label><input type="radio" name="IS_SUNDRY_${counter}" class="IS_SUNDRY" value="0" checked/>&nbsp;No</label>
                                                     </div>
                                                 </div>
                                             </div>

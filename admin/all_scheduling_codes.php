@@ -67,6 +67,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <th>Scheduling Event</th>
                                         <th>Event Action</th>
                                         <th>Color</th>
+                                        <th>Sort Order</th>
                                         <th>Action</th>
                                     </tr>
                                     </thead>
@@ -74,7 +75,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_NAME, DOA_SCHEDULING_CODE.COLOR_CODE, $master_database.DOA_SCHEDULING_EVENT.SCHEDULING_EVENT, $master_database.DOA_EVENT_ACTION.EVENT_ACTION, DOA_SCHEDULING_CODE.ACTIVE FROM `DOA_SCHEDULING_CODE` INNER JOIN $master_database.`DOA_SCHEDULING_EVENT` ON DOA_SCHEDULING_CODE.PK_SCHEDULING_EVENT = $master_database.DOA_SCHEDULING_EVENT.PK_SCHEDULING_EVENT INNER JOIN $master_database.`DOA_EVENT_ACTION` ON DOA_SCHEDULING_CODE.PK_EVENT_ACTION=$master_database.DOA_EVENT_ACTION.PK_EVENT_ACTION LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.ACTIVE = '$status' AND PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
+                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_NAME, DOA_SCHEDULING_CODE.COLOR_CODE, DOA_SCHEDULING_CODE.SORT_ORDER, $master_database.DOA_SCHEDULING_EVENT.SCHEDULING_EVENT, $master_database.DOA_EVENT_ACTION.EVENT_ACTION, DOA_SCHEDULING_CODE.ACTIVE FROM `DOA_SCHEDULING_CODE` INNER JOIN $master_database.`DOA_SCHEDULING_EVENT` ON DOA_SCHEDULING_CODE.PK_SCHEDULING_EVENT = $master_database.DOA_SCHEDULING_EVENT.PK_SCHEDULING_EVENT INNER JOIN $master_database.`DOA_EVENT_ACTION` ON DOA_SCHEDULING_CODE.PK_EVENT_ACTION=$master_database.DOA_EVENT_ACTION.PK_EVENT_ACTION LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.ACTIVE = '$status' AND PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['SCHEDULING_CODE']?></td>
@@ -82,6 +83,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                             <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['SCHEDULING_EVENT']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['EVENT_ACTION']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><span style="display: block; width: 44px; height: 22px; background-color: <?=$row->fields['COLOR_CODE']?>"></span></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['SORT_ORDER']?></td>
                                             <td>
                                                 <a href="add_scheduling_codes.php?id=<?=$row->fields['PK_SCHEDULING_CODE']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>

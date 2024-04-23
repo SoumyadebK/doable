@@ -17,7 +17,6 @@ function saveServiceInfoData($RESPONSE_DATA){
     $SERVICE_INFO_DATA['SERVICE_NAME'] = $RESPONSE_DATA['SERVICE_NAME'];
     $SERVICE_INFO_DATA['PK_SERVICE_CLASS'] = $RESPONSE_DATA['PK_SERVICE_CLASS'];
     $SERVICE_INFO_DATA['IS_SCHEDULE'] = $RESPONSE_DATA['IS_SCHEDULE'];
-    $SERVICE_INFO_DATA['IS_SUNDRY'] = $RESPONSE_DATA['IS_SUNDRY'];
     $SERVICE_INFO_DATA['DESCRIPTION'] = $RESPONSE_DATA['DESCRIPTION'];
     if(empty($RESPONSE_DATA['PK_SERVICE_MASTER'])){
         $SERVICE_INFO_DATA['ACTIVE'] = 1;
@@ -59,6 +58,7 @@ function saveServiceCodeData($RESPONSE_DATA){
             $SERVICE_CODE_DATA['SERVICE_CODE'] = $RESPONSE_DATA['SERVICE_CODE'][$i];
             $SERVICE_CODE_DATA['DESCRIPTION'] = $RESPONSE_DATA['SERVICE_CODE_DESCRIPTION'][$i];
             $SERVICE_CODE_DATA['IS_GROUP'] = $RESPONSE_DATA['IS_GROUP_'.$i] ?? 0;
+            $SERVICE_CODE_DATA['IS_SUNDRY'] = $RESPONSE_DATA['IS_SUNDRY_'.$i] ?? 0;
             $SERVICE_CODE_DATA['CAPACITY'] = ($SERVICE_CODE_DATA['IS_GROUP'] == 0) ? 0 : $RESPONSE_DATA['CAPACITY'][$i];
             $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE_'.$i] ?? 0;
             $SERVICE_CODE_DATA['PRICE'] = ($SERVICE_CODE_DATA['IS_CHARGEABLE'] == 0) ? 0 : $RESPONSE_DATA['PRICE'][$i];
@@ -78,6 +78,7 @@ function savePackageInfoData($RESPONSE_DATA){
 
     if (empty($RESPONSE_DATA['PK_PACKAGE'])){
         $PACKAGE_DATA['PACKAGE_NAME'] = $RESPONSE_DATA['PACKAGE_NAME'];
+        $PACKAGE_DATA['SORT_ORDER'] = $RESPONSE_DATA['SORT_ORDER'];
         $PACKAGE_DATA['ACTIVE'] = 1;
         $PACKAGE_DATA['IS_DELETED'] = 0;
         $PACKAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
@@ -86,6 +87,7 @@ function savePackageInfoData($RESPONSE_DATA){
         $PK_PACKAGE = $db_account->insert_ID();
     } else {
         $PACKAGE_DATA['PACKAGE_NAME'] = $RESPONSE_DATA['PACKAGE_NAME'];
+        $PACKAGE_DATA['SORT_ORDER'] = $RESPONSE_DATA['SORT_ORDER'];
         $PACKAGE_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'] ?? 0;
         $PACKAGE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $PACKAGE_DATA['EDITED_ON'] = date("Y-m-d H:i");
@@ -387,6 +389,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
         $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
         $LEDGER_DATA['IS_PAID'] = 0;
+
         $LEDGER_DATA['STATUS'] = 'A';
         if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'One Time') {
             $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE']));
@@ -399,9 +402,11 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                 $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE']));
                 $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
                 $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['DOWN_PAYMENT'];
+                $LEDGER_DATA['IS_DOWN_PAYMENT'] = 1;
                 db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
                 $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
             }
+            $LEDGER_DATA['IS_DOWN_PAYMENT'] = 0;
             $BALANCE = $RESPONSE_DATA['DOWN_PAYMENT'];
             for ($i = 0; $i < $RESPONSE_DATA['NUMBER_OF_PAYMENT']; $i++) {
                 if ($RESPONSE_DATA['PAYMENT_TERM'] == 'Monthly') {
@@ -422,9 +427,11 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                 $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE']));
                 $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
                 $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['DOWN_PAYMENT'];
+                $LEDGER_DATA['IS_DOWN_PAYMENT'] = 1;
                 db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
                 $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
             }
+            $LEDGER_DATA['IS_DOWN_PAYMENT'] = 0;
             $BALANCE = $RESPONSE_DATA['DOWN_PAYMENT'];
             for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
                 $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($FLEXIBLE_PAYMENT_DATE[$i]));
@@ -446,7 +453,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
                 }
             }
         }
-        $date_amount = $db_account->Execute("SELECT DUE_DATE, BILLED_AMOUNT FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+        $date_amount = $db_account->Execute("SELECT DUE_DATE, BILLED_AMOUNT FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND IS_DOWN_PAYMENT = '0' AND PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
         while (!$date_amount->EOF) {
             $DUE_DATE .= date('m-d-Y', strtotime($date_amount->fields['DUE_DATE']))."<br>";
             $BILLED_AMOUNT .= $date_amount->fields['BILLED_AMOUNT']."<br>";

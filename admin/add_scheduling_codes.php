@@ -20,6 +20,7 @@ if (!empty($_POST)) {
     $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
     $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
     $SCHEDULING_DATA['DURATION'] = $_POST['DURATION'];
+    $SCHEDULING_DATA['SORT_ORDER'] = $_POST['SORT_ORDER'];
     if ($_GET['id'] == '') {
         $SCHEDULING_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $SCHEDULING_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -54,6 +55,7 @@ if (empty($_GET['id'])) {
     $PK_EVENT_ACTION            = '';
     $COLOR_CODE = '';
     $DURATION = '';
+    $SORT_ORDER = '';
     $ACTIVE             = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = '$_GET[id]'");
@@ -66,8 +68,9 @@ if (empty($_GET['id'])) {
     $PK_SCHEDULING_EVENT  = $res->fields['PK_SCHEDULING_EVENT'];
     $PK_EVENT_ACTION      = $res->fields['PK_EVENT_ACTION'];
     $COLOR_CODE           = $res->fields['COLOR_CODE'];
-    $DURATION           = $res->fields['DURATION'];
-    $ACTIVE            = $res->fields['ACTIVE'];
+    $DURATION             = $res->fields['DURATION'];
+    $SORT_ORDER           = $res->fields['SORT_ORDER'];
+    $ACTIVE               = $res->fields['ACTIVE'];
 }
 ?>
 
@@ -202,6 +205,14 @@ if (empty($_GET['id'])) {
                                         </div>
                                         <div class="col-md-1" style="margin-top: 10px; margin-left: -10px">
                                             Min
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12" for="example-text">Sort Order</label>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <input type="text" class="form-control" id="SORT_ORDER" name="SORT_ORDER" value="<?php echo $SORT_ORDER?>">
                                         </div>
                                     </div>
                                 </div>
