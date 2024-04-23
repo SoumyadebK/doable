@@ -32,7 +32,8 @@ $PAYMENT_QUERY = "SELECT
                         CONCAT(DOA_USERS.FIRST_NAME, ' ' ,DOA_USERS.LAST_NAME) AS STUDENT_NAME,
                         CONCAT(CLOSER.FIRST_NAME, ' ' ,CLOSER.LAST_NAME) AS CLOSER_NAME,
                         DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
-                        DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER
+                        DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER,
+                        DOA_ENROLLMENT_MASTER.PK_LOCATION
                     FROM
                         DOA_ENROLLMENT_PAYMENT
                     LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
@@ -147,7 +148,6 @@ if ($type === 'export') {
                 <div class="col-12">
                     <div class="card">
 
-
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-2" style="padding-bottom: 20px;">
@@ -207,10 +207,12 @@ if ($type === 'export') {
                                     $MISC_TOTAL = 0;
                                     $TOTAL_RS_FEE = 0;
                                     $TOTAL_AMOUNT = 0;
+                                    $LOCATION_TOTAL = [];
                                     while (!$payment_data->EOF) {
                                         $teacher_data = $db_account->Execute("SELECT GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
                                         $AMOUNT = $payment_data->fields['AMOUNT'];
                                         $TOTAL_AMOUNT += $AMOUNT;
+                                        $enrollment_service_code_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_UNIT FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE IS_GROUP = 0 AND DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
                                         $enrollment_service_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_UNIT, SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_MASTER.IS_SUNDRY FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
                                         if($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5 && $enrollment_service_data->fields['IS_SUNDRY'] == 0) {
                                             $MISC_TOTAL += $AMOUNT;
@@ -222,6 +224,11 @@ if ($type === 'export') {
 
                                         if($enrollment_service_data->fields['IS_SUNDRY'] == 0) {
                                             $TOTAL_RS_FEE += $AMOUNT;
+                                            if (isset($LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']])) {
+                                                $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']]+$AMOUNT;
+                                            } else {
+                                                $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $AMOUNT;
+                                            }
                                         } ?>
                                         <tr style="text-align: center;">
                                             <td><?=$payment_data->fields['RECEIPT_NUMBER']?></td>
@@ -232,24 +239,28 @@ if ($type === 'export') {
                                             <td><?=$teacher_data->fields['TEACHER_NAME']?></td>
                                             <td>
                                                 <?php
-                                                switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
-                                                    case 1:
-                                                        echo '1/PORI';
-                                                        break;
-                                                    case 2:
-                                                        echo '2/ORI';
-                                                        break;
-                                                    case 3:
-                                                        echo '3/EXT';
-                                                        break;
+                                                if($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5) {
+                                                    echo $payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER'] . '/MISC';
+                                                } else {
+                                                    switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
+                                                        case 1:
+                                                            echo '1/PORI';
+                                                            break;
+                                                        case 2:
+                                                            echo '2/ORI';
+                                                            break;
+                                                        case 3:
+                                                            echo '3/EXT';
+                                                            break;
 
-                                                    default:
-                                                        echo $payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER'].'/REN';
-                                                        break;
+                                                        default:
+                                                            echo $payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER'] . '/REN';
+                                                            break;
+                                                    }
                                                 }
                                                 ?>
                                             </td>
-                                            <td><?=$enrollment_service_data->fields['TOTAL_UNIT'].' / $'.$enrollment_service_data->fields['TOTAL_AMOUNT']?></td>
+                                            <td><?=$enrollment_service_code_data->fields['TOTAL_UNIT'].' / $'.$enrollment_service_data->fields['TOTAL_AMOUNT']?></td>
                                             <td><?=($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5) ? '0.00' : '$'.$AMOUNT?></td>
                                             <td><?=($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5 && $enrollment_service_data->fields['IS_SUNDRY'] == 1) ? '$'.$AMOUNT : '0.00'?></td>
                                             <td><?=($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5 && $enrollment_service_data->fields['IS_SUNDRY'] == 0) ? '$'.$AMOUNT : '0.00'?></td>
@@ -288,115 +299,92 @@ if ($type === 'export') {
 
                             <div class="table-responsive">
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
-                                    <thead>
-                                    <tr>
-                                        <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?=$business_name?></th>
-                                        <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 2</th>
-                                        <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?=$week_number?> (<?=$from_date?> - <?=$to_date?>)</th>
-                                    </tr>
-                                    <tr><th colspan="13">Refunds or credits below completed tuition refund report & photocopy of front & back of caceled cheks must be attached in order to receive credits.
-                                            (Identify bank plan, rewrites & cancellation. Attach detail on authorized D-O-R transportation details.)</th>
-                                    </tr>
-                                    <tr>
-                                        <th style="width:10%; text-align: center; font-weight: bold" rowspan="2">Receipt number</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" rowspan="2">Date</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" rowspan="2">Student name</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="2">Staff code</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" rowspan="2" colspan="4">Studio Refunds Deductions</th>
-                                    </tr>
-                                    <tr>
-                                        <th style="width:10%; text-align: center; font-weight: bold">Closer</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold">Teachers</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold">Type</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold">Units/Total Cost</th>
-                                    </tr>
-                                    <tr>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="10">Refunds Total</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                    </tr>
-                                    <tr>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold">Regular Cash +</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold">Sundry +</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold">Misc./NonUnit -</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold">Sundry deduct.</th>
-                                        <th style="width:5%; text-align: center; font-weight: bold">=</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold">Total sub.rlty</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="4">Sundry cash Studio total</th>
-                                    </tr>
-                                    <tr>
-                                        <th style="width:10%; text-align: center; font-weight: bold">Total receipts</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:5%; text-align: center; font-weight: bold">=</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:5%; text-align: center; font-weight: bold">+</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:5%; text-align: center; font-weight: bold">=</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                    </tr>
-                                    <tr>
-                                        <th style="width:10%; text-align: center; font-weight: bold">Total refunds/credits</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:5%; text-align: center; font-weight: bold">=</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:5%; text-align: center; font-weight: bold">+</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:5%; text-align: center; font-weight: bold">=</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                    </tr>
-                                    <tr>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="6">Total subject to r/s fee</th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold" colspan="2"></th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
-                                    <?php
-                                    $i=1;
-                                    //$row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                    while (!$row->EOF) {
-                                        $balance_data = $db->Execute("SELECT SUM(BALANCE_PAYABLE) AS ENROLLED, SUM(TOTAL_BALANCE_PAID) AS TOTAL_PAID, SUM(TOTAL_BALANCE_USED) AS BALANCE_USED, SUM(AMOUNT) AS AMOUNT, SUM(REMAINING_AMOUNT) AS REMAINING, SUM(PAID_AMOUNT) AS PAID, SUM(BILLED_AMOUNT) AS BILLED FROM `DOA_ENROLLMENT_BALANCE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_MASTER.PK_USER = ".$row->fields['PK_USER']);
-                                        $enrolled = 0.00;
-                                        $total_paid = 0.00;
-                                        $balance_left = 0.00;
-                                        $used = 0.00;
-                                        $balance = 0.00;
-                                        $amount = 0.00;
-                                        $remaining = 0.00;
-                                        $paid_amount = 0.00;
-                                        if ($balance_data->RecordCount() > 0) {
-                                            $enrolled = $balance_data->fields['ENROLLED'];
-                                            $total_paid = $balance_data->fields['TOTAL_PAID'];
-                                            $balance = $balance_data->fields['TOTAL_PAID'];
-                                            $used = $balance_data->fields['BALANCE_USED'];
-                                            $amount = $balance_data->fields['AMOUNT'];
-                                            $remaining = $balance_data->fields['REMAINING'];
-                                            $balance_left = $balance_data->fields['TOTAL_PAID']-$balance_data->fields['BALANCE_USED'];
-                                            $paid_amount = $balance_data->fields['PAID'];
-                                        } ?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['USER_NAME']?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($enrolled , 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($used, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($balance_left, 2)?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=number_format($paid_amount, 2)?></td>
+                                            <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?=$business_name?></th>
+                                            <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 2</th>
+                                            <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?=$week_number?> (<?=$from_date?> - <?=$to_date?>)</th>
                                         </tr>
-                                        <?php $row->MoveNext();
-                                        $i++; } ?>
+                                        <tr><th colspan="13">Refunds or credits below completed tuition refund report & photocopy of front & back of caceled cheks must be attached in order to receive credits.
+                                                (Identify bank plan, rewrites & cancellation. Attach detail on authorized D-O-R transportation details.)</th>
+                                        </tr>
+                                        <tr>
+                                            <th style="width:10%; text-align: center; font-weight: bold" rowspan="2">Receipt number</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" rowspan="2">Date</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" rowspan="2">Student name</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="2">Staff code</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="2"></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" rowspan="2" colspan="4">Studio Refunds Deductions</th>
+                                        </tr>
+                                        <tr>
+                                            <th style="width:10%; text-align: center; font-weight: bold">Closer</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold">Teachers</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold">Type</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold">Units/Total Cost</th>
+                                        </tr>
+                                        <tr>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="10">Refunds Total</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold"></th>
+                                        </tr>
+                                        <tr>
+                                            <th style="width:10%; text-align: center; font-weight: bold"></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold">Regular Cash +</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold">Sundry +</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold">Misc./NonUnit -</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold">Sundry deduct.</th>
+                                            <th style="width:5%; text-align: center; font-weight: bold">=</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold">Total sub.rlty</th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="4">Sundry cash Studio total</th>
+                                        </tr>
+                                        <tr>
+                                            <td style="width:10%; text-align: center; font-weight: bold;">Total receipts</td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($REGULAR_TOTAL, 2)?></td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($SUNDRY_TOTAL, 2)?></td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($MISC_TOTAL, 2)?></td>
+                                            <td style="width:10%; text-align: center;">$0.00</td>
+                                            <td style="width:5%; text-align: center;">=</td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE, 2)?></td>
+                                            <td style="width:5%; text-align: center;">+</td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($SUNDRY_TOTAL, 2)?></td>
+                                            <td style="width:5%; text-align: center;">=</td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE+$SUNDRY_TOTAL, 2)?></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width:10%; text-align: center; font-weight: bold">Total refunds/credits</td>
+                                            <td style="width:10%; text-align: center;"></td>
+                                            <td style="width:10%; text-align: center;"></td>
+                                            <td style="width:10%; text-align: center;"></td>
+                                            <td style="width:10%; text-align: center;"></td>
+                                            <td style="width:5%; text-align: center;">=</td>
+                                            <td style="width:10%; text-align: center;">$0.00</td>
+                                            <td style="width:5%; text-align: center;">+</td>
+                                            <td style="width:10%; text-align: center;">$0.00</td>
+                                            <td style="width:5%; text-align: center;">=</td>
+                                            <td style="width:10%; text-align: center;">$0.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width:10%; text-align: center; font-weight: bold" colspan="6">Total subject to r/s fee
+                                                <span style="font-weight: normal; float: right;">
+                                                    <?php
+                                                    foreach ($LOCATION_TOTAL AS $key => $value) {
+                                                        $location_name = $db->Execute("SELECT `LOCATION_NAME` FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$key);
+                                                        echo $location_name->fields['LOCATION_NAME']." - "."<br>";
+                                                    }
+                                                    ?>
+                                                </span>
+                                            </td>
+                                            <td style="width:10%; text-align: center;">
+                                                <?php
+                                                foreach ($LOCATION_TOTAL AS $key => $value) {
+                                                    echo "$".number_format($value, 2)."<br>";
+                                                }
+                                                ?>
+                                                <hr>
+                                                <?='$'.number_format($TOTAL_RS_FEE, 2)?>
+                                            </td>
+                                            <td style="width:10%; text-align: center;" colspan="2">X 7.00 %</td>
+                                            <td style="width:10%; text-align: center;" colspan="2"><?='$'.number_format($TOTAL_RS_FEE*.07, 2)?></td>
+                                        </tr>
                                     </tbody>
                                 </table>
                                 <div>
