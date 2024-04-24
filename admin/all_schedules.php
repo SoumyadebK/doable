@@ -222,6 +222,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
     $GROUP_CLASS_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
     $GROUP_CLASS_DATA['COMMENT'] = $_POST['COMMENT'];
+    $GROUP_CLASS_DATA['INTERNAL_COMMENT'] = $_POST['INTERNAL_COMMENT'];
     if($_FILES['IMAGE']['name'] != ''){
         $extn 			= explode(".",$_FILES['IMAGE']['name']);
         $iindex			= count($extn) - 1;

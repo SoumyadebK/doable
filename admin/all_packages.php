@@ -56,7 +56,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT * FROM DOA_PACKAGE WHERE IS_DELETED = 0");
+                                    $row = $db_account->Execute("SELECT * FROM DOA_PACKAGE WHERE IS_DELETED = 0 ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_PACKAGE']?>);"><?=$i;?></td>
