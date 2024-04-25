@@ -177,22 +177,101 @@ function getAppointmentSerialNumber($PK_USER_MASTER){
     }
 }
 
-function callArturMurrayApi(string $url, array $data, string $method, string $access_token = '')
+function getAccessToken()
 {
-    $params = http_build_query($data);
-    pre_r($data);
+    global $db;
+    $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+    $client_id = constant('client_id');
+    $client_secret = constant('client_secret');
+    $ami_api_url = constant('ami_api_url').'/oauth/v2/token';
+
+    $AM_USER_NAME = $account_data->fields['AM_USER_NAME'];
+    $AM_PASSWORD = $account_data->fields['AM_PASSWORD'];
+    $AM_REFRESH_TOKEN = $account_data->fields['AM_REFRESH_TOKEN'];
+
+    $user_credential = [
+        'client_id' => $client_id,
+        'client_secret' => $client_secret,
+        'grant_type' => 'password',
+        'username' => $AM_USER_NAME,
+        'password' => $AM_PASSWORD
+    ];
+
+    $params = http_build_query($user_credential);
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Return response as a string
-    curl_setopt($ch, CURLOPT_POST, true); // Use custom request method
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $params); // Set request body data
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array($access_token));
+    curl_setopt($ch, CURLOPT_URL, $ami_api_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
 
     $response = curl_exec($ch);
     if(curl_errno($ch)){
         echo 'Curl error: ' . curl_error($ch);
     }
     curl_close($ch);
+
+    return json_decode($response)->access_token;
+}
+
+function getStaffCode($access_token, $first_name, $last_name)
+{
+    $url = constant('ami_api_url').'/api/v1/staff';
+
+    $user_details = [
+        'first_name' => $first_name,
+        'last_name' => $last_name
+    ];
+    $url .= '?' . http_build_query($user_details);
+
+    $curl = curl_init();
+
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => array(
+            $access_token
+        ),
+    ));
+
+    $response = curl_exec($curl);
+    $data = json_decode($response, true);
+
+    return $data[0]['id'] ?? '';
+}
+
+function callArturMurrayApi(string $url, array $data, string $access_token)
+{
+    $curl = curl_init();
+
+    $param = http_build_query($data);
+
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $param,
+        CURLOPT_HTTPHEADER => array(
+            $access_token
+        ),
+    ));
+
+    $response = curl_exec($curl);
+    if(curl_errno($curl)){
+        echo 'Curl error: ' . curl_error($curl);
+    }
+    curl_close($curl);
 
     return $response;
 }
