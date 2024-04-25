@@ -5,6 +5,7 @@ use Twilio\Rest\Client;
 require_once('global/config.php');
 
 $all_account = $db->Execute("SELECT PK_ACCOUNT_MASTER, HOUR FROM `DOA_ACCOUNT_MASTER` WHERE `ACTIVE` = 1 AND APPOINTMENT_REMINDER = 1");
+
 while (!$all_account->EOF) {
     $PK_ACCOUNT_MASTER = $all_account->fields['PK_ACCOUNT_MASTER'];
     $REMINDER_SECOND = $all_account->fields['HOUR']*3600;

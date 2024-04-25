@@ -30,7 +30,8 @@ $PAYMENT_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
                         DOA_PAYMENT_TYPE.PAYMENT_TYPE,
                         CONCAT(DOA_USERS.FIRST_NAME, ' ' ,DOA_USERS.LAST_NAME) AS STUDENT_NAME,
-                        CONCAT(CLOSER.FIRST_NAME, ' ' ,CLOSER.LAST_NAME) AS CLOSER_NAME,
+                        CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
+                        CLOSER.LAST_NAME AS CLOSER_LAST_NAME,
                         DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
                         DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER,
                         DOA_ENROLLMENT_MASTER.PK_LOCATION
@@ -45,7 +46,8 @@ $PAYMENT_QUERY = "SELECT
                     LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
                     
                     WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$DEFAULT_LOCATION_ID.")
-                    AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
+                    AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'
+                    ORDER BY PAYMENT_DATE ASC";
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -53,43 +55,83 @@ $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSIN
 
 
 if ($type === 'export') {
-    $client_id = constant('client_id');
-    $client_secret = constant('client_secret');
-    $ami_api_url = constant('ami_api_url').'/oauth/v2/token';
-
-    $AM_USER_NAME = $account_data->fields['AM_USER_NAME'];
-    $AM_PASSWORD = $account_data->fields['AM_PASSWORD'];
-    $AM_REFRESH_TOKEN = $account_data->fields['AM_REFRESH_TOKEN'];
-
-    $user_credential = [
-        'client_id' => $client_id,
-        'client_secret' => $client_secret,
-        'grant_type' => 'password',
-        'username' => $AM_USER_NAME,
-        'password' => $AM_PASSWORD
-    ];
-
-    /*$auth_data = callArturMurrayApi($ami_api_url, $user_credential, 'GET');
-    $access_token = json_decode($auth_data)->access_token;*/
-
+    $access_token = getAccessToken();
+    $authorization = "Authorization: Bearer ".$access_token;
+    $line_item = [];
 
     $payment_data = $db_account->Execute($PAYMENT_QUERY);
-
     while (!$payment_data->EOF) {
-        $enrollment_service_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_UNIT, SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, SUM(`TOTAL_AMOUNT_PAID`) AS TOTAL_PAID FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
+        $TOTAL_UNIT = 0;
+        $REGULAR_AMOUNT = 0;
+        $SUNDRY_AMOUNT = 0;
+        $MISC_AMOUNT = 0;
+
+        $teacher_data = $db_account->Execute("SELECT TEACHER.FIRST_NAME, TEACHER.LAST_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
+
+        $enrollment_service_data = $db_account->Execute("SELECT SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
+        $TOTAL_AMOUNT = $enrollment_service_data->fields['TOTAL_AMOUNT'];
+        $SERVICE_CLASS = $enrollment_service_data->fields['PK_SERVICE_CLASS'];
+
+        $AMOUNT_PAID = $payment_data->fields['AMOUNT'];
+
+        if ($SERVICE_CLASS == 5) {
+            $MISC_AMOUNT = $AMOUNT_PAID;
+        } else {
+            $REGULAR_AMOUNT = $AMOUNT_PAID;
+        }
+
+        $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
+        while (!$enrollment_service_code_data->EOF) {
+            if ($enrollment_service_code_data->fields['IS_GROUP'] == 0) {
+                $TOTAL_UNIT += $enrollment_service_code_data->fields['NUMBER_OF_SESSION'];
+            }
+            if ($SERVICE_CLASS == 5 && $enrollment_service_code_data->fields['IS_SUNDRY'] == 1) {
+                $servicePercent = ($enrollment_service_code_data->fields['FINAL_AMOUNT']*100)/$TOTAL_AMOUNT;
+                $serviceAmount = ($AMOUNT_PAID*$servicePercent)/100;
+                $SUNDRY_AMOUNT += $serviceAmount;
+            }
+            $enrollment_service_code_data->MoveNext();
+        }
+
+        if ($SUNDRY_AMOUNT > 0) {
+            $MISC_AMOUNT = $AMOUNT_PAID - $SUNDRY_AMOUNT;
+        }
+
+        switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
+            case 1:
+                $sale_code = 'PORI';
+                break;
+            case 2:
+                $sale_code = 'ORI';
+                break;
+            case 3:
+                $sale_code = 'EXT';
+                break;
+
+            default:
+                $sale_code = 'REN';
+                break;
+        }
+
+        $executive = getStaffCode($authorization, $payment_data->fields['CLOSER_FIRST_NAME'], $payment_data->fields['CLOSER_LAST_NAME']);
+        $staff_members = [];
+        while(!$teacher_data->EOF) {
+            $staff_members[] =  getStaffCode($authorization, $teacher_data->fields['FIRST_NAME'], $teacher_data->fields['LAST_NAME']);
+            $teacher_data->MoveNext();
+        }
+
         $line_item[] = array(
-            "receipt_number" => $payment_data->fields['ENROLLMENT_ID'],
-            "date_paid" => $payment_data->fields['CREATED_ON'],
-            "students_full_name" => $payment_data->fields['FIRST_NAME'].' '.$payment_data->fields['LAST_NAME'],
-            //"executive" => $payment_data->fields['ENROLLMENT_ID'],
-            //"staff_members" => $payment_data->fields['ENROLLMENT_ID'],
-            "sale_code" => 'PRI',
-            "custom_package" => 'TEST',
-            "number_of_units" => $enrollment_service_data->fields['TOTAL_UNIT'],
-            "sale_value" => $enrollment_service_data->fields['TOTAL_AMOUNT'],
-            "cash" => $enrollment_service_data->fields['TOTAL_PAID'],
-            "miscellaneous_services" => 0,
-            "sundry" => 0,
+            "receipt_number" => $payment_data->fields['RECEIPT_NUMBER'],
+            "date_paid" => date('Y-m-d', strtotime($payment_data->fields['PAYMENT_DATE'])),
+            "students_full_name" => $payment_data->fields['STUDENT_NAME'],
+            "executive" => $executive,
+            "staff_members" => $staff_members,
+            "sale_code" => $sale_code,
+            "number_of_units" => $TOTAL_UNIT,
+            "sale_value" => $TOTAL_AMOUNT,
+            "cash" => $AMOUNT_PAID,
+            "miscellaneous_services" => $MISC_AMOUNT,
+            "sundry" => $SUNDRY_AMOUNT,
         );
         $payment_data->MoveNext();
     }
@@ -97,19 +139,15 @@ if ($type === 'export') {
     $data = [
         'type' => 'royalty',
         'prepared_by' => $user_data->fields['FIRST_NAME'].' '.$user_data->fields['LAST_NAME'],
-        'week_number' => 2,
-        'week_year' => 2023,
+        'week_number' => $week_number,
+        'week_year' => $YEAR,
         'line_items' => $line_item
     ];
 
-    $url = 'https://api.arthurmurrayfranchisee.com/api/v1/reports';
-    $authorization = "Authorization: Bearer YTM4YWEyNzU4MWFhZTZkNjhlMWJlYWQ5NWU4ODJkYmE3MzBlYzYxYTZmMWNlMWYyMTJkZGI5N2JiMWYyMjE3ZA";
+    $url = constant('ami_api_url').'/api/v1/reports';
+    $post_data = callArturMurrayApi($url, $data, $authorization);
 
-    $get_data = callArturMurrayApi($url, $data, 'GET', $authorization);
-
-    pre_r($get_data);
-
-    die();
+    //pre_r(json_decode($post_data));
 }
 
 
@@ -144,6 +182,21 @@ if ($type === 'export') {
                 </div>
             </div>
 
+            <?php
+            if ($type === 'export') {
+                $data = json_decode($post_data);
+                if (isset($data->error)) {
+                    echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->error_description.'</div>';
+                } elseif (isset($data->errors)) {
+                    if (isset($data->errors->errors[0])) {
+                        echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $data->errors->errors[0] . '</div>';
+                    } else {
+                        echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->message.'</div>';
+                    }
+                } else {
+                    echo "<h3>Data export to Arthur Murray API Successfully</h3>";
+                }
+            } else { ?>
             <div class="row">
                 <div class="col-12">
                     <div class="card">
@@ -206,40 +259,78 @@ if ($type === 'export') {
                                     $SUNDRY_TOTAL = 0;
                                     $MISC_TOTAL = 0;
                                     $TOTAL_RS_FEE = 0;
-                                    $TOTAL_AMOUNT = 0;
+                                    $TOTAL_AMOUNT_PAID = 0;
                                     $LOCATION_TOTAL = [];
+                                    $last_date = $from_date;
+
+                                    $TOTAL_AMOUNT_PAID_DAILY = 0;
+                                    $REGULAR_TOTAL_DAILY = 0;
+                                    $SUNDRY_TOTAL_DAILY = 0;
+                                    $MISC_TOTAL_DAILY = 0;
+
+                                    $total_record = $payment_data->RecordCount();
+                                    $i = 0;
                                     while (!$payment_data->EOF) {
+                                        $TOTAL_UNIT = 0;
+                                        $REGULAR_AMOUNT = 0;
+                                        $SUNDRY_AMOUNT = 0;
+                                        $MISC_AMOUNT = 0;
                                         $teacher_data = $db_account->Execute("SELECT GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
-                                        $AMOUNT = $payment_data->fields['AMOUNT'];
-                                        $TOTAL_AMOUNT += $AMOUNT;
-                                        $enrollment_service_code_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_UNIT FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE IS_GROUP = 0 AND DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
-                                        $enrollment_service_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_UNIT, SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_MASTER.IS_SUNDRY FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
-                                        if($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5 && $enrollment_service_data->fields['IS_SUNDRY'] == 0) {
-                                            $MISC_TOTAL += $AMOUNT;
-                                        } elseif($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5 && $enrollment_service_data->fields['IS_SUNDRY'] == 1) {
-                                            $SUNDRY_TOTAL += $AMOUNT;
+                                        $enrollment_service_data = $db_account->Execute("SELECT SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
+                                        $TOTAL_AMOUNT = $enrollment_service_data->fields['TOTAL_AMOUNT'];
+                                        $SERVICE_CLASS = $enrollment_service_data->fields['PK_SERVICE_CLASS'];
+
+                                        $AMOUNT_PAID = $payment_data->fields['AMOUNT'];
+                                        $TOTAL_AMOUNT_PAID += $AMOUNT_PAID;
+                                        $TOTAL_AMOUNT_PAID_DAILY += $AMOUNT_PAID;
+
+                                        if ($SERVICE_CLASS == 5) {
+                                            $MISC_AMOUNT = $AMOUNT_PAID;
                                         } else {
-                                            $REGULAR_TOTAL += $AMOUNT;
+                                            $REGULAR_AMOUNT = $AMOUNT_PAID;
                                         }
 
-                                        if($enrollment_service_data->fields['IS_SUNDRY'] == 0) {
-                                            $TOTAL_RS_FEE += $AMOUNT;
-                                            if (isset($LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']])) {
-                                                $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']]+$AMOUNT;
-                                            } else {
-                                                $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $AMOUNT;
+                                        $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
+                                        while (!$enrollment_service_code_data->EOF) {
+                                            if ($enrollment_service_code_data->fields['IS_GROUP'] == 0) {
+                                                $TOTAL_UNIT += $enrollment_service_code_data->fields['NUMBER_OF_SESSION'];
                                             }
+                                            if ($SERVICE_CLASS == 5 && $enrollment_service_code_data->fields['IS_SUNDRY'] == 1) {
+                                                $servicePercent = ($enrollment_service_code_data->fields['FINAL_AMOUNT']*100)/$TOTAL_AMOUNT;
+                                                $serviceAmount = ($AMOUNT_PAID*$servicePercent)/100;
+                                                $SUNDRY_AMOUNT += $serviceAmount;
+                                            }
+                                            $enrollment_service_code_data->MoveNext();
+                                        }
+
+                                        if ($SUNDRY_AMOUNT > 0) {
+                                            $MISC_AMOUNT = $AMOUNT_PAID - $SUNDRY_AMOUNT;
+                                        }
+
+                                        $REGULAR_TOTAL += $REGULAR_AMOUNT;
+                                        $SUNDRY_TOTAL += $SUNDRY_AMOUNT;
+                                        $MISC_TOTAL += $MISC_AMOUNT;
+
+                                        $REGULAR_TOTAL_DAILY += $REGULAR_AMOUNT;
+                                        $SUNDRY_TOTAL_DAILY += $SUNDRY_AMOUNT;
+                                        $MISC_TOTAL_DAILY += $MISC_AMOUNT;
+
+                                        $TOTAL_RS_FEE += $REGULAR_AMOUNT;
+                                        if (isset($LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']])) {
+                                            $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] + $REGULAR_AMOUNT;
+                                        } else {
+                                            $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $REGULAR_AMOUNT;
                                         } ?>
                                         <tr style="text-align: center;">
                                             <td><?=$payment_data->fields['RECEIPT_NUMBER']?></td>
                                             <td><?=date('m/d/Y', strtotime($payment_data->fields['PAYMENT_DATE']))?></td>
                                             <td><?=$payment_data->fields['STUDENT_NAME']?></td>
                                             <td><?=$payment_data->fields['PAYMENT_TYPE']?></td>
-                                            <td><?=$payment_data->fields['CLOSER_NAME']?></td>
+                                            <td><?=$payment_data->fields['CLOSER_FIRST_NAME']." ".$payment_data->fields['CLOSER_LAST_NAME']?></td>
                                             <td><?=$teacher_data->fields['TEACHER_NAME']?></td>
                                             <td>
                                                 <?php
-                                                if($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5) {
+                                                if($SERVICE_CLASS == 5) {
                                                     echo $payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER'] . '/MISC';
                                                 } else {
                                                     switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
@@ -260,26 +351,52 @@ if ($type === 'export') {
                                                 }
                                                 ?>
                                             </td>
-                                            <td><?=$enrollment_service_code_data->fields['TOTAL_UNIT'].' / $'.$enrollment_service_data->fields['TOTAL_AMOUNT']?></td>
-                                            <td><?=($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5) ? '0.00' : '$'.$AMOUNT?></td>
-                                            <td><?=($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5 && $enrollment_service_data->fields['IS_SUNDRY'] == 1) ? '$'.$AMOUNT : '0.00'?></td>
-                                            <td><?=($enrollment_service_data->fields['PK_SERVICE_CLASS'] == 5 && $enrollment_service_data->fields['IS_SUNDRY'] == 0) ? '$'.$AMOUNT : '0.00'?></td>
-                                            <td><?='$'.$AMOUNT?></td>
-                                            <td><?='$'.number_format($TOTAL_AMOUNT, 2)?></td>
+                                            <td><?=$TOTAL_UNIT.' / $'.$TOTAL_AMOUNT?></td>
+                                            <td><?=$REGULAR_AMOUNT?></td>
+                                            <td><?=$SUNDRY_AMOUNT?></td>
+                                            <td><?=$MISC_AMOUNT?></td>
+                                            <td><?='$'.$AMOUNT_PAID?></td>
+                                            <td><?='$'.number_format($TOTAL_AMOUNT_PAID, 2)?></td>
                                         </tr>
                                         <?php
                                         $payment_data->MoveNext();
+                                        $i++;
+                                        if (($last_date != $payment_data->fields['PAYMENT_DATE']) || ($i == $total_record)) { ?>
+                                            <tr>
+                                                <th style="width:10%; text-align: center; font-weight: bold" colspan="7">Daily Totals</th>
+                                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_AMOUNT_PAID_DAILY, 2)?></th>
+                                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($REGULAR_TOTAL_DAILY, 2)?></th>
+                                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($SUNDRY_TOTAL_DAILY, 2)?></th>
+                                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($MISC_TOTAL_DAILY, 2)?></th>
+                                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_RS_FEE, 2)?></th>
+                                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_AMOUNT_PAID, 2)?></th>
+                                            </tr>
+                                            <?php
+                                            if ($i < $total_record) { ?>
+                                            <tr>
+                                                <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?=$business_name?></th>
+                                                <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 1</th>
+                                                <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?=$week_number?> (<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</th>
+                                            </tr>
+                                            <?php } ?>
+                                        <?php
+                                            $TOTAL_AMOUNT_PAID_DAILY = 0;
+                                            $REGULAR_TOTAL_DAILY = 0;
+                                            $SUNDRY_TOTAL_DAILY = 0;
+                                            $MISC_TOTAL_DAILY = 0;
+                                        }
+                                        $last_date = $payment_data->fields['PAYMENT_DATE'];
                                     }
                                     ?>
-                                        <tr>
+                                        <!--<tr>
                                             <th style="width:10%; text-align: center; font-weight: bold" colspan="7">Daily Totals</th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_AMOUNT, 2)?></th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($REGULAR_TOTAL, 2)?></th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($SUNDRY_TOTAL, 2)?></th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($MISC_TOTAL, 2)?></th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_RS_FEE, 2)?></th>
-                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_AMOUNT, 2)?></th>
-                                        </tr>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?php /*='$'.number_format($TOTAL_AMOUNT_PAID, 2)*/?></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?php /*='$'.number_format($REGULAR_TOTAL, 2)*/?></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?php /*='$'.number_format($SUNDRY_TOTAL, 2)*/?></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?php /*='$'.number_format($MISC_TOTAL, 2)*/?></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?php /*='$'.number_format($TOTAL_RS_FEE, 2)*/?></th>
+                                            <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?php /*='$'.number_format($TOTAL_AMOUNT_PAID, 2)*/?></th>
+                                        </tr>-->
                                     </tbody>
                                 </table>
                             </div>
@@ -397,32 +514,12 @@ if ($type === 'export') {
                     </div>
                 </div>
             </div>
+            <?php } ?>
         </div>
     </div>
 </div>
 
 <?php require_once('../includes/footer.php');?>
-
-<script>
-    // $(function () {
-    //     $('#myTable').DataTable({
-    //         "columnDefs": [
-    //             { "targets": [0,2,5], "searchable": false }
-    //         ]
-    //     });
-    // });
-    function ConfirmDelete(anchor)
-    {
-        let conf = confirm("Are you sure you want to delete?");
-        if(conf)
-            window.location=anchor.attr("href");
-    }
-    // function editpage(id, master_id){
-    //     window.location.href = "customer.php?id="+id+"&master_id="+master_id;
-    //
-    // }
-
-</script>
 
 </body>
 </html>
