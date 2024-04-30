@@ -1880,13 +1880,15 @@ function copyAppointment($RESPONSE_DATA) {
 
 
 
-function makeRefundToWallet($RESPONSE_DATA)
+function moveToWallet($RESPONSE_DATA)
 {
     global $db_account;
     $PK_ENROLLMENT_MASTER = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
     $PK_ENROLLMENT_LEDGER = $RESPONSE_DATA['PK_ENROLLMENT_LEDGER'];
     $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
     $BALANCE = $RESPONSE_DATA['BALANCE'];
+    $ENROLLMENT_TYPE = $RESPONSE_DATA['ENROLLMENT_TYPE'];
+    $TRANSACTION_TYPE = $RESPONSE_DATA['TRANSACTION_TYPE'];
 
     $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
     if(empty($enrollment_data->fields['ENROLLMENT_NAME'])){
@@ -1895,21 +1897,50 @@ function makeRefundToWallet($RESPONSE_DATA)
         $enrollment_name = $enrollment_data->fields['ENROLLMENT_NAME']." - ";
     }
 
-    $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-    if ($wallet_data->RecordCount() > 0) {
-        $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
-    } else {
-        $INSERT_DATA['CURRENT_BALANCE'] = $BALANCE;
+    if ($TRANSACTION_TYPE == 'Moved') {
+        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+        if ($wallet_data->RecordCount() > 0) {
+            $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
+        } else {
+            $INSERT_DATA['CURRENT_BALANCE'] = $BALANCE;
+        }
+        $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+        $INSERT_DATA['CREDIT'] = $BALANCE;
+        $INSERT_DATA['DESCRIPTION'] = "Balance credited for cancellation of enrollment " . $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'];
+        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
     }
-    $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-    $INSERT_DATA['CREDIT'] = $BALANCE;
-    $INSERT_DATA['DESCRIPTION'] = "Balance credited for cancellation of enrollment ".$enrollment_name.$enrollment_data->fields['ENROLLMENT_ID'];
-    $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-    $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-    db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
     $UPDATE_DATA['IS_PAID'] = 1;
+    $UPDATE_DATA['IS_REFUNDED'] = 1;
     db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+
+    if ($ENROLLMENT_TYPE == 'active') {
+        $LEDGER_DATA_REFUND['TRANSACTION_TYPE'] = $TRANSACTION_TYPE;
+        $LEDGER_DATA_REFUND['ENROLLMENT_LEDGER_PARENT'] = $PK_ENROLLMENT_LEDGER;
+        $LEDGER_DATA_REFUND['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+        $LEDGER_DATA_REFUND['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+        $LEDGER_DATA_REFUND['PAID_AMOUNT'] = 0.00;
+        $LEDGER_DATA_REFUND['IS_PAID'] = 2;
+        $LEDGER_DATA_REFUND['DUE_DATE'] = date('Y-m-d');
+        $LEDGER_DATA_REFUND['BILLED_AMOUNT'] = 0.00;
+        $LEDGER_DATA_REFUND['BALANCE'] = $BALANCE;
+        $LEDGER_DATA_REFUND['STATUS'] = 'A';
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_REFUND, 'insert');
+
+        $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+        $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+        $ACTUAL_AMOUNT = $enrollmentBillingData->fields['TOTAL_AMOUNT'];
+        while (!$enrollmentServiceData->EOF) {
+            $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT']*100)/$ACTUAL_AMOUNT;
+            $serviceAmount = ($BALANCE*$servicePercent)/100;
+            $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] - $serviceAmount;
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update'," PK_ENROLLMENT_SERVICE = ".$enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+            markAppointmentPaid($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+            $enrollmentServiceData->MoveNext();
+        }
+    }
 }
 
 function generateAmReport($RESPONSE_DATA)

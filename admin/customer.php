@@ -257,13 +257,16 @@ if(!empty($_GET['master_id'])) {
     .commentModel {
         z-index: 1011
     }
-    .nav-tabs {
+    .page-titles {
+        padding: 0;
         position: fixed;
-        top:16%;
-        left: 20%;
         width: auto;
-        background-color: whitesmoke;
+        *background-color: whitesmoke;
         z-index: 1000; /* Ensure it's above other content */
+        margin: 0 0 0 0 !important;
+    }
+    .SumoSelect {
+        width: 100% !important;
     }
 
 </style>
@@ -307,14 +310,14 @@ if(!empty($_GET['master_id'])) {
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid body_content">
+        <div class="container-fluid body_content" style="position: sticky; z-index: 1;">
             <div class="row page-titles">
                 <!--<div class="col-md-6 align-self-center">
                     <h4 class="text-themecolor"><?php /*if(!empty($_GET['id'])) {
                             echo "Edit ".$FIRST_NAME." ".$LAST_NAME;
                         }*/?></h4>
                 </div>-->
-                <div class="col-md-3 align-self-end" style="position: sticky; z-index: 1;">
+                <div class="col-md-2 align-self-end">
                 <?php if(!empty($_GET['id'])) { ?>
                     <select required name="NAME" id="NAME" onchange="editpage(this);">
                         <option value="">Select Customer</option>
@@ -326,14 +329,32 @@ if(!empty($_GET['master_id'])) {
                     </select>
                 <?php } ?>
                 </div>
-            <div class="col-md-9 align-self-center text-end">
-                <div class="d-flex justify-content-end align-items-center">
-                    <ol class="breadcrumb justify-content-end">
-                        <li class="breadcrumb-item active"><a href="all_customers.php">All Customers</a></li>
-                        <li class="breadcrumb-item active"><a href="customer.php"><?=$title?></a></li>
-                    </ol>
+                <div class="col-md-9 align-self-center">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+                        <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
+                        <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
+                        <li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>
+                        <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
+                        <?php if(!empty($_GET['id'])) { ?>
+                            <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
+                            <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" ><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
+                            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
+                            <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
+                            <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
+                            <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" ><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
+                        <?php } ?>
+                    </ul>
                 </div>
-            </div>
+                <div class="col-md-1 align-self-center text-end">
+                    <div class="d-flex justify-content-end align-items-center" style="width: 240px;">
+                        <ol class="breadcrumb justify-content-end">
+                            <li class="breadcrumb-item active"><a href="all_customers.php">All Customers</a></li>
+                            <li class="breadcrumb-item active"><a href="customer.php"><?=$title?></a></li>
+                        </ol>
+                    </div>
+                </div>
         </div>
 
         <div class="row">
@@ -383,27 +404,8 @@ if(!empty($_GET['master_id'])) {
                                             <?php /*}*/?>
                                         </div>
                                     </div>-->
-                                    <div class="card-body">
-                                        <!-- Nav tabs -->
-                                        <ul class="nav nav-tabs" role="tablist">
-                                            <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
-                                            <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-                                            <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
-                                            <li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>
-                                            <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                                            <?php if(!empty($_GET['id'])) { ?>
-                                                <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
-                                                <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" ><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
-                                                <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
-                                                <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
-                                                <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
-                                                <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
-                                                <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" ><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
-                                            <?php } ?>
-                                        </ul>
-                                        <!-- Tab panes -->
+                                    <div class="card-body" style="margin-top: 15px;">
                                         <div class="tab-content tabcontent-border">
-
                                             <div class="tab-pane active" id="profile" role="tabpanel">
                                                 <form class="form-material form-horizontal" id="profile_form">
                                                     <input type="hidden" name="FUNCTION_NAME" value="saveProfileData">
