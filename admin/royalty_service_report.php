@@ -45,7 +45,7 @@ $PAYMENT_QUERY = "SELECT
                     LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
                     LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
                     
-                    WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$DEFAULT_LOCATION_ID.")
+                    WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.")
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'
                     ORDER BY PAYMENT_DATE ASC";
 
@@ -150,7 +150,24 @@ if ($type === 'export') {
     //pre_r(json_decode($post_data));
 }
 
+$location_name='';
+$results = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$resultsArray = [];
+while (!$results->EOF) {
+    $resultsArray[] = $results->fields['LOCATION_NAME'];
+    $results->MoveNext();
+}
+$totalResults = count($resultsArray);
+$concatenatedResults = "";
+foreach ($resultsArray as $key => $result) {
+    // Append the current result to the concatenated string
+    $concatenatedResults .= $result;
 
+    // If it's not the last result, append a comma
+    if ($key < $totalResults - 1) {
+        $concatenatedResults .= ", ";
+    }
+}
 
 ?>
 
@@ -219,7 +236,7 @@ if ($type === 'export') {
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
                                     <thead>
                                     <tr>
-                                        <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?=$business_name?></th>
+                                        <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?=$business_name." (".$concatenatedResults.")"?></th>
                                         <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 1</th>
                                         <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?=$week_number?> (<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</th>
                                     </tr>
@@ -261,7 +278,6 @@ if ($type === 'export') {
                                     $TOTAL_RS_FEE = 0;
                                     $TOTAL_AMOUNT_PAID = 0;
                                     $LOCATION_TOTAL = [];
-                                    $last_date = $from_date;
 
                                     $TOTAL_AMOUNT_PAID_DAILY = 0;
                                     $REGULAR_TOTAL_DAILY = 0;
@@ -271,6 +287,9 @@ if ($type === 'export') {
                                     $total_record = $payment_data->RecordCount();
                                     $i = 0;
                                     while (!$payment_data->EOF) {
+                                        if ($i == 0) {
+                                            $last_date = $payment_data->fields['PAYMENT_DATE'];
+                                        }
                                         $TOTAL_UNIT = 0;
                                         $REGULAR_AMOUNT = 0;
                                         $SUNDRY_AMOUNT = 0;
