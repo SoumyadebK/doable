@@ -1814,6 +1814,10 @@ if($user_payment_gateway->RecordCount() > 0){
                         let firstPaymentDate = new Date($('#FIRST_DUE_DATE').val());
                         let billingDate = new Date($('#BILLING_DATE').val());
 
+                        //alert((today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear()));
+
+                        //console.log($('.PAYMENT_METHOD:checked').val(), today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear(), billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear());
+
                         if (($('.PAYMENT_METHOD:checked').val() === 'One Time' && (today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear())) || (parseFloat($('#DOWN_PAYMENT').val()) > 0 && (today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear())) || ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() >= firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth()))) {
                             if ($('.PAYMENT_METHOD:checked').val() === 'One Time') {
                                 let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
