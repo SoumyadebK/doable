@@ -104,7 +104,9 @@ if (!empty($_GET['NAME'])) {
                                         </div>
                                     </div>
                                     <div class="col-2">
-                                        <input type="submit" name="view" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" value="View">
+                                        <input type="submit" name="view" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" value="View" style="border:none; outline:none;appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;">
                                         <input type="submit" name="export" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" value="Export">
                                     </div>
                                 </div>

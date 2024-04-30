@@ -94,6 +94,7 @@ if(empty($_GET['id'])){
     $EMAIL = '';
     $IMAGE_PATH = '';
     $PK_TIMEZONE = '';
+    $ROYALTY_PERCENTAGE = '';
     $ACTIVE = '';
     $PAYMENT_GATEWAY_TYPE = '';
     $SECRET_KEY = '';
@@ -125,6 +126,7 @@ if(empty($_GET['id'])){
     $EMAIL = $res->fields['EMAIL'];
     $IMAGE_PATH = $res->fields['IMAGE_PATH'];
     $PK_TIMEZONE = $res->fields['PK_TIMEZONE'];
+    $ROYALTY_PERCENTAGE = $res->fields['ROYALTY_PERCENTAGE'];
     $ACTIVE = $res->fields['ACTIVE'];
     $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
     $SECRET_KEY             = $res->fields['SECRET_KEY'];
@@ -327,6 +329,17 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                                                     <?	$res_type->MoveNext();
                                                                 } ?>
                                                             </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Royalty Percentage</label>
+                                                        <div class="input-group">
+                                                            <input type="text" name="ROYALTY_PERCENTAGE" id="ROYALTY_PERCENTAGE" class="form-control" value="<?php echo $ROYALTY_PERCENTAGE?>">
+                                                            <span class="form-control input-group-text">%</span>
                                                         </div>
                                                     </div>
                                                 </div>

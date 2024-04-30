@@ -14,6 +14,11 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     header("location:../login.php");
     exit;
 }
+
+$FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
+if(!empty($_POST) && $FUNCTION_NAME == 'saveSortOrder'){
+    $db_account->Execute("UPDATE DOA_SCHEDULING_CODE SET SORT_ORDER=".$_POST['ORDER_NUMBER']." WHERE PK_SCHEDULING_CODE=".$_POST['PK_SCHEDULING_CODE']);
+}
 ?>
 
 <!DOCTYPE html>
@@ -82,8 +87,12 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                             <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['SCHEDULING_NAME']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['SCHEDULING_EVENT']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['EVENT_ACTION']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><span style="display: block; width: 44px; height: 22px; background-color: <?=$row->fields['COLOR_CODE']?>"></span></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['SORT_ORDER']?></td>
+                                            <td onclick="editSortOrder(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><span style="display: block; width: 44px; height: 22px; background-color: <?=$row->fields['COLOR_CODE']?>"></span></td>
+                                            <td onclick="editCode(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['SORT_ORDER']?>
+
+                                                    <a href="javascript:" class="btn btn-info waves-effect waves-light m-r-10 text-white myBtn" onclick="editSortOrder(<?=$row->fields['PK_SCHEDULING_CODE']?>, <?=$row->fields['SORT_ORDER']?>);" style="margin-left: 10px">Set Order</a>
+
+                                            </td>
                                             <td>
                                                 <a href="add_scheduling_codes.php?id=<?=$row->fields['PK_SCHEDULING_CODE']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
@@ -97,6 +106,40 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         $i++; } ?>
                                     </tbody>
                                 </table>
+
+                                <div class="modal fade" id="sort_order_modal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <form id="sort_order_form" role="form" action="all_scheduling_codes.php" method="post">
+                                            <div class="modal-content" style="width: 50%; margin: 15% auto;">
+                                                <div class="modal-header">
+                                                    <h4><b>Sort Order</b></h4>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="FUNCTION_NAME" value="saveSortOrder">
+                                                    <input type="hidden" name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" class="PK_SCHEDULING_CODE">
+                                                    <div class="p-20">
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Set Order</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="ORDER_NUMBER" id="ORDER_NUMBER" class="form-control">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Save</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -110,15 +153,23 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     $(function () {
         $('#myTable').DataTable();
     });
+
     function ConfirmDelete(anchor)
     {
         var conf = confirm("Are you sure you want to delete?");
         if(conf)
             window.location=anchor.attr("href");
     }
+
     function editpage(id){
         //alert(i);
         window.location.href = "add_scheduling_codes.php?id="+id;
+    }
+
+    function editSortOrder(PK_SCHEDULING_CODE, SORT_ORDER) {
+        $('#PK_SCHEDULING_CODE').val(PK_SCHEDULING_CODE);
+        $('#ORDER_NUMBER').val(SORT_ORDER);
+        $('#sort_order_modal').modal('show');
     }
 </script>
 </body>

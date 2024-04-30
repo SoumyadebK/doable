@@ -332,9 +332,6 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     } else{
         $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['BILLING_DATE'])), $html_template);
     }
-    $html_template = str_replace('{DOWN_PAYMENTS}', number_format((float)$RESPONSE_DATA['DOWN_PAYMENT'], 2, '.', ''), $html_template);
-    $html_template = str_replace('{SCHEDULE_AMOUNT}', $RESPONSE_DATA['BALANCE_PAYABLE'], $html_template);
-    $html_template = str_replace('{REMAINING_BALANCE}', $enrollment_details->fields['FINAL_AMOUNT']-$RESPONSE_DATA['DOWN_PAYMENT'], $html_template);
 
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
         $PAYMENT_METHOD='';
@@ -349,9 +346,15 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         $PAYMENT_METHOD = $RESPONSE_DATA['PAYMENT_TERM'];
         $PAYMENT_AMOUNT = $RESPONSE_DATA['NUMBER_OF_PAYMENT'];
         $STARTING_DATE = date('m-d-Y', strtotime($RESPONSE_DATA['FIRST_DUE_DATE']));
+        $html_template = str_replace('{SCHEDULE_AMOUNT}', $RESPONSE_DATA['BALANCE_PAYABLE'], $html_template);
     } else{
         $STARTING_DATE = date('m-d-Y', strtotime($RESPONSE_DATA['BILLING_DATE']));
+        $html_template = str_replace('{SCHEDULE_AMOUNT}', $RESPONSE_DATA['BALANCE_PAYABLE'], $html_template);
     }
+
+    $html_template = str_replace('{DOWN_PAYMENTS}', number_format((float)$RESPONSE_DATA['DOWN_PAYMENT'], 2, '.', ''), $html_template);
+
+    $html_template = str_replace('{REMAINING_BALANCE}', $enrollment_details->fields['FINAL_AMOUNT']-$RESPONSE_DATA['DOWN_PAYMENT'], $html_template);
     $html_template = str_replace('{PAYMENT_NAME}', $PAYMENT_METHOD, $html_template);
     $html_template = str_replace('{NO_AMT_PAYMENT}', $PAYMENT_AMOUNT, $html_template);
     $html_template = str_replace('{INSTALLMENT_AMOUNT}', number_format((float)$RESPONSE_DATA['INSTALLMENT_AMOUNT'], 2, '.', ''), $html_template);
@@ -457,8 +460,10 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         while (!$date_amount->EOF) {
             $DUE_DATE .= date('m-d-Y', strtotime($date_amount->fields['DUE_DATE']))."<br>";
             $BILLED_AMOUNT .= $date_amount->fields['BILLED_AMOUNT']."<br>";
+            $SCHEDULING_AMOUNT += $date_amount->fields['BILLED_AMOUNT'];
             $date_amount->MoveNext();
         }
+        $html_template = str_replace('{SCHEDULE_AMOUNT}', $SCHEDULING_AMOUNT, $html_template);
         $html_template = str_replace('{DUE_DATE}', $DUE_DATE, $html_template);
         $html_template = str_replace('{BILLED_AMOUNT}', $BILLED_AMOUNT, $html_template);
         $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
