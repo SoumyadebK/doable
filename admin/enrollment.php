@@ -56,6 +56,7 @@ $EXPIRATION_DATE = '';
 $CHECK_NUMBER = '';
 $CHECK_DATE = '';
 $NOTE = '';
+$CHARGE_BY_SESSIONS = '';
 
 $PK_USER_MASTER = '';
 if(!empty($_GET['master_id_customer'])) {
@@ -78,6 +79,7 @@ if(!empty($_GET['id'])) {
     $ENROLLMENT_NAME = $res->fields['ENROLLMENT_NAME'];
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $PK_PACKAGE = $res->fields['PK_PACKAGE'];
+    $CHARGE_BY_SESSIONS = $res->fields['CHARGE_BY_SESSIONS'];
     $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
     $PK_DOCUMENT_LIBRARY = $res->fields['PK_DOCUMENT_LIBRARY'];
     $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
@@ -444,6 +446,13 @@ if($user_payment_gateway->RecordCount() > 0){
                                                         </select>
                                                     </div>
                                                 </div>
+                                                <?php
+                                                $payment_gateway_type = $db->Execute("SELECT PAYMENT_GATEWAY_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                if ($payment_gateway_type->RecordCount() > 0) { ?>
+                                                <div class="col-3">
+                                                    <label class="col-md-12 "><input type="checkbox" id="CHARGE_BY_SESSIONS" name="CHARGE_BY_SESSIONS" class="form-check-inline" value="1" <?=($CHARGE_BY_SESSIONS == 1)?'checked':''?> style="margin-top: 30px; margin-left: 35%" onchange="chargeBySessions(this);"> Charge by sessions</label>
+                                                </div>
+                                                <?php } ?>
                                             </div>
 
                                             <div class="card-body">
@@ -657,9 +666,9 @@ if($user_payment_gateway->RecordCount() > 0){
                                                 </div>
                                             </div>
 
-                                            <div class="row">
+                                            <div class="row add_more">
                                                 <div class="col-12">
-                                                    <div class="form-group" style="float: right;">
+                                                    <div class="form-group" style="float: right; display: <?=$CHARGE_BY_SESSIONS==1 ? 'none' : ''?>">
                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServices();">Add More</a>
                                                     </div>
                                                 </div>
@@ -895,13 +904,13 @@ if($user_payment_gateway->RecordCount() > 0){
                                                                     <label class="form-label">Payment Method</label>
                                                                     <div class="col-md-12">
                                                                         <div class="row">
-                                                                            <div class="col-md-3">
+                                                                            <div class="col-md-3 one_time">
                                                                                 <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="One Time" <?=($PAYMENT_METHOD == 'One Time')?'checked':''?> required>One Time</label>
                                                                             </div>
-                                                                            <div class="col-md-4">
+                                                                            <div class="col-md-4 payment_plans">
                                                                                 <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Payment Plans" <?=($PAYMENT_METHOD == 'Payment Plans')?'checked':''?> required>Payment Plans</label>
                                                                             </div>
-                                                                            <div class="col-md-5">
+                                                                            <div class="col-md-5 flexible_payments">
                                                                                 <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Flexible Payments" <?=($PAYMENT_METHOD == 'Flexible Payments')?'checked':''?> required>Flexible Payments</label>
                                                                             </div>
                                                                         </div>
@@ -1580,6 +1589,26 @@ if($user_payment_gateway->RecordCount() > 0){
         } else {
             $('.package_div').remove();
             addMoreServices();
+        }
+    }
+
+    function chargeBySessions(param) {
+        if ($(param).is(':checked')){
+            $('.add_more').hide();
+            $('#BILLING_DATE').prop('disabled', true);
+            $('.one_time').show();
+            $('.payment_plans').hide();
+            $('.flexible_payments').hide();
+            document.querySelector("input[name='PAYMENT_METHOD'][value='One Time']").checked = true;
+            $('#down_payment_div').slideUp();
+        }else {
+            $('.add_more').show();
+            $('#BILLING_DATE').prop('disabled', false);
+            $('.one_time').show();
+            $('.payment_plans').show();
+            $('.flexible_payments').show();
+            document.querySelector("input[name='PAYMENT_METHOD'][value='One Time']").checked = false;
+            $('#down_payment_div').slideDown();
         }
     }
 

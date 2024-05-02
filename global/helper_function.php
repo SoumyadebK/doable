@@ -70,7 +70,7 @@ function updateSessionCompletedCount($PK_APPOINTMENT_MASTER)
     global $db_account;
     $appointmentData = $db_account->Execute("SELECT `PK_ENROLLMENT_SERVICE` FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
     $PK_ENROLLMENT_SERVICE = $appointmentData->fields['PK_ENROLLMENT_SERVICE'];
-    $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
+    $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
     if ($serviceCodeData->RecordCount() > 0) {
         $is_count_done = checkCountAdded($PK_APPOINTMENT_MASTER, $serviceCodeData->fields['PK_USER_MASTER'], $serviceCodeData->fields['PK_ENROLLMENT_MASTER'], $PK_ENROLLMENT_SERVICE, 'COMPLETED');
         if ($is_count_done === 0) {
@@ -82,6 +82,92 @@ function updateSessionCompletedCount($PK_APPOINTMENT_MASTER)
             db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $PK_ENROLLMENT_SERVICE);
             markEnrollmentComplete($serviceCodeData->fields['PK_ENROLLMENT_MASTER']);
         }
+    }
+
+    if($serviceCodeData->fields['NUMBER_OF_SESSION'] == $ENR_SERVICE_DATA['SESSION_COMPLETED']) {
+        copyEnrollment($serviceCodeData->fields['PK_ENROLLMENT_MASTER']);
+    }
+}
+
+function copyEnrollment($PK_ENROLLMENT_MASTER){
+    global $db;
+    global $db_account;
+    $enrollment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
+    if($enrollment_data->RecordCount() > 0) {
+        $ENROLLMENT_MASTER_DATA['PK_ENROLLMENT_TYPE '] = $enrollment_data->fields['PK_ENROLLMENT_TYPE '];
+        $ENROLLMENT_MASTER_DATA['ENROLLMENT_NAME'] = $enrollment_data->fields['ENROLLMENT_NAME'];
+        $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $enrollment_data->fields['ENROLLMENT_ID'];
+        $ENROLLMENT_MASTER_DATA['MISC_ID'] = $enrollment_data->fields['MISC_ID'];
+        $ENROLLMENT_MASTER_DATA['PK_USER_MASTER'] = $enrollment_data->fields['PK_USER_MASTER'];
+        $ENROLLMENT_MASTER_DATA['PK_LOCATION'] = $enrollment_data->fields['PK_LOCATION'];
+        $ENROLLMENT_MASTER_DATA['PK_PACKAGE'] = $enrollment_data->fields['PK_PACKAGE'];
+        $ENROLLMENT_MASTER_DATA['CHARGE_BY_SESSIONS'] = $enrollment_data->fields['CHARGE_BY_SESSIONS'];
+        $ENROLLMENT_MASTER_DATA['PK_AGREEMENT_TYPE'] = $enrollment_data->fields['PK_AGREEMENT_TYPE'];
+        $ENROLLMENT_MASTER_DATA['PK_DOCUMENT_LIBRARY'] = $enrollment_data->fields['PK_DOCUMENT_LIBRARY'];
+        $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = $enrollment_data->fields['AGREEMENT_PDF_LINK'];
+        $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_ID'] = $enrollment_data->fields['ENROLLMENT_BY_ID'];
+        $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_PERCENTAGE'] = $enrollment_data->fields['ENROLLMENT_BY_PERCENTAGE'];
+        $ENROLLMENT_MASTER_DATA['MEMO'] = $enrollment_data->fields['MEMO'];
+        $ENROLLMENT_MASTER_DATA['STATUS'] = 'A';
+        $service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
+        $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM, MISCELLANEOUS_ID_CHAR, MISCELLANEOUS_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        $misc_service_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_CLASS = 5 AND PK_SERVICE_MASTER = ".$service_data->fields['PK_SERVICE_MASTER']);
+        if ($misc_service_data->RecordCount() > 0){
+            $id_data = $db_account->Execute("SELECT MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE ENROLLMENT_ID IS NULL AND PK_USER_MASTER = ".$enrollment_data->fields['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+            if ($id_data->fields['MISC_ID'] != ' '){
+                $misc_id = explode("-", $id_data->fields['MISC_ID']);
+                $last_misc_id = $misc_id[1];
+                $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".(intval($last_misc_id)+1);
+            }else{
+                $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".$account_data->fields['MISCELLANEOUS_ID_NUM'];
+            }
+        } else {
+            $id_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE MISC_ID IS NULL AND PK_USER_MASTER = ".$enrollment_data->fields['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+            if ($id_data->fields['ENROLLMENT_ID'] != ' '){
+                $enrollment_id = explode("-", $id_data->fields['ENROLLMENT_ID']);
+                $last_enrollment_id = $enrollment_id[1];
+                $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR']."-".(intval($last_enrollment_id)+1);
+            }else{
+                $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR']."-".$account_data->fields['ENROLLMENT_ID_NUM'];
+            }
+        }
+        if ($id_data->RecordCount() > 0){
+            $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = $id_data->fields['CUSTOMER_ENROLLMENT_NUMBER'] + 1;
+        }else{
+            $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
+        }
+        $ENROLLMENT_MASTER_DATA['ACTIVE'] = 1;
+        $ENROLLMENT_MASTER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        $ENROLLMENT_MASTER_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'insert');
+
+        $ENROLLMENT_SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $service_data->fields['PK_ENROLLMENT_MASTER'];
+        $ENROLLMENT_SERVICE_DATA['PK_SERVICE_MASTER'] = $service_data->fields['PK_SERVICE_MASTER'];
+        $ENROLLMENT_SERVICE_DATA['PK_SERVICE_CODE'] = $service_data->fields['PK_SERVICE_CODE'];
+        $ENROLLMENT_SERVICE_DATA['SERVICE_DETAILS'] = $service_data->fields['SERVICE_DETAILS'];
+        $ENROLLMENT_SERVICE_DATA['NUMBER_OF_SESSION'] = $service_data->fields['NUMBER_OF_SESSION'];
+        $ENROLLMENT_SERVICE_DATA['PRICE_PER_SESSION'] = $service_data->fields['PRICE_PER_SESSION'];
+        $ENROLLMENT_SERVICE_DATA['TOTAL'] = $service_data->fields['TOTAL'];
+        $ENROLLMENT_SERVICE_DATA['TOTAL_AMOUNT_PAID'] = $service_data->fields['TOTAL_AMOUNT_PAID'];
+        $ENROLLMENT_SERVICE_DATA['DISCOUNT_TYPE'] = $service_data->fields['DISCOUNT_TYPE'];
+        $ENROLLMENT_SERVICE_DATA['DISCOUNT'] = $service_data->fields['DISCOUNT'];
+        $ENROLLMENT_SERVICE_DATA['FINAL_AMOUNT'] = $service_data->fields['FINAL_AMOUNT'];
+        $ENROLLMENT_SERVICE_DATA['STATUS'] = 'A';
+        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'insert');
+
+        $billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
+        $ENROLLMENT_BILLING_DATA['PK_ENROLLMENT_MASTER'] = $billing_data->fields['PK_ENROLLMENT_MASTER'];
+        $ENROLLMENT_BILLING_DATA['BILLING_REF'] = $billing_data->fields['BILLING_REF'];
+        $ENROLLMENT_BILLING_DATA['BILLING_DATE'] = $billing_data->fields['BILLING_DATE'];
+        $ENROLLMENT_BILLING_DATA['DOWN_PAYMENT'] = $billing_data->fields['DOWN_PAYMENT'];
+        $ENROLLMENT_BILLING_DATA['BALANCE_PAYABLE'] = $billing_data->fields['BALANCE_PAYABLE'];
+        $ENROLLMENT_BILLING_DATA['TOTAL_AMOUNT'] = $billing_data->fields['TOTAL_AMOUNT'];
+        $ENROLLMENT_BILLING_DATA['PAYMENT_METHOD'] = $billing_data->fields['PAYMENT_METHOD'];
+        $ENROLLMENT_BILLING_DATA['PAYMENT_TERM'] = $billing_data->fields['PAYMENT_TERM'];
+        $ENROLLMENT_BILLING_DATA['NUMBER_OF_PAYMENT'] = $billing_data->fields['NUMBER_OF_PAYMENT'];
+        $ENROLLMENT_BILLING_DATA['FIRST_DUE_DATE'] = $billing_data->fields['FIRST_DUE_DATE'];
+        $ENROLLMENT_BILLING_DATA['INSTALLMENT_AMOUNT'] = $billing_data->fields['INSTALLMENT_AMOUNT'];
+        db_perform_account('DOA_ENROLLMENT_BILLING', $ENROLLMENT_BILLING_DATA, 'insert');
     }
 }
 
