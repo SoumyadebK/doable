@@ -134,6 +134,7 @@ if(!empty($_GET['id'])) {
                                     <?php } else { ?>
                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#login" role="tab" id="logintab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">User List</span></a> </li>
                                     <?php } ?>
+                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                 </ul>
 
                                 <!-- Tab panes -->
@@ -617,6 +618,42 @@ if(!empty($_GET['id'])) {
                                         </table>
                                     </div>
                                     <?php } ?>
+
+
+                                    <div class="tab-pane p-20" id="billing" role="tabpanel">
+                                        <form class="form-material form-horizontal" id="billing_from">
+                                            <input type="hidden" name="FUNCTION_NAME" value="saveBillingData">
+                                            <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?=$PK_ACCOUNT_MASTER?>">
+                                            <input type="hidden" class="PK_USER_EDIT" name="PK_USER_EDIT" value="<?=$PK_USER_EDIT?>">
+                                            <div class="p-20">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="row">
+                                                            <div class="form-group">
+                                                                <label class="form-label" style="margin-bottom: 5px;">Billing Type</label><br>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="BILLING_TYPE" name="BILLING_TYPE" class="form-check-inline">Bill Per Account</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="BILLING_TYPE" name="BILLING_TYPE" class="form-check-inline">Bill Per Location</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Amount</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                                                <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>

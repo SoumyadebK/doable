@@ -344,12 +344,11 @@ if(!empty($_GET['master_id'])) {
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
                             <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                             <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" ><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
-                            <li> <a class="nav-link" id="credit_card_tab_link" data-bs-toggle="tab" href="#credit_card" role="tab" ><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
                         <?php } ?>
                     </ul>
                 </div>
                 <div class="col-md-1 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-end" style="width: 280px;">
+                    <div class="d-flex justify-content-end align-items-center" style="width: 240px;">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item active"><a href="all_customers.php">All Customers</a></li>
                             <li class="breadcrumb-item active"><a href="customer.php"><?=$title?></a></li>
@@ -1789,47 +1788,6 @@ if(!empty($_GET['master_id'])) {
                                                 </div>
                                             </div>
 
-                                            <div class="tab-pane" id="credit_card" role="tabpanel">
-                                                <div class="p-20">
-                                                    <div class="row">
-                                                        <div class="col-md-6">
-                                                            <h3>Credit Card List</h3>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:;" onclick="addCreditCard();" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
-                                                        </div>
-                                                    </div>
-
-                                                    <table id="myTable" class="table table-striped border">
-                                                        <thead>
-                                                        <tr>
-                                                            <th>Date</th>
-                                                            <th>Transaction Details</th>
-                                                            <th>Debit</th>
-                                                            <th>Credit</th>
-                                                            <th>Balance</th>
-                                                        </tr>
-                                                        </thead>
-
-                                                        <tbody>
-                                                        <?php
-                                                        $walletTransaction = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET ASC");
-                                                        $i = 1;
-                                                        while (!$walletTransaction->EOF) { ?>
-                                                            <tr>
-                                                                <td ><?=date('m/d/Y h:i A', strtotime($walletTransaction->fields['CREATED_ON']))?></td>
-                                                                <td ><?=$walletTransaction->fields['DESCRIPTION']?></td>
-                                                                <td ><?=$walletTransaction->fields['DEBIT']?></td>
-                                                                <td ><?=$walletTransaction->fields['CREDIT']?></td>
-                                                                <td ><?=$walletTransaction->fields['CURRENT_BALANCE']?></td>
-                                                            </tr>
-                                                            <?php $walletTransaction->MoveNext();
-                                                            $i++; } ?>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-
                                             <!--Comment Model-->
                                             <div id="commentModel" class="modal">
                                                 <!-- Modal content -->
@@ -1888,51 +1846,6 @@ if(!empty($_GET['master_id'])) {
         </div>
     </div>
 
-        <!--Credit Card Model-->
-        <div class="modal fade" id="credit_card_modal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <form id="credit_card_form" role="form" action="" method="post">
-                    <div class="modal-content" style="width: 50%; margin: 15% auto;">
-                        <div class="modal-header">
-                            <h4><b>Credit Card</b></h4>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
-                            <div class="p-20">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label class="form-label">Card Number</label>
-                                            <div class="col-md-12">
-                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-8">
-                                        <div class="form-group">
-                                            <label class="form-label">Expiration Date</label>
-                                            <div class="col-md-4">
-                                                <input type="text" name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control">
-                                            </div>
-                                            <div class="col-md-4">
-                                                <input type="text" name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Save</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
 <!--Payment Model-->
 <?php include('includes/enrollment_payment.php'); ?>
 
@@ -3166,11 +3079,6 @@ if(!empty($_GET['master_id'])) {
                         }
                     });
                 }
-            }
-        </script>
-        <script>
-            function addCreditCard() {
-                $('#credit_card_modal').modal('show');
             }
         </script>
 </body>
