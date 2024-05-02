@@ -1810,24 +1810,25 @@ if($user_payment_gateway->RecordCount() > 0){
                     success: function (data) {
                         $('.PK_ENROLLMENT_BILLING').val(data.PK_ENROLLMENT_BILLING);
                         $('.PK_ENROLLMENT_LEDGER').val(data.PK_ENROLLMENT_LEDGER);
-                        let today = new Date();
-                        let firstPaymentDate = new Date($('#FIRST_DUE_DATE').val());
-                        let billingDate = new Date($('#BILLING_DATE').val());
+                        let payment_method = $('.PAYMENT_METHOD:checked').val();
+                        let down_payment = parseFloat($('#DOWN_PAYMENT').val());
+                        let today = new Date().getTime();
+                        let firstPaymentDate = new Date($('#FIRST_DUE_DATE').val()).getTime();
+                        let billingDate = new Date($('#BILLING_DATE').val()).getTime();
 
                         //alert((today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear()));
 
                         //console.log($('.PAYMENT_METHOD:checked').val(), today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear(), billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear());
 
-                        if (($('.PAYMENT_METHOD:checked').val() === 'One Time' && (today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear())) || (parseFloat($('#DOWN_PAYMENT').val()) > 0 && (today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear())) || ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() >= firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth()))) {
-                            if ($('.PAYMENT_METHOD:checked').val() === 'One Time') {
+                        if (((down_payment > 0) && (today >= billingDate)) || ((payment_method === 'One Time') && (today >= billingDate)) || ((payment_method === 'Payment Plans') && (today >= firstPaymentDate))) {
+                            if (payment_method === 'One Time') {
                                 let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
                                 $('#AMOUNT_TO_PAY').val(balance_payable.toFixed(2));
                             } else {
-                                if (parseFloat($('#DOWN_PAYMENT').val()) > 0) {
-                                    let down_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
+                                if (down_payment > 0) {
                                     $('#AMOUNT_TO_PAY').val(down_payment.toFixed(2));
                                 } else {
-                                    if ($('.PAYMENT_METHOD:checked').val() === 'Payment Plans' && (today.getDate() + '/' + today.getMonth() === firstPaymentDate.getDate() + '/' + firstPaymentDate.getMonth())) {
+                                    if ((payment_method === 'Payment Plans') && (today >= firstPaymentDate)) {
                                         let installment_amount = parseFloat(($('#INSTALLMENT_AMOUNT').val()) ? $('#INSTALLMENT_AMOUNT').val() : 0);
                                         $('#AMOUNT_TO_PAY').val(installment_amount.toFixed(2));
                                     }

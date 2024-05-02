@@ -1885,10 +1885,12 @@ function moveToWallet($RESPONSE_DATA)
     global $db_account;
     $PK_ENROLLMENT_MASTER = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
     $PK_ENROLLMENT_LEDGER = $RESPONSE_DATA['PK_ENROLLMENT_LEDGER'];
+    $ENROLLMENT_LEDGER_PARENT = $RESPONSE_DATA['ENROLLMENT_LEDGER_PARENT'];
     $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
     $BALANCE = $RESPONSE_DATA['BALANCE'];
     $ENROLLMENT_TYPE = $RESPONSE_DATA['ENROLLMENT_TYPE'];
     $TRANSACTION_TYPE = $RESPONSE_DATA['TRANSACTION_TYPE'];
+    $cancel_enrollment = $RESPONSE_DATA['cancel_enrollment'];
 
     $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
     if(empty($enrollment_data->fields['ENROLLMENT_NAME'])){
@@ -1906,28 +1908,19 @@ function moveToWallet($RESPONSE_DATA)
         }
         $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $INSERT_DATA['CREDIT'] = $BALANCE;
-        $INSERT_DATA['DESCRIPTION'] = "Balance credited for cancellation of enrollment " . $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'];
+        $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'];
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
     }
 
-    $UPDATE_DATA['IS_PAID'] = 1;
-    $UPDATE_DATA['IS_REFUNDED'] = 1;
-    db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
-
     if ($ENROLLMENT_TYPE == 'active') {
-        $LEDGER_DATA_REFUND['TRANSACTION_TYPE'] = $TRANSACTION_TYPE;
-        $LEDGER_DATA_REFUND['ENROLLMENT_LEDGER_PARENT'] = $PK_ENROLLMENT_LEDGER;
-        $LEDGER_DATA_REFUND['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-        $LEDGER_DATA_REFUND['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
-        $LEDGER_DATA_REFUND['PAID_AMOUNT'] = 0.00;
-        $LEDGER_DATA_REFUND['IS_PAID'] = 2;
-        $LEDGER_DATA_REFUND['DUE_DATE'] = date('Y-m-d');
-        $LEDGER_DATA_REFUND['BILLED_AMOUNT'] = 0.00;
-        $LEDGER_DATA_REFUND['BALANCE'] = $BALANCE;
-        $LEDGER_DATA_REFUND['STATUS'] = 'A';
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_REFUND, 'insert');
+        $UPDATE_DATA['IS_PAID'] = 2;
+        $UPDATE_DATA['TRANSACTION_TYPE'] = $TRANSACTION_TYPE;
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+
+        $PARENT_DATA['IS_PAID'] = 0;
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $PARENT_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT'");
 
         $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
         $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
@@ -1940,6 +1933,20 @@ function moveToWallet($RESPONSE_DATA)
             markAppointmentPaid($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
             $enrollmentServiceData->MoveNext();
         }
+
+        if ($cancel_enrollment == 1) {
+            $CANCEL_ENROLLMENT_UPDATE['STATUS'] = 'C';
+
+            $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER' AND TYPE = 'CREATED'");
+            db_perform_account('DOA_APPOINTMENT_MASTER', $CANCEL_ENROLLMENT_UPDATE, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND PK_APPOINTMENT_STATUS != 2");
+
+            db_perform_account('DOA_ENROLLMENT_MASTER', $CANCEL_ENROLLMENT_UPDATE, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $CANCEL_ENROLLMENT_UPDATE, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $CANCEL_ENROLLMENT_UPDATE, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+        }
+    } else {
+        $UPDATE_DATA['IS_PAID'] = 1;
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
     }
 }
 

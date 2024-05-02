@@ -502,24 +502,33 @@ foreach ($resultsArray as $key => $result) {
                                             <td style="width:10%; text-align: center; font-weight: bold" colspan="6">Total subject to r/s fee
                                                 <span style="font-weight: normal; float: right;">
                                                     <?php
+                                                    $royalty_percent = '';
+                                                    $location_total = '';
+                                                    $royalty_percent_array = [];
                                                     foreach ($LOCATION_TOTAL AS $key => $value) {
-                                                        $location_name = $db->Execute("SELECT `LOCATION_NAME` FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$key);
+                                                        $location_name = $db->Execute("SELECT LOCATION_NAME, ROYALTY_PERCENTAGE FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$key);
                                                         echo $location_name->fields['LOCATION_NAME']." - "."<br>";
+                                                        $royalty_percent .= "X ".$location_name->fields['ROYALTY_PERCENTAGE']." %"."<br>";
+                                                        $location_total .= "$".number_format($value, 2)."<br>";
+                                                        $royalty_percent_array[$key]['ROYALTY_PERCENTAGE'] = $location_name->fields['ROYALTY_PERCENTAGE'];
+                                                        $royalty_percent_array[$key]['LOCATION_TOTAL'] = $value;
                                                     }
                                                     ?>
                                                 </span>
                                             </td>
                                             <td style="width:10%; text-align: center;">
-                                                <?php
-                                                foreach ($LOCATION_TOTAL AS $key => $value) {
-                                                    echo "$".number_format($value, 2)."<br>";
-                                                }
-                                                ?>
+                                                <?=$location_total?>
                                                 <hr>
                                                 <?='$'.number_format($TOTAL_RS_FEE, 2)?>
                                             </td>
-                                            <td style="width:10%; text-align: center;" colspan="2">X 7.00 %</td>
-                                            <td style="width:10%; text-align: center;" colspan="2"><?='$'.number_format($TOTAL_RS_FEE*.07, 2)?></td>
+                                            <td style="width:10%; text-align: center;" colspan="2"><?=$royalty_percent?></td>
+                                            <td style="width:10%; text-align: center;" colspan="2">
+                                                <?php
+                                                foreach ($royalty_percent_array AS $key => $value) {
+                                                    echo "$".number_format(($value['LOCATION_TOTAL']*($value['ROYALTY_PERCENTAGE']/100)), 2)."<br>";
+                                                }
+                                                ?>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>

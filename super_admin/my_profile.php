@@ -56,13 +56,37 @@ if(!empty($_POST)){
         $TEXT_DATA['TOKEN'] = $_POST['TOKEN'];
         $TEXT_DATA['FROM_NO'] = $_POST['PHONE_NO'];
         db_perform('TEXT_SETTINGS', $TEXT_DATA, 'update', "PK_TEXT_SETTINGS = 1");
+
+        $PAYMENT_GATEWAY_DATA['PAYMENT_GATEWAY_TYPE'] = $_POST['PAYMENT_GATEWAY_TYPE'];
+        $PAYMENT_GATEWAY_DATA['SECRET_KEY'] = $_POST['SECRET_KEY'];
+        $PAYMENT_GATEWAY_DATA['PUBLISHABLE_KEY'] = $_POST['PUBLISHABLE_KEY'];
+        $PAYMENT_GATEWAY_DATA['ACCESS_TOKEN'] = $_POST['ACCESS_TOKEN'];
+        $PAYMENT_GATEWAY_DATA['APP_ID'] = $_POST['APP_ID'];
+        $PAYMENT_GATEWAY_DATA['LOCATION_ID'] = $_POST['LOCATION_ID'];
+        $PAYMENT_GATEWAY_DATA['LOGIN_ID'] = $_POST['LOGIN_ID'];
+        $PAYMENT_GATEWAY_DATA['TRANSACTION_KEY'] = $_POST['TRANSACTION_KEY'];
+        $PAYMENT_GATEWAY_DATA['AUTHORIZE_CLIENT_KEY'] = $_POST['AUTHORIZE_CLIENT_KEY'];
+        if ($_POST['PAYMENT_GATEWAY_TYPE'] == 0) {
+            db_perform('DOA_PAYMENT_GATEWAY_SETTINGS', $PAYMENT_GATEWAY_DATA, 'insert');
+        } else {
+            db_perform('DOA_PAYMENT_GATEWAY_SETTINGS', $PAYMENT_GATEWAY_DATA, 'update', "PK_PAYMENT_GATEWAY_SETTINGS = 1");
+        }
+
+        $OTHER_SETTING_DATA['PK_OTHER_SETTING'] = $_POST['PK_OTHER_SETTING'];
+        $OTHER_SETTING_DATA['PAYMENT_REMINDER_BEFORE_DAYS'] = $_POST['PAYMENT_REMINDER_BEFORE_DAYS'];
+        $OTHER_SETTING_DATA['PAYMENT_FAILED_REMINDER_AFTER_DAYS'] = $_POST['PAYMENT_FAILED_REMINDER_AFTER_DAYS'];
+        if ($_POST['PK_OTHER_SETTING'] == 0) {
+            db_perform('DOA_OTHER_SETTING', $OTHER_SETTING_DATA, 'insert');
+        } else {
+            db_perform('DOA_OTHER_SETTING', $OTHER_SETTING_DATA, 'update', "PK_OTHER_SETTING = 1");
+        }
     }
-
-
 }
 
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = ".$_SESSION['PK_USER']);
 $text = $db->Execute( "SELECT * FROM `DOA_TEXT_SETTINGS`");
+$payment_gateway_setting = $db->Execute( "SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
+$other_setting = $db->Execute( "SELECT * FROM `DOA_OTHER_SETTING`");
 if($user_data->RecordCount() == 0){
     header("location:../login.php");
     exit;
@@ -87,6 +111,40 @@ $ACTIVE = $user_data->fields['ACTIVE'];
 $SID = $text->fields['SID'];
 $TOKEN = $text->fields['TOKEN'];
 $PHONE_NO = $text->fields['FROM_NO'];
+
+$PK_PAYMENT_GATEWAY_SETTINGS = 0;
+$PAYMENT_GATEWAY_TYPE = '';
+$SECRET_KEY = '';
+$PUBLISHABLE_KEY = '';
+$ACCESS_TOKEN = '';
+$SQUARE_APP_ID ='';
+$SQUARE_LOCATION_ID = '';
+$LOGIN_ID = '';
+$TRANSACTION_KEY = '';
+$AUTHORIZE_CLIENT_KEY = '';
+
+$PK_OTHER_SETTING = 0;
+$PAYMENT_REMINDER_BEFORE_DAYS = '';
+$PAYMENT_FAILED_REMINDER_AFTER_DAYS = '';
+
+if ($payment_gateway_setting->RecordCount() > 0) {
+    $PK_PAYMENT_GATEWAY_SETTINGS = $payment_gateway_setting->fields['PK_PAYMENT_GATEWAY_SETTINGS'];
+    $PAYMENT_GATEWAY_TYPE = $payment_gateway_setting->fields['PAYMENT_GATEWAY_TYPE'];
+    $SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
+    $PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+    $ACCESS_TOKEN = $payment_gateway_setting->fields['ACCESS_TOKEN'];
+    $SQUARE_APP_ID = $payment_gateway_setting->fields['APP_ID'];
+    $SQUARE_LOCATION_ID = $payment_gateway_setting->fields['LOCATION_ID'];
+    $LOGIN_ID = $payment_gateway_setting->fields['LOGIN_ID'];
+    $TRANSACTION_KEY = $payment_gateway_setting->fields['TRANSACTION_KEY'];
+    $AUTHORIZE_CLIENT_KEY = $payment_gateway_setting->fields['AUTHORIZE_CLIENT_KEY'];
+}
+
+if ($other_setting->RecordCount() > 0) {
+    $PK_OTHER_SETTING = $other_setting->fields['PK_OTHER_SETTING'];
+    $PAYMENT_REMINDER_BEFORE_DAYS = $other_setting->fields['PAYMENT_REMINDER_BEFORE_DAYS'];
+    $PAYMENT_FAILED_REMINDER_AFTER_DAYS = $other_setting->fields['PAYMENT_FAILED_REMINDER_AFTER_DAYS'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -319,7 +377,9 @@ $PHONE_NO = $text->fields['FROM_NO'];
                                         <textarea class="form-control" rows="3" id="NOTES" name="NOTES"><?php echo $NOTES?></textarea>
                                     </div>
                                 </div>
-                                <div class="row">
+
+                                <div class="row" style="margin-top: 50px;">
+                                    <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
                                     <div class="col-4">
                                         <div class="form-group">
                                             <label class="col-md-12" for="example-text">SID</label>
@@ -345,6 +405,90 @@ $PHONE_NO = $text->fields['FROM_NO'];
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="row" style="margin-top: 50px;">
+                                    <b class="btn btn-light" style="margin-bottom: 20px;">Payment Gateway Setting</b>
+                                    <input type="hidden" name="PK_PAYMENT_GATEWAY_SETTINGS" value="<?=$PK_PAYMENT_GATEWAY_SETTINGS?>">
+                                    <div class="col-6">
+                                        <div class="row">
+                                            <div class="form-group">
+                                                <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
+                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
+                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
+                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'checked':''?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row payment_gateway" id="stripe" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'':'none'?>;">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Secret Key</label>
+                                                <input type="text" class="form-control" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Publishable Key</label>
+                                                <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?=$PUBLISHABLE_KEY?>">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row payment_gateway" id="square" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Square')?'':'none'?>">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Application ID</label>
+                                                <input type="text" class="form-control" name="APP_ID" value="<?=$SQUARE_APP_ID?>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Location ID</label>
+                                                <input type="text" class="form-control" name="LOCATION_ID" value="<?=$SQUARE_LOCATION_ID?>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Access Token</label>
+                                                <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?=$ACCESS_TOKEN?>">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row payment_gateway" id="authorized" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'':'none'?>">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Login ID</label>
+                                                <input type="text" class="form-control" name="LOGIN_ID" value="<?=$LOGIN_ID?>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Transaction Key</label>
+                                                <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?=$TRANSACTION_KEY?>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Authorize Client Key</label>
+                                                <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?=$AUTHORIZE_CLIENT_KEY?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row" style="margin-top: 50px;">
+                                    <b class="btn btn-light" style="margin-bottom: 20px;">Subscription & Payment Setting</b>
+                                    <input type="hidden" name="PK_OTHER_SETTING" value="<?=$PK_OTHER_SETTING?>">
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">Payment reminder send before days</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="PAYMENT_REMINDER_BEFORE_DAYS" name="PAYMENT_REMINDER_BEFORE_DAYS" class="form-control" placeholder="Payment reminder send before days" value="<?=$PAYMENT_REMINDER_BEFORE_DAYS?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">Payment failed reminder after days</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="PAYMENT_FAILED_REMINDER_AFTER_DAYS" name="PAYMENT_FAILED_REMINDER_AFTER_DAYS" class="form-control" placeholder="Payment failed reminder after days" value="<?=$PAYMENT_FAILED_REMINDER_AFTER_DAYS?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                             </form>
                         </div>
@@ -400,6 +544,22 @@ $PHONE_NO = $text->fields['FROM_NO'];
         }
     </script>
     <script>
+        function showPaymentGateway(param) {
+            $('.payment_gateway').slideUp();
+            if($(param).val() === 'Stripe'){
+                $('#stripe').slideDown();
+            }else {
+                if($(param).val() === 'Square'){
+                    $('#square').slideDown();
+                }else {
+                    if($(param).val() === 'Authorized.net'){
+                        $('#authorized').slideDown();
+                    }
+                }
+
+            }
+        }
+
         function isGood(password) {
             //alert(password);
             var password_strength = document.getElementById("password-text");
