@@ -140,8 +140,9 @@ function copyEnrollment($PK_ENROLLMENT_MASTER){
         $ENROLLMENT_MASTER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $ENROLLMENT_MASTER_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'insert');
+        $PK_ENROLLMENT_MASTER_NEW = $db_account->insert_ID();
 
-        $ENROLLMENT_SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $service_data->fields['PK_ENROLLMENT_MASTER'];
+        $ENROLLMENT_SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_NEW;
         $ENROLLMENT_SERVICE_DATA['PK_SERVICE_MASTER'] = $service_data->fields['PK_SERVICE_MASTER'];
         $ENROLLMENT_SERVICE_DATA['PK_SERVICE_CODE'] = $service_data->fields['PK_SERVICE_CODE'];
         $ENROLLMENT_SERVICE_DATA['SERVICE_DETAILS'] = $service_data->fields['SERVICE_DETAILS'];
@@ -156,7 +157,7 @@ function copyEnrollment($PK_ENROLLMENT_MASTER){
         db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'insert');
 
         $billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
-        $ENROLLMENT_BILLING_DATA['PK_ENROLLMENT_MASTER'] = $billing_data->fields['PK_ENROLLMENT_MASTER'];
+        $ENROLLMENT_BILLING_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_NEW;
         $ENROLLMENT_BILLING_DATA['BILLING_REF'] = $billing_data->fields['BILLING_REF'];
         $ENROLLMENT_BILLING_DATA['BILLING_DATE'] = $billing_data->fields['BILLING_DATE'];
         $ENROLLMENT_BILLING_DATA['DOWN_PAYMENT'] = $billing_data->fields['DOWN_PAYMENT'];
@@ -168,6 +169,22 @@ function copyEnrollment($PK_ENROLLMENT_MASTER){
         $ENROLLMENT_BILLING_DATA['FIRST_DUE_DATE'] = $billing_data->fields['FIRST_DUE_DATE'];
         $ENROLLMENT_BILLING_DATA['INSTALLMENT_AMOUNT'] = $billing_data->fields['INSTALLMENT_AMOUNT'];
         db_perform_account('DOA_ENROLLMENT_BILLING', $ENROLLMENT_BILLING_DATA, 'insert');
+        $PK_ENROLLMENT_BILLING_NEW = $db_account->insert_ID();
+
+        $ledger_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE='Billing' AND PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
+        $ENROLLMENT_LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_NEW;
+        $ENROLLMENT_LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING_NEW;
+        $ENROLLMENT_LEDGER_DATA['TRANSACTION_TYPE'] = $ledger_data->fields['TRANSACTION_TYPE'];
+        $ENROLLMENT_LEDGER_DATA['ENROLLMENT_LEDGER_PARENT '] = $ledger_data->fields['ENROLLMENT_LEDGER_PARENT'];
+        $ENROLLMENT_LEDGER_DATA['DUE_DATE'] = $ledger_data->fields['DUE_DATE'];
+        $ENROLLMENT_LEDGER_DATA['BILLED_AMOUNT'] = $ledger_data->fields['BILLED_AMOUNT'];
+        $ENROLLMENT_LEDGER_DATA['PAID_AMOUNT'] = $ledger_data->fields['PAID_AMOUNT'];
+        $ENROLLMENT_LEDGER_DATA['BALANCE'] = $ledger_data->fields['BALANCE'];
+        $ENROLLMENT_LEDGER_DATA['IS_PAID'] = $ledger_data->fields['IS_PAID'];
+        $ENROLLMENT_LEDGER_DATA['IS_REFUND'] = $ledger_data->fields['IS_REFUND'];
+        $ENROLLMENT_LEDGER_DATA['IS_DOWN_PAYMENT'] = $ledger_data->fields['IS_DOWN_PAYMENT'];
+        $ENROLLMENT_LEDGER_DATA['STATUS'] = $ledger_data->fields['STATUS'];
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $ENROLLMENT_LEDGER_DATA, 'insert');
     }
 }
 
