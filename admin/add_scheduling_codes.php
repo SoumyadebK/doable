@@ -16,8 +16,8 @@ if (!empty($_POST)) {
     $SCHEDULING_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     $SCHEDULING_DATA['SCHEDULING_CODE'] = $_POST['SCHEDULING_CODE'];
     $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
-    $SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
-    $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];
+    /*$SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
+    $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];*/
     $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
     $SCHEDULING_DATA['DURATION'] = $_POST['DURATION'];
     $SCHEDULING_DATA['SORT_ORDER'] = $_POST['SORT_ORDER'];
@@ -32,6 +32,7 @@ if (!empty($_POST)) {
         $SCHEDULING_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $SCHEDULING_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $SCHEDULING_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        pre_r($SCHEDULING_DATA);
         db_perform_account('DOA_SCHEDULING_CODE', $SCHEDULING_DATA, 'update', " PK_SCHEDULING_CODE = '$_GET[id]'");
         $PK_SCHEDULING_CODE = $_GET['id'];
         header("location:add_scheduling_codes.php?id=".$_GET['id']);
@@ -122,20 +123,20 @@ if (empty($_GET['id'])) {
                                     </div>
                                 </div>
 
-                                <div class="col-md-12 mb-3">
+                                <!--<div class="col-md-12 mb-3">
                                     <label for="PK_SCHEDULING_EVENT">Scheduling Event</label>
                                     <select id="PK_SCHEDULING_EVENT" name="PK_SCHEDULING_EVENT" class="form-control">
                                         <option disabled selected>Select Scheduling Event</option>
                                         <?php
-                                        $row = $db->Execute("SELECT PK_SCHEDULING_EVENT, SCHEDULING_EVENT FROM DOA_SCHEDULING_EVENT WHERE ACTIVE = 1");
+/*                                        $row = $db->Execute("SELECT PK_SCHEDULING_EVENT, SCHEDULING_EVENT FROM DOA_SCHEDULING_EVENT WHERE ACTIVE = 1");
                                         while (!$row->EOF) {
                                             $selected = '';
                                             if($PK_SCHEDULING_EVENT!='' && $PK_SCHEDULING_EVENT == $row->fields['PK_SCHEDULING_EVENT']){
                                                 $selected = 'selected';
                                             }
-                                            ?>
-                                            <option value="<?php echo $row->fields['PK_SCHEDULING_EVENT']; ?>" <?php echo $selected ;?>><?php echo $row->fields['SCHEDULING_EVENT']; ?></option>
-                                            <?php $row->MoveNext(); } ?>
+                                            */?>
+                                            <option value="<?php /*echo $row->fields['PK_SCHEDULING_EVENT']; */?>" <?php /*echo $selected ;*/?>><?php /*echo $row->fields['SCHEDULING_EVENT']; */?></option>
+                                            <?php /*$row->MoveNext(); } */?>
                                     </select>
                                 </div>
 
@@ -144,17 +145,17 @@ if (empty($_GET['id'])) {
                                     <select id="PK_EVENT_ACTION" name="PK_EVENT_ACTION" class="form-control">
                                         <option disabled selected>Select Event Action</option>
                                         <?php
-                                        $row = $db->Execute("SELECT PK_EVENT_ACTION, EVENT_ACTION FROM DOA_EVENT_ACTION WHERE ACTIVE = 1");
+/*                                        $row = $db->Execute("SELECT PK_EVENT_ACTION, EVENT_ACTION FROM DOA_EVENT_ACTION WHERE ACTIVE = 1");
                                         while (!$row->EOF) {
                                             $selected = '';
                                             if($PK_EVENT_ACTION!='' && $PK_EVENT_ACTION == $row->fields['PK_EVENT_ACTION']){
                                                 $selected = 'selected';
                                             }
-                                            ?>
-                                            <option value="<?php echo $row->fields['PK_EVENT_ACTION']; ?>" <?php echo $selected ;?>><?php echo $row->fields['EVENT_ACTION']; ?></option>
-                                            <?php $row->MoveNext(); } ?>
+                                            */?>
+                                            <option value="<?php /*echo $row->fields['PK_EVENT_ACTION']; */?>" <?php /*echo $selected ;*/?>><?php /*echo $row->fields['EVENT_ACTION']; */?></option>
+                                            <?php /*$row->MoveNext(); } */?>
                                     </select>
-                                </div>
+                                </div>-->
 
                                 <div class="col-6">
                                     <label class="col-md-12">Services</label>

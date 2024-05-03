@@ -96,8 +96,6 @@ function copyEnrollment($PK_ENROLLMENT_MASTER){
     if($enrollment_data->RecordCount() > 0) {
         $ENROLLMENT_MASTER_DATA['PK_ENROLLMENT_TYPE '] = $enrollment_data->fields['PK_ENROLLMENT_TYPE '];
         $ENROLLMENT_MASTER_DATA['ENROLLMENT_NAME'] = $enrollment_data->fields['ENROLLMENT_NAME'];
-        $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $enrollment_data->fields['ENROLLMENT_ID'];
-        $ENROLLMENT_MASTER_DATA['MISC_ID'] = $enrollment_data->fields['MISC_ID'];
         $ENROLLMENT_MASTER_DATA['PK_USER_MASTER'] = $enrollment_data->fields['PK_USER_MASTER'];
         $ENROLLMENT_MASTER_DATA['PK_LOCATION'] = $enrollment_data->fields['PK_LOCATION'];
         $ENROLLMENT_MASTER_DATA['PK_PACKAGE'] = $enrollment_data->fields['PK_PACKAGE'];
