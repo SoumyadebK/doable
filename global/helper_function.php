@@ -179,7 +179,6 @@ function copyEnrollment($PK_ENROLLMENT_MASTER){
         $ENROLLMENT_LEDGER_DATA['PAID_AMOUNT'] = $ledger_data->fields['PAID_AMOUNT'];
         $ENROLLMENT_LEDGER_DATA['BALANCE'] = $ledger_data->fields['BALANCE'];
         $ENROLLMENT_LEDGER_DATA['IS_PAID'] = $ledger_data->fields['IS_PAID'];
-        $ENROLLMENT_LEDGER_DATA['IS_REFUND'] = $ledger_data->fields['IS_REFUND'];
         $ENROLLMENT_LEDGER_DATA['IS_DOWN_PAYMENT'] = $ledger_data->fields['IS_DOWN_PAYMENT'];
         $ENROLLMENT_LEDGER_DATA['STATUS'] = $ledger_data->fields['STATUS'];
         db_perform_account('DOA_ENROLLMENT_LEDGER', $ENROLLMENT_LEDGER_DATA, 'insert');

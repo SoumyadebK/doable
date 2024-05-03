@@ -18,6 +18,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if(empty($_GET['id'])){
     $PACKAGE_NAME = '';
+    $PK_LOCATION = '';
     $SORT_ORDER = '';
     $ACTIVE = '';
 } else {
@@ -29,6 +30,7 @@ if(empty($_GET['id'])){
     }
 
     $PACKAGE_NAME = $res->fields['PACKAGE_NAME'];
+    $PK_LOCATION = $res->fields['PK_LOCATION'];
     $SORT_ORDER = $res->fields['SORT_ORDER'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
@@ -80,13 +82,26 @@ if(empty($_GET['id'])){
                                         <input type="hidden" name="PK_PACKAGE" class="PK_PACKAGE" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                         <div class="p-20">
                                             <div class="row">
-                                                <div class="col-6">
+                                                <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Package Name<span class="text-danger">*</span></label>
                                                         <input type="text" id="PK_PACKAGE" name="PACKAGE_NAME" class="form-control" placeholder="Enter Package name" required value="<?php echo $PACKAGE_NAME?>">
                                                     </div>
                                                 </div>
-                                                <div class="col-6">
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Location<span class="text-danger">*</span></label>
+                                                        <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION">
+                                                            <option value="">Select Location</option>
+                                                            <?php
+                                                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
+                                                            while (!$row->EOF) { ?>
+                                                                <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($PK_LOCATION == $row->fields['PK_LOCATION'])?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                                <?php $row->MoveNext(); } ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Sort Order</label>
                                                         <input type="text" id="SORT_ORDER" name="SORT_ORDER" class="form-control" placeholder="Enter Sort Order" required value="<?php echo $SORT_ORDER?>">

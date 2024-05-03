@@ -32,7 +32,6 @@ if (!empty($_POST)) {
         $SCHEDULING_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $SCHEDULING_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $SCHEDULING_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        pre_r($SCHEDULING_DATA);
         db_perform_account('DOA_SCHEDULING_CODE', $SCHEDULING_DATA, 'update', " PK_SCHEDULING_CODE = '$_GET[id]'");
         $PK_SCHEDULING_CODE = $_GET['id'];
         header("location:add_scheduling_codes.php?id=".$_GET['id']);
