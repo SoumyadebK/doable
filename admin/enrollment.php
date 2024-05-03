@@ -439,7 +439,7 @@ if($user_payment_gateway->RecordCount() > 0){
                                                         <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
                                                             <option value="">Select Package</option>
                                                             <?php
-                                                            $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE LEFT JOIN DOA_PACKAGE_LOCATION ON DOA_PACKAGE.PK_PACKAGE = DOA_PACKAGE_LOCATION.PK_PACKAGE WHERE DOA_PACKAGE_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE = 1 ORDER BY SORT_ORDER");
+                                                            $row = $db_account->Execute("SELECT DISTINCT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE LEFT JOIN DOA_PACKAGE_LOCATION ON DOA_PACKAGE.PK_PACKAGE = DOA_PACKAGE_LOCATION.PK_PACKAGE WHERE DOA_PACKAGE_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE = 1 ORDER BY SORT_ORDER");
                                                             while (!$row->EOF) { ?>
                                                                 <option value="<?php echo $row->fields['PK_PACKAGE'];?>" <?=($row->fields['PK_PACKAGE'] == $PK_PACKAGE)?'selected':''?>><?=$row->fields['PACKAGE_NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>
