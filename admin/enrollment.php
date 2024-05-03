@@ -1595,7 +1595,7 @@ if($user_payment_gateway->RecordCount() > 0){
     function chargeBySessions(param) {
         if ($(param).is(':checked')){
             $('.add_more').hide();
-            $('#BILLING_DATE').prop('disabled', true);
+            $('#BILLING_DATE').prop('readonly', true).css("pointer-events","none");
             $('.one_time').show();
             $('.payment_plans').hide();
             $('.flexible_payments').hide();
@@ -1603,7 +1603,7 @@ if($user_payment_gateway->RecordCount() > 0){
             $('#down_payment_div').slideUp();
         }else {
             $('.add_more').show();
-            $('#BILLING_DATE').prop('disabled', false);
+            $('#BILLING_DATE').prop('readonly', false).css("pointer-events","auto");
             $('.one_time').show();
             $('.payment_plans').show();
             $('.flexible_payments').show();
