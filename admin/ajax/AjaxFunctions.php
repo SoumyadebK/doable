@@ -78,7 +78,6 @@ function savePackageInfoData($RESPONSE_DATA){
 
     if (empty($RESPONSE_DATA['PK_PACKAGE'])){
         $PACKAGE_DATA['PACKAGE_NAME'] = $RESPONSE_DATA['PACKAGE_NAME'];
-        $PACKAGE_DATA['PK_LOCATION'] = $RESPONSE_DATA['PK_LOCATION'];
         $PACKAGE_DATA['SORT_ORDER'] = $RESPONSE_DATA['SORT_ORDER'];
         $PACKAGE_DATA['ACTIVE'] = 1;
         $PACKAGE_DATA['IS_DELETED'] = 0;
@@ -88,13 +87,22 @@ function savePackageInfoData($RESPONSE_DATA){
         $PK_PACKAGE = $db_account->insert_ID();
     } else {
         $PACKAGE_DATA['PACKAGE_NAME'] = $RESPONSE_DATA['PACKAGE_NAME'];
-        $PACKAGE_DATA['PK_LOCATION'] = $RESPONSE_DATA['PK_LOCATION'];
         $PACKAGE_DATA['SORT_ORDER'] = $RESPONSE_DATA['SORT_ORDER'];
         $PACKAGE_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'] ?? 0;
         $PACKAGE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $PACKAGE_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'update'," PK_PACKAGE =  '$RESPONSE_DATA[PK_PACKAGE]'");
         $PK_PACKAGE = $RESPONSE_DATA['PK_PACKAGE'];
+    }
+
+    $db_account->Execute("DELETE FROM `DOA_PACKAGE_LOCATION` WHERE `PK_PACKAGE` = '$PK_PACKAGE'");
+    if(isset($RESPONSE_DATA['PK_LOCATION'])){
+        $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
+        for($i = 0; $i < count($PK_LOCATION); $i++){
+            $PACKAGE_LOCATION_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+            $PACKAGE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+            db_perform_account('DOA_PACKAGE_LOCATION', $PACKAGE_LOCATION_DATA, 'insert');
+        }
     }
 
     if (isset($RESPONSE_DATA['PK_SERVICE_MASTER']) && count($RESPONSE_DATA['PK_SERVICE_MASTER']) > 0){

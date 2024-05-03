@@ -18,7 +18,6 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if(empty($_GET['id'])){
     $PACKAGE_NAME = '';
-    $PK_LOCATION = '';
     $SORT_ORDER = '';
     $ACTIVE = '';
 } else {
@@ -30,7 +29,6 @@ if(empty($_GET['id'])){
     }
 
     $PACKAGE_NAME = $res->fields['PACKAGE_NAME'];
-    $PK_LOCATION = $res->fields['PK_LOCATION'];
     $SORT_ORDER = $res->fields['SORT_ORDER'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
@@ -89,14 +87,21 @@ if(empty($_GET['id'])){
                                                     </div>
                                                 </div>
                                                 <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Location<span class="text-danger">*</span></label>
-                                                        <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION">
-                                                            <option value="">Select Location</option>
+                                                    <label class="col-md-12">Location<span class="text-danger">*</span></label>
+                                                    <div class="col-md-12 multiselect-box" style="width: 100%;">
+                                                        <select class="multi_sumo_select" name="PK_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple required>
                                                             <?php
-                                                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
+                                                            $selected_location = [];
+                                                            if(!empty($_GET['id'])) {
+                                                                $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_PACKAGE_LOCATION` WHERE `PK_PACKAGE` = '$_GET[id]'");
+                                                                while (!$selected_location_row->EOF) {
+                                                                    $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                                                    $selected_location_row->MoveNext();
+                                                                }
+                                                            }
+                                                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                             while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($PK_LOCATION == $row->fields['PK_LOCATION'])?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                                <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
                                                                 <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
@@ -349,6 +354,8 @@ if(empty($_GET['id'])){
 
 <script>
     let PK_SERVICE_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
+
+    $('.multi_sumo_select').SumoSelect({placeholder: 'Select Location', selectAll: true});
 
     function selectThisService(param) {
         let PK_SERVICE_MASTER = $(param).val();
