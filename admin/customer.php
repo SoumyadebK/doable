@@ -311,7 +311,7 @@ if(!empty($_GET['master_id'])) {
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid body_content" style="position: sticky; z-index: 1;">
-            <div class="row page-titles">
+            <div class="row page-titles" style="width: 97%;">
                 <!--<div class="col-md-6 align-self-center">
                     <h4 class="text-themecolor"><?php /*if(!empty($_GET['id'])) {
                             echo "Edit ".$FIRST_NAME." ".$LAST_NAME;
@@ -329,7 +329,7 @@ if(!empty($_GET['master_id'])) {
                     </select>
                 <?php } ?>
                 </div>
-                <div class="col-md-9 align-self-center">
+                <div class="col-md-9 align-self-center" style="width: 68%">
                     <ul class="nav nav-tabs" role="tablist">
                         <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                         <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
@@ -1846,6 +1846,29 @@ if(!empty($_GET['master_id'])) {
         </div>
     </div>
 
+<!--Confirm Model-->
+<div class="modal fade" id="confirm_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" style="max-width: 450px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <input type="hidden" id="cancel_enrollment" value="0">
+                            <label>Do you want to cancel this enrollment?</label>
+                            <button type="button" class="btn btn-info waves-effect waves-light m-l-20 text-white" onclick="$('#cancel_enrollment').val(1);$('.trigger_this').trigger('click');">Yes</button>
+                            <button type="button" class="btn btn-danger waves-effect waves-light m-l-10 text-white" onclick="$('#cancel_enrollment').val(2);$('.trigger_this').trigger('click');">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!--Payment Model-->
 <?php include('includes/enrollment_payment.php'); ?>
 
@@ -2973,113 +2996,113 @@ if(!empty($_GET['master_id'])) {
 
 
     </script>
-        <script>
-            $(document).ready(function () {
-                $('#CUSTOMER_ID').on('blur', function () {
-                    const CUSTOMER_ID = $(this).val().trim();
-                    let PK_USER = $('.PK_USER').val()
-                    if (CUSTOMER_ID != '' && PK_USER=='') {
-                        $.ajax({
-                            url: 'ajax/username_checker.php',
-                            type: 'post',
-                            data: { CUSTOMER_ID: CUSTOMER_ID, PK_USER: PK_USER },
-                            success: function (response) {
-                                $('#uname_result').html(response);
-                                if (response == '') {
-                                    $('#submit').removeAttr('disabled')
-                                } else {
-                                    $('#submit').attr('disabled', 'disabled')
-                                }
-                            }
-                        });
-                    } else {
-                        $("#uname_result").html("");
+<script>
+    $(document).ready(function () {
+        $('#CUSTOMER_ID').on('blur', function () {
+            const CUSTOMER_ID = $(this).val().trim();
+            let PK_USER = $('.PK_USER').val()
+            if (CUSTOMER_ID != '' && PK_USER=='') {
+                $.ajax({
+                    url: 'ajax/username_checker.php',
+                    type: 'post',
+                    data: { CUSTOMER_ID: CUSTOMER_ID, PK_USER: PK_USER },
+                    success: function (response) {
+                        $('#uname_result').html(response);
+                        if (response == '') {
+                            $('#submit').removeAttr('disabled')
+                        } else {
+                            $('#submit').attr('disabled', 'disabled')
+                        }
                     }
                 });
+            } else {
+                $("#uname_result").html("");
+            }
+        });
+    });
+</script>
+
+<script>
+    function paySelected(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
+        let BILLED_AMOUNT = [];
+        let PK_ENROLLMENT_LEDGER = [];
+
+        $(".BILLED_AMOUNT:checked").each(function() {
+            BILLED_AMOUNT.push($(this).val());
+            PK_ENROLLMENT_LEDGER.push($(this).data('pk_enrollment_ledger'));
+        });
+
+        let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
+
+        function getSum(total, num) {
+            return total + Math.round(num);
+        }
+
+        $('#enrollment_number').text(ENROLLMENT_ID);
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
+        $('#payment_confirmation_form_div_customer').slideDown();
+        //openPaymentModel();
+        $('#payment_modal').modal('show');
+    }
+</script>
+
+<script>
+    function payAll(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
+        let BILLED_AMOUNT = [];
+        let PK_ENROLLMENT_LEDGER = [];
+
+        $(".BILLED_AMOUNT:checked").each(function() {
+            BILLED_AMOUNT.push($(this).val());
+            PK_ENROLLMENT_LEDGER.push($(this).data('pk_enrollment_ledger'));
+        });
+
+        let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
+
+        function getSum(total, num) {
+            return total + Math.round(num);
+        }
+
+        $('#enrollment_number').text(ENROLLMENT_ID);
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
+        $('#payment_confirmation_form_div_customer').slideDown();
+        //openPaymentModel();
+        $('#payment_modal').modal('show');
+    }
+</script>
+<script>
+    function ConfirmPosted(PK_APPOINTMENT_MASTER)
+    {
+        var conf = confirm("Are you sure you want to Post it?");
+        if(conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {FUNCTION_NAME: 'updateAppointmentData', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                success: function (data) {
+                    window.location.href = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER+'&tab=enrollment';
+                }
             });
-        </script>
+        }
+    }
 
-        <script>
-            function paySelected(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
-                let BILLED_AMOUNT = [];
-                let PK_ENROLLMENT_LEDGER = [];
-
-                $(".BILLED_AMOUNT:checked").each(function() {
-                    BILLED_AMOUNT.push($(this).val());
-                    PK_ENROLLMENT_LEDGER.push($(this).data('pk_enrollment_ledger'));
-                });
-
-                let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
-
-                function getSum(total, num) {
-                    return total + Math.round(num);
+    function ConfirmUnposted(PK_APPOINTMENT_MASTER)
+    {
+        var conf = confirm("Are you sure you want to Unpost it?");
+        if(conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {FUNCTION_NAME: 'updateAppointmentDataUnpost', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                success: function (data) {
+                    window.location.href = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER+'&tab=enrollment';
                 }
-
-                $('#enrollment_number').text(ENROLLMENT_ID);
-                $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
-                $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
-                $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
-                $('#payment_confirmation_form_div_customer').slideDown();
-                //openPaymentModel();
-                $('#payment_modal').modal('show');
-            }
-        </script>
-
-        <script>
-            function payAll(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
-                let BILLED_AMOUNT = [];
-                let PK_ENROLLMENT_LEDGER = [];
-
-                $(".BILLED_AMOUNT:checked").each(function() {
-                    BILLED_AMOUNT.push($(this).val());
-                    PK_ENROLLMENT_LEDGER.push($(this).data('pk_enrollment_ledger'));
-                });
-
-                let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
-
-                function getSum(total, num) {
-                    return total + Math.round(num);
-                }
-
-                $('#enrollment_number').text(ENROLLMENT_ID);
-                $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
-                $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
-                $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
-                $('#payment_confirmation_form_div_customer').slideDown();
-                //openPaymentModel();
-                $('#payment_modal').modal('show');
-            }
-        </script>
-        <script>
-            function ConfirmPosted(PK_APPOINTMENT_MASTER)
-            {
-                var conf = confirm("Are you sure you want to Post it?");
-                if(conf) {
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: {FUNCTION_NAME: 'updateAppointmentData', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
-                        success: function (data) {
-                            window.location.href = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER+'&tab=enrollment';
-                        }
-                    });
-                }
-            }
-
-            function ConfirmUnposted(PK_APPOINTMENT_MASTER)
-            {
-                var conf = confirm("Are you sure you want to Unpost it?");
-                if(conf) {
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: {FUNCTION_NAME: 'updateAppointmentDataUnpost', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
-                        success: function (data) {
-                            window.location.href = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER+'&tab=enrollment';
-                        }
-                    });
-                }
-            }
-        </script>
+            });
+        }
+    }
+</script>
 </body>
 </html>
