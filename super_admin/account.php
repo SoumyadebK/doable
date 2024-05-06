@@ -59,6 +59,13 @@ $CITY = '';
 $ZIP = '';
 $PHONE = '';
 $NOTES = '';
+
+$START_DATE = '';
+$BILLING_TYPE = '';
+$AMOUNT = '';
+$TOTAL_AMOUNT = '';
+$NEXT_RENEWAL_DATE = '';
+$STATUS = '';
 if(!empty($_GET['id'])) {
     $account_res = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = '$_GET[id]'");
     if($account_res->RecordCount() == 0){
@@ -102,6 +109,16 @@ if(!empty($_GET['id'])) {
         $NOTES = $user_res->fields['NOTES'];
         $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_res->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
     }
+
+    $user_billing_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_BILLING_DETAILS WHERE PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+    if($user_billing_data->RecordCount() > 0) {
+        $START_DATE = $user_billing_data->fields['START_DATE'];
+        $BILLING_TYPE = $user_billing_data->fields['BILLING_TYPE'];
+        $AMOUNT = $user_billing_data->fields['AMOUNT'];
+        $TOTAL_AMOUNT = $user_billing_data->fields['TOTAL_AMOUNT'];
+        $NEXT_RENEWAL_DATE = $user_billing_data->fields['NEXT_RENEWAL_DATE'];
+        $STATUS = $user_billing_data->fields['STATUS'];
+    }
 }
 
 $location_data = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_ACCOUNT_MASTER`  = ".$_GET['id']);
@@ -118,29 +135,87 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
 
     /*Check the user is already a stripe user or not*/
     $account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+    $ACCOUNT_PAYMENT_ID = '';
     if ($account_payment_info->RecordCount() > 0) {
-        $ACCOUNT_PAYMENT_ID = $account_payment_info->fields['PAYMENT_ID'];
+        $ACCOUNT_PAYMENT_ID = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
     } else {
         try {
             $customer = $stripe->customers->create([
                 'email' => $EMAIL_ID,
                 'name' => $FIRST_NAME . " " . $LAST_NAME,
                 'phone' => $PHONE,
-                'description' => $PK_USER_EDIT,
+                'description' => $USER_NAME,
             ]);
+            $ACCOUNT_PAYMENT_ID = $customer->id;
         } catch (ApiErrorException $e) {
             pre_r($e->getMessage());
         }
 
-        $ACCOUNT_PAYMENT_ID = $customer->id;
         $STRIPE_DETAILS['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-        $STRIPE_DETAILS['PAYMENT_ID'] = $ACCOUNT_PAYMENT_ID;
+        $STRIPE_DETAILS['ACCOUNT_PAYMENT_ID'] = $ACCOUNT_PAYMENT_ID;
         $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
         $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_ACCOUNT_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
     }
 
-    $PAYMENT_METHOD_ID = '';
+    try {
+        $TOTAL_AMOUNT = $_POST['TOTAL_AMOUNT'] * 100;
+        Stripe::setApiKey($SECRET_KEY);
+        $charge = \Stripe\Charge::create([
+            'amount' 		    => $TOTAL_AMOUNT,
+            'currency'	 	    => 'usd',
+            'description' 	    => $BUSINESS_NAME,
+            'source' 	    	=> $STRIPE_TOKEN
+        ]);
+
+        if($charge->paid == 1){
+            $stripe->customers->update($ACCOUNT_PAYMENT_ID, ['source' => 'tok_visa']);
+
+            $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Success';
+            $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->id;
+
+            $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Active';
+
+        } else {
+            $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Failed';
+            $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->failure_message;
+
+            $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
+        }
+    } catch (Exception $e) {
+        $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Failed';
+        $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $e->getMessage();
+
+        $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
+    }
+
+    $ACCOUNT_BILLING_DETAILS['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+    $ACCOUNT_BILLING_DETAILS['BILLING_TYPE'] = $_POST['BILLING_TYPE'];
+    $ACCOUNT_BILLING_DETAILS['START_DATE'] = date("Y-m-d", strtotime($_POST['START_DATE']));
+    $ACCOUNT_BILLING_DETAILS['NEXT_RENEWAL_DATE'] = date("Y-m-d", strtotime('+1 month', strtotime($_POST['START_DATE'])));
+    $ACCOUNT_BILLING_DETAILS['AMOUNT'] = $_POST['AMOUNT'];
+    $ACCOUNT_BILLING_DETAILS['TOTAL_AMOUNT'] = $_POST['TOTAL_AMOUNT'];
+
+    $account_billing_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_BILLING_DETAILS WHERE PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+    if ($account_billing_info->RecordCount() > 0) {
+        $ACCOUNT_BILLING_DETAILS['EDITED_BY'] = $_SESSION['PK_USER'];
+        $ACCOUNT_BILLING_DETAILS['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform('DOA_ACCOUNT_BILLING_DETAILS', $ACCOUNT_BILLING_DETAILS, 'update', " PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+    } else {
+        $ACCOUNT_BILLING_DETAILS['CREATED_BY'] = $_SESSION['PK_USER'];
+        $ACCOUNT_BILLING_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform('DOA_ACCOUNT_BILLING_DETAILS', $ACCOUNT_BILLING_DETAILS, 'insert');
+    }
+
+    $ACCOUNT_PAYMENT_DETAILS['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+    $ACCOUNT_PAYMENT_DETAILS['DATE_TIME'] = date('Y-m-d H:i');
+    $ACCOUNT_PAYMENT_DETAILS['AMOUNT'] = $_POST['TOTAL_AMOUNT'];
+    db_perform('DOA_ACCOUNT_PAYMENT_DETAILS', $ACCOUNT_PAYMENT_DETAILS, 'insert');
+
+    header("location:account.php?id=".$PK_ACCOUNT_MASTER);
+
+
+    /*$PAYMENT_METHOD_ID = '';
     if (isset($_POST['PAYMENT_METHOD_ID'])) {
         $PAYMENT_METHOD_ID = $_POST['PAYMENT_METHOD_ID'];
     } else {
@@ -176,7 +251,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
 
     $PAYMENT_INFO = $payment_intent->id;
 
-    pre_r($payment_intent);
+    pre_r($payment_intent);*/
 }
 
 ?>
@@ -738,11 +813,37 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                             <div class="p-20">
                                                 <div class="row">
                                                     <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Subscription Start Date</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Select Date" value="<?=($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE))?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Next Renewal Date</label>
+                                                            <div class="col-md-12">
+                                                                <p><?=($NEXT_RENEWAL_DATE == '') ? '' : date('m/d/Y', strtotime($NEXT_RENEWAL_DATE))?></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Status</label>
+                                                            <div class="col-md-12">
+                                                                <p><?=$STATUS?></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-6">
                                                         <div class="row">
                                                             <div class="form-group">
                                                                 <label class="form-label" style="margin-bottom: 5px;">Billing Type</label><br>
-                                                                <label style="margin-right: 70px;"><input type="radio" name="BILLING_TYPE" class="form-check-inline BILLING_TYPE" value="PER_ACCOUNT" onchange="calculatePaymentAmount()" checked>Bill Per Account</label>
-                                                                <label style="margin-right: 70px;"><input type="radio" name="BILLING_TYPE" class="form-check-inline BILLING_TYPE" value="PER_LOCATION" onchange="calculatePaymentAmount()">Bill Per Location</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" name="BILLING_TYPE" class="form-check-inline BILLING_TYPE" value="PER_ACCOUNT" onchange="calculatePaymentAmount()" <?=($BILLING_TYPE == 'PER_ACCOUNT') ? 'checked' : ''?>>Bill Per Account</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" name="BILLING_TYPE" class="form-check-inline BILLING_TYPE" value="PER_LOCATION" onchange="calculatePaymentAmount()" <?=($BILLING_TYPE == 'PER_LOCATION') ? 'checked' : ''?>>Bill Per Location</label>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -752,7 +853,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                         <div class="form-group">
                                                             <label class="col-md-12">Amount</label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" onkeyup="calculatePaymentAmount()">
+                                                                <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" onkeyup="calculatePaymentAmount()" value="<?=$AMOUNT?>">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -762,7 +863,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                         <div class="form-group">
                                                             <label class="col-md-12">Total Amount</label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="TOTAL_AMOUNT" name="TOTAL_AMOUNT" class="form-control" placeholder="Total Amount" readonly>
+                                                                <input type="text" id="TOTAL_AMOUNT" name="TOTAL_AMOUNT" class="form-control" placeholder="Total Amount" readonly value="<?=$TOTAL_AMOUNT?>">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -800,6 +901,10 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
     $('.datepicker-past').datepicker({
         format: 'mm/dd/yyyy',
         maxDate: 0
+    });
+
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
     });
 
     $(document).ready(function() {
