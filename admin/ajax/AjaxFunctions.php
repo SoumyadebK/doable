@@ -1912,6 +1912,7 @@ function moveToWallet($RESPONSE_DATA)
 
     if ($TRANSACTION_TYPE == 'Moved') {
         $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+        $ledger_data = $db_account->Execute("SELECT RECEIPT_PDF_LINK FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_LEDGER=".$PK_ENROLLMENT_LEDGER);
         if ($wallet_data->RecordCount() > 0) {
             $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
         } else {
@@ -1920,6 +1921,7 @@ function moveToWallet($RESPONSE_DATA)
         $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $INSERT_DATA['CREDIT'] = $BALANCE;
         $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'];
+        $INSERT_DATA['RECEIPT_PDF_LINK'] = $ledger_data->fields['RECEIPT_PDF_LINK'];
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');

@@ -125,7 +125,7 @@ foreach ($resultsArray as $key => $result) {
                                         $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE, DOA_ENROLLMENT_SERVICE.STATUS FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$row->fields['PK_USER']." $date_between ORDER BY DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
                                         $INTERVIEW_TOTAL=0;
                                         $RENEWAL_TOTAL=0;
-                                        $j=1;
+                                        $j=0;
                                         while (!$enrollment_data->EOF) {
                                             if($j <= 3) {
                                                 if($enrollment_data->fields['STATUS']=='A'){
@@ -165,7 +165,7 @@ foreach ($resultsArray as $key => $result) {
                                     </thead>
                                     <tbody>
                                     <?php
-                                    $j=1;
+                                    $i=1;
                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.TYPE, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USER_ROLES.PK_ROLES FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES=DOA_USER_ROLES.PK_ROLES WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ROLES.IS_MANAGEMENT=1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." GROUP BY DOA_USERS.PK_USER");
                                     while (!$row->EOF) {
                                         $role = $row->fields['PK_ROLES'];
@@ -177,7 +177,7 @@ foreach ($resultsArray as $key => $result) {
                                         $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_PERCENTAGE, DOA_ENROLLMENT_SERVICE.STATUS FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." $date_between ORDER BY DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
                                         $INTERVIEW_TOTAL=0;
                                         $RENEWAL_TOTAL=0;
-                                        $j=1;
+                                        $j=0;
                                         while (!$enrollment_data->EOF) {
                                             if($j <= 3) {
                                                 if($enrollment_data->fields['STATUS']=='A'){
@@ -208,7 +208,7 @@ foreach ($resultsArray as $key => $result) {
                                             <td style="text-align: right"><?=number_format($RENEWAL_TOTAL, 2)?></td>
                                         </tr>
                                         <?php $row->MoveNext();
-                                        $j++; } ?>
+                                        $i++; } ?>
                                     </tbody>
                                 </table>
                             </div>

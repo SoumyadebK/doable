@@ -106,6 +106,31 @@ if ($_GET['type'] == 'normal') { ?>
     <div class="row" style="padding: 35px 35px 0 35px">
         <h5 style="margin-left: 30%;">List of Pending Services</h5>
         <?php require_once('pending_services.php'); ?>
+        <div class="col-md-2">
+            <?php
+            $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+            $pending_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS != 'C' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
+            $pending_service_code_array = [];
+            $total_balance = 0.00;
+            while (!$pending_service_data->EOF) {
+                $PRICE_PER_SESSION = $pending_service_data->fields['PRICE_PER_SESSION'];
+                $paid_session = ($PRICE_PER_SESSION > 0) ? number_format($pending_service_data->fields['TOTAL_AMOUNT_PAID']/$PRICE_PER_SESSION, 2) : $pending_service_data->fields['NUMBER_OF_SESSION'];
+                $ps_balance = $paid_session - $pending_service_data->fields['SESSION_COMPLETED'];
+
+                if (isset($pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']])) {
+                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['BALANCE'] += $ps_balance*$PRICE_PER_SESSION;
+                } else {
+                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['BALANCE'] = $ps_balance*$PRICE_PER_SESSION;
+                }
+
+                $total_balance += $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['BALANCE'];
+
+                $pending_service_data->MoveNext();
+            }
+            ?>
+            <h5 id="wallet_balance_span">Total Balance : $<?=($pending_service_data->RecordCount() > 0)?$total_balance:0.00?></h5>
+            <h5 id="wallet_balance_span">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></h5>
+        </div>
     </div>
     <div class="row" style="padding: 35px 35px 0 35px">
         <?php require_once('orphan_appointment.php'); ?>
@@ -275,7 +300,7 @@ while (!$row->EOF) {
                 <?php
                 $RECEIPT_PDF_LINK = '';
 
-                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.RECEIPT_PDF_LINK, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.RECEIPT_PDF_LINK, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.IS_PAID != 2 AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
                 if ($payment_details->RecordCount() > 0) {
                     $p++;
                     while (!$payment_details->EOF) {
@@ -309,7 +334,7 @@ while (!$row->EOF) {
                 }
                 $billing_details->MoveNext();
             }
-            $cancelled_enrollment = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = -1 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+            $cancelled_enrollment = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = -1 AND ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
             while (!$cancelled_enrollment->EOF) {
             ?>
                 <tr style="color: <?=(($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Balance Owned') ? 'red' : ''))?>;">
