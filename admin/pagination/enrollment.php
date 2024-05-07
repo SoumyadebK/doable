@@ -128,7 +128,7 @@ if ($_GET['type'] == 'normal') { ?>
                 $pending_service_data->MoveNext();
             }
             ?>
-            <h5 id="wallet_balance_span">Total Balance : $<?=($pending_service_data->RecordCount() > 0)?$total_balance:0.00?></h5>
+            <h5 id="wallet_balance_span">Credit Balance : $<?=($pending_service_data->RecordCount() > 0)?$total_balance:0.00?></h5>
             <h5 id="wallet_balance_span">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></h5>
         </div>
     </div>
@@ -248,7 +248,7 @@ while (!$row->EOF) {
                     if ($total_paid_amount-$total_used_amount > 0) { ?>
                         <p style="color: green; margin-top: 20%;">Refund Credit Available</p>
                     <?php } elseif ($total_paid_amount-$total_used_amount < 0) { ?>
-                        <p style="color: red; margin-top: 20%;">Balance Owned</p>
+                        <p style="color: red; margin-top: 20%;">Owned</p>
                     <?php } ?>
             <?php } ?>
             </div>

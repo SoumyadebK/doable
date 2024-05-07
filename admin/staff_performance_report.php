@@ -129,15 +129,15 @@ foreach ($resultsArray as $key => $result) {
                                         while (!$enrollment_data->EOF) {
                                             if($j <= 3) {
                                                 if($enrollment_data->fields['STATUS']=='A'){
-                                                    $INTERVIEW_TOTAL += $enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100;
+                                                    $INTERVIEW_TOTAL += (($enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
                                                 } else {
-                                                    $INTERVIEW_TOTAL += $enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100;
+                                                    $INTERVIEW_TOTAL += (($enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
                                                 }
                                             } else {
                                                 if($enrollment_data->fields['STATUS']=='A'){
-                                                    $RENEWAL_TOTAL += $enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100;
+                                                    $RENEWAL_TOTAL += (($enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
                                                 } else {
-                                                    $RENEWAL_TOTAL += $enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100;
+                                                    $RENEWAL_TOTAL += (($enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
                                                 }
                                             }
                                             $j++;

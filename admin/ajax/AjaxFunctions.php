@@ -1903,11 +1903,17 @@ function moveToWallet($RESPONSE_DATA)
     $TRANSACTION_TYPE = $RESPONSE_DATA['TRANSACTION_TYPE'];
     $cancel_enrollment = $RESPONSE_DATA['cancel_enrollment'];
 
-    $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, MISC_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
     if(empty($enrollment_data->fields['ENROLLMENT_NAME'])){
         $enrollment_name = '';
     }else {
         $enrollment_name = $enrollment_data->fields['ENROLLMENT_NAME']." - ";
+    }
+
+    if(empty($enrollment_data->fields['ENROLLMENT_ID'])) {
+        $enrollment_id = $enrollment_data->fields['MISC_ID'];
+    } else {
+        $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
     }
 
     if ($TRANSACTION_TYPE == 'Moved') {
@@ -1920,7 +1926,7 @@ function moveToWallet($RESPONSE_DATA)
         }
         $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $INSERT_DATA['CREDIT'] = $BALANCE;
-        $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'];
+        $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
         $INSERT_DATA['RECEIPT_PDF_LINK'] = $ledger_data->fields['RECEIPT_PDF_LINK'];
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
