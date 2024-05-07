@@ -248,7 +248,7 @@ while (!$row->EOF) {
                     if ($total_paid_amount-$total_used_amount > 0) { ?>
                         <p style="color: green; margin-top: 20%;">Refund Credit Available</p>
                     <?php } elseif ($total_paid_amount-$total_used_amount < 0) { ?>
-                        <p style="color: red; margin-top: 20%;">Owned</p>
+                        <p style="color: red; margin-top: 20%;">Balance Owed</p>
                     <?php } ?>
             <?php } ?>
             </div>
@@ -334,10 +334,10 @@ while (!$row->EOF) {
                 }
                 $billing_details->MoveNext();
             }
-            $cancelled_enrollment = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = -1 AND ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+            $cancelled_enrollment = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = -1 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
             while (!$cancelled_enrollment->EOF) {
             ?>
-                <tr style="color: <?=(($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Balance Owned') ? 'red' : ''))?>;">
+                <tr style="color: <?=(($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Balance Owed') ? 'red' : ''))?>;">
                     <td><?=date('m/d/Y', strtotime($cancelled_enrollment->fields['DUE_DATE']))?></td>
                     <td><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
                     <td style="text-align: right;"><?=$total_used_amount?></td>
