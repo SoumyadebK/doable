@@ -78,6 +78,11 @@ function getAllAppointments() {
     return $db1->Execute("SELECT * FROM service_appt");
 }
 
+function getAllStudentIds($service_appt_id) {
+    global $db1;
+    return $db1->Execute("SELECT student_id FROM service_appt WHERE id = '$service_appt_id'");
+}
+
 function getRole($role_id){
     if ($role_id > 0) {
         global $db1;

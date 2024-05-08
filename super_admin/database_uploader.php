@@ -708,14 +708,6 @@ if(!empty($_POST))
             $allAppointments = getAllAppointments();
             while (!$allAppointments->EOF) {
                 $INSERT_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-                $studentId = $allAppointments->fields['student_id'];
-                $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$studentId' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
-                $PK_USER_MASTER = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
-                $INSERT_DATA['CUSTOMER_ID'] = $PK_USER_MASTER;
-
-                $user_id = $allAppointments->fields['user_id'];
-                $doableCustomerId = $db->Execute("SELECT DOA_USERS.PK_USER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$user_id' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
-                $INSERT_DATA['SERVICE_PROVIDER_ID'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER'] : 0;
 
                 $service_id = $allAppointments->fields['service_id'];
                 $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_id'");
@@ -826,6 +818,11 @@ if(!empty($_POST))
                     $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 8;
                 }
                 $INSERT_DATA['COMMENT'] = $allAppointments->fields['appts_comment'];
+                if($service_id == 'PRT' || $service_id == 'GRP1' || $service_id == 'GRP3') {
+                    $INSERT_DATA['APPOINTMENT_TYPE'] = 'GROUP';
+                } else {
+                    $INSERT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+                }
                 $INSERT_DATA['ACTIVE'] = 1;
                 if ($allAppointments->fields['payment_status'] == "V") {
                     $INSERT_DATA['IS_PAID'] = 1;
@@ -835,6 +832,34 @@ if(!empty($_POST))
                 $INSERT_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
                 $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                 db_perform_account('DOA_APPOINTMENT_MASTER', $INSERT_DATA, 'insert');
+                $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
+
+                if($service_id == 'PRT' || $service_id == 'GRP1' || $service_id == 'GRP3') {
+                    $service_appt_id = $allAppointments->fields['service_appt_id'];
+                    $studentId = getAllStudentIds($service_appt_id);
+                    while (!$studentId->EOF) {
+                        $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$studentId' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
+                        $PK_USER_MASTER = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
+                        $INSERT_DATA_CUSTOMER['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                        $INSERT_DATA_CUSTOMER['PK_USER_MASTER'] = $PK_USER_MASTER;
+                        db_perform_account('DOA_APPOINTMENT_CUSTOMER', $INSERT_DATA_CUSTOMER, 'insert');
+                        $studentId->Movenext();
+                    }
+                } else {
+                    $studentId = $allAppointments->fields['student_id'];
+                    $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$studentId' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
+                    $PK_USER_MASTER = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
+                    $INSERT_DATA_CUSTOMER['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                    $INSERT_DATA_CUSTOMER['PK_USER_MASTER'] = $PK_USER_MASTER;
+                    db_perform_account('DOA_APPOINTMENT_CUSTOMER', $INSERT_DATA_CUSTOMER, 'insert');
+                }
+
+                $user_id = $allAppointments->fields['user_id'];
+                $doableServiceProviderId = $db->Execute("SELECT DOA_USERS.PK_USER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$user_id' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
+                $SERVICE_PROVIDER_ID = ($doableServiceProviderId->RecordCount() > 0) ? $doableServiceProviderId->fields['PK_USER'] : 0;
+                $INSERT_DATA_SERVICE_PROVIDER['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                $INSERT_DATA_SERVICE_PROVIDER['PK_USER'] = $SERVICE_PROVIDER_ID;
+                db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $INSERT_DATA_SERVICE_PROVIDER, 'insert');
 
                 $allAppointments->Movenext();
             }
