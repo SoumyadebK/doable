@@ -121,73 +121,61 @@ if(!empty($_GET['id'])) {
     }
 }
 
-$location_data = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_ACCOUNT_MASTER`  = ".$_GET['id']);
+$location_data = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE ACTIVE = 1 AND `PK_ACCOUNT_MASTER`  = ".$_GET['id']);
 $location_count = ($location_data->RecordCount() > 0) ? $location_data->RecordCount() : 1;
 
 $payment_gateway_setting = $db->Execute( "SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 $SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+Stripe::setApiKey($SECRET_KEY);
 
 if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingData') {
-    require_once("../global/stripe-php-master/init.php");
-    $stripe = new StripeClient($SECRET_KEY);
-    $STRIPE_TOKEN = $_POST['token'];
-
     /*Check the user is already a stripe user or not*/
-    $account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+    $account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
     $ACCOUNT_PAYMENT_ID = '';
     if ($account_payment_info->RecordCount() > 0) {
         $ACCOUNT_PAYMENT_ID = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
-    } else {
-        try {
-            $customer = $stripe->customers->create([
-                'email' => $EMAIL_ID,
-                'name' => $FIRST_NAME . " " . $LAST_NAME,
-                'phone' => $PHONE,
-                'description' => $USER_NAME,
-            ]);
-            $ACCOUNT_PAYMENT_ID = $customer->id;
-        } catch (ApiErrorException $e) {
-            pre_r($e->getMessage());
-        }
-
-        $STRIPE_DETAILS['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-        $STRIPE_DETAILS['ACCOUNT_PAYMENT_ID'] = $ACCOUNT_PAYMENT_ID;
-        $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
-        $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_ACCOUNT_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
     }
 
-    try {
-        $TOTAL_AMOUNT = $_POST['TOTAL_AMOUNT'] * 100;
-        Stripe::setApiKey($SECRET_KEY);
-        $charge = \Stripe\Charge::create([
-            'amount' 		    => $TOTAL_AMOUNT,
-            'currency'	 	    => 'usd',
-            'description' 	    => $BUSINESS_NAME,
-            'source' 	    	=> $STRIPE_TOKEN
-        ]);
+    $account = \Stripe\Customer::retrieve($ACCOUNT_PAYMENT_ID);
+    if($account->id === $ACCOUNT_PAYMENT_ID) {
+        try {
+            $charge = \Stripe\Charge::create(array(
+                "amount" => $AMOUNT * 100,
+                "currency" => "usd",
+                "description" => $BUSINESS_NAME,
+                "customer" => $ACCOUNT_PAYMENT_ID,
+                "statement_descriptor" => "Subscription Charge",
+            ));
 
-        if($charge->paid == 1){
-            $stripe->customers->update($ACCOUNT_PAYMENT_ID, ['source' => 'tok_visa']);
+            pre_r($charge);
 
-            $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Success';
-            $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->id;
+            if($charge->paid == 1){
+                $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Success';
+                $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->id;
 
-            $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Active';
+                $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Active';
+                $ACCOUNT_BILLING_DETAILS['NEXT_RENEWAL_DATE'] = date("Y-m-d", strtotime('+1 month', strtotime($NEXT_RENEWAL_DATE)));
+            } else {
+                $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Failed';
+                $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->failure_message;
 
-        } else {
+                $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
+            }
+        } catch (Exception $e) {
             $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Failed';
-            $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->failure_message;
+            $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $e->getMessage();
 
             $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
         }
-    } catch (Exception $e) {
+    } else {
         $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Failed';
-        $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $e->getMessage();
+        $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = "Customer not found";
 
         $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
     }
+
+
 
     $ACCOUNT_BILLING_DETAILS['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
     $ACCOUNT_BILLING_DETAILS['BILLING_TYPE'] = $_POST['BILLING_TYPE'];
@@ -213,45 +201,6 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
     db_perform('DOA_ACCOUNT_PAYMENT_DETAILS', $ACCOUNT_PAYMENT_DETAILS, 'insert');
 
     header("location:account.php?id=".$PK_ACCOUNT_MASTER);
-
-
-    /*$PAYMENT_METHOD_ID = '';
-    if (isset($_POST['PAYMENT_METHOD_ID'])) {
-        $PAYMENT_METHOD_ID = $_POST['PAYMENT_METHOD_ID'];
-    } else {
-        try {
-            $payment_method = $stripe->paymentMethods->create([
-                'type' => 'card',
-                'card' => [
-                    'token' => $STRIPE_TOKEN
-                ],
-            ]);
-            $stripe->paymentMethods->attach(
-                $payment_method->id,
-                ['customer' => $ACCOUNT_PAYMENT_ID]
-            );
-            $PAYMENT_METHOD_ID = $payment_method->id;
-        } catch (ApiErrorException $e) {
-            pre_r($e->getMessage());
-        }
-    }
-
-    $AMOUNT = $_POST['TOTAL_AMOUNT'] * 100;
-    try {
-        Stripe::setApiKey($SECRET_KEY);
-        $payment_intent = PaymentIntent::create([
-            'amount' => $AMOUNT,
-            'currency' => 'USD',
-            'customer' => $ACCOUNT_PAYMENT_ID,
-            'payment_method' => $PAYMENT_METHOD_ID,
-        ]);
-    } catch (Exception $e) {
-        pre_r($e->getMessage());
-    }
-
-    $PAYMENT_INFO = $payment_intent->id;
-
-    pre_r($payment_intent);*/
 }
 
 ?>
@@ -260,31 +209,8 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
 <html lang="en">
 <?php require_once('../includes/header.php');?>
 <style>
-    #advice-required-entry-ACCEPT_HANDLING{width: 150px;top: 20px;position: absolute;}
-    .StripeElement {
-        display: block;
+    .SumoSelect {
         width: 100%;
-        height: 34px;
-        padding: 6px 12px;
-        font-size: 14px;
-        line-height: 1.42857143;
-        color: #555;
-        background-color: #fff;
-        background-image: none;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-
-    .StripeElement--focus {
-        box-shadow: 0 1px 3px 0 #cfd7df;
-    }
-
-    .StripeElement--invalid {
-        border-color: #fa755a;
-    }
-
-    .StripeElement--webkit-autofill {
-        background-color: #fefde5 !important;
     }
 </style>
 <body class="skin-default-dark fixed-layout">
@@ -320,7 +246,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                     <?php } else { ?>
                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#login" role="tab" id="logintab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">User List</span></a> </li>
                                     <?php } ?>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="stripePaymentFunction()"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                 </ul>
 
                                 <!-- Tab panes -->
@@ -868,12 +794,34 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div id="card-element"></div>
+                                                <div id="add_card">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div id="card-element"></div>
+                                                        </div>
                                                     </div>
                                                 </div>
+
+                                                <div id="card-append-div">
+                                                    <div class="card-div">
+                                                        <div class="row" style="margin-bottom: 25px;">
+                                                            <div class="col-6">
+                                                                <label style="margin-bottom: 10px;">Location</label>
+                                                                <select class="multi_select_location" name="PK_LOCATION[0][]" multiple>
+                                                                    <?php
+                                                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+                                                                    while (!$row->EOF) { ?>
+                                                                        <option value="<?php echo $row->fields['PK_LOCATION'];?>"><?=$row->fields['LOCATION_NAME']?></option>
+                                                                    <?php $row->MoveNext(); } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+
                                             </div>
+
 
                                             <div class="form-group">
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Process</button>
@@ -897,6 +845,10 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
     }
 </style>
 <?php require_once('../includes/footer.php');?>
+
+<script src="http://igorescobar.github.io/jQuery-Mask-Plugin/js/jquery.mask.min.js"></script>
+
+
 <script>
     $('.datepicker-past').datepicker({
         format: 'mm/dd/yyyy',
@@ -913,42 +865,33 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
     });
 
     function fetch_state(PK_COUNTRY){
+        let data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
+        let value = $.ajax({
+            url: "ajax/state.php",
+            type: "POST",
+            data: data,
+            async: false,
+            cache :false,
+            success: function (result) {
+                document.getElementById('State_div').innerHTML = result;
 
-        jQuery(document).ready(function($) {
-
-            var data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
-
-            var value = $.ajax({
-                url: "ajax/state.php",
-                type: "POST",
-                data: data,
-                async: false,
-                cache :false,
-                success: function (result) {
-                    document.getElementById('State_div').innerHTML = result;
-
-                }
-            }).responseText;
-        });
+            }
+        }).responseText;
     }
+
     function fetch_Account_State(PK_COUNTRY){
+        let data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$ACCOUNT_PK_STATES;?>";
+        let value = $.ajax({
+            url: "ajax/state.php",
+            type: "POST",
+            data: data,
+            async: false,
+            cache :false,
+            success: function (result) {
+                document.getElementById('Account_State_div').innerHTML = result;
 
-        jQuery(document).ready(function($) {
-
-            var data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$ACCOUNT_PK_STATES;?>";
-
-            var value = $.ajax({
-                url: "ajax/state.php",
-                type: "POST",
-                data: data,
-                async: false,
-                cache :false,
-                success: function (result) {
-                    document.getElementById('Account_State_div').innerHTML = result;
-
-                }
-            }).responseText;
-        });
+            }
+        }).responseText;
     }
 
 </script>
@@ -999,6 +942,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
         password_strength.innerHTML = strength;
 
     }
+
     function ValidateUsername() {
         var username = document.getElementById("User_Id").value;
         var lblError = document.getElementById("lblError");
@@ -1062,7 +1006,9 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
             }
         });
     });
+</script>
 
+<script>
     function calculatePaymentAmount() {
         let BILLING_TYPE = $('.BILLING_TYPE:checked').val();
         let AMOUNT = $('#AMOUNT').val();
@@ -1072,79 +1018,6 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
             $('#TOTAL_AMOUNT').val(AMOUNT);
         } else {
             $('#TOTAL_AMOUNT').val(AMOUNT*LOCATION_COUNT);
-        }
-    }
-</script>
-
-<script src="https://js.stripe.com/v3/"></script>
-<script type="text/javascript">
-    function stripePaymentFunction() {
-        let stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
-        let elements = stripe.elements();
-
-        let style = {
-            base: {
-                height: '34px',
-                padding: '6px 12px',
-                fontSize: '14px',
-                lineHeight: '1.42857143',
-                color: '#555',
-                backgroundColor: '#fff',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                '::placeholder': {
-                    color: '#ddd'
-                }
-            },
-            invalid: {
-                color: '#fa755a',
-                iconColor: '#fa755a'
-            }
-        };
-
-        // Create an instance of the card Element.
-        let card = elements.create('card', {style: style});
-
-        if (($('#card-element')).length > 0) {
-            card.mount('#card-element');
-        }
-
-        // Handle real-time validation errors from the card Element.
-        card.addEventListener('change', function (event) {
-            let displayError = document.getElementById('card-errors');
-            if (event.error) {
-                displayError.textContent = event.error.message;
-            } else {
-                displayError.textContent = '';
-            }
-        });
-
-        // Handle form submission.
-        let form = document.getElementById('billingForm');
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            stripe.createToken(card).then(function (result) {
-                if (result.error) {
-                    // Inform the user if there was an error.
-                    let errorElement = document.getElementById('card-errors');
-                    errorElement.textContent = result.error.message;
-                } else {
-                    // Send the token to your server.
-                    stripeTokenHandler(result.token);
-                }
-            });
-        });
-
-        // Submit the form with the token ID.
-        function stripeTokenHandler(token) {
-            // Insert the token ID into the form, so it gets submitted to the server
-            let form = document.getElementById('billingForm');
-            let hiddenInput = document.createElement('input');
-            hiddenInput.setAttribute('type', 'hidden');
-            hiddenInput.setAttribute('name', 'token');
-            hiddenInput.setAttribute('value', token.id);
-            form.appendChild(hiddenInput);
-            form.submit();
         }
     }
 </script>
