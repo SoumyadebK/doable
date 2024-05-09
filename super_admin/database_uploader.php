@@ -809,7 +809,7 @@ if(!empty($_POST))
                 } elseif ($appt_status == "I") {
                     $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 6;
                 } elseif ($appt_status == "N") {
-                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 6;
+                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 1;
                 } elseif ($appt_status == "NS") {
                     $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 4;
                 } elseif ($appt_status == "O") {
