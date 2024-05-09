@@ -815,7 +815,7 @@ if(!empty($_POST))
                 } elseif ($appt_status == "O") {
                     $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 6;
                 } elseif ($appt_status == "S") {
-                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 8;
+                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 2;
                 }
                 $INSERT_DATA['COMMENT'] = $allAppointments->fields['appts_comment'];
                 if($service_id == 'PRT' || $service_id == 'GRP1' || $service_id == 'GRP3') {
@@ -833,6 +833,10 @@ if(!empty($_POST))
                 $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                 db_perform_account('DOA_APPOINTMENT_MASTER', $INSERT_DATA, 'insert');
                 $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
+                updateSessionCreatedCount($PK_ENROLLMENT_SERVICE);
+                if($appt_status == "S") {
+                    updateSessionCompletedCount($PK_APPOINTMENT_MASTER);
+                }
 
                 if($service_id == 'PRT' || $service_id == 'GRP1' || $service_id == 'GRP3') {
                     $service_appt_id = $allAppointments->fields['service_appt_id'];

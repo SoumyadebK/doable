@@ -329,8 +329,8 @@ if(!empty($_GET['master_id'])) {
                     </select>
                 <?php } ?>
                 </div>
-                <div class="col-md-9 align-self-center" style="width: 68%">
-                    <ul class="nav nav-tabs" role="tablist">
+                <div class="col-md-9 align-self-center" style="width: 68%; overflow-x: auto; white-space: nowrap;">
+                    <ul class="nav nav-tabs" role="tablist" style="width: 1250px">
                         <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                         <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
                         <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
@@ -343,6 +343,7 @@ if(!empty($_GET['master_id'])) {
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
                             <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#credit_card" role="tab" ><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
                             <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" ><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
                         <?php } ?>
                     </ul>
@@ -404,7 +405,7 @@ if(!empty($_GET['master_id'])) {
                                             <?php /*}*/?>
                                         </div>
                                     </div>-->
-                                    <div class="card-body" style="margin-top: 15px;">
+                                    <div class="card-body" style="margin-top: 35px;">
                                         <div class="tab-content tabcontent-border">
                                             <div class="tab-pane active" id="profile" role="tabpanel">
                                                 <form class="form-material form-horizontal" id="profile_form">
@@ -1792,6 +1793,54 @@ if(!empty($_GET['master_id'])) {
                                                             $i++; } ?>
                                                         </tbody>
                                                     </table>
+                                                </div>
+                                            </div>
+
+                                            <div class="tab-pane" id="credit_card" role="tabpanel">
+                                                <div class="p-20">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <h3>Credit Card</h3>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:;" onclick="openWalletModel();" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+                                                        </div>
+                                                    </div>
+
+                                                    <!--<table id="myTable" class="table table-striped border">
+                                                        <thead>
+                                                        <tr>
+                                                            <th>Date</th>
+                                                            <th>Transaction Details</th>
+                                                            <th>Debit</th>
+                                                            <th>Credit</th>
+                                                            <th>Balance</th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+
+                                                        <tbody>
+                                                        <?php
+/*                                                        $walletTransaction = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET ASC");
+                                                        $i = 1;
+                                                        while (!$walletTransaction->EOF) {
+                                                            $RECEIPT_PDF_LINK = $walletTransaction->fields['RECEIPT_PDF_LINK'];*/?>
+                                                            <tr>
+                                                                <td ><?php /*=date('m/d/Y h:i A', strtotime($walletTransaction->fields['CREATED_ON']))*/?></td>
+                                                                <td ><?php /*=$walletTransaction->fields['DESCRIPTION']*/?></td>
+                                                                <td ><?php /*=$walletTransaction->fields['DEBIT']*/?></td>
+                                                                <td ><?php /*=$walletTransaction->fields['CREDIT']*/?></td>
+                                                                <td ><?php /*=$walletTransaction->fields['CURRENT_BALANCE']*/?></td>
+                                                                <?php /*if($RECEIPT_PDF_LINK != '') { */?>
+                                                                    <td ><a class="btn btn-info waves-effect waves-light text-white" href="../uploads/enrollment_pdf/<?php /*=$RECEIPT_PDF_LINK*/?>" target="_blank">Receipt</a></td>
+                                                                <?php /*}else{*/?>
+                                                                    <td></td>
+                                                                <?php /*}*/?>
+                                                            </tr>
+                                                            <?php /*$walletTransaction->MoveNext();
+                                                            $i++; } */?>
+                                                        </tbody>
+                                                    </table>-->
                                                 </div>
                                             </div>
 
