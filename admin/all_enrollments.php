@@ -388,7 +388,7 @@ if (isset($_POST['SUBMIT'])){
                                         </div>
                                         <div class="col-md-2">
                                             <label><input type="radio" name="USE_AVAILABLE_CREDIT" value="1" checked/>&nbsp;Yes</label>&nbsp;&nbsp;
-                                            <label><input type="radio" name="USE_AVAILABLE_CREDIT" value="0"/>&nbsp;No</label>
+                                            <!--<label><input type="radio" name="USE_AVAILABLE_CREDIT" value="0"/>&nbsp;No</label>-->
                                         </div>
                                     </div>
                                 </div>
