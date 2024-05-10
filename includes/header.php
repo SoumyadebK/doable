@@ -10,6 +10,7 @@
     <link href="../assets/node_modules/dropzone-master/dist/dropzone.css" rel="stylesheet" type="text/css" />
     <!-- Custom CSS -->
     <link href="../assets/dist/css/style.min.css" rel="stylesheet">
+    <link href="../assets/dist/css/credit-card.css" rel="stylesheet">
     <!-- page css -->
     <link href="../assets/dist/css/pages/inbox.css" rel="stylesheet">
 
