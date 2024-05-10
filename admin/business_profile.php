@@ -81,9 +81,8 @@ $payment_gateway_setting = $db->Execute( "SELECT * FROM `DOA_PAYMENT_GATEWAY_SET
 $STRIPE_SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
 $STRIPE_PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
 
-
 require_once("../global/stripe-php-master/init.php");
-$stripe = new StripeClient($SECRET_KEY);
+$stripe = new StripeClient($STRIPE_SECRET_KEY);
 $account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PK_LOCATION IS NULL AND PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
 if ($account_payment_info->RecordCount() > 0) {
     $customer_id = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
@@ -844,7 +843,6 @@ if(!empty($_POST)){
                                 </div>
 
                                 <div class="tab-pane" id="credit_card" role="tabpanel">
-                                    <h3>Saved Card : <?=$card_details['last4']?></h3>
                                     <form class="form-material form-horizontal" id="creditCardForm" action="" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
                                         <div class="p-20" id="credit_card_div">
@@ -857,6 +855,55 @@ if(!empty($_POST)){
                                         <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
                                         <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
                                     </form>
+
+                                    <?php if (isset($card_details['last4'])) {
+                                        switch ($card_details['brand']) {
+                                            case 'Visa':
+                                            case 'Visa (debit)':
+                                                $card_type = 'visa';
+                                                break;
+                                            case 'MasterCard':
+                                            case 'Mastercard (2-series)':
+                                            case 'Mastercard (debit)':
+                                            case 'Mastercard (prepaid)':
+                                                $card_type = 'mastercard';
+                                                break;
+                                            case 'American Express':
+                                                $card_type = 'amex';
+                                                break;
+                                            case 'Discover':
+                                            case 'Discover (debit)':
+                                                $card_type = 'discover';
+                                                break;
+                                            case 'Diners Club':
+                                            case 'Diners Club (14-digit card)':
+                                                $card_type = 'diners';
+                                                break;
+                                            case 'JCB':
+                                                $card_type = 'jcb';
+                                                break;
+                                            case 'UnionPay':
+                                            case 'UnionPay (debit)':
+                                            case 'UnionPay (19-digit card)':
+                                                $card_type = 'unionpay';
+                                                break;
+                                            default:
+                                                $card_type = '';
+                                                break;
+
+                                        } ?>
+                                        <div class="p-20">
+                                            <h5>Saved Card Details</h5>
+                                            <div class="credit-card <?=$card_type?> selectable" style="margin-right: 80%;">
+                                                <div class="credit-card-last4">
+                                                    <?=$card_details['last4']?>
+                                                </div>
+                                                <div class="credit-card-expiry">
+                                                    <?=$card_details['exp_month'].'/'.$card_details['exp_year']?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php } ?>
                                 </div>
                             </div>
 
@@ -963,7 +1010,7 @@ if(!empty($_POST)){
     <script src="https://js.stripe.com/v3/"></script>
     <script type="text/javascript">
         function stripePaymentFunction() {
-            let stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
+            let stripe = Stripe('<?=$STRIPE_PUBLISHABLE_KEY?>');
             let elements = stripe.elements();
 
             let style = {

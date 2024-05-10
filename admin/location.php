@@ -1,5 +1,11 @@
 <?php
+
+use Stripe\Exception\ApiErrorException;
+use Stripe\StripeClient;
+
 require_once('../global/config.php');
+global $db;
+global $db_account;
 
 if (empty($_GET['id']))
     $title = "Add Location";
@@ -9,6 +15,105 @@ else
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
+}
+
+
+if(empty($_GET['id'])){
+    $PK_LOCATION = 0;
+    $LOCATION_NAME = '';
+    $LOCATION_CODE = '';
+    $ADDRESS = '';
+    $ADDRESS_1 = '';
+    $PK_COUNTRY = '';
+    $PK_STATES = '';
+    $CITY = '';
+    $ZIP_CODE = '';
+    $PHONE = '';
+    $EMAIL = '';
+    $IMAGE_PATH = '';
+    $PK_TIMEZONE = '';
+    $ROYALTY_PERCENTAGE = '';
+    $ACTIVE = '';
+    $PAYMENT_GATEWAY_TYPE = '';
+    $SECRET_KEY = '';
+    $PUBLISHABLE_KEY = '';
+    $ACCESS_TOKEN = '';
+    $SQUARE_APP_ID ='';
+    $SQUARE_LOCATION_ID = '';
+    $LOGIN_ID = '';
+    $TRANSACTION_KEY = '';
+    $AUTHORIZE_CLIENT_KEY = '';
+} else {
+    $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
+
+    if($res->RecordCount() == 0){
+        header("location:all_locations.php");
+        exit;
+    }
+
+    $PK_LOCATION = $_GET['id'];
+    $LOCATION_NAME = $res->fields['LOCATION_NAME'];
+    $LOCATION_CODE = $res->fields['LOCATION_CODE'];
+    $ADDRESS = $res->fields['ADDRESS'];
+    $ADDRESS_1 = $res->fields['ADDRESS_1'];
+    $PK_COUNTRY = $res->fields['PK_COUNTRY'];
+    $PK_STATES = $res->fields['PK_STATES'];
+    $CITY = $res->fields['CITY'];
+    $ZIP_CODE = $res->fields['ZIP_CODE'];
+    $PHONE = $res->fields['PHONE'];
+    $EMAIL = $res->fields['EMAIL'];
+    $IMAGE_PATH = $res->fields['IMAGE_PATH'];
+    $PK_TIMEZONE = $res->fields['PK_TIMEZONE'];
+    $ROYALTY_PERCENTAGE = $res->fields['ROYALTY_PERCENTAGE'];
+    $ACTIVE = $res->fields['ACTIVE'];
+    $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
+    $SECRET_KEY             = $res->fields['SECRET_KEY'];
+    $PUBLISHABLE_KEY        = $res->fields['PUBLISHABLE_KEY'];
+    $ACCESS_TOKEN           = $res->fields['ACCESS_TOKEN'];
+    $SQUARE_APP_ID          = $res->fields['APP_ID'];
+    $SQUARE_LOCATION_ID     = $res->fields['LOCATION_ID'];
+    $LOGIN_ID               = $res->fields['LOGIN_ID'];
+    $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
+    $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
+
+}
+
+$user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
+$ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
+
+$payment_gateway_setting = $db->Execute( "SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
+$STRIPE_SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
+$STRIPE_PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+
+require_once("../global/stripe-php-master/init.php");
+$stripe = new StripeClient($STRIPE_SECRET_KEY);
+$account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PK_LOCATION = ".$_GET['id']." AND PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+if ($account_payment_info->RecordCount() > 0) {
+    $customer_id = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
+    $stripe_customer = $stripe->customers->retrieve($customer_id);
+    $card_id = $stripe_customer->default_source;
+
+    $url = "https://api.stripe.com/v1/customers/".$customer_id."/cards/".$card_id;
+    $AUTH = "Authorization: Bearer ".$STRIPE_SECRET_KEY;
+
+    $curl = curl_init();
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => array(
+            $AUTH
+        ),
+    ));
+
+    $response = curl_exec($curl);
+    $card_details = json_decode($response, true);
+    //pre_r($card_details);
 }
 
 if(!empty($_POST)){
@@ -75,79 +180,72 @@ if(!empty($_POST)){
             }
         }
     }
+
+    if ($_POST['FUNCTION_NAME'] == 'saveCreditCard') {
+        $STRIPE_TOKEN = $_POST['token'];
+        $ACCOUNT_PAYMENT_ID = '';
+        if ($account_payment_info->RecordCount() > 0) {
+            $ACCOUNT_PAYMENT_ID = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
+        } else {
+            $account_data = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+            try {
+                $customer = $stripe->customers->create([
+                    'email' => $EMAIL,
+                    'name' => $account_data->fields['BUSINESS_NAME'].'('.$LOCATION_NAME.')',
+                    'phone' => $PHONE,
+                    'description' => $account_data->fields['BUSINESS_NAME'].'('.$LOCATION_NAME.')',
+                ]);
+                $ACCOUNT_PAYMENT_ID = $customer->id;
+            } catch (ApiErrorException $e) {
+                pre_r($e->getMessage());
+            }
+
+            $STRIPE_DETAILS['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+            $STRIPE_DETAILS['PK_LOCATION'] = $PK_LOCATION;
+            $STRIPE_DETAILS['ACCOUNT_PAYMENT_ID'] = $ACCOUNT_PAYMENT_ID;
+            $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
+            $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+            db_perform('DOA_ACCOUNT_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
+        }
+        $card = $stripe->customers->createSource($ACCOUNT_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
+        $stripe->customers->update($ACCOUNT_PAYMENT_ID, ['default_source' => $card->id]);
+    }
     header("location:all_locations.php");
 }
-
-
-
-if(empty($_GET['id'])){
-    $PK_LOCATION = 0;
-    $LOCATION_NAME = '';
-    $LOCATION_CODE = '';
-    $ADDRESS = '';
-    $ADDRESS_1 = '';
-    $PK_COUNTRY = '';
-    $PK_STATES = '';
-    $CITY = '';
-    $ZIP_CODE = '';
-    $PHONE = '';
-    $EMAIL = '';
-    $IMAGE_PATH = '';
-    $PK_TIMEZONE = '';
-    $ROYALTY_PERCENTAGE = '';
-    $ACTIVE = '';
-    $PAYMENT_GATEWAY_TYPE = '';
-    $SECRET_KEY = '';
-    $PUBLISHABLE_KEY = '';
-    $ACCESS_TOKEN = '';
-    $SQUARE_APP_ID ='';
-    $SQUARE_LOCATION_ID = '';
-    $LOGIN_ID = '';
-    $TRANSACTION_KEY = '';
-    $AUTHORIZE_CLIENT_KEY = '';
-} else {
-    $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
-
-    if($res->RecordCount() == 0){
-        header("location:all_locations.php");
-        exit;
-    }
-
-    $PK_LOCATION = $_GET['id'];
-    $LOCATION_NAME = $res->fields['LOCATION_NAME'];
-    $LOCATION_CODE = $res->fields['LOCATION_CODE'];
-    $ADDRESS = $res->fields['ADDRESS'];
-    $ADDRESS_1 = $res->fields['ADDRESS_1'];
-    $PK_COUNTRY = $res->fields['PK_COUNTRY'];
-    $PK_STATES = $res->fields['PK_STATES'];
-    $CITY = $res->fields['CITY'];
-    $ZIP_CODE = $res->fields['ZIP_CODE'];
-    $PHONE = $res->fields['PHONE'];
-    $EMAIL = $res->fields['EMAIL'];
-    $IMAGE_PATH = $res->fields['IMAGE_PATH'];
-    $PK_TIMEZONE = $res->fields['PK_TIMEZONE'];
-    $ROYALTY_PERCENTAGE = $res->fields['ROYALTY_PERCENTAGE'];
-    $ACTIVE = $res->fields['ACTIVE'];
-    $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
-    $SECRET_KEY             = $res->fields['SECRET_KEY'];
-    $PUBLISHABLE_KEY        = $res->fields['PUBLISHABLE_KEY'];
-    $ACCESS_TOKEN           = $res->fields['ACCESS_TOKEN'];
-    $SQUARE_APP_ID          = $res->fields['APP_ID'];
-    $SQUARE_LOCATION_ID     = $res->fields['LOCATION_ID'];
-    $LOGIN_ID               = $res->fields['LOGIN_ID'];
-    $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
-    $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
-
-}
-
-$user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
-$ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
 
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
+<style>
+    #advice-required-entry-ACCEPT_HANDLING{width: 150px;top: 20px;position: absolute;}
+    .StripeElement {
+        display: block;
+        width: 100%;
+        height: 34px;
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        color: #555;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .StripeElement--focus {
+        box-shadow: 0 1px 3px 0 #cfd7df;
+    }
+
+    .StripeElement--invalid {
+        border-color: #fa755a;
+    }
+
+    .StripeElement--webkit-autofill {
+        background-color: #fefde5 !important;
+    }
+</style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
@@ -184,8 +282,9 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                         <div class="card-body">
                             <!-- Nav tabs -->
                             <ul class="nav nav-tabs" role="tablist">
-                                <li class="active"> <a class="nav-link active" data-bs-toggle="tab" id="location_link" href="#location" role="tab"><span class="hidden-sm-up"><i class="ti-location-pin"></i></span> <span class="hidden-xs-down">Location</span></a> </li>
+                                <li> <a class="nav-link active" data-bs-toggle="tab" id="location_link" href="#location" role="tab"><span class="hidden-sm-up"><i class="ti-location-pin"></i></span> <span class="hidden-xs-down">Location</span></a> </li>
                                 <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
+                                <li> <a class="nav-link" data-bs-toggle="tab" id="credit_card_link" href="#credit_card" role="tab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
                             </ul>
 
                             <!-- Tab panes -->
@@ -547,6 +646,69 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                                     </form>
                                 </div>
 
+                                <div class="tab-pane" id="credit_card" role="tabpanel">
+                                    <form class="form-material form-horizontal" id="creditCardForm" action="" method="post" enctype="multipart/form-data">
+                                        <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
+                                        <div class="p-20" id="credit_card_div">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div id="card-element"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                        <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+                                    </form>
+                                    <?php if (isset($card_details['last4'])) {
+                                        switch ($card_details['brand']) {
+                                            case 'Visa':
+                                            case 'Visa (debit)':
+                                                $card_type = 'visa';
+                                                break;
+                                            case 'MasterCard':
+                                            case 'Mastercard (2-series)':
+                                            case 'Mastercard (debit)':
+                                            case 'Mastercard (prepaid)':
+                                                $card_type = 'mastercard';
+                                                break;
+                                            case 'American Express':
+                                                $card_type = 'amex';
+                                                break;
+                                            case 'Discover':
+                                            case 'Discover (debit)':
+                                                $card_type = 'discover';
+                                                break;
+                                            case 'Diners Club':
+                                            case 'Diners Club (14-digit card)':
+                                                $card_type = 'diners';
+                                                break;
+                                            case 'JCB':
+                                                $card_type = 'jcb';
+                                                break;
+                                            case 'UnionPay':
+                                            case 'UnionPay (debit)':
+                                            case 'UnionPay (19-digit card)':
+                                                $card_type = 'unionpay';
+                                                break;
+                                            default:
+                                                $card_type = '';
+                                                break;
+
+                                        } ?>
+                                        <div class="p-20">
+                                            <h5>Saved Card Details</h5>
+                                            <div class="credit-card <?=$card_type?> selectable" style="margin-right: 80%;">
+                                                <div class="credit-card-last4">
+                                                    <?=$card_details['last4']?>
+                                                </div>
+                                                <div class="credit-card-expiry">
+                                                    <?=$card_details['exp_month'].'/'.$card_details['exp_year']?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php } ?>
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -605,6 +767,79 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
                 }
             }
 
+        }
+    }
+</script>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script type="text/javascript">
+    function stripePaymentFunction() {
+        let stripe = Stripe('<?=$STRIPE_PUBLISHABLE_KEY?>');
+        let elements = stripe.elements();
+
+        let style = {
+            base: {
+                height: '34px',
+                padding: '6px 12px',
+                fontSize: '14px',
+                lineHeight: '1.42857143',
+                color: '#555',
+                backgroundColor: '#fff',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                '::placeholder': {
+                    color: '#ddd'
+                }
+            },
+            invalid: {
+                color: '#fa755a',
+                iconColor: '#fa755a'
+            }
+        };
+
+        // Create an instance of the card Element.
+        let card = elements.create('card', {style: style});
+
+        if (($('#card-element')).length > 0) {
+            card.mount('#card-element');
+        }
+
+        // Handle real-time validation errors from the card Element.
+        card.addEventListener('change', function (event) {
+            let displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+
+        // Handle form submission.
+        let form = document.getElementById('creditCardForm');
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            stripe.createToken(card).then(function (result) {
+                if (result.error) {
+                    // Inform the user if there was an error.
+                    let errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    // Send the token to your server.
+                    stripeTokenHandler(result.token);
+                }
+            });
+        });
+
+        // Submit the form with the token ID.
+        function stripeTokenHandler(token) {
+            // Insert the token ID into the form, so it gets submitted to the server
+            let form = document.getElementById('creditCardForm');
+            let hiddenInput = document.createElement('input');
+            hiddenInput.setAttribute('type', 'hidden');
+            hiddenInput.setAttribute('name', 'token');
+            hiddenInput.setAttribute('value', token.id);
+            form.appendChild(hiddenInput);
+            form.submit();
         }
     }
 </script>

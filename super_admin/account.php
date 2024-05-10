@@ -127,18 +127,15 @@ $location_count = ($location_data->RecordCount() > 0) ? $location_data->RecordCo
 $payment_gateway_setting = $db->Execute( "SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 $SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+require_once("../global/stripe-php-master/init.php");
 Stripe::setApiKey($SECRET_KEY);
 
 if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingData') {
-    /*Check the user is already a stripe user or not*/
-    $account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
-    $ACCOUNT_PAYMENT_ID = '';
-    if ($account_payment_info->RecordCount() > 0) {
-        $ACCOUNT_PAYMENT_ID = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
-    }
+    $AMOUNT = $_POST['AMOUNT'];
 
-    $account = \Stripe\Customer::retrieve($ACCOUNT_PAYMENT_ID);
-    if($account->id === $ACCOUNT_PAYMENT_ID) {
+    if ($_POST['BILLING_TYPE'] == 'PER_ACCOUNT') {
+        $ACCOUNT_PAYMENT_ID = $_POST['CUSTOMER_ID'];
+        $account = \Stripe\Customer::retrieve($ACCOUNT_PAYMENT_ID);
         try {
             $charge = \Stripe\Charge::create(array(
                 "amount" => $AMOUNT * 100,
@@ -148,9 +145,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                 "statement_descriptor" => "Subscription Charge",
             ));
 
-            pre_r($charge);
-
-            if($charge->paid == 1){
+            if ($charge->paid == 1) {
                 $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Success';
                 $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->id;
 
@@ -168,14 +163,49 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
 
             $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
         }
-    } else {
-        $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Failed';
-        $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = "Customer not found";
+        $ACCOUNT_PAYMENT_DETAILS['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+        $ACCOUNT_PAYMENT_DETAILS['DATE_TIME'] = date('Y-m-d H:i');
+        $ACCOUNT_PAYMENT_DETAILS['AMOUNT'] = $_POST['AMOUNT'];
+        db_perform('DOA_ACCOUNT_PAYMENT_DETAILS', $ACCOUNT_PAYMENT_DETAILS, 'insert');
+    } elseif ($_POST['BILLING_TYPE'] == 'PER_LOCATION') {
+        $PK_LOCATION = $_POST['PK_LOCATION'];
+        for ($i = 0; $i < count($PK_LOCATION); $i++) {
+            $ACCOUNT_PAYMENT_ID = $_POST['LOCATION_CUSTOMER_ID'][$i];
+            $account = \Stripe\Customer::retrieve($ACCOUNT_PAYMENT_ID);
+            try {
+                $charge = \Stripe\Charge::create(array(
+                    "amount" => $AMOUNT * 100,
+                    "currency" => "usd",
+                    "description" => $BUSINESS_NAME,
+                    "customer" => $ACCOUNT_PAYMENT_ID,
+                    "statement_descriptor" => "Subscription Charge",
+                ));
 
-        $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
+                if ($charge->paid == 1) {
+                    $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Success';
+                    $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->id;
+
+                    $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Active';
+                    $ACCOUNT_BILLING_DETAILS['NEXT_RENEWAL_DATE'] = date("Y-m-d", strtotime('+1 month', strtotime($NEXT_RENEWAL_DATE)));
+                } else {
+                    $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Failed';
+                    $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->failure_message;
+
+                    $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
+                }
+            } catch (Exception $e) {
+                $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Failed';
+                $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $e->getMessage();
+
+                $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
+            }
+            $ACCOUNT_PAYMENT_DETAILS['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+            $ACCOUNT_PAYMENT_DETAILS['PK_LOCATION'] = $_POST['PK_LOCATION'][$i];
+            $ACCOUNT_PAYMENT_DETAILS['DATE_TIME'] = date('Y-m-d H:i');
+            $ACCOUNT_PAYMENT_DETAILS['AMOUNT'] = $_POST['AMOUNT'];
+            db_perform('DOA_ACCOUNT_PAYMENT_DETAILS', $ACCOUNT_PAYMENT_DETAILS, 'insert');
+        }
     }
-
-
 
     $ACCOUNT_BILLING_DETAILS['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
     $ACCOUNT_BILLING_DETAILS['BILLING_TYPE'] = $_POST['BILLING_TYPE'];
@@ -195,14 +225,51 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
         db_perform('DOA_ACCOUNT_BILLING_DETAILS', $ACCOUNT_BILLING_DETAILS, 'insert');
     }
 
-    $ACCOUNT_PAYMENT_DETAILS['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-    $ACCOUNT_PAYMENT_DETAILS['DATE_TIME'] = date('Y-m-d H:i');
-    $ACCOUNT_PAYMENT_DETAILS['AMOUNT'] = $_POST['TOTAL_AMOUNT'];
-    db_perform('DOA_ACCOUNT_PAYMENT_DETAILS', $ACCOUNT_PAYMENT_DETAILS, 'insert');
-
     header("location:account.php?id=".$PK_ACCOUNT_MASTER);
 }
 
+$account_payment_data = [];
+$account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
+while (!$account_payment_info->EOF) {
+        require_once("../global/stripe-php-master/init.php");
+        $stripe = new StripeClient($SECRET_KEY);
+        $customer_id = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
+        $stripe_customer = $stripe->customers->retrieve($customer_id);
+        $card_id = $stripe_customer->default_source;
+
+        $url = "https://api.stripe.com/v1/customers/".$customer_id."/cards/".$card_id;
+        $AUTH = "Authorization: Bearer ".$SECRET_KEY;
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+                $AUTH
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        $card_details = json_decode($response, true);
+
+        $account_payment_data[] = [
+            'CUSTOMER_ID' => $customer_id,
+            'PK_LOCATION' => $account_payment_info->fields['PK_LOCATION'],
+            'CARD_TYPE' => $card_details['brand'],
+            'LAST4' => $card_details['last4'],
+            'EXP_MONTH' => $card_details['exp_month'],
+            'EXP_YEAR' => $card_details['exp_year'],
+        ];
+        //pre_r($card_details);
+
+    $account_payment_info->MoveNext();
+}
 ?>
 
 <!DOCTYPE html>
@@ -802,26 +869,82 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                     </div>
                                                 </div>
 
-                                                <div id="card-append-div">
-                                                    <div class="card-div">
-                                                        <div class="row" style="margin-bottom: 25px;">
-                                                            <div class="col-6">
-                                                                <label style="margin-bottom: 10px;">Location</label>
-                                                                <select class="multi_select_location" name="PK_LOCATION[0][]" multiple>
-                                                                    <?php
-                                                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
-                                                                    while (!$row->EOF) { ?>
-                                                                        <option value="<?php echo $row->fields['PK_LOCATION'];?>"><?=$row->fields['LOCATION_NAME']?></option>
-                                                                    <?php $row->MoveNext(); } ?>
-                                                                </select>
+                                                <?php
+                                                foreach ($account_payment_data AS $key => $value) {
+                                                    switch ($value['CARD_TYPE']) {
+                                                        case 'Visa':
+                                                        case 'Visa (debit)':
+                                                            $card_type = 'visa';
+                                                            break;
+                                                        case 'MasterCard':
+                                                        case 'Mastercard (2-series)':
+                                                        case 'Mastercard (debit)':
+                                                        case 'Mastercard (prepaid)':
+                                                            $card_type = 'mastercard';
+                                                            break;
+                                                        case 'American Express':
+                                                            $card_type = 'amex';
+                                                            break;
+                                                        case 'Discover':
+                                                        case 'Discover (debit)':
+                                                            $card_type = 'discover';
+                                                            break;
+                                                        case 'Diners Club':
+                                                        case 'Diners Club (14-digit card)':
+                                                            $card_type = 'diners';
+                                                            break;
+                                                        case 'JCB':
+                                                            $card_type = 'jcb';
+                                                            break;
+                                                        case 'UnionPay':
+                                                        case 'UnionPay (debit)':
+                                                        case 'UnionPay (19-digit card)':
+                                                            $card_type = 'unionpay';
+                                                            break;
+                                                        default:
+                                                            $card_type = '';
+                                                            break;
+
+                                                    }
+                                                    if ($value['PK_LOCATION'] == null) { ?>
+                                                        <input type="hidden" name="CUSTOMER_ID" value="<?=$value['CUSTOMER_ID']?>">
+                                                        <div class="per_account" style="display: <?=($BILLING_TYPE == 'PER_ACCOUNT') ? '' : 'none'?>">
+                                                            <div class="credit-card <?=$card_type?> selectable" style="margin-right: 50%;">
+                                                                <div class="credit-card-last4">
+                                                                    <?=$value['LAST4']?>
+                                                                </div>
+                                                                <div class="credit-card-expiry">
+                                                                    <?=$value['EXP_MONTH'].'/'.$value['EXP_YEAR']?>
+                                                                </div>
                                                             </div>
                                                         </div>
-
-                                                    </div>
-                                                </div>
-
+                                                    <?php } else { ?>
+                                                        <div class="per_location" style="display: <?=($BILLING_TYPE == 'PER_LOCATION') ? '' : 'none'?>;">
+                                                            <div class="row" style="margin-bottom: 25px;">
+                                                                <div class="col-6">
+                                                                    <label style="margin-bottom: 10px;">Location</label>
+                                                                    <select class="multi_select_location" name="PK_LOCATION[]">
+                                                                        <?php
+                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+                                                                        while (!$row->EOF) { ?>
+                                                                            <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($row->fields['PK_LOCATION'] == $value['PK_LOCATION']) ? 'selected' : ''?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                                        <?php $row->MoveNext(); } ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <input type="hidden" name="LOCATION_CUSTOMER_ID[]" value="<?=$value['CUSTOMER_ID']?>">
+                                                            <div class="credit-card <?=$card_type?> selectable" style="margin-right: 50%;">
+                                                                <div class="credit-card-last4">
+                                                                    <?=$value['LAST4']?>
+                                                                </div>
+                                                                <div class="credit-card-expiry">
+                                                                    <?=$value['EXP_MONTH'].'/'.$value['EXP_YEAR']?>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                <?php }
+                                                } ?>
                                             </div>
-
 
                                             <div class="form-group">
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Process</button>
@@ -1016,8 +1139,12 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
 
         if (BILLING_TYPE == 'PER_ACCOUNT') {
             $('#TOTAL_AMOUNT').val(AMOUNT);
+            $('.per_account').show();
+            $('.per_location').hide();
         } else {
             $('#TOTAL_AMOUNT').val(AMOUNT*LOCATION_COUNT);
+            $('.per_account').hide();
+            $('.per_location').show();
         }
     }
 </script>
