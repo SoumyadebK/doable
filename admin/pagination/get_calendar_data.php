@@ -54,6 +54,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_APPOINTMENT_MASTER.COMMENT,
+                            DOA_APPOINTMENT_MASTER.INTERNAL_COMMENT,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.SERVICE_CODE,
@@ -140,6 +141,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             'status' => $appointment_data->fields['STATUS_CODE'],
             'statusColor' => $appointment_data->fields['APPOINTMENT_COLOR'],
             'comment' => $appointment_data->fields['COMMENT'],
+            'internal_comment' => $appointment_data->fields['INTERNAL_COMMENT'],
             'statusCode' => $appointment_data->fields['SCHEDULING_CODE'],
             'duration' => $appointment_data->fields['DURATION'],
         ];
@@ -161,6 +163,7 @@ if ($appointment_type == 'TO-DO' || $appointment_type == '') {
             'status' => $special_appointment_data->fields['STATUS_CODE'],
             'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],
             'comment' => '',
+            'internal_comment' => '',
             'statusCode' => '',
             'duration' => $special_appointment_data->fields['DURATION'],
         ];
@@ -199,6 +202,7 @@ if ($appointment_type == 'EVENT' || $appointment_type == '') {
             'status' => '',
             'statusColor' => '',
             'comment' => '',
+            'internal_comment' => '',
             'statusCode' => '',
         ];
         $event_data->MoveNext();

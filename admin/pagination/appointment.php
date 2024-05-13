@@ -86,7 +86,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         $appointment_type
                         AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
                         AND DOA_USER_MASTER.PK_USER_MASTER = $PK_USER_MASTER
-                        AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'GROUP') 
+                        AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'AD-HOC', 'GROUP') 
                         $search
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
                         ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC";
@@ -148,10 +148,12 @@ $page_first_result = ($page-1) * $results_per_page;
             }
 
             $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, SESSION_CREATED, SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
-            if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
-                $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - 1;
-            } else {
-                $service_code_array[$PK_ENROLLMENT_SERVICE] = $enr_service_data->fields['SESSION_CREATED'];
+            if ($enr_service_data->RecordCount() > 0) {
+                if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
+                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - 1;
+                } else {
+                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $enr_service_data->fields['SESSION_CREATED'];
+                }
             } ?>
         <tr onclick="$(this).next().slideToggle();">
             <td><?=$i;?></td>
@@ -163,7 +165,7 @@ $page_first_result = ($page-1) * $results_per_page;
             <?php } else { ?>
                 <td><?=$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
             <?php } ?>
-            <td><?=$service_code_array[$PK_ENROLLMENT_SERVICE].'/'.$enr_service_data->fields['NUMBER_OF_SESSION']?></td>
+            <td><?=(isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? $service_code_array[$PK_ENROLLMENT_SERVICE].'/'.$enr_service_data->fields['NUMBER_OF_SESSION'] : ''?></td>
             <td><?=$appointment_data->fields['SERIAL_NUMBER']?></td>
             <td><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
             <td><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
