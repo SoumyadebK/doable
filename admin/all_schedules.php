@@ -674,7 +674,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     data: {START_DATE: START_DATE, END_DATE: END_DATE, STATUS_CODE: STATUS_CODE, APPOINTMENT_TYPE: APPOINTMENT_TYPE},
                     dataType: 'json',
                     success: function (result) {
-                        //console.log(result);
+                        console.log(result);
                         successCallback(result);
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
@@ -690,14 +690,15 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 if (event_data.status) {
                     $(element).find(".fc-title").prepend(' <strong style="color: ' + event_data.statusColor + '">(' + event_data.status + ')</strong> ');
                 }
-                if (event_data.comment) {
+                if (event_data.comment || event_data.internal_comment) {
                     $(element).find(".fc-title").prepend(' <i class="fa fa-comment-dots" style="font-size: 15px"></i> ');
                     $(info.el).popover({
                         title: info.event.title,
                         placement: 'top',
                         trigger: 'hover',
-                        content: event_data.comment,
-                        container: 'body'
+                        content: 'Comment : '+event_data.comment+'<br>Internal Comment : '+event_data.internal_comment,
+                        container: 'body',
+                        html: true,
                     });
                 }
                 if (event_data.statusCode) {
