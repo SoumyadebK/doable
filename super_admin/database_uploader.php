@@ -661,7 +661,6 @@ if(!empty($_POST))
                 $PK_SERVICE_CODE_STANDARD = $standardServicePkId->fields['PK_SERVICE_CODE'];
                 $PK_SERVICE_MASTER_STANDARD = $standardServicePkId->fields['PK_SERVICE_MASTER'];
             } else {
-                $SERVICE['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
                 $SERVICE['SERVICE_NAME'] = 'Standard Service';
                 $SERVICE['PK_SERVICE_CLASS'] = 2;
                 $SERVICE['IS_SCHEDULE'] = 1;
@@ -687,8 +686,6 @@ if(!empty($_POST))
 
             $allAppointments = getAllAppointments();
             while (!$allAppointments->EOF) {
-                $INSERT_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-
                 $service_id = $allAppointments->fields['service_id'];
                 $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_id'");
                 $PK_SERVICE_MASTER = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_MASTER'] : 0;
