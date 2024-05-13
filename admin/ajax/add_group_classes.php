@@ -42,7 +42,7 @@ $AND_PK_USER = ' ';
     <div class="p-40 " style="padding-top: 10px;">
         <div id="append_service_code">
         <div class="row" style="border-bottom: 1px solid grey;">
-            <div class="col-3">
+            <div class="col-4">
                 <div class="form-group">
                     <label class="form-label">Service<span class="text-danger">*</span></label><br>
                     <select class="multi_select" required name="SERVICE_ID" onchange="selectThisService(this)">
@@ -55,7 +55,7 @@ $AND_PK_USER = ' ';
                     </select>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="form-group">
                     <label class="form-label">Scheduling Code<span class="text-danger">*</span></label><br>
                     <select class="multi_select" required id="PK_SCHEDULING_CODE" name="SCHEDULING_CODE">
@@ -94,7 +94,7 @@ $AND_PK_USER = ' ';
                     </select>
                 </div>
             </div>-->
-            <div class="col-3">
+            <div class="col-4">
                 <div class="form-group">
                     <label class="form-label">Location</label>
                     <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
@@ -105,12 +105,6 @@ $AND_PK_USER = ' ';
                             <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=(in_array($row->fields['PK_LOCATION'], explode(',', $_SESSION['DEFAULT_LOCATION_ID'])))?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
                         <?php $row->MoveNext(); } ?>
                     </select>
-                </div>
-            </div>
-            <div class="col-3">
-                <div class="form-group">
-                    <label class="form-label">Group Name</label><br>
-                    <input class="form-control" type="text" name="GROUP_NAME" id="GROUP_NAME" placeholder="Group Name">
                 </div>
             </div>
         </div>
@@ -128,6 +122,10 @@ $AND_PK_USER = ' ';
                             <option value="<?php echo $row->fields['PK_USER'];?>" <?=($PK_USER == $row->fields['PK_USER'])?"selected":""?>><?=$row->fields['NAME']?></option>
                             <?php $row->MoveNext(); } ?>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Group Name</label><br>
+                    <input class="form-control" type="text" name="GROUP_NAME[]" id="GROUP_NAME" placeholder="Group Name">
                 </div>
             </div>
             <div class="col-2">
@@ -281,6 +279,10 @@ $AND_PK_USER = ' ';
                         <option value="<?php echo $row->fields['PK_USER'];?>" <?=($PK_USER == $row->fields['PK_USER'])?"selected":""?>><?=$row->fields['NAME']?></option>
                     <?php $row->MoveNext(); } ?>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Group Name</label><br>
+                    <input class="form-control" type="text" name="GROUP_NAME[]" id="GROUP_NAME" placeholder="Group Name">
                 </div>
             </div>
             <div class="col-2">
