@@ -1926,9 +1926,9 @@ function moveToWallet($RESPONSE_DATA)
         $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
     }
 
+    $payment_data = $db_account->Execute("SELECT PK_PAYMENT_TYPE, RECEIPT_NUMBER, RECEIPT_PDF_LINK FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_LEDGER=".$PK_ENROLLMENT_LEDGER);
     if ($TRANSACTION_TYPE == 'Moved') {
         $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-        $ledger_data = $db_account->Execute("SELECT RECEIPT_PDF_LINK FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_LEDGER=".$PK_ENROLLMENT_LEDGER);
         if ($wallet_data->RecordCount() > 0) {
             $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
         } else {
@@ -1937,11 +1937,30 @@ function moveToWallet($RESPONSE_DATA)
         $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $INSERT_DATA['CREDIT'] = $BALANCE;
         $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
-        $INSERT_DATA['RECEIPT_PDF_LINK'] = $ledger_data->fields['RECEIPT_PDF_LINK'];
+        $INSERT_DATA['RECEIPT_PDF_LINK'] = $payment_data->fields['RECEIPT_PDF_LINK'];
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+
+        $PK_PAYMENT_TYPE = 7;
+    } else {
+        $PK_PAYMENT_TYPE = $payment_data->fields['PK_PAYMENT_TYPE'];
     }
+
+    $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+    $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollmentBillingData->fields['PK_ENROLLMENT_BILLING'];
+    $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE;
+    $PAYMENT_DATA['AMOUNT'] = $BALANCE;
+    $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
+    $PAYMENT_DATA['TYPE'] = 'Refund';
+    $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+    $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+    $PAYMENT_DATA['PAYMENT_INFO'] = 'Refund';
+    $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+    $PAYMENT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
+    $PAYMENT_DATA['RECEIPT_PDF_LINK'] = $payment_data->fields['RECEIPT_PDF_LINK'];
+    db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 
     if ($ENROLLMENT_TYPE == 'active') {
         $UPDATE_DATA['IS_PAID'] = 2;
