@@ -87,7 +87,7 @@ $STRIPE_PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
 
 require_once("../global/stripe-php-master/init.php");
 $stripe = new StripeClient($STRIPE_SECRET_KEY);
-$account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PK_LOCATION = ".$_GET['id']." AND PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+$account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PK_LOCATION = ".$PK_LOCATION." AND PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
 if ($account_payment_info->RecordCount() > 0) {
     $customer_id = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
     $stripe_customer = $stripe->customers->retrieve($customer_id);

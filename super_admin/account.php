@@ -121,7 +121,7 @@ if(!empty($_GET['id'])) {
     }
 }
 
-$location_data = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE ACTIVE = 1 AND `PK_ACCOUNT_MASTER`  = ".$_GET['id']);
+$location_data = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE ACTIVE = 1 AND `PK_ACCOUNT_MASTER`  = ".$PK_ACCOUNT_MASTER);
 $location_count = ($location_data->RecordCount() > 0) ? $location_data->RecordCount() : 1;
 
 $payment_gateway_setting = $db->Execute( "SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
