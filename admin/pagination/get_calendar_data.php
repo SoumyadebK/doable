@@ -46,6 +46,7 @@ if(isset($_POST['SERVICE_PROVIDER_ID']) && $_POST['SERVICE_PROVIDER_ID'] != ''){
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
                             DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
+                            DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_SERVICE AS APT_ENR_SERVICE,
                             DOA_APPOINTMENT_MASTER.GROUP_NAME,
                             DOA_APPOINTMENT_MASTER.SERIAL_NUMBER,
                             DOA_APPOINTMENT_MASTER.DATE,
@@ -74,6 +75,9 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
                                 
                         LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
+                                
+                        LEFT JOIN DOA_APPOINTMENT_ENROLLMENT ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP'
+                        LEFT JOIN DOA_ENROLLMENT_MASTER AS APT_ENR ON DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_MASTER = APT_ENR.PK_ENROLLMENT_MASTER AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP'
                         
                         LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
                         LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
@@ -123,6 +127,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
     $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
     $paid_session = 0;
     while (!$appointment_data->EOF) {
+        $PK_ENROLLMENT_SERVICE = '';
         if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL' || $appointment_data->fields['APPOINTMENT_TYPE'] === 'AD-HOC') {
             $title = $appointment_data->fields['CUSTOMER_NAME'] . ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['ENROLLMENT_ID'] === 0) ? '(Ad-Hoc)' : $appointment_data->fields['ENROLLMENT_ID']) . ' - ' . $appointment_data->fields['SERIAL_NUMBER'] . (($appointment_data->fields['IS_PAID'] == 1) ? ' (Paid)' : ' (Unpaid)');
             $type = "appointment";
@@ -130,6 +135,20 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             $title = (($appointment_data->fields['CUSTOMER_NAME'] !== null) ? (count(explode(',', $appointment_data->fields['CUSTOMER_NAME']))) : '0') . ' - ' . $appointment_data->fields['GROUP_NAME'] . ' - ' . $appointment_data->fields['SERVICE_NAME'] . ' - ' . $appointment_data->fields['SERVICE_CODE'];
             $type = "group_class";
         }
+        if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
+            $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
+        } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'GROUP') {
+            $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
+        }
+        $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, SESSION_CREATED, SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
+        if ($enr_service_data->RecordCount() > 0) {
+            if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
+                $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - 1;
+            } else {
+                $service_code_array[$PK_ENROLLMENT_SERVICE] = $enr_service_data->fields['SESSION_CREATED'];
+            }
+        }
+        $title .= ((isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? ' '.$service_code_array[$PK_ENROLLMENT_SERVICE].'/'.$enr_service_data->fields['NUMBER_OF_SESSION'] : '');
         $appointment_array[] = [
             'id' => $appointment_data->fields['PK_APPOINTMENT_MASTER'],
             'resourceIds' => explode(',', $appointment_data->fields['SERVICE_PROVIDER_ID']),

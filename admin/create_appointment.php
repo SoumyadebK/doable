@@ -423,6 +423,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         let start_time_array = [];
         let end_time_array = [];
         var myCalender;
+        var PK_USER_MASTER = <?=$PK_USER_MASTER?>;
 
         function createAppointment(type, param) {
             let PK_APPOINTMENT_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
@@ -436,19 +437,34 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
                 url = "ajax/add_special_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
             }
             if (type === 'appointment') {
-                url = "ajax/add_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>";
+                url = "ajax/add_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER="+PK_USER_MASTER+"";
             }
             if (type === 'ad_hoc') {
-                url = "ajax/add_ad_hoc_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>&id="+PK_APPOINTMENT_MASTER;
+                url = "ajax/add_ad_hoc_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER="+PK_USER_MASTER+"&id="+PK_APPOINTMENT_MASTER;
             }
             if (type === 'standing') {
-                url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>&source=<?=$source?>&id_customer=<?=$id_customer?>";
+                url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER="+PK_USER_MASTER+"&source=<?=$source?>&id_customer=<?=$id_customer?>";
             }
             $.ajax({
                 url: url,
                 type: "POST",
                 success: function (data) {
                     $('#create_form_div').html(data);
+                }
+            });
+        }
+
+        function selectThisCustomer(param) {
+            PK_USER_MASTER = $(param).val();
+            $.ajax({
+                url: "ajax/get_enrollments.php",
+                type: "POST",
+                data: {PK_USER_MASTER: PK_USER_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#PK_ENROLLMENT_MASTER').empty();
+                    $('#PK_ENROLLMENT_MASTER').append(result);
                 }
             });
         }

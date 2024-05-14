@@ -201,21 +201,6 @@ $AND_PK_USER = '';
         window.location.href='all_schedules.php'
     });
 
-    function selectThisCustomer(param) {
-        let PK_USER_MASTER = $(param).val();
-        $.ajax({
-            url: "ajax/get_enrollments.php",
-            type: "POST",
-            data: {PK_USER_MASTER: PK_USER_MASTER},
-            async: false,
-            cache: false,
-            success: function (result) {
-                $('#PK_ENROLLMENT_MASTER').empty();
-                $('#PK_ENROLLMENT_MASTER').append(result);
-            }
-        });
-    }
-
     function selectThisEnrollment(param) {
         let PK_ENROLLMENT_MASTER = $(param).val();
         $.ajax({
