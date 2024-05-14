@@ -1,40 +1,78 @@
 <?php
 $create_database = "
 --
+-- Table structure for table `DOA_APPOINTMENT_CUSTOMER`
+--
+
+CREATE TABLE `DOA_APPOINTMENT_CUSTOMER` (
+  `PK_APPOINTMENT_CUSTOMER` int(11) NOT NULL,
+  `PK_APPOINTMENT_MASTER` int(11) NOT NULL DEFAULT 0,
+  `PK_USER_MASTER` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_APPOINTMENT_ENROLLMENT`
+--
+
+CREATE TABLE `DOA_APPOINTMENT_ENROLLMENT` (
+  `PK_APPOINTMENT_ENROLLMENT` int(11) NOT NULL,
+  `PK_APPOINTMENT_MASTER` int(11) DEFAULT NULL,
+  `PK_USER_MASTER` int(11) DEFAULT NULL,
+  `PK_ENROLLMENT_MASTER` int(11) NOT NULL,
+  `PK_ENROLLMENT_SERVICE` int(11) DEFAULT NULL,
+  `TYPE` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `DOA_APPOINTMENT_MASTER`
 --
 
 CREATE TABLE `DOA_APPOINTMENT_MASTER` (
   `PK_APPOINTMENT_MASTER` int(11) NOT NULL,
-  `PK_ACCOUNT_MASTER` int(11) NOT NULL,
-  `CUSTOMER_ID` int(11) DEFAULT NULL COMMENT 'ID of PK_USER_MASTER',
-  `PK_ENROLLMENT_MASTER` int(11) NOT NULL,
-  `PK_ENROLLMENT_SERVICE` int(11) NOT NULL,
-  `SERIAL_NUMBER` int(11) NOT NULL,
-  `PK_SERVICE_MASTER` int(11) NOT NULL,
-  `PK_SERVICE_CODE` int(11) NOT NULL,
-  `PK_SCHEDULING_CODE` int(11) NOT NULL,
-  `SERVICE_PROVIDER_ID` int(11) NOT NULL COMMENT 'ID of PK_USER',
+  `PK_ENROLLMENT_MASTER` int(11) NOT NULL DEFAULT 0,
+  `PK_ENROLLMENT_SERVICE` int(11) NOT NULL DEFAULT 0,
+  `SERIAL_NUMBER` int(11) NOT NULL DEFAULT 0,
+  `GROUP_CLASS_ID` int(11) NOT NULL DEFAULT 0,
+  `GROUP_NAME` varchar(255) DEFAULT NULL,
+  `PK_SERVICE_MASTER` int(11) NOT NULL DEFAULT 0,
+  `PK_SERVICE_CODE` int(11) NOT NULL DEFAULT 0,
+  `PK_SCHEDULING_CODE` int(11) NOT NULL DEFAULT 0,
+  `PK_LOCATION` int(11) NOT NULL DEFAULT 0,
   `DATE` date DEFAULT NULL,
   `START_TIME` time DEFAULT NULL,
   `END_TIME` time DEFAULT NULL,
   `PK_APPOINTMENT_STATUS` int(11) NOT NULL,
-  `OLD_PK_APPOINTMENT_STATUS` int(11) NOT NULL,
-  `NO_SHOW` varchar(100) NOT NULL,
+  `NO_SHOW` varchar(100) DEFAULT NULL,
   `COMMENT` text DEFAULT NULL,
+  `INTERNAL_COMMENT` text DEFAULT NULL,
   `IMAGE` varchar(255) DEFAULT NULL,
+  `VIDEO` varchar(255) DEFAULT NULL,
   `ACTIVE` tinyint(4) NOT NULL,
   `STATUS` enum('A','C') NOT NULL DEFAULT 'A' COMMENT '''A''->Active,''C''->Cancelled',
   `IS_PAID` tinyint(4) NOT NULL DEFAULT 0,
-  `CHANGED_BY` int(11) NOT NULL,
-  `CHANGED_ON` datetime DEFAULT NULL,
-  `CANCELLED_BY` int(11) NOT NULL,
-  `CANCELLED_ON` datetime DEFAULT NULL,
+  `APPOINTMENT_TYPE` varchar(100) DEFAULT NULL,
+  `IS_REMINDER_SEND` tinyint(4) NOT NULL DEFAULT 0,
   `CREATED_BY` int(11) NOT NULL,
   `CREATED_ON` datetime NOT NULL,
-  `EDITED_BY` int(11) NOT NULL,
-  `EDITED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `EDITED_BY` int(11) DEFAULT NULL,
+  `EDITED_ON` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_APPOINTMENT_SERVICE_PROVIDER`
+--
+
+CREATE TABLE `DOA_APPOINTMENT_SERVICE_PROVIDER` (
+  `PK_APPOINTMENT_SERVICE_PROVIDER` int(11) NOT NULL,
+  `PK_APPOINTMENT_MASTER` int(11) NOT NULL DEFAULT 0,
+  `PK_USER` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -48,7 +86,7 @@ CREATE TABLE `DOA_APPOINTMENT_STATUS_HISTORY` (
   `PK_USER` int(11) NOT NULL,
   `PK_APPOINTMENT_STATUS` int(11) NOT NULL,
   `TIME_STAMP` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -68,7 +106,7 @@ CREATE TABLE `DOA_COMMENT` (
   `CREATED_BY` int(11) NOT NULL,
   `EDITED_ON` date DEFAULT NULL,
   `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -96,7 +134,7 @@ CREATE TABLE `DOA_CUSTOMER_DETAILS` (
   `PARTNER_LAST_NAME` varchar(150) DEFAULT NULL,
   `PARTNER_GENDER` varchar(20) DEFAULT NULL,
   `PARTNER_DOB` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -109,7 +147,7 @@ CREATE TABLE `DOA_CUSTOMER_DOCUMENT` (
   `PK_USER_MASTER` int(11) NOT NULL,
   `DOCUMENT_NAME` varchar(100) NOT NULL,
   `FILE_PATH` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -121,7 +159,7 @@ CREATE TABLE `DOA_CUSTOMER_EMAIL` (
   `PK_CUSTOMER_EMAIL` int(11) NOT NULL,
   `PK_CUSTOMER_DETAILS` int(11) NOT NULL,
   `EMAIL` varchar(150) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -133,7 +171,7 @@ CREATE TABLE `DOA_CUSTOMER_INTEREST` (
   `PK_CUSTOMER_INTEREST` int(11) NOT NULL,
   `PK_USER_MASTER` int(11) NOT NULL,
   `PK_INTERESTS` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -148,8 +186,8 @@ CREATE TABLE `DOA_CUSTOMER_INTEREST_OTHER_DATA` (
   `PK_SKILL_LEVEL` int(11) DEFAULT NULL,
   `PK_INQUIRY_METHOD` int(11) NOT NULL,
   `INQUIRY_TAKER_ID` int(11) NOT NULL,
-  `INQUIRY_DATE` date NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `INQUIRY_DATE` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -163,7 +201,7 @@ CREATE TABLE `DOA_CUSTOMER_PAYMENT_INFO` (
   `CUSTOMER_PAYMENT_ID` varchar(200) NOT NULL,
   `PAYMENT_TYPE` varchar(100) NOT NULL,
   `CREATED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -175,7 +213,7 @@ CREATE TABLE `DOA_CUSTOMER_PHONE` (
   `PK_CUSTOMER_PHONE` int(11) NOT NULL,
   `PK_CUSTOMER_DETAILS` int(11) NOT NULL,
   `PHONE` varchar(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -188,7 +226,7 @@ CREATE TABLE `DOA_CUSTOMER_SPECIAL_DATE` (
   `PK_CUSTOMER_DETAILS` int(11) NOT NULL,
   `SPECIAL_DATE` varchar(10) NOT NULL,
   `DATE_NAME` varchar(250) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -200,14 +238,15 @@ CREATE TABLE `DOA_CUSTOMER_WALLET` (
   `PK_CUSTOMER_WALLET` int(11) NOT NULL,
   `PK_USER_MASTER` int(11) NOT NULL,
   `CURRENT_BALANCE` float(9,2) NOT NULL,
-  `DEBIT` float(9,2) NOT NULL,
-  `CREDIT` float(9,2) NOT NULL,
+  `DEBIT` float(9,2) NOT NULL DEFAULT 0.00,
+  `CREDIT` float(9,2) NOT NULL DEFAULT 0.00,
   `DESCRIPTION` text DEFAULT NULL,
   `PK_PAYMENT_TYPE` int(11) DEFAULT NULL,
+  `RECEIPT_PDF_LINK` varchar(255) DEFAULT NULL,
   `NOTE` text DEFAULT NULL,
   `CREATED_BY` int(11) NOT NULL,
   `CREATED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -227,7 +266,19 @@ CREATE TABLE `DOA_DOCUMENT_LIBRARY` (
   `CREATED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_DOCUMENT_LOCATION`
+--
+
+CREATE TABLE `DOA_DOCUMENT_LOCATION` (
+  `PK_DOCUMENT_LOCATION` int(11) NOT NULL,
+  `PK_DOCUMENT_LIBRARY` int(11) NOT NULL,
+  `PK_LOCATION` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -251,7 +302,7 @@ CREATE TABLE `DOA_EMAIL` (
   `PK_EMAIL_STATUS` int(11) NOT NULL,
   `ACTIVE` int(11) NOT NULL DEFAULT 1,
   `CREATED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -272,7 +323,7 @@ CREATE TABLE `DOA_EMAIL_ACCOUNT` (
   `CREATED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -287,7 +338,7 @@ CREATE TABLE `DOA_EMAIL_ATTACHMENT` (
   `LOCATION` varchar(500) NOT NULL,
   `UPLOADED_ON` datetime NOT NULL,
   `ACTIVE` int(11) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -304,7 +355,7 @@ CREATE TABLE `DOA_EMAIL_RECEPTION` (
   `REPLY` int(11) NOT NULL,
   `DELETED` int(11) NOT NULL,
   `CREATED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -320,7 +371,7 @@ CREATE TABLE `DOA_EMAIL_STARRED` (
   `STARRED` int(11) NOT NULL,
   `CREATED_ON` datetime NOT NULL,
   `EDITED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -332,7 +383,7 @@ CREATE TABLE `DOA_EMAIL_STATUS` (
   `PK_EMAIL_STATUS` int(11) NOT NULL,
   `EMAIL_STATUS` varchar(250) NOT NULL,
   `ACTIVE` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -354,7 +405,7 @@ CREATE TABLE `DOA_EMAIL_TEMPLATE` (
   `CREATED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL DEFAULT 0,
   `EDITED_ON` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -370,7 +421,7 @@ CREATE TABLE `DOA_EMAIL_TYPE` (
   `CREATED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -383,11 +434,11 @@ CREATE TABLE `DOA_ENROLLMENT_BALANCE` (
   `PK_ENROLLMENT_MASTER` int(11) NOT NULL,
   `TOTAL_BALANCE_PAID` float(9,2) NOT NULL,
   `TOTAL_BALANCE_USED` float(9,2) NOT NULL,
-  `CREATED_BY` int(11) NOT NULL,
-  `CREATED_ON` datetime NOT NULL,
-  `EDITED_BY` int(11) NOT NULL,
-  `EDITED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `CREATED_BY` int(11) DEFAULT NULL,
+  `CREATED_ON` datetime DEFAULT NULL,
+  `EDITED_BY` int(11) DEFAULT NULL,
+  `EDITED_ON` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -400,17 +451,17 @@ CREATE TABLE `DOA_ENROLLMENT_BILLING` (
   `PK_ENROLLMENT_MASTER` int(11) NOT NULL,
   `BILLING_REF` varchar(150) DEFAULT NULL,
   `BILLING_DATE` date DEFAULT NULL,
-  `ACTUAL_AMOUNT` float(9,2) NOT NULL,
-  `DISCOUNT` float(9,2) NOT NULL,
-  `TOTAL_AMOUNT` float(9,2) NOT NULL,
-  `DOWN_PAYMENT` float(9,2) NOT NULL,
-  `BALANCE_PAYABLE` float(9,2) NOT NULL,
+  `ACTUAL_AMOUNT` float(9,2) DEFAULT NULL,
+  `DISCOUNT` float(9,2) DEFAULT NULL,
+  `TOTAL_AMOUNT` float(9,2) DEFAULT NULL,
+  `DOWN_PAYMENT` float(9,2) DEFAULT NULL,
+  `BALANCE_PAYABLE` float(9,2) DEFAULT NULL,
   `PAYMENT_METHOD` varchar(50) DEFAULT NULL,
   `PAYMENT_TERM` varchar(50) DEFAULT NULL,
-  `NUMBER_OF_PAYMENT` int(11) NOT NULL,
+  `NUMBER_OF_PAYMENT` int(11) NOT NULL DEFAULT 0,
   `FIRST_DUE_DATE` date DEFAULT NULL,
   `INSTALLMENT_AMOUNT` float(9,2) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -422,17 +473,17 @@ CREATE TABLE `DOA_ENROLLMENT_LEDGER` (
   `PK_ENROLLMENT_LEDGER` int(11) NOT NULL,
   `PK_ENROLLMENT_MASTER` int(11) NOT NULL,
   `PK_ENROLLMENT_BILLING` int(11) NOT NULL,
-  `TRANSACTION_TYPE` varchar(50) NOT NULL,
-  `ENROLLMENT_LEDGER_PARENT` int(11) NOT NULL,
-  `DUE_DATE` date NOT NULL,
-  `BILLED_AMOUNT` float(9,2) NOT NULL,
-  `PAID_AMOUNT` float(9,2) NOT NULL,
-  `BALANCE` float(9,2) NOT NULL,
-  `IS_PAID` tinyint(4) NOT NULL,
-  `PK_ENROLLMENT_PAYMENT` int(11) NOT NULL,
-  `PK_PAYMENT_TYPE` int(11) NOT NULL,
-  `STATUS` enum('A','C') NOT NULL DEFAULT 'A' COMMENT '''A''->Active,''C''->Cancelled'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `TRANSACTION_TYPE` varchar(50) DEFAULT NULL,
+  `ENROLLMENT_LEDGER_PARENT` int(11) DEFAULT 0,
+  `DUE_DATE` date DEFAULT NULL,
+  `BILLED_AMOUNT` float(9,2) DEFAULT 0.00,
+  `PAID_AMOUNT` float(9,2) DEFAULT 0.00,
+  `BALANCE` float(9,2) DEFAULT 0.00,
+  `IS_PAID` tinyint(4) DEFAULT 0,
+  `IS_REFUNDED` tinyint(4) NOT NULL DEFAULT 0,
+  `IS_DOWN_PAYMENT` tinyint(4) NOT NULL DEFAULT 0,
+  `STATUS` varchar(50) DEFAULT NULL COMMENT '''A''->Active,''C''->Cancelled, ''CA''->Cancelled But Active'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -445,25 +496,28 @@ CREATE TABLE `DOA_ENROLLMENT_MASTER` (
   `PK_ENROLLMENT_TYPE` int(11) NOT NULL DEFAULT 0,
   `ENROLLMENT_NAME` varchar(100) NOT NULL,
   `ENROLLMENT_ID` varchar(100) DEFAULT NULL,
-  `PK_ACCOUNT_MASTER` int(11) NOT NULL,
+  `MISC_ID` varchar(100) DEFAULT NULL,
   `PK_USER_MASTER` int(11) NOT NULL,
+  `CUSTOMER_ENROLLMENT_NUMBER` int(11) DEFAULT NULL,
   `PK_LOCATION` int(11) NOT NULL,
-  `PK_PACKAGE` int(11) NOT NULL,
+  `PK_PACKAGE` int(11) DEFAULT NULL,
+  `CHARGE_BY_SESSIONS` tinyint(4) NOT NULL DEFAULT 0,
   `PK_AGREEMENT_TYPE` int(11) NOT NULL,
   `PK_DOCUMENT_LIBRARY` int(11) NOT NULL,
   `AGREEMENT_PDF_LINK` varchar(255) DEFAULT NULL,
   `ENROLLMENT_BY_ID` int(11) NOT NULL,
+  `ENROLLMENT_BY_PERCENTAGE` float(9,2) NOT NULL,
   `MEMO` text NOT NULL,
   `ACTIVE` tinyint(4) NOT NULL DEFAULT 1,
-  `STATUS` enum('A','C') NOT NULL DEFAULT 'A' COMMENT '''A''->Active,''C''->Cancelled',
+  `STATUS` varchar(50) DEFAULT NULL COMMENT '''A''->Active,''C''->Cancelled, ''CA''->Cancelled But Active',
   `ENROLLMENT_DATE` date DEFAULT NULL,
   `EXPIRY_DATE` date DEFAULT NULL,
   `ALL_APPOINTMENT_DONE` tinyint(4) NOT NULL DEFAULT 0,
-  `CREATED_BY` int(11) NOT NULL,
-  `CREATED_ON` datetime NOT NULL,
-  `EDITED_BY` int(11) NOT NULL,
-  `EDITED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `CREATED_BY` int(11) DEFAULT NULL,
+  `CREATED_ON` datetime DEFAULT NULL,
+  `EDITED_BY` int(11) DEFAULT NULL,
+  `EDITED_ON` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -476,19 +530,16 @@ CREATE TABLE `DOA_ENROLLMENT_PAYMENT` (
   `PK_ENROLLMENT_MASTER` int(11) NOT NULL,
   `PK_ENROLLMENT_BILLING` int(11) NOT NULL,
   `PK_PAYMENT_TYPE` int(11) NOT NULL,
+  `PK_ENROLLMENT_LEDGER` int(11) NOT NULL,
+  `TYPE` varchar(25) DEFAULT NULL,
   `AMOUNT` float(9,2) NOT NULL,
-  `REMAINING_AMOUNT` float(9,2) NOT NULL,
-  `PK_PAYMENT_TYPE_REMAINING` int(11) NOT NULL,
-  `NAME` varchar(150) DEFAULT NULL,
-  `CARD_NUMBER` varchar(50) DEFAULT NULL,
-  `SECURITY_CODE` varchar(20) DEFAULT NULL,
-  `EXPIRATION_DATE` varchar(20) DEFAULT NULL,
-  `CHECK_NUMBER` varchar(150) DEFAULT NULL,
-  `CHECK_DATE` date DEFAULT NULL,
   `NOTE` text DEFAULT NULL,
   `PAYMENT_DATE` date NOT NULL,
-  `PAYMENT_INFO` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `PAYMENT_INFO` text NOT NULL,
+  `PAYMENT_STATUS` varchar(50) DEFAULT NULL,
+  `RECEIPT_NUMBER` int(11) NOT NULL,
+  `RECEIPT_PDF_LINK` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -501,17 +552,32 @@ CREATE TABLE `DOA_ENROLLMENT_SERVICE` (
   `PK_ENROLLMENT_MASTER` int(11) NOT NULL,
   `PK_SERVICE_MASTER` int(11) NOT NULL,
   `PK_SERVICE_CODE` int(11) NOT NULL,
-  `PK_SCHEDULING_CODE` int(11) NOT NULL DEFAULT 0,
-  `FREQUENCY` varchar(50) DEFAULT NULL,
   `SERVICE_DETAILS` varchar(250) DEFAULT NULL,
   `NUMBER_OF_SESSION` int(11) DEFAULT NULL,
-  `PRICE_PER_SESSION` float(9,2) NOT NULL,
-  `TOTAL` float(9,2) NOT NULL,
-  `TOTAL_AMOUNT_PAID` float(9,2) NOT NULL,
-  `DISCOUNT` float(9,2) NOT NULL,
+  `PRICE_PER_SESSION` float(9,2) DEFAULT NULL,
+  `TOTAL` float(9,2) DEFAULT NULL,
+  `TOTAL_AMOUNT_PAID` float(9,2) DEFAULT NULL,
+  `DISCOUNT` float(9,2) DEFAULT NULL,
   `DISCOUNT_TYPE` tinyint(4) NOT NULL DEFAULT 0 COMMENT '1->Fixed, 2->Percent',
-  `FINAL_AMOUNT` float(9,2) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `FINAL_AMOUNT` float(9,2) NOT NULL,
+  `SESSION_CREATED` int(11) NOT NULL DEFAULT 0,
+  `SESSION_COMPLETED` int(11) NOT NULL DEFAULT 0,
+  `STATUS` varchar(50) DEFAULT NULL COMMENT '''A''->Active,''C''->Cancelled, ''CA''->Cancelled But Active'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_ENROLLMENT_SERVICE_PROVIDER`
+--
+
+CREATE TABLE `DOA_ENROLLMENT_SERVICE_PROVIDER` (
+  `PK_ENROLLMENT_SERVICE_PROVIDER` int(11) NOT NULL,
+  `PK_ENROLLMENT_MASTER` int(11) NOT NULL,
+  `SERVICE_PROVIDER_ID` int(11) NOT NULL,
+  `SERVICE_PROVIDER_PERCENTAGE` float(9,2) NOT NULL,
+  `PERCENTAGE_AMOUNT` float(9,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -529,17 +595,17 @@ CREATE TABLE `DOA_EVENT` (
   `START_TIME` time DEFAULT NULL,
   `END_TIME` time DEFAULT NULL,
   `ALL_DAY` tinyint(4) NOT NULL DEFAULT 0,
-  `DESCRIPTION` text NOT NULL,
-  `PK_LOCATION` varchar(255) NOT NULL,
-  `SHARE_WITH_CUSTOMERS` tinyint(4) NOT NULL,
-  `SHARE_WITH_SERVICE_PROVIDERS` tinyint(4) NOT NULL,
-  `SHARE_WITH_EMPLOYEES` tinyint(4) NOT NULL,
-  `ACTIVE` tinyint(4) NOT NULL,
+  `DESCRIPTION` text DEFAULT NULL,
+  `PK_LOCATION` varchar(255) DEFAULT NULL,
+  `SHARE_WITH_CUSTOMERS` tinyint(4) DEFAULT NULL,
+  `SHARE_WITH_SERVICE_PROVIDERS` tinyint(4) DEFAULT NULL,
+  `SHARE_WITH_EMPLOYEES` tinyint(4) DEFAULT NULL,
+  `ACTIVE` tinyint(4) NOT NULL DEFAULT 1,
   `CREATED_ON` datetime NOT NULL,
   `CREATED_BY` int(11) NOT NULL,
-  `EDITED_ON` datetime NOT NULL,
-  `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `EDITED_ON` datetime DEFAULT NULL,
+  `EDITED_BY` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -553,9 +619,9 @@ CREATE TABLE `DOA_EVENT_IMAGE` (
   `IMAGE` varchar(255) NOT NULL,
   `CREATED_BY` int(11) NOT NULL,
   `CREATED_ON` datetime NOT NULL,
-  `EDITED_BY` int(11) NOT NULL,
-  `EDITED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `EDITED_BY` int(11) DEFAULT NULL,
+  `EDITED_ON` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -567,7 +633,7 @@ CREATE TABLE `DOA_EVENT_LOCATION` (
   `PK_EVENT_LOCATION` int(11) NOT NULL,
   `PK_EVENT` int(11) NOT NULL,
   `PK_LOCATION` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -585,7 +651,7 @@ CREATE TABLE `DOA_EVENT_TYPE` (
   `CREATED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -610,7 +676,7 @@ CREATE TABLE `DOA_GIFT_CERTIFICATE_MASTER` (
   `CREATED_ON` date DEFAULT NULL,
   `EDITED_BY` int(11) NOT NULL,
   `EDITED_ON` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -632,70 +698,7 @@ CREATE TABLE `DOA_GIFT_CERTIFICATE_SETUP` (
   `CREATED_ON` date DEFAULT NULL,
   `EDITED_BY` int(11) NOT NULL,
   `EDITED_ON` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `DOA_GIFT_LOCATION`
---
-
-CREATE TABLE `DOA_GIFT_LOCATION` (
-  `PK_GIFT_LOCATION` int(11) NOT NULL,
-  `PK_GIFT_CERTIFICATE_SETUP` int(11) NOT NULL,
-  `PK_LOCATION` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `DOA_GROUP_CLASS`
---
-
-CREATE TABLE `DOA_GROUP_CLASS` (
-  `PK_GROUP_CLASS` int(11) NOT NULL,
-  `GROUP_NAME` varchar(255) DEFAULT NULL,
-  `GROUP_CLASS_ID` int(11) NOT NULL,
-  `PK_ACCOUNT_MASTER` int(11) NOT NULL,
-  `PK_SERVICE_MASTER` int(11) NOT NULL,
-  `PK_SERVICE_CODE` int(11) NOT NULL,
-  `SERVICE_PROVIDER_ID_1` int(11) NOT NULL DEFAULT 0,
-  `SERVICE_PROVIDER_ID_2` int(11) NOT NULL DEFAULT 0,
-  `PK_LOCATION` int(11) DEFAULT NULL,
-  `DATE` date NOT NULL,
-  `START_TIME` time NOT NULL,
-  `END_TIME` time NOT NULL,
-  `PK_APPOINTMENT_STATUS` int(11) NOT NULL,
-  `ACTIVE` tinyint(4) NOT NULL,
-  `CREATED_BY` int(11) NOT NULL,
-  `CREATED_ON` datetime NOT NULL,
-  `EDITED_BY` int(11) NOT NULL,
-  `EDITED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `DOA_GROUP_CLASS_CUSTOMER`
---
-
-CREATE TABLE `DOA_GROUP_CLASS_CUSTOMER` (
-  `PK_GROUP_CLASS_CUSTOMER` int(11) NOT NULL,
-  `PK_GROUP_CLASS` int(11) NOT NULL,
-  `PK_USER_MASTER` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `DOA_GROUP_CLASS_USER`
---
-
-CREATE TABLE `DOA_GROUP_CLASS_USER` (
-  `PK_GROUP_CLASS_USER` int(11) NOT NULL,
-  `PK_GROUP_CLASS` int(11) NOT NULL,
-  `PK_USER` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -708,7 +711,7 @@ CREATE TABLE `DOA_HOLIDAY_LIST` (
   `PK_ACCOUNT_MASTER` int(11) NOT NULL,
   `HOLIDAY_DATE` date NOT NULL,
   `HOLIDAY_NAME` varchar(150) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -725,7 +728,24 @@ CREATE TABLE `DOA_INQUIRY_METHOD` (
   `CREATED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_INTERESTS`
+--
+
+CREATE TABLE `DOA_INTERESTS` (
+  `PK_INTERESTS` int(11) NOT NULL,
+  `PK_BUSINESS_TYPE` int(11) NOT NULL,
+  `INTERESTS` varchar(250) NOT NULL,
+  `ACTIVE` int(1) NOT NULL DEFAULT 1,
+  `CREATED_ON` datetime NOT NULL,
+  `CREATED_BY` int(11) NOT NULL,
+  `EDITED_ON` datetime NOT NULL,
+  `EDITED_BY` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -740,7 +760,7 @@ CREATE TABLE `DOA_OPERATIONAL_HOUR` (
   `OPEN_TIME` time NOT NULL,
   `CLOSE_TIME` time NOT NULL,
   `CLOSED` tinyint(4) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -751,13 +771,26 @@ CREATE TABLE `DOA_OPERATIONAL_HOUR` (
 CREATE TABLE `DOA_PACKAGE` (
   `PK_PACKAGE` int(11) NOT NULL,
   `PACKAGE_NAME` varchar(250) NOT NULL,
+  `SORT_ORDER` int(11) DEFAULT NULL,
   `ACTIVE` int(11) NOT NULL,
   `IS_DELETED` int(11) NOT NULL,
   `CREATED_ON` date NOT NULL,
   `CREATED_BY` int(11) NOT NULL,
-  `EDITED_ON` date NOT NULL,
-  `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `EDITED_ON` date DEFAULT NULL,
+  `EDITED_BY` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_PACKAGE_LOCATION`
+--
+
+CREATE TABLE `DOA_PACKAGE_LOCATION` (
+  `PK_PACKAGE_LOCATION` int(11) NOT NULL,
+  `PK_PACKAGE` int(11) NOT NULL,
+  `PK_LOCATION` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -772,13 +805,13 @@ CREATE TABLE `DOA_PACKAGE_SERVICE` (
   `PK_SERVICE_CODE` int(11) NOT NULL,
   `SERVICE_DETAILS` varchar(250) DEFAULT NULL,
   `NUMBER_OF_SESSION` int(11) DEFAULT NULL,
-  `PRICE_PER_SESSION` float(9,2) NOT NULL,
-  `TOTAL` float(9,2) NOT NULL,
-  `DISCOUNT` float(9,2) NOT NULL,
-  `DISCOUNT_TYPE` tinyint(4) NOT NULL,
-  `FINAL_AMOUNT` float(9,2) NOT NULL,
-  `ACTIVE` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `PRICE_PER_SESSION` float(9,2) DEFAULT NULL,
+  `TOTAL` float(9,2) DEFAULT NULL,
+  `DISCOUNT` float(9,2) DEFAULT NULL,
+  `DISCOUNT_TYPE` tinyint(4) DEFAULT NULL,
+  `FINAL_AMOUNT` float(9,2) DEFAULT NULL,
+  `ACTIVE` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -794,15 +827,29 @@ CREATE TABLE `DOA_SCHEDULING_CODE` (
   `PK_SCHEDULING_EVENT` int(11) NOT NULL,
   `PK_EVENT_ACTION` int(11) NOT NULL,
   `TO_DOS` int(11) NOT NULL,
+  `IS_GROUP` int(11) NOT NULL,
   `IS_DEFAULT` int(11) NOT NULL,
-  `COLOR_CODE` varchar(100) CHARACTER SET latin1 NOT NULL,
+  `COLOR_CODE` varchar(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `DURATION` int(11) NOT NULL,
+  `SORT_ORDER` int(11) DEFAULT NULL,
   `ACTIVE` int(1) NOT NULL,
   `CREATED_ON` datetime NOT NULL,
   `CREATED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_SCHEDULING_SERVICE`
+--
+
+CREATE TABLE `DOA_SCHEDULING_SERVICE` (
+  `PK_SCHEDULING_SERVICE` int(11) NOT NULL,
+  `PK_SCHEDULING_CODE` int(11) NOT NULL,
+  `PK_SERVICE_MASTER` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -813,18 +860,16 @@ CREATE TABLE `DOA_SCHEDULING_CODE` (
 CREATE TABLE `DOA_SERVICE_CODE` (
   `PK_SERVICE_CODE` int(11) NOT NULL,
   `PK_SERVICE_MASTER` int(11) NOT NULL,
-  `IS_DEFAULT` int(11) NOT NULL,
+  `IS_DEFAULT` int(11) DEFAULT NULL,
   `SERVICE_CODE` varchar(100) DEFAULT NULL,
-  `PK_FREQUENCY` int(11) DEFAULT NULL,
   `DESCRIPTION` varchar(255) DEFAULT NULL,
-  `DURATION` int(11) NOT NULL DEFAULT 0,
   `IS_GROUP` tinyint(4) NOT NULL DEFAULT 0,
+  `IS_SUNDRY` tinyint(4) NOT NULL DEFAULT 0,
   `CAPACITY` int(11) DEFAULT 0,
   `IS_CHARGEABLE` tinyint(4) NOT NULL DEFAULT 0,
   `PRICE` float(9,2) NOT NULL DEFAULT 0.00,
-  `NUMBER_OF_SESSIONS` int(11) NOT NULL,
-  `ACTIVE` int(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `ACTIVE` int(1) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -842,7 +887,7 @@ CREATE TABLE `DOA_SERVICE_COMMISSION` (
   `CREATED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -860,7 +905,7 @@ CREATE TABLE `DOA_SERVICE_DOCUMENTS` (
   `CREATED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -872,7 +917,7 @@ CREATE TABLE `DOA_SERVICE_LOCATION` (
   `PK_SERVICE_LOCATION` int(11) NOT NULL,
   `PK_SERVICE_MASTER` int(11) NOT NULL,
   `PK_LOCATION` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -882,22 +927,31 @@ CREATE TABLE `DOA_SERVICE_LOCATION` (
 
 CREATE TABLE `DOA_SERVICE_MASTER` (
   `PK_SERVICE_MASTER` int(11) NOT NULL,
-  `PK_ACCOUNT_MASTER` int(11) NOT NULL,
   `SERVICE_NAME` varchar(250) NOT NULL,
   `PK_SERVICE_CLASS` int(11) NOT NULL,
   `IS_SCHEDULE` tinyint(4) DEFAULT NULL,
-  `IS_PACKAGE` int(1) NOT NULL,
-  `IS_DEFAULT` int(11) NOT NULL,
-  `DESCRIPTION` varchar(250) NOT NULL,
-  `IMAGE_NAME` varchar(250) NOT NULL,
-  `IMAGE_PATH` varchar(250) NOT NULL,
+  `IS_SUNDRY` tinyint(4) NOT NULL DEFAULT 0,
+  `DESCRIPTION` varchar(250) DEFAULT NULL,
   `ACTIVE` int(1) NOT NULL DEFAULT 1,
   `IS_DELETED` tinyint(4) NOT NULL DEFAULT 0,
   `CREATED_ON` datetime NOT NULL,
   `CREATED_BY` int(11) NOT NULL,
-  `EDITED_ON` datetime NOT NULL,
-  `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `EDITED_ON` datetime DEFAULT NULL,
+  `EDITED_BY` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_SERVICE_PROVIDER_AMOUNT`
+--
+
+CREATE TABLE `DOA_SERVICE_PROVIDER_AMOUNT` (
+  `PK_SERVICE_PROVIDER_AMOUNT` int(11) NOT NULL,
+  `PK_ENROLLMENT_MASTER` int(11) NOT NULL,
+  `SERVICE_PROVIDER_ID` int(11) NOT NULL,
+  `PERCENTAGE_AMOUNT` float(9,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -923,7 +977,7 @@ CREATE TABLE `DOA_SERVICE_PROVIDER_SERVICES` (
   `SAT_END_TIME` time DEFAULT NULL,
   `SUN_START_TIME` time DEFAULT NULL,
   `SUN_END_TIME` time DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -936,7 +990,23 @@ CREATE TABLE `DOA_SERVICE_SCHEDULING_CODE` (
   `PK_SERVICE_MASTER` int(11) NOT NULL,
   `PK_SERVICE_CODE` int(11) NOT NULL,
   `PK_SCHEDULING_CODE` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_SKILL_LEVEL`
+--
+
+CREATE TABLE `DOA_SKILL_LEVEL` (
+  `PK_SKILL_LEVEL` int(11) NOT NULL,
+  `SKILL_LEVEL` varchar(250) NOT NULL,
+  `ACTIVE` int(1) NOT NULL DEFAULT 1,
+  `CREATED_ON` datetime NOT NULL,
+  `CREATED_BY` int(11) NOT NULL,
+  `EDITED_ON` datetime NOT NULL,
+  `EDITED_BY` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -946,7 +1016,6 @@ CREATE TABLE `DOA_SERVICE_SCHEDULING_CODE` (
 
 CREATE TABLE `DOA_SPECIAL_APPOINTMENT` (
   `PK_SPECIAL_APPOINTMENT` int(11) NOT NULL,
-  `PK_ACCOUNT_MASTER` int(11) NOT NULL,
   `TITLE` varchar(255) NOT NULL,
   `DATE` date NOT NULL,
   `START_TIME` time NOT NULL,
@@ -957,9 +1026,9 @@ CREATE TABLE `DOA_SPECIAL_APPOINTMENT` (
   `ACTIVE` tinyint(4) NOT NULL,
   `CREATED_ON` datetime NOT NULL,
   `CREATED_BY` int(11) NOT NULL,
-  `EDITED_ON` datetime NOT NULL,
-  `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `EDITED_ON` datetime DEFAULT NULL,
+  `EDITED_BY` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -971,7 +1040,7 @@ CREATE TABLE `DOA_SPECIAL_APPOINTMENT_CUSTOMER` (
   `PK_SPECIAL_APPOINTMENT_CUSTOMER` int(11) NOT NULL,
   `PK_SPECIAL_APPOINTMENT` int(11) NOT NULL,
   `PK_USER_MASTER` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -983,7 +1052,7 @@ CREATE TABLE `DOA_SPECIAL_APPOINTMENT_USER` (
   `PK_SPECIAL_APPOINTMENT_USER` int(11) NOT NULL,
   `PK_SPECIAL_APPOINTMENT` int(11) NOT NULL,
   `PK_USER` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1000,7 +1069,7 @@ CREATE TABLE `DOA_UPDATE_HISTORY` (
   `TO_VALUE` varchar(255) DEFAULT NULL,
   `EDITED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1021,7 +1090,7 @@ CREATE TABLE `DOA_USERS` (
   `CREATED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -1034,7 +1103,7 @@ CREATE TABLE `DOA_USER_DOCUMENT` (
   `PK_USER` int(11) NOT NULL,
   `DOCUMENT_NAME` varchar(100) NOT NULL,
   `FILE_PATH` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1052,7 +1121,7 @@ CREATE TABLE `DOA_USER_RATE` (
   `CREATED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -1077,7 +1146,7 @@ CREATE TABLE `DOA_Z_HELP` (
   `CREATED_BY` int(11) NOT NULL,
   `EDITED_ON` datetime DEFAULT NULL,
   `EDITED_BY` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -1094,27 +1163,52 @@ CREATE TABLE `DOA_Z_HELP_FILES` (
   `ACTIVE` int(1) NOT NULL DEFAULT 1,
   `CREATED_ON` datetime NOT NULL,
   `CREATED_BY` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- Indexes for dumped tables
 --
 
 --
+-- Indexes for table `DOA_APPOINTMENT_CUSTOMER`
+--
+ALTER TABLE `DOA_APPOINTMENT_CUSTOMER`
+  ADD PRIMARY KEY (`PK_APPOINTMENT_CUSTOMER`),
+  ADD KEY `PK_APPOINTMENT_MASTER` (`PK_APPOINTMENT_MASTER`),
+  ADD KEY `PK_USER_MASTER` (`PK_USER_MASTER`);
+
+--
+-- Indexes for table `DOA_APPOINTMENT_ENROLLMENT`
+--
+ALTER TABLE `DOA_APPOINTMENT_ENROLLMENT`
+  ADD PRIMARY KEY (`PK_APPOINTMENT_ENROLLMENT`),
+  ADD KEY `PK_APPOINTMENT_MASTER` (`PK_APPOINTMENT_MASTER`),
+  ADD KEY `PK_USER_MASTER` (`PK_USER_MASTER`),
+  ADD KEY `PK_ENROLLMENT_MASTER` (`PK_ENROLLMENT_MASTER`),
+  ADD KEY `PK_ENROLLMENT_SERVICE` (`PK_ENROLLMENT_SERVICE`);
+
+--
 -- Indexes for table `DOA_APPOINTMENT_MASTER`
 --
 ALTER TABLE `DOA_APPOINTMENT_MASTER`
   ADD PRIMARY KEY (`PK_APPOINTMENT_MASTER`),
-  ADD KEY `CUSTOMER_ID` (`CUSTOMER_ID`),
   ADD KEY `PK_SERVICE_MASTER` (`PK_SERVICE_MASTER`),
-  ADD KEY `SERVICE_PROVIDER_ID` (`SERVICE_PROVIDER_ID`),
   ADD KEY `CREATED_BY` (`CREATED_BY`),
   ADD KEY `EDITED_BY` (`EDITED_BY`),
-  ADD KEY `PK_ACCOUNT_MASTER` (`PK_ACCOUNT_MASTER`),
   ADD KEY `PK_SERVICE_CODE` (`PK_SERVICE_CODE`),
   ADD KEY `PK_APPOINTMENT_STATUS` (`PK_APPOINTMENT_STATUS`),
   ADD KEY `PK_ENROLLMENT_MASTER` (`PK_ENROLLMENT_MASTER`),
-  ADD KEY `PK_ENROLLMENT_SERVICE` (`PK_ENROLLMENT_SERVICE`);
+  ADD KEY `PK_ENROLLMENT_SERVICE` (`PK_ENROLLMENT_SERVICE`),
+  ADD KEY `PK_SCHEDULING_CODE` (`PK_SCHEDULING_CODE`),
+  ADD KEY `PK_LOCATION` (`PK_LOCATION`);
+
+--
+-- Indexes for table `DOA_APPOINTMENT_SERVICE_PROVIDER`
+--
+ALTER TABLE `DOA_APPOINTMENT_SERVICE_PROVIDER`
+  ADD PRIMARY KEY (`PK_APPOINTMENT_SERVICE_PROVIDER`),
+  ADD KEY `PK_APPOINTMENT_MASTER` (`PK_APPOINTMENT_MASTER`),
+  ADD KEY `PK_USER_MASTER` (`PK_USER`);
 
 --
 -- Indexes for table `DOA_APPOINTMENT_STATUS_HISTORY`
@@ -1207,6 +1301,12 @@ ALTER TABLE `DOA_DOCUMENT_LIBRARY`
   ADD KEY `PK_DOCUMENT_TYPE` (`PK_DOCUMENT_TYPE`);
 
 --
+-- Indexes for table `DOA_DOCUMENT_LOCATION`
+--
+ALTER TABLE `DOA_DOCUMENT_LOCATION`
+  ADD PRIMARY KEY (`PK_DOCUMENT_LOCATION`);
+
+--
 -- Indexes for table `DOA_EMAIL`
 --
 ALTER TABLE `DOA_EMAIL`
@@ -1284,8 +1384,6 @@ ALTER TABLE `DOA_ENROLLMENT_LEDGER`
   ADD PRIMARY KEY (`PK_ENROLLMENT_LEDGER`),
   ADD KEY `PK_ENROLLMENT_MASTER` (`PK_ENROLLMENT_MASTER`),
   ADD KEY `PK_ENROLLMENT_BILLING` (`PK_ENROLLMENT_BILLING`),
-  ADD KEY `PK_ENROLLMENT_PAYMENT` (`PK_ENROLLMENT_PAYMENT`),
-  ADD KEY `PK_PAYMENT_TYPE` (`PK_PAYMENT_TYPE`),
   ADD KEY `ENROLLMENT_LEDGER_PARENT` (`ENROLLMENT_LEDGER_PARENT`);
 
 --
@@ -1297,9 +1395,9 @@ ALTER TABLE `DOA_ENROLLMENT_MASTER`
   ADD KEY `PK_AGREEMENT_TYPE` (`PK_AGREEMENT_TYPE`),
   ADD KEY `PK_ONBOARDING_DOCUMENT` (`PK_DOCUMENT_LIBRARY`),
   ADD KEY `ENROLLMENT_BY_ID` (`ENROLLMENT_BY_ID`),
-  ADD KEY `PK_ACCOUNT_MASTER` (`PK_ACCOUNT_MASTER`),
   ADD KEY `PK_USER_MASTER` (`PK_USER_MASTER`),
-  ADD KEY `PK_ENROLLMENT_TYPE` (`PK_ENROLLMENT_TYPE`);
+  ADD KEY `PK_ENROLLMENT_TYPE` (`PK_ENROLLMENT_TYPE`),
+  ADD KEY `PK_PACKAGE` (`PK_PACKAGE`);
 
 --
 -- Indexes for table `DOA_ENROLLMENT_PAYMENT`
@@ -1308,7 +1406,8 @@ ALTER TABLE `DOA_ENROLLMENT_PAYMENT`
   ADD PRIMARY KEY (`PK_ENROLLMENT_PAYMENT`),
   ADD KEY `PK_ENROLLMENT_MASTER` (`PK_ENROLLMENT_MASTER`),
   ADD KEY `PK_ENROLLMENT_BILLING` (`PK_ENROLLMENT_BILLING`),
-  ADD KEY `PK_PAYMENT_TYPE` (`PK_PAYMENT_TYPE`);
+  ADD KEY `PK_PAYMENT_TYPE` (`PK_PAYMENT_TYPE`),
+  ADD KEY `PK_ENROLLMENT_LEDGER` (`PK_ENROLLMENT_LEDGER`);
 
 --
 -- Indexes for table `DOA_ENROLLMENT_SERVICE`
@@ -1317,8 +1416,13 @@ ALTER TABLE `DOA_ENROLLMENT_SERVICE`
   ADD PRIMARY KEY (`PK_ENROLLMENT_SERVICE`),
   ADD KEY `PK_ENROLLMENT_MASTER` (`PK_ENROLLMENT_MASTER`),
   ADD KEY `PK_SERVICE_MASTER` (`PK_SERVICE_MASTER`),
-  ADD KEY `PK_SERVICE_CODE` (`PK_SERVICE_CODE`),
-  ADD KEY `PK_SCHEDULING_CODE` (`PK_SCHEDULING_CODE`);
+  ADD KEY `PK_SERVICE_CODE` (`PK_SERVICE_CODE`);
+
+--
+-- Indexes for table `DOA_ENROLLMENT_SERVICE_PROVIDER`
+--
+ALTER TABLE `DOA_ENROLLMENT_SERVICE_PROVIDER`
+  ADD PRIMARY KEY (`PK_ENROLLMENT_SERVICE_PROVIDER`);
 
 --
 -- Indexes for table `DOA_EVENT`
@@ -1363,39 +1467,6 @@ ALTER TABLE `DOA_GIFT_CERTIFICATE_SETUP`
   ADD PRIMARY KEY (`PK_GIFT_CERTIFICATE_SETUP`);
 
 --
--- Indexes for table `DOA_GIFT_LOCATION`
---
-ALTER TABLE `DOA_GIFT_LOCATION`
-  ADD PRIMARY KEY (`PK_GIFT_LOCATION`);
-
---
--- Indexes for table `DOA_GROUP_CLASS`
---
-ALTER TABLE `DOA_GROUP_CLASS`
-  ADD PRIMARY KEY (`PK_GROUP_CLASS`),
-  ADD KEY `PK_ACCOUNT_MASTER` (`PK_ACCOUNT_MASTER`),
-  ADD KEY `PK_SERVICE_MASTER` (`PK_SERVICE_MASTER`),
-  ADD KEY `PK_SERVICE_CODE` (`PK_SERVICE_CODE`),
-  ADD KEY `SERVICE_PROVIDER_ID` (`SERVICE_PROVIDER_ID_1`),
-  ADD KEY `PK_APPOINTMENT_STATUS` (`PK_APPOINTMENT_STATUS`),
-  ADD KEY `SERVICE_PROVIDER_ID_2` (`SERVICE_PROVIDER_ID_2`),
-  ADD KEY `PK_LOCATION` (`PK_LOCATION`);
-
---
--- Indexes for table `DOA_GROUP_CLASS_CUSTOMER`
---
-ALTER TABLE `DOA_GROUP_CLASS_CUSTOMER`
-  ADD PRIMARY KEY (`PK_GROUP_CLASS_CUSTOMER`),
-  ADD KEY `PK_GROUP_CLASS` (`PK_GROUP_CLASS`),
-  ADD KEY `PK_USER_MASTER` (`PK_USER_MASTER`);
-
---
--- Indexes for table `DOA_GROUP_CLASS_USER`
---
-ALTER TABLE `DOA_GROUP_CLASS_USER`
-  ADD PRIMARY KEY (`PK_GROUP_CLASS_USER`);
-
---
 -- Indexes for table `DOA_HOLIDAY_LIST`
 --
 ALTER TABLE `DOA_HOLIDAY_LIST`
@@ -1408,6 +1479,13 @@ ALTER TABLE `DOA_HOLIDAY_LIST`
 ALTER TABLE `DOA_INQUIRY_METHOD`
   ADD PRIMARY KEY (`PK_INQUIRY_METHOD`),
   ADD KEY `PK_ACCOUNT_MASTER` (`PK_ACCOUNT_MASTER`);
+
+--
+-- Indexes for table `DOA_INTERESTS`
+--
+ALTER TABLE `DOA_INTERESTS`
+  ADD PRIMARY KEY (`PK_INTERESTS`),
+  ADD KEY `PK_BUSINESS_TYPE` (`PK_BUSINESS_TYPE`);
 
 --
 -- Indexes for table `DOA_OPERATIONAL_HOUR`
@@ -1423,10 +1501,19 @@ ALTER TABLE `DOA_PACKAGE`
   ADD PRIMARY KEY (`PK_PACKAGE`);
 
 --
+-- Indexes for table `DOA_PACKAGE_LOCATION`
+--
+ALTER TABLE `DOA_PACKAGE_LOCATION`
+  ADD PRIMARY KEY (`PK_PACKAGE_LOCATION`);
+
+--
 -- Indexes for table `DOA_PACKAGE_SERVICE`
 --
 ALTER TABLE `DOA_PACKAGE_SERVICE`
-  ADD PRIMARY KEY (`PK_PACKAGE_SERVICE`);
+  ADD PRIMARY KEY (`PK_PACKAGE_SERVICE`),
+  ADD KEY `PK_PACKAGE` (`PK_PACKAGE`),
+  ADD KEY `PK_SERVICE_MASTER` (`PK_SERVICE_MASTER`),
+  ADD KEY `PK_SERVICE_CODE` (`PK_SERVICE_CODE`);
 
 --
 -- Indexes for table `DOA_SCHEDULING_CODE`
@@ -1435,12 +1522,17 @@ ALTER TABLE `DOA_SCHEDULING_CODE`
   ADD PRIMARY KEY (`PK_SCHEDULING_CODE`);
 
 --
+-- Indexes for table `DOA_SCHEDULING_SERVICE`
+--
+ALTER TABLE `DOA_SCHEDULING_SERVICE`
+  ADD PRIMARY KEY (`PK_SCHEDULING_SERVICE`);
+
+--
 -- Indexes for table `DOA_SERVICE_CODE`
 --
 ALTER TABLE `DOA_SERVICE_CODE`
   ADD PRIMARY KEY (`PK_SERVICE_CODE`),
-  ADD KEY `PK_SERVICE_MASTER` (`PK_SERVICE_MASTER`),
-  ADD KEY `PK_FREQUENCY` (`PK_FREQUENCY`);
+  ADD KEY `PK_SERVICE_MASTER` (`PK_SERVICE_MASTER`);
 
 --
 -- Indexes for table `DOA_SERVICE_COMMISSION`
@@ -1469,8 +1561,13 @@ ALTER TABLE `DOA_SERVICE_LOCATION`
 --
 ALTER TABLE `DOA_SERVICE_MASTER`
   ADD PRIMARY KEY (`PK_SERVICE_MASTER`),
-  ADD KEY `PK_ACCOUNT_MASTER` (`PK_ACCOUNT_MASTER`),
   ADD KEY `PK_SERVICE_CLASS` (`PK_SERVICE_CLASS`);
+
+--
+-- Indexes for table `DOA_SERVICE_PROVIDER_AMOUNT`
+--
+ALTER TABLE `DOA_SERVICE_PROVIDER_AMOUNT`
+  ADD PRIMARY KEY (`PK_SERVICE_PROVIDER_AMOUNT`);
 
 --
 -- Indexes for table `DOA_SERVICE_PROVIDER_SERVICES`
@@ -1486,11 +1583,16 @@ ALTER TABLE `DOA_SERVICE_SCHEDULING_CODE`
   ADD PRIMARY KEY (`PK_SERVICE_BOOKING_CODE`);
 
 --
+-- Indexes for table `DOA_SKILL_LEVEL`
+--
+ALTER TABLE `DOA_SKILL_LEVEL`
+  ADD PRIMARY KEY (`PK_SKILL_LEVEL`);
+
+--
 -- Indexes for table `DOA_SPECIAL_APPOINTMENT`
 --
 ALTER TABLE `DOA_SPECIAL_APPOINTMENT`
   ADD PRIMARY KEY (`PK_SPECIAL_APPOINTMENT`),
-  ADD KEY `PK_ACCOUNT_MASTER` (`PK_ACCOUNT_MASTER`),
   ADD KEY `PK_APPOINTMENT_STATUS` (`PK_APPOINTMENT_STATUS`);
 
 --
@@ -1549,10 +1651,28 @@ ALTER TABLE `DOA_Z_HELP_FILES`
 --
 
 --
+-- AUTO_INCREMENT for table `DOA_APPOINTMENT_CUSTOMER`
+--
+ALTER TABLE `DOA_APPOINTMENT_CUSTOMER`
+  MODIFY `PK_APPOINTMENT_CUSTOMER` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `DOA_APPOINTMENT_ENROLLMENT`
+--
+ALTER TABLE `DOA_APPOINTMENT_ENROLLMENT`
+  MODIFY `PK_APPOINTMENT_ENROLLMENT` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `DOA_APPOINTMENT_MASTER`
 --
 ALTER TABLE `DOA_APPOINTMENT_MASTER`
   MODIFY `PK_APPOINTMENT_MASTER` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `DOA_APPOINTMENT_SERVICE_PROVIDER`
+--
+ALTER TABLE `DOA_APPOINTMENT_SERVICE_PROVIDER`
+  MODIFY `PK_APPOINTMENT_SERVICE_PROVIDER` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `DOA_APPOINTMENT_STATUS_HISTORY`
@@ -1625,6 +1745,12 @@ ALTER TABLE `DOA_CUSTOMER_WALLET`
 --
 ALTER TABLE `DOA_DOCUMENT_LIBRARY`
   MODIFY `PK_DOCUMENT_LIBRARY` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `DOA_DOCUMENT_LOCATION`
+--
+ALTER TABLE `DOA_DOCUMENT_LOCATION`
+  MODIFY `PK_DOCUMENT_LOCATION` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `DOA_EMAIL`
@@ -1711,6 +1837,12 @@ ALTER TABLE `DOA_ENROLLMENT_SERVICE`
   MODIFY `PK_ENROLLMENT_SERVICE` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `DOA_ENROLLMENT_SERVICE_PROVIDER`
+--
+ALTER TABLE `DOA_ENROLLMENT_SERVICE_PROVIDER`
+  MODIFY `PK_ENROLLMENT_SERVICE_PROVIDER` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `DOA_EVENT`
 --
 ALTER TABLE `DOA_EVENT`
@@ -1747,30 +1879,6 @@ ALTER TABLE `DOA_GIFT_CERTIFICATE_SETUP`
   MODIFY `PK_GIFT_CERTIFICATE_SETUP` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `DOA_GIFT_LOCATION`
---
-ALTER TABLE `DOA_GIFT_LOCATION`
-  MODIFY `PK_GIFT_LOCATION` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `DOA_GROUP_CLASS`
---
-ALTER TABLE `DOA_GROUP_CLASS`
-  MODIFY `PK_GROUP_CLASS` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `DOA_GROUP_CLASS_CUSTOMER`
---
-ALTER TABLE `DOA_GROUP_CLASS_CUSTOMER`
-  MODIFY `PK_GROUP_CLASS_CUSTOMER` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `DOA_GROUP_CLASS_USER`
---
-ALTER TABLE `DOA_GROUP_CLASS_USER`
-  MODIFY `PK_GROUP_CLASS_USER` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `DOA_HOLIDAY_LIST`
 --
 ALTER TABLE `DOA_HOLIDAY_LIST`
@@ -1781,6 +1889,12 @@ ALTER TABLE `DOA_HOLIDAY_LIST`
 --
 ALTER TABLE `DOA_INQUIRY_METHOD`
   MODIFY `PK_INQUIRY_METHOD` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `DOA_INTERESTS`
+--
+ALTER TABLE `DOA_INTERESTS`
+  MODIFY `PK_INTERESTS` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `DOA_OPERATIONAL_HOUR`
@@ -1795,6 +1909,12 @@ ALTER TABLE `DOA_PACKAGE`
   MODIFY `PK_PACKAGE` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `DOA_PACKAGE_LOCATION`
+--
+ALTER TABLE `DOA_PACKAGE_LOCATION`
+  MODIFY `PK_PACKAGE_LOCATION` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `DOA_PACKAGE_SERVICE`
 --
 ALTER TABLE `DOA_PACKAGE_SERVICE`
@@ -1805,6 +1925,12 @@ ALTER TABLE `DOA_PACKAGE_SERVICE`
 --
 ALTER TABLE `DOA_SCHEDULING_CODE`
   MODIFY `PK_SCHEDULING_CODE` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `DOA_SCHEDULING_SERVICE`
+--
+ALTER TABLE `DOA_SCHEDULING_SERVICE`
+  MODIFY `PK_SCHEDULING_SERVICE` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `DOA_SERVICE_CODE`
@@ -1837,6 +1963,12 @@ ALTER TABLE `DOA_SERVICE_MASTER`
   MODIFY `PK_SERVICE_MASTER` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `DOA_SERVICE_PROVIDER_AMOUNT`
+--
+ALTER TABLE `DOA_SERVICE_PROVIDER_AMOUNT`
+  MODIFY `PK_SERVICE_PROVIDER_AMOUNT` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `DOA_SERVICE_PROVIDER_SERVICES`
 --
 ALTER TABLE `DOA_SERVICE_PROVIDER_SERVICES`
@@ -1847,6 +1979,12 @@ ALTER TABLE `DOA_SERVICE_PROVIDER_SERVICES`
 --
 ALTER TABLE `DOA_SERVICE_SCHEDULING_CODE`
   MODIFY `PK_SERVICE_BOOKING_CODE` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `DOA_SKILL_LEVEL`
+--
+ALTER TABLE `DOA_SKILL_LEVEL`
+  MODIFY `PK_SKILL_LEVEL` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `DOA_SPECIAL_APPOINTMENT`
