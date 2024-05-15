@@ -304,6 +304,34 @@ if(!empty($_GET['master_id'])) {
 
 </style>
 <?php require_once('../includes/header.php');?>
+<style>
+    #advice-required-entry-ACCEPT_HANDLING{width: 150px;top: 20px;position: absolute;}
+    .StripeElement {
+        display: block;
+        width: 100%;
+        height: 34px;
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        color: #555;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .StripeElement--focus {
+        box-shadow: 0 1px 3px 0 #cfd7df;
+    }
+
+    .StripeElement--invalid {
+        border-color: #fa755a;
+    }
+
+    .StripeElement--webkit-autofill {
+        background-color: #fefde5 !important;
+    }
+</style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
@@ -872,7 +900,7 @@ if(!empty($_GET['master_id'])) {
                                                                     <div class="form-group">
                                                                         <label class="col-md-12">Password</label>
                                                                         <div class="col-md-12">
-                                                                            <input type="password" required class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
+                                                                            <input type="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -880,7 +908,7 @@ if(!empty($_GET['master_id'])) {
                                                                     <div class="form-group">
                                                                         <label class="col-md-12">Confirm Password</label>
                                                                         <div class="col-md-12">
-                                                                            <input type="password" required class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
+                                                                            <input type="password" class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -912,13 +940,13 @@ if(!empty($_GET['master_id'])) {
                                                                     <div class="col-3">
                                                                         <div class="form-group">
                                                                             <label class="form-label">New Password</label>
-                                                                            <input type="password" required name="PASSWORD" class="form-control" id="PASSWORD">
+                                                                            <input type="password" name="PASSWORD" class="form-control" id="PASSWORD">
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-3">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Confirm New Password</label>
-                                                                            <input type="password" required name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
+                                                                            <input type="password" name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -2134,7 +2162,7 @@ if(!empty($_GET['master_id'])) {
             });*!/*/
         </script>
 
-    <script>
+        <script>
         function createUserComment() {
             $('#comment_header').text("Add Comment");
             $('#PK_COMMENT').val(0);
@@ -2748,90 +2776,6 @@ if(!empty($_GET['master_id'])) {
         });
     </script>
 
-
-    <!--<script src="https://js.stripe.com/v3/"></script>
-    <script type="text/javascript">
-        function stripePaymentFunction() {
-
-            // Create a Stripe client.
-            var stripe = Stripe('<?php /*=$PUBLISHABLE_KEY*/?>');
-
-            // Create an instance of Elements.
-            var elements = stripe.elements();
-
-            // Custom styling can be passed to options when creating an Element.
-            // (Note that this demo uses a wider set of styles than the guide below.)
-            var style = {
-                base: {
-                    height: '34px',
-                    padding: '6px 12px',
-                    fontSize: '14px',
-                    lineHeight: '1.42857143',
-                    color: '#555',
-                    backgroundColor: '#fff',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    '::placeholder': {
-                        color: '#ddd'
-                    }
-                },
-                invalid: {
-                    color: '#fa755a',
-                    iconColor: '#fa755a'
-                }
-            };
-
-            // Create an instance of the card Element.
-            var card = elements.create('card', {style: style});
-
-            // Add an instance of the card Element into the `card-element` <div>.
-            if (($('#card-element')).length > 0) {
-                card.mount('#card-element');
-            }
-
-            // Handle real-time validation errors from the card Element.
-            card.addEventListener('change', function (event) {
-                var displayError = document.getElementById('card-errors');
-                if (event.error) {
-                    displayError.textContent = event.error.message;
-                } else {
-                    displayError.textContent = '';
-                }
-            });
-
-            // Handle form submission.
-            var form = document.getElementById('payment_confirmation_form');
-            form.addEventListener('submit', function (event) {
-                event.preventDefault();
-                stripe.createToken(card).then(function (result) {
-                    if (result.error) {
-                        // Inform the user if there was an error.
-                        var errorElement = document.getElementById('card-errors');
-                        errorElement.textContent = result.error.message;
-                    } else {
-                        // Send the token to your server.
-                        stripeTokenHandler(result.token);
-                    }
-                });
-            });
-
-            // Submit the form with the token ID.
-            function stripeTokenHandler(token) {
-                // Insert the token ID into the form so it gets submitted to the server
-                var form = document.getElementById('payment_confirmation_form');
-                var hiddenInput = document.createElement('input');
-                hiddenInput.setAttribute('type', 'hidden');
-                hiddenInput.setAttribute('name', 'token');
-                hiddenInput.setAttribute('value', token.id);
-                form.appendChild(hiddenInput);
-
-                //ACCEPT_HANDLING_ERROR
-                // Submit the form
-                form.submit();
-            }
-        }
-
-    </script>-->
     <script>
         $('#NAME').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
 
@@ -2852,68 +2796,6 @@ if(!empty($_GET['master_id'])) {
             //$('#payment_confirmation_form_div_customer').slideDown();
             //openPaymentModel();
             $('#payment_modal').modal('show');
-        }
-
-        function selectPaymentTypeCustomer(param){
-            let paymentType = $("#PK_PAYMENT_TYPE_CUSTOMER option:selected").text();
-            $('.payment_type_div').slideUp();
-            $('#card-element').remove();
-            switch (paymentType) {
-                case 'Credit Card':
-                    $('#customer_card_div').html(`<div id="card-element"></div>`);
-                    stripePaymentFunction();
-                    $('#credit_card_payment_customer').slideDown();
-                    break;
-
-                case 'Check':
-                    $('#check_payment_customer').slideDown();
-                    break;
-
-                case 'Wallet':
-                    $('#wallet_balance_span').slideDown();
-                    let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
-                    let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
-
-                    if(AMOUNT_TO_PAY > WALLET_BALANCE){
-                        $('#REMAINING_AMOUNT_CUSTOMER').val(AMOUNT_TO_PAY-WALLET_BALANCE);
-                        $('#remaining_amount_div').slideDown();
-                        $('#PK_PAYMENT_TYPE_REMAINING_CUSTOMER').prop('required', true);
-                    } else {
-                        $('#remaining_amount_div').slideUp();
-                        $('#PK_PAYMENT_TYPE_REMAINING_CUSTOMER').prop('required', false);
-                    }
-                    break;
-
-                case 'Cash':
-                default:
-                    $('.payment_type_div').slideUp();
-                    $('#wallet_balance_span').slideUp();
-                    $('#remaining_amount_div').slideUp();
-                    $('#PK_PAYMENT_TYPE_REMAINING_CUSTOMER').prop('required', false);
-                    break;
-            }
-        }
-
-        function selectRemainingPaymentType(param){
-            let paymentType = $("#PK_PAYMENT_TYPE_REMAINING_CUSTOMER option:selected").text();
-            $('.remaining_payment_type_div').slideUp();
-            $('#card-element').remove();
-            switch (paymentType) {
-                case 'Credit Card':
-                    $('#remaining_card_div').html(`<div id="card-element"></div>`);
-                    stripePaymentFunction();
-                    $('#remaining_credit_card_payment').slideDown();
-                    break;
-
-                case 'Check':
-                    $('#remaining_check_payment').slideDown();
-                    break;
-
-                case 'Cash':
-                default:
-                    $('.remaining_payment_type_div').slideUp();
-                    break;
-            }
         }
 
         function confirmComplete(param)

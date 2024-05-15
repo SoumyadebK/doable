@@ -134,6 +134,16 @@ if($user_payment_gateway->RecordCount() > 0){
     $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
     $AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
 }
+
+$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+
+$PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
+$SECRET_KEY = $account_data->fields['SECRET_KEY'];
+$PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
+
+$ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
+$APP_ID = $account_data->fields['APP_ID'];
+$LOCATION_ID = $account_data->fields['LOCATION_ID'];
 ?>
 
 <!DOCTYPE html>
@@ -1187,92 +1197,6 @@ if($user_payment_gateway->RecordCount() > 0){
 <?php include('includes/enrollment_payment.php'); ?>
 
 <?php require_once('../includes/footer.php');?>
-
-
-<script src="https://js.stripe.com/v3/"></script>
-
-<script type="text/javascript">
-    function stripePaymentFunction() {
-
-        // Create a Stripe client.
-        var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
-
-        // Create an instance of Elements.
-        var elements = stripe.elements();
-
-        // Custom styling can be passed to options when creating an Element.
-        // (Note that this demo uses a wider set of styles than the guide below.)
-        var style = {
-            base: {
-                height: '34px',
-                padding: '6px 12px',
-                fontSize: '14px',
-                lineHeight: '1.42857143',
-                color: '#555',
-                backgroundColor: '#fff',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                '::placeholder': {
-                    color: '#ddd'
-                }
-            },
-            invalid: {
-                color: '#fa755a',
-                iconColor: '#fa755a'
-            }
-        };
-
-        // Create an instance of the card Element.
-        var card = elements.create('card', {style: style});
-
-        // Add an instance of the card Element into the `card-element` <div>.
-        if (($('#card-element')).length > 0) {
-            card.mount('#card-element');
-        }
-
-        // Handle real-time validation errors from the card Element.
-        card.addEventListener('change', function (event) {
-            var displayError = document.getElementById('card-errors');
-            if (event.error) {
-                displayError.textContent = event.error.message;
-            } else {
-                displayError.textContent = '';
-            }
-        });
-
-        // Handle form submission.
-        var form = document.getElementById('payment_confirmation_form');
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            stripe.createToken(card).then(function (result) {
-                if (result.error) {
-                    // Inform the user if there was an error.
-                    var errorElement = document.getElementById('card-errors');
-                    errorElement.textContent = result.error.message;
-                } else {
-                    // Send the token to your server.
-                    stripeTokenHandler(result.token);
-                }
-            });
-        });
-
-        // Submit the form with the token ID.
-        function stripeTokenHandler(token) {
-            // Insert the token ID into the form so it gets submitted to the server
-            var form = document.getElementById('payment_confirmation_form');
-            var hiddenInput = document.createElement('input');
-            hiddenInput.setAttribute('type', 'hidden');
-            hiddenInput.setAttribute('name', 'token');
-            hiddenInput.setAttribute('value', token.id);
-            form.appendChild(hiddenInput);
-
-            //ACCEPT_HANDLING_ERROR
-            // Submit the form
-            form.submit();
-        }
-    }
-
-</script>
 
 <script>
     const appId = '<?=$SQUARE_APP_ID ?>';
