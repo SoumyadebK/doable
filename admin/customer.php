@@ -2849,7 +2849,7 @@ if(!empty($_GET['master_id'])) {
             $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
             $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
             $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
-            $('#payment_confirmation_form_div_customer').slideDown();
+            //$('#payment_confirmation_form_div_customer').slideDown();
             //openPaymentModel();
             $('#payment_modal').modal('show');
         }
@@ -3083,9 +3083,9 @@ if(!empty($_GET['master_id'])) {
         let BILLED_AMOUNT = [];
         let PK_ENROLLMENT_LEDGER = [];
 
-        $(".BILLED_AMOUNT:checked").each(function() {
-            BILLED_AMOUNT.push($(this).val());
-            PK_ENROLLMENT_LEDGER.push($(this).data('pk_enrollment_ledger'));
+        $(".PAYMENT_CHECKBOX_"+PK_ENROLLMENT_MASTER+":checked").each(function() {
+            BILLED_AMOUNT.push($(this).data('billed_amount'));
+            PK_ENROLLMENT_LEDGER.push($(this).val());
         });
 
         let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
@@ -3098,14 +3098,14 @@ if(!empty($_GET['master_id'])) {
         $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
         $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
         $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
-        $('#payment_confirmation_form_div_customer').slideDown();
+        //$('#payment_confirmation_form_div_customer').slideDown();
         //openPaymentModel();
         $('#payment_modal').modal('show');
     }
 </script>
 
 <script>
-    function payAll(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
+    /*function payAll(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
         let BILLED_AMOUNT = [];
         let PK_ENROLLMENT_LEDGER = [];
 
@@ -3127,7 +3127,7 @@ if(!empty($_GET['master_id'])) {
         $('#payment_confirmation_form_div_customer').slideDown();
         //openPaymentModel();
         $('#payment_modal').modal('show');
-    }
+    }*/
 </script>
 <script>
     function ConfirmPosted(PK_APPOINTMENT_MASTER)

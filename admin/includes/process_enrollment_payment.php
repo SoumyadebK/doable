@@ -171,7 +171,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
             //pre_r($payment_intent);
 
-        } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
+        }
+        elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
 
             require_once("../global/vendor/autoload.php");
 
@@ -240,7 +241,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 $errors = $api_response->getErrors();
             }
 
-        } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
+        }
+        elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
 
             require_once('../global/authorizenet/vendor/autoload.php');
 
@@ -365,93 +367,6 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $TRANSACTION_TYPE = 'Payment';
     $BILLED_AMOUNT = 0.00;
 
-    /*if($_POST['IS_ONE_TIME_PAY'] == 1) {
-        $ENROLLMENT_BILLING_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-        $ENROLLMENT_BILLING_DATA['BILLING_REF'] = $_POST['BILLING_REF'];
-        $ENROLLMENT_BILLING_DATA['BILLING_DATE'] = date('Y-m-d', strtotime($_POST['BILLING_DATE']));
-        $ENROLLMENT_BILLING_DATA['DOWN_PAYMENT'] = 0;
-        $ENROLLMENT_BILLING_DATA['BALANCE_PAYABLE'] = 0;
-        $ENROLLMENT_BILLING_DATA['ACTUAL_AMOUNT'] = $ENROLLMENT_BILLING_DATA['TOTAL_AMOUNT'] = $_POST['AMOUNT'];
-        $ENROLLMENT_BILLING_DATA['PAYMENT_METHOD'] = 'One Time';
-        $ENROLLMENT_BILLING_DATA['NUMBER_OF_PAYMENT'] = 0;
-        $ENROLLMENT_BILLING_DATA['FIRST_DUE_DATE'] = date('Y-m-d', strtotime($_POST['BILLING_DATE']));
-        $ENROLLMENT_BILLING_DATA['INSTALLMENT_AMOUNT'] = 0;
-
-        db_perform_account('DOA_ENROLLMENT_BILLING', $ENROLLMENT_BILLING_DATA, 'insert');
-        $PK_ENROLLMENT_BILLING = $db_account->insert_ID();
-        $_POST['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
-
-        $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
-        $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-        $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-        $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
-        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
-        $LEDGER_DATA['BILLED_AMOUNT'] = $_POST['AMOUNT'];
-        $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
-        $LEDGER_DATA['BALANCE'] = $_POST['AMOUNT'];
-        $LEDGER_DATA['IS_PAID'] = 1;
-        $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-        $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
-
-        $document_library_data = $db_account->Execute("SELECT DOA_DOCUMENT_LIBRARY.DOCUMENT_TEMPLATE FROM `DOA_DOCUMENT_LIBRARY` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_DOCUMENT_LIBRARY=DOA_DOCUMENT_LIBRARY.PK_DOCUMENT_LIBRARY WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
-        $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$_POST['PK_ENROLLMENT_MASTER']);
-        $enrollment_details = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS NUMBER_OF_SESSIONS, SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS TOTAL, SUM(DOA_ENROLLMENT_SERVICE.DISCOUNT) AS DISCOUNT, SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS FINAL_AMOUNT, DOA_ENROLLMENT_BILLING.FIRST_DUE_DATE, DOA_ENROLLMENT_BILLING.PAYMENT_TERM, DOA_ENROLLMENT_BILLING.NUMBER_OF_PAYMENT, DOA_ENROLLMENT_BILLING.INSTALLMENT_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$_POST['PK_ENROLLMENT_MASTER']);
-        $html_template = $document_library_data->fields['DOCUMENT_TEMPLATE'];
-        $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template);
-        $html_template = str_replace('{STREET_ADD}', $user_data->fields['ADDRESS'], $html_template);
-        $html_template = str_replace('{CITY}', $user_data->fields['CITY'], $html_template);
-        $html_template = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template);
-        $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
-        $html_template = str_replace('{CELL_PHONE}', $user_data->fields['PHONE'], $html_template);
-        $TYPE_OF_ENROLLMENT='';
-        $SERVICE_DETAILS='';
-        $PVT_LESSONS='';
-        $TUITION='';
-        $DISCOUNT='';
-        $BAL_DUE='';
-        $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
-        $enrollment_count = $db_account->Execute("SELECT COUNT(PK_USER_MASTER) AS ENROLLMENT_COUNT FROM DOA_ENROLLMENT_MASTER WHERE PK_USER_MASTER=".$enrollment_service_data->fields['PK_USER_MASTER']);
-        $number = $enrollment_count->RecordCount() > 0 ? $enrollment_count->fields['ENROLLMENT_COUNT'] : '';
-        $ends = array('th','st','nd','rd','th','th','th','th','th','th');
-        $abbreviation = ($number % 100) >= 11 && ($number % 100) <= 13 ? $number . 'th' : $number . $ends[$number % 10];
-        if(empty($enrollment_service_data->fields['ENROLLMENT_NAME'])){
-            $enrollment_name = $abbreviation;
-        }else{
-            $enrollment_name = $enrollment_service_data->fields['ENROLLMENT_NAME']." - ".$abbreviation;
-        }
-        while (!$enrollment_service_data->EOF) {
-            $TYPE_OF_ENROLLMENT = $enrollment_name;
-            $SERVICE_DETAILS .= $enrollment_service_data->fields['SERVICE_DETAILS']."<br>";
-            $PVT_LESSONS .= $enrollment_service_data->fields['NUMBER_OF_SESSION']."<br>";
-            $TUITION .= $enrollment_service_data->fields['TOTAL']."<br>";
-            $DISCOUNT .= $enrollment_service_data->fields['DISCOUNT']."<br>";
-            $BAL_DUE .= $enrollment_service_data->fields['FINAL_AMOUNT']."<br>";
-            $enrollment_service_data->MoveNext();
-        }
-        $html_template = str_replace('{TYPE_OF_ENROLLMENT}', $TYPE_OF_ENROLLMENT, $html_template);
-        $html_template = str_replace('{SERVICE_DETAILS}', $SERVICE_DETAILS, $html_template);
-        $html_template = str_replace('{PVT_LESSONS}', $PVT_LESSONS, $html_template);
-        $html_template = str_replace('{TUITION}', $TUITION, $html_template);
-        $html_template = str_replace('{DISCOUNT}', $DISCOUNT, $html_template);
-        $html_template = str_replace('{BAL_DUE}', $BAL_DUE, $html_template);
-        $html_template = str_replace('{MISC_SERVICES}', '0', $html_template);
-        $html_template = str_replace('{TUITION_COST}', '0', $html_template);
-        $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);
-        $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
-        $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($_POST['BILLING_DATE'])), $html_template);
-        $html_template = str_replace('{DOWN_PAYMENTS}',  $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
-        $html_template = str_replace('{SCHEDULE_AMOUNT}', $_POST['BALANCE_PAYABLE'], $html_template);
-        $html_template = str_replace('{PAYMENT_NAME}', $_POST['PAYMENT_TERM'], $html_template);
-        $html_template = str_replace('{NO_AMT_PAYMENT}', $_POST['NUMBER_OF_PAYMENT'], $html_template);
-        //$html_template = str_replace('{STARTING_DATE}', date('m-d-Y', strtotime($_POST['BILLING_DATE'])), $html_template);
-        $html_template = str_replace('{STARTING_DATE}', '-', $html_template);
-        $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
-        db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
-    }*/
-
-
     $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$_POST['PK_ENROLLMENT_MASTER']);
     $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$_POST['PK_ENROLLMENT_MASTER']);
     $ACTUAL_AMOUNT = $enrollmentBillingData->fields['TOTAL_AMOUNT'];
@@ -486,7 +401,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
     $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.LOCATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER=DOA_USERS.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION=DOA_USER_LOCATION.PK_LOCATION LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$_POST['PK_ENROLLMENT_MASTER']);
     $enrollment_billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
-    $enrollment_ledger_data = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.* , DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE=DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_LEDGER=".$ENROLLMENT_LEDGER_PARENT);
+    //$enrollment_ledger_data = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.* , DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE=DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_LEDGER=".$ENROLLMENT_LEDGER_PARENT);
     $enrollment_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
     $enrollment_payment_type = $db->Execute("SELECT PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE=".$_POST['PK_PAYMENT_TYPE']);
     if($_POST['PK_PAYMENT_TYPE']==2){
@@ -512,60 +427,65 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $html_template_receipt = str_replace('{PAYMENT_METHOD}', $PAYMENT_TYPE, $html_template_receipt);
     $html_template_receipt = str_replace('{CARD_NUMBER}', $payment_info, $html_template_receipt);
     $html_template_receipt = str_replace('{DETAILS}', $_POST['AMOUNT'], $html_template_receipt);
-    $html_template_receipt = str_replace('{AMOUNT}', $enrollment_ledger_data->fields['BILLED_AMOUNT'], $html_template_receipt);
+    $html_template_receipt = str_replace('{AMOUNT}', $_POST['AMOUNT'] /*$enrollment_ledger_data->fields['BILLED_AMOUNT']*/, $html_template_receipt);
     $html_template_receipt = str_replace('{TOTAL}', $_POST['AMOUNT'], $html_template_receipt);
     $html_template_receipt = str_replace('{PAYMENT_DATE}', date('m-d-Y'), $html_template_receipt);
 
-    $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
-    $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT;
-    $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-    $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
-    $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
-    $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
-    $LEDGER_DATA['PAID_AMOUNT'] = $_POST['AMOUNT'];
-    $LEDGER_DATA['BALANCE'] = 0.00;
-    $LEDGER_DATA['IS_PAID'] = 1;
-    $LEDGER_DATA['STATUS'] = 'A';
-    db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-    $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+    $ENROLLMENT_LEDGER_PARENT_ARRAY = explode(',', $ENROLLMENT_LEDGER_PARENT);
 
-    $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-    $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
-    $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-    $PAYMENT_DATA['AMOUNT'] = $_POST['AMOUNT'];
-    $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
-    $TYPE = 'Payment';
-    if ($_POST['PK_PAYMENT_TYPE'] == 7) {
-        $TYPE = 'Remaining';
-        //$PAYMENT_DATA['REMAINING_AMOUNT'] = $_POST['REMAINING_AMOUNT'];
-        /*$PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER_REMAINING'];
-        $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE_REMAINING']));*/
-    } elseif($_POST['PK_PAYMENT_TYPE'] == 2) {
-        //$PAYMENT_DATA['REMAINING_AMOUNT'] = 0.00;
-        $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE']))];
-        $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
-        /*$PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
-        $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));*/
+    for ($i = 0; $i < count($ENROLLMENT_LEDGER_PARENT_ARRAY); $i++) {
+        $ledger_data = $db_account->Execute("SELECT `BILLED_AMOUNT` FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_LEDGER` = ".$ENROLLMENT_LEDGER_PARENT_ARRAY[$i]);
+        $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
+        $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT_ARRAY[$i];
+        $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
+        $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
+        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
+        $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
+        $LEDGER_DATA['PAID_AMOUNT'] = $ledger_data->fields['BILLED_AMOUNT'];
+        $LEDGER_DATA['BALANCE'] = 0.00;
+        $LEDGER_DATA['IS_PAID'] = 1;
+        $LEDGER_DATA['STATUS'] = 'A';
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+
+        $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
+        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
+        $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+        $PAYMENT_DATA['AMOUNT'] = $ledger_data->fields['BILLED_AMOUNT'];
+        $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
+        $TYPE = 'Payment';
+        if ($_POST['PK_PAYMENT_TYPE'] == 7) {
+            $TYPE = 'Remaining';
+            //$PAYMENT_DATA['REMAINING_AMOUNT'] = $_POST['REMAINING_AMOUNT'];
+            /*$PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER_REMAINING'];
+            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE_REMAINING']));*/
+        } elseif ($_POST['PK_PAYMENT_TYPE'] == 2) {
+            //$PAYMENT_DATA['REMAINING_AMOUNT'] = 0.00;
+            $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE']))];
+            $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+            /*$PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
+            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));*/
+        }
+        $PAYMENT_DATA['TYPE'] = $TYPE;
+        $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
+        $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+        $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+        $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+        $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+        $PAYMENT_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template_receipt);
+
+        /*if($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
+            $PAYMENT_DATA['NAME'] = $_POST['NAME'];
+            $PAYMENT_DATA['CARD_NUMBER'] = $_POST['CARD_NUMBER'];
+            $PAYMENT_DATA['EXPIRATION_DATE'] = $_POST['EXPIRATION_MONTH'] . "/" . $_POST['EXPIRATION_YEAR'];
+            $PAYMENT_DATA['SECURITY_CODE'] = $_POST['SECURITY_CODE'];
+        }*/
+        db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+
+        $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
+        $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT_ARRAY[$i]'");
     }
-    $PAYMENT_DATA['TYPE'] = $TYPE;
-    $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
-    $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-    $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-    $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
-    $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
-    $PAYMENT_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template_receipt);
-
-    /*if($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-        $PAYMENT_DATA['NAME'] = $_POST['NAME'];
-        $PAYMENT_DATA['CARD_NUMBER'] = $_POST['CARD_NUMBER'];
-        $PAYMENT_DATA['EXPIRATION_DATE'] = $_POST['EXPIRATION_MONTH'] . "/" . $_POST['EXPIRATION_YEAR'];
-        $PAYMENT_DATA['SECURITY_CODE'] = $_POST['SECURITY_CODE'];
-    }*/
-    db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
-
-    $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
-    $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-    db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT'");
 
     markEnrollmentComplete($_POST['PK_ENROLLMENT_MASTER']);
 
