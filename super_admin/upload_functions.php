@@ -175,8 +175,8 @@ function getEnrollmentType($enrollmentTypeId) {
 
 function getEnrollmentDetails($enrollment_id) {
     global $db1;
-    $enrollment_details = $db1->Execute("SELECT total_cost, discount, fincharge FROM enrollment WHERE enrollment_id = '$enrollment_id'");
-    return [$enrollment_details->fields['total_cost'], $enrollment_details->fields['discount'], $enrollment_details->fields['fincharge']];
+    $enrollment_details = $db1->Execute("SELECT sale_value, discount, total_cost FROM enrollment WHERE enrollment_id = '$enrollment_id'");
+    return [$enrollment_details->fields['sale_value'], $enrollment_details->fields['discount'], $enrollment_details->fields['total_cost']];
 }
 
 function getUser($user_id) {
