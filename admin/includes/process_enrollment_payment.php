@@ -5,20 +5,16 @@ use Stripe\Stripe;
 use Stripe\StripeClient;
 
 require_once('../../global/config.php');
+require_once("../../global/stripe-php-master/init.php");
 global $db;
 global $db_account;
 
-$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$header = '../'.$_POST['header'];
 
+$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
 $SECRET_KEY = $account_data->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
-
-require_once("../../global/stripe-php-master/init.php");
-$stripe = new StripeClient($SECRET_KEY);
-Stripe::setApiKey($SECRET_KEY);
-
-$header = '../'.$_POST['header'];
 
 /*$SQUARE_MODE 			= 2;
 if ($SQUARE_MODE == 1)
@@ -134,6 +130,9 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $payment_info = '';
     if ($_POST['PK_PAYMENT_TYPE'] == 1) {
         if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
+            $stripe = new StripeClient($SECRET_KEY);
+            Stripe::setApiKey($SECRET_KEY);
+
             $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
             $customer_payment_info = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE DOA_CUSTOMER_PAYMENT_INFO.PAYMENT_TYPE = 'Stripe' AND DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
 
@@ -168,9 +167,9 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 $charge = \Stripe\Charge::create(array(
                     "amount" => $AMOUNT * 100,
                     "currency" => "usd",
-                    "description" => "Payment for Receipt# ".$RECEIPT_NUMBER,
+                    "description" => "Receipt# ".$RECEIPT_NUMBER,
                     "customer" => $CUSTOMER_PAYMENT_ID,
-                    "statement_descriptor" => "Payment for Receipt# ".$RECEIPT_NUMBER,
+                    "statement_descriptor" => "Receipt# ".$RECEIPT_NUMBER,
                 ));
 
                 $LAST4 = $charge->payment_method_details->card->last4;
