@@ -21,6 +21,20 @@ if (!empty($_GET['week_number'])){
     $to_date = $dto->format('Y-m-d');
 }
 
+
+// Calculate the year and week number of the selected date
+$selected_year = date('Y', strtotime($from_date));
+$selected_week = date('W', strtotime($from_date));
+
+// Calculate the previous year
+$previous_year = $selected_year - 1;
+
+// Find the first day of the selected week in the previous year
+$first_day_of_week_previous_year = date('Y-m-d', strtotime($previous_year . 'W' . str_pad($selected_week, 2, '0', STR_PAD_LEFT)));
+
+// Find the last day of the selected week in the previous year
+$last_day_of_week_previous_year = date('Y-m-d', strtotime($first_day_of_week_previous_year . ' +6 days'));
+
 $res = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
 ?>
@@ -88,45 +102,54 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     </tr>
                                     <tr>
                                         <?php
-                                        $ledger_data = $db_account->Execute("SELECT SUM(PAID_AMOUNT) AS CASH FROM DOA_ENROLLMENT_LEDGER WHERE PK_PAYMENT_TYPE = 3 AND DUE_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                        $cash = $ledger_data->RecordCount() > 0 ? $ledger_data->fields['CASH'] : '0.00';
+                                        $regular_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS CASH FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER != 5 AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = 3 AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $regular_cash = $regular_data->RecordCount() > 0 ? $regular_data->fields['CASH'] : '0.00';
+                                        $misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS CASH FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = 5 AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = 3 AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $misc_cash = $misc_data->RecordCount() > 0 ? $misc_data->fields['CASH'] : '0.00';
+                                        $total_cash = $regular_cash + $misc_cash
                                         ?>
                                         <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">Week</th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$cash?></th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$regular_cash?></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$misc_cash?></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=number_format($total_cash, 2, '.', '')?></th>
                                     </tr>
                                     <tr>
                                         <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">Week Refunds</th>
                                         <th style="width:25%; text-align: center; font-weight: bold">0.00</th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold">0.00</th>
+                                        <th style="width:25%; text-align: center; font-weight: bold">0.00</th>
                                     </tr>
                                     <tr>
                                         <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">Transfer out</th>
                                         <th style="width:25%; text-align: center; font-weight: bold">0.00</th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold">0.00</th>
+                                        <th style="width:25%; text-align: center; font-weight: bold">0.00</th>
                                     </tr>
                                     <tr>
                                         <?php
-                                        $net_data = $db_account->Execute("SELECT SUM(PAID_AMOUNT) AS CASH FROM DOA_ENROLLMENT_LEDGER WHERE PK_PAYMENT_TYPE = 3 AND YEAR(DUE_DATE) = YEAR(CURDATE())");
-                                        $net = $net_data->RecordCount() > 0 ? $net_data->fields['CASH'] : '0.00';
+                                        $net_regular_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS CASH FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER != 5 AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = 3 AND YEAR(DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE) = YEAR(CURDATE())");
+                                        $net_regular_cash = $net_regular_data->RecordCount() > 0 ? $net_regular_data->fields['CASH'] : '0.00';
+                                        $net_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS CASH FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = 5 AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = 3 AND YEAR(DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE) = YEAR(CURDATE())");
+                                        $net_misc_cash = $net_misc_data->RecordCount() > 0 ? $net_misc_data->fields['CASH'] : '0.00';
+                                        $net_total_cash = $net_misc_cash + $net_regular_cash;
                                         ?>
                                         <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">NET Y.T.D.</th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$net?></th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$net_regular_cash?></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$net_misc_cash?></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=number_format($net_total_cash, 2, '.', '')?></th>
                                     </tr>
                                     <tr>
                                         <?php
-                                        $prev_data = $db_account->Execute("SELECT SUM(PAID_AMOUNT) AS CASH FROM DOA_ENROLLMENT_LEDGER WHERE PK_PAYMENT_TYPE = 3 AND YEAR(DUE_DATE) > DATEADD(year,-1,GETDATE())");
-                                        $prev = $prev_data->RecordCount() > 0 ? $prev_data->fields['CASH'] : '0.00';
+                                        $prev_regular_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS CASH FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER != 5 AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = 3 AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($first_day_of_week_previous_year))."' AND '".date('Y-m-d', strtotime($last_day_of_week_previous_year))."'");
+                                        $prev_regular_cash = $prev_regular_data->RecordCount() > 0 ? $prev_regular_data->fields['CASH'] : '0.00';
+                                        $prev_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS CASH FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER != 5 AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = 3 AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($first_day_of_week_previous_year))."' AND '".date('Y-m-d', strtotime($last_day_of_week_previous_year))."'");
+                                        $prev_misc_cash = $prev_misc_data->RecordCount() > 0 ? $prev_misc_data->fields['CASH'] : '0.00';
+                                        $total_prev_cash = $prev_misc_cash + $prev_regular_cash;
                                         ?>
                                         <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">PRV. Y.T.D.</th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$prev?></th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:25%; text-align: center; font-weight: bold"></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$prev_regular_cash?></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=$prev_misc_cash?></th>
+                                        <th style="width:25%; text-align: center; font-weight: bold"><?=number_format($total_prev_cash, 2, '.', '')?></th>
                                     </tr>
                                     </thead>
                                 </table>
@@ -156,18 +179,22 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                         $booked = $appointment_data->RecordCount() > 0 ? $appointment_data->fields['BOOKED'] : '0';
                                         $showed_data = $db->Execute("SELECT COUNT( DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER ) AS SHOWED FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $account_database.DOA_APPOINTMENT_CUSTOMER AS DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $account_database.DOA_APPOINTMENT_MASTER AS DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
                                         $showed = $showed_data->RecordCount() > 0 ? $showed_data->fields['SHOWED'] : '0';
-                                        $group_class_data = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER) AS GROUP_CLASS FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER=DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE APPOINTMENT_TYPE='GROUP'");
 
+                                        $upto_eleven_data = $db_account->Execute("SELECT SUM(CUSTOMER_COUNT) as TOTAL_CUSTOMER FROM (SELECT COUNT(DISTINCT PK_USER_MASTER) AS CUSTOMER_COUNT FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER=DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE APPOINTMENT_TYPE='NORMAL' GROUP BY PK_USER_MASTER HAVING COUNT(DISTINCT DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER) <= 3) as TOTAL_CUSTOMER");
+                                        $upto_eleven = $upto_eleven_data->RecordCount() > 0 ? $upto_eleven_data->fields['TOTAL_CUSTOMER'] : '0';
+                                        $above_eleven_data = $db_account->Execute("SELECT SUM(CUSTOMER_COUNT) as TOTAL_CUSTOMER FROM (SELECT COUNT(DISTINCT PK_USER_MASTER) AS CUSTOMER_COUNT FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER=DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE APPOINTMENT_TYPE='NORMAL' GROUP BY PK_USER_MASTER HAVING COUNT(DISTINCT DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER) > 3) as TOTAL_CUSTOMER");
+                                        $above_eleven = $above_eleven_data->RecordCount() > 0 ? $above_eleven_data->fields['TOTAL_CUSTOMER'] : '0';
+                                        $group_class_data = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER) AS GROUP_CLASS FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER=DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE APPOINTMENT_TYPE='GROUP'");
                                         $group_class = $group_class_data->RecordCount() > 0 ? $group_class_data->fields['GROUP_CLASS'] : '0';
 
-                                        $pvt_intv_data = $db_account->Execute("SELECT SUM(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS SUM, DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER=DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE (SELECT SUM(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) FROM DOA_APPOINTMENT_MASTER) > 20 GROUP BY DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER");
+                                        $pvt_intv_data = $db_account->Execute("SELECT SUM(DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER) AS SUM, DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER=DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE (SELECT SUM(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) FROM DOA_APPOINTMENT_MASTER) > 20 GROUP BY DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER");
                                         ?>
                                         <th style="width:10%; text-align: center; vertical-align:auto; font-weight: bold">Week</th>
                                         <th style="width:10%; text-align: center; font-weight: bold"><?=$customer?></th>
                                         <th style="width:10%; text-align: center; font-weight: bold"><?=$booked?></th>
                                         <th style="width:10%; text-align: center; font-weight: bold"><?=$showed?></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
-                                        <th style="width:10%; text-align: center; font-weight: bold"></th>
+                                        <th style="width:10%; text-align: center; font-weight: bold"><?=$upto_eleven?></th>
+                                        <th style="width:10%; text-align: center; font-weight: bold"><?=$above_eleven?></th>
                                         <th style="width:10%; text-align: center; font-weight: bold"><?=$group_class?></th>
                                         <th style="width:10%; text-align: center; font-weight: bold">Department</th>
                                     </tr>
@@ -209,35 +236,73 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     <tr>
                                     </tr>
                                     <?php
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USER_MASTER.PK_USER_MASTER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                    $sales_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS T_1 FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = ".$row->fields['PK_USER_MASTER']);
-                                    $private = $sales_data->RecordCount() > 0 ? $sales_data->fields['T_1'] : 0;
+                                    $t1_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_1 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 1 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $t2_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_2 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 2 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $t3_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_3 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $t4_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_4 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 4 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $t1 = $t1_data->RecordCount() > 0 ? $t1_data->fields['T_1'] : 0;
+                                    $t2 = $t2_data->RecordCount() > 0 ? $t2_data->fields['T_2'] : 0;
+                                    $t3 = $t3_data->RecordCount() > 0 ? $t3_data->fields['T_3'] : 0;
+                                    $t4 = $t4_data->RecordCount() > 0 ? $t4_data->fields['T_4'] : 0;
+                                    $total_t = $t1 + $t2 + $t3 + $t4;
+
+                                    $s1_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_1 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 2 AND ALL_APPOINTMENT_DONE = 0 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $s2_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_2 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 0 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $s3_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_3 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 4 AND ALL_APPOINTMENT_DONE = 0 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $s4_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_4 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 5 AND ALL_APPOINTMENT_DONE = 0 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $s1 = $s1_data->RecordCount() > 0 ? $s1_data->fields['S_1'] : 0;
+                                    $s2 = $s2_data->RecordCount() > 0 ? $s2_data->fields['S_2'] : 0;
+                                    $s3 = $s3_data->RecordCount() > 0 ? $s3_data->fields['S_3'] : 0;
+                                    $s4 = $s4_data->RecordCount() > 0 ? $s4_data->fields['S_4'] : 0;
+                                    $total_s = $s1 + $s2 + $s3 + $s4;
                                     ?>
                                         <th style="width:5%; text-align: center; vertical-align:auto; font-weight: bold" rowspan="3">Week</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T : <?=$private?></th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : <?=$t1?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : <?=$s1?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : <?=$t2?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : <?=$s2?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : <?=$t3?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : <?=$s3?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : <?=$t4?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : <?=$s4?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : <?=$total_t?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : <?=$total_s?></th>
                                     </tr>
                                     <tr>
-                                        <th style="width:18%; text-align: center; vertical-align:auto; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
+                                        <?php
+                                        $units1_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS UNITS_1 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 1 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $units2_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS UNITS_2 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 2 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $units3_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS UNITS_3 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $units4_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS UNITS_4 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 4 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $units1 = $units1_data->RecordCount() > 0 ? $units1_data->fields['UNITS_1'] : 0;
+                                        $units2 = $units2_data->RecordCount() > 0 ? $units2_data->fields['UNITS_2'] : 0;
+                                        $units3 = $units3_data->RecordCount() > 0 ? $units3_data->fields['UNITS_3'] : 0;
+                                        $units4 = $units4_data->RecordCount() > 0 ? $units4_data->fields['UNITS_4'] : 0;
+                                        $total_units = $units1 + $units2 + $units3 + $units4;
+                                        ?>
+                                        <th style="width:18%; text-align: center; vertical-align:auto; font-weight: bold" colspan="2">Units: <?=number_format($units1, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2">Units: <?=number_format($units2, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2">Units: <?=number_format($units3, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2">Units: <?=number_format($units4, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2">Units: <?=number_format($total_units, 2, '.', '')?></th>
                                     </tr>
                                     <tr>
-                                        <th style="width:18%; text-align: center; vertical-align:auto; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
+                                        <?php
+                                        $amount1_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS AMOUNT_1 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 1 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $amount2_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS AMOUNT_2 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 2 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $amount3_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS AMOUNT_3 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $amount4_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS AMOUNT_4 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 4 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $amount1 = $amount1_data->RecordCount() > 0 ? $amount1_data->fields['AMOUNT_1'] : 0;
+                                        $amount2 = $amount2_data->RecordCount() > 0 ? $amount2_data->fields['AMOUNT_2'] : 0;
+                                        $amount3 = $amount3_data->RecordCount() > 0 ? $amount3_data->fields['AMOUNT_3'] : 0;
+                                        $amount4 = $amount4_data->RecordCount() > 0 ? $amount4_data->fields['AMOUNT_4'] : 0;
+                                        $total_amount = $amount1 + $amount2 + $amount3 + $amount4;
+                                        ?>
+                                        <th style="width:18%; text-align: center; vertical-align:auto; font-weight: bold" colspan="2"><?=number_format($amount1, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($amount2, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($amount3, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($amount4, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($total_amount, 2, '.', '')?></th>
                                     </tr>
                                     <tr>
                                         <th style="width:9%; text-align: center;font-weight: bold">Adjust</th>
@@ -248,39 +313,93 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                         <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
                                     </tr>
                                     <tr>
+                                        <?php
+                                        $t1_net_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_1 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 1 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $t2_net_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_2 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 2 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $t3_net_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_3 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $t4_net_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_4 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 4 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $t1_net = $t1_net_data->RecordCount() > 0 ? $t1_net_data->fields['T_1'] : 0;
+                                        $t2_net = $t2_net_data->RecordCount() > 0 ? $t2_net_data->fields['T_2'] : 0;
+                                        $t3_net = $t3_net_data->RecordCount() > 0 ? $t3_net_data->fields['T_3'] : 0;
+                                        $t4_net = $t4_net_data->RecordCount() > 0 ? $t4_net_data->fields['T_4'] : 0;
+                                        $total_t_net = $t1_net + $t2_net + $t3_net + $t4_net;
+
+                                        $s1_net_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_1 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 2 AND ALL_APPOINTMENT_DONE = 0 AND CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $s2_net_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_2 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 0 AND CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $s3_net_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_3 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 4 AND ALL_APPOINTMENT_DONE = 0 AND CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $s4_net_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_4 FROM DOA_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 5 AND ALL_APPOINTMENT_DONE = 0 AND CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $s1_net = $s1_net_data->RecordCount() > 0 ? $s1_net_data->fields['S_1'] : 0;
+                                        $s2_net = $s2_net_data->RecordCount() > 0 ? $s2_net_data->fields['S_2'] : 0;
+                                        $s3_net = $s3_net_data->RecordCount() > 0 ? $s3_net_data->fields['S_3'] : 0;
+                                        $s4_net = $s4_net_data->RecordCount() > 0 ? $s4_net_data->fields['S_4'] : 0;
+                                        $total_s_net = $s1_net + $s2_net + $s3_net + $s4_net;
+                                        ?>
                                         <th style="width:9%; text-align: center; vertical-align:auto; font-weight: bold" rowspan="3">Net<br><br> YTD</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">T : 4</th>
-                                        <th style="width:9%; text-align: center; font-weight: bold">S : 4</th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : <?=$t1_net?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : <?=$s1_net?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : <?=$t2_net?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : <?=$s2_net?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : <?=$t3_net?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : <?=$s3_net?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : <?=$t4_net?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : <?=$s4_net?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">T : <?=$total_t_net?></th>
+                                        <th style="width:9%; text-align: center; font-weight: bold">S : <?=$total_s_net?></th>
                                     </tr>
                                     <tr>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
+                                        <?php
+                                        $units1_net_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS UNITS_1 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 1 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $units2_net_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS UNITS_2 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 2 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $units3_net_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS UNITS_3 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $units4_net_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS UNITS_4 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 4 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $units1_net = $units1_net_data->RecordCount() > 0 ? $units1_net_data->fields['UNITS_1'] : 0;
+                                        $units2_net = $units2_net_data->RecordCount() > 0 ? $units2_net_data->fields['UNITS_2'] : 0;
+                                        $units3_net = $units3_net_data->RecordCount() > 0 ? $units3_net_data->fields['UNITS_3'] : 0;
+                                        $units4_net = $units4_net_data->RecordCount() > 0 ? $units4_net_data->fields['UNITS_4'] : 0;
+                                        $total_net_units = $units1_net + $units2_net + $units3_net + $units4_net;
+                                        ?>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2">Units: <?=number_format($units1_net, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2">Units: <?=number_format($units2_net, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2">Units: <?=number_format($units3_net, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2">Units: <?=number_format($units4_net, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2">Units: <?=number_format($total_net_units, 2, '.', '')?></th>
                                     </tr>
                                     <tr>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
+                                        <?php
+                                        $amount1_net_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS AMOUNT_1 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 1 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $amount2_net_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS AMOUNT_2 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 2 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $amount3_net_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS AMOUNT_3 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $amount4_net_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS AMOUNT_4 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 4 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND DATE_ADD(CURDATE(), INTERVAL (7 - DAYOFWEEK(CURDATE())) DAY)");
+                                        $amount1_net = $amount1_net_data->RecordCount() > 0 ? $amount1_net_data->fields['AMOUNT_1'] : 0;
+                                        $amount2_net = $amount2_net_data->RecordCount() > 0 ? $amount2_net_data->fields['AMOUNT_2'] : 0;
+                                        $amount3_net = $amount3_net_data->RecordCount() > 0 ? $amount3_net_data->fields['AMOUNT_3'] : 0;
+                                        $amount4_net = $amount4_net_data->RecordCount() > 0 ? $amount4_net_data->fields['AMOUNT_4'] : 0;
+                                        $total_net_amount = $amount1_net + $amount2_net + $amount3_net + $amount4_net;
+                                        ?>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($amount1_net, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($amount2_net, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($amount3_net, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($amount4_net, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($total_net_amount, 2, '.', '')?></th>
                                     </tr>
                                     <tr>
+                                        <?php
+                                        $amount1_prev_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS AMOUNT_1 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 1 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($first_day_of_week_previous_year))."' AND '".date('Y-m-d', strtotime($last_day_of_week_previous_year))."'");
+                                        $amount2_prev_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS AMOUNT_2 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 2 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($first_day_of_week_previous_year))."' AND '".date('Y-m-d', strtotime($last_day_of_week_previous_year))."'");
+                                        $amount3_prev_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS AMOUNT_3 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($first_day_of_week_previous_year))."' AND '".date('Y-m-d', strtotime($last_day_of_week_previous_year))."'");
+                                        $amount4_prev_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS AMOUNT_4 FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE CUSTOMER_ENROLLMENT_NUMBER = 4 AND ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($first_day_of_week_previous_year))."' AND '".date('Y-m-d', strtotime($last_day_of_week_previous_year))."'");
+                                        $amount1_prev = $amount1_prev_data->RecordCount() > 0 ? $amount1_prev_data->fields['AMOUNT_1'] : 0;
+                                        $amount2_prev = $amount2_prev_data->RecordCount() > 0 ? $amount2_prev_data->fields['AMOUNT_2'] : 0;
+                                        $amount3_prev = $amount3_prev_data->RecordCount() > 0 ? $amount3_prev_data->fields['AMOUNT_3'] : 0;
+                                        $amount4_prev = $amount4_prev_data->RecordCount() > 0 ? $amount4_prev_data->fields['AMOUNT_4'] : 0;
+                                        $total_prev_amount = $amount1_prev + $amount2_prev + $amount3_prev + $amount4_prev;
+                                        ?>
                                         <th style="width:9%; text-align: center; font-weight: bold">Prev.</th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
-                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($amount1_prev, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($amount2_prev, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($amount3_prev, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($amount4_prev, 2, '.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: bold" colspan="2"><?=number_format($total_prev_amount, 2, '.', '')?></th>
                                     </tr>
                                     </thead>
                                 </table>
