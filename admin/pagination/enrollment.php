@@ -312,7 +312,7 @@ while (!$row->EOF) {
                             <td style="text-align: center;"><?=$payment_type?></td>
                             <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
                             <td style="text-align: right;">
-                                <?php if (($payment_details->fields['IS_PAID'] == 1) && ($p == $payment_counter) && ($payment_details->fields['STATUS'] == 'A')) { ?>
+                                <?php if (($payment_details->fields['IS_PAID'] == 1) && ($payment_details->fields['STATUS'] == 'A')) { ?>
                                     <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['PAID_AMOUNT']?>, 'active', 'Moved', <?=$p?>)">Move</a>
                                     <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['PAID_AMOUNT']?>, 'active', 'Refunded', <?=$p?>)">Refund</a>
                                 <?php } ?>
@@ -471,11 +471,11 @@ while (!$row->EOF) {
 
     function moveToWallet(param, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, ENROLLMENT_LEDGER_PARENT, PK_USER_MASTER, BALANCE, ENROLLMENT_TYPE, TRANSACTION_TYPE, PAYMENT_COUNTER) {
         let cancel_enrollment = $('#cancel_enrollment').val();
-        if (PAYMENT_COUNTER == 1 && cancel_enrollment == 0) {
+        /*if (PAYMENT_COUNTER == 1 && cancel_enrollment == 0) {
             $('.trigger_this').removeClass('trigger_this');
             $(param).addClass('trigger_this');
             $('#confirm_modal').modal('show');
-        } else {
+        }*/
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
@@ -494,6 +494,6 @@ while (!$row->EOF) {
                     window.location.reload();
                 }
             });
-        }
+
     }
 </script>

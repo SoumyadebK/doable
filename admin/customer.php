@@ -357,8 +357,8 @@ if(!empty($_GET['master_id'])) {
                     </select>
                 <?php } ?>
                 </div>
-                <div class="col-md-8 align-self-center" style="width: 60%; overflow-x: auto; white-space: nowrap;">
-                    <ul class="nav nav-tabs" role="tablist" style="width: 1500px">
+                <div class="col-md-8 align-self-center">
+                    <ul class="nav nav-tabs" role="tablist" style="width: 80%">
                         <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                         <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
                         <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
@@ -433,7 +433,7 @@ if(!empty($_GET['master_id'])) {
                                             <?php /*}*/?>
                                         </div>
                                     </div>-->
-                                    <div class="card-body" style="margin-top: 35px;">
+                                    <div class="card-body" style="margin-top: 50px;">
                                         <div class="tab-content tabcontent-border">
                                             <div class="tab-pane active" id="profile" role="tabpanel">
                                                 <form class="form-material form-horizontal" id="profile_form">

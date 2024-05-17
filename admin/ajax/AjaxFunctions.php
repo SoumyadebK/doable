@@ -1984,7 +1984,7 @@ function moveToWallet($RESPONSE_DATA)
             $enrollmentServiceData->MoveNext();
         }
 
-        if ($cancel_enrollment == 1) {
+        /*if ($cancel_enrollment == 1) {
             $CANCEL_ENROLLMENT_UPDATE['STATUS'] = 'C';
 
             $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER' AND TYPE = 'CREATED'");
@@ -1993,7 +1993,7 @@ function moveToWallet($RESPONSE_DATA)
             db_perform_account('DOA_ENROLLMENT_MASTER', $CANCEL_ENROLLMENT_UPDATE, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
             db_perform_account('DOA_ENROLLMENT_SERVICE', $CANCEL_ENROLLMENT_UPDATE, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
             db_perform_account('DOA_ENROLLMENT_LEDGER', $CANCEL_ENROLLMENT_UPDATE, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-        }
+        }*/
     } else {
         $UPDATE_DATA['IS_PAID'] = 1;
         db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
