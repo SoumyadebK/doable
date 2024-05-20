@@ -273,40 +273,23 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     $t1_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_1 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
                                     $t1 = $t1_data->fields['T_1'] > 0 ? $t1_data->fields['T_1'] : 0;
 
-                                    $t2_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_2 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 2 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                    $t1_completed_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_1 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 1 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $t2_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_2 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 1 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $t2 = $t2_data->fields['T_2'] > 0 ? $t2_data->fields['T_2'] : 0;
 
-                                    if ($t1_completed_data->fields['T_1'] > 0) {
-                                        $t2 = $t2_data->fields['T_2']+1;
-                                    } else {
-                                        $t2 = $t2_data->fields['T_2'] > 0 ? $t2_data->fields['T_2'] : 0;
-                                    }
+                                    $t3_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_3 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 2 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $t3 = $t3_data->fields['T_3'] > 0 ? $t3_data->fields['T_3'] : 0;
 
-                                    $t3_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_3 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 3 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                    $t3_completed_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_3 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                    if ($t3_completed_data->fields['T_3'] > 0) {
-                                        $t3 = $t3_completed_data->fields['T_3']+1;
-                                    } else {
-                                        $t3 = $t3_data->fields['T_3'] > 0 ? $t3_data->fields['T_3'] : 0;
-                                    }
-
-                                    $t4_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_4 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 4 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                    $t4_completed_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_4 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 4 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                    if ($t4_completed_data->fields['T_4'] > 0) {
-                                        $t4 = $t4_completed_data->fields['T_4']+1;
-                                    } else {
-                                        $t4 = $t4_data->fields['T_4'] > 0 ? $t4_data->fields['T_4'] : 0;
-                                    }
+                                    $t4_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS T_4 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $t4 = $t4_data->fields['T_4'] > 0 ? $t4_data->fields['T_4'] : 0;
 
                                     $total_t = $t1 + $t2 + $t3 + $t4;
 
-                                    $s1_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_1 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 1 AND ALL_APPOINTMENT_DONE = 0 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                    $s2_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_2 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 0 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                    $s3_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_3 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 4 AND ALL_APPOINTMENT_DONE = 0 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                    $s4_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_4 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 5 AND ALL_APPOINTMENT_DONE = 0 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                    if ($t1_completed_data->fields['T_1'] > 0) {
-                                        $s1 = $s1_data->RecordCount() > 0 ? $s1_data->fields['S_1'] : 0;
-                                    }
+                                    $s1_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_1 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $s2_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_2 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 1 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $s3_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_3 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 2 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                    $s4_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_4 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+
+                                    $s1 = $s1_data->RecordCount() > 0 ? $s1_data->fields['S_1'] : 0;
                                     $s2 = $s2_data->RecordCount() > 0 ? $s2_data->fields['S_2'] : 0;
                                     $s3 = $s3_data->RecordCount() > 0 ? $s3_data->fields['S_3'] : 0;
                                     $s4 = $s4_data->RecordCount() > 0 ? $s4_data->fields['S_4'] : 0;
