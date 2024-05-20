@@ -289,10 +289,10 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     $s3_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_3 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 2 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
                                     $s4_data = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER) AS S_4 FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 3 AND ALL_APPOINTMENT_DONE = 1 AND CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
 
-                                    $s1 = $s1_data->RecordCount() > 0 ? $s1_data->fields['S_1'] : 0;
-                                    $s2 = $s2_data->RecordCount() > 0 ? $s2_data->fields['S_2'] : 0;
-                                    $s3 = $s3_data->RecordCount() > 0 ? $s3_data->fields['S_3'] : 0;
-                                    $s4 = $s4_data->RecordCount() > 0 ? $s4_data->fields['S_4'] : 0;
+                                    $s1 = $s1_data->fields['S_1'] > 0 ? $s1_data->fields['S_1'] : 0;
+                                    $s2 = $s2_data->fields['S_2'] > 0 ? $s2_data->fields['S_2'] : 0;
+                                    $s3 = $s3_data->fields['S_3'] > 0 ? $s3_data->fields['S_3'] : 0;
+                                    $s4 = $s4_data->fields['S_3'] > 0 ? $s4_data->fields['S_4'] : 0;
                                     $total_s = $s1 + $s2 + $s3 + $s4;
                                     ?>
                                         <th style="width:5%; text-align: center; vertical-align:auto; font-weight: bold" rowspan="3">Week</th>
