@@ -82,7 +82,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         $appointment_time
                         $search
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
-                        ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC";
+                        ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC";
 
 $query = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 

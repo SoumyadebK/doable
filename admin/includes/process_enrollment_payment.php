@@ -467,17 +467,9 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         $PAYMENT_DATA['AMOUNT'] = $ledger_data->fields['BILLED_AMOUNT'];
         $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
         $TYPE = 'Payment';
-        if ($_POST['PK_PAYMENT_TYPE'] == 7) {
-            $TYPE = 'Remaining';
-            //$PAYMENT_DATA['REMAINING_AMOUNT'] = $_POST['REMAINING_AMOUNT'];
-            /*$PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER_REMAINING'];
-            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE_REMAINING']));*/
-        } elseif ($_POST['PK_PAYMENT_TYPE'] == 2) {
-            //$PAYMENT_DATA['REMAINING_AMOUNT'] = 0.00;
+        if ($_POST['PK_PAYMENT_TYPE'] == 2) {
             $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE']))];
             $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
-            /*$PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
-            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));*/
         }
         $PAYMENT_DATA['TYPE'] = $TYPE;
         $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
