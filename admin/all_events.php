@@ -1,6 +1,10 @@
 <?php
 require_once('../global/config.php');
 $title = "All Events";
+global $db;
+global $db_account;
+global $master_database;
+global $results_per_page;
 
 $status_check = empty($_GET['status'])?'active':$_GET['status'];
 
@@ -17,8 +21,6 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
-$results_per_page = 100;
-
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
     $search = " AND DOA_EVENT.HEADER LIKE '%".$search_text."%' OR DOA_EVENT.START_DATE LIKE '%".$search_text."%' OR DOA_EVENT.START_TIME LIKE '%".$search_text."%'";
@@ -28,7 +30,7 @@ if (isset($_GET['search_text'])) {
 }
 
 $query = $db_account->Execute("SELECT count(DOA_EVENT.PK_EVENT) AS TOTAL_RECORDS FROM `DOA_EVENT` JOIN DOA_EVENT_LOCATION ON DOA_EVENT.PK_EVENT = DOA_EVENT_LOCATION.PK_EVENT LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE WHERE DOA_EVENT_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_EVENT.PK_ACCOUNT_MASTER =".$_SESSION['PK_ACCOUNT_MASTER'].$search);
-$number_of_result =  $query->fields['TOTAL_RECORDS'];
+$number_of_result =  ($query->RecordCount() > 0) ? $query->fields['TOTAL_RECORDS'] : 1;
 $number_of_page = ceil ($number_of_result / $results_per_page);
 
 if (!isset ($_GET['page']) ) {
