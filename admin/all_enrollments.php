@@ -438,9 +438,9 @@ if (isset($_POST['SUBMIT'])){
                                     </div>
                                 </div>
 
-                                <input type="submit" name="SUBMIT" value="Cancel and Store Info only" class="btn btn-info waves-effect waves-light m-l-10 text-white" style="float: right;"/>
-                                <input type="submit" name="SUBMIT" value="Submit" class="btn btn-info waves-effect waves-light m-l-10 text-white" style="float: right;"/>
-                                <a href="javascript:" class="btn btn-info waves-effect waves-light text-white prev" style="float: right;" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
+                                <input type="submit" name="SUBMIT" value="Cancel and Store Info only" style="float: right; margin-left: 8px; background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;"/>
+                                <input type="submit" name="SUBMIT" value="Submit" style="float: right; margin-left: 8px; background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;"/>
+                                <a href="javascript:" style="float: right; background-color: #39B54A; border-color: #39B54A; padding: 7px 10px; color: white; font-size: 15px; border-radius: 5px;" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
                             </div>
 
                         </div>
