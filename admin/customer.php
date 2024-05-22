@@ -1932,7 +1932,7 @@ if(!empty($_GET['master_id'])) {
     </div>
 
 <!--Confirm Model-->
-<div class="modal fade" id="confirm_modal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="refund_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog" style="max-width: 450px;">
         <div class="modal-content">
             <div class="modal-header">
@@ -1941,14 +1941,24 @@ if(!empty($_GET['master_id'])) {
             <div class="modal-body">
                 <div class="card">
                     <div class="card-body">
-                        <div>
-                            <input type="hidden" id="cancel_enrollment" value="0">
-                            <label>Do you want to cancel this enrollment?</label>
-                            <button type="button" class="btn btn-info waves-effect waves-light m-l-20 text-white" onclick="$('#cancel_enrollment').val(1);$('.trigger_this').trigger('click');">Yes</button>
-                            <button type="button" class="btn btn-danger waves-effect waves-light m-l-10 text-white" onclick="$('#cancel_enrollment').val(2);$('.trigger_this').trigger('click');">No</button>
+                        <div class="form-group">
+                            <label class="form-label">How you want your money back?</label>
+                            <div class="col-md-12">
+                                <select class="form-control" required name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND">
+                                    <option value="">Select</option>
+                                    <?php
+                                    $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
+                                        <?php $row->MoveNext(); } ?>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;" onclick="$('.trigger_this').trigger('click');">Process</button>
             </div>
         </div>
     </div>
