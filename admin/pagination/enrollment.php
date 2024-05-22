@@ -290,13 +290,13 @@ while (!$row->EOF) {
                 <?php
                 $RECEIPT_PDF_LINK = '';
 
-                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.RECEIPT_PDF_LINK, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.IS_PAID != 2 AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.RECEIPT_PDF_LINK, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE (DOA_ENROLLMENT_LEDGER.IS_PAID != 2 || DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Refund') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = DOA_ENROLLMENT_PAYMENT.TYPE AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
                 if ($payment_details->RecordCount() > 0) {
                     $p++;
                     while (!$payment_details->EOF) {
                         $RECEIPT_PDF_LINK = $payment_details->fields['RECEIPT_PDF_LINK'];
                         $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']);
-                        if ($payment_details->fields['TRANSACTION_TYPE'] == 'Moved') {
+                        if ($payment_details->fields['TRANSACTION_TYPE'] == 'Move') {
                             $payment_type = 'Wallet';
                         } elseif ($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
                             $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
@@ -313,10 +313,12 @@ while (!$row->EOF) {
                             <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
                             <td style="text-align: right;">
                                 <?php if (($payment_details->fields['IS_PAID'] == 1) && ($payment_details->fields['STATUS'] == 'A')) { ?>
-                                    <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['PAID_AMOUNT']?>, 'active', 'Moved', <?=$p?>)">Move</a>
-                                    <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['PAID_AMOUNT']?>, 'active', 'Refunded', <?=$p?>)">Refund</a>
-                                <?php } ?>
+                                    <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['PAID_AMOUNT']?>, 'active', 'Move', <?=$p?>)">Move</a>
+                                    <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['PAID_AMOUNT']?>, 'active', 'Refund', <?=$p?>)">Refund</a>
+                                <?php }
+                                    if ($RECEIPT_PDF_LINK != null) { ?>
                                     <a class="btn btn-info waves-effect waves-light text-white" href="../uploads/enrollment_pdf/<?=$RECEIPT_PDF_LINK?>" target="_blank">Receipt</a>
+                                <?php } ?>
                             </td>
                         </tr>
                     <?php $payment_details->MoveNext();
@@ -338,7 +340,7 @@ while (!$row->EOF) {
                         <?php if($cancelled_enrollment->fields['IS_PAID'] == 0) { ?>
                             <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$cancelled_enrollment->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_LEDGER']?>, <?=$cancelled_enrollment->fields['BILLED_AMOUNT']?>, '');">Pay Now</button>
                         <?php } elseif($cancelled_enrollment->fields['IS_PAID'] == 2) { ?>
-                            <button class="btn btn-success waves-effect waves-light m-l-10 text-white" onclick="moveToWallet(this, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_LEDGER']?>, <?=$cancelled_enrollment->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$cancelled_enrollment->fields['BALANCE']?>, 'cancelled', 'Refunded', 0)">Refund</button>
+                            <button class="btn btn-success waves-effect waves-light m-l-10 text-white" onclick="moveToWallet(this, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_LEDGER']?>, <?=$cancelled_enrollment->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$cancelled_enrollment->fields['BALANCE']?>, 'cancelled', 'Refund', 0)">Refund</button>
                         <?php } ?>
                     </td>
                 </tr>
@@ -470,12 +472,12 @@ while (!$row->EOF) {
     });
 
     function moveToWallet(param, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, ENROLLMENT_LEDGER_PARENT, PK_USER_MASTER, BALANCE, ENROLLMENT_TYPE, TRANSACTION_TYPE, PAYMENT_COUNTER) {
-        let cancel_enrollment = $('#cancel_enrollment').val();
-        /*if (PAYMENT_COUNTER == 1 && cancel_enrollment == 0) {
+        let PK_PAYMENT_TYPE = $('#PK_PAYMENT_TYPE_REFUND').val();
+        if (TRANSACTION_TYPE == 'Refund' && PK_PAYMENT_TYPE == 0) {
             $('.trigger_this').removeClass('trigger_this');
             $(param).addClass('trigger_this');
-            $('#confirm_modal').modal('show');
-        }*/
+            $('#refund_modal').modal('show');
+        } else {
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
@@ -488,12 +490,12 @@ while (!$row->EOF) {
                     BALANCE: BALANCE,
                     ENROLLMENT_TYPE: ENROLLMENT_TYPE,
                     TRANSACTION_TYPE: TRANSACTION_TYPE,
-                    cancel_enrollment: cancel_enrollment
+                    PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
                 },
                 success: function (data) {
                     window.location.reload();
                 }
             });
-
+        }
     }
 </script>

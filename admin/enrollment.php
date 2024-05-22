@@ -1140,7 +1140,11 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                             <td><?=$payment_type?></td>
                                                             <td><?=$payment_details->fields['NOTE']?></td>
                                                             <td></td>
-                                                            <td><a href="../uploads/enrollment_pdf/<?=$RECEIPT_PDF_LINK?>" target="_blank">Receipt</a></td>
+                                                            <td>
+                                                                <?php if ($RECEIPT_PDF_LINK != null) { ?>
+                                                                    <a href="../uploads/enrollment_pdf/<?=$RECEIPT_PDF_LINK?>" target="_blank">Receipt</a>
+                                                                <?php } ?>
+                                                            </td>
                                                         </tr>
                                                     <?php }
                                                         $billing_details->MoveNext();
