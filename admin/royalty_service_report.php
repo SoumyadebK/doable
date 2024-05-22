@@ -49,6 +49,31 @@ $PAYMENT_QUERY = "SELECT
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'
                     ORDER BY PAYMENT_DATE ASC";
 
+$REFUND_QUERY = "SELECT
+                        DOA_ENROLLMENT_PAYMENT.AMOUNT,
+                        DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
+                        DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                        DOA_PAYMENT_TYPE.PAYMENT_TYPE,
+                        CONCAT(DOA_USERS.FIRST_NAME, ' ' ,DOA_USERS.LAST_NAME) AS STUDENT_NAME,
+                        CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
+                        CLOSER.LAST_NAME AS CLOSER_LAST_NAME,
+                        DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                        DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER,
+                        DOA_ENROLLMENT_MASTER.PK_LOCATION
+                    FROM
+                        DOA_ENROLLMENT_PAYMENT
+                    LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+                            
+                    LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+                    LEFT JOIN $master_database.DOA_USERS AS CLOSER ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER
+                    
+                    LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                    LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
+                    
+                    WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE != 7 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.")
+                    AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'
+                    ORDER BY PAYMENT_DATE ASC";
+
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
@@ -485,17 +510,86 @@ foreach ($resultsArray as $key => $result) {
                                             <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE+$SUNDRY_TOTAL, 2)?></td>
                                         </tr>
                                         <tr>
+                                            <?php
+                                            $refund_data = $db_account->Execute($REFUND_QUERY);
+                                            $REGULAR_TOTAL = 0;
+                                            $SUNDRY_TOTAL = 0;
+                                            $MISC_TOTAL = 0;
+                                            $TOTAL_RS_FEE = 0;
+                                            $TOTAL_AMOUNT_PAID = 0;
+                                            $LOCATION_TOTAL = [];
+
+                                            $TOTAL_AMOUNT_PAID_DAILY = 0;
+                                            $REGULAR_TOTAL_DAILY = 0;
+                                            $SUNDRY_TOTAL_DAILY = 0;
+                                            $MISC_TOTAL_DAILY = 0;
+
+                                            $total_record = $refund_data->RecordCount();
+                                            $i = 0;
+                                            while (!$refund_data->EOF) {
+                                            $TOTAL_UNIT = 0;
+                                            $REGULAR_AMOUNT = 0;
+                                            $SUNDRY_AMOUNT = 0;
+                                            $MISC_AMOUNT = 0;
+                                            $teacher_data = $db_account->Execute("SELECT GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = ".$refund_data->fields['PK_ENROLLMENT_MASTER']);
+                                            $enrollment_service_data = $db_account->Execute("SELECT SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$refund_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
+                                            $TOTAL_AMOUNT = $enrollment_service_data->fields['TOTAL_AMOUNT'];
+                                            $SERVICE_CLASS = $enrollment_service_data->fields['PK_SERVICE_CLASS'];
+
+                                            $AMOUNT_PAID = $refund_data->fields['AMOUNT'];
+                                            $TOTAL_AMOUNT_PAID += $AMOUNT_PAID;
+                                            $TOTAL_AMOUNT_PAID_DAILY += $AMOUNT_PAID;
+
+                                            if ($SERVICE_CLASS == 5) {
+                                                $MISC_AMOUNT = $AMOUNT_PAID;
+                                            } else {
+                                                $REGULAR_AMOUNT = $AMOUNT_PAID;
+                                            }
+
+                                            $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$refund_data->fields['PK_ENROLLMENT_MASTER']);
+                                            while (!$enrollment_service_code_data->EOF) {
+                                                if ($enrollment_service_code_data->fields['IS_GROUP'] == 0) {
+                                                    $TOTAL_UNIT += $enrollment_service_code_data->fields['NUMBER_OF_SESSION'];
+                                                }
+                                                if ($SERVICE_CLASS == 5 && $enrollment_service_code_data->fields['IS_SUNDRY'] == 1) {
+                                                    $servicePercent = ($enrollment_service_code_data->fields['FINAL_AMOUNT']*100)/$TOTAL_AMOUNT;
+                                                    $serviceAmount = ($AMOUNT_PAID*$servicePercent)/100;
+                                                    $SUNDRY_AMOUNT += $serviceAmount;
+                                                }
+                                                $enrollment_service_code_data->MoveNext();
+                                            }
+
+                                            if ($SUNDRY_AMOUNT > 0) {
+                                                $MISC_AMOUNT = $AMOUNT_PAID - $SUNDRY_AMOUNT;
+                                            }
+
+                                            $REGULAR_TOTAL += $REGULAR_AMOUNT;
+                                            $SUNDRY_TOTAL += $SUNDRY_AMOUNT;
+                                            $MISC_TOTAL += $MISC_AMOUNT;
+
+                                            $REGULAR_TOTAL_DAILY += $REGULAR_AMOUNT;
+                                            $SUNDRY_TOTAL_DAILY += $SUNDRY_AMOUNT;
+                                            $MISC_TOTAL_DAILY += $MISC_AMOUNT;
+
+                                            $TOTAL_RS_FEE += $REGULAR_AMOUNT;
+                                            if (isset($LOCATION_TOTAL[$refund_data->fields['PK_LOCATION']])) {
+                                                $LOCATION_TOTAL[$refund_data->fields['PK_LOCATION']] = $LOCATION_TOTAL[$refund_data->fields['PK_LOCATION']] + $REGULAR_AMOUNT;
+                                            } else {
+                                                $LOCATION_TOTAL[$refund_data->fields['PK_LOCATION']] = $REGULAR_AMOUNT;
+                                            }
+                                            $refund_data->MoveNext();
+                                            $i++; }?>
                                             <td style="width:10%; text-align: center; font-weight: bold">Total refunds/credits</td>
-                                            <td style="width:10%; text-align: center;"></td>
-                                            <td style="width:10%; text-align: center;"></td>
-                                            <td style="width:10%; text-align: center;"></td>
-                                            <td style="width:10%; text-align: center;"></td>
-                                            <td style="width:5%; text-align: center;">=</td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($REGULAR_TOTAL, 2)?></td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($SUNDRY_TOTAL, 2)?></td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($MISC_TOTAL, 2)?></td>
                                             <td style="width:10%; text-align: center;">$0.00</td>
+                                            <td style="width:5%; text-align: center;">=</td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE, 2)?></td>
                                             <td style="width:5%; text-align: center;">+</td>
-                                            <td style="width:10%; text-align: center;">$0.00</td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($SUNDRY_TOTAL, 2)?></td>
                                             <td style="width:5%; text-align: center;">=</td>
-                                            <td style="width:10%; text-align: center;">$0.00</td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE+$SUNDRY_TOTAL, 2)?></td>
                                         </tr>
                                         <tr>
                                             <td style="width:10%; text-align: center; font-weight: bold" colspan="6">Total subject to r/s fee
