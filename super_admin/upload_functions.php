@@ -68,7 +68,7 @@ function getAllEnrollmentPayments() {
     return $db1->Execute("SELECT * FROM payments");
 }
 
-function getAllEvents() {
+function getAllGeneralAppt() {
     global $db1;
     return $db1->Execute("SELECT * FROM general_appt");
 }
@@ -87,7 +87,7 @@ function getRole($role_id){
     if ($role_id > 0) {
         global $db1;
         $role = $db1->Execute("SELECT name FROM roles WHERE id = '$role_id'");
-        if ($role->fields['name'] == "Supervisor" || $role->fields['name'] == "Counselor") {
+        if ( $role->fields['name'] == "Counselor") {
             return "Account User";
         } elseif ($role->fields['name'] == "Instructor") {
             return "Service Provider";
@@ -167,9 +167,10 @@ function getBookingCode($booking_code) {
     }
 }
 
-function getEnrollmentType($enrollmentTypeId) {
-    global $db1;
-    $enrollmentTypeData = $db1->Execute("SELECT enrollment_type, code FROM enrollment_type WHERE enrollment_type_id = '$enrollmentTypeId'");
+function getEnrollmentType($enrollmentTypeId): array
+{
+    global $db;
+    $enrollmentTypeData = $db->Execute("SELECT enrollment_type, code FROM enrollment_type WHERE enrollment_type_id = '$enrollmentTypeId'");
     return [$enrollmentTypeData->fields['enrollment_type'], $enrollmentTypeData->fields['code']];
 }
 
