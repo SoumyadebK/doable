@@ -720,7 +720,7 @@ if(!empty($_POST))
                     $PK_SPECIAL_APPOINTMENT = $table_data->fields['PK_SPECIAL_APPOINTMENT'];
                 }
 
-                $user_id = $table_data->fields['user_id'];
+                $user_id = $allSpecialAppointment->fields['user_id'];
                 $doableUserId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND USER_ID = '$user_id'");
                 $SPECIAL_APPOINTMENT_USER['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
                 $SPECIAL_APPOINTMENT_USER['PK_USER'] = $doableUserId->fields['PK_USER'];
