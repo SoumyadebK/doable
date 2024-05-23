@@ -202,6 +202,7 @@ if(empty($_GET['id'])){
                                             <a href="javascript:;" class="tag_name" data-tag="{STUDIO_REPRESENTATIVE}" style="font-weight: normal;">{STUDIO_REPRESENTATIVE}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{CO_CLIENT_GUARDIAN}" style="font-weight: normal;">{CO_CLIENT_GUARDIAN}</a>
                                             <a href="javascript:;" class="tag_name" data-tag="{VERIFIED_BY}" style="font-weight: normal;">{VERIFIED_BY}</a>
+                                            <a href="javascript:;" class="tag_name" data-tag="{EXPIRATION_DATE}" style="font-weight: normal;">{EXPIRATION_DATE}</a>
                                         </div>
                                     </div>
                                 </div>

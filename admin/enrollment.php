@@ -69,6 +69,7 @@ if(!empty($_GET['master_id_customer'])) {
     }
 }
 
+$days = '';
 if(!empty($_GET['id'])) {
     $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
     if($res->RecordCount() == 0){
@@ -80,6 +81,7 @@ if(!empty($_GET['id'])) {
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $PK_PACKAGE = $res->fields['PK_PACKAGE'];
     $CHARGE_BY_SESSIONS = $res->fields['CHARGE_BY_SESSIONS'];
+    $EXPIRATION_DATE = new DateTime($res->fields['EXPIRATION_DATE']);
     $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
     $PK_DOCUMENT_LIBRARY = $res->fields['PK_DOCUMENT_LIBRARY'];
     $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
@@ -87,6 +89,9 @@ if(!empty($_GET['id'])) {
     $ENROLLMENT_BY_PERCENTAGE = $res->fields['ENROLLMENT_BY_PERCENTAGE'];
     $MEMO = $res->fields['MEMO'];
     $ACTIVE = $res->fields['ACTIVE'];
+    $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
+    $interval = $EXPIRATION_DATE->diff($CREATED_ON);
+    $days = $interval->days;
 
     $billing_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
     if($billing_data->RecordCount() > 0){
@@ -443,7 +448,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                             </div>
 
                                             <div class="row">
-                                                <div class="col-3">
+                                                <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Packages</label>
                                                         <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
@@ -459,10 +464,23 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 <?php
                                                 $payment_gateway_type = $db->Execute("SELECT PAYMENT_GATEWAY_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
                                                 if ($payment_gateway_type->RecordCount() > 0) { ?>
-                                                <div class="col-3">
+                                                <div class="col-4">
                                                     <label class="col-md-12 "><input type="checkbox" id="CHARGE_BY_SESSIONS" name="CHARGE_BY_SESSIONS" class="form-check-inline" value="1" <?=($CHARGE_BY_SESSIONS == 1)?'checked':''?> style="margin-top: 30px; margin-left: 35%" onchange="chargeBySessions(this);"> Charge by sessions</label>
                                                 </div>
                                                 <?php } ?>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Expiration Date</label>
+                                                        <select class="form-control" name="EXPIRATION_DATE" id="EXPIRATION_DATE">
+                                                        <option value="">Select Expiration Date</option>
+                                                        <option value="30" <?=($days == 30)?'selected':''?>>30 days</option>
+                                                        <option value="60" <?=($days == 60)?'selected':''?>>60 days</option>
+                                                        <option value="90" <?=($days == 90)?'selected':''?>>90 days</option>
+                                                        <option value="180" <?=($days == 180)?'selected':''?>>180 days</option>
+                                                        <option value="365" <?=($days == 365)?'selected':''?>>365 days</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <div class="card-body">
