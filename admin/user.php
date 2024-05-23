@@ -45,6 +45,7 @@ $ACTIVE = '';
 $INACTIVE_BY_ADMIN = '';
 $CAN_EDIT_ENROLLMENT = '';
 $TICKET_SYSTEM_ACCESS = '';
+$APPEAR_IN_CALENDAR = 0;
 
 //for service provider
 $IS_COUNSELLOR = '';
@@ -110,6 +111,7 @@ if(!empty($_GET['id'])) {
     $INACTIVE_BY_ADMIN = $res->fields['INACTIVE_BY_ADMIN'];
     $CAN_EDIT_ENROLLMENT = $res->fields['CAN_EDIT_ENROLLMENT'];
     $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
+    $APPEAR_IN_CALENDAR = $res->fields['APPEAR_IN_CALENDAR'];
     $TICKET_SYSTEM_ACCESS = $res->fields['TICKET_SYSTEM_ACCESS'];
 
     $service_data = $db_account->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_SERVICES` WHERE PK_USER = '$PK_USER'");
@@ -321,8 +323,11 @@ if(!empty($_GET['id'])) {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-4">
+                                                                <div class="col-2">
                                                                     <label class="col-md-12"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?=($CREATE_LOGIN == 1)?'checked':''?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label class="col-md-12"><input type="checkbox" id="APPEAR_IN_CALENDAR" name="APPEAR_IN_CALENDAR" class="form-check-inline" <?=($APPEAR_IN_CALENDAR == 1)?'checked':''?> style="margin-top: 30px;"> Appear In Calendar</label>
                                                                 </div>
                                                                 <div id="display_order" class="col-2">
                                                                     <div class="form-group">

@@ -21,9 +21,8 @@ $service_provider_data = $db->Execute("SELECT DISTINCT
                                                 ) AS NAME
                                             FROM
                                                 DOA_USERS
-                                            INNER JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER
                                             INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER
-                                            WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN( ".$DEFAULT_LOCATION_ID." ) 
+                                            WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN( ".$DEFAULT_LOCATION_ID." ) 
                                             ".$SERVICE_PROVIDER_ID." AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']. "
                                             ORDER BY DISPLAY_ORDER");
 $resourceIdArray = [];

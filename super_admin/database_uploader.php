@@ -105,6 +105,7 @@ if(!empty($_POST))
                 $USER_DATA['ZIP'] = $allUsers->fields['zip'];
                 $USER_DATA['NOTES'] = $allUsers->fields['remarks'];
                 $USER_DATA['ACTIVE'] = $allUsers->fields['is_active'];
+                $USER_DATA['APPEAR_IN_CALENDAR'] = $allUsers->fields['appear_in_calendar'];
                 $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
                 db_perform('DOA_USERS', $USER_DATA, 'insert');
@@ -667,71 +668,65 @@ if(!empty($_POST))
             }
             break;
 
-        case "DOA_EVENT":
-            $allEvents = getAllEvents();
-            $event_type_data = $db_account->Execute("SELECT PK_EVENT_TYPE FROM DOA_EVENT_TYPE WHERE EVENT_TYPE = 'General' AND PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
-            if ($event_type_data->RecordCount() == 0) {
-                $EVENT_TYPE_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-                $EVENT_TYPE_DATA['EVENT_TYPE'] = 'General';
-                $EVENT_TYPE_DATA['COLOR_CODE'] = '#0080ff';
-                $EVENT_TYPE_DATA['ACTIVE'] = 1;
-                $EVENT_TYPE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-                $EVENT_TYPE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-                db_perform_account('DOA_EVENT_TYPE', $EVENT_TYPE_DATA, 'insert');
-                $PK_EVENT_TYPE = $db_account->insert_ID();
-            } else {
-                $PK_EVENT_TYPE = $event_type_data->fields['PK_EVENT_TYPE'];
-            }
+        case "DOA_SPECIAL_APPOINTMENT":
+            $allSpecialAppointment = getAllGeneralAppt();
 
-            while (!$allEvents->EOF) {
-                $header = $allEvents->fields['appt_name'];
-                $start_date = $allEvents->fields['appt_date'];
-                $start_time = $allEvents->fields['appt_time'];
-                $table_data = $db_account->Execute("SELECT PK_EVENT FROM DOA_EVENT WHERE HEADER = '$header' AND START_DATE = '$start_date' AND START_TIME = '$start_time'");
+            while (!$allSpecialAppointment->EOF) {
+                $header = $allSpecialAppointment->fields['appt_name'];
+                $start_date = $allSpecialAppointment->fields['appt_date'];
+                $start_time = $allSpecialAppointment->fields['appt_time'];
+                $table_data = $db_account->Execute("SELECT PK_SPECIAL_APPOINTMENT FROM DOA_SPECIAL_APPOINTMENT WHERE TITLE = '$header' AND DATE = '$start_date' AND START_TIME = '$start_time'");
                 if ($table_data->RecordCount() == 0) {
-                    $INSERT_DATA['HEADER'] = $header;
-                    if ($allEvents->fields['appt_type'] == "G") {
-                        $INSERT_DATA['PK_EVENT_TYPE'] = $PK_EVENT_TYPE;
-                    } else {
-                        $INSERT_DATA['PK_EVENT_TYPE'] = 0;
-                    }
-                    $INSERT_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-                    $INSERT_DATA['START_DATE'] = $start_date;
+                    $INSERT_DATA['TITLE'] = $header;
+                    $INSERT_DATA['DATE'] = $start_date;
                     $INSERT_DATA['START_TIME'] =$start_time;
-                    $duration = $allEvents->fields['duration'];
+                    $duration = $allSpecialAppointment->fields['duration'];
                     $endDateTime = strtotime($start_date . ' ' . $start_time) + ($duration * 60);
                     $convertedDate = date('Y-m-d', $endDateTime);
                     $convertedTime = date('H:i:s', $endDateTime);
-                    $INSERT_DATA['END_DATE'] = $convertedDate;
                     $INSERT_DATA['END_TIME'] = $convertedTime;
-                    $INSERT_DATA['DESCRIPTION'] = $allEvents->fields['appts_comment'];
-                    $INSERT_DATA['SHARE_WITH_CUSTOMERS'] = 0;
-                    $INSERT_DATA['SHARE_WITH_SERVICE_PROVIDERS'] = 0;
-                    $INSERT_DATA['SHARE_WITH_EMPLOYEES'] = 1;
-                    if ($allEvents->fields['appt_status'] == "A") {
+                    $INSERT_DATA['DESCRIPTION'] = $allSpecialAppointment->fields['appts_comment'];
+
+                    $booking_code = $allSpecialAppointment->fields['booking_code'];
+                    $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code'");
+                    if ($getServiceCodeId->RecordCount() > 0) {
+                        $PK_SCHEDULING_CODE = $getServiceCodeId->fields['PK_SCHEDULING_CODE'];
+                    } else {
+                        $PK_SCHEDULING_CODE = 0;
+                    }
+                    $INSERT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
+
+                    if ($start_date > date('Y-m-d')) {
+                        $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+                    } else {
+                        $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 2;
+                    }
+
+                    if ($allSpecialAppointment->fields['appt_status'] == "A") {
                         $INSERT_DATA['ACTIVE'] = 1;
                     } else {
                         $INSERT_DATA['ACTIVE'] = 0;
                     }
-                    $created_by = explode(" ", $allEvents->fields['created_by']);
+
+                    $created_by = explode(" ", $allSpecialAppointment->fields['created_by']);
                     $firstName = ($created_by[0]) ?: '';
                     $lastName = ($created_by[1]) ?: '';
-                    $doableNameId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE FIRST_NAME='$firstName' AND LAST_NAME = '$lastName'");
+                    $doableNameId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND FIRST_NAME='$firstName' AND LAST_NAME = '$lastName'");
                     $INSERT_DATA['CREATED_BY'] = $doableNameId->fields['PK_USER'];
                     $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                    db_perform_account('DOA_EVENT', $INSERT_DATA, 'insert');
-                    $PK_EVENT = $db_account->insert_ID();
+                    db_perform_account('DOA_SPECIAL_APPOINTMENT', $INSERT_DATA, 'insert');
+                    $PK_SPECIAL_APPOINTMENT = $db_account->insert_ID();
                 } else {
-                    $PK_EVENT = $table_data->fields['PK_EVENT'];
+                    $PK_SPECIAL_APPOINTMENT = $table_data->fields['PK_SPECIAL_APPOINTMENT'];
                 }
 
-                $event_location_data = $db_account->Execute("SELECT PK_EVENT_LOCATION FROM DOA_EVENT_LOCATION WHERE PK_EVENT = '$PK_EVENT' AND PK_LOCATION = '$PK_LOCATION'");
-                if ($event_location_data->RecordCount() == 0) {
-                    $EVENT_LOCATION_DATA['PK_EVENT'] = $PK_EVENT;
-                    $EVENT_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
-                    db_perform_account('DOA_EVENT_LOCATION', $EVENT_LOCATION_DATA, 'insert');
-                }
-                $allEvents->Movenext();
+                $user_id = $table_data->fields['user_id'];
+                $doableUserId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND USER_ID = '$user_id'");
+                $SPECIAL_APPOINTMENT_USER['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
+                $SPECIAL_APPOINTMENT_USER['PK_USER'] = $doableUserId->fields['PK_USER'];
+                db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
+
+                $allSpecialAppointment->Movenext();
             }
             break;
 
@@ -1055,7 +1050,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                                 <option value="DOA_ENROLLMENT_MASTER">DOA_ENROLLMENT_MASTER</option>
                                 <option value="DOA_ENROLLMENT_SERVICE">DOA_ENROLLMENT_SERVICE</option>
                                 <option value="DOA_ENROLLMENT_PAYMENT">DOA_ENROLLMENT_PAYMENT</option>
-                                <option value="DOA_EVENT">DOA_EVENT</option>
+                                <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
                                 <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
                             </select>
                             <div id="view_download_div" class="m-10"></div>
