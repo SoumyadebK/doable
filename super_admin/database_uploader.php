@@ -322,7 +322,7 @@ if(!empty($_POST))
                 $table_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$service_name' AND PK_ACCOUNT_MASTER='$PK_ACCOUNT_MASTER'");
                 if ($table_data->RecordCount() == 0) {
                     $SERVICE['SERVICE_NAME'] = $allServices->fields['service_name'];
-                    if (strpos($SERVICE['SERVICE_NAME'], 'Miscellaneous')) {
+                    if (strpos($SERVICE['SERVICE_NAME'], 'Miscellaneous') !== false) {
                         $SERVICE['PK_SERVICE_CLASS'] = 5;
                     } else {
                         $SERVICE['PK_SERVICE_CLASS'] = 2;
@@ -587,7 +587,7 @@ if(!empty($_POST))
                         $SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
                         $SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
 
-                        if (strpos($service_code, 'PRI')) {
+                        if (strpos($service_code, 'PRI')  !== false) {
                             $SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $TOTAL_AMOUNT / $quantity : 0;
                             $SERVICE_DATA['TOTAL'] = $ACTUAL_AMOUNT;
                             $SERVICE_DATA['DISCOUNT'] = $DISCOUNT;
