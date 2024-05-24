@@ -52,7 +52,7 @@ $AMOUNT = '';
 $NAME = '';
 $CARD_NUMBER = '';
 $SECURITY_CODE = '';
-$EXPIRATION_DATE = '';
+$EXPIRY_DATE = '';
 $CHECK_NUMBER = '';
 $CHECK_DATE = '';
 $NOTE = '';
@@ -81,7 +81,7 @@ if(!empty($_GET['id'])) {
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $PK_PACKAGE = $res->fields['PK_PACKAGE'];
     $CHARGE_BY_SESSIONS = $res->fields['CHARGE_BY_SESSIONS'];
-    $EXPIRATION_DATE = new DateTime($res->fields['EXPIRATION_DATE']);
+    $EXPIRY_DATE = new DateTime($res->fields['EXPIRY_DATE']);
     $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
     $PK_DOCUMENT_LIBRARY = $res->fields['PK_DOCUMENT_LIBRARY'];
     $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
@@ -90,7 +90,7 @@ if(!empty($_GET['id'])) {
     $MEMO = $res->fields['MEMO'];
     $ACTIVE = $res->fields['ACTIVE'];
     $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
-    $interval = $EXPIRATION_DATE->diff($CREATED_ON);
+    $interval = $EXPIRY_DATE->diff($CREATED_ON);
     $days = $interval->days;
 
     $billing_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
@@ -471,7 +471,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Expiration Date</label>
-                                                        <select class="form-control" name="EXPIRATION_DATE" id="EXPIRATION_DATE">
+                                                        <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
                                                         <option value="">Select Expiration Date</option>
                                                         <option value="30" <?=($days == 30)?'selected':''?>>30 days</option>
                                                         <option value="60" <?=($days == 60)?'selected':''?>>60 days</option>
