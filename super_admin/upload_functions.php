@@ -63,6 +63,21 @@ function getAllEnrollmentServices() {
     return $db1->Execute("SELECT * FROM enrollment_services");
 }
 
+function getAllEnrollmentServicesById($enrollment_id) {
+    global $db1;
+    return $db1->Execute("SELECT * FROM enrollment_services WHERE enrollment_id = '$enrollment_id'");
+}
+
+function getAllEnrollmentChargesById($enrollment_id) {
+    global $db1;
+    return $db1->Execute("SELECT * FROM `charges` WHERE `enroll_id` = '$enrollment_id'");
+}
+
+function getAllEnrollmentPaymentByChargeId($charge_id) {
+    global $db1;
+    return $db1->Execute("SELECT * FROM `payments` WHERE charge_id = '$charge_id'");
+}
+
 function getAllEnrollmentPayments() {
     global $db1;
     return $db1->Execute("SELECT * FROM payments");
