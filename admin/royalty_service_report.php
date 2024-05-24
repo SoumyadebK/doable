@@ -561,9 +561,9 @@ foreach ($resultsArray as $key => $result) {
                                                         $location_name = $db->Execute("SELECT LOCATION_NAME, ROYALTY_PERCENTAGE FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$key);
                                                         echo $location_name->fields['LOCATION_NAME']." - "."<br>";
                                                         $royalty_percent .= "X ".$location_name->fields['ROYALTY_PERCENTAGE']." %"."<br>";
-                                                        $location_total .= "$".number_format($value, 2)."<br>";
+                                                        $location_total .= "$".number_format($value - $TOTAL_AMOUNT_REFUND, 2)."<br>";
                                                         $royalty_percent_array[$key]['ROYALTY_PERCENTAGE'] = $location_name->fields['ROYALTY_PERCENTAGE'];
-                                                        $royalty_percent_array[$key]['LOCATION_TOTAL'] = $value;
+                                                        $royalty_percent_array[$key]['LOCATION_TOTAL'] = $value - $TOTAL_AMOUNT_REFUND;
                                                     }
                                                     ?>
                                                 </span>
