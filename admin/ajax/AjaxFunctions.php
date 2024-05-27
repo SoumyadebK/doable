@@ -336,7 +336,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);
     $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
     $html_template = str_replace('{BILLING_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['BILLING_DATE'])), $html_template);
-    $html_template = str_replace('{EXPIRY_DATE}', date('m-d-Y', strtotime($enrollment_service_data->fields['EXPIRY_DATE'])), $html_template);
+    $html_template = str_replace('{EXPIRATION_DATE}', date('m-d-Y', strtotime($enrollment_service_data->fields['EXPIRY_DATE'])), $html_template);
 
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
         for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
