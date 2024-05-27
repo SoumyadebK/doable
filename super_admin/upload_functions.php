@@ -184,8 +184,8 @@ function getBookingCode($booking_code) {
 
 function getEnrollmentType($enrollmentTypeId): array
 {
-    global $db;
-    $enrollmentTypeData = $db->Execute("SELECT enrollment_type, code FROM enrollment_type WHERE enrollment_type_id = '$enrollmentTypeId'");
+    global $db1;
+    $enrollmentTypeData = $db1->Execute("SELECT enrollment_type, code FROM enrollment_type WHERE enrollment_type_id = '$enrollmentTypeId'");
     return [$enrollmentTypeData->fields['enrollment_type'], $enrollmentTypeData->fields['code']];
 }
 

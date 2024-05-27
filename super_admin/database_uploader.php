@@ -322,7 +322,7 @@ if(!empty($_POST))
                 $table_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$service_name' AND PK_ACCOUNT_MASTER='$PK_ACCOUNT_MASTER'");
                 if ($table_data->RecordCount() == 0) {
                     $SERVICE['SERVICE_NAME'] = $allServices->fields['service_name'];
-                    if (strpos($SERVICE['SERVICE_NAME'], 'Miscellaneous')) {
+                    if (strpos($SERVICE['SERVICE_NAME'], 'Miscellaneous') !== false) {
                         $SERVICE['PK_SERVICE_CLASS'] = 5;
                     } else {
                         $SERVICE['PK_SERVICE_CLASS'] = 2;
@@ -434,7 +434,7 @@ if(!empty($_POST))
                 $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_id;
                 $ENROLLMENT_DATA['ENROLLMENT_NAME'] = $allEnrollments->fields['enrollmentname'];
 
-                $enrollment_type_data = $db_account->Execute("SELECT PK_ENROLLMENT_TYPE FROM `DOA_ENROLLMENT_TYPE` WHERE ENROLLMENT_TYPE = '$enrollment_type'");
+                $enrollment_type_data = $db->Execute("SELECT PK_ENROLLMENT_TYPE FROM `DOA_ENROLLMENT_TYPE` WHERE ENROLLMENT_TYPE = '$enrollment_type'");
                 if ($enrollment_type_data->RecordCount() > 0) {
                     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = $enrollment_type_data->fields['PK_ENROLLMENT_TYPE'];
                 } else {
@@ -587,7 +587,7 @@ if(!empty($_POST))
                         $SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
                         $SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
 
-                        if (strpos($service_code, 'PRI')) {
+                        if (strpos($service_code, 'PRI')  !== false) {
                             $SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $TOTAL_AMOUNT / $quantity : 0;
                             $SERVICE_DATA['TOTAL'] = $ACTUAL_AMOUNT;
                             $SERVICE_DATA['DISCOUNT'] = $DISCOUNT;
@@ -619,9 +619,9 @@ if(!empty($_POST))
                     $BILLING_LEDGER_DATA['BILLED_AMOUNT'] = $BILLED_AMOUNT;
                     $BILLING_LEDGER_DATA['PAID_AMOUNT'] = 0;
                     $BILLING_LEDGER_DATA['BALANCE'] = $BALANCE;
-                    $BILLING_LEDGER_DATA['IS_PAID'] = $allEnrollmentCharges->fields['amount_due'] == 'Paid';
+                    $BILLING_LEDGER_DATA['IS_PAID'] = $allEnrollmentCharges->fields['status'] == 'Paid';
                     $BILLING_LEDGER_DATA['STATUS'] = 'A';
-                    $BILLING_LEDGER_DATA['IS_DOWN_PAYMENT'] = $allEnrollmentCharges->fields['title'] == 'down payment';
+                    $BILLING_LEDGER_DATA['IS_DOWN_PAYMENT'] = (strpos($allEnrollmentCharges->fields['title'], 'down payment')  !== false) ? 1 : 0;
                     db_perform_account('DOA_ENROLLMENT_LEDGER', $BILLING_LEDGER_DATA, 'insert');
                     $ENROLLMENT_LEDGER_PARENT = $db_account->insert_ID();
 
@@ -1095,8 +1095,8 @@ if(!empty($_POST))
 function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT_SERVICE, $PK_USER_MASTER, $PK_SERVICE_MASTER) {
     global $db;
     global $db_account;
-    $SESSION_CREATED = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER." AND PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
-    if ($SESSION_CREATED->RecordCount() > 0 && $SESSION_CREATED->fields['SESSION_COUNT'] >= $SESSION_COUNT) {
+    $SESSION_CREATED = $db_account->Execute("SELECT SESSION_CREATED FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
+    if ($SESSION_CREATED->RecordCount() > 0 && $SESSION_CREATED->fields['SESSION_CREATED'] >= $SESSION_COUNT) {
         $db_account->Execute("UPDATE `DOA_ENROLLMENT_MASTER` SET `ALL_APPOINTMENT_DONE` = '1' WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
         $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ORDER BY DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE ASC LIMIT 1");
         $PK_ENROLLMENT_MASTER_NEW = ($enrollment_data->RecordCount() > 0) ? $enrollment_data->fields['PK_ENROLLMENT_MASTER'] : 0;
