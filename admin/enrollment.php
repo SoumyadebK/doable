@@ -473,11 +473,11 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         <label class="form-label">Expiration Date</label>
                                                         <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
                                                         <option value="">Select Expiration Date</option>
-                                                        <option value="30" <?=($days == 30)?'selected':''?>>30 days</option>
-                                                        <option value="60" <?=($days == 60)?'selected':''?>>60 days</option>
-                                                        <option value="90" <?=($days == 90)?'selected':''?>>90 days</option>
-                                                        <option value="180" <?=($days == 180)?'selected':''?>>180 days</option>
-                                                        <option value="365" <?=($days == 365)?'selected':''?>>365 days</option>
+                                                        <option value="1" <?=($days == 30)?'selected':''?>>30 days</option>
+                                                        <option value="2" <?=($days == 60)?'selected':''?>>60 days</option>
+                                                        <option value="3" <?=($days == 90)?'selected':''?>>90 days</option>
+                                                        <option value="6" <?=($days == 180)?'selected':''?>>180 days</option>
+                                                        <option value="12" <?=($days == 365)?'selected':''?>>365 days</option>
                                                         </select>
                                                     </div>
                                                 </div>
