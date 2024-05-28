@@ -160,12 +160,28 @@ if ($type === 'export') {
         $payment_data->MoveNext();
     }
 
+    $refunds = [];
+    $refund_data = $db_account->Execute($REFUND_QUERY);
+    while (!$refund_data->EOF) {
+        $AMOUNT_REFUND = $refund_data->fields['AMOUNT'];
+
+        $refunds[] = array(
+            "refund_type" => 'regular',
+            "date_reported" => date('Y-m-d', strtotime($refund_data->fields['PAYMENT_DATE'])),
+            "date_refunded" => date('Y-m-d', strtotime($refund_data->fields['PAYMENT_DATE'])),
+            "student_name" => $refund_data->fields['STUDENT_NAME'],
+            "amount" => $AMOUNT_REFUND,
+        );
+        $refund_data->MoveNext();
+    }
+
     $data = [
         'type' => 'royalty',
         'prepared_by' => $user_data->fields['FIRST_NAME'].' '.$user_data->fields['LAST_NAME'],
         'week_number' => $week_number,
         'week_year' => $YEAR,
-        'line_items' => $line_item
+        'line_items' => $line_item,
+        'refunds' => $refunds
     ];
 
     $url = constant('ami_api_url').'/api/v1/reports';
@@ -488,7 +504,7 @@ foreach ($resultsArray as $key => $result) {
                                         $TOTAL_AMOUNT_REFUND = 0;
                                         $refund_data = $db_account->Execute($REFUND_QUERY);
                                         while (!$refund_data->EOF) {
-                                            $REFUND_TOTAL_UNIT = 0;
+                                            $REFUND_TOTAL_UNIT = 1;
                                             $teacher_data = $db_account->Execute("SELECT GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = ".$refund_data->fields['PK_ENROLLMENT_MASTER']);
                                             $enrollment_service_data = $db_account->Execute("SELECT SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$refund_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
                                             $REFUND_TOTAL_AMOUNT = $enrollment_service_data->fields['TOTAL_AMOUNT'];
@@ -496,12 +512,12 @@ foreach ($resultsArray as $key => $result) {
                                             $AMOUNT_REFUND = $refund_data->fields['AMOUNT'];
                                             $TOTAL_AMOUNT_REFUND += $AMOUNT_REFUND; ?>
                                             <tr style="text-align: center;">
-                                                <td><?=$payment_data->fields['RECEIPT_NUMBER']?></td>
-                                                <td><?=date('m/d/Y', strtotime($payment_data->fields['PAYMENT_DATE']))?></td>
-                                                <td colspan="2"><?=$payment_data->fields['STUDENT_NAME']?></td>
-                                                <td><?=$payment_data->fields['CLOSER_FIRST_NAME']." ".$payment_data->fields['CLOSER_LAST_NAME']?></td>
+                                                <td><?=$refund_data->fields['RECEIPT_NUMBER']?></td>
+                                                <td><?=date('m/d/Y', strtotime($refund_data->fields['PAYMENT_DATE']))?></td>
+                                                <td colspan="2"><?=$refund_data->fields['STUDENT_NAME']?></td>
+                                                <td><?=$refund_data->fields['CLOSER_FIRST_NAME']." ".$refund_data->fields['CLOSER_LAST_NAME']?></td>
                                                 <td><?=$teacher_data->fields['TEACHER_NAME']?></td>
-                                                <td><?=$payment_data->fields['PAYMENT_TYPE']?></td>
+                                                <td><?=$refund_data->fields['PAYMENT_TYPE']?></td>
                                                 <td><?=$REFUND_TOTAL_UNIT.' / $'.$REFUND_TOTAL_AMOUNT?></td>
                                                 <td colspan="3"><?='-$'.number_format($AMOUNT_REFUND, 2)?></td>
                                             </tr>

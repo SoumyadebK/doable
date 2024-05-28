@@ -300,7 +300,7 @@ while (!$row->EOF) {
                             $payment_type = 'Wallet';
                         } elseif ($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
                             $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
-                            $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".$payment_info->CHECK_NUMBER;
+                            $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
                         }else{
                             $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                         } ?>
