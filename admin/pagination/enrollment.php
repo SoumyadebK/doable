@@ -279,7 +279,7 @@ while (!$row->EOF) {
                     <td style="text-align: right;"><?=$billing_details->fields['BILLED_AMOUNT']?></td>
                     <td></td>
                     <td style="text-align: center;"></td>
-                    <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
+                    <td style="text-align: right;"><?php /*=number_format((float)$balance, 2, '.', '')*/?></td>
                     <td style="text-align: right;">
                         <?php if($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS']=='A') { ?>
                             <label><input type="checkbox" name="PK_ENROLLMENT_LEDGER[]" class="pay_now_check PK_ENROLLMENT_LEDGER PAYMENT_CHECKBOX_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" data-billed_amount="<?=$billing_details->fields['BILLED_AMOUNT']?>" value="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>"></label>
