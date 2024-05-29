@@ -24,6 +24,7 @@ $STATE_NAME = $user_data->fields['STATE_NAME'];
 $ZIP = $user_data->fields['ZIP'];
 $PHONE = $user_data->fields['PHONE'];
 $BILLING_REF = $enrollment_billing_data->fields['BILLING_REF'];
+$RECEIPT_NUMBER = $enrollment_ledger_data->fields['RECEIPT_NUMBER'];
 $PAYMENT_METHOD = $enrollment_payment_type->fields['PAYMENT_TYPE'];
 $DETAILS = '$' . number_format($BALANCE, 2);
 $AMOUNT = '$' . number_format($BALANCE, 2);
