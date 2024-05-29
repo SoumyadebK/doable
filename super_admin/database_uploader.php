@@ -666,24 +666,19 @@ if(!empty($_POST))
 
                                 if ($enrollment_payment->fields['record_type'] === 'Payment') {
                                     $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] + $serviceAmount;
-                                } else {
+                                } elseif ($enrollment_payment->fields['record_type'] === 'Refund') {
                                     $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] - $serviceAmount;
                                 }
                                 db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
                                 $enrollmentServiceData->MoveNext();
                             }
-
                             $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
                             db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
-
                             $enrollment_payment->MoveNext();
                         }
                     }
-
                     $allEnrollmentCharges->MoveNext();
                 }
-
-
                 $allEnrollments->MoveNext();
             }
             break;
@@ -902,6 +897,10 @@ if(!empty($_POST))
 
             $allAppointments = getAllAppointments();
             while (!$allAppointments->EOF) {
+                $studentId = $allAppointments->fields['student_id'];
+                $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$studentId' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
+                $PK_USER_MASTER = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
+
                 $service_id = $allAppointments->fields['service_id'];
                 $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_id'");
                 $PK_SERVICE_MASTER = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_MASTER'] : 0;
@@ -992,10 +991,6 @@ if(!empty($_POST))
                 $endTime = strtotime($allAppointments->fields['appt_time']) + $allAppointments->fields['duration'] * 60;
                 $convertedTime = date('H:i:s', $endTime);
                 $INSERT_DATA['END_TIME'] = $convertedTime;
-
-                $studentId = $allAppointments->fields['student_id'];
-                $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$studentId' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
-                $PK_USER_MASTER = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
 
                 $appt_status = $allAppointments->fields['appt_status'];
                 if ($appt_status == "A") {
