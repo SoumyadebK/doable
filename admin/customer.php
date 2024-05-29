@@ -17,7 +17,6 @@ use Mpdf\Mpdf;
 $userType = "Customers";
 
 $status_check = empty($_GET['status'])?'active':$_GET['status'];
-
 if ($status_check == 'active'){
     $status = 1;
 } elseif ($status_check == 'inactive') {
@@ -25,13 +24,10 @@ if ($status_check == 'active'){
 }
 
 $user_role_condition = " AND PK_ROLES = 4";
-
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
 }
-
-
 
 $CREATE_LOGIN = 0;
 $user_doc_count = 0;
@@ -249,6 +245,9 @@ if(!empty($_GET['master_id'])) {
     }
 }
 
+if ($PK_USER_MASTER > 0) {
+    makeMiscComplete($PK_USER_MASTER);
+}
 ?>
 <!DOCTYPE html>
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
