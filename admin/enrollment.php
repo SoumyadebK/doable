@@ -69,7 +69,7 @@ if(!empty($_GET['master_id_customer'])) {
     }
 }
 
-$days = '';
+ $months = '';
 if(!empty($_GET['id'])) {
     $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
     if($res->RecordCount() == 0){
@@ -91,7 +91,8 @@ if(!empty($_GET['id'])) {
     $ACTIVE = $res->fields['ACTIVE'];
     $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
     $interval = $EXPIRY_DATE->diff($CREATED_ON);
-    $days = $interval->days;
+    $years = $interval->y;
+    $months = $interval->m + ($years * 12);
 
     $billing_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
     if($billing_data->RecordCount() > 0){
@@ -473,11 +474,11 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         <label class="form-label">Expiration Date</label>
                                                         <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
                                                         <option value="">Select Expiration Date</option>
-                                                        <option value="1" <?=($days == 30)?'selected':''?>>30 days</option>
-                                                        <option value="2" <?=($days == 60)?'selected':''?>>60 days</option>
-                                                        <option value="3" <?=($days == 90)?'selected':''?>>90 days</option>
-                                                        <option value="6" <?=($days == 180)?'selected':''?>>180 days</option>
-                                                        <option value="12" <?=($days == 365)?'selected':''?>>365 days</option>
+                                                        <option value="1" <?=($months == 1)?'selected':''?>>30 days</option>
+                                                        <option value="2" <?=($months == 2)?'selected':''?>>60 days</option>
+                                                        <option value="3" <?=($months == 3)?'selected':''?>>90 days</option>
+                                                        <option value="6" <?=($months == 6)?'selected':''?>>180 days</option>
+                                                        <option value="12" <?=($months == 12)?'selected':''?>>365 days</option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -1141,6 +1142,8 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                     $RECEIPT_PDF_LINK = '';
                                                     $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.RECEIPT_PDF_LINK, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.IS_PAID != 2 AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
                                                     if ($payment_details->RecordCount() > 0){
+                                                        $PK_ENROLLMENT_MASTER = $payment_details->fields['PK_ENROLLMENT_MASTER'];
+                                                        $PK_ENROLLMENT_LEDGER = $payment_details->fields['PK_ENROLLMENT_LEDGER'];
                                                         $RECEIPT_PDF_LINK = $payment_details->fields['RECEIPT_PDF_LINK'];
                                                         $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']);
                                                         if($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
@@ -1160,7 +1163,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                             <td></td>
                                                             <td>
                                                                 <?php if ($RECEIPT_PDF_LINK != null) { ?>
-                                                                    <a href="../uploads/enrollment_pdf/<?=$RECEIPT_PDF_LINK?>" target="_blank">Receipt</a>
+                                                                    <a href="generate_receipt_pdf.php?PK_ENROLLMENT_MASTER=<?=$PK_ENROLLMENT_MASTER?>&PK_ENROLLMENT_LEDGER=<?=$PK_ENROLLMENT_LEDGER?>" target="_blank">Receipt</a>
                                                                 <?php } ?>
                                                             </td>
                                                         </tr>

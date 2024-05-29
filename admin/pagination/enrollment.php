@@ -294,6 +294,8 @@ while (!$row->EOF) {
                 if ($payment_details->RecordCount() > 0) {
                     $p++;
                     while (!$payment_details->EOF) {
+                        $PK_ENROLLMENT_MASTER = $payment_details->fields['PK_ENROLLMENT_MASTER'];
+                        $PK_ENROLLMENT_LEDGER = $payment_details->fields['PK_ENROLLMENT_LEDGER'];
                         $RECEIPT_PDF_LINK = $payment_details->fields['RECEIPT_PDF_LINK'];
                         $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']);
                         if ($payment_details->fields['TRANSACTION_TYPE'] == 'Move') {
@@ -317,7 +319,7 @@ while (!$row->EOF) {
                                     <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['PAID_AMOUNT']?>, 'active', 'Refund', <?=$p?>)">Refund</a>
                                 <?php }
                                     if ($RECEIPT_PDF_LINK != null) { ?>
-                                    <a class="btn btn-info waves-effect waves-light text-white" href="../uploads/enrollment_pdf/<?=$RECEIPT_PDF_LINK?>" target="_blank">Receipt</a>
+                                    <a class="btn btn-info waves-effect waves-light text-white" href="generate_receipt_pdf.php?PK_ENROLLMENT_MASTER=<?=$PK_ENROLLMENT_MASTER?>&PK_ENROLLMENT_LEDGER=<?=$PK_ENROLLMENT_LEDGER?>" target="_blank">Receipt</a>
                                 <?php } ?>
                             </td>
                         </tr>
