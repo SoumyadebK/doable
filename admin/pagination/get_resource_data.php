@@ -18,18 +18,20 @@ $service_provider_data = $db->Execute("SELECT DISTINCT
                                                     DOA_USERS.FIRST_NAME,
                                                     ' ',
                                                     DOA_USERS.LAST_NAME
-                                                ) AS NAME
+                                                ) AS NAME,
+                                                DOA_USERS.DISPLAY_ORDER
                                             FROM
                                                 DOA_USERS
                                             INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER
                                             WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN( ".$DEFAULT_LOCATION_ID." ) 
                                             ".$SERVICE_PROVIDER_ID." AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']. "
-                                            ORDER BY DISPLAY_ORDER");
+                                            ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
 $resourceIdArray = [];
 while (!$service_provider_data->EOF) {
     $resourceIdArray [] = [
         'id' =>  $service_provider_data->fields['PK_USER'],
-        'title' => $service_provider_data->fields['NAME'].' - 0'
+        'title' => $service_provider_data->fields['NAME'].' - 0',
+        'sortOrder' => (int) $service_provider_data->fields['DISPLAY_ORDER'],
     ];
     $service_provider_data->MoveNext();
 }

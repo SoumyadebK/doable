@@ -349,9 +349,9 @@ foreach ($resultsArray as $key => $result) {
                                             $REGULAR_AMOUNT = $AMOUNT_PAID;
                                         }
 
-                                        $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
+                                        $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
                                         while (!$enrollment_service_code_data->EOF) {
-                                            if ($enrollment_service_code_data->fields['IS_GROUP'] == 0) {
+                                            if ($enrollment_service_code_data->fields['IS_GROUP'] == 0 && $enrollment_service_code_data->fields['PRICE_PER_SESSION'] > 0) {
                                                 $TOTAL_UNIT += $enrollment_service_code_data->fields['NUMBER_OF_SESSION'];
                                             }
                                             if ($SERVICE_CLASS == 5 && $enrollment_service_code_data->fields['IS_SUNDRY'] == 1) {
