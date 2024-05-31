@@ -145,7 +145,7 @@ foreach ($resultsArray as $key => $result) {
                                         }
                                         ?>
                                         <tr>
-                                            <td><?=$row->fields['LAST_NAME'].', '.$row->fields['FIRST_NAME']?></td>
+                                            <td><?=(($row->fields['LAST_NAME']) ? $row->fields['LAST_NAME'].', ' : '').$row->fields['FIRST_NAME']?></td>
                                             <td></td>
                                             <td style="text-align: center"><?=$private?></td>
                                             <td style="text-align: center"><?=$group?></td>

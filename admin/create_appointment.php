@@ -308,9 +308,9 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
     $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
 
-    $user_location = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$_POST['CUSTOMER_ID'][0]);
+    $user_location = $db->Execute("SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = ".$_POST['CUSTOMER_ID'][0]);
     if ($user_location->RecordCount() > 0) {
-        $PK_LOCATION = $user_location->fields['PK_LOCATION'];
+        $PK_LOCATION = $user_location->fields['PRIMARY_LOCATION_ID'];
     } else {
         $PK_LOCATION = 0;
     }
