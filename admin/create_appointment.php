@@ -3,6 +3,8 @@ require_once('../global/config.php');
 global $db;
 global $db_account;
 
+$LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
+
 use Twilio\Exceptions\ConfigurationException;
 use Twilio\Rest\Client;
 
@@ -178,6 +180,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             for ($j = 0; $j < count($_POST['PK_USER']); $j++) {
                 for ($i = 0; $i < count($SPECIAL_APPOINTMENT_DATE_ARRAY); $i++) {
                     //$SPECIAL_APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                    $SPECIAL_APPOINTMENT_DATA['PK_LOCATION'] = $LOCATION_ARRAY[0];
                     $SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
                     $SPECIAL_APPOINTMENT_DATA['DATE'] = $SPECIAL_APPOINTMENT_DATE_ARRAY[$i];
                     $SPECIAL_APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
@@ -396,7 +399,9 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
                 <div class="row page-titles navbar-fixed-top">
                     <div class="d-flex justify-content-center align-items-center">
                         <button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('group_class', this);"><i class="fa fa-plus-circle"></i> Group Class</button>
-                        <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('int_app', this);"><i class="fa fa-plus-circle"></i> To Dos</button>
+                        <?php if (count($LOCATION_ARRAY) == 1) { ?>
+                            <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('int_app', this);"><i class="fa fa-plus-circle"></i> To Dos</button>
+                        <?php } ?>
                         <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('appointment', this);"><i class="fa fa-plus-circle"></i> Appointment</button>
                         <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('ad_hoc', this);"><i class="fa fa-plus-circle"></i> Ad-hoc</button>
                         <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('standing', this);"><i class="fa fa-plus-circle"></i> Standing</button>
