@@ -104,21 +104,35 @@ $page_first_result = ($page-1) * $results_per_page;*/
 <?php
 if ($_GET['type'] == 'normal') { ?>
     <div class="row" style="padding: 35px 35px 0 35px">
-        <h5 style="margin-left: 30%;">List of Pending Services</h5>
-        <?php require_once('pending_services.php'); ?>
-        <div class="col-md-2">
+        <div class="col-md-9">
+            <h5 style="margin-left: 15%;">List of Pending Services</h5>
+            <?php require_once('pending_services.php'); ?>
+        </div>
+
+        <div class="col-md-3">
             <?php
+            $total_paid = 0;
+            $misc_paid = 0;
             $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
 
-            $total_paid_data = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER=".$PK_USER_MASTER);
-            $total_refund_data = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_REFUND FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER=".$PK_USER_MASTER);
-            $total_paid = ($total_paid_data->RecordCount() > 0) ? $total_paid_data->fields['TOTAL_PAID'] : 0.00;
+            $total_paid_data = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_PAYMENT.*, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER." GROUP BY PK_ENROLLMENT_PAYMENT");
+            while (!$total_paid_data->EOF) {
+                if ($total_paid_data->fields['PK_SERVICE_CLASS'] == 5) {
+                    $misc_paid += $total_paid_data->fields['AMOUNT'];
+                } else {
+                    $total_paid += $total_paid_data->fields['AMOUNT'];
+                }
+                $total_paid_data->MoveNext();
+            }
+
+            $total_refund_data = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_REFUND FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
             $total_refund = ($total_refund_data->RecordCount() > 0) ? $total_refund_data->fields['TOTAL_REFUND'] : 0.00;
 
-            $total_used_data = $db_account->Execute("SELECT SUM(PRICE_PER_SESSION*SESSION_COMPLETED) AS TOTAL_USED FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER=".$PK_USER_MASTER);
+            $total_used_data = $db_account->Execute("SELECT SUM(PRICE_PER_SESSION*SESSION_COMPLETED) AS TOTAL_USED FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
             $total_used = ($total_used_data->RecordCount() > 0) ? $total_used_data->fields['TOTAL_USED'] : 0.00;
             ?>
-            <h5 id="wallet_balance_span">Credit Balance : $<?=number_format($total_paid-$total_refund-$total_used, 2)?></h5>
+            <h5 id="wallet_balance_span">Credit Balance : $<?=number_format((float)$total_paid-(float)$total_used, 2)?></h5>
+            <h5 id="wallet_balance_span">Miscellaneous Balance : $<?=number_format($misc_paid, 2)?></h5>
             <h5 id="wallet_balance_span">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></h5>
         </div>
     </div>
@@ -172,7 +186,7 @@ while (!$row->EOF) {
             </div>
             <div class="col-8">
                 <table id="myTable" class="table <?php
-                $details = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID != 1 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                $details = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                 $paid_count = $details->RecordCount() > 0 ? $details->fields['PAID'] : 0;
                 if ($paid_count==0) { echo 'table-success'; }else{echo "table-striped";}?> border">
                     <thead>

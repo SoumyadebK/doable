@@ -809,6 +809,7 @@ if(!empty($_POST))
                 $start_time = $allSpecialAppointment->fields['appt_time'];
                 $table_data = $db_account->Execute("SELECT PK_SPECIAL_APPOINTMENT FROM DOA_SPECIAL_APPOINTMENT WHERE TITLE = '$header' AND DATE = '$start_date' AND START_TIME = '$start_time'");
                 if ($table_data->RecordCount() == 0) {
+                    $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
                     $INSERT_DATA['TITLE'] = $header;
                     $INSERT_DATA['DATE'] = $start_date;
                     $INSERT_DATA['START_TIME'] =$start_time;

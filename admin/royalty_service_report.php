@@ -504,10 +504,18 @@ foreach ($resultsArray as $key => $result) {
                                         $TOTAL_AMOUNT_REFUND = 0;
                                         $refund_data = $db_account->Execute($REFUND_QUERY);
                                         while (!$refund_data->EOF) {
-                                            $REFUND_TOTAL_UNIT = 1;
+                                            $REFUND_TOTAL_UNIT = 0;
                                             $teacher_data = $db_account->Execute("SELECT GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = ".$refund_data->fields['PK_ENROLLMENT_MASTER']);
                                             $enrollment_service_data = $db_account->Execute("SELECT SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$refund_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
                                             $REFUND_TOTAL_AMOUNT = $enrollment_service_data->fields['TOTAL_AMOUNT'];
+
+                                            $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$refund_data->fields['PK_ENROLLMENT_MASTER']);
+                                            while (!$enrollment_service_code_data->EOF) {
+                                                if ($enrollment_service_code_data->fields['IS_GROUP'] == 0 && $enrollment_service_code_data->fields['PRICE_PER_SESSION'] > 0) {
+                                                    $REFUND_TOTAL_UNIT += $enrollment_service_code_data->fields['NUMBER_OF_SESSION'];
+                                                }
+                                                $enrollment_service_code_data->MoveNext();
+                                            }
 
                                             $AMOUNT_REFUND = $refund_data->fields['AMOUNT'];
                                             $TOTAL_AMOUNT_REFUND += $AMOUNT_REFUND; ?>
