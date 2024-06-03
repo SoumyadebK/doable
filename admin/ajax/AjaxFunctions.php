@@ -1807,7 +1807,6 @@ function modifyAppointment($RESPONSE_DATA) {
     echo date('m/d/Y', strtotime($DATE));
 }
 
-
 function copyAppointment($RESPONSE_DATA) {
     global $db_account;
 
@@ -1905,8 +1904,6 @@ function copyAppointment($RESPONSE_DATA) {
 
     echo date('m/d/Y', strtotime($DATE));
 }
-
-
 
 function moveToWallet($RESPONSE_DATA)
 {
@@ -2072,6 +2069,9 @@ function moveToWallet($RESPONSE_DATA)
     $PAYMENT_DATA['PAYMENT_INFO'] = $TYPE;
     $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
     db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+
+    $UPDATE_PAYMENT_DATA['IS_REFUNDED'] = 1;
+    db_perform_account('DOA_ENROLLMENT_PAYMENT', $UPDATE_PAYMENT_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
 
     if ($ENROLLMENT_TYPE == 'active') {
         $UPDATE_DATA['IS_PAID'] = 2;

@@ -176,7 +176,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
                 if ($charge->paid == 1) {
                     $PAYMENT_STATUS = 'Success';
-                    $PAYMENT_INFO = $charge->id;
+                    $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $charge->id, 'LAST4' => $LAST4];
+                    $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
                 } else {
                     $PAYMENT_STATUS = 'Failed';
                     $PAYMENT_INFO = $charge->failure_message;

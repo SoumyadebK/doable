@@ -236,12 +236,12 @@ if(!empty($_GET['id'])) {
         $PARTNER_DOB = $customer_data->fields['PARTNER_DOB'];
     }
 }
+
+$primary_location = '';
 if(!empty($_GET['master_id'])) {
     $selected_primary_location = $db->Execute("SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = " . $_GET['master_id']);
     if ($selected_primary_location->RecordCount() > 0) {
         $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
-    } else {
-        $primary_location = '';
     }
 }
 

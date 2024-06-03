@@ -638,6 +638,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             eventReceive: function(arg) { // called when a proper external event is dropped
                 arg.event.remove();
             },
+            resourceOrder: 'sortOrder',
             resources: function (info, successCallback, failureCallback) {
                 //console.log(info);
                 let selected_service_provider = [];
@@ -652,7 +653,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     data: {selected_service_provider: selected_service_provider},
                     dataType: 'json',
                     success: function (result) {
-                        //console.log(result);
+                        console.log(result);
                         successCallback(result);
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
