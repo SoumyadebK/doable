@@ -144,10 +144,14 @@ $page_first_result = ($page-1) * $results_per_page;
                                     $i = $page_first_result+1;
                                     $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_CUSTOMER_DETAILS.PARTNER_FIRST_NAME, ' ', DOA_CUSTOMER_DETAILS.PARTNER_LAST_NAME) AS PARTNER_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $account_database.DOA_CUSTOMER_DETAILS AS DOA_CUSTOMER_DETAILS ON DOA_USER_MASTER.PK_USER_MASTER = DOA_CUSTOMER_DETAILS.PK_USER_MASTER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.ACTIVE = '$status' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER'].$search." ORDER BY DOA_USERS.CREATED_ON DESC LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$row->EOF) {
-                                        $total_paid_data = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER=".$row->fields['PK_USER_MASTER']);
-                                        $total_refund_data = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_REFUND FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER=".$row->fields['PK_USER_MASTER']);
+                                        $total_paid_data = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$row->fields['PK_USER_MASTER']);
                                         $total_paid = ($total_paid_data->RecordCount() > 0) ? $total_paid_data->fields['TOTAL_PAID'] : 0.00;
+
+                                        $total_refund_data = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_REFUND FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER=".$row->fields['PK_USER_MASTER']);
                                         $total_refund = ($total_refund_data->RecordCount() > 0) ? $total_refund_data->fields['TOTAL_REFUND'] : 0.00;
+
+                                        $total_misc_data = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 1 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$row->fields['PK_USER_MASTER']);
+                                        $total_misc = ($total_misc_data->RecordCount() > 0) ? $total_misc_data->fields['TOTAL_PAID'] : 0.00;
 
                                         $total_used_data = $db_account->Execute("SELECT SUM(PRICE_PER_SESSION*SESSION_COMPLETED) AS TOTAL_USED FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER=".$row->fields['PK_USER_MASTER']);
                                         $total_used = ($total_used_data->RecordCount() > 0) ? $total_used_data->fields['TOTAL_USED'] : 0.00;
@@ -159,8 +163,8 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['USER_NAME']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['EMAIL_ID']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=$row->fields['PHONE']?></td>
-                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format(($total_paid-$total_refund), 2))?></td>
-                                            <td style="text-align: right"  onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format(($total_paid-$total_refund)-$total_used, 2))?></td>
+                                            <td style="text-align: right" onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format(($total_paid), 2))?></td>
+                                            <td style="text-align: right"  onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$row->fields['PK_USER_MASTER']?>);"><?=str_replace(",", "", number_format($total_paid-$total_misc-$total_used, 2))?></td>
                                             <td style="margin-top: auto; margin-bottom: auto">
                                                 <?php if($row->fields['EMAIL_ID']): ?>
                                                     <a class="waves-dark" href="compose.php?sel_uid=<?=$row->fields['PK_USER']?>" aria-haspopup="true" aria-expanded="false" title="Email"><i class="ti-email" style="font-size: 20px;"></i>
@@ -178,8 +182,8 @@ $page_first_result = ($page-1) * $results_per_page;
                                                 <a href="all_services.php?type=del&id=<?=$row->fields['PK_SERVICE_MASTER']?>" onclick='ConfirmDelete(<?=$row->fields['PK_USER']?>);' title="Delete"><i class="ti-trash" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
-                                        <?php $row->MoveNext();
-                                        $i++; } ?>
+                                    <?php $row->MoveNext();
+                                    $i++; } ?>
                                     </tbody>
                                 </table>
                                 <div class="center">

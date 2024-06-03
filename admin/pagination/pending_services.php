@@ -1,4 +1,4 @@
-<table id="myTable" class="table table-striped border" style="margin: auto; width: 40%;">
+<table id="myTable" class="table table-striped border" style="margin: auto; width: 70%;">
     <thead>
         <tr>
             <th style="text-align: center;">Service Code</th>

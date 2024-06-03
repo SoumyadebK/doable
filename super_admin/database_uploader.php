@@ -683,7 +683,7 @@ if(!empty($_POST))
             }
             break;
 
-        case "DOA_ENROLLMENT_SERVICE":
+        /*case "DOA_ENROLLMENT_SERVICE":
             $allEnrollmentServices = getAllEnrollmentServices();
             while (!$allEnrollmentServices->EOF) {
                 $enrollmentId = $allEnrollmentServices->fields['enrollment_id'];
@@ -709,7 +709,7 @@ if(!empty($_POST))
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
                 $allEnrollmentServices->MoveNext();
             }
-            break;
+            break;*/
 
         /*case "DOA_ENROLLMENT_PAYMENT":
             $allEnrollmentPayments = getAllEnrollmentPayments();
@@ -809,6 +809,7 @@ if(!empty($_POST))
                 $start_time = $allSpecialAppointment->fields['appt_time'];
                 $table_data = $db_account->Execute("SELECT PK_SPECIAL_APPOINTMENT FROM DOA_SPECIAL_APPOINTMENT WHERE TITLE = '$header' AND DATE = '$start_date' AND START_TIME = '$start_time'");
                 if ($table_data->RecordCount() == 0) {
+                    $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
                     $INSERT_DATA['TITLE'] = $header;
                     $INSERT_DATA['DATE'] = $start_date;
                     $INSERT_DATA['START_TIME'] =$start_time;
