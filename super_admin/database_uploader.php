@@ -683,7 +683,7 @@ if(!empty($_POST))
             }
             break;
 
-        case "DOA_ENROLLMENT_SERVICE":
+        /*case "DOA_ENROLLMENT_SERVICE":
             $allEnrollmentServices = getAllEnrollmentServices();
             while (!$allEnrollmentServices->EOF) {
                 $enrollmentId = $allEnrollmentServices->fields['enrollment_id'];
@@ -709,7 +709,7 @@ if(!empty($_POST))
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
                 $allEnrollmentServices->MoveNext();
             }
-            break;
+            break;*/
 
         /*case "DOA_ENROLLMENT_PAYMENT":
             $allEnrollmentPayments = getAllEnrollmentPayments();
