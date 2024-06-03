@@ -341,27 +341,68 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     </tr>
                                     <tr>
                                         <?php
-                                        $adjust1_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT, COUNT(DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE) AS SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                        $adjust2_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT, COUNT(DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE) AS SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 2 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                        $adjust3_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT, COUNT(DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE) AS SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 3 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                        $adjust4_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT, COUNT(DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE) AS SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 4 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                        $amount1 = $adjust1_data->fields['AMOUNT'] > 0 ? $adjust1_data->fields['AMOUNT'] : 0.00;
-                                        $amount2 = $adjust2_data->fields['AMOUNT'] > 0 ? $adjust2_data->fields['AMOUNT'] : 0.00;
-                                        $amount3 = $adjust3_data->fields['AMOUNT'] > 0 ? $adjust3_data->fields['AMOUNT'] : 0.00;
-                                        $amount4 = $adjust4_data->fields['AMOUNT'] > 0 ? $adjust4_data->fields['AMOUNT'] : 0.00;
-                                        $total_amount = $amount1 + $amount2 + $amount3 + $amount4;
-                                        $service1 = $adjust1_data->RecordCount() > 0 ? $adjust1_data->fields['SERVICE'] : 0;
-                                        $service2 = $adjust2_data->RecordCount() > 0 ? $adjust2_data->fields['SERVICE'] : 0;
-                                        $service3 = $adjust3_data->RecordCount() > 0 ? $adjust3_data->fields['SERVICE'] : 0;
-                                        $service4 = $adjust4_data->RecordCount() > 0 ? $adjust4_data->fields['SERVICE'] : 0;
-                                        $total_service = $service1 + $service2 + $service3 + $service4;
+                                        $adjust1_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS NUMBER_OF_SESSION, SUM(DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED) AS SESSION_COMPLETED FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CA') AND DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $adjust2_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS NUMBER_OF_SESSION, SUM(DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED) AS SESSION_COMPLETED FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CA') AND DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 2 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $adjust3_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS NUMBER_OF_SESSION, SUM(DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED) AS SESSION_COMPLETED FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CA') AND DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 3 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $adjust4_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS NUMBER_OF_SESSION, SUM(DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED) AS SESSION_COMPLETED FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CA') AND DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 4 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $left_session1 = $adjust1_data->RecordCount() > 0 ? $adjust1_data->fields['NUMBER_OF_SESSION'] - $adjust1_data->fields['SESSION_COMPLETED'] : 0;
+                                        $left_session2 = $adjust2_data->RecordCount() > 0 ? $adjust2_data->fields['NUMBER_OF_SESSION'] - $adjust2_data->fields['SESSION_COMPLETED'] : 0;
+                                        $left_session3 = $adjust3_data->RecordCount() > 0 ? $adjust3_data->fields['NUMBER_OF_SESSION'] - $adjust3_data->fields['SESSION_COMPLETED'] : 0;
+                                        $left_session4 = $adjust4_data->RecordCount() > 0 ? $adjust4_data->fields['NUMBER_OF_SESSION'] - $adjust4_data->fields['SESSION_COMPLETED'] : 0;
+                                        $total_session = $left_session1 + $left_session2 + $left_session3 + $left_session4;
+
+                                        $serviceCodeData_1 = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.* FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CA') AND DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $total_paid_amount = 0;
+                                        $total_used_amount = 0;
+                                        while (!$serviceCodeData_1->EOF) {
+                                            $PRICE_PER_SESSION = ($serviceCodeData_1->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData_1->fields['PRICE_PER_SESSION'];
+                                            $total_paid_amount += $serviceCodeData_1->fields['TOTAL_AMOUNT_PAID'];
+                                            $total_used_amount += ($PRICE_PER_SESSION * $serviceCodeData_1->fields['SESSION_COMPLETED']);
+                                            $serviceCodeData_1->MoveNext();
+                                        }
+                                        $balance_1 = $total_paid_amount-$total_used_amount;
+
+                                        $serviceCodeData_2 = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.* FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CA') AND DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 2 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $total_paid_amount = 0;
+                                        $total_used_amount = 0;
+                                        while (!$serviceCodeData_2->EOF) {
+                                            $PRICE_PER_SESSION = ($serviceCodeData_2->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData_2->fields['PRICE_PER_SESSION'];
+                                            $total_paid_amount += $serviceCodeData_2->fields['TOTAL_AMOUNT_PAID'];
+                                            $total_used_amount += ($PRICE_PER_SESSION * $serviceCodeData_2->fields['SESSION_COMPLETED']);
+                                            $serviceCodeData_2->MoveNext();
+                                        }
+                                        $balance_2 = $total_paid_amount-$total_used_amount;
+
+                                        $serviceCodeData_3 = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.* FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CA') AND DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 3 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $total_paid_amount = 0;
+                                        $total_used_amount = 0;
+                                        while (!$serviceCodeData_3->EOF) {
+                                            $PRICE_PER_SESSION = ($serviceCodeData_3->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData_3->fields['PRICE_PER_SESSION'];
+                                            $total_paid_amount += $serviceCodeData_3->fields['TOTAL_AMOUNT_PAID'];
+                                            $total_used_amount += ($PRICE_PER_SESSION * $serviceCodeData_3->fields['SESSION_COMPLETED']);
+                                            $serviceCodeData_3->MoveNext();
+                                        }
+                                        $balance_3 = $total_paid_amount-$total_used_amount;
+
+                                        $serviceCodeData_4 = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.* FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CA') AND DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND CUSTOMER_ENROLLMENT_NUMBER = 4 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
+                                        $total_paid_amount = 0;
+                                        $total_used_amount = 0;
+                                        while (!$serviceCodeData_4->EOF) {
+                                            $PRICE_PER_SESSION = ($serviceCodeData_4->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData_4->fields['PRICE_PER_SESSION'];
+                                            $total_paid_amount += $serviceCodeData_4->fields['TOTAL_AMOUNT_PAID'];
+                                            $total_used_amount += ($PRICE_PER_SESSION * $serviceCodeData_4->fields['SESSION_COMPLETED']);
+                                            $serviceCodeData_4->MoveNext();
+                                        }
+                                        $balance_4 = $total_paid_amount-$total_used_amount;
+
+                                        $total_balance = $balance_1 + $balance_2 + $balance_3 + $balance_4;
                                         ?>
                                         <th style="width:9%; text-align: center;font-weight: bold">Adjust</th>
-                                        <th style="width:18%; text-align: center; font-weight: normal !important" colspan="2"><?=$service1."/".$amount1?></th>
-                                        <th style="width:18%; text-align: center; font-weight: normal !important" colspan="2"><?=$service2."/".number_format($amount2,2,'.','')?></th>
-                                        <th style="width:18%; text-align: center; font-weight: normal !important" colspan="2"><?=$service3."/".number_format($amount3,2,'.','')?></th>
-                                        <th style="width:18%; text-align: center; font-weight: normal !important" colspan="2"><?=$service4."/".number_format($amount4,2,'.','')?></th>
-                                        <th style="width:18%; text-align: center; font-weight: normal !important" colspan="2"><?=$total_service."/".number_format($total_amount, 2,'.', '')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: normal !important" colspan="2"><?=$left_session1."/".number_format($balance_1,2,'.','')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: normal !important" colspan="2"><?=$left_session2."/".number_format($balance_2,2,'.','')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: normal !important" colspan="2"><?=$left_session3."/".number_format($balance_3,2,'.','')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: normal !important" colspan="2"><?=$left_session4."/".number_format($balance_4,2,'.','')?></th>
+                                        <th style="width:18%; text-align: center; font-weight: normal !important" colspan="2"><?=$total_session."/".number_format($total_balance, 2,'.', '')?></th>
                                     </tr>
                                     <tr>
                                         <?php
@@ -471,9 +512,14 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     </tr>
                                     <tr>
                                         <?php
-                                        $week_class_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT, SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
-                                        $week_amount = $week_class_data->fields['AMOUNT'] > 0 ? $week_class_data->fields['AMOUNT'] : 0.00;
-                                        $week_service = $week_class_data->RecordCount() > 0 ? $week_class_data->fields['SERVICE'] : 0;
+                                        $week_class_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT, SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' GROUP BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER HAVING COUNT(DISTINCT DOA_SERVICE_CODE.IS_GROUP) = 1 AND MIN(DOA_SERVICE_CODE.IS_GROUP) = '1' AND MAX(DOA_SERVICE_CODE.IS_GROUP) = '1'");
+                                        $week_amount = 0;
+                                        $week_service = 0;
+                                        while(!$week_class_data->EOF){
+                                            $week_amount += $week_class_data->fields['AMOUNT'] > 0 ? $week_class_data->fields['AMOUNT'] : 0.00;
+                                            $week_service += $week_class_data->RecordCount() > 0 ? $week_class_data->fields['SERVICE'] : 0;
+                                            $week_class_data->MoveNext();
+                                        }
 
                                         $week_sundry_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT, SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_SERVICE_CODE.IS_SUNDRY = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
                                         $week_sundry_amount = $week_sundry_data->fields['AMOUNT'] > 0 ? $week_sundry_data->fields['AMOUNT'] : 0.00;
@@ -489,9 +535,14 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     </tr>
                                     <tr>
                                         <?php
-                                        $ytd_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT, SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND '".date('Y-m-d', strtotime($to_date))."'");
-                                        $ytd_amount = $ytd_data->fields['AMOUNT'] > 0 ? $ytd_data->fields['AMOUNT'] : 0.00;
-                                        $ytd_service = $ytd_data->RecordCount() > 0 ? $ytd_data->fields['SERVICE'] : 0;
+                                        $ytd_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT, SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND '".date('Y-m-d', strtotime($to_date))."' GROUP BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER HAVING COUNT(DISTINCT DOA_SERVICE_CODE.IS_GROUP) = 1 AND MIN(DOA_SERVICE_CODE.IS_GROUP) = '1' AND MAX(DOA_SERVICE_CODE.IS_GROUP) = '1'");
+                                        $ytd_amount = 0;
+                                        $ytd_service = 0;
+                                        while(!$ytd_data->EOF){
+                                            $ytd_amount += $ytd_data->fields['AMOUNT'] > 0 ? $ytd_data->fields['AMOUNT'] : 0.00;
+                                            $ytd_service += $ytd_data->RecordCount() > 0 ? $ytd_data->fields['SERVICE'] : 0;
+                                            $ytd_data->MoveNext();
+                                        }
 
                                         $ytd_sundry_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT, SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_SERVICE_CODE.IS_SUNDRY = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN DATE_FORMAT(CURDATE(), '%Y-01-01') AND '".date('Y-m-d', strtotime($to_date))."'");
                                         $ytd_sundry_amount = $ytd_sundry_data->fields['AMOUNT'] > 0 ? $ytd_sundry_data->fields['AMOUNT'] : 0.00;
@@ -507,9 +558,14 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                     </tr>
                                     <tr>
                                         <?php
-                                        $prev_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT, SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($first_day_of_week_previous_year))."' AND '".date('Y-m-d', strtotime($last_day_of_week_previous_year))."'");
-                                        $prev_amount = $prev_data->fields['AMOUNT'] > 0 ? $prev_data->fields['AMOUNT'] : 0.00;
-                                        $prev_service = $prev_data->RecordCount() > 0 ? $prev_data->fields['SERVICE'] : 0;
+                                        $prev_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT, SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($first_day_of_week_previous_year))."' AND '".date('Y-m-d', strtotime($last_day_of_week_previous_year))."' GROUP BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER HAVING COUNT(DISTINCT DOA_SERVICE_CODE.IS_GROUP) = 1 AND MIN(DOA_SERVICE_CODE.IS_GROUP) = '1' AND MAX(DOA_SERVICE_CODE.IS_GROUP) = '1'");
+                                        $prev_amount = 0;
+                                        $prev_service = 0;
+                                        while(!$prev_data->EOF){
+                                            $prev_amount += $prev_data->fields['AMOUNT'] > 0 ? $prev_data->fields['AMOUNT'] : 0.00;
+                                            $prev_service += $prev_data->RecordCount() > 0 ? $prev_data->fields['SERVICE'] : 0;
+                                            $prev_data->MoveNext();
+                                        }
 
                                         $prev_sundry_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_CODE.PK_SERVICE_CODE=DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_SERVICE_CODE.IS_SUNDRY = 1 AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($first_day_of_week_previous_year))."' AND '".date('Y-m-d', strtotime($last_day_of_week_previous_year))."'");
                                         $prev_sundry_amount = $prev_sundry_data->fields['AMOUNT'] > 0 ? $prev_sundry_data->fields['AMOUNT'] : 0.00;
