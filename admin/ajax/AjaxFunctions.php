@@ -1944,13 +1944,14 @@ function moveToWallet($RESPONSE_DATA)
         $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $INSERT_DATA['CREDIT'] = $BALANCE;
         $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
-        $INSERT_DATA['RECEIPT_PDF_LINK'] = $payment_data->fields['RECEIPT_PDF_LINK'];
+        $INSERT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
+        //$INSERT_DATA['RECEIPT_PDF_LINK'] = $payment_data->fields['RECEIPT_PDF_LINK'];
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
         $PAYMENT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
-        $PAYMENT_DATA['RECEIPT_PDF_LINK'] = $payment_data->fields['RECEIPT_PDF_LINK'];
+        //$PAYMENT_DATA['RECEIPT_PDF_LINK'] = $payment_data->fields['RECEIPT_PDF_LINK'];
 
         $TYPE = 'Move';
     } else {
@@ -2054,7 +2055,7 @@ function moveToWallet($RESPONSE_DATA)
         $html_template_receipt = str_replace('{PAYMENT_DATE}', date('m-d-Y'), $html_template_receipt);
 
         $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
-        $PAYMENT_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template_receipt);
+        //$PAYMENT_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template_receipt);
     }
 
     $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);

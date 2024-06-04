@@ -1804,18 +1804,21 @@ if ($PK_USER_MASTER > 0) {
                                                         $walletTransaction = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET ASC");
                                                         $i = 1;
                                                         while (!$walletTransaction->EOF) {
-                                                            $RECEIPT_PDF_LINK = $walletTransaction->fields['RECEIPT_PDF_LINK'];?>
+                                                            $RECEIPT_NUMBER = $walletTransaction->fields['RECEIPT_NUMBER'];
+                                                            $receiptData = $db_account->Execute("SELECT `PK_ENROLLMENT_MASTER`, `PK_ENROLLMENT_LEDGER` FROM `DOA_ENROLLMENT_PAYMENT` WHERE `RECEIPT_NUMBER` = ".$walletTransaction->fields['RECEIPT_NUMBER']." LIMIT 1");
+
+                                                            ?>
                                                             <tr>
-                                                                <td ><?=date('m/d/Y h:i A', strtotime($walletTransaction->fields['CREATED_ON']))?></td>
-                                                                <td ><?=$walletTransaction->fields['DESCRIPTION']?></td>
-                                                                <td ><?=$walletTransaction->fields['DEBIT']?></td>
-                                                                <td ><?=$walletTransaction->fields['CREDIT']?></td>
-                                                                <td ><?=$walletTransaction->fields['CURRENT_BALANCE']?></td>
-                                                                <?php if($RECEIPT_PDF_LINK != '') { ?>
-                                                                <td ><a class="btn btn-info waves-effect waves-light text-white" href="../uploads/enrollment_pdf/<?=$RECEIPT_PDF_LINK?>" target="_blank">Receipt</a></td>
-                                                                <?php }else{?>
-                                                                <td></td>
-                                                                <?php }?>
+                                                                <td><?=date('m/d/Y h:i A', strtotime($walletTransaction->fields['CREATED_ON']))?></td>
+                                                                <td><?=$walletTransaction->fields['DESCRIPTION']?></td>
+                                                                <td><?=$walletTransaction->fields['DEBIT']?></td>
+                                                                <td><?=$walletTransaction->fields['CREDIT']?></td>
+                                                                <td><?=$walletTransaction->fields['CURRENT_BALANCE']?></td>
+                                                                <?php if($RECEIPT_NUMBER != '') { ?>
+                                                                    <td><a class="btn btn-info waves-effect waves-light text-white" href="generate_receipt_pdf.php?master_id=<?=$receiptData->fields['PK_ENROLLMENT_MASTER']?>&ledger_id=<?=$receiptData->fields['PK_ENROLLMENT_LEDGER']?>&receipt=<?=$walletTransaction->fields['RECEIPT_NUMBER']?>" target="_blank">Receipt</a></td>
+                                                                <?php } else { ?>
+                                                                    <td></td>
+                                                                <?php } ?>
                                                             </tr>
                                                             <?php $walletTransaction->MoveNext();
                                                             $i++; } ?>
