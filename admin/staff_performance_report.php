@@ -11,6 +11,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
+$type = $_GET['type'];
+
 if (!empty($_GET['week_number'])){
     $week_number = $_GET['week_number'];
     $YEAR = date('Y');
@@ -31,6 +33,81 @@ if (!empty($_GET['week_number'])){
 }
 $res = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
+
+if ($type === 'export') {
+    $access_token = getAccessToken();
+    $authorization = "Authorization: Bearer ".$access_token;
+    $line_item = [];
+
+    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+    while (!$row->EOF) {
+        if (empty($row->fields['LAST_NAME'])) {
+            $last_name = '';
+        } else {
+            $last_name = $row->fields['LAST_NAME'] . ',';
+        }
+        $private_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS PRIVATE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'NORMAL' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 " . $appointment_date . " AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = " . $row->fields['PK_USER']);
+        $private = $private_data->RecordCount() > 0 ? $private_data->fields['PRIVATE'] : 0;
+        $group_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 " . $appointment_date . " AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = " . $row->fields['PK_USER']);
+        $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
+
+        $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE, DOA_ENROLLMENT_SERVICE.STATUS FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = " . $row->fields['PK_USER'] . " $date_between ORDER BY DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
+        $INTERVIEW_TOTAL = 0;
+        $RENEWAL_TOTAL = 0;
+        $j = 0;
+        while (!$enrollment_data->EOF) {
+            if ($j <= 3) {
+                if ($enrollment_data->fields['STATUS'] == 'A') {
+                    $INTERVIEW_TOTAL += (($enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
+                } else {
+                    $INTERVIEW_TOTAL += (($enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
+                }
+            } else {
+                if ($enrollment_data->fields['STATUS'] == 'A') {
+                    $RENEWAL_TOTAL += (($enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
+                } else {
+                    $RENEWAL_TOTAL += (($enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
+                }
+            }
+            $j++;
+            $enrollment_data->MoveNext();
+        }
+
+        $staff_members = [];
+        while (!$row->EOF) {
+            $staff_members[] = getStaffCode($authorization, $row->fields['FIRST_NAME'], $row->fields['LAST_NAME']);
+            $row->MoveNext();
+        }
+
+        $line_item[] = array(
+            "staff_type" => "INSTRUCTOR",
+            "number_guests" => $private,
+            "private_lessons" => $group,
+            "number_in_class" => '',
+            "dor_sanct_competition" => '',
+            "showcase_medal_ball" => '',
+            "party_time_non_unit" => '',
+            "interview_department" => $INTERVIEW_TOTAL,
+            "renewal_department" => $RENEWAL_TOTAL,
+            "staff_members" => $staff_members,
+        );
+        $row->MoveNext();
+    }
+
+    $data = [
+        'type' => 'staff_performance',
+        'prepared_by' => $row->fields['FIRST_NAME'].' '.$row->fields['LAST_NAME'],
+        'week_number' => $week_number,
+        'week_year' => $YEAR,
+        'line_items' => $line_item,
+    ];
+
+    $url = constant('ami_api_url').'/api/v1/reports';
+    $post_data = callArturMurrayApi($url, $data, $authorization);
+
+    //pre_r(json_decode($post_data));
+}
+
 $location_name='';
 $results = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $resultsArray = [];
