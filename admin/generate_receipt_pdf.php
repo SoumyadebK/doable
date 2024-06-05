@@ -7,10 +7,18 @@ global $master_database;
 $PK_ENROLLMENT_MASTER = $_GET['master_id'] ?: 0;
 $PK_ENROLLMENT_LEDGER = $_GET['ledger_id'] ?: 0;
 $RECEIPT_NUMBER = $_GET['receipt'] ?: 0;
+$BILLING_REF = '';
 
 $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
-$user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.LOCATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER=DOA_USERS.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION=DOA_USER_LOCATION.PK_LOCATION LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
-$enrollment_billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
+if ($PK_ENROLLMENT_MASTER == 0) {
+    $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE RECEIPT_NUMBER = '$RECEIPT_NUMBER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.LOCATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER=DOA_USERS.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION=DOA_USER_LOCATION.PK_LOCATION WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$wallet_data->fields['PK_USER_MASTER']);
+} else {
+    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.LOCATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER=DOA_USERS.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION=DOA_USER_LOCATION.PK_LOCATION LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+    $enrollment_billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=" . $PK_ENROLLMENT_MASTER);
+    $BILLING_REF = $enrollment_billing_data->fields['BILLING_REF'];
+}
+
 $enrollment_payment = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE RECEIPT_NUMBER = ".$RECEIPT_NUMBER);
 
 $DETAILS_AMOUNT = '';
@@ -20,7 +28,7 @@ $PAYMENT_METHOD = '';
 $TYPE = '';
 while (!$enrollment_payment->EOF) {
     $TYPE = $enrollment_payment->fields['TYPE'];
-    if ($enrollment_payment->fields['TYPE'] == 'Payment') {
+    if ($enrollment_payment->fields['TYPE'] == 'Payment' || $enrollment_payment->fields['TYPE'] == 'Wallet') {
         if ($enrollment_payment->fields['PK_PAYMENT_TYPE'] == 2) {
             $PAYMENT_INFO = json_decode($enrollment_payment->fields['PAYMENT_INFO']);
             $PAYMENT_DETAILS = "<tr>
@@ -48,7 +56,6 @@ $LOCATION_NAME = $user_data->fields['LOCATION_NAME'];
 $STATE_NAME = $user_data->fields['STATE_NAME'];
 $ZIP = $user_data->fields['ZIP'];
 $PHONE = $user_data->fields['PHONE'];
-$BILLING_REF = $enrollment_billing_data->fields['BILLING_REF'];
 $AMOUNT = '$' . number_format($TOTAL_AMOUNT, 2);
 $TOTAL = '$' . number_format($TOTAL_AMOUNT, 2);
 $PAYMENT_DATE = $enrollment_payment->fields['PAYMENT_DATE'];
@@ -102,9 +109,11 @@ $PAYMENT_DATE = $enrollment_payment->fields['PAYMENT_DATE'];
     <tr>
         <td style="text-align:center"><strong><?=$TYPE?> Transaction</strong></td>
     </tr>
-    <tr>
-        <td style="text-align:center"><strong>Billing Ref# <?=$BILLING_REF?></strong></td>
-    </tr>
+    <?php if ($BILLING_REF) { ?>
+        <tr>
+            <td style="text-align:center"><strong>Billing Ref# <?=$BILLING_REF?></strong></td>
+        </tr>
+    <?php } ?>
     <tr>
         <td style="text-align:center"><strong>Receipt# <?=$RECEIPT_NUMBER?></strong></td>
     </tr>
@@ -148,7 +157,7 @@ $PAYMENT_DATE = $enrollment_payment->fields['PAYMENT_DATE'];
         <td style="text-align:center"><?=$FULL_NAME?></td>
     </tr>
     <tr>
-        <td style="text-align:center">*Per authorization on <?=$PAYMENT_DATE?> Billing Ref# <?=$BILLING_REF?></td>
+        <td style="text-align:center">*Per authorization on <?=$PAYMENT_DATE?> Receipt# <?=$RECEIPT_NUMBER?></td>
     </tr>
     </tbody>
 </table>

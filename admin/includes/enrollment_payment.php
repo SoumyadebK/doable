@@ -1,4 +1,4 @@
-<div class="modal fade" id="payment_modal" tabindex="-1" aria-hidden="true">
+<div class="modal fade payment_modal" id="enrollment_payment_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form id="enrollment_payment_form" action="includes/process_enrollment_payment.php" method="post" enctype="multipart/form-data">
             <div class="modal-content">
@@ -112,7 +112,6 @@
                                     <div class="form-group" id="card_div">
 
                                     </div>
-                                    <p id="card-errors" role="alert"></p>
                                 </div>
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
@@ -311,21 +310,21 @@
     function selectPaymentType(param){
         let paymentType = parseInt($(param).val());
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $(param).closest('#payment_modal').find('.payment_type_div').slideUp();
-        $(param).closest('#payment_modal').find('#card-element').remove();
+        $(param).closest('.payment_modal').find('.payment_type_div').slideUp();
+        $(param).closest('.payment_modal').find('#card-element').remove();
         switch (paymentType) {
             case 1:
                 if (PAYMENT_GATEWAY == 'Stripe') {
-                    $(param).closest('#payment_modal').find('#card_div').html(`<div id="card-element"></div>`);
+                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
                     stripePaymentFunction();
                 }
 
                 getCreditCardList();
-                $(param).closest('#payment_modal').find('#credit_card_payment').slideDown();
+                $(param).closest('.payment_modal').find('#credit_card_payment').slideDown();
                 break;
 
             case 2:
-                $(param).closest('#payment_modal').find('#check_payment').slideDown();
+                $(param).closest('.payment_modal').find('#check_payment').slideDown();
                 break;
 
             case 7:
@@ -355,10 +354,10 @@
 
             case 3:
             default:
-                $(param).closest('#payment_modal').find('.payment_type_div').slideUp();
-                $(param).closest('#payment_modal').find('#wallet_balance_div').slideUp();
-                $(param).closest('#payment_modal').find('#remaining_amount_div').slideUp();
-                $(param).closest('#payment_modal').find('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                $(param).closest('.payment_modal').find('.payment_type_div').slideUp();
+                $(param).closest('.payment_modal').find('#wallet_balance_div').slideUp();
+                $(param).closest('.payment_modal').find('#remaining_amount_div').slideUp();
+                $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
                 break;
         }
     }
