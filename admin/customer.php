@@ -95,56 +95,6 @@ if($PAYMENT_GATEWAY == "Stripe") {
     }
 }*/
 
-if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'addMoneyToWallet'){
-    $AMOUNT = $_POST['AMOUNT'];
-    if ($_POST['PK_PAYMENT_TYPE'] == 1) {
-        if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
-            require_once("../global/stripe-php-master/init.php");
-            \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
-            $STRIPE_TOKEN = $_POST['token'];
-            try {
-                $charge = \Stripe\Charge::create([
-                    'amount' => ($AMOUNT * 100),
-                    'currency' => 'usd',
-                    'description' => $_POST['NOTE'],
-                    'source' => $STRIPE_TOKEN
-                ]);
-            } catch (Exception $e) {
-
-            }
-            if ($charge->paid == 1) {
-                $PAYMENT_INFO = $charge->id;
-            } else {
-                $PAYMENT_INFO = 'Payment Unsuccessful.';
-            }
-        }
-    } else {
-        $PAYMENT_INFO = 'Payment Done.';
-    }
-
-    if ($_POST['PK_PAYMENT_TYPE'] >= 1) {
-        $payment_type = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE = " . $_POST['PK_PAYMENT_TYPE']);
-        $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
-        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-        if ($wallet_data->RecordCount() > 0) {
-            $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $AMOUNT;
-        } else {
-            $INSERT_DATA['CURRENT_BALANCE'] = $AMOUNT;
-        }
-        $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-        $INSERT_DATA['DEBIT'] = 0;
-        $INSERT_DATA['CREDIT'] = $AMOUNT;
-        $INSERT_DATA['DESCRIPTION'] = "Amount Credited to Your Wallet using " . $payment_type->fields['PAYMENT_TYPE'];
-        $INSERT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-        $INSERT_DATA['NOTE'] = $_POST['NOTE'];
-        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
-    }
-
-    header('location:customer.php?id='.$_GET['id'].'&master_id='.$_GET['master_id'].'&tab=wallet');
-}
-
 $PK_USER = '';
 $PK_USER_MASTER = '';
 $USER_NAME = '';
@@ -1783,7 +1733,7 @@ if ($PK_USER_MASTER > 0) {
                                                             <h3 id="wallet_balance_span">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></h3>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:;" onclick="openWalletModel();" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Money to Wallet</a>
+                                                            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="openWalletModel();" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Money to Wallet</a>
                                                         </div>
                                                     </div>
 
@@ -1806,7 +1756,6 @@ if ($PK_USER_MASTER > 0) {
                                                         while (!$walletTransaction->EOF) {
                                                             $RECEIPT_NUMBER = $walletTransaction->fields['RECEIPT_NUMBER'];
                                                             $receiptData = $db_account->Execute("SELECT `PK_ENROLLMENT_MASTER`, `PK_ENROLLMENT_LEDGER` FROM `DOA_ENROLLMENT_PAYMENT` WHERE `RECEIPT_NUMBER` = ".$walletTransaction->fields['RECEIPT_NUMBER']." LIMIT 1");
-
                                                             ?>
                                                             <tr>
                                                                 <td><?=date('m/d/Y h:i A', strtotime($walletTransaction->fields['CREATED_ON']))?></td>
@@ -1834,7 +1783,7 @@ if ($PK_USER_MASTER > 0) {
                                                             <h3>Credit Card</h3>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:;" onclick="openWalletModel();" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+                                                            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:;" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
                                                         </div>
                                                     </div>
 
@@ -1910,18 +1859,6 @@ if ($PK_USER_MASTER > 0) {
                                                 </div>
                                             </div>
 
-                                            <!--Wallet Model-->
-                                            <div id="walletModel" class="modal">
-                                                <div class="modal-content" style="width: 50%;">
-                                                    <span class="close close_wallet_model" style="margin-left: 96%;">&times;</span>
-                                                    <div class="card">
-                                                        <div class="card-body">
-                                                            <?php include('includes/add_money_to_wallet.php'); ?>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
                                         </div>
                                     </div>
                                 </div>
@@ -1966,6 +1903,9 @@ if ($PK_USER_MASTER > 0) {
     </div>
 </div>
 
+<!--Wallet Payment Model-->
+<?php include('includes/add_money_to_wallet.php'); ?>
+
 <!--Payment Model-->
 <?php include('includes/enrollment_payment.php'); ?>
 
@@ -1976,206 +1916,11 @@ if ($PK_USER_MASTER > 0) {
         }
     </style>
     <?php require_once('../includes/footer.php');?>
-    <?php /*require_once('../admin/includes/enrollment_model.php');*/?><!--
-    <?php /*require_once('../admin/includes/appointment_model.php');*/?>
-    --><?php /*require_once('../admin/includes/payment_list_model.php');*/?>
-
 
     <script>
         let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
         let PK_USER_MASTER = parseInt(<?=empty($_GET['master_id'])?0:$_GET['master_id']?>);
 
-        /*// Get the modal
-        var payment_model = document.getElementById("paymentModel");
-
-        // Get the <span> element that closes the payment_model
-        var payment_span = document.getElementsByClassName("close")[0];
-
-        // When the user clicks the button, open the payment_model
-        function openPaymentModel() {
-            payment_model.style.display = "block";
-        }
-
-        // When the user clicks on <payment_span> (x), close the payment_model
-        payment_span.onclick = function() {
-            payment_model.style.display = "none";
-        }
-
-        // When the user clicks anywhere outside of the payment_model, close it
-        window.onclick = function(event) {
-            if (event.target == payment_model) {
-                payment_model.style.display = "none";
-            }
-        }
-
-        $(document).keydown(function(e) {
-            // ESCAPE key pressed
-            if (e.keyCode == 27) {
-                payment_model.style.display = "none";
-            }
-        });
-
-
-        // Get the modal
-        var comment_model = document.getElementById("commentModel");
-
-        // Get the <span> element that closes the comment_model
-        var comment_span = document.getElementsByClassName("close_comment_model")[0];
-
-        // When the user clicks the button, open the comment_model
-        function openCommentModel() {
-            comment_model.style.display = "block";
-        }
-
-        // When the user clicks on <comment_span> (x), close the comment_model
-        comment_span.onclick = function() {
-            comment_model.style.display = "none";
-        }
-
-        // When the user clicks anywhere outside of the comment_model, close it
-        window.onclick = function(event) {
-            if (event.target == comment_model) {
-                comment_model.style.display = "none";
-            }
-        }
-
-        $(document).keydown(function(e) {
-            // ESCAPE key pressed
-            if (e.keyCode == 27) {
-                comment_model.style.display = "none";
-            }
-        });
-
-
-
-        // Get the modal
-        var wallet_model = document.getElementById("walletModel");
-
-        // Get the <span> element that closes the wallet_model
-        var wallet_span = document.getElementsByClassName("close_wallet_model")[0];
-
-        // When the user clicks the button, open the wallet_model
-        function openWalletModel() {
-            wallet_model.style.display = "block";
-        }
-
-        // When the user clicks on <wallet_span> (x), close the wallet_model
-        wallet_span.onclick = function() {
-            wallet_model.style.display = "none";
-        }
-
-        // When the user clicks anywhere outside of the wallet_model, close it
-        window.onclick = function(event) {
-            if (event.target == wallet_model) {
-                wallet_model.style.display = "none";
-            }
-        }
-
-        $(document).keydown(function(e) {
-            // ESCAPE key pressed
-            if (e.keyCode == 27) {
-                wallet_model.style.display = "none";
-            }
-        });*/
-    </script>
-
-    <script>
-        /*// Get the modal
-        var enrollment_model = document.getElementById("enrollmentModel");
-
-        // Get the <span> element that closes the enrollment_model
-        var enrollment_span = document.getElementsByClassName("close_enrollment_model")[0];
-
-        // When the user clicks the button, open the enrollment_model
-        function openEnrollmentModel() {
-            enrollment_model.style.display = "block";
-        }
-
-        // When the user clicks on <enrollment_span> (x), close the enrollment_model
-        enrollment_span.onclick = function() {
-            enrollment_model.style.display = "none";
-        }
-
-        // When the user clicks anywhere outside of the enrollment_model, close it
-        window.onclick = function(event) {
-            if (event.target == enrollment_model) {
-                enrollment_model.style.display = "none";
-            }
-        }
-
-        /!*$(document).keydown(function(e) {
-            // ESCAPE key pressed
-            if (e.keyCode == 27) {
-                enrollment_model.style.display = "none";
-            }
-        });*!/*/
-    </script>
-
-        <script>
-            /*// Get the modal
-            var appointment_model = document.getElementById("appointmentModel");
-
-            // Get the <span> element that closes the enrollment_model
-            var appointment_span = document.getElementsByClassName("close_appointment_model")[0];
-
-            // When the user clicks the button, open the enrollment_model
-            function openAppointmentModel() {
-                appointment_model.style.display = "block";
-            }
-
-            // When the user clicks on <appointment_span> (x), close the appointment_model
-            appointment_span.onclick = function() {
-                appointment_model.style.display = "none";
-            }
-
-            // When the user clicks anywhere outside of the appointment_model, close it
-            window.onclick = function(event) {
-                if (event.target == appointment_model) {
-                    appointment_model.style.display = "none";
-                }
-            }
-
-            $(document).keydown(function(e) {
-                // ESCAPE key pressed
-                if (e.keyCode == 27) {
-                    appointment_model.style.display = "none";
-                }
-            });*/
-        </script>
-
-        <script>
-            /*// Get the modal
-            var payment_list_model = document.getElementById("paymentListModel");
-
-            // Get the <span> element that closes the enrollment_model
-            var payment_list_span = document.getElementsByClassName("close_payment_list_model")[0];
-
-            // When the user clicks the button, open the payment_list_model
-            function openPaymentListModel() {
-                payment_list_model.style.display = "block";
-            }
-
-            // When the user clicks on <new_payment_span> (x), close the payment_list_model
-            payment_list_span.onclick = function() {
-                payment_list_model.style.display = "none";
-            }
-
-            // When the user clicks anywhere outside of the payment_list_model, close it
-            window.onclick = function(event) {
-                if (event.target == payment_list_model) {
-                    payment_list_model.style.display = "none";
-                }
-            }
-
-            /!*$(document).keydown(function(e) {
-                // ESCAPE key pressed
-                if (e.keyCode == 27) {
-                    payment_list_model.style.display = "none";
-                }
-            });*!/*/
-        </script>
-
-        <script>
         function createUserComment() {
             $('#comment_header').text("Add Comment");
             $('#PK_COMMENT').val(0);
@@ -2808,7 +2553,7 @@ if ($PK_USER_MASTER > 0) {
             $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
             //$('#payment_confirmation_form_div_customer').slideDown();
             //openPaymentModel();
-            $('#payment_modal').modal('show');
+            $('#enrollment_payment_modal').modal('show');
         }
 
         function confirmComplete(param)
@@ -2995,35 +2740,16 @@ if ($PK_USER_MASTER > 0) {
         $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
         //$('#payment_confirmation_form_div_customer').slideDown();
         //openPaymentModel();
-        $('#payment_modal').modal('show');
+        $('#enrollment_payment_modal').modal('show');
     }
 </script>
 
 <script>
-    /*function payAll(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
-        let BILLED_AMOUNT = [];
-        let PK_ENROLLMENT_LEDGER = [];
-
-        $(".BILLED_AMOUNT:checked").each(function() {
-            BILLED_AMOUNT.push($(this).val());
-            PK_ENROLLMENT_LEDGER.push($(this).data('pk_enrollment_ledger'));
-        });
-
-        let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
-
-        function getSum(total, num) {
-            return total + Math.round(num);
-        }
-
-        $('#enrollment_number').text(ENROLLMENT_ID);
-        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
-        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
-        $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
-        $('#payment_confirmation_form_div_customer').slideDown();
-        //openPaymentModel();
-        $('#payment_modal').modal('show');
-    }*/
+    function openWalletModel() {
+        $('#wallet_payment_model').modal('show');
+    }
 </script>
+
 <script>
     function ConfirmPosted(PK_APPOINTMENT_MASTER)
     {

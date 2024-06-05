@@ -1717,7 +1717,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             //$('#IS_ONE_TIME_PAY').val(1);
             $('#PAYMENT_BILLING_REF').val($('#BILLING_REF').val());
             $('#PAYMENT_BILLING_DATE').val($('#BILLING_DATE').val());
-            //$('#payment_modal').modal('show');
+            //$('#enrollment_payment_modal').modal('show');
         }
         if ($(this).val() == 'Payment Plans'){
             $('#FIRST_DUE_DATE').prop('required', true);
@@ -1731,7 +1731,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             $('#down_payment_div').slideDown();
             $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
             //$('#payment_confirmation_form_div').slideDown();
-            //$('#payment_modal').modal('show');
+            //$('#enrollment_payment_modal').modal('show');
         }
     });
 
@@ -1808,7 +1808,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                     }
                                 }
                             }
-                            $('#payment_modal').modal('show');
+                            $('#enrollment_payment_modal').modal('show');
                         } else {
                             window.location.href = '<?=$header?>';
                         }
@@ -1845,7 +1845,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
         $('#wallet_balance_div').slideUp();
         $('#remaining_amount_div').slideUp();
         $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
-        $('#payment_modal').modal('show');
+        $('#enrollment_payment_modal').modal('show');
     }
 
     $(document).on('click', '.credit-card', function () {
