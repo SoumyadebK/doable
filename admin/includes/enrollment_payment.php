@@ -26,7 +26,7 @@
                                 <div class="form-group">
                                     <label class="form-label">Amount</label>
                                     <div class="col-md-12">
-                                        <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY" value="<?=($AMOUNT) ?? 0?>" class="form-control" readonly>
+                                        <input type="text" id="ACTUAL_AMOUNT" value="<?=($AMOUNT) ?? 0?>" class="form-control" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -45,6 +45,32 @@
                                     </div>
                                     <div id="wallet_balance_div">
 
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="col-md-12 mt-3"><input type="checkbox" id="PARTIAL_PAYMENT" name="PARTIAL_PAYMENT" class="form-check-inline" onchange="showPartialPaymentDiv(this)"> Partial Payment</label>
+                                </div>
+                            </div>
+
+                            <div class="row form-group partial_payment_div" style="display: none;">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Amount to Pay</label>
+                                        <div class="col-md-12">
+                                            <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY" value="<?=($AMOUNT) ?? 0?>" class="form-control" onkeyup="calculatePartialPayment(this)">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Remaining Amount</label>
+                                        <div class="col-md-12">
+                                            <input type="text" name="AMOUNT_REMAIN" id="AMOUNT_REMAIN" value="0" class="form-control" readonly>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -397,6 +423,40 @@
             default:
                 $('.remaining_payment_type_div').slideUp();
                 break;
+        }
+    }
+
+    function showPartialPaymentDiv(param) {
+        if ($(param).is(':checked')) {
+            $('.partial_payment_div').slideDown();
+        } else {
+            let ACTUAL_AMOUNT = $('#ACTUAL_AMOUNT').val();
+            $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
+            $('#AMOUNT_REMAIN').val(0);
+            $('.partial_payment_div').slideUp();
+        }
+    }
+
+    function calculatePartialPayment(param) {
+        let ACTUAL_AMOUNT = parseFloat($('#ACTUAL_AMOUNT').val());
+        let amount_to_pay = parseFloat($(param).val());
+
+        if (!$(param).val()) {
+            $('#AMOUNT_REMAIN').val(ACTUAL_AMOUNT);
+            return false;
+        }
+
+        if (isNaN($(param).val())) {
+            $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
+            $('#AMOUNT_REMAIN').val(0);
+            return false;
+        }
+
+        if ((ACTUAL_AMOUNT-amount_to_pay) < 0) {
+            $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
+            $('#AMOUNT_REMAIN').val(0);
+        } else {
+            $('#AMOUNT_REMAIN').val(ACTUAL_AMOUNT - amount_to_pay);
         }
     }
 </script>
