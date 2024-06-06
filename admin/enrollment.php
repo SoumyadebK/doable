@@ -1215,6 +1215,10 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 <?php require_once('../includes/footer.php');?>
 
 <script>
+    $(document).ready(function () {
+        $('#PK_USER_MASTER').trigger("change");
+    });
+
     const appId = '<?=$SQUARE_APP_ID ?>';
     const locationId = '<?=$SQUARE_LOCATION_ID ?>';
 
