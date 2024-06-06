@@ -1719,6 +1719,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             $('#DOWN_PAYMENT').val(0.00);
             $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
             $('#down_payment_div').slideUp();
+            $('#ACTUAL_AMOUNT').val(total_bill.toFixed(2));
             $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
             //$('#payment_confirmation_form_div').slideDown();
             //$('#IS_ONE_TIME_PAY').val(1);
@@ -1736,6 +1737,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             $('#DOWN_PAYMENT').val(0.00);
             $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
             $('#down_payment_div').slideDown();
+            $('#ACTUAL_AMOUNT').val(total_bill.toFixed(2));
             $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
             //$('#payment_confirmation_form_div').slideDown();
             //$('#enrollment_payment_modal').modal('show');
@@ -1805,13 +1807,16 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                             if (payment_method === 'One Time') {
                                 let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
                                 $('#AMOUNT_TO_PAY').val(balance_payable.toFixed(2));
+                                $('#ACTUAL_AMOUNT').val(balance_payable.toFixed(2));
                             } else {
                                 if (down_payment > 0) {
                                     $('#AMOUNT_TO_PAY').val(down_payment.toFixed(2));
+                                    $('#ACTUAL_AMOUNT').val(down_payment.toFixed(2));
                                 } else {
                                     if ((payment_method === 'Payment Plans') && (today >= firstPaymentDate)) {
                                         let installment_amount = parseFloat(($('#INSTALLMENT_AMOUNT').val()) ? $('#INSTALLMENT_AMOUNT').val() : 0);
                                         $('#AMOUNT_TO_PAY').val(installment_amount.toFixed(2));
+                                        $('#ACTUAL_AMOUNT').val(installment_amount.toFixed(2));
                                     }
                                 }
                             }
@@ -1846,6 +1851,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
     function payNow(PK_ENROLLMENT_LEDGER, BILLED_AMOUNT) {
         $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
         $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
+        $('#ACTUAL_AMOUNT').val(BILLED_AMOUNT);
         $('#payment_confirmation_form_div').slideDown();
         $('#PK_PAYMENT_TYPE').val('');
         $('.payment_type_div').slideUp();

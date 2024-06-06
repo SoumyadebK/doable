@@ -50,7 +50,7 @@
                             </div>
 
 
-                            <div class="col-12">
+                            <div class="col-12 partial_payment">
                                 <div class="form-group">
                                     <label class="col-md-12 mt-3"><input type="checkbox" id="PARTIAL_PAYMENT" name="PARTIAL_PAYMENT" class="form-check-inline" onchange="showPartialPaymentDiv(this)"> Partial Payment</label>
                                 </div>
