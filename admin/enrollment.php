@@ -473,12 +473,12 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                     <div class="form-group">
                                                         <label class="form-label">Expiration Date</label>
                                                         <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
-                                                        <option value="">Select Expiration Date</option>
-                                                        <option value="1" <?=($months == 1)?'selected':''?>>30 days</option>
-                                                        <option value="2" <?=($months == 2)?'selected':''?>>60 days</option>
-                                                        <option value="3" <?=($months == 3)?'selected':''?>>90 days</option>
-                                                        <option value="6" <?=($months == 6)?'selected':''?>>180 days</option>
-                                                        <option value="12" <?=($months == 12)?'selected':''?>>365 days</option>
+                                                            <option value="">Select Expiration Date</option>
+                                                            <option value="1" <?=($months == 1)?'selected':''?>>30 days</option>
+                                                            <option value="2" <?=($months == 2)?'selected':''?>>60 days</option>
+                                                            <option value="3" <?=($months == 3)?'selected':''?>>90 days</option>
+                                                            <option value="6" <?=($months == 6)?'selected':''?>>180 days</option>
+                                                            <option value="12" <?=($months == 12)?'selected':''?>>365 days</option>
                                                         </select>
                                                     </div>
                                                 </div>

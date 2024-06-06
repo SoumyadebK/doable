@@ -337,7 +337,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
         $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
-        checkAdhocAppointmentStatus($PK_APPOINTMENT_MASTER, $PK_SERVICE_MASTER, $PK_SERVICE_CODE, $_POST['CUSTOMER_ID'][0]);
+        checkAdhocAppointmentStatus($PK_APPOINTMENT_MASTER, $PK_SERVICE_MASTER, $PK_SERVICE_CODE, $_POST['CUSTOMER_ID'][0], $PK_LOCATION);
 
         $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
         for ($j = 0; $j < count($_POST['SERVICE_PROVIDER_ID']); $j++) {

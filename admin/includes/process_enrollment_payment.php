@@ -453,7 +453,11 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     }
 
     for ($i = 0; $i < count($ENROLLMENT_LEDGER_PARENT_ARRAY); $i++) {
+        $PAYMENT_FOR_EACH = $AMOUNT/count($ENROLLMENT_LEDGER_PARENT_ARRAY);
         $ledger_data = $db_account->Execute("SELECT `BILLED_AMOUNT` FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_LEDGER` = ".$ENROLLMENT_LEDGER_PARENT_ARRAY[$i]);
+        $BILLED_AMOUNT = $ledger_data->fields['BILLED_AMOUNT'];
+
+
         $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
         $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT_ARRAY[$i];
         $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];

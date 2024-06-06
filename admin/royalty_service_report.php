@@ -47,7 +47,7 @@ $PAYMENT_QUERY = "SELECT
                     
                     WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE != 7 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.")
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'
-                    ORDER BY PAYMENT_DATE ASC";
+                    ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
 
 $REFUND_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.AMOUNT,
@@ -72,7 +72,7 @@ $REFUND_QUERY = "SELECT
                     
                     WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE != 7 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.")
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'
-                    ORDER BY PAYMENT_DATE ASC";
+                    ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
