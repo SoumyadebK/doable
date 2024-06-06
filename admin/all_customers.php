@@ -130,9 +130,9 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <tr>
                                         <th data-type="number" class="sortable" style="cursor: pointer">No</th>
                                         <th data-type="string" class="sortable" style="width:15%; cursor: pointer;">Name</th>
-                                        <th data-type="string" class="sortable" style="width:15%; cursor: pointer;">Partner</th>
+                                        <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Partner</th>
                                         <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Customer ID</th>
-                                        <th data-type="string" class="sortable" style="width:15%; cursor: pointer;">Email Id</th>
+                                        <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Email Id</th>
                                         <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Phone</th>
                                         <th data-type="number" class="sortable" style="width:10%; cursor: pointer; ">Total Paid</th>
                                         <th data-type="number" class="sortable" style="width:10%; cursor: pointer;">Credit</th>
