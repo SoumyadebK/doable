@@ -2547,9 +2547,11 @@ if ($PK_USER_MASTER > 0) {
         });
 
         function payNow(PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, BILLED_AMOUNT, ENROLLMENT_ID) {
+            $('#partial_payment').show();
             $('#enrollment_number').text(ENROLLMENT_ID);
             $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
             $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+            $('#ACTUAL_AMOUNT').val(BILLED_AMOUNT);
             $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
             //$('#payment_confirmation_form_div_customer').slideDown();
             //openPaymentModel();
@@ -2720,6 +2722,7 @@ if ($PK_USER_MASTER > 0) {
 
 <script>
     function paySelected(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
+        $('#partial_payment').hide();
         let BILLED_AMOUNT = [];
         let PK_ENROLLMENT_LEDGER = [];
 
@@ -2737,6 +2740,7 @@ if ($PK_USER_MASTER > 0) {
         $('#enrollment_number').text(ENROLLMENT_ID);
         $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
         $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#ACTUAL_AMOUNT').val(parseFloat(TOTAL).toFixed(2));
         $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
         //$('#payment_confirmation_form_div_customer').slideDown();
         //openPaymentModel();
