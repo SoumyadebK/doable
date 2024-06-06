@@ -420,9 +420,9 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         <select required name="PK_USER_MASTER" id="PK_USER_MASTER" onchange="selectThisCustomer(this);">
                                                             <option value="">Select Customer</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_USER_MASTER.PRIMARY_LOCATION_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME ASC");
+                                                            $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_USER_MASTER.PRIMARY_LOCATION_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER=DOA_USERS.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME ASC");
                                                             while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" data-customer_id="<?=$row->fields['PK_USER_MASTER']?>" data-location_id="<?=$row->fields['PRIMARY_LOCATION_ID']?>" data-customer_name="<?=$row->fields['NAME']?>" <?=($PK_USER_MASTER == $row->fields['PK_USER_MASTER'])?'selected':''?>><?=$row->fields['NAME'].' ('.$row->fields['USER_NAME'].')'.' ('.$row->fields['PHONE'].')'.' ('.$row->fields['EMAIL_ID'].')'?></option>
+                                                                <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" data-customer_id="<?=$row->fields['PK_USER_MASTER']?>" data-pk_user="<?=$row->fields['PK_USER']?>" data-location_id="<?=$row->fields['PRIMARY_LOCATION_ID']?>" data-customer_name="<?=$row->fields['NAME']?>" <?=($PK_USER_MASTER == $row->fields['PK_USER_MASTER'])?'selected':''?>><?=$row->fields['NAME'].' ('.$row->fields['USER_NAME'].')'.' ('.$row->fields['PHONE'].')'.' ('.$row->fields['EMAIL_ID'].')'?></option>
                                                             <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
@@ -432,11 +432,6 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         <label class="form-label">Location<span class="text-danger">*</span></label>
                                                         <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION">
                                                             <option value="">Select Location</option>
-                                                            <?php
-                                                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LOCATION_NAME");
-                                                            while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($PK_LOCATION == $row->fields['PK_LOCATION'])?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
-                                                            <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -1370,9 +1365,21 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
     function selectThisCustomer(param){
         let location_id = $(param).find(':selected').data('location_id');
-        let customer_id = $(param).find(':selected').data('customer_id');
+        //let customer_id = $(param).find(':selected').data('customer_id');
+        let PK_USER = $(param).find(':selected').data('pk_user');
         $('#PK_LOCATION').val(location_id);
-        $('.CUSTOMER_ID').val(customer_id);
+        //$('.CUSTOMER_ID').val(customer_id);
+        $.ajax({
+            url: "ajax/get_locations.php",
+            type: "POST",
+            data: {PK_USER: PK_USER, LOCATION_ID: location_id},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#PK_LOCATION').empty();
+                $('#PK_LOCATION').append(result);
+            }
+        });
     }
 
     function addMoreServices() {

@@ -1344,7 +1344,8 @@ if ($PK_USER_MASTER > 0) {
                                                 <div class="card-body" style="margin-top: 10PX">
                                                 <a style="font-weight: bold">Client Enrollment Agreements :-</a><br>
                                                 <?php
-                                                $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = '$_GET[master_id]'");
+                                                $MASTER_ID = !empty($_GET['master_id']) ? $_GET['master_id'] : '';
+                                                $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = ".$MASTER_ID);
                                                 while (!$res->EOF) {?>
                                                     <div style="margin-top: 5px">
                                                     <?=$res->fields['ENROLLMENT_ID']?> - <a href="../uploads/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
@@ -2104,9 +2105,9 @@ if ($PK_USER_MASTER > 0) {
         function createLogin(param) {
             if ($(param).is(':checked')){
                 $('#login_info_tab').show();
-                $('#phone_label').text('*');
+                $('#phone_label').text('* (Please type your phone number)');
                 $('#PHONE').prop('required', true);
-                $('#email_label').text('*');
+                $('#email_label').text('* (Please type your email id)');
                 $('#EMAIL_ID').prop('required', true);
                 $('#submit_button').hide();
                 $('#next_button_interest').hide();

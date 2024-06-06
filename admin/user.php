@@ -789,7 +789,7 @@ if(!empty($_GET['id'])) {
                                                                 <div class="col-6">
                                                                     <select class="multi_sumo_select_services" name="PK_SERVICE_MASTER[]" multiple>
                                                                         <?php
-                                                                        $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+                                                                        $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE ACTIVE = 1 ORDER BY SERVICE_NAME");
                                                                         while (!$row->EOF) { ?>
                                                                             <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=(in_array($row->fields['PK_SERVICE_MASTER'], explode(',', $PK_SERVICE_MASTER))?'selected':'')?> ><?=$row->fields['SERVICE_NAME']?></option>
                                                                             <?php $row->MoveNext(); } ?>

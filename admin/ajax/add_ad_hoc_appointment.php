@@ -76,14 +76,22 @@ $AND_PK_USER = '';
                     <select class="multi_select" required name="CUSTOMER_ID[]" id="SELECT_CUSTOMER" onchange="selectThisCustomer(this);">
                         <option value="">Select Customer</option>
                         <?php
-                        $row = $db->Execute("SELECT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ORDER BY DOA_USERS.FIRST_NAME");
+                        $row = $db->Execute("SELECT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_USER_MASTER.PRIMARY_LOCATION_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ORDER BY DOA_USERS.FIRST_NAME");
                         while (!$row->EOF) { ?>
-                            <option value="<?php echo $row->fields['PK_USER_MASTER'];?>"  <?=($PK_USER_MASTER == $row->fields['PK_USER_MASTER'])?'selected':''?>><?=$row->fields['NAME'].' ('.$row->fields['USER_NAME'].')'.' ('.$row->fields['PHONE'].')'?></option>
+                            <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" data-pk_user="<?=$row->fields['PK_USER']?>" data-location_id="<?=$row->fields['PRIMARY_LOCATION_ID']?>" <?=($PK_USER_MASTER == $row->fields['PK_USER_MASTER'])?'selected':''?>><?=$row->fields['NAME'].' ('.$row->fields['USER_NAME'].')'.' ('.$row->fields['PHONE'].')'?></option>
                         <?php $row->MoveNext(); } ?>
                     </select>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-2">
+                <div class="form-group">
+                    <label class="form-label">Location<span class="text-danger">*</span></label>
+                    <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION">
+                        <option value="">Select Location</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-2">
                 <div class="form-group">
                     <label class="form-label">Service<span class="text-danger">*</span></label><br>
                     <select class="multi_select" required name="SERVICE_ID" onchange="selectThisService(this)">
@@ -96,7 +104,7 @@ $AND_PK_USER = '';
                     </select>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-2">
                 <div class="form-group">
                     <label class="form-label">Scheduling Code<span class="text-danger">*</span></label><br>
                     <select class="multi_select" required id="PK_SCHEDULING_CODE" name="SCHEDULING_CODE" onchange="getSlots()">
@@ -195,6 +203,22 @@ $AND_PK_USER = '';
     $(document).on('click', '#cancel_button', function () {
         window.location.href='all_schedules.php?view=list'
     });
+
+    function selectThisCustomer(param){
+        let location_id = $(param).find(':selected').data('location_id');
+        let PK_USER = $(param).find(':selected').data('pk_user');
+        $.ajax({
+            url: "ajax/get_locations.php",
+            type: "POST",
+            data: {PK_USER: PK_USER, LOCATION_ID: location_id},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#PK_LOCATION').empty();
+                $('#PK_LOCATION').append(result);
+            }
+        });
+    }
 
     function selectThisEnrollment(param) {
         let PK_ENROLLMENT_MASTER = $(param).val();
