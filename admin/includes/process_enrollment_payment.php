@@ -28,93 +28,19 @@ else if ($SQUARE_MODE == 2)
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";*/
 
 if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
-    $html_template_receipt = '<table style="margin-left: auto; margin-right: auto; width:70%;">
-        <tbody>
-            <tr>
-                <td style="text-align:center"><strong>{BUSINESS_NAME}</strong></td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td style="text-align:center">{FULL_NAME} {LOCATION_NAME}</td>
-            </tr>
-            <tr>
-                <td style="text-align:center">{LOCATION_NAME}, {STATE} {ZIP}</td>
-            </tr>
-            <tr>
-                <td style="text-align:center">{PHONE}</td>
-            </tr>
-            <tr>
-                <td style="text-align:center"><strong>Sale Transaction</strong></td>
-            </tr>
-            <tr>
-                <td style="text-align:center"><strong>Billing Ref# {BILLING_REF}</strong></td>
-            </tr>
-            <tr>
-                <td style="text-align:center"><strong>Receipt# {RECEIPT_NUMBER}</strong></td>
-            </tr>
-            <tr>
-                <td style="text-align:center">{PAYMENT_DATE}</td>
-            </tr>
-        </tbody>
-    </table>
-    
-    <table style="margin-left: auto; margin-right: auto; width:70%;">
-        <tbody>
-            <tr>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td>Payment Method : </td>
-                <td style="text-align:right">{PAYMENT_METHOD}</td>
-            </tr>
-            {PAYMENT_DETAILS}
-            <tr>
-                <td>Details : </td>
-                <td style="text-align:right">{DETAILS}</td>
-            </tr>
-            <tr>
-                <td>Amount(s) : </td>
-                <td style="text-align:right">{AMOUNT}</td>
-            </tr>
-            <tr>
-                <td>Total : </td>
-                <td style="text-align:right">{TOTAL}</td>
-            </tr>
-        </tbody>
-    </table>
-    
-    <table style="margin-left: auto; margin-right: auto; width:70%;">
-        <tbody>
-            <tr>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td style="text-align:center">{FULL_NAME}</td>
-            </tr>
-            <tr>
-                <td style="text-align:center">I agree to pay above total amount according to card<br />
-                issuer agreement (merchant agreement if voucher)</td>
-            </tr>
-            <tr>
-                <td style="text-align:center">*Per authorization on {PAYMENT_DATE} Billing Ref# {BILLING_REF}</td>
-            </tr>
-        </tbody>
-    </table>';
-
     $ENROLLMENT_LEDGER_PARENT = $_POST['PK_ENROLLMENT_LEDGER'];
     $ENROLLMENT_LEDGER_PARENT_ARRAY = explode(',', $ENROLLMENT_LEDGER_PARENT);
     unset($_POST['PK_ENROLLMENT_LEDGER']);
 
     $AMOUNT = $_POST['AMOUNT'];
     $LAST4 = '****';
+    $BILLED_AMOUNT = 0.00;
+    $AMOUNT_BILLED = $AMOUNT;
+    $RECEIPT_NUMBER_ARRAY = [];
 
-    $DETAILS_AMOUNT = '';
-    for ($i = 0; $i < count($ENROLLMENT_LEDGER_PARENT_ARRAY); $i++) {
-        $ledger_data = $db_account->Execute("SELECT `BILLED_AMOUNT` FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_LEDGER` = " . $ENROLLMENT_LEDGER_PARENT_ARRAY[$i]);
-        $DETAILS_AMOUNT .= '$'.number_format($ledger_data->fields['BILLED_AMOUNT'], 2).'<br>';
-    }
+    $PAYMENT_INFO = '';
+    $PAYMENT_STATUS = 'Success';
+    $IS_ORIGINAL_RECEIPT = 1;
 
     $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT ORDER BY PK_ENROLLMENT_PAYMENT DESC LIMIT 1");
     if ($receipt->RecordCount() > 0) {
@@ -123,9 +49,6 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     } else {
         $RECEIPT_NUMBER = 1;
     }
-
-    $PAYMENT_INFO = '';
-    $PAYMENT_STATUS = 'Success';
 
     $payment_info = '';
     if ($_POST['PK_PAYMENT_TYPE'] == 1) {
@@ -329,8 +252,9 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             pre_r($response);
         }
     }
+
     elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
-        $AMOUNT = $_POST['AMOUNT'];
+        $IS_ORIGINAL_RECEIPT = 0;
         $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
         $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
 
@@ -365,22 +289,41 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         }
 
         $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-        $DEBIT_AMOUNT = ($WALLET_BALANCE>$AMOUNT)?$AMOUNT:$WALLET_BALANCE;
+        $DEBIT_AMOUNT = ($WALLET_BALANCE > $AMOUNT) ? $AMOUNT : $WALLET_BALANCE;
         if ($wallet_data->RecordCount() > 0) {
             $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
         }
+
+        $wallet_transaction = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE BALANCE_LEFT > 0 AND PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET ASC");
+        while (!$wallet_transaction->EOF) {
+            $PK_CUSTOMER_WALLET = $wallet_transaction->fields['PK_CUSTOMER_WALLET'];
+            $BALANCE_LEFT = $wallet_transaction->fields['BALANCE_LEFT'] - $AMOUNT_BILLED;
+            if ($BALANCE_LEFT > 0) {
+                $WALLET_UPDATE_DATA['BALANCE_LEFT'] = $BALANCE_LEFT;
+                db_perform_account('DOA_CUSTOMER_WALLET', $WALLET_UPDATE_DATA, 'update', " PK_CUSTOMER_WALLET =  '$PK_CUSTOMER_WALLET'");
+                $RECEIPT_NUMBER_ARRAY[] = $wallet_transaction->fields['RECEIPT_NUMBER'];
+                break;
+            } else {
+                $WALLET_UPDATE_DATA['BALANCE_LEFT'] = 0;
+                db_perform_account('DOA_CUSTOMER_WALLET', $WALLET_UPDATE_DATA, 'update', " PK_CUSTOMER_WALLET =  '$PK_CUSTOMER_WALLET'");
+                $RECEIPT_NUMBER_ARRAY[] = $wallet_transaction->fields['RECEIPT_NUMBER'];
+                $AMOUNT_BILLED -= $wallet_transaction->fields['BALANCE_LEFT'];
+            }
+            $wallet_transaction->MoveNext();
+        }
+
         $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $INSERT_DATA['DEBIT'] = $DEBIT_AMOUNT;
         $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment ".$enrollment_id;
+        $INSERT_DATA['RECEIPT_NUMBER'] = implode(',', $RECEIPT_NUMBER_ARRAY);
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
-    }else{
+        $RECEIPT_NUMBER = implode(',', $RECEIPT_NUMBER_ARRAY);
+    } else {
         $PAYMENT_INFO = 'Payment Done.';
     }
-    $TRANSACTION_TYPE = 'Payment';
-    $BILLED_AMOUNT = 0.00;
 
     $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$_POST['PK_ENROLLMENT_MASTER']);
     $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$_POST['PK_ENROLLMENT_MASTER']);
@@ -398,58 +341,10 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     }
 
     savePercentageData($_POST['PK_ENROLLMENT_MASTER'], $AMOUNT);
-
-    /*$enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
-    if ($enrollment_balance->RecordCount() > 0){
-        $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $enrollment_balance->fields['TOTAL_BALANCE_PAID']+$AMOUNT;
-        $ENROLLMENT_BALANCE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-        $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
-    }else{
-        $ENROLLMENT_BALANCE_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-        $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $AMOUNT;
-        $ENROLLMENT_BALANCE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $ENROLLMENT_BALANCE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
-    }*/
-
-    $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
-    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.LOCATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER=DOA_USERS.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION=DOA_USER_LOCATION.PK_LOCATION LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$_POST['PK_ENROLLMENT_MASTER']);
     $enrollment_billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
-    //$enrollment_ledger_data = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.* , DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE=DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_LEDGER=".$ENROLLMENT_LEDGER_PARENT);
-    $enrollment_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER=".$_POST['PK_ENROLLMENT_MASTER']);
-    $enrollment_payment_type = $db->Execute("SELECT PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE=".$_POST['PK_PAYMENT_TYPE']);
-    $PAYMENT_DETAILS = "";
-    if($_POST['PK_PAYMENT_TYPE'] == 2){
-        $PAYMENT_DETAILS = "<tr>
-                                <td>".$enrollment_payment_type->fields['PAYMENT_TYPE']."# : </td>
-                                <td style='text-align:right'>".$_POST['CHECK_NUMBER']."</td>
-                            </tr>";
-    } elseif($_POST['PK_PAYMENT_TYPE'] == 1){
-        $PAYMENT_DETAILS = "<tr>
-                                <td>".$enrollment_payment_type->fields['PAYMENT_TYPE']."# : </td>
-                                <td style='text-align:right'>**** ".$LAST4."</td>
-                            </tr>";
-    }
 
-    if ($_POST['PK_PAYMENT_TYPE'] == 7) {
-        $PAYMENT_DATA['RECEIPT_PDF_LINK'] = null;
-    } else {
-        $html_template_receipt = str_replace('{BUSINESS_NAME}', $business_details->fields['BUSINESS_NAME'], $html_template_receipt);
-        $html_template_receipt = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME'] . " " . $user_data->fields['LAST_NAME'], $html_template_receipt);
-        $html_template_receipt = str_replace('{LOCATION_NAME}', $user_data->fields['LOCATION_NAME'], $html_template_receipt);
-        $html_template_receipt = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template_receipt);
-        $html_template_receipt = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template_receipt);
-        $html_template_receipt = str_replace('{PHONE}', $user_data->fields['PHONE'], $html_template_receipt);
-        $html_template_receipt = str_replace('{BILLING_REF}', $enrollment_billing_data->fields['BILLING_REF'], $html_template_receipt);
-        $html_template_receipt = str_replace('{RECEIPT_NUMBER}', $RECEIPT_NUMBER, $html_template_receipt);
-        $html_template_receipt = str_replace('{PAYMENT_METHOD}', $enrollment_payment_type->fields['PAYMENT_TYPE'], $html_template_receipt);
-        $html_template_receipt = str_replace('{PAYMENT_DETAILS}', $PAYMENT_DETAILS, $html_template_receipt);
-        $html_template_receipt = str_replace('{DETAILS}', $DETAILS_AMOUNT, $html_template_receipt);
-        $html_template_receipt = str_replace('{AMOUNT}', '$' . number_format($AMOUNT, 2) /*$enrollment_ledger_data->fields['BILLED_AMOUNT']*/, $html_template_receipt);
-        $html_template_receipt = str_replace('{TOTAL}', '$' . number_format($AMOUNT, 2), $html_template_receipt);
-        $html_template_receipt = str_replace('{PAYMENT_DATE}', date('m-d-Y'), $html_template_receipt);
-        $PAYMENT_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template_receipt);
+    if (count($RECEIPT_NUMBER_ARRAY) > 0) {
+        $RECEIPT_NUMBER = implode(',', $RECEIPT_NUMBER_ARRAY);
     }
 
     for ($i = 0; $i < count($ENROLLMENT_LEDGER_PARENT_ARRAY); $i++) {
@@ -504,6 +399,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
         $PAYMENT_DATA['PAYMENT_STATUS'] = $PAYMENT_STATUS;
         $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+        $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = $IS_ORIGINAL_RECEIPT;
         db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 
         $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
@@ -513,11 +409,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
     markEnrollmentComplete($_POST['PK_ENROLLMENT_MASTER']);
 
-    //markAdhocAppointmentNormal($_POST['PK_ENROLLMENT_MASTER']);
-
     header('location:'.$header);
 }
-
 function savePercentageData($PK_ENROLLMENT_MASTER, $AMOUNT){
     global $db_account;
     $row = $db_account->Execute("SELECT SERVICE_PROVIDER_ID, SERVICE_PROVIDER_PERCENTAGE FROM DOA_ENROLLMENT_SERVICE_PROVIDER WHERE PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
@@ -528,29 +421,4 @@ function savePercentageData($PK_ENROLLMENT_MASTER, $AMOUNT){
         db_perform_account('DOA_SERVICE_PROVIDER_AMOUNT', $PERCENTAGE_DATA, 'insert');
         $row->MoveNext();
     }
-}
-
-function generateReceiptPdf($html){
-    require_once('../../global/vendor/autoload.php');
-
-    $mpdf = new Mpdf();
-    $mpdf->WriteHTML($html);
-
-    $file_name = "enrollment_receipt_pdf_".time().".pdf";
-    $mpdf->Output("../../uploads/enrollment_pdf/".$file_name, 'F');
-
-    return $file_name;
-}
-function generatePdf($html){
-    require_once('../../global/vendor/autoload.php');
-
-    $mpdf = new Mpdf();
-    $mpdf->WriteHTML($html);
-    $mpdf->keep_table_proportions = true;
-    $mpdf->AddPage();
-
-    $file_name = "enrollment_pdf_".time().".pdf";
-    $mpdf->Output("../../uploads/enrollment_pdf/".$file_name, 'F');
-
-    return $file_name;
 }

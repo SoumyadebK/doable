@@ -112,6 +112,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
         $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $INSERT_DATA['DEBIT'] = 0;
         $INSERT_DATA['CREDIT'] = $AMOUNT;
+        $INSERT_DATA['BALANCE_LEFT'] = $AMOUNT;
         $INSERT_DATA['DESCRIPTION'] = "Amount Credited to Your Wallet using " . $payment_type->fields['PAYMENT_TYPE'];
         $INSERT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
         $INSERT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
@@ -136,6 +137,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
         $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
         $PAYMENT_DATA['PAYMENT_STATUS'] = $PAYMENT_STATUS;
         $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+        $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
 
         db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 

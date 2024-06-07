@@ -1919,6 +1919,7 @@ function moveToWallet($RESPONSE_DATA)
     $ENROLLMENT_TYPE = $RESPONSE_DATA['ENROLLMENT_TYPE'];
     $TRANSACTION_TYPE = $RESPONSE_DATA['TRANSACTION_TYPE'];
     $PK_PAYMENT_TYPE = ($TRANSACTION_TYPE == 'Move') ? 7 : $RESPONSE_DATA['PK_PAYMENT_TYPE'];
+    $IS_ORIGINAL_RECEIPT = 0;
 
     $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, MISC_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
     if(empty($enrollment_data->fields['ENROLLMENT_NAME'])){
@@ -1935,6 +1936,8 @@ function moveToWallet($RESPONSE_DATA)
 
     $payment_data = $db_account->Execute("SELECT PK_PAYMENT_TYPE, RECEIPT_NUMBER, RECEIPT_PDF_LINK FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_LEDGER=".$PK_ENROLLMENT_LEDGER);
     if ($PK_PAYMENT_TYPE == 7) {
+        $TYPE = 'Move';
+
         $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
         if ($wallet_data->RecordCount() > 0) {
             $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
@@ -1943,89 +1946,17 @@ function moveToWallet($RESPONSE_DATA)
         }
         $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $INSERT_DATA['CREDIT'] = $BALANCE;
+        $INSERT_DATA['BALANCE_LEFT'] = $BALANCE;
         $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
         $INSERT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
-        //$INSERT_DATA['RECEIPT_PDF_LINK'] = $payment_data->fields['RECEIPT_PDF_LINK'];
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
         $PAYMENT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
-        //$PAYMENT_DATA['RECEIPT_PDF_LINK'] = $payment_data->fields['RECEIPT_PDF_LINK'];
-
-        $TYPE = 'Move';
     } else {
         $TYPE = 'Refund';
-
-        $html_template_receipt = '<table style="margin-left: auto; margin-right: auto; width:70%;">
-            <tbody>
-                <tr>
-                    <td style="text-align:center"><strong>{BUSINESS_NAME}</strong></td>
-                </tr>
-                <tr>
-                    <td>&nbsp;</td>
-                </tr>
-                <tr>
-                    <td style="text-align:center">{FULL_NAME} {LOCATION_NAME}</td>
-                </tr>
-                <tr>
-                    <td style="text-align:center">{LOCATION_NAME}, {STATE} {ZIP}</td>
-                </tr>
-                <tr>
-                    <td style="text-align:center">{PHONE}</td>
-                </tr>
-                <tr>
-                    <td style="text-align:center"><strong>Refund Transaction</strong></td>
-                </tr>
-                <tr>
-                    <td style="text-align:center"><strong>Billing Ref# {BILLING_REF}</strong></td>
-                </tr>
-                <tr>
-                    <td style="text-align:center"><strong>Receipt# {RECEIPT_NUMBER}</strong></td>
-                </tr>
-                <tr>
-                    <td style="text-align:center">{PAYMENT_DATE}</td>
-                </tr>
-            </tbody>
-        </table>
-        
-        <table style="margin-left: auto; margin-right: auto; width:70%;">
-            <tbody>
-                <tr>
-                    <td>&nbsp;</td>
-                </tr>
-                <tr>
-                    <td>Refund Method : </td>
-                    <td style="text-align:right">{PAYMENT_METHOD}</td>
-                </tr>
-                <tr>
-                    <td>Details : </td>
-                    <td style="text-align:right">{DETAILS}</td>
-                </tr>
-                <tr>
-                    <td>Amount(s) : </td>
-                    <td style="text-align:right">{AMOUNT}</td>
-                </tr>
-                <tr>
-                    <td>Total : </td>
-                    <td style="text-align:right">{TOTAL}</td>
-                </tr>
-            </tbody>
-        </table>
-        
-        <table style="margin-left: auto; margin-right: auto; width:70%;">
-            <tbody>
-                <tr>
-                    <td>&nbsp;</td>
-                </tr>
-                <tr>
-                    <td style="text-align:center">{FULL_NAME}</td>
-                </tr>
-                <tr>
-                    <td style="text-align:center">*Per authorization on {PAYMENT_DATE} Billing Ref# {BILLING_REF}</td>
-                </tr>
-            </tbody>
-        </table>';
+        $IS_ORIGINAL_RECEIPT = 1;
 
         $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT ORDER BY PK_ENROLLMENT_PAYMENT DESC LIMIT 1");
         if ($receipt->RecordCount() > 0) {
@@ -2035,27 +1966,7 @@ function moveToWallet($RESPONSE_DATA)
             $RECEIPT_NUMBER = 1;
         }
 
-        $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
-        $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.LOCATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER=DOA_USERS.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION=DOA_USER_LOCATION.PK_LOCATION LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
-        $enrollment_billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
-        $enrollment_payment_type = $db->Execute("SELECT PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE=".$PK_PAYMENT_TYPE);
-
-        $html_template_receipt = str_replace('{BUSINESS_NAME}', $business_details->fields['BUSINESS_NAME'], $html_template_receipt);
-        $html_template_receipt = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME'] . " " . $user_data->fields['LAST_NAME'], $html_template_receipt);
-        $html_template_receipt = str_replace('{LOCATION_NAME}', $user_data->fields['LOCATION_NAME'], $html_template_receipt);
-        $html_template_receipt = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template_receipt);
-        $html_template_receipt = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template_receipt);
-        $html_template_receipt = str_replace('{PHONE}', $user_data->fields['PHONE'], $html_template_receipt);
-        $html_template_receipt = str_replace('{BILLING_REF}', $enrollment_billing_data->fields['BILLING_REF'], $html_template_receipt);
-        $html_template_receipt = str_replace('{RECEIPT_NUMBER}', $RECEIPT_NUMBER, $html_template_receipt);
-        $html_template_receipt = str_replace('{PAYMENT_METHOD}', $enrollment_payment_type->fields['PAYMENT_TYPE'], $html_template_receipt);
-        $html_template_receipt = str_replace('{DETAILS}', '$' . number_format($BALANCE, 2), $html_template_receipt);
-        $html_template_receipt = str_replace('{AMOUNT}', '$' . number_format($BALANCE, 2), $html_template_receipt);
-        $html_template_receipt = str_replace('{TOTAL}', '$' . number_format($BALANCE, 2), $html_template_receipt);
-        $html_template_receipt = str_replace('{PAYMENT_DATE}', date('m-d-Y'), $html_template_receipt);
-
         $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
-        //$PAYMENT_DATA['RECEIPT_PDF_LINK'] = generateReceiptPdf($html_template_receipt);
     }
 
     $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
@@ -2069,6 +1980,7 @@ function moveToWallet($RESPONSE_DATA)
     $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
     $PAYMENT_DATA['PAYMENT_INFO'] = $TYPE;
     $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+    $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = $IS_ORIGINAL_RECEIPT;
     db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 
     $UPDATE_PAYMENT_DATA['IS_REFUNDED'] = 1;
@@ -2093,17 +2005,6 @@ function moveToWallet($RESPONSE_DATA)
             markAppointmentPaid($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
             $enrollmentServiceData->MoveNext();
         }
-
-        /*if ($cancel_enrollment == 1) {
-            $CANCEL_ENROLLMENT_UPDATE['STATUS'] = 'C';
-
-            $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER' AND TYPE = 'CREATED'");
-            db_perform_account('DOA_APPOINTMENT_MASTER', $CANCEL_ENROLLMENT_UPDATE, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND PK_APPOINTMENT_STATUS != 2");
-
-            db_perform_account('DOA_ENROLLMENT_MASTER', $CANCEL_ENROLLMENT_UPDATE, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-            db_perform_account('DOA_ENROLLMENT_SERVICE', $CANCEL_ENROLLMENT_UPDATE, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-            db_perform_account('DOA_ENROLLMENT_LEDGER', $CANCEL_ENROLLMENT_UPDATE, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-        }*/
     } else {
         $UPDATE_DATA['IS_PAID'] = 1;
         db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
