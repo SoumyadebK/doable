@@ -34,7 +34,7 @@
                                 <div class="form-group">
                                     <label class="form-label">Payment Type</label>
                                     <div class="col-md-12">
-                                        <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)">
+                                        <select class="form-control PAYMENT_TYPE" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)">
                                             <option value="">Select</option>
                                             <?php
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
