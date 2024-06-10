@@ -302,7 +302,7 @@ while (!$row->EOF) {
                     </td>
                 </tr>
                 <?php
-                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE (DOA_ENROLLMENT_LEDGER.IS_PAID != 2 || DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Refund') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = DOA_ENROLLMENT_PAYMENT.TYPE AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.AMOUNT, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE (DOA_ENROLLMENT_LEDGER.IS_PAID != 2 || DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Refund') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = DOA_ENROLLMENT_PAYMENT.TYPE AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
                 if ($payment_details->RecordCount() > 0) {
                     $p++;
                     while (!$payment_details->EOF) {
@@ -321,7 +321,7 @@ while (!$row->EOF) {
                             <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
                             <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
                             <td></td>
-                            <td style="text-align: right;"><?=$payment_details->fields['PAID_AMOUNT']?></td>
+                            <td style="text-align: right;"><?=$payment_details->fields['AMOUNT']?></td>
                             <td style="text-align: center;"><?=$payment_type?></td>
                             <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
                             <td style="text-align: right;">

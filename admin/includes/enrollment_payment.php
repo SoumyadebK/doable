@@ -24,9 +24,28 @@
                         <div class="row">
                             <div class="col-6">
                                 <div class="form-group">
-                                    <label class="form-label">Amount</label>
+                                    <label class="form-label">Total Amount</label>
                                     <div class="col-md-12">
-                                        <input type="text" id="ACTUAL_AMOUNT" value="<?=($AMOUNT) ?? 0?>" class="form-control" readonly>
+                                        <input type="text" name="ACTUAL_AMOUNT" id="ACTUAL_AMOUNT" value="<?=($AMOUNT) ?? 0?>" class="form-control" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Remaining Amount</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="REMAINING_AMOUNT" id="REMAINING_AMOUNT" class="form-control" value="0" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Amount to Pay</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="AMOUNT_TO_PAY" id="AMOUNT_TO_PAY" value="<?=($AMOUNT) ?? 0?>" class="form-control" onkeyup="calculatePartialPayment('actual')">
                                     </div>
                                 </div>
                             </div>
@@ -48,87 +67,7 @@
                                     </div>
                                 </div>
                             </div>
-
-
-                            <div class="col-12 partial_payment">
-                                <div class="form-group">
-                                    <label class="col-md-12 mt-3"><input type="checkbox" id="PARTIAL_PAYMENT" name="PARTIAL_PAYMENT" class="form-check-inline" onchange="showPartialPaymentDiv(this)"> Partial Payment</label>
-                                </div>
-                            </div>
-
-                            <div class="row form-group partial_payment_div" style="display: none;">
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Amount to Pay</label>
-                                        <div class="col-md-12">
-                                            <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY" value="<?=($AMOUNT) ?? 0?>" class="form-control" onkeyup="calculatePartialPayment(this)">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Remaining Amount</label>
-                                        <div class="col-md-12">
-                                            <input type="text" name="AMOUNT_REMAIN" id="AMOUNT_REMAIN" value="0" class="form-control" readonly>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
-
-                        <div class="row" id="remaining_amount_div" style="display: none;">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Remaining Amount</label>
-                                    <div class="col-md-12">
-                                        <input type="text" name="REMAINING_AMOUNT" id="REMAINING_AMOUNT" class="form-control" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Payment Type</label>
-                                    <div class="col-md-12">
-                                        <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING" onchange="selectRemainingPaymentType(this)">
-                                            <option value="">Select</option>
-                                            <?php
-                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
-                                            while (!$row->EOF) { ?>
-                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                <?php $row->MoveNext(); } ?>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row remaining_payment_type_div" id="remaining_credit_card_payment" style="display: none;">
-                            <div class="col-12">
-                                <div class="form-group" id="remaining_card_div">
-
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row remaining_payment_type_div" id="remaining_check_payment" style="display: none;">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Check Number</label>
-                                    <div class="col-md-12">
-                                        <input type="text" name="CHECK_NUMBER_REMAINING" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Check Date</label>
-                                    <div class="col-md-12">
-                                        <input type="text" name="CHECK_DATE_REMAINING" class="form-control datepicker-normal">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
 
                         <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
@@ -233,6 +172,94 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!--<div class="row" id="remaining_amount_div" style="display: none;">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Remaining Amount</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="REMAINING_AMOUNT" id="REMAINING_AMOUNT" class="form-control" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Payment Type</label>
+                                    <div class="col-md-12">
+                                        <select class="form-control" name="PK_PAYMENT_TYPE_PARTIAL" id="PK_PAYMENT_TYPE_PARTIAL" onchange="selectPartialPaymentType(this)">
+                                            <option value="">Select</option>
+                                            <?php
+/*                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
+                                            while (!$row->EOF) { */?>
+                                                <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/?>"><?php /*=$row->fields['PAYMENT_TYPE']*/?></option>
+                                            <?php /*$row->MoveNext(); } */?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>-->
+
+                        <div class="row">
+                            <div class="col-12 partial_payment">
+                                <div class="form-group">
+                                    <label class="col-md-12 mt-3"><input type="checkbox" id="PARTIAL_PAYMENT" name="PARTIAL_PAYMENT" class="form-check-inline" onchange="showPartialPaymentDiv(this)"> Partial Payment</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row form-group partial_payment_div" style="display: none;">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Partial Amount</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="PARTIAL_AMOUNT" id="PARTIAL_AMOUNT" value="<?=($AMOUNT) ?? 0?>" class="form-control" onkeyup="calculatePartialPayment('partial')">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Partial Payment Type</label>
+                                    <div class="col-md-12">
+                                        <select class="form-control" name="PK_PAYMENT_TYPE_PARTIAL" id="PK_PAYMENT_TYPE_PARTIAL" onchange="selectPartialPaymentType(this)">
+                                            <option value="">Select</option>
+                                            <?php
+                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
+                                            while (!$row->EOF) { ?>
+                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
+                                            <?php $row->MoveNext(); } ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row partial_payment_type_div" id="partial_credit_card_payment" style="display: none;">
+                            <div class="col-12">
+                                <div class="form-group" id="remaining_card_div">
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row partial_payment_type_div" id="partial_check_payment" style="display: none;">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Check Number</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="CHECK_NUMBER_PARTIAL" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Check Date</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="CHECK_DATE_PARTIAL" class="form-control datepicker-normal">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
@@ -363,16 +390,26 @@
                         $('#wallet_balance_div').html(data);
                         $('#wallet_balance_div').slideDown();
 
-                        let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
+                        let ACTUAL_AMOUNT = parseFloat($('#ACTUAL_AMOUNT').val());
                         let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
 
-                        if (AMOUNT_TO_PAY > WALLET_BALANCE) {
-                            $('#REMAINING_AMOUNT').val(AMOUNT_TO_PAY - WALLET_BALANCE);
-                            $('#remaining_amount_div').slideDown();
-                            $('#PK_PAYMENT_TYPE_REMAINING').prop('required', true);
+                        if (ACTUAL_AMOUNT > WALLET_BALANCE) {
+                            $('#PARTIAL_PAYMENT').prop('checked', true);
+                            $('.partial_payment_div').slideDown();
+
+                            $('#AMOUNT_TO_PAY').val(WALLET_BALANCE);
+                            $('#PARTIAL_AMOUNT').val(ACTUAL_AMOUNT - WALLET_BALANCE);
+                            $('#REMAINING_AMOUNT').val(0);
+
+                            $('#PK_PAYMENT_TYPE_PARTIAL').prop('required', true);
                         } else {
-                            $('#remaining_amount_div').slideUp();
-                            $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                            $('#PARTIAL_PAYMENT').prop('checked', false);
+                            let ACTUAL_AMOUNT = $('#ACTUAL_AMOUNT').val();
+                            $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
+                            $('#PARTIAL_AMOUNT').val(0);
+                            $('#REMAINING_AMOUNT').val(0);
+                            $('.partial_payment_div').slideUp();
+                            $('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
                         }
                     }
                 });
@@ -382,8 +419,8 @@
             default:
                 $(param).closest('.payment_modal').find('.payment_type_div').slideUp();
                 $(param).closest('.payment_modal').find('#wallet_balance_div').slideUp();
-                $(param).closest('.payment_modal').find('#remaining_amount_div').slideUp();
-                $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                $(param).closest('.payment_modal').find('#partial_payment_div').slideUp();
+                $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
                 break;
         }
     }
@@ -401,10 +438,10 @@
         });
     }
 
-    function selectRemainingPaymentType(param){
-        let paymentType = $("#PK_PAYMENT_TYPE_REMAINING option:selected").text();
+    function selectPartialPaymentType(param){
+        let paymentType = $("#PK_PAYMENT_TYPE_PARTIAL option:selected").text();
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $('.remaining_payment_type_div').slideUp();
+        $('.partial_payment_type_div').slideUp();
         $('#card-element').remove();
         switch (paymentType) {
             case 'Credit Card':
@@ -412,16 +449,16 @@
                     $('#card_div').html(`<div id="card-element"></div>`);
                     stripePaymentFunction();
                 }
-                $('#remaining_credit_card_payment').slideDown();
+                $('#partial_credit_card_payment').slideDown();
                 break;
 
             case 'Check':
-                $('#remaining_check_payment').slideDown();
+                $('#partial_check_payment').slideDown();
                 break;
 
             case 'Cash':
             default:
-                $('.remaining_payment_type_div').slideUp();
+                $('.partial_payment_type_div').slideUp();
                 break;
         }
     }
@@ -429,34 +466,67 @@
     function showPartialPaymentDiv(param) {
         if ($(param).is(':checked')) {
             $('.partial_payment_div').slideDown();
+            let ACTUAL_AMOUNT = parseFloat($('#ACTUAL_AMOUNT').val());
+            let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
+            $('#PARTIAL_AMOUNT').val(ACTUAL_AMOUNT - AMOUNT_TO_PAY);
+            $('#REMAINING_AMOUNT').val(0);
         } else {
             let ACTUAL_AMOUNT = $('#ACTUAL_AMOUNT').val();
             $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
-            $('#AMOUNT_REMAIN').val(0);
+            $('#PARTIAL_AMOUNT').val(0);
+            $('#REMAINING_AMOUNT').val(0);
             $('.partial_payment_div').slideUp();
         }
     }
 
-    function calculatePartialPayment(param) {
+    function calculatePartialPayment(type) {
         let ACTUAL_AMOUNT = parseFloat($('#ACTUAL_AMOUNT').val());
-        let amount_to_pay = parseFloat($(param).val());
+        let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
+        let PARTIAL_AMOUNT = (type == 'partial') ? parseFloat($('#PARTIAL_AMOUNT').val()) : 0;
 
-        if (!$(param).val()) {
-            $('#AMOUNT_REMAIN').val(ACTUAL_AMOUNT);
+        if (!$('#AMOUNT_TO_PAY').val()) {
+            $('#REMAINING_AMOUNT').val(ACTUAL_AMOUNT);
+            $('#PARTIAL_AMOUNT').val(0);
             return false;
         }
 
-        if (isNaN($(param).val())) {
+        if (isNaN($('#AMOUNT_TO_PAY').val())) {
             $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
-            $('#AMOUNT_REMAIN').val(0);
+            $('#PARTIAL_AMOUNT').val(0);
+            $('#REMAINING_AMOUNT').val(0);
             return false;
         }
 
-        if ((ACTUAL_AMOUNT-amount_to_pay) < 0) {
-            $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
-            $('#AMOUNT_REMAIN').val(0);
+        if ($('#PARTIAL_PAYMENT').is(':checked')) {
+            if (PARTIAL_AMOUNT == 0) {
+
+            } else {
+                if ((!$('#PARTIAL_AMOUNT').val() || isNaN($('#PARTIAL_AMOUNT').val())) && type == 'partial') {
+                    $('#PARTIAL_AMOUNT').val(ACTUAL_AMOUNT - AMOUNT_TO_PAY);
+                    $('#REMAINING_AMOUNT').val(0);
+                    return false;
+                }
+            }
+
+            if ((ACTUAL_AMOUNT - (AMOUNT_TO_PAY + PARTIAL_AMOUNT)) <= 0) {
+                $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
+                $('#PARTIAL_AMOUNT').val(0);
+                $('#REMAINING_AMOUNT').val(0);
+            } else {
+                if (type == 'partial') {
+                    $('#REMAINING_AMOUNT').val(ACTUAL_AMOUNT - (AMOUNT_TO_PAY + PARTIAL_AMOUNT));
+                } else {
+                    $('#PARTIAL_AMOUNT').val(ACTUAL_AMOUNT - AMOUNT_TO_PAY);
+                    $('#REMAINING_AMOUNT').val(0);
+                }
+            }
         } else {
-            $('#AMOUNT_REMAIN').val(ACTUAL_AMOUNT - amount_to_pay);
+            if ((ACTUAL_AMOUNT - AMOUNT_TO_PAY) < 0) {
+                $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
+                $('#REMAINING_AMOUNT').val(0);
+            } else {
+                $('#REMAINING_AMOUNT').val(ACTUAL_AMOUNT - AMOUNT_TO_PAY);
+            }
         }
     }
 </script>

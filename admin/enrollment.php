@@ -1134,31 +1134,36 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
                                                     </tr>
                                                     <?php
-                                                    $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.IS_PAID != 2 AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
-                                                    if ($payment_details->RecordCount() > 0){
-                                                        $PK_ENROLLMENT_MASTER = $payment_details->fields['PK_ENROLLMENT_MASTER'];
-                                                        $PK_ENROLLMENT_LEDGER = $payment_details->fields['PK_ENROLLMENT_LEDGER'];
-                                                        $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']);
-                                                        if($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
-                                                            $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
-                                                            $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".$payment_info->CHECK_NUMBER;
-                                                        }else{
-                                                            $payment_type = $payment_details->fields['PAYMENT_TYPE'];
-                                                        } ?>
-                                                        <tr>
-                                                            <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
-                                                            <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
-                                                            <td></td>
-                                                            <td><?=$payment_details->fields['PAID_AMOUNT']?></td>
-                                                            <td><?=number_format((float)$balance, 2, '.', '')?></td>
-                                                            <td><?=$payment_type?></td>
-                                                            <td><?=$payment_details->fields['NOTE']?></td>
-                                                            <td></td>
-                                                            <td>
-                                                                <a href="generate_receipt_pdf.php?master_id=<?=$PK_ENROLLMENT_MASTER?>&ledger_id=<?=$PK_ENROLLMENT_LEDGER?>&receipt=<?=$payment_details->fields['RECEIPT_NUMBER']?>" target="_blank">Receipt</a>
-                                                            </td>
-                                                        </tr>
-                                                    <?php }
+                                                    $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.AMOUNT, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE (DOA_ENROLLMENT_LEDGER.IS_PAID != 2 || DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Refund') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = DOA_ENROLLMENT_PAYMENT.TYPE AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+                                                    if ($payment_details->RecordCount() > 0) {
+                                                        while (!$payment_details->EOF) {
+                                                            $PK_ENROLLMENT_MASTER = $payment_details->fields['PK_ENROLLMENT_MASTER'];
+                                                            $PK_ENROLLMENT_LEDGER = $payment_details->fields['PK_ENROLLMENT_LEDGER'];
+                                                            $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']);
+                                                            if ($payment_details->fields['TRANSACTION_TYPE'] == 'Move') {
+                                                                $payment_type = 'Wallet';
+                                                            } elseif ($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
+                                                                $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
+                                                                $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                                                            }else{
+                                                                $payment_type = $payment_details->fields['PAYMENT_TYPE'];
+                                                            } ?>
+                                                            <tr style="color: <?=($payment_details->fields['IS_PAID'] == 2) ? 'green' : ''?>">
+                                                                <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
+                                                                <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
+                                                                <td></td>
+                                                                <td style="text-align: right;"><?=$payment_details->fields['AMOUNT']?></td>
+                                                                <td></td>
+                                                                <td style="text-align: center;"><?=$payment_type?></td>
+                                                                <td style="text-align: center;"><?=$payment_details->fields['NOTE']?></td>
+                                                                <td><?=(($payment_details->fields['TRANSACTION_TYPE']=='Billing')?(($payment_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
+                                                                <td>
+                                                                    <a href="generate_receipt_pdf.php?master_id=<?=$PK_ENROLLMENT_MASTER?>&ledger_id=<?=$PK_ENROLLMENT_LEDGER?>&receipt=<?=$payment_details->fields['RECEIPT_NUMBER']?>" target="_blank">Receipt</a>
+                                                                </td>
+                                                            </tr>
+                                                            <?php $payment_details->MoveNext();
+                                                        }
+                                                    }
                                                         $billing_details->MoveNext();
                                                     } ?>
                                                 </tbody>
