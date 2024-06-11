@@ -48,10 +48,9 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $PAYMENT_STATUS = 'Success';
     $IS_ORIGINAL_RECEIPT = 1;
 
-    $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT ORDER BY PK_ENROLLMENT_PAYMENT DESC LIMIT 1");
+    $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY RECEIPT_NUMBER DESC LIMIT 1");
     if ($receipt->RecordCount() > 0) {
-        $lastSerialNumber = $receipt->fields['RECEIPT_NUMBER'];
-        $RECEIPT_NUMBER_ORIGINAL = $lastSerialNumber + 1;
+        $RECEIPT_NUMBER_ORIGINAL = $receipt->fields['RECEIPT_NUMBER'] + 1;
     } else {
         $RECEIPT_NUMBER_ORIGINAL = 1;
     }
