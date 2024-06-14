@@ -35,9 +35,10 @@ if ($result->num_rows > 0) {
     echo "0 results";
 }
 
-$apiKey = '';
+$chatGptSk = "sk-proj-LJPiqRq8BjnC6owrsgRQT3BlbkFJafJOZAML54fpJKIx2KCW";
+
 function generateReport($data) {
-    global $apiKey;
+    global $chatGptSk;
     $dataString = json_encode($data);
     $prompt = "Generate a report based on the following data: " . $dataString;
 
@@ -51,7 +52,7 @@ function generateReport($data) {
     ]));
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "Content-Type: application/json",
-        "Authorization: Bearer $apiKey"
+        "Authorization: Bearer $chatGptSk"
     ]);
 
     $response = curl_exec($ch);
