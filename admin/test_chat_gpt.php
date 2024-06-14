@@ -35,9 +35,6 @@ if ($result->num_rows > 0) {
     echo "0 results";
 }
 
-
-$apiKey = "sk-proj-LJPiqRq8BjnC6owrsgRQT3BlbkFJafJOZAML54fpJKIx2KCW";
-
 function generateReport($data) {
     global $apiKey;
     $dataString = json_encode($data);
