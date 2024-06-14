@@ -35,7 +35,7 @@ if ($result->num_rows > 0) {
     echo "0 results";
 }
 
-$chatGptSk = "sk-proj-LJPiqRq8BjnC6owrsgRQT3BlbkFJafJOZAML54fpJKIx2KCW";
+$chatGptSk = "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";
 
 function generateReport($data) {
     global $chatGptSk;
@@ -62,6 +62,7 @@ function generateReport($data) {
     curl_close($ch);
 
     $response = json_decode($response, true);
+    pre_r($response);
     return $response['choices'][0]['text'];
 }
 
