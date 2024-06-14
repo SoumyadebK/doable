@@ -35,6 +35,7 @@ if ($result->num_rows > 0) {
     echo "0 results";
 }
 
+$apiKey = '';
 function generateReport($data) {
     global $apiKey;
     $dataString = json_encode($data);
