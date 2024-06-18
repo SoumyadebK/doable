@@ -223,22 +223,23 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     $PK_SCHEDULING_CODE = $SCHEDULING_CODE[0];
     $DURATION = $SCHEDULING_CODE[1];
 
-    /*$session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
-    $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];*/
-
-    $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
-    $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
-    $user_location = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$_POST['CUSTOMER_ID'][0]);
-    if ($user_location->RecordCount() > 0) {
-        $PK_LOCATION = $user_location->fields['PK_LOCATION'];
-    } else {
-        $PK_LOCATION = 0;
-    }
     $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $_POST['PK_ENROLLMENT_MASTER']);
     $PK_ENROLLMENT_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[0];
     $PK_ENROLLMENT_SERVICE = $PK_ENROLLMENT_MASTER_ARRAY[1];
     $PK_SERVICE_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[2];
     $PK_SERVICE_CODE = $PK_ENROLLMENT_MASTER_ARRAY[3];
+
+    /*$session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
+    $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];*/
+
+    $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
+    $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
+    $user_location = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    if ($user_location->RecordCount() > 0) {
+        $PK_LOCATION = $user_location->fields['PK_LOCATION'];
+    } else {
+        $PK_LOCATION = 0;
+    }
 
     $enrollment_service_data = $db_account->Execute("SELECT `NUMBER_OF_SESSION`, `SESSION_CREATED` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
     $SESSION_LEFT = $enrollment_service_data->fields['NUMBER_OF_SESSION'] - $enrollment_service_data->fields['SESSION_CREATED'];

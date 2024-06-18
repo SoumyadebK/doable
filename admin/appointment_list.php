@@ -254,7 +254,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                     while (!$appointment_data->EOF) { ?>
                                         <tr>
                                             <td><?=$i;?></td>
-                                            <td><?=($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL')?'Private Session':'Group Class'?></td>
+                                            <td><?=(($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class'))?></td>
                                             <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
                                             <?php if (!empty($appointment_data->fields['ENROLLMENT_ID']) || !empty($appointment_data->fields['ENROLLMENT_NAME'])) { ?>
                                                 <td><?=(($appointment_data->fields['ENROLLMENT_NAME']) ? $appointment_data->fields['ENROLLMENT_NAME'].' - ' : '').$appointment_data->fields['ENROLLMENT_ID']." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>

@@ -259,7 +259,7 @@ while (!$row->EOF) {
             </div>
         </div>
 
-        <table id="myTable" class="table table-striped border" style="display: none">
+        <table id="myTable" class="table" style="display: none">
             <thead style="background-color: #f44336">
                 <tr>
                     <th>Due Date</th>
@@ -280,6 +280,7 @@ while (!$row->EOF) {
             <?php
             $payment_count = $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND TRANSACTION_TYPE = 'Payment' AND IS_PAID = 1");
             $payment_counter = $payment_count->RecordCount();
+            $b = 0;
             $p = 0;
             $billed_amount = 0;
             $balance = 0;
@@ -288,8 +289,8 @@ while (!$row->EOF) {
                 $billed_amount = $billing_details->fields['BILLED_AMOUNT'];
                 $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
                 ?>
-                <tr>
-                    <td><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
+                <tr style="border-style: hidden; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
+                    <td style="text-align: right;"><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
                     <td><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
                     <td style="text-align: right;"><?=$billing_details->fields['BILLED_AMOUNT']?></td>
                     <td></td>
@@ -332,8 +333,8 @@ while (!$row->EOF) {
                         } else{
                             $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                         } ?>
-                        <tr style="color: <?=($payment_details->fields['IS_PAID'] == 2) ? 'green' : ''?>">
-                            <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
+                        <tr style="border-style: hidden; color: <?=($payment_details->fields['IS_PAID'] == 2) ? 'green' : ''?>; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
+                            <td style="text-align: right;"><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
                             <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
                             <td></td>
                             <td style="text-align: right;"><?=$payment_details->fields['AMOUNT']?></td>
@@ -350,6 +351,7 @@ while (!$row->EOF) {
                     <?php $payment_details->MoveNext();
                     }
                 }
+                $b++;
                 $billing_details->MoveNext();
             }
             $cancelled_enrollment = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = -1 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
