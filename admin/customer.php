@@ -1904,6 +1904,33 @@ if ($PK_USER_MASTER > 0) {
     </div>
 </div>
 
+
+
+<!--Confirm Model-->
+<div class="modal fade" id="move_to_wallet_model" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" style="max-width: 450px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <h5>Are you sure you want to move $<span id="move_amount">0.00</span> to wallet?</h5>
+                            <input type="hidden" id="confirm_move" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info waves-effect waves-light m-l-20 text-white" onclick="$('#confirm_move').val(1);$('.trigger_this').trigger('click');">Yes</button>
+                <button type="button" class="btn btn-danger waves-effect waves-light m-l-10 text-white" onclick="$('#confirm_move').val(0);$('#move_to_wallet_model').modal('hide');">No</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!--Wallet Payment Model-->
 <?php include('includes/add_money_to_wallet.php'); ?>
 

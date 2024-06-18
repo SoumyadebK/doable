@@ -313,10 +313,23 @@ while (!$row->EOF) {
                         $balance -= $payment_details->fields['AMOUNT'];
                         if ($payment_details->fields['TRANSACTION_TYPE'] == 'Move') {
                             $payment_type = 'Wallet';
-                        } elseif ($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
+                        } elseif ($payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
                             $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
                             $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
-                        }else{
+                        } elseif ($payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
+                            $receipt_number_array = explode(',', $payment_details->fields['RECEIPT_NUMBER']);
+                            $payment_type_array = [];
+                            foreach ($receipt_number_array as $receipt_number) {
+                                $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
+                                if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
+                                    $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
+                                    $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                                } else {
+                                    $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
+                                }
+                            }
+                            $payment_type = implode(', ', $payment_type_array);
+                        } else{
                             $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                         } ?>
                         <tr style="color: <?=($payment_details->fields['IS_PAID'] == 2) ? 'green' : ''?>">
@@ -328,10 +341,10 @@ while (!$row->EOF) {
                             <td style="text-align: right;"><?=number_format((float)$balance, 2, '.', '')?></td>
                             <td style="text-align: right;">
                                 <?php if (($payment_details->fields['IS_PAID'] == 1) && ($payment_details->fields['STATUS'] == 'A')) { ?>
-                                    <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['PAID_AMOUNT']?>, 'active', 'Move', <?=$p?>)">Move</a>
-                                    <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['PAID_AMOUNT']?>, 'active', 'Refund', <?=$p?>)">Refund</a>
+                                    <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['AMOUNT']?>, 'active', 'Move', <?=$p?>)">Move</a>
+                                    <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['AMOUNT']?>, 'active', 'Refund', <?=$p?>)">Refund</a>
                                 <?php } ?>
-                                    <a class="btn btn-info waves-effect waves-light text-white" href="generate_receipt_pdf.php?master_id=<?=$PK_ENROLLMENT_MASTER?>&ledger_id=<?=$PK_ENROLLMENT_LEDGER?>&receipt=<?=$payment_details->fields['RECEIPT_NUMBER']?>" target="_blank">Receipt</a>
+                                    <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?=$PK_ENROLLMENT_MASTER?>, '<?=$payment_details->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
                             </td>
                         </tr>
                     <?php $payment_details->MoveNext();
@@ -486,29 +499,44 @@ while (!$row->EOF) {
 
     function moveToWallet(param, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, ENROLLMENT_LEDGER_PARENT, PK_USER_MASTER, BALANCE, ENROLLMENT_TYPE, TRANSACTION_TYPE, PAYMENT_COUNTER) {
         let PK_PAYMENT_TYPE = $('#PK_PAYMENT_TYPE_REFUND').val();
+        let confirm_move = $('#confirm_move').val();
         if (TRANSACTION_TYPE == 'Refund' && PK_PAYMENT_TYPE == 0) {
             $('.trigger_this').removeClass('trigger_this');
             $(param).addClass('trigger_this');
             $('#refund_modal').modal('show');
         } else {
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: {
-                    FUNCTION_NAME: 'moveToWallet',
-                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
-                    PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
-                    ENROLLMENT_LEDGER_PARENT: ENROLLMENT_LEDGER_PARENT,
-                    PK_USER_MASTER: PK_USER_MASTER,
-                    BALANCE: BALANCE,
-                    ENROLLMENT_TYPE: ENROLLMENT_TYPE,
-                    TRANSACTION_TYPE: TRANSACTION_TYPE,
-                    PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
-                },
-                success: function (data) {
-                    window.location.reload();
-                }
-            });
+            if (TRANSACTION_TYPE == 'Move' && confirm_move == 0) {
+                $('.trigger_this').removeClass('trigger_this');
+                $(param).addClass('trigger_this');
+                $('#move_amount').text(parseFloat(BALANCE).toFixed(2));
+                $('#move_to_wallet_model').modal('show');
+            } else {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'moveToWallet',
+                        PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                        PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                        ENROLLMENT_LEDGER_PARENT: ENROLLMENT_LEDGER_PARENT,
+                        PK_USER_MASTER: PK_USER_MASTER,
+                        BALANCE: BALANCE,
+                        ENROLLMENT_TYPE: ENROLLMENT_TYPE,
+                        TRANSACTION_TYPE: TRANSACTION_TYPE,
+                        PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
+                    },
+                    success: function (data) {
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+    }
+
+    function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
+        let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
+        for (let i=0; i<RECEIPT_NUMBER_ARRAY.length; i++) {
+            window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
         }
     }
 </script>

@@ -1145,7 +1145,20 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                             } elseif ($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
                                                                 $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
                                                                 $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
-                                                            }else{
+                                                            } elseif ($payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
+                                                                $receipt_number_array = explode(',', $payment_details->fields['RECEIPT_NUMBER']);
+                                                                $payment_type_array = [];
+                                                                foreach ($receipt_number_array as $receipt_number) {
+                                                                    $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
+                                                                    if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
+                                                                        $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
+                                                                        $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                                                                    } else {
+                                                                        $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
+                                                                    }
+                                                                }
+                                                                $payment_type = implode(', ', $payment_type_array);
+                                                            } else {
                                                                 $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                                                             } ?>
                                                             <tr style="color: <?=($payment_details->fields['IS_PAID'] == 2) ? 'green' : ''?>">
@@ -1158,7 +1171,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                                 <td style="text-align: center;"><?=$payment_details->fields['NOTE']?></td>
                                                                 <td><?=(($payment_details->fields['TRANSACTION_TYPE']=='Billing')?(($payment_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
                                                                 <td>
-                                                                    <a href="generate_receipt_pdf.php?master_id=<?=$PK_ENROLLMENT_MASTER?>&ledger_id=<?=$PK_ENROLLMENT_LEDGER?>&receipt=<?=$payment_details->fields['RECEIPT_NUMBER']?>" target="_blank">Receipt</a>
+                                                                    <a onclick="openReceipt(<?=$PK_ENROLLMENT_MASTER?>, '<?=$payment_details->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
                                                                 </td>
                                                             </tr>
                                                             <?php $payment_details->MoveNext();
@@ -1874,6 +1887,13 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
         $('.credit-card').css("opacity", "1");
         $(this).css("opacity", "0.6");
     });
+
+    function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
+        let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
+        for (let i=0; i<RECEIPT_NUMBER_ARRAY.length; i++) {
+            window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
+        }
+    }
 </script>
 
 </body>

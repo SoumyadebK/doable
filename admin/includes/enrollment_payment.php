@@ -394,22 +394,22 @@
                         let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
 
                         if (ACTUAL_AMOUNT > WALLET_BALANCE) {
-                            $('#PARTIAL_PAYMENT').prop('checked', true);
-                            $('.partial_payment_div').slideDown();
+                            //$('#PARTIAL_PAYMENT').prop('checked', true);
+                            //$('.partial_payment_div').slideDown();
 
                             $('#AMOUNT_TO_PAY').val(WALLET_BALANCE);
-                            $('#PARTIAL_AMOUNT').val(ACTUAL_AMOUNT - WALLET_BALANCE);
-                            $('#REMAINING_AMOUNT').val(0);
+                            $('#PARTIAL_AMOUNT').val(0);
+                            $('#REMAINING_AMOUNT').val(ACTUAL_AMOUNT - WALLET_BALANCE);
 
-                            $('#PK_PAYMENT_TYPE_PARTIAL').prop('required', true);
+                            //$('#PK_PAYMENT_TYPE_PARTIAL').prop('required', true);
                         } else {
-                            $('#PARTIAL_PAYMENT').prop('checked', false);
+                            //$('#PARTIAL_PAYMENT').prop('checked', false);
                             let ACTUAL_AMOUNT = $('#ACTUAL_AMOUNT').val();
                             $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
                             $('#PARTIAL_AMOUNT').val(0);
                             $('#REMAINING_AMOUNT').val(0);
-                            $('.partial_payment_div').slideUp();
-                            $('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
+                            //$('.partial_payment_div').slideUp();
+                            //$('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
                         }
                     }
                 });

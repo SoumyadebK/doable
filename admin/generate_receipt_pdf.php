@@ -5,7 +5,6 @@ global $db_account;
 global $master_database;
 
 $PK_ENROLLMENT_MASTER = $_GET['master_id'] ?: 0;
-$PK_ENROLLMENT_LEDGER = $_GET['ledger_id'] ?: 0;
 $RECEIPT_NUMBER = $_GET['receipt'] ?: 0;
 $BILLING_REF = '';
 
