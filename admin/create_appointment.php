@@ -234,9 +234,10 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
     $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
     $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
-    $user_location = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
-    if ($user_location->RecordCount() > 0) {
-        $PK_LOCATION = $user_location->fields['PK_LOCATION'];
+
+    $enrollment_location = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    if ($enrollment_location->RecordCount() > 0) {
+        $PK_LOCATION = $enrollment_location->fields['PK_LOCATION'];
     } else {
         $PK_LOCATION = 0;
     }
