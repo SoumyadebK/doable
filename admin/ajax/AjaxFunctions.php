@@ -178,6 +178,7 @@ function saveEnrollmentData($RESPONSE_DATA){
         }
 
         $ENROLLMENT_MASTER_DATA['ACTIVE'] = 1;
+        $ENROLLMENT_MASTER_DATA['ENROLLMENT_DATE']  = date("Y-m-d");
         $ENROLLMENT_MASTER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $ENROLLMENT_MASTER_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'insert');
