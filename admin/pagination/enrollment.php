@@ -157,7 +157,7 @@ if ($_GET['type'] == 'normal') { ?>
 <?php } ?>
 
 <?php
-$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.CREATED_ON, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE ".$enr_condition." AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE ".$enr_condition." AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
 $AGREEMENT_PDF_LINK = '';
 while (!$row->EOF) {
     $name = $row->fields['ENROLLMENT_NAME'];
@@ -179,7 +179,7 @@ while (!$row->EOF) {
                 <p><?=$row->fields['LOCATION_NAME']?></p>
                 <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>"><?=$enrollment_name.$row->fields['ENROLLMENT_ID']?></a>
                 <p><?=implode(' || ', $serviceMaster)?></p>
-                <p><?=date('m/d/Y', strtotime($row->fields['CREATED_ON']))?></p>
+                <p><?=date('m/d/Y', strtotime($row->fields['ENROLLMENT_DATE']))?></p>
                 <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
                     <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
                 <?php } ?>
@@ -262,8 +262,8 @@ while (!$row->EOF) {
         <table id="myTable" class="table" style="display: none">
             <thead style="background-color: #f44336">
                 <tr>
-                    <th>Due Date</th>
-                    <th>Transaction Type</th>
+                    <th style="text-align: center;">Due Date</th>
+                    <th style="text-align: center;">Transaction Type</th>
                     <th style="text-align: center;">Billed Amount</th>
                     <th style="text-align: center;">Paid Amount</th>
                     <th style="text-align: center;">Payment Type</th>
@@ -290,8 +290,8 @@ while (!$row->EOF) {
                 $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
                 ?>
                 <tr style="border-style: hidden; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
-                    <td style="text-align: right;"><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
-                    <td><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
+                    <td style="text-align: center;"><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
+                    <td style="text-align: center;"><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
                     <td style="text-align: right;"><?=$billing_details->fields['BILLED_AMOUNT']?></td>
                     <td></td>
                     <td style="text-align: center;"></td>
@@ -334,8 +334,8 @@ while (!$row->EOF) {
                             $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                         } ?>
                         <tr style="border-style: hidden; color: <?=($payment_details->fields['IS_PAID'] == 2) ? 'green' : ''?>; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
-                            <td style="text-align: right;"><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
-                            <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
+                            <td style="text-align: center;"><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
+                            <td style="text-align: center;"><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
                             <td></td>
                             <td style="text-align: right;"><?=$payment_details->fields['AMOUNT']?></td>
                             <td style="text-align: center;"><?=$payment_type?></td>
@@ -358,8 +358,8 @@ while (!$row->EOF) {
             while (!$cancelled_enrollment->EOF) {
             ?>
                 <tr style="color: <?=(($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Balance Owed') ? 'red' : ''))?>;">
-                    <td><?=date('m/d/Y', strtotime($cancelled_enrollment->fields['DUE_DATE']))?></td>
-                    <td><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
+                    <td style="text-align: center;"><?=date('m/d/Y', strtotime($cancelled_enrollment->fields['DUE_DATE']))?></td>
+                    <td style="text-align: center;"><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
                     <td style="text-align: right;"><?=$total_used_amount?></td>
                     <td style="text-align: right;"></td>
                     <td style="text-align: center;"><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
