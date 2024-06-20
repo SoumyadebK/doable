@@ -291,7 +291,7 @@ function currentWeekRange($date): array
                                         ?>
                                         <tr style="background-color: <?=($date==$current_date)?'limegreen': ( $no_show=='Charge' || $no_show=='No Charge' ? 'yellow' : ( $pk_appointment_status==6 ? 'red' : '' ) );?>">
                                             <td>
-                                                <?php if ($appointment_data->fields['CUSTOMER_NAME'] && $appointment_data->fields['APPOINTMENT_TYPE'] !== 'AD-HOC') { ?>
+                                                <?php if ($appointment_data->fields['CUSTOMER_NAME']) { ?>
                                                     <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"></label>
                                                 <?php } ?>
                                             </td>
