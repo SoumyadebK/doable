@@ -659,15 +659,17 @@ if(!empty($_POST))
                             $ENROLLMENT_PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
                             $ENROLLMENT_PAYMENT_DATA['RECEIPT_NUMBER'] = $enrollment_payment->fields['receipt'];
 
-                            $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
+                            $enrollmentServiceData = $db_account->Execute("SELECT FINAL_AMOUNT, TOTAL_AMOUNT_PAID, PK_ENROLLMENT_SERVICE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
                             while (!$enrollmentServiceData->EOF) {
                                 $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT'] * 100) / $TOTAL_AMOUNT;
                                 $serviceAmount = ($ENROLLMENT_PAYMENT_DATA['AMOUNT'] * $servicePercent) / 100;
 
-                                if ($enrollment_payment->fields['record_type'] === 'Payment') {
+                                if ($enrollment_payment->fields['record_type'] === 'Payment' || $enrollment_payment->fields['record_type'] === 'Adjustment') {
                                     $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] + $serviceAmount;
                                 } elseif ($enrollment_payment->fields['record_type'] === 'Refund') {
                                     $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] - $serviceAmount;
+                                } else {
+                                    $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'];
                                 }
                                 db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
                                 $enrollmentServiceData->MoveNext();
@@ -864,7 +866,7 @@ if(!empty($_POST))
             break;
 
         case "DOA_APPOINTMENT_MASTER":
-            $standardServicePkId = $db_account->Execute("SELECT PK_SERVICE_CODE, PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE SERVICE_CODE LIKE 'S-1'");
+            /*$standardServicePkId = $db_account->Execute("SELECT PK_SERVICE_CODE, PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE SERVICE_CODE LIKE 'S-1'");
             if ($standardServicePkId->RecordCount() > 0) {
                 $PK_SERVICE_CODE_STANDARD = $standardServicePkId->fields['PK_SERVICE_CODE'];
                 $PK_SERVICE_MASTER_STANDARD = $standardServicePkId->fields['PK_SERVICE_MASTER'];
@@ -894,20 +896,20 @@ if(!empty($_POST))
                 $SERVICE_CODE['ACTIVE'] = 1;
                 db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE, 'insert');
                 $PK_SERVICE_CODE_STANDARD = $db_account->insert_ID();
-            }
+            }*/
 
-            $allAppointments = getAllAppointments();
-            while (!$allAppointments->EOF) {
-                $studentId = $allAppointments->fields['student_id'];
+            $allPrivateAppointments = getAllPrivateAppointments();
+            while (!$allPrivateAppointments->EOF) {
+                $studentId = $allPrivateAppointments->fields['student_id'];
                 $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$studentId' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
                 $PK_USER_MASTER = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
 
-                $service_id = $allAppointments->fields['service_id'];
+                $service_id = $allPrivateAppointments->fields['service_id'];
                 $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_id'");
                 $PK_SERVICE_MASTER = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_MASTER'] : 0;
                 $PK_SERVICE_CODE = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_CODE'] : 0;
 
-                $booking_code = $allAppointments->fields['booking_code'];
+                $booking_code = $allPrivateAppointments->fields['booking_code'];
                 $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code'");
                 if ($getServiceCodeId->RecordCount() > 0) {
                     $PK_SCHEDULING_CODE = $getServiceCodeId->fields['PK_SCHEDULING_CODE'];
@@ -927,7 +929,7 @@ if(!empty($_POST))
                     $PK_ENROLLMENT_SERVICE = 0;
                 }
 
-                if ($PK_SERVICE_MASTER == 0 && $PK_SERVICE_CODE == 0 && $PK_ENROLLMENT_MASTER == 0 && $PK_ENROLLMENT_SERVICE == 0) {
+                /*if ($PK_SERVICE_MASTER == 0 && $PK_SERVICE_CODE == 0 && $PK_ENROLLMENT_MASTER == 0 && $PK_ENROLLMENT_SERVICE == 0) {
                     $PK_SERVICE_MASTER = $PK_SERVICE_MASTER_STANDARD;
                     $PK_SERVICE_CODE = $PK_SERVICE_CODE_STANDARD;
                     $checkEnrollmentExist = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_MASTER.PK_LOCATION = '$PK_LOCATION' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
@@ -952,7 +954,7 @@ if(!empty($_POST))
                         }
 
                         $ENROLLMENT_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-                        $customerId = $allAppointments->fields['student_id'];
+                        $customerId = $allPrivateAppointments->fields['student_id'];
                         $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_NAME='$customerId' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
                         $ENROLLMENT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
                         $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = '';
@@ -977,44 +979,142 @@ if(!empty($_POST))
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
                         $PK_ENROLLMENT_SERVICE = $db_account->insert_ID();
                     }
-                }
+                }*/
 
-                $INSERT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                $INSERT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
-                $INSERT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
-                $INSERT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
-                $INSERT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
-                $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
-                $orgDate = $allAppointments->fields['appt_date'];
-                $newDate = date("Y-m-d", strtotime($orgDate));
-                $INSERT_DATA['DATE'] = $newDate;
-                $INSERT_DATA['START_TIME'] = $allAppointments->fields['appt_time'];
-                $endTime = strtotime($allAppointments->fields['appt_time']) + $allAppointments->fields['duration'] * 60;
+                $APPOINTMENT_MASTER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                $APPOINTMENT_MASTER_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
+                $APPOINTMENT_MASTER_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                $APPOINTMENT_MASTER_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                $APPOINTMENT_MASTER_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
+                $APPOINTMENT_MASTER_DATA['PK_LOCATION'] = $PK_LOCATION;
+                $APPOINTMENT_MASTER_DATA['DATE'] = $allPrivateAppointments->fields['appt_date'];
+                $APPOINTMENT_MASTER_DATA['START_TIME'] = $allPrivateAppointments->fields['appt_time'];
+                $endTime = strtotime($allPrivateAppointments->fields['appt_time']) + $allPrivateAppointments->fields['duration'] * 60;
                 $convertedTime = date('H:i:s', $endTime);
-                $INSERT_DATA['END_TIME'] = $convertedTime;
+                $APPOINTMENT_MASTER_DATA['END_TIME'] = $convertedTime;
 
-                $appt_status = $allAppointments->fields['appt_status'];
+                $appt_status = $allPrivateAppointments->fields['appt_status'];
                 if ($appt_status == "A") {
-                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 5;
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 5;
                 } elseif ($appt_status == "C") {
-                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 6;
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 6;
                 } elseif ($appt_status == "CM") {
-                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 7;
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 7;
                 } elseif ($appt_status == "I") {
-                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 6;
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 6;
                 } elseif ($appt_status == "N") {
-                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 1;
                 } elseif ($appt_status == "NS") {
-                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 4;
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 4;
                 } elseif ($appt_status == "O") {
-                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 6;
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 6;
                 } elseif ($appt_status == "S") {
-                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 2;
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 2;
                 }
-                $INSERT_DATA['COMMENT'] = $allAppointments->fields['appts_comment'];
-                if($service_id == 'PRT' || $service_id == 'GRP1' || $service_id == 'GRP3') {
-                    $INSERT_DATA['GROUP_NAME'] = $allAppointments->fields['appt_name'];
-                    $INSERT_DATA['APPOINTMENT_TYPE'] = 'GROUP';
+                $APPOINTMENT_MASTER_DATA['COMMENT'] = $allPrivateAppointments->fields['appts_comment'];
+                $APPOINTMENT_MASTER_DATA['GROUP_NAME'] = null;
+                $APPOINTMENT_MASTER_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+                $APPOINTMENT_MASTER_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($PK_USER_MASTER);
+                $APPOINTMENT_MASTER_DATA['ACTIVE'] = 1;
+                if ($allPrivateAppointments->fields['payment_status'] == "V") {
+                    $APPOINTMENT_MASTER_DATA['IS_PAID'] = 1;
+                } elseif ($allPrivateAppointments->fields['payment_status'] == "U") {
+                    $APPOINTMENT_MASTER_DATA['IS_PAID'] = 0;
+                }
+                $APPOINTMENT_MASTER_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
+                $APPOINTMENT_MASTER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_MASTER_DATA, 'insert');
+                $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
+
+                $INSERT_DATA_CUSTOMER['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                $INSERT_DATA_CUSTOMER['PK_USER_MASTER'] = $PK_USER_MASTER;
+                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $INSERT_DATA_CUSTOMER, 'insert');
+
+                if ($appt_status != "C") {
+                    updateSessionCreatedCount($PK_ENROLLMENT_SERVICE);
+                }
+                if($appt_status == "S") {
+                    updateSessionCompletedCount($PK_APPOINTMENT_MASTER);
+                }
+
+                $user_id = $allPrivateAppointments->fields['user_id'];
+                $doableServiceProviderId = $db->Execute("SELECT DOA_USERS.PK_USER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$user_id' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
+                $SERVICE_PROVIDER_ID = ($doableServiceProviderId->RecordCount() > 0) ? $doableServiceProviderId->fields['PK_USER'] : 0;
+                $INSERT_DATA_SERVICE_PROVIDER['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                $INSERT_DATA_SERVICE_PROVIDER['PK_USER'] = $SERVICE_PROVIDER_ID;
+                db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $INSERT_DATA_SERVICE_PROVIDER, 'insert');
+
+                $allPrivateAppointments->Movenext();
+            }
+
+
+            $allGroupAppointments = getAllGroupAppointments();
+            while (!$allGroupAppointments->EOF) {
+                $studentId = $allGroupAppointments->fields['student_id'];
+                $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$studentId' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
+                $PK_USER_MASTER = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
+
+                $service_id = $allGroupAppointments->fields['service_id'];
+                $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_id'");
+                $PK_SERVICE_MASTER = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_MASTER'] : 0;
+                $PK_SERVICE_CODE = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_CODE'] : 0;
+
+                $booking_code = $allGroupAppointments->fields['booking_code'];
+                $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code'");
+                if ($getServiceCodeId->RecordCount() > 0) {
+                    $PK_SCHEDULING_CODE = $getServiceCodeId->fields['PK_SCHEDULING_CODE'];
+                } else {
+                    $PK_SCHEDULING_CODE = 0;
+                }
+
+                $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_MASTER.PK_LOCATION = '$PK_LOCATION' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ORDER BY DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE ASC LIMIT 1");
+                $PK_ENROLLMENT_MASTER_CHECK = ($enrollment_data->RecordCount() > 0) ? $enrollment_data->fields['PK_ENROLLMENT_MASTER'] : 0;
+                $PK_ENROLLMENT_SERVICE_CHECK = ($enrollment_data->RecordCount() > 0) ? $enrollment_data->fields['PK_ENROLLMENT_SERVICE'] : 0;
+                $SESSION_COUNT = ($enrollment_data->RecordCount() > 0) ? $enrollment_data->fields['NUMBER_OF_SESSION'] : 0;
+
+                if ($PK_ENROLLMENT_MASTER_CHECK > 0 && $PK_ENROLLMENT_SERVICE_CHECK > 0) {
+                    [$PK_ENROLLMENT_MASTER, $PK_ENROLLMENT_SERVICE] = checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER_CHECK, $PK_ENROLLMENT_SERVICE_CHECK, $PK_USER_MASTER, $PK_SERVICE_MASTER);
+                } else {
+                    $PK_ENROLLMENT_MASTER = 0;
+                    $PK_ENROLLMENT_SERVICE = 0;
+                }
+
+                $APPOINTMENT_MASTER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                $APPOINTMENT_MASTER_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
+                $APPOINTMENT_MASTER_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                $APPOINTMENT_MASTER_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                $APPOINTMENT_MASTER_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
+                $APPOINTMENT_MASTER_DATA['PK_LOCATION'] = $PK_LOCATION;
+
+                $APPOINTMENT_MASTER_DATA['DATE'] = $allGroupAppointments->fields['appt_date'];
+                $APPOINTMENT_MASTER_DATA['START_TIME'] = $allGroupAppointments->fields['appt_time'];
+                $endTime = strtotime($allGroupAppointments->fields['appt_time']) + $allGroupAppointments->fields['duration'] * 60;
+                $convertedTime = date('H:i:s', $endTime);
+                $APPOINTMENT_MASTER_DATA['END_TIME'] = $convertedTime;
+
+                $appt_status = $allGroupAppointments->fields['appt_status'];
+                if ($appt_status == "A") {
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 5;
+                } elseif ($appt_status == "C") {
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 6;
+                } elseif ($appt_status == "CM") {
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 7;
+                } elseif ($appt_status == "I") {
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 6;
+                } elseif ($appt_status == "N") {
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 1;
+                } elseif ($appt_status == "NS") {
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 4;
+                } elseif ($appt_status == "O") {
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 6;
+                } elseif ($appt_status == "S") {
+                    $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 2;
+                }
+                $APPOINTMENT_MASTER_DATA['COMMENT'] = $allGroupAppointments->fields['appts_comment'];
+                $APPOINTMENT_MASTER_DATA['GROUP_NAME'] = null;
+                if($service_id == 'PRT' || $service_id == 'GRP1' ||  $service_id == 'GRP2' || $service_id == 'GRP3') {
+                    $APPOINTMENT_MASTER_DATA['GROUP_NAME'] = $allGroupAppointments->fields['appt_name'];
+                    $APPOINTMENT_MASTER_DATA['APPOINTMENT_TYPE'] = 'GROUP';
 
                     $group_class_data = $db_account->Execute("SELECT GROUP_CLASS_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY GROUP_CLASS_ID DESC LIMIT 1");
                     if ($group_class_data->RecordCount() > 0) {
@@ -1022,24 +1122,27 @@ if(!empty($_POST))
                     } else {
                         $group_class_id = 1;
                     }
-                    $INSERT_DATA['GROUP_CLASS_ID'] = $group_class_id;
+                    $APPOINTMENT_MASTER_DATA['GROUP_CLASS_ID'] = $group_class_id;
+                } elseif($service_id == 'PRI1' || $service_id == 'PRI2' || $service_id == 'PRI3' || $service_id == 'PRI4' || $service_id == 'NPRI') {
+                    $APPOINTMENT_MASTER_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+                    $APPOINTMENT_MASTER_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($PK_USER_MASTER);
                 } else {
-                    $INSERT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
-                    $INSERT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($PK_USER_MASTER);
+                    $APPOINTMENT_MASTER_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
                 }
-                $INSERT_DATA['ACTIVE'] = 1;
-                if ($allAppointments->fields['payment_status'] == "V") {
-                    $INSERT_DATA['IS_PAID'] = 1;
-                } elseif ($allAppointments->fields['payment_status'] == "U") {
-                    $INSERT_DATA['IS_PAID'] = 0;
+
+                $APPOINTMENT_MASTER_DATA['ACTIVE'] = 1;
+                if ($allGroupAppointments->fields['payment_status'] == "V") {
+                    $APPOINTMENT_MASTER_DATA['IS_PAID'] = 1;
+                } elseif ($allGroupAppointments->fields['payment_status'] == "U") {
+                    $APPOINTMENT_MASTER_DATA['IS_PAID'] = 0;
                 }
-                $INSERT_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
-                $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform_account('DOA_APPOINTMENT_MASTER', $INSERT_DATA, 'insert');
+                $APPOINTMENT_MASTER_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
+                $APPOINTMENT_MASTER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_MASTER_DATA, 'insert');
                 $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
-                if($service_id == 'PRT' || $service_id == 'GRP1' || $service_id == 'GRP3') {
-                    $service_appt_id = $allAppointments->fields['service_appt_id'];
+                if($service_id == 'PRT' || $service_id == 'GRP1' ||  $service_id == 'GRP2' || $service_id == 'GRP3') {
+                    $service_appt_id = $allGroupAppointments->fields['service_appt_id'];
                     $groupStudentIds = getAllStudentIds($service_appt_id);
                     while (!$groupStudentIds->EOF) {
                         $groupStudentId = $groupStudentIds->fields['student_id'];
@@ -1058,7 +1161,7 @@ if(!empty($_POST))
 
                         $groupStudentIds->Movenext();
                     }
-                } else {
+                } elseif($service_id == 'PRI1' || $service_id == 'PRI2' || $service_id == 'PRI3' || $service_id == 'PRI4' || $service_id == 'NPRI') {
                     $INSERT_DATA_CUSTOMER['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
                     $INSERT_DATA_CUSTOMER['PK_USER_MASTER'] = $PK_USER_MASTER;
                     db_perform_account('DOA_APPOINTMENT_CUSTOMER', $INSERT_DATA_CUSTOMER, 'insert');
@@ -1071,14 +1174,14 @@ if(!empty($_POST))
                     }
                 }
 
-                $user_id = $allAppointments->fields['user_id'];
+                $user_id = $allGroupAppointments->fields['user_id'];
                 $doableServiceProviderId = $db->Execute("SELECT DOA_USERS.PK_USER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$user_id' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
                 $SERVICE_PROVIDER_ID = ($doableServiceProviderId->RecordCount() > 0) ? $doableServiceProviderId->fields['PK_USER'] : 0;
                 $INSERT_DATA_SERVICE_PROVIDER['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
                 $INSERT_DATA_SERVICE_PROVIDER['PK_USER'] = $SERVICE_PROVIDER_ID;
                 db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $INSERT_DATA_SERVICE_PROVIDER, 'insert');
 
-                $allAppointments->Movenext();
+                $allGroupAppointments->Movenext();
             }
             break;
 
@@ -1091,8 +1194,8 @@ if(!empty($_POST))
 function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT_SERVICE, $PK_USER_MASTER, $PK_SERVICE_MASTER) {
     global $db;
     global $db_account;
-    $SESSION_CREATED = $db_account->Execute("SELECT SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
-    if ($SESSION_CREATED->RecordCount() > 0 && $SESSION_CREATED->fields['SESSION_COMPLETED'] >= $SESSION_COUNT) {
+    $SESSION_CREATED = $db_account->Execute("SELECT SESSION_CREATED FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
+    if ($SESSION_CREATED->RecordCount() > 0 && $SESSION_CREATED->fields['SESSION_CREATED'] >= $SESSION_COUNT) {
         $db_account->Execute("UPDATE `DOA_ENROLLMENT_MASTER` SET `ALL_APPOINTMENT_DONE` = '1' WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
         $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ORDER BY DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE ASC LIMIT 1");
         $PK_ENROLLMENT_MASTER_NEW = ($enrollment_data->RecordCount() > 0) ? $enrollment_data->fields['PK_ENROLLMENT_MASTER'] : 0;
@@ -1107,6 +1210,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
         return [$PK_ENROLLMENT_MASTER, $PK_ENROLLMENT_SERVICE];
     }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
