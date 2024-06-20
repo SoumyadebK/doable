@@ -659,15 +659,17 @@ if(!empty($_POST))
                             $ENROLLMENT_PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
                             $ENROLLMENT_PAYMENT_DATA['RECEIPT_NUMBER'] = $enrollment_payment->fields['receipt'];
 
-                            $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
+                            $enrollmentServiceData = $db_account->Execute("SELECT FINAL_AMOUNT, TOTAL_AMOUNT_PAID, PK_ENROLLMENT_SERVICE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
                             while (!$enrollmentServiceData->EOF) {
                                 $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT'] * 100) / $TOTAL_AMOUNT;
                                 $serviceAmount = ($ENROLLMENT_PAYMENT_DATA['AMOUNT'] * $servicePercent) / 100;
 
-                                if ($enrollment_payment->fields['record_type'] === 'Payment') {
+                                if ($enrollment_payment->fields['record_type'] === 'Payment' || $enrollment_payment->fields['record_type'] === 'Adjustment') {
                                     $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] + $serviceAmount;
                                 } elseif ($enrollment_payment->fields['record_type'] === 'Refund') {
                                     $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] - $serviceAmount;
+                                } else {
+                                    $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'];
                                 }
                                 db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
                                 $enrollmentServiceData->MoveNext();
