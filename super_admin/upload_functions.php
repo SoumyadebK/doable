@@ -88,9 +88,14 @@ function getAllGeneralAppt() {
     return $db1->Execute("SELECT * FROM general_appt");
 }
 
-function getAllAppointments() {
+function getAllPrivateAppointments() {
     global $db1;
-    return $db1->Execute("SELECT * FROM service_appt");
+    return $db1->Execute("SELECT * FROM service_appt WHERE `service_id` LIKE '%PRI%' ORDER BY appt_date ASC, appt_time ASC");
+}
+
+function getAllGroupAppointments() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM service_appt WHERE `service_id` NOT LIKE '%PRI%' ORDER BY appt_date ASC, appt_time ASC");
 }
 
 function getAllStudentIds($service_appt_id) {
