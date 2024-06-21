@@ -25,8 +25,9 @@ $headers = array('Enrollment', 'Payment Schedule', 'Amount', 'Receipt Number', '
 fputcsv($file, $headers);
 
 // Add data rows
-$enrollment_data = [];
+
 while(!$data->EOF) {
+    $enrollment_data = [];
     $enrollment_data[] = $data->fields['ENROLLMENT'];
     $enrollment_data[] = $data->fields['PAYMENT_DATE'];
     $enrollment_data[] = $data->fields['AMOUNT'];
