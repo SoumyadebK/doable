@@ -393,7 +393,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         }
 
         if (((count($ENROLLMENT_LEDGER_PARENT_ARRAY) - 1) == $i) && ($REMAINING_AMOUNT > 0)) {
-            $LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = 'Billing';
+            /*$LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = 'Billing';
             $LEDGER_DATA_BILLING['ENROLLMENT_LEDGER_PARENT'] = 0;
             $LEDGER_DATA_BILLING['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
             $LEDGER_DATA_BILLING['PK_ENROLLMENT_BILLING'] = $enrollment_billing_data->fields['PK_ENROLLMENT_BILLING'];
@@ -403,12 +403,18 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $LEDGER_DATA_BILLING['BILLED_AMOUNT'] = $REMAINING_AMOUNT;
             $LEDGER_DATA_BILLING['BALANCE'] = $REMAINING_AMOUNT;
             $LEDGER_DATA_BILLING['STATUS'] = 'A';
-            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_BILLING, 'insert');
-        }
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_BILLING, 'insert');*/
 
-        $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
-        $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT_ARRAY[$i]'");
+            $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = $REMAINING_AMOUNT;
+            $LEDGER_UPDATE_DATA['IS_PAID'] = 0;
+            $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT_ARRAY[$i]'");
+        } elseif (((count($ENROLLMENT_LEDGER_PARENT_ARRAY) - 1) == $i)) {
+            $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = 0;
+            $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
+            $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT_ARRAY[$i]'");
+        }
     }
 
     markEnrollmentComplete($_POST['PK_ENROLLMENT_MASTER']);
