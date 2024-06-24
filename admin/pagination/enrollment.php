@@ -296,7 +296,7 @@ while (!$row->EOF) {
                     <td style="text-align: right;"><?=$billing_details->fields['BILLED_AMOUNT']?></td>
                     <td></td>
                     <td style="text-align: center;"></td>
-                    <td style="text-align: right;"><?=($billing_details->fields['AMOUNT_REMAIN'] > 0) ? $billing_details->fields['AMOUNT_REMAIN'] : ''?><?php /*=number_format((float)$balance, 2, '.', '')*/?></td>
+                    <td style="text-align: right;"><?php /*=($billing_details->fields['AMOUNT_REMAIN'] > 0) ? $billing_details->fields['AMOUNT_REMAIN'] : ''*/?><?php /*=number_format((float)$balance, 2, '.', '')*/?></td>
                     <td style="text-align: right;">
                         <?php if($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS']=='A') {
                             if ($billing_details->fields['AMOUNT_REMAIN'] > 0) { ?>
