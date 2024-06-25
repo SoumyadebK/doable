@@ -48,7 +48,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $PAYMENT_STATUS = 'Success';
     $IS_ORIGINAL_RECEIPT = 1;
 
-    $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY RECEIPT_NUMBER DESC LIMIT 1");
+    $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY CONVERT(RECEIPT_NUMBER, DECIMAL) DESC LIMIT 1");
     if ($receipt->RecordCount() > 0) {
         $RECEIPT_NUMBER_ORIGINAL = $receipt->fields['RECEIPT_NUMBER'] + 1;
     } else {
@@ -280,7 +280,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         while (!$wallet_transaction->EOF) {
             $PK_CUSTOMER_WALLET = $wallet_transaction->fields['PK_CUSTOMER_WALLET'];
             $BALANCE_LEFT = $wallet_transaction->fields['BALANCE_LEFT'] - $AMOUNT_BILLED;
-            if ($BALANCE_LEFT > 0) {
+            if ($BALANCE_LEFT >= 0) {
                 $WALLET_UPDATE_DATA['BALANCE_LEFT'] = $BALANCE_LEFT;
                 db_perform_account('DOA_CUSTOMER_WALLET', $WALLET_UPDATE_DATA, 'update', " PK_CUSTOMER_WALLET =  '$PK_CUSTOMER_WALLET'");
                 $RECEIPT_NUMBER_ARRAY[] = $wallet_transaction->fields['RECEIPT_NUMBER'];

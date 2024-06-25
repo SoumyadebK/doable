@@ -27,7 +27,7 @@ else if ($SQUARE_MODE == 2)
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";*/
 
 if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
-    $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY RECEIPT_NUMBER DESC LIMIT 1");
+    $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY CONVERT(RECEIPT_NUMBER, DECIMAL) DESC LIMIT 1");
     if ($receipt->RecordCount() > 0) {
         $RECEIPT_NUMBER = $receipt->fields['RECEIPT_NUMBER'] + 1;
     } else {
