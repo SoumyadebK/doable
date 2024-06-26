@@ -41,15 +41,15 @@ if ($_GET['type'] == 'completed') {
                             DOA_APPOINTMENT_MASTER
                         LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
                         LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = SERVICE_PROVIDER.PK_USER
-                        
+
                         LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
                         LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
                         LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
-                        
+
                         LEFT JOIN DOA_APPOINTMENT_ENROLLMENT ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER
                         LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
                         LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
-                        LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
+                        LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS
                         LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
                         %s
                         AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
@@ -232,7 +232,7 @@ while (!$row->EOF) {
                         <td>Amount</td>
                         <td style="text-align: right;"><?=$total_amount?></td>
                         <td style="text-align: right;"><?=$total_used_amount?></td>
-                        <td style="text-align: right; color:<?=($total_paid_amount-$total_used_amount<0)?'red':'black'?>;"><?=$total_paid_amount-$total_used_amount?></td>
+                        <td style="text-align: right; color:<?=($total_paid_amount-$total_used_amount<-0.03)?'red':'black'?>;"><?=number_format((($total_paid_amount-$total_used_amount<0.03) ? 0 : $total_paid_amount-$total_used_amount), 2)?></td>
                         <td style="text-align: right;">$<?=number_format($total_paid_amount, 2)?></td>
                         <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? $total_paid_amount-$total_used_amount : 0?></td>
                     </tr>
