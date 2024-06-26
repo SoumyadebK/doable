@@ -51,11 +51,17 @@ $page_first_result = ($page-1) * $results_per_page;
 
 if (isset($_POST['SUBMIT'])){
     $PK_ENROLLMENT_MASTER = $_POST['PK_ENROLLMENT_MASTER'];
+    $PK_PAYMENT_TYPE_REFUND = ($_POST['PK_PAYMENT_TYPE_REFUND']) ?? 0;
     $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
     if(empty($enrollment_data->fields['ENROLLMENT_NAME'])){
         $enrollment_name = '';
     }else {
         $enrollment_name = $enrollment_data->fields['ENROLLMENT_NAME']." - ";
+    }
+    if(empty($enrollment_data->fields['ENROLLMENT_ID'])) {
+        $enrollment_id = $enrollment_data->fields['MISC_ID'];
+    } else {
+        $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
     }
     $TOTAL_POSITIVE_BALANCE = $_POST['TOTAL_POSITIVE_BALANCE'];
     $TOTAL_NEGATIVE_BALANCE = $_POST['TOTAL_NEGATIVE_BALANCE'];
@@ -127,6 +133,31 @@ if (isset($_POST['SUBMIT'])){
         $LEDGER_DATA_REFUND['BALANCE'] = $TOTAL_POSITIVE_BALANCE;
         $LEDGER_DATA_REFUND['STATUS'] = $UPDATE_DATA['STATUS'];
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_REFUND, 'insert');
+        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+
+        if ($LEDGER_DATA_REFUND['TRANSACTION_TYPE'] == 'Refund') {
+            $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY CONVERT(RECEIPT_NUMBER, DECIMAL) DESC LIMIT 1");
+            if ($receipt->RecordCount() > 0) {
+                $lastSerialNumber = $receipt->fields['RECEIPT_NUMBER'];
+                $RECEIPT_NUMBER = $lastSerialNumber + 1;
+            } else {
+                $RECEIPT_NUMBER = 1;
+            }
+
+            $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+            $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE_REFUND;
+            $PAYMENT_DATA['AMOUNT'] = $TOTAL_POSITIVE_BALANCE;
+            $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
+            $PAYMENT_DATA['TYPE'] = 'Refund';
+            $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+            $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+            $PAYMENT_DATA['PAYMENT_INFO'] = 'Refund';
+            $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+            $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+            $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
+            db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+        }
     }
     if ($TOTAL_NEGATIVE_BALANCE < 0) {
         $LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Balance Owed' : 'Billing';
@@ -422,7 +453,7 @@ if (isset($_POST['SUBMIT'])){
                                 <div class="form-group credit_balance_div" style="display: none;">
                                     <label class="form-label">Refund Method?</label>
                                     <div class="col-md-8">
-                                        <select class="form-control" name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE">
+                                        <select class="form-control" name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND">
                                             <option value="">Select</option>
                                             <?php
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");

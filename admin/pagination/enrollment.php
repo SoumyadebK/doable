@@ -298,7 +298,7 @@ while (!$row->EOF) {
                     <td style="text-align: center;"></td>
                     <td style="text-align: right;"><?php /*=($billing_details->fields['AMOUNT_REMAIN'] > 0) ? $billing_details->fields['AMOUNT_REMAIN'] : ''*/?><?php /*=number_format((float)$balance, 2, '.', '')*/?></td>
                     <td style="text-align: right;">
-                        <?php if($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS']=='A') {
+                        <?php if($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS'] == 'A') {
                             if ($billing_details->fields['AMOUNT_REMAIN'] > 0) { ?>
                                 <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['AMOUNT_REMAIN']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Payout</button>
                             <?php } else { ?>
@@ -359,7 +359,7 @@ while (!$row->EOF) {
                 $b++;
                 $billing_details->MoveNext();
             }
-            $cancelled_enrollment = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = -1 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+            $cancelled_enrollment = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER WHERE DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = -1 ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE ASC, DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER ASC");
             while (!$cancelled_enrollment->EOF) {
             ?>
                 <tr style="color: <?=(($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Balance Owed') ? 'red' : ''))?>;">
@@ -372,9 +372,13 @@ while (!$row->EOF) {
                     <td style="text-align: right;">
                         <?php if($cancelled_enrollment->fields['IS_PAID'] == 0) { ?>
                             <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$cancelled_enrollment->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_LEDGER']?>, <?=$cancelled_enrollment->fields['BILLED_AMOUNT']?>, '');">Pay Now</button>
-                        <?php } elseif($cancelled_enrollment->fields['IS_PAID'] == 2) { ?>
-                            <button class="btn btn-success waves-effect waves-light m-l-10 text-white" onclick="moveToWallet(this, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_LEDGER']?>, <?=$cancelled_enrollment->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$cancelled_enrollment->fields['BALANCE']?>, 'cancelled', 'Refund', 0)">Refund</button>
-                        <?php } ?>
+                        <?php } elseif($cancelled_enrollment->fields['IS_PAID'] == 2) {
+                            if ($cancelled_enrollment->fields['RECEIPT_NUMBER']) { ?>
+                                <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?=$cancelled_enrollment->fields['PK_ENROLLMENT_MASTER']?>, '<?=$cancelled_enrollment->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
+                            <?php } else { ?>
+                                <button class="btn btn-success waves-effect waves-light m-l-10 text-white" onclick="moveToWallet(this, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_LEDGER']?>, <?=$cancelled_enrollment->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$cancelled_enrollment->fields['BALANCE']?>, 'cancelled', 'Refund', 0)">Refund</button>
+                        <?php }
+                        } ?>
                     </td>
                 </tr>
             <?php $cancelled_enrollment->MoveNext();
