@@ -73,13 +73,16 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_SERVICE_CODE.SERVICE_CODE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
-                            DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS
+                            DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
+                            CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME
                         FROM
                             DOA_APPOINTMENT_MASTER
                         LEFT JOIN DOA_APPOINTMENT_ENROLLMENT ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER
                         LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
                         LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
                         LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
+                        LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
+                        LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER
                         %s
                         AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
@@ -300,7 +303,7 @@ while (!$row->EOF) {
                     <td style="text-align: right;">
                         <?php if($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS']=='A') {
                             if ($billing_details->fields['AMOUNT_REMAIN'] > 0) { ?>
-                                <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['AMOUNT_REMAIN']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Payout</button>
+                                <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['AMOUNT_REMAIN']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</button>
                             <?php } else { ?>
                                 <label><input type="checkbox" name="PK_ENROLLMENT_LEDGER[]" class="pay_now_check PK_ENROLLMENT_LEDGER PAYMENT_CHECKBOX_<?=$row->fields['PK_ENROLLMENT_MASTER']?>" data-billed_amount="<?=$billing_details->fields['BILLED_AMOUNT']?>" value="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>"></label>
                                 <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$row->fields['ENROLLMENT_ID']?>');">Pay Now</button>
@@ -392,6 +395,7 @@ while (!$row->EOF) {
                     <th style="text-align: center;">Date</th>
                     <th style="text-align: center;">Time</th>
                     <th style="text-align: left;">Status</th>
+                    <th style="text-align: left;"><?=$service_provider_title?></th>
                     <th style="text-align: right;">Session Cost</th>
                     <th style="text-align: right;">Amount $</th>
                 </tr>
@@ -436,6 +440,7 @@ while (!$row->EOF) {
                         <td style="text-align: center;"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
                         <td style="text-align: center;"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
                         <td style="text-align: left;"><?=$appointment_data->fields['APPOINTMENT_STATUS']?></td>
+                        <td style="text-align: left;"><?=$appointment_data->fields['NAME']?></td>
                         <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled') {?>
                             <td></td>
                         <?php } else {?>

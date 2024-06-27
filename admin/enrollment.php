@@ -430,7 +430,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Location<span class="text-danger">*</span></label>
-                                                        <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION">
+                                                        <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION" onchange="showEnrollmentInstructors">
                                                             <option value="">Select Location</option>
                                                         </select>
                                                     </div>
@@ -734,11 +734,6 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         <label class="form-label">Enrollment By<span class="text-danger">*</span></label>
                                                         <select class="form-control" required name="ENROLLMENT_BY_ID" id="ENROLLMENT_BY_ID">
                                                             <option value="">Select</option>
-                                                            <?php
-                                                            $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES=DOA_USER_ROLES.PK_ROLES WHERE DOA_ROLES.IS_MANAGEMENT=1 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 ORDER BY FIRST_NAME");
-                                                            while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_USER'];?>" <?=($ENROLLMENT_BY_ID == $row->fields['PK_USER'])?'selected':''?>><?=$row->fields['NAME']?></option>
-                                                            <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -1400,6 +1395,63 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             success: function (result) {
                 $('#PK_LOCATION').empty();
                 $('#PK_LOCATION').append(result);
+            }
+        });
+
+        $.ajax({
+            url: "ajax/get_enrollment_by.php",
+            type: "POST",
+            data: {LOCATION_ID: location_id},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#ENROLLMENT_BY_ID').empty();
+                $('#ENROLLMENT_BY_ID').append(result);
+                $('#ENROLLMENT_BY_ID')[0].sumo.reload();
+            }
+        });
+
+        $.ajax({
+            url: "ajax/get_instructor.php",
+            type: "POST",
+            data: {LOCATION_ID: location_id},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#SERVICE_PROVIDER_ID').empty();
+                $('#SERVICE_PROVIDER_ID').append(result);
+                $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
+            }
+        });
+    }
+
+    function showEnrollmentInstructor(param){
+        let location_id = $(param).find(':selected').data('location_id');
+        $('#PK_LOCATION').val(location_id);
+
+        $.ajax({
+            url: "ajax/get_enrollment_by.php",
+            type: "POST",
+            data: {LOCATION_ID: location_id},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#ENROLLMENT_BY_ID').empty();
+                $('#ENROLLMENT_BY_ID').append(result);
+                $('#ENROLLMENT_BY_ID')[0].sumo.reload();
+            }
+        });
+
+        $.ajax({
+            url: "ajax/get_instructor.php",
+            type: "POST",
+            data: {LOCATION_ID: location_id},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#SERVICE_PROVIDER_ID').empty();
+                $('#SERVICE_PROVIDER_ID').append(result);
+                $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
             }
         });
     }
