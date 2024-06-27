@@ -1992,8 +1992,17 @@ function moveToWallet($RESPONSE_DATA)
         $UPDATE_DATA['TRANSACTION_TYPE'] = $TRANSACTION_TYPE;
         db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
 
-        $PARENT_DATA['IS_PAID'] = 0;
+        $enrollment_billing_data = $db_account->Execute("SELECT `BILLED_AMOUNT`, `AMOUNT_REMAIN` FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_LEDGER` = '$ENROLLMENT_LEDGER_PARENT'");
+        $AMOUNT_REMAIN = $enrollment_billing_data->fields['AMOUNT_REMAIN'] + $BALANCE;
+        if ($AMOUNT_REMAIN >= $enrollment_billing_data->fields['BILLED_AMOUNT']) {
+            $PARENT_DATA['AMOUNT_REMAIN'] = 0;
+            $PARENT_DATA['IS_PAID'] = 0;
+        } else {
+            $PARENT_DATA['IS_PAID'] = 0;
+            $PARENT_DATA['AMOUNT_REMAIN'] = $AMOUNT_REMAIN;
+        }
         db_perform_account('DOA_ENROLLMENT_LEDGER', $PARENT_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT'");
+
 
         $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
         $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);

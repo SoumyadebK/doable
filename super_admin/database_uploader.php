@@ -645,7 +645,7 @@ if(!empty($_POST))
                             $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
 
                             $payment_type = $enrollment_payment->fields['payment_method'];
-                            $PK_PAYMENT_TYPE = $db_account->Execute("SELECT PK_PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE='$payment_type'");
+                            $PK_PAYMENT_TYPE = $db->Execute("SELECT PK_PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE = '$payment_type'");
 
                             $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                             $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
