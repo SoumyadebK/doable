@@ -430,7 +430,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Location<span class="text-danger">*</span></label>
-                                                        <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION" onchange="showEnrollmentInstructors">
+                                                        <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION" onchange="showEnrollmentInstructor(this);">
                                                             <option value="">Select Location</option>
                                                         </select>
                                                     </div>
