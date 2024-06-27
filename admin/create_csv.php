@@ -99,41 +99,46 @@ $headers_2 = array('Service', 'Apt #', 'Service Code', 'Date', 'Time', 'Status',
 fputcsv($file, $headers_2);
 
 $service_code_array = [];
-        $i=1;
-        $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
-        while (!$appointment_data->EOF) {
-            if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
-                $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
-                $ENROLLMENT_ID = $appointment_data->fields['ENROLLMENT_ID'];
-                $ENROLLMENT_NAME = $appointment_data->fields['ENROLLMENT_NAME'];
+$i=1;
+$appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
+while (!$appointment_data->EOF) {
+    if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
+        $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
+        $ENROLLMENT_ID = $appointment_data->fields['ENROLLMENT_ID'];
+        $ENROLLMENT_NAME = $appointment_data->fields['ENROLLMENT_NAME'];
+    } else {
+        $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
+        $ENROLLMENT_ID = $appointment_data->fields['APT_ENR_NAME'];
+        $ENROLLMENT_NAME = $appointment_data->fields['APT_ENR_ID'];
+    }
+
+    if($appointment_data->fields['APPOINTMENT_STATUS'] != 'Cancelled') {
+        $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, PRICE_PER_SESSION, SESSION_CREATED, SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
+        if ($enr_service_data->RecordCount() > 0) {
+            if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
+                $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - 1;
             } else {
-                $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
-                $ENROLLMENT_ID = $appointment_data->fields['APT_ENR_NAME'];
-                $ENROLLMENT_NAME = $appointment_data->fields['APT_ENR_ID'];
+                $service_code_array[$PK_ENROLLMENT_SERVICE] = $enr_service_data->fields['SESSION_CREATED'];
             }
-
-            $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, PRICE_PER_SESSION, SESSION_CREATED, SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
-            if ($enr_service_data->RecordCount() > 0) {
-                if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
-                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - 1;
-                } else {
-                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $enr_service_data->fields['SESSION_CREATED'];
-                }
-            }
-
-            $details = [];
-            $details[] = $appointment_data->fields['SERVICE_NAME'];
-            $details[] = (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? $service_code_array[$PK_ENROLLMENT_SERVICE] . ' of ' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '';
-            $details[] = $appointment_data->fields['SERVICE_CODE'];
-            $details[] = date('m/d/Y', strtotime($appointment_data->fields['DATE']));
-            $details[] = date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME']));
-            $details[] = $appointment_data->fields['APPOINTMENT_STATUS'];
-            $details[] = (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? $enr_service_data->fields['PRICE_PER_SESSION'] : '';
-            fputcsv($file, $details);
-            $appointment_data->MoveNext();
-            $i++;
         }
+    }
 
+    $details = [];
+    $details[] = $appointment_data->fields['SERVICE_NAME'];
+    if($appointment_data->fields['APPOINTMENT_STATUS'] == 'Cancelled') {
+        $details[] = '';
+    } else {
+        $details[] = (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? $service_code_array[$PK_ENROLLMENT_SERVICE] . ' of ' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '';
+    }
+    $details[] = $appointment_data->fields['SERVICE_CODE'];
+    $details[] = date('m/d/Y', strtotime($appointment_data->fields['DATE']));
+    $details[] = date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME']));
+    $details[] = $appointment_data->fields['APPOINTMENT_STATUS'];
+    $details[] = (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? $enr_service_data->fields['PRICE_PER_SESSION'] : '';
+    fputcsv($file, $details);
+    $appointment_data->MoveNext();
+    $i++;
+}
 
 // Close the file
 fclose($file);
