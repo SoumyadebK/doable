@@ -91,11 +91,7 @@ $AND_PK_USER = '';
                     <label class="form-label"><?=$service_provider_title?><span class="text-danger">*</span></label>
                     <select required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
                         <option value="">Select <?=$service_provider_title?></option>
-                        <?php
-                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 ".$AND_PK_USER." AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
-                        while (!$row->EOF) { ?>
-                            <option value="<?php echo $row->fields['PK_USER'];?>" <?=($SERVICE_PROVIDER_ID == $row->fields['PK_USER'])?"selected":""?>><?=$row->fields['NAME']?></option>
-                        <?php $row->MoveNext(); } ?>
+
                     </select>
                 </div>
             </div>
@@ -193,6 +189,20 @@ $AND_PK_USER = '';
                 $('#PK_SCHEDULING_CODE').empty();
                 $('#PK_SCHEDULING_CODE').append(result);
                 $('#PK_SCHEDULING_CODE')[0].sumo.reload();
+            }
+        });
+
+        let location_id = $(param).find(':selected').data('location_id');
+        $.ajax({
+            url: "ajax/get_instructor.php",
+            type: "POST",
+            data: {LOCATION_ID: location_id},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#SERVICE_PROVIDER_ID').empty();
+                $('#SERVICE_PROVIDER_ID').append(result);
+                $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
             }
         });
     }
