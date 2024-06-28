@@ -1784,44 +1784,9 @@ if ($PK_USER_MASTER > 0) {
                                                             <h3>Credit Card</h3>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:;" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+                                                            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
                                                         </div>
                                                     </div>
-
-                                                    <!--<table id="myTable" class="table table-striped border">
-                                                        <thead>
-                                                        <tr>
-                                                            <th>Date</th>
-                                                            <th>Transaction Details</th>
-                                                            <th>Debit</th>
-                                                            <th>Credit</th>
-                                                            <th>Balance</th>
-                                                            <th></th>
-                                                        </tr>
-                                                        </thead>
-
-                                                        <tbody>
-                                                        <?php
-/*                                                        $walletTransaction = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET ASC");
-                                                        $i = 1;
-                                                        while (!$walletTransaction->EOF) {
-                                                            $RECEIPT_PDF_LINK = $walletTransaction->fields['RECEIPT_PDF_LINK'];*/?>
-                                                            <tr>
-                                                                <td ><?php /*=date('m/d/Y h:i A', strtotime($walletTransaction->fields['CREATED_ON']))*/?></td>
-                                                                <td ><?php /*=$walletTransaction->fields['DESCRIPTION']*/?></td>
-                                                                <td ><?php /*=$walletTransaction->fields['DEBIT']*/?></td>
-                                                                <td ><?php /*=$walletTransaction->fields['CREDIT']*/?></td>
-                                                                <td ><?php /*=$walletTransaction->fields['CURRENT_BALANCE']*/?></td>
-                                                                <?php /*if($RECEIPT_PDF_LINK != '') { */?>
-                                                                    <td ><a class="btn btn-info waves-effect waves-light text-white" href="../uploads/enrollment_pdf/<?php /*=$RECEIPT_PDF_LINK*/?>" target="_blank">Receipt</a></td>
-                                                                <?php /*}else{*/?>
-                                                                    <td></td>
-                                                                <?php /*}*/?>
-                                                            </tr>
-                                                            <?php /*$walletTransaction->MoveNext();
-                                                            $i++; } */?>
-                                                        </tbody>
-                                                    </table>-->
                                                 </div>
                                             </div>
 
@@ -1936,6 +1901,11 @@ if ($PK_USER_MASTER > 0) {
 
 <!--Payment Model-->
 <?php include('includes/enrollment_payment.php'); ?>
+
+<!--Add Credit Card Model-->
+<div class="modal fade payment_modal" id="add_credit_card_modal" tabindex="-1" aria-hidden="true">
+
+</div>
 
     <style>
         .progress-bar {
@@ -2823,6 +2793,17 @@ if ($PK_USER_MASTER > 0) {
                 }
             });
         }
+    }
+
+    function addCreditCard() {
+        $.ajax({
+            url: "ajax/add_credit_card.php",
+            type: 'POST',
+            data: {PK_USER:PK_USER},
+            success: function (data) {
+                $('#add_credit_card_modal').html(data).modal('show');
+            }
+        });
     }
 </script>
 </body>

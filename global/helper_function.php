@@ -89,9 +89,9 @@ function updateSessionCompletedCount($PK_APPOINTMENT_MASTER)
         }
     }
 
-    if($serviceCodeData->fields['CHARGE_BY_SESSIONS'] == 1 && $serviceCodeData->fields['NUMBER_OF_SESSION'] == $ENR_SERVICE_DATA['SESSION_COMPLETED']) {
+    /*if($serviceCodeData->fields['CHARGE_BY_SESSIONS'] == 1 && $serviceCodeData->fields['NUMBER_OF_SESSION'] == $ENR_SERVICE_DATA['SESSION_COMPLETED']) {
         copyEnrollment($serviceCodeData->fields['PK_ENROLLMENT_MASTER']);
-    }
+    }*/
 }
 
 function copyEnrollment($PK_ENROLLMENT_MASTER){
