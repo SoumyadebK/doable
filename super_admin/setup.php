@@ -27,7 +27,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid body_content">
+        <?php require_once('../includes/setup_menu_super_admin.php') ?>
+        <div class="container-fluid body_content m-0">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -41,7 +42,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                 </div>
             </div>
 
-            <div class="row">
+            <!--<div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="row" style="padding: 15px 35px 35px 35px;">
@@ -99,7 +100,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>-->
         </div>
     </div>
 </div>
