@@ -1091,32 +1091,34 @@ function saveEngagementData($RESPONSE_DATA){
     }
 }
 
-function saveServiceData($RESPONSE_DATA){
-    //pre_r($RESPONSE_DATA);
+function saveLocationHourData($RESPONSE_DATA){
+    // pre_r($RESPONSE_DATA);
     global $db;
     global $db_account;
-    $TYPE = $RESPONSE_DATA['TYPE'];
-    unset($RESPONSE_DATA['TYPE']);
-    $RESPONSE_DATA['PK_SERVICE_MASTER'] = implode(',', $RESPONSE_DATA['PK_SERVICE_MASTER']);
-    $RESPONSE_DATA['MON_START_TIME'] = ($RESPONSE_DATA['MON_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['MON_START_TIME'])):'';
-    $RESPONSE_DATA['MON_END_TIME'] = ($RESPONSE_DATA['MON_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['MON_END_TIME'])):'';
-    $RESPONSE_DATA['TUE_START_TIME'] = ($RESPONSE_DATA['TUE_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['TUE_START_TIME'])):'';
-    $RESPONSE_DATA['TUE_END_TIME'] = ($RESPONSE_DATA['TUE_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['TUE_END_TIME'])):'';
-    $RESPONSE_DATA['WED_START_TIME'] = ($RESPONSE_DATA['WED_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['WED_START_TIME'])):'';
-    $RESPONSE_DATA['WED_END_TIME'] = ($RESPONSE_DATA['WED_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['WED_END_TIME'])):'';
-    $RESPONSE_DATA['THU_START_TIME'] = ($RESPONSE_DATA['THU_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['THU_START_TIME'])):'';
-    $RESPONSE_DATA['THU_END_TIME'] = ($RESPONSE_DATA['THU_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['THU_END_TIME'])):'';
-    $RESPONSE_DATA['FRI_START_TIME'] = ($RESPONSE_DATA['FRI_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['FRI_START_TIME'])):'';
-    $RESPONSE_DATA['FRI_END_TIME'] = ($RESPONSE_DATA['FRI_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['FRI_END_TIME'])):'';
-    $RESPONSE_DATA['SAT_START_TIME'] = ($RESPONSE_DATA['SAT_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['SAT_START_TIME'])):'';
-    $RESPONSE_DATA['SAT_END_TIME'] = ($RESPONSE_DATA['SAT_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['SAT_END_TIME'])):'';
-    $RESPONSE_DATA['SUN_START_TIME'] = ($RESPONSE_DATA['SUN_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['SUN_START_TIME'])):'';
-    $RESPONSE_DATA['SUN_END_TIME'] = ($RESPONSE_DATA['SUN_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['SUN_END_TIME'])):'';
-    $res = $db_account->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_SERVICES` WHERE PK_USER = '$RESPONSE_DATA[PK_USER]'");
-    if ($res->RecordCount() == 0) {
-        db_perform_account('DOA_SERVICE_PROVIDER_SERVICES', $RESPONSE_DATA, 'insert');
-    }else{
-        db_perform_account('DOA_SERVICE_PROVIDER_SERVICES', $RESPONSE_DATA, 'update', " PK_USER = $RESPONSE_DATA[PK_USER]");
+
+    $PK_USER = $RESPONSE_DATA['PK_USER'];
+    $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
+
+    $db_account->Execute("DELETE FROM `DOA_SERVICE_PROVIDER_LOCATION_HOURS` WHERE `PK_USER` = ".$PK_USER);
+
+    for ($i = 0; $i < count($PK_LOCATION); $i++) {
+        $INSERT_DATA['PK_USER'] = $PK_USER;
+        $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+        $INSERT_DATA['MON_START_TIME'] = ($RESPONSE_DATA['MON_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['MON_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['MON_END_TIME'] = ($RESPONSE_DATA['MON_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['MON_END_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['TUE_START_TIME'] = ($RESPONSE_DATA['TUE_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['TUE_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['TUE_END_TIME'] = ($RESPONSE_DATA['TUE_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['TUE_END_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['WED_START_TIME'] = ($RESPONSE_DATA['WED_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['WED_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['WED_END_TIME'] = ($RESPONSE_DATA['WED_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['WED_END_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['THU_START_TIME'] = ($RESPONSE_DATA['THU_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['THU_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['THU_END_TIME'] = ($RESPONSE_DATA['THU_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['THU_END_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['FRI_START_TIME'] = ($RESPONSE_DATA['FRI_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['FRI_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['FRI_END_TIME'] = ($RESPONSE_DATA['FRI_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['FRI_END_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['SAT_START_TIME'] = ($RESPONSE_DATA['SAT_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['SAT_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['SAT_END_TIME'] = ($RESPONSE_DATA['SAT_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['SAT_END_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['SUN_START_TIME'] = ($RESPONSE_DATA['SUN_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['SUN_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['SUN_END_TIME'] = ($RESPONSE_DATA['SUN_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['SUN_END_TIME'][$i])) : '00:00:00';
+        db_perform_account('DOA_SERVICE_PROVIDER_LOCATION_HOURS', $INSERT_DATA, 'insert');
     }
 }
 
