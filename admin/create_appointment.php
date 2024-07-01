@@ -488,6 +488,12 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             let selected_date  = myCalender.value.toDateString();
             let day = (selected_date.toString().split(' ')[0]).toUpperCase();
             let month = selected_date.toString().split(' ')[1];
+
+            let PK_LOCATION = $('#PK_ENROLLMENT_MASTER').find(':selected').data('location_id');
+            if (!PK_LOCATION) {
+                PK_LOCATION = $('#SELECT_CUSTOMER').find(':selected').data('location_id');
+            }
+
             if(month == 'Jan')
                 month = '01'
             else if(month == 'Feb')
@@ -532,6 +538,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
                         /*PK_SERVICE_MASTER: PK_SERVICE_MASTER,
                         PK_SERVICE_CODE: PK_SERVICE_CODE,*/
                         SERVICE_PROVIDER_ID: SERVICE_PROVIDER_ID,
+                        PK_LOCATION: PK_LOCATION,
                         duration: duration,
                         day: day,
                         date: date,

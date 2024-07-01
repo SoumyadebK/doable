@@ -47,39 +47,6 @@ $CAN_EDIT_ENROLLMENT = '';
 $TICKET_SYSTEM_ACCESS = '';
 $APPEAR_IN_CALENDAR = 0;
 
-//for service provider
-$IS_COUNSELLOR = '';
-$PK_SERVICE_MASTER = '';
-$MON_START_TIME = '';
-$MON_END_TIME = '';
-$TUE_START_TIME = '';
-$TUE_END_TIME = '';
-$WED_START_TIME = '';
-$WED_END_TIME = '';
-$THU_START_TIME = '';
-$THU_END_TIME = '';
-$FRI_START_TIME = '';
-$FRI_END_TIME = '';
-$SAT_START_TIME = '';
-$SAT_END_TIME = '';
-$SUN_START_TIME = '';
-$SUN_END_TIME = '';
-
-$MON_MIN_TIME = '';
-$MON_MAX_TIME = '';
-$TUE_MIN_TIME = '';
-$TUE_MAX_TIME = '';
-$WED_MIN_TIME = '';
-$WED_MAX_TIME = '';
-$THU_MIN_TIME = '';
-$THU_MAX_TIME = '';
-$FRI_MIN_TIME = '';
-$FRI_MAX_TIME = '';
-$SAT_MIN_TIME = '';
-$SAT_MAX_TIME = '';
-$SUN_MIN_TIME = '';
-$SUN_MAX_TIME = '';
-
 $selected_roles = array();
 //end
 if(!empty($_GET['id'])) {
@@ -113,67 +80,6 @@ if(!empty($_GET['id'])) {
     $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
     $APPEAR_IN_CALENDAR = $res->fields['APPEAR_IN_CALENDAR'];
     $TICKET_SYSTEM_ACCESS = $res->fields['TICKET_SYSTEM_ACCESS'];
-
-    $service_data = $db_account->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_SERVICES` WHERE PK_USER = '$PK_USER'");
-    if($service_data->RecordCount() > 0) {
-        $PK_SERVICE_MASTER = $service_data->fields['PK_SERVICE_MASTER'];
-        $MON_START_TIME = $service_data->fields['MON_START_TIME'];
-        $MON_END_TIME = $service_data->fields['MON_END_TIME'];
-        $TUE_START_TIME = $service_data->fields['TUE_START_TIME'];
-        $TUE_END_TIME = $service_data->fields['TUE_END_TIME'];
-        $WED_START_TIME = $service_data->fields['WED_START_TIME'];
-        $WED_END_TIME = $service_data->fields['WED_END_TIME'];
-        $THU_START_TIME = $service_data->fields['THU_START_TIME'];
-        $THU_END_TIME = $service_data->fields['THU_END_TIME'];
-        $FRI_START_TIME = $service_data->fields['FRI_START_TIME'];
-        $FRI_END_TIME = $service_data->fields['FRI_END_TIME'];
-        $SAT_START_TIME = $service_data->fields['SAT_START_TIME'];
-        $SAT_END_TIME = $service_data->fields['SAT_END_TIME'];
-        $SUN_START_TIME = $service_data->fields['SUN_START_TIME'];
-        $SUN_END_TIME = $service_data->fields['SUN_END_TIME'];
-    }
-    $operational_hours_res = $db_account->Execute("SELECT DOA_OPERATIONAL_HOUR.DAY_NUMBER, MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DOA_OPERATIONAL_HOUR.CLOSED FROM `DOA_OPERATIONAL_HOUR` LEFT JOIN DOA_USER_LOCATION ON DOA_OPERATIONAL_HOUR.PK_LOCATION = DOA_USER_LOCATION.PK_LOCATION WHERE DOA_USER_LOCATION.PK_USER = '$_GET[id]' GROUP BY DOA_OPERATIONAL_HOUR.DAY_NUMBER");
-    while (!$operational_hours_res->EOF) {
-
-        switch ($operational_hours_res->fields['DAY_NUMBER']) {
-            case 1:
-                $MON_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
-                $MON_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
-                $MON_CLOSED = $operational_hours_res->fields['CLOSED'];
-                break;
-            case 2:
-                $TUE_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
-                $TUE_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
-                $TUE_CLOSED = $operational_hours_res->fields['CLOSED'];
-                break;
-            case 3:
-                $WED_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
-                $WED_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
-                $WED_CLOSED = $operational_hours_res->fields['CLOSED'];
-                break;
-            case 4:
-                $THU_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
-                $THU_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
-                $THU_CLOSED = $operational_hours_res->fields['CLOSED'];
-                break;
-            case 5:
-                $FRI_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
-                $FRI_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
-                $FRI_CLOSED = $operational_hours_res->fields['CLOSED'];
-                break;
-            case 6:
-                $SAT_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
-                $SAT_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
-                $SAT_CLOSED = $operational_hours_res->fields['CLOSED'];
-                break;
-            case 7:
-                $SUN_MIN_TIME = $operational_hours_res->fields['OPEN_TIME'];
-                $SUN_MAX_TIME = $operational_hours_res->fields['CLOSE_TIME'];
-                $SUN_CLOSED = $operational_hours_res->fields['CLOSED'];
-                break;
-        }
-        $operational_hours_res->MoveNext();
-    }
 
     if(!empty($_GET['id'])) {
         $PK_USER = $_GET['id'];
@@ -253,7 +159,7 @@ if(!empty($_GET['id'])) {
                                                 <li> <a class="nav-link active" data-bs-toggle="tab" id="profile_tab_link" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                                                 <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" onclick="goToLoginTab()" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
                                                 <li id="rates_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="rates_tab_link" data-bs-toggle="tab" href="#rates" role="tab" ><span class="hidden-sm-up"><i class="ti-money"></i></span> <span class="hidden-xs-down">Rates</span></a> </li>
-                                                <li id="service_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="service_tab_link" data-bs-toggle="tab" href="#service" role="tab" ><span class="hidden-sm-up"><i class="ti-server"></i></span> <span class="hidden-xs-down">Service</span></a> </li>
+                                                <li id="service_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="service_tab_link" onclick="getLocationHours()" data-bs-toggle="tab" href="#service" role="tab" ><span class="hidden-sm-up"><i class="ti-server"></i></span> <span class="hidden-xs-down">Service</span></a> </li>
                                                 <li> <a class="nav-link" data-bs-toggle="tab" href="#documents" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
                                                 <li id="comment_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                                             </ul>
@@ -777,141 +683,11 @@ if(!empty($_GET['id'])) {
                                                 </div>
 
                                                 <div class="tab-pane card-body" id="service" role="tabpanel">
-                                                    <form id="service_form">
-                                                        <input type="hidden" name="FUNCTION_NAME" value="saveServiceData">
+                                                    <form id="location_hour_form">
+                                                        <input type="hidden" name="FUNCTION_NAME" value="saveLocationHourData">
                                                         <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
                                                         <input type="hidden" class="TYPE" name="TYPE" value="3">
-                                                        <div class="p-20">
-                                                            <div class="row form-group">
-                                                                <div class="col-1">
-                                                                    <label class="form-label">Services</label>
-                                                                </div>
-                                                                <div class="col-6">
-                                                                    <select class="multi_sumo_select_services" name="PK_SERVICE_MASTER[]" multiple>
-                                                                        <?php
-                                                                        $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE ACTIVE = 1 ORDER BY SERVICE_NAME");
-                                                                        while (!$row->EOF) { ?>
-                                                                            <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=(in_array($row->fields['PK_SERVICE_MASTER'], explode(',', $PK_SERVICE_MASTER))?'selected':'')?> ><?=$row->fields['SERVICE_NAME']?></option>
-                                                                            <?php $row->MoveNext(); } ?>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row">
-                                                                <div class="col-1">
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <label class="form-label">Start Time</label>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <label class="form-label">End Time</label>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row form-group">
-                                                                <div class="col-1">
-                                                                    <label class="form-label">Monday</label>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="MON_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$MON_MIN_TIME?>" data-max_time="<?=$MON_MAX_TIME?>" placeholder="Start Time" value="<?=($MON_START_TIME=='00:00:00' || $MON_START_TIME=='')?'':date('h:i A', strtotime($MON_START_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="MON_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$MON_MIN_TIME?>" data-max_time="<?=$MON_MAX_TIME?>" placeholder="End Time" value="<?=($MON_END_TIME=='00:00:00' || $MON_END_TIME=='')?'':date('h:i A', strtotime($MON_END_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($MON_START_TIME=='00:00:00'&&$MON_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row form-group">
-                                                                <div class="col-1">
-                                                                    <label class="form-label">Tuesday</label>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="TUE_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$TUE_MIN_TIME?>" data-max_time="<?=$TUE_MAX_TIME?>" placeholder="Start Time" value="<?=($TUE_START_TIME=='00:00:00' || $TUE_START_TIME=='')?'':date('h:i A', strtotime($TUE_START_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="TUE_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$TUE_MIN_TIME?>" data-max_time="<?=$TUE_MAX_TIME?>" placeholder="End Time" value="<?=($TUE_END_TIME=='00:00:00' || $TUE_END_TIME=='')?'':date('h:i A', strtotime($TUE_END_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($TUE_START_TIME=='00:00:00'&&$TUE_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row form-group">
-                                                                <div class="col-1">
-                                                                    <label class="form-label">Wednesday</label>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="WED_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$WED_MIN_TIME?>" data-max_time="<?=$WED_MAX_TIME?>" placeholder="Start Time" value="<?=($WED_START_TIME=='00:00:00' || $WED_START_TIME=='')?'':date('h:i A', strtotime($WED_START_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="WED_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$WED_MIN_TIME?>" data-max_time="<?=$WED_MAX_TIME?>" placeholder="End Time" value="<?=($WED_END_TIME=='00:00:00' || $WED_END_TIME=='')?'':date('h:i A', strtotime($WED_END_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($WED_START_TIME=='00:00:00'&&$WED_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row form-group">
-                                                                <div class="col-1">
-                                                                    <label class="form-label">Thursday</label>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="THU_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$THU_MIN_TIME?>" data-max_time="<?=$THU_MAX_TIME?>" placeholder="Start Time" value="<?=($THU_START_TIME=='00:00:00' || $THU_START_TIME=='')?'':date('h:i A', strtotime($THU_START_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="THU_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$THU_MIN_TIME?>" data-max_time="<?=$THU_MAX_TIME?>" placeholder="End Time" value="<?=($THU_END_TIME=='00:00:00' || $THU_END_TIME=='')?'':date('h:i A', strtotime($THU_END_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($THU_START_TIME=='00:00:00'&&$THU_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row form-group">
-                                                                <div class="col-1">
-                                                                    <label class="form-label">Friday</label>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="FRI_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$FRI_MIN_TIME?>" data-max_time="<?=$FRI_MAX_TIME?>" placeholder="Start Time" value="<?=($FRI_START_TIME=='00:00:00' || $FRI_START_TIME=='')?'':date('h:i A', strtotime($FRI_START_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="FRI_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$FRI_MIN_TIME?>" data-max_time="<?=$FRI_MAX_TIME?>" placeholder="End Time" value="<?=($FRI_END_TIME=='00:00:00' || $FRI_END_TIME=='')?'':date('h:i A', strtotime($FRI_END_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($FRI_START_TIME=='00:00:00'&&$FRI_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row form-group">
-                                                                <div class="col-1">
-                                                                    <label class="form-label">Saturday</label>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="SAT_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$SAT_MIN_TIME?>" data-max_time="<?=$SAT_MAX_TIME?>" placeholder="Start Time" value="<?=($SAT_START_TIME=='00:00:00' || $SAT_START_TIME=='')?'':date('h:i A', strtotime($SAT_START_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="SAT_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$SAT_MIN_TIME?>" data-max_time="<?=$SAT_MAX_TIME?>" placeholder="End Time" value="<?=($SAT_END_TIME=='00:00:00' || $SAT_END_TIME=='')?'':date('h:i A', strtotime($SAT_END_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($SAT_START_TIME=='00:00:00'&&$SAT_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row form-group">
-                                                                <div class="col-1">
-                                                                    <label class="form-label">Sunday</label>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="SUN_START_TIME" class="form-control time-input time-picker" data-min_time="<?=$SUN_MIN_TIME?>" data-max_time="<?=$SUN_MAX_TIME?>" placeholder="Start Time" value="<?=($SUN_START_TIME=='00:00:00' || $SUN_START_TIME=='')?'':date('h:i A', strtotime($SUN_START_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <input type="text" name="SUN_END_TIME" class="form-control time-input time-picker" data-min_time="<?=$SUN_MIN_TIME?>" data-max_time="<?=$SUN_MAX_TIME?>" placeholder="End Time" value="<?=($SUN_END_TIME=='00:00:00' || $SUN_END_TIME=='')?'':date('h:i A', strtotime($SUN_END_TIME))?>" readonly>
-                                                                </div>
-                                                                <div class="col-2">
-                                                                    <label><input type="checkbox" onchange="closeThisDay(this)" <?=($SUN_START_TIME=='00:00:00'&&$SUN_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
-                                                                </div>
-                                                            </div>
+                                                        <div class="p-20" id="location_details_div">
 
                                                         </div>
                                                         <div class="form-group">
@@ -1399,21 +1175,33 @@ if(!empty($_GET['id'])) {
             });
         });
 
-        $(document).on('submit', '#service_form', function (event) {
+        function getLocationHours() {
+            $.ajax({
+                url: "ajax/get_location_hours.php",
+                type: 'POST',
+                data: {PK_USER : PK_USER},
+                success:function (data) {
+                    $('#location_details_div').html(data);
+                }
+            });
+        }
+
+        $(document).on('submit', '#location_hour_form', function (event) {
             event.preventDefault();
-            let form_data = $('#service_form').serialize();
+            let form_data = $('#location_hour_form').serialize();
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
                 data: form_data,
                 success:function (data) {
-                    if (PK_USER == 0) {
+                    window.location.href='all_users.php';
+                    /*if (PK_USER == 0) {
                         if ($('#PK_ROLES').val().indexOf('5') !== -1) {
                             $('#document_tab_link')[0].click();
                         } else {
                             window.location.href='all_users.php';
                         }
-                    }
+                    }*/
                 }
             });
         });
