@@ -1,6 +1,6 @@
 <div class="modal fade payment_modal" id="wallet_payment_model" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <form id="enrollment_payment_form" action="includes/process_wallet_payment.php" method="post" enctype="multipart/form-data">
+        <form id="wallet_payment_form" action="includes/process_wallet_payment.php" method="post" enctype="multipart/form-data">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4><b>Add Money to Wallet</b></h4>
@@ -27,7 +27,7 @@
                                 <div class="form-group">
                                     <label class="form-label">Payment Type</label>
                                     <div class="col-md-12">
-                                        <select class="form-control PAYMENT_TYPE" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)">
+                                        <select class="form-control PAYMENT_TYPE" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this, 'wallet')">
                                             <option value="">Select</option>
                                             <?php
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE != 7 AND ACTIVE = 1");

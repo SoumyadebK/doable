@@ -53,7 +53,7 @@
                                 <div class="form-group">
                                     <label class="form-label">Payment Type</label>
                                     <div class="col-md-12">
-                                        <select class="form-control PAYMENT_TYPE" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)">
+                                        <select class="form-control PAYMENT_TYPE" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this, 'enrollment')">
                                             <option value="">Select</option>
                                             <?php
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
@@ -283,7 +283,7 @@
 
 <script src="https://js.stripe.com/v3/"></script>
 <script type="text/javascript">
-    function stripePaymentFunction() {
+    function stripePaymentFunction(type) {
         var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
         var elements = stripe.elements();
 
@@ -326,7 +326,7 @@
         });
 
         // Handle form submission.
-        var form = document.getElementById('enrollment_payment_form');
+        var form = document.getElementById(type+'_payment_form');
         form.addEventListener('submit', function (event) {
             event.preventDefault();
             stripe.createToken(card).then(function (result) {
@@ -344,7 +344,7 @@
         // Submit the form with the token ID.
         function stripeTokenHandler(token) {
             // Insert the token ID into the form, so it gets submitted to the server
-            let form = document.getElementById('enrollment_payment_form');
+            let form = document.getElementById(type+'_payment_form');
             let hiddenInput = document.createElement('input');
             hiddenInput.setAttribute('type', 'hidden');
             hiddenInput.setAttribute('name', 'token');
@@ -360,7 +360,7 @@
         $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
     }
 
-    function selectPaymentType(param){
+    function selectPaymentType(param, type){
         let paymentType = parseInt($(param).val());
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         $(param).closest('.payment_modal').find('.payment_type_div').slideUp();
@@ -369,7 +369,7 @@
             case 1:
                 if (PAYMENT_GATEWAY == 'Stripe') {
                     $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
-                    stripePaymentFunction();
+                    stripePaymentFunction(type);
                 }
 
                 getCreditCardList();

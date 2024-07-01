@@ -13,6 +13,8 @@ use Square\Environment;
 
 use Dompdf\Dompdf;
 use Mpdf\Mpdf;
+use Stripe\Exception\ApiErrorException;
+use Stripe\StripeClient;
 
 $userType = "Customers";
 
@@ -41,6 +43,9 @@ else {
     $header = 'customer.php?id=' . $_GET['id'] . '&master_id=' . $_GET['master_id'] . '&tab=enrollment';
 }
 
+$PK_USER = $_GET['id'] ?? '';
+$PK_USER_MASTER = $_GET['master_id'] ?? '';
+
 if (!empty($_GET['tab']))
     $title = $userType;
 
@@ -55,6 +60,73 @@ $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
 $ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
 $APP_ID = $account_data->fields['APP_ID'];
 $LOCATION_ID = $account_data->fields['LOCATION_ID'];
+
+require_once("../global/stripe-php-master/init.php");
+$stripe = new StripeClient($SECRET_KEY);
+$customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $PK_USER);
+$message = '';
+
+if ($customer_payment_info->RecordCount() > 0) {
+    $customer_id = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+    $stripe_customer = $stripe->customers->retrieve($customer_id);
+    $card_id = $stripe_customer->default_source;
+
+    $url = "https://api.stripe.com/v1/customers/".$customer_id."/cards/".$card_id;
+    $AUTH = "Authorization: Bearer ".$SECRET_KEY;
+
+    $curl = curl_init();
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => array(
+            $AUTH
+        ),
+    ));
+
+    $response = curl_exec($curl);
+    $card_details = json_decode($response, true);
+}
+
+if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard') {
+    $STRIPE_TOKEN = $_POST['token'];
+    $CUSTOMER_PAYMENT_ID = '';
+    if ($customer_payment_info->RecordCount() > 0) {
+        $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['ACCOUNT_PAYMENT_ID'];
+    } else {
+        try {
+            $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = ".$PK_USER);
+            $customer = $stripe->customers->create([
+                'email' => $user_data->fields['EMAIL_ID'],
+                'name' => $user_data->fields['FIRST_NAME'].' '.$user_data->fields['LAST_NAME'],
+                'phone' => $user_data->fields['PHONE'],
+                'description' => 'Add Credit Card',
+            ]);
+            $CUSTOMER_PAYMENT_ID = $customer->id;
+        } catch (ApiErrorException $e) {
+            pre_r($e->getMessage());
+        }
+
+        $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $PK_USER;
+        $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+        $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Stripe';
+        $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
+    }
+    try {
+        $card = $stripe->customers->createSource($CUSTOMER_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
+        $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $card->id]);
+    } catch (ApiErrorException $e) {
+        pre_r($e->getMessage());
+    }
+    $message = "Credit Card has been saved";
+}
+
 /*$card_number = '';
 
 if($PAYMENT_GATEWAY == "Stripe") {
@@ -95,8 +167,6 @@ if($PAYMENT_GATEWAY == "Stripe") {
     }
 }*/
 
-$PK_USER = '';
-$PK_USER_MASTER = '';
 $USER_NAME = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
@@ -141,8 +211,6 @@ if(!empty($_GET['id'])) {
         header("location:all_customers.php");
         exit;
     }
-    $PK_USER = $_GET['id'];
-    $PK_USER_MASTER = $_GET['master_id'];
     $USER_NAME = $res->fields['USER_NAME'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
@@ -1778,14 +1846,82 @@ if ($PK_USER_MASTER > 0) {
                                             </div>
 
                                             <div class="tab-pane" id="credit_card" role="tabpanel">
-                                                <div class="p-20">
+                                                <div class="p-20 payment_modal">
                                                     <div class="row">
                                                         <div class="col-md-6">
                                                             <h3>Credit Card</h3>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+                                                            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard(this)" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
                                                         </div>
+                                                        <?php if ($message != '') { ?>
+                                                            <div class="alert alert-success">
+                                                                <?=$message?>
+                                                            </div>
+                                                        <?php } ?>
+                                                        <form class="form-material form-horizontal" id="save_credit_card_payment_form" action="" method="post" enctype="multipart/form-data">
+                                                            <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
+                                                            <div class="row credit_card_div" style="display: none;">
+                                                                <div class="col-6">
+                                                                    <div class="form-group" id="card_div">
+
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row credit_card_div" style="display: none;">
+                                                                <div class="col-6">
+                                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Save</button>
+                                                                </div>
+                                                            </div>
+                                                        </form>
+                                                        <?php if (isset($card_details['last4'])) {
+                                                            switch ($card_details['brand']) {
+                                                                case 'Visa':
+                                                                case 'Visa (debit)':
+                                                                    $card_type = 'visa';
+                                                                    break;
+                                                                case 'MasterCard':
+                                                                case 'Mastercard (2-series)':
+                                                                case 'Mastercard (debit)':
+                                                                case 'Mastercard (prepaid)':
+                                                                    $card_type = 'mastercard';
+                                                                    break;
+                                                                case 'American Express':
+                                                                    $card_type = 'amex';
+                                                                    break;
+                                                                case 'Discover':
+                                                                case 'Discover (debit)':
+                                                                    $card_type = 'discover';
+                                                                    break;
+                                                                case 'Diners Club':
+                                                                case 'Diners Club (14-digit card)':
+                                                                    $card_type = 'diners';
+                                                                    break;
+                                                                case 'JCB':
+                                                                    $card_type = 'jcb';
+                                                                    break;
+                                                                case 'UnionPay':
+                                                                case 'UnionPay (debit)':
+                                                                case 'UnionPay (19-digit card)':
+                                                                    $card_type = 'unionpay';
+                                                                    break;
+                                                                default:
+                                                                    $card_type = '';
+                                                                    break;
+
+                                                            } ?>
+                                                            <div class="p-20">
+                                                                <h5>Saved Card Details</h5>
+                                                                <div class="credit-card <?=$card_type?> selectable" style="margin-right: 80%;">
+                                                                    <div class="credit-card-last4">
+                                                                        <?=$card_details['last4']?>
+                                                                    </div>
+                                                                    <div class="credit-card-expiry">
+                                                                        <?=$card_details['exp_month'].'/'.$card_details['exp_year']?>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        <?php } ?>
                                                     </div>
                                                 </div>
                                             </div>
@@ -2795,15 +2931,10 @@ if ($PK_USER_MASTER > 0) {
         }
     }
 
-    function addCreditCard() {
-        $.ajax({
-            url: "ajax/add_credit_card.php",
-            type: 'POST',
-            data: {PK_USER:PK_USER},
-            success: function (data) {
-                $('#add_credit_card_modal').html(data).modal('show');
-            }
-        });
+    function addCreditCard(param) {
+        $('.credit_card_div').slideDown();
+        $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
+        stripePaymentFunction('save_credit_card');
     }
 </script>
 </body>
