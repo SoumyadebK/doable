@@ -742,8 +742,19 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    window.location.href = "create_appointment.php?date="+moment(date).format()+"&SERVICE_PROVIDER_ID="+resource_id;
-                    //openModel();
+                    $.ajax({
+                        url: "ajax/check_service_provider_slot.php",
+                        type: "POST",
+                        data: {PK_USER : resource_id,  DATE_TIME : moment(date).format()},
+                        //dataType: 'json',
+                        success: function (result) {
+                            if (result == 1) {
+                                window.location.href = "create_appointment.php?date="+moment(date).format()+"&SERVICE_PROVIDER_ID="+resource_id;
+                            } else {
+                                alert(result);
+                            }
+                        },
+                    });
                 }
             },
             loading: function( isLoading ) {

@@ -61,36 +61,41 @@ $ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
 $APP_ID = $account_data->fields['APP_ID'];
 $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
+$card_details = '';
+
 require_once("../global/stripe-php-master/init.php");
-$stripe = new StripeClient($SECRET_KEY);
-$customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $PK_USER);
-$message = '';
 
-if ($customer_payment_info->RecordCount() > 0) {
-    $customer_id = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-    $stripe_customer = $stripe->customers->retrieve($customer_id);
-    $card_id = $stripe_customer->default_source;
+if ($SECRET_KEY != '') {
+    $stripe = new StripeClient($SECRET_KEY);
+    $customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $PK_USER);
+    $message = '';
 
-    $url = "https://api.stripe.com/v1/customers/".$customer_id."/cards/".$card_id;
-    $AUTH = "Authorization: Bearer ".$SECRET_KEY;
+    if ($customer_payment_info->RecordCount() > 0) {
+        $customer_id = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+        $stripe_customer = $stripe->customers->retrieve($customer_id);
+        $card_id = $stripe_customer->default_source;
 
-    $curl = curl_init();
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => "",
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "GET",
-        CURLOPT_HTTPHEADER => array(
-            $AUTH
-        ),
-    ));
+        $url = "https://api.stripe.com/v1/customers/" . $customer_id . "/cards/" . $card_id;
+        $AUTH = "Authorization: Bearer " . $SECRET_KEY;
 
-    $response = curl_exec($curl);
-    $card_details = json_decode($response, true);
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+                $AUTH
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        $card_details = json_decode($response, true);
+    }
 }
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard') {
