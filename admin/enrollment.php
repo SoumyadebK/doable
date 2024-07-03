@@ -1588,8 +1588,8 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             document.querySelector("input[name='PAYMENT_METHOD'][value='One Time']").checked = true;
             $('#down_payment_div').slideUp();
             $('#AMOUNT_TO_PAY').prop('readonly', true);
-            $('#PK_PAYMENT_TYPE').val(1).trigger('change').css('pointer-events','none');
             $('.partial_payment').hide();
+            $('.ENROLLMENT_PAYMENT_TYPE').val(1).css('pointer-events','none').trigger('change');
         }else {
             $('.add_more').show();
             $('#BILLING_DATE').prop('readonly', false).css("pointer-events","auto");
@@ -1599,7 +1599,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             document.querySelector("input[name='PAYMENT_METHOD'][value='One Time']").checked = false;
             $('#down_payment_div').slideDown();
             $('#AMOUNT_TO_PAY').prop('readonly', false);
-            $('#PK_PAYMENT_TYPE').css('pointer-events','auto');
+            $('.ENROLLMENT_PAYMENT_TYPE').css('pointer-events','auto');
             $('.partial_payment').show();
         }
     }
