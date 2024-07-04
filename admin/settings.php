@@ -74,6 +74,8 @@ if ($email->RecordCount() > 0) {
     $SMTP_PASSWORD = $email->fields['PASSWORD'];
 }
 
+//$help = $db->Execute(("SE"))
+
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
 
@@ -233,7 +235,7 @@ if(!empty($_POST)){
                 </div>
             </div>
             <div class="row">
-                <div class="col-12">
+                <div class="col-8">
                     <div class="card">
                         <div class="card-body">
                             <!-- Tab panes -->
@@ -489,6 +491,13 @@ if(!empty($_POST)){
                                     </form>
                                 </div>
                             </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-body">
 
                         </div>
                     </div>
