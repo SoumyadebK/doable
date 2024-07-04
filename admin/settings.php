@@ -502,27 +502,6 @@ if(!empty($_POST)){
             format: 'mm/dd/yyyy',
         });
 
-        $(document).ready(function() {
-            fetch_state(<?php  echo $PK_COUNTRY; ?>);
-        });
-
-        function fetch_state(PK_COUNTRY){
-            $(document).ready(function(event) {
-                let data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
-                let value = $.ajax({
-                    url: "ajax/state.php",
-                    type: "POST",
-                    data: data,
-                    async: false,
-                    cache :false,
-                    success: function (result) {
-                        document.getElementById('State_div').innerHTML = result;
-                    }
-                }).responseText;
-            });
-        }
-
-
         function removeThis(param) {
             $(param).closest('.row').remove();
         }

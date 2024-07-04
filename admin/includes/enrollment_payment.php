@@ -207,6 +207,14 @@
                             </div>
                         </div>
 
+                        <div class="row" id="save_card_on_file_div" style="display: none;">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="col-md-12 mt-3"><input type="checkbox" id="SAVE_CARD_ON_FILE" name="SAVE_CARD_ON_FILE" class="form-check-inline" checked disabled> Save Card on File</label>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row form-group partial_payment_div" style="display: none;">
                             <div class="col-6">
                                 <div class="form-group">

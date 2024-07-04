@@ -81,11 +81,11 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                     pre_r($e->getMessage());
                 }
 
-                $STRIPE_DETAILS['PK_USER']  = $user_master->fields['PK_USER'];
-                $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
-                $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
-                $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
+                $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+                $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Stripe';
+                $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                db_perform('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
             }
             $card = $stripe->customers->createSource($CUSTOMER_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
             $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $card->id]);

@@ -1590,6 +1590,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             $('#AMOUNT_TO_PAY').prop('readonly', true);
             $('.partial_payment').hide();
             $('.ENROLLMENT_PAYMENT_TYPE').val(1).css('pointer-events','none').trigger('change');
+            $('#save_card_on_file_div').show();
         }else {
             $('.add_more').show();
             $('#BILLING_DATE').prop('readonly', false).css("pointer-events","auto");
@@ -1601,6 +1602,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             $('#AMOUNT_TO_PAY').prop('readonly', false);
             $('.ENROLLMENT_PAYMENT_TYPE').css('pointer-events','auto');
             $('.partial_payment').show();
+            $('#save_card_on_file_div').hide();
         }
     }
 
