@@ -1,4 +1,8 @@
 <?php
+
+use Stripe\Stripe;
+use Stripe\StripeClient;
+
 function markAppointmentPaid($PK_ENROLLMENT_SERVICE)
 {
     global $db_account;
@@ -89,9 +93,9 @@ function updateSessionCompletedCount($PK_APPOINTMENT_MASTER)
         }
     }
 
-    /*if($serviceCodeData->fields['CHARGE_BY_SESSIONS'] == 1 && $serviceCodeData->fields['NUMBER_OF_SESSION'] == $ENR_SERVICE_DATA['SESSION_COMPLETED']) {
+    if($serviceCodeData->fields['CHARGE_BY_SESSIONS'] == 1 && $serviceCodeData->fields['NUMBER_OF_SESSION'] == $ENR_SERVICE_DATA['SESSION_COMPLETED']) {
         copyEnrollment($serviceCodeData->fields['PK_ENROLLMENT_MASTER']);
-    }*/
+    }
 }
 
 function copyEnrollment($PK_ENROLLMENT_MASTER){
@@ -148,20 +152,6 @@ function copyEnrollment($PK_ENROLLMENT_MASTER){
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'insert');
         $PK_ENROLLMENT_MASTER_NEW = $db_account->insert_ID();
 
-        $ENROLLMENT_SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_NEW;
-        $ENROLLMENT_SERVICE_DATA['PK_SERVICE_MASTER'] = $service_data->fields['PK_SERVICE_MASTER'];
-        $ENROLLMENT_SERVICE_DATA['PK_SERVICE_CODE'] = $service_data->fields['PK_SERVICE_CODE'];
-        $ENROLLMENT_SERVICE_DATA['SERVICE_DETAILS'] = $service_data->fields['SERVICE_DETAILS'];
-        $ENROLLMENT_SERVICE_DATA['NUMBER_OF_SESSION'] = $service_data->fields['NUMBER_OF_SESSION'];
-        $ENROLLMENT_SERVICE_DATA['PRICE_PER_SESSION'] = $service_data->fields['PRICE_PER_SESSION'];
-        $ENROLLMENT_SERVICE_DATA['TOTAL'] = $service_data->fields['TOTAL'];
-        $ENROLLMENT_SERVICE_DATA['TOTAL_AMOUNT_PAID'] = $service_data->fields['TOTAL_AMOUNT_PAID'];
-        $ENROLLMENT_SERVICE_DATA['DISCOUNT_TYPE'] = $service_data->fields['DISCOUNT_TYPE'];
-        $ENROLLMENT_SERVICE_DATA['DISCOUNT'] = $service_data->fields['DISCOUNT'];
-        $ENROLLMENT_SERVICE_DATA['FINAL_AMOUNT'] = $service_data->fields['FINAL_AMOUNT'];
-        $ENROLLMENT_SERVICE_DATA['STATUS'] = 'A';
-        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'insert');
-
         $billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
         $ENROLLMENT_BILLING_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_NEW;
         $ENROLLMENT_BILLING_DATA['BILLING_REF'] = $billing_data->fields['BILLING_REF'];
@@ -177,19 +167,97 @@ function copyEnrollment($PK_ENROLLMENT_MASTER){
         db_perform_account('DOA_ENROLLMENT_BILLING', $ENROLLMENT_BILLING_DATA, 'insert');
         $PK_ENROLLMENT_BILLING_NEW = $db_account->insert_ID();
 
+        $ENROLLMENT_SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_NEW;
+        $ENROLLMENT_SERVICE_DATA['PK_SERVICE_MASTER'] = $service_data->fields['PK_SERVICE_MASTER'];
+        $ENROLLMENT_SERVICE_DATA['PK_SERVICE_CODE'] = $service_data->fields['PK_SERVICE_CODE'];
+        $ENROLLMENT_SERVICE_DATA['SERVICE_DETAILS'] = $service_data->fields['SERVICE_DETAILS'];
+        $ENROLLMENT_SERVICE_DATA['NUMBER_OF_SESSION'] = $service_data->fields['NUMBER_OF_SESSION'];
+        $ENROLLMENT_SERVICE_DATA['PRICE_PER_SESSION'] = $service_data->fields['PRICE_PER_SESSION'];
+        $ENROLLMENT_SERVICE_DATA['TOTAL'] = $service_data->fields['TOTAL'];
+        $ENROLLMENT_SERVICE_DATA['TOTAL_AMOUNT_PAID'] = $service_data->fields['TOTAL_AMOUNT_PAID'];
+        $ENROLLMENT_SERVICE_DATA['DISCOUNT_TYPE'] = $service_data->fields['DISCOUNT_TYPE'];
+        $ENROLLMENT_SERVICE_DATA['DISCOUNT'] = $service_data->fields['DISCOUNT'];
+        $ENROLLMENT_SERVICE_DATA['FINAL_AMOUNT'] = $service_data->fields['FINAL_AMOUNT'];
+        $ENROLLMENT_SERVICE_DATA['STATUS'] = 'A';
+        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'insert');
+
         $ledger_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE='Billing' AND PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
         $ENROLLMENT_LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_NEW;
         $ENROLLMENT_LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING_NEW;
-        $ENROLLMENT_LEDGER_DATA['TRANSACTION_TYPE'] = $ledger_data->fields['TRANSACTION_TYPE'];
-        $ENROLLMENT_LEDGER_DATA['ENROLLMENT_LEDGER_PARENT '] = $ledger_data->fields['ENROLLMENT_LEDGER_PARENT'];
+        $ENROLLMENT_LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
+        $ENROLLMENT_LEDGER_DATA['ENROLLMENT_LEDGER_PARENT '] = 0;
         $ENROLLMENT_LEDGER_DATA['DUE_DATE'] = $ledger_data->fields['DUE_DATE'];
         $ENROLLMENT_LEDGER_DATA['BILLED_AMOUNT'] = $ledger_data->fields['BILLED_AMOUNT'];
         $ENROLLMENT_LEDGER_DATA['PAID_AMOUNT'] = $ledger_data->fields['PAID_AMOUNT'];
         $ENROLLMENT_LEDGER_DATA['BALANCE'] = $ledger_data->fields['BALANCE'];
-        $ENROLLMENT_LEDGER_DATA['IS_PAID'] = $ledger_data->fields['IS_PAID'];
-        $ENROLLMENT_LEDGER_DATA['IS_DOWN_PAYMENT'] = $ledger_data->fields['IS_DOWN_PAYMENT'];
-        $ENROLLMENT_LEDGER_DATA['STATUS'] = $ledger_data->fields['STATUS'];
+        $ENROLLMENT_LEDGER_DATA['IS_PAID'] = 0;
+        $ENROLLMENT_LEDGER_DATA['IS_DOWN_PAYMENT'] = 0;
+        $ENROLLMENT_LEDGER_DATA['STATUS'] = 'A';
         db_perform_account('DOA_ENROLLMENT_LEDGER', $ENROLLMENT_LEDGER_DATA, 'insert');
+        $ENROLLMENT_LEDGER_PARENT = $db_account->insert_ID();
+
+        $RECEIPT_NUMBER = generateReceiptNumber();
+        try {
+            $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+            $SECRET_KEY = $account_data->fields['SECRET_KEY'];
+
+            $customer_payment_info = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE DOA_CUSTOMER_PAYMENT_INFO.PAYMENT_TYPE = 'Stripe' AND DOA_USER_MASTER.PK_USER_MASTER = ".$enrollment_data->fields['PK_USER_MASTER']);
+            Stripe::setApiKey($SECRET_KEY);
+            $charge = \Stripe\Charge::create(array(
+                "amount" => $ledger_data->fields['BILLED_AMOUNT'] * 100,
+                "currency" => "usd",
+                "description" => "Receipt# ".$RECEIPT_NUMBER,
+                "customer" => $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'],
+                "statement_descriptor" => "Receipt# ".$RECEIPT_NUMBER,
+            ));
+
+            $LAST4 = $charge->payment_method_details->card->last4;
+
+            if ($charge->paid == 1) {
+                $PAYMENT_STATUS = 'Success';
+                $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $charge->id, 'LAST4' => $LAST4];
+                $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+            } else {
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $charge->failure_message;
+            }
+        } catch (Exception $e) {
+            $PAYMENT_STATUS = 'Failed';
+            $PAYMENT_INFO = $e->getMessage();
+        }
+
+        $LEDGER_DATA_PAYMENT['TRANSACTION_TYPE'] = 'Payment';
+        $LEDGER_DATA_PAYMENT['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT;
+        $LEDGER_DATA_PAYMENT['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_NEW;
+        $LEDGER_DATA_PAYMENT['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING_NEW;
+        $LEDGER_DATA_PAYMENT['DUE_DATE'] = date('Y-m-d');
+        $LEDGER_DATA_PAYMENT['BILLED_AMOUNT'] = 0.00;
+        $LEDGER_DATA_PAYMENT['PAID_AMOUNT'] = $ledger_data->fields['BILLED_AMOUNT'];
+        $LEDGER_DATA_PAYMENT['BALANCE'] = 0.00;
+        $LEDGER_DATA_PAYMENT['IS_PAID'] = 1;
+        $LEDGER_DATA_PAYMENT['STATUS'] = 'A';
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_PAYMENT, 'insert');
+        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+
+        $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_NEW;
+        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING_NEW;
+        $PAYMENT_DATA['PK_PAYMENT_TYPE'] = 1;
+        $PAYMENT_DATA['AMOUNT'] = $ledger_data->fields['BILLED_AMOUNT'];
+        $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
+        $TYPE = 'Payment';
+        if ($_POST['PK_PAYMENT_TYPE'] == 2) {
+            $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE']))];
+            $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+        }
+        $PAYMENT_DATA['TYPE'] = $TYPE;
+        $PAYMENT_DATA['NOTE'] = null;
+        $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+        $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+        $PAYMENT_DATA['PAYMENT_STATUS'] = $PAYMENT_STATUS;
+        $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+        $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
+        db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+
     }
 }
 
@@ -398,4 +466,16 @@ function makeMiscComplete($PK_USER_MASTER)
 
         $miscEnrollmentData->MoveNext();
     }
+}
+
+function generateReceiptNumber()
+{
+    global $db_account;
+    $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY CONVERT(RECEIPT_NUMBER, DECIMAL) DESC LIMIT 1");
+    if ($receipt->RecordCount() > 0) {
+        $RECEIPT_NUMBER = $receipt->fields['RECEIPT_NUMBER'] + 1;
+    } else {
+        $RECEIPT_NUMBER = 1;
+    }
+    return $RECEIPT_NUMBER;
 }

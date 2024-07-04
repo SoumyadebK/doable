@@ -1,5 +1,6 @@
-<?error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+<?php
 require_once("../global/config.php");
+
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' ){
     header("location:../index.php");
     exit;
@@ -8,7 +9,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' ){
 if(!empty($_POST)){
     //echo "<pre>";print_r($_POST);exit;
     $HELP_PAGE = $_POST;
-    if($_GET['id'] == ''){
+    if(empty($_GET['id'])){
+        $HELP_PAGE['ACTIVE'] = 1;
         $HELP_PAGE['CREATED_BY']  = $_SESSION['PK_USER'];
         $HELP_PAGE['CREATED_ON']  = date("Y-m-d H:i");
         db_perform('DOA_HELP_PAGE', $HELP_PAGE, 'insert');
@@ -23,7 +25,7 @@ if(!empty($_POST)){
 }
 
 //$_GET['id'] ='';
-if($_GET['id'] == ''){
+if(empty($_GET['id'])){
     $TITLE 	 	  = '';
     $PAGE_LINK = '';
     $DESCRIPTION 	  = '';
@@ -52,7 +54,7 @@ if($_GET['id'] == ''){
         <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><? if($_GET['id'] == '') echo "Add"; else echo "Edit"; ?> Help Page </h4>
+                    <h4 class="text-themecolor"><? if(empty($_GET['id'])) echo "Add"; else echo "Edit"; ?> Help Page </h4>
                 </div>
             </div>
             <div class="row">
