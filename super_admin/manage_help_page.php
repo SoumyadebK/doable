@@ -22,7 +22,7 @@ else
 if(isset($_GET['act'])){
     if($_GET['act'] == 'del')	{
         $db->Execute("DELETE FROM DOA_HELP_PAGE WHERE PK_HELP_PAGE = '$_GET[id]' ");
-        header("location:manage_help_page");
+        header("location:manage_help_page.php");
     }
 }
 
@@ -93,7 +93,7 @@ $page_first_result = ($page-1) * $results_per_page;
                             <div class="row">
                                 <div class="col-md-12">
                                     <?php
-                                    $res_type = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE ACTIVE=1 ".$search." LIMIT " . $page_first_result . ',' . $results_per_page);
+                                    $res_type = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PK_HELP_PAGE > 0 ".$search." LIMIT " . $page_first_result . ',' . $results_per_page);
                                     ?>
                                     <table class="table table-striped border">
                                         <thead>
@@ -199,7 +199,7 @@ $page_first_result = ($page-1) * $results_per_page;
     }
     function conf_delete(val,id){
         if(val == 1)
-            window.location.href = 'manage_help_page?act=del&id='+$("#DELETE_ID").val();
+            window.location.href = 'manage_help_page.php?act=del&id='+$("#DELETE_ID").val();
         else
             $("#deleteModal").hide();
     }
