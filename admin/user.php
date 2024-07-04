@@ -372,7 +372,7 @@ if(!empty($_GET['id'])) {
                                                             <div class="row">
                                                                 <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <label class="col-md-12">Image Upload</label>
+                                                                        <label class="col-md-12">Users / Employees / Service Providers Photo</label>
                                                                         <div class="col-md-12">
                                                                             <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control">
                                                                         </div>

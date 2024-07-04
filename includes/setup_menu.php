@@ -11,8 +11,9 @@
                             </a>
                             <div id="dropdown-products" class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 <a class="dropdown-item" href="../admin/business_profile.php">Business Profile</a>
+                                <a class="dropdown-item" href="../admin/settings.php">Settings</a>
                                 <a class="dropdown-item" href="../admin/all_locations.php">Locations</a>
-                                <a class="dropdown-item" href="../admin/all_users.php">Users</a>
+                                <a class="dropdown-item" href="../admin/all_users.php">Users / Employees / Service Providers</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">
@@ -24,8 +25,8 @@
                                 <a class="dropdown-item" href="../admin/all_packages.php">Packages</a>
                                 <a class="dropdown-item" href="../admin/all_scheduling_codes.php">Scheduling Codes</a>
                                 <a class="dropdown-item" href="../admin/all_document_library.php">Document Library</a>
-                                <a class="dropdown-item" href="../admin/all_interests.php">Interests</a>
-                                <a class="dropdown-item" href="../admin/all_skill_levels.php">Skill Levels</a>
+                                <!--<a class="dropdown-item" href="../admin/all_interests.php">Interests</a>
+                                <a class="dropdown-item" href="../admin/all_skill_levels.php">Skill Levels</a>-->
                             </div>
                         </li>
                         <li class="nav-item dropdown">

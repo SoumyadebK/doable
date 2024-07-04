@@ -8,7 +8,7 @@ global $db;
 global $db_account;
 global $master_database;
 
-$title = "Business Profile";
+$title = "Settings";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2){
     header("location:../login.php");
@@ -113,42 +113,6 @@ if ($account_payment_info->RecordCount() > 0) {
 }
 
 if(!empty($_POST)){
-    if ($_POST['FUNCTION_NAME'] == 'saveProfileData') {
-        $ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-        $ACCOUNT_DATA['PK_BUSINESS_TYPE'] = $_POST['PK_BUSINESS_TYPE'];
-        $ACCOUNT_DATA['BUSINESS_NAME'] = $_POST['BUSINESS_NAME'];
-        $ACCOUNT_DATA['ADDRESS'] = $_POST['ADDRESS'];
-        $ACCOUNT_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
-        $ACCOUNT_DATA['CITY'] = $_POST['CITY'];
-        $ACCOUNT_DATA['PK_STATES'] = $_POST['PK_STATES'];
-        $ACCOUNT_DATA['ZIP'] = $_POST['ZIP'];
-        $ACCOUNT_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
-        $ACCOUNT_DATA['PHONE'] = $_POST['PHONE'];
-        $ACCOUNT_DATA['FAX'] = $_POST['FAX'];
-        $ACCOUNT_DATA['EMAIL'] = $_POST['EMAIL'];
-        $ACCOUNT_DATA['WEBSITE'] = $_POST['WEBSITE'];
-        if ($_FILES['BUSINESS_LOGO']['name'] != '') {
-            $USER_DATA = [];
-            $extn = explode(".", $_FILES['BUSINESS_LOGO']['name']);
-            $iindex = count($extn) - 1;
-            $rand_string = time() . "-" . rand(100000, 999999);
-            $file11 = 'business_logo_' . $_SESSION['PK_USER'] . $rand_string . "." . $extn[$iindex];
-            $extension = strtolower($extn[$iindex]);
-
-            if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-                $image_path = '../uploads/business_logo/' . $file11;
-                move_uploaded_file($_FILES['BUSINESS_LOGO']['tmp_name'], $image_path);
-                $ACCOUNT_DATA['BUSINESS_LOGO'] = $image_path;
-            }
-        }
-        $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-        if ($account_data->RecordCount() == 0) {
-            db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'insert');
-        } else {
-            db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
-        }
-    }
-
     if ($_POST['FUNCTION_NAME'] == 'saveSettingsData') {
         $SETTINGS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
         $SETTINGS_DATA['PK_TIMEZONE'] = $_POST['PK_TIMEZONE'];
@@ -209,47 +173,7 @@ if(!empty($_POST)){
             db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
         }
     }
-
-    if ($_POST['FUNCTION_NAME'] == 'saveHolidayData') {
-        unset($_POST['FUNCTION_NAME']);
-        $db_account->Execute("DELETE FROM `DOA_HOLIDAY_LIST` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-        for ($i=0; $i < count($_POST['HOLIDAY_DATE']); $i++) {
-            $HOLIDAY_LIST_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-            $HOLIDAY_LIST_DATA['HOLIDAY_DATE'] = date('Y-m-d', strtotime($_POST['HOLIDAY_DATE'][$i]));
-            $HOLIDAY_LIST_DATA['HOLIDAY_NAME'] = $_POST['HOLIDAY_NAME'][$i];
-            db_perform_account('DOA_HOLIDAY_LIST', $HOLIDAY_LIST_DATA, 'insert');
-        }
-    }
-
-    if ($_POST['FUNCTION_NAME'] == 'saveCreditCard') {
-        $STRIPE_TOKEN = $_POST['token'];
-        $ACCOUNT_PAYMENT_ID = '';
-        if ($account_payment_info->RecordCount() > 0) {
-            $ACCOUNT_PAYMENT_ID = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
-        } else {
-            try {
-                $customer = $stripe->customers->create([
-                    'email' => $EMAIL,
-                    'name' => $BUSINESS_NAME,
-                    'phone' => $PHONE,
-                    'description' => $BUSINESS_NAME,
-                ]);
-                $ACCOUNT_PAYMENT_ID = $customer->id;
-            } catch (ApiErrorException $e) {
-                pre_r($e->getMessage());
-            }
-
-            $STRIPE_DETAILS['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-            $STRIPE_DETAILS['ACCOUNT_PAYMENT_ID'] = $ACCOUNT_PAYMENT_ID;
-            $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
-            $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_ACCOUNT_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
-        }
-        $card = $stripe->customers->createSource($ACCOUNT_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
-        $stripe->customers->update($ACCOUNT_PAYMENT_ID, ['default_source' => $card->id]);
-    }
-
-    header("location:business_profile.php");
+    header("location:settings.php");
 }
 
 
@@ -259,32 +183,32 @@ if(!empty($_POST)){
 <html lang="en">
 <?php require_once('../includes/header.php');?>
 <style>
-     #advice-required-entry-ACCEPT_HANDLING{width: 150px;top: 20px;position: absolute;}
-     .StripeElement {
-         display: block;
-         width: 100%;
-         height: 34px;
-         padding: 6px 12px;
-         font-size: 14px;
-         line-height: 1.42857143;
-         color: #555;
-         background-color: #fff;
-         background-image: none;
-         border: 1px solid #ccc;
-         border-radius: 4px;
-     }
+    #advice-required-entry-ACCEPT_HANDLING{width: 150px;top: 20px;position: absolute;}
+    .StripeElement {
+        display: block;
+        width: 100%;
+        height: 34px;
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        color: #555;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
 
-     .StripeElement--focus {
-         box-shadow: 0 1px 3px 0 #cfd7df;
-     }
+    .StripeElement--focus {
+        box-shadow: 0 1px 3px 0 #cfd7df;
+    }
 
-     .StripeElement--invalid {
-         border-color: #fa755a;
-     }
+    .StripeElement--invalid {
+        border-color: #fa755a;
+    }
 
-     .StripeElement--webkit-autofill {
-         background-color: #fefde5 !important;
-     }
+    .StripeElement--webkit-autofill {
+        background-color: #fefde5 !important;
+    }
 </style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
@@ -312,213 +236,9 @@ if(!empty($_POST)){
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <!-- Nav tabs -->
-                            <ul class="nav nav-tabs" role="tablist">
-                                <li class="active"> <a class="nav-link active" data-bs-toggle="tab" id="profile_link" href="#profile" role="tab"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
-                                <!--<li> <a class="nav-link" data-bs-toggle="tab" id="settings_link" href="#settings" role="tab"><span class="hidden-sm-up"><i class="ti-settings"></i></span> <span class="hidden-xs-down">Settings</span></a> </li>-->
-                                <li> <a class="nav-link" data-bs-toggle="tab" id="holiday_list_link" href="#holiday_list" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Holiday List</span></a> </li>
-                                <li> <a class="nav-link" data-bs-toggle="tab" id="credit_card_link" href="#credit_card" role="tab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
-                            </ul>
-
                             <!-- Tab panes -->
                             <div class="tab-content tabcontent-border">
-                                <div class="tab-pane active" id="profile" role="tabpanel">
-                                    <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
-                                        <input type="hidden" name="FUNCTION_NAME" value="saveProfileData">
-                                        <div class="p-20">
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Business Type<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <select class="form-control" required name="PK_BUSINESS_TYPE" id="PK_BUSINESS_TYPE">
-                                                                <option>Select Business Type</option>
-                                                                <?php
-                                                                $result_dropdown_query = mysqli_query($conn,"SELECT PK_BUSINESS_TYPE,BUSINESS_TYPE FROM DOA_BUSINESS_TYPE WHERE ACTIVE='1' ORDER BY PK_BUSINESS_TYPE");
-                                                                while ($result_dropdown=mysqli_fetch_array($result_dropdown_query,MYSQLI_ASSOC)) { ?>
-                                                                    <option value="<?php echo $result_dropdown['PK_BUSINESS_TYPE'];?>" <?php if($result_dropdown['PK_BUSINESS_TYPE'] == $PK_BUSINESS_TYPE) echo 'selected = "selected"';?> ><?=$result_dropdown['BUSINESS_TYPE']?></option>
-                                                                    <?php
-                                                                }
-                                                                ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <!--<div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Account Type<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <?php /*$i=1;
-                                                            $result_dropdown_query = mysqli_query($conn,"select PK_ACCOUNT_TYPE,ACCOUNT_TYPE from DOA_ACCOUNT_TYPE WHERE ACTIVE='1' order by PK_ACCOUNT_TYPE");
-                                                            while ($result_dropdown=mysqli_fetch_array($result_dropdown_query,MYSQLI_ASSOC)) { */?>
-                                                                <input type="radio" id="PK_ACCOUNT_TYPE_<?php /*echo $i;*/?>" name="PK_ACCOUNT_TYPE" value="<?php /*echo $result_dropdown['PK_ACCOUNT_TYPE'];*/?>" <?php /*if($result_dropdown['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked';*/?>>
-                                                                <label for="contactChoice1"><?/*=$result_dropdown['ACCOUNT_TYPE']*/?></label>
-                                                                <?php
-/*                                                                $i++; }
-                                                            */?>
-                                                        </div>
-                                                    </div>
-                                                </div>-->
-                                            </div>
-
-
-
-                                            <div class="row">
-                                                <div class="col-12">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Business Name<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="BUSINESS_NAME" name="BUSINESS_NAME" class="form-control" placeholder="Enter Business Name" required data-validation-required-message="This field is required" value="<?php echo $BUSINESS_NAME?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Address
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <textarea class="form-control" rows="2" id="ADDRESS" name="ADDRESS"><?php echo $ADDRESS?></textarea>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Apt/Ste
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <textarea class="form-control" rows="2" id="ADDRESS_1" name="ADDRESS_1" ><?php echo $ADDRESS_1?></textarea>
-                                                        </div>
-                                                    </div>
-
-                                                </div>
-                                            </div>
-
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Country<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <div class="col-sm-12">
-                                                                <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
-                                                                    <option>Select Country</option>
-                                                                    <?php
-                                                                    $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
-                                                                    while (!$row->EOF) { ?>
-                                                                        <option value="<?php echo $row->fields['PK_COUNTRY'];?>" <?=($row->fields['PK_COUNTRY'] == $PK_COUNTRY)?"selected":""?>><?=$row->fields['COUNTRY_NAME']?></option>
-                                                                        <?php $row->MoveNext(); } ?>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">State<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <div class="col-sm-12">
-                                                                <div id="State_div"></div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">City</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter Your City" value="<?php echo $CITY?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Zip Code</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Zip Code" value="<?php echo $ZIP?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Business Phone
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE?>">
-                                                        </div>
-                                                    </div>
-
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Business Fax
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="FAX" name="FAX" class="form-control" placeholder="Enter Fax" value="<?php echo $FAX;?>">
-                                                        </div>
-                                                    </div>
-
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Business Email<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="email" id="EMAIL" name="EMAIL" class="form-control" placeholder="Enter Email" required data-validation-required-message="This field is required" value="<?php echo $EMAIL?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Website
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="WEBSITE" name="WEBSITE" class="form-control" placeholder="Enter Website" value="<?php echo $WEBSITE?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row" style="margin-bottom: 15px;">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Business Logo
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="file" name="BUSINESS_LOGO" id="BUSINESS_LOGO" class="form-control" >
-                                                        </div>
-                                                    </div>
-                                                    <?php if($BUSINESS_LOGO!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $BUSINESS_LOGO;?>" data-fancybox-group="gallery"><img src = "<?php echo $BUSINESS_LOGO;?>" style="width:auto; height:120px" /></a></div><?php } ?>
-                                                </div>
-                                            </div>
-
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
-                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <div class="tab-pane" id="settings" role="tabpanel">
+                                <div class="tab-pane active" id="settings" role="tabpanel">
                                     <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveSettingsData">
                                         <div class="p-20">
@@ -763,147 +483,10 @@ if(!empty($_POST)){
                                                     </div>
                                                 </div>
                                             </div>
-
-
-
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
                                         </div>
                                     </form>
-                                </div>
-
-                                <div class="tab-pane" id="holiday_list" role="tabpanel">
-                                    <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
-                                        <input type="hidden" name="FUNCTION_NAME" value="saveHolidayData">
-                                        <div class="p-20" id="holiday_list_div">
-                                            <div class="row">
-                                                <div class="col-3">
-                                                    <div class="form-group" style="text-align: center;">
-                                                        <label class="form-label" style="font-weight: bold;">Holiday Date</label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group" style="text-align: center;">
-                                                        <label class="form-label" style="font-weight: bold;">Holiday Name</label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3" style="margin-top: -30px;">
-                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreHoliday();">Add More</a>
-                                                </div>
-                                            </div>
-                                            <?php
-                                            $holiday_list = $db_account->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                            if($holiday_list->RecordCount() > 0) {
-                                                while (!$holiday_list->EOF) { ?>
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal" value="<?=date('m/d/Y', strtotime($holiday_list->fields['HOLIDAY_DATE']))?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <input type="text" name="HOLIDAY_NAME[]" class="form-control" value="<?=$holiday_list->fields['HOLIDAY_NAME']?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3" style="padding-top: 5px;">
-                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                    </div>
-                                                </div>
-                                                <?php $holiday_list->MoveNext(); } ?>
-                                            <?php } else { ?>
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <input type="text" name="HOLIDAY_NAME[]" class="form-control">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3" style="padding-top: 5px;">
-                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                    </div>
-                                                </div>
-                                            <?php } ?>
-                                        </div>
-                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                        <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
-                                    </form>
-                                </div>
-
-                                <div class="tab-pane" id="credit_card" role="tabpanel">
-                                    <form class="form-material form-horizontal" id="creditCardForm" action="" method="post" enctype="multipart/form-data">
-                                        <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
-                                        <div class="p-20" id="credit_card_div">
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div id="card-element"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                        <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
-                                    </form>
-
-                                    <?php if (isset($card_details['last4'])) {
-                                        switch ($card_details['brand']) {
-                                            case 'Visa':
-                                            case 'Visa (debit)':
-                                                $card_type = 'visa';
-                                                break;
-                                            case 'MasterCard':
-                                            case 'Mastercard (2-series)':
-                                            case 'Mastercard (debit)':
-                                            case 'Mastercard (prepaid)':
-                                                $card_type = 'mastercard';
-                                                break;
-                                            case 'American Express':
-                                                $card_type = 'amex';
-                                                break;
-                                            case 'Discover':
-                                            case 'Discover (debit)':
-                                                $card_type = 'discover';
-                                                break;
-                                            case 'Diners Club':
-                                            case 'Diners Club (14-digit card)':
-                                                $card_type = 'diners';
-                                                break;
-                                            case 'JCB':
-                                                $card_type = 'jcb';
-                                                break;
-                                            case 'UnionPay':
-                                            case 'UnionPay (debit)':
-                                            case 'UnionPay (19-digit card)':
-                                                $card_type = 'unionpay';
-                                                break;
-                                            default:
-                                                $card_type = '';
-                                                break;
-
-                                        } ?>
-                                        <div class="p-20">
-                                            <h5>Saved Card Details</h5>
-                                            <div class="credit-card <?=$card_type?> selectable" style="margin-right: 80%;">
-                                                <div class="credit-card-last4">
-                                                    <?=$card_details['last4']?>
-                                                </div>
-                                                <div class="credit-card-expiry">
-                                                    <?=$card_details['exp_month'].'/'.$card_details['exp_year']?>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <?php } ?>
                                 </div>
                             </div>
 

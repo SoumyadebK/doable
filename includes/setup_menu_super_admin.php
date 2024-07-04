@@ -47,6 +47,7 @@
                                 <a class="dropdown-item" href="../super_admin/all_email_triggers.php">Email Triggers</a>
                                 <a class="dropdown-item" href="../super_admin/all_template_categories.php">Template Category</a>
                                 <a class="dropdown-item" href="../super_admin/all_header_texts.php">Header Texts</a>
+                                <a class="dropdown-item" href="../super_admin/help_page.php">Help Pages</a>
                                 <a class="dropdown-item" href="../super_admin/manage_help_category.php">Help Category</a>
                                 <a class="dropdown-item" href="../super_admin/manage_help_sub_category.php">Help Subcategory</a>
                                 <a class="dropdown-item" href="../super_admin/manage_help.php">Help</a>
@@ -84,12 +85,13 @@
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_service_class.php">Service Class</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_frequency.php">Frequency</a></li>
                             </ul>
-                        <?php } elseif ($address == "all_alert_messages.php" || $address == "all_email_triggers.php" || $address == "all_template_categories.php" || $address == "all_header_texts.php" || $address == "manage_help_category.php" || $address == "manage_help_sub_category.php" || $address == "manage_help.php") { ?>
+                        <?php } elseif ($address == "all_alert_messages.php" || $address == "all_email_triggers.php" || $address == "all_template_categories.php" || $address == "all_header_texts.php" || $address == "manage_help_page.php" || $address == "manage_help_category.php" || $address == "manage_help_sub_category.php" || $address == "manage_help.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_alert_messages.php">Alert Messages</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_email_triggers.php">Email Triggers</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_template_categories.php">Template Category</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_header_texts.php">Header Texts</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../super_admin/manage_help_page.php">Help Pages</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/manage_help_category.php">Help Category</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/manage_help_sub_category.php">Help Subcategory</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/manage_help.php">Help</a></li>
