@@ -5,10 +5,27 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' ){
     exit;
 }
 
+if(!empty($_POST)){
+    //echo "<pre>";print_r($_POST);exit;
+    $HELP_PAGE = $_POST;
+    if($_GET['id'] == ''){
+        $HELP_PAGE['CREATED_BY']  = $_SESSION['PK_USER'];
+        $HELP_PAGE['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform('DOA_HELP_PAGE', $HELP_PAGE, 'insert');
+        $PK_HELP_PAGE = $db->insert_ID();
+    } else {
+        $HELP_PAGE['EDITED_BY'] = $_SESSION['PK_USER'];
+        $HELP_PAGE['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform('DOA_HELP_PAGE', $HELP_PAGE, 'update'," PK_HELP_PAGE = '$_GET[id]'");
+        $PK_HELP_PAGE = $_GET['id'];
+    }
+    header("location:manage_help_page.php");
+}
+
 //$_GET['id'] ='';
 if($_GET['id'] == ''){
-
     $TITLE 	 	  = '';
+    $PAGE_LINK = '';
     $DESCRIPTION 	  = '';
     $ACTIVE = '';
 } else {
@@ -18,8 +35,9 @@ if($_GET['id'] == ''){
         exit;
     }
     $TITLE 		= $res->fields['TITLE'];
+    $PAGE_LINK = $res->fields['PAGE_LINK'];
     $DESCRIPTION 	  		= $res->fields['DESCRIPTION'];
-    $ACTIVE = '';
+    $ACTIVE = $res->fields['ACTIVE'];
 }
 ?>
 <!DOCTYPE html>
@@ -34,7 +52,7 @@ if($_GET['id'] == ''){
         <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><? if($_GET['id'] == '') echo "Add"; else echo "Edit"; ?> Knowledge Base </h4>
+                    <h4 class="text-themecolor"><? if($_GET['id'] == '') echo "Add"; else echo "Edit"; ?> Help Page </h4>
                 </div>
             </div>
             <div class="row">
@@ -42,14 +60,19 @@ if($_GET['id'] == ''){
                     <div class="card">
                         <div class="card-body">
                             <form class="floating-labels m-t-40" method="post" name="form1" id="form1" enctype="multipart/form-data" >
-
-
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group m-b-40">
-                                            <label for="NAME_ENG">Title (English)</label>
+                                            <label for="TITLE">Title</label>
                                             <span class="bar"></span>
-                                            <input type="text" class="form-control required-entry" id="NAME_ENG" name="NAME_ENG" value="<?=$NAME_ENG?>" >
+                                            <input type="text" class="form-control required-entry" id="TITLE" name="TITLE" value="<?=$TITLE?>" >
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group m-b-40">
+                                            <label for="NAME_ENG">Page Link</label>
+                                            <span class="bar"></span>
+                                            <input type="text" class="form-control required-entry" id="PAGE_LINK" name="PAGE_LINK" value="<?=$PAGE_LINK?>" >
                                         </div>
                                     </div>
                                 </div>
@@ -58,14 +81,28 @@ if($_GET['id'] == ''){
                                     <div class="col-md-12">
                                         <div class="row">
                                             <div class="col-md-12">
-                                                Help Text (English)
+                                                Help Text
                                             </div>
                                             <div class="col-md-12">
-                                                <textarea class="form-control required-entry rich" rows="2" id="CONTENT_ENG" name="CONTENT_ENG"><?=$CONTENT_ENG?></textarea>
+                                                <textarea class="form-control required-entry rich" rows="2" id="DESCRIPTION" name="DESCRIPTION"><?=$DESCRIPTION?></textarea>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <?php if(!empty($_GET['id'])) { ?>
+                                    <div class="row" style="margin-top: 25px;">
+                                        <div class="col-6">
+                                            <div class="col-md-2">
+                                                <label>Active</label>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <? } ?>
 
                                 <div class="row">
                                     <div class="col-md-12">
