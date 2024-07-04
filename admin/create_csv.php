@@ -25,7 +25,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
-                            CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME
+                            CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER_NAME
                         FROM
                             DOA_APPOINTMENT_MASTER
                         LEFT JOIN DOA_APPOINTMENT_ENROLLMENT ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER
@@ -76,7 +76,7 @@ while (!$enrollment_data->EOF) {
         $payment_data->MoveNext();
     }
 
-    $headers_2 = array('Service', 'Apt #', 'Service Code', 'Date', 'Time', 'Status', 'Session Cost'); // Adjust headers as needed
+    $headers_2 = array('Service', 'Apt #', 'Service Code', 'Date', 'Time', 'Status', $service_provider_title, 'Session Cost'); // Adjust headers as needed
     fputcsv($file, $headers_2);
 
     $service_code_array = [];
@@ -107,6 +107,7 @@ while (!$enrollment_data->EOF) {
         $appointment_details[] = date('m/d/Y', strtotime($appointment_data->fields['DATE']));
         $appointment_details[] = date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME']));
         $appointment_details[] = $appointment_data->fields['APPOINTMENT_STATUS'];
+        $appointment_details[] = $appointment_data->fields['SERVICE_PROVIDER_NAME'];
         $appointment_details[] = (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? $enr_service_data->fields['PRICE_PER_SESSION'] : '';
         fputcsv($file, $appointment_details);
         $appointment_data->MoveNext();
