@@ -484,7 +484,7 @@ if(!empty($_POST)){
                                                 </div>
                                             </div>
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
-                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
+                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='setup.php'">Cancel</button>
                                         </div>
                                     </form>
                                 </div>

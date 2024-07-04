@@ -47,7 +47,7 @@
                                 <a class="dropdown-item" href="../super_admin/all_email_triggers.php">Email Triggers</a>
                                 <a class="dropdown-item" href="../super_admin/all_template_categories.php">Template Category</a>
                                 <a class="dropdown-item" href="../super_admin/all_header_texts.php">Header Texts</a>
-                                <a class="dropdown-item" href="../super_admin/help_page.php">Help Pages</a>
+                                <a class="dropdown-item" href="../super_admin/manage_help_page.php">Help Pages</a>
                                 <a class="dropdown-item" href="../super_admin/manage_help_category.php">Help Category</a>
                                 <a class="dropdown-item" href="../super_admin/manage_help_sub_category.php">Help Subcategory</a>
                                 <a class="dropdown-item" href="../super_admin/manage_help.php">Help</a>
