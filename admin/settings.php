@@ -74,7 +74,10 @@ if ($email->RecordCount() > 0) {
     $SMTP_PASSWORD = $email->fields['PASSWORD'];
 }
 
-//$help = $db->Execute(("SE"))
+$help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'settings'");
+if($help->RecordCount() > 0){
+    $description = $help->fields['DESCRIPTION'];
+}
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
@@ -498,7 +501,14 @@ if(!empty($_POST)){
                 <div class="col-4">
                     <div class="card">
                         <div class="card-body">
-
+                            <div class="row">
+                                <h4 class="col-md-12">
+                                    Help
+                                </h4>
+                                <div class="col-md-12">
+                                    <text class="required-entry rich" id="DESCRIPTION"><?=$description?></text>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
