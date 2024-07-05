@@ -27,6 +27,7 @@ if (!empty($_GET['cond']) && $_GET['cond'] == 'del'){
 $PK_ACCOUNT_MASTER = '';
 $PK_BUSINESS_TYPE = '';
 $PK_ACCOUNT_TYPE = '';
+$FRANCHISE = '';
 $BUSINESS_NAME = '';
 $ACCOUNT_ADDRESS = '';
 $ACCOUNT_ADDRESS_1 = '';
@@ -75,6 +76,7 @@ if(!empty($_GET['id'])) {
     $PK_ACCOUNT_MASTER = $_GET['id'];
     $PK_BUSINESS_TYPE = $account_res->fields['PK_BUSINESS_TYPE'];
     $PK_ACCOUNT_TYPE = $account_res->fields['PK_ACCOUNT_TYPE'];
+    $FRANCHISE = $account_res->fields['FRANCHISE'];
     $BUSINESS_NAME = $account_res->fields['BUSINESS_NAME'];
     $ACCOUNT_ADDRESS = $account_res->fields['ADDRESS'];
     $ACCOUNT_ADDRESS_1 = $account_res->fields['ADDRESS_1'];
@@ -342,7 +344,7 @@ while (!$account_payment_info->EOF) {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-6">
+                                                    <div class="col-3">
                                                         <div class="form-group">
                                                             <label class="col-md-12">Account Type<span class="text-danger">*</span>
                                                             </label>
@@ -353,6 +355,15 @@ while (!$account_payment_info->EOF) {
                                                                     <input type="radio" name="PK_ACCOUNT_TYPE" id="<?=$row->fields['PK_ACCOUNT_TYPE'];?>" value="<?=$row->fields['PK_ACCOUNT_TYPE'];?>" <?php if($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked';?> required>
                                                                     <label for="<?=$row->fields['PK_ACCOUNT_TYPE'];?>"><?=$row->fields['ACCOUNT_TYPE']?></label>
                                                                 <?php $row->MoveNext(); } ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Arthur Murry Franchise ?</label>
+                                                            <div class="col-md-12">
+                                                                <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="1" <?php if($FRANCHISE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                                <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if($FRANCHISE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                             </div>
                                                         </div>
                                                     </div>

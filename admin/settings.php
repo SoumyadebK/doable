@@ -22,6 +22,7 @@ if($res->RecordCount() == 0){
 }
 $PK_BUSINESS_TYPE   = $res->fields['PK_BUSINESS_TYPE'];
 $API_KEY  	        = $res->fields['API_KEY'];
+$FRANCHISE          = $res->fields['FRANCHISE'];
 $BUSINESS_NAME 	    = $res->fields['BUSINESS_NAME'];
 $BUSINESS_LOGO      = $res->fields['BUSINESS_LOGO'];
 $ADDRESS 	        = $res->fields['ADDRESS'];
@@ -435,6 +436,7 @@ if(!empty($_POST)){
                                                 </div>
                                             </div>
 
+                                            <?php if ($FRANCHISE == 1) {?>
                                             <div class="row smtp" id="smtp" >
                                                 <div class="form-group">
                                                     <label class="form-label">SMTP Setup</label>
@@ -488,6 +490,7 @@ if(!empty($_POST)){
                                                     </div>
                                                 </div>
                                             </div>
+                                            <? } ?>
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='setup.php'">Cancel</button>
                                         </div>

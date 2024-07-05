@@ -21,6 +21,7 @@ if($res->RecordCount() == 0){
     exit;
 }
 $PK_BUSINESS_TYPE   = $res->fields['PK_BUSINESS_TYPE'];
+$BUSINESS_ID   = $res->fields['BUSINESS_ID'];
 $API_KEY  	        = $res->fields['API_KEY'];
 $BUSINESS_NAME 	    = $res->fields['BUSINESS_NAME'];
 $BUSINESS_LOGO      = $res->fields['BUSINESS_LOGO'];
@@ -116,6 +117,7 @@ if(!empty($_POST)){
     if ($_POST['FUNCTION_NAME'] == 'saveProfileData') {
         $ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
         $ACCOUNT_DATA['PK_BUSINESS_TYPE'] = $_POST['PK_BUSINESS_TYPE'];
+        $ACCOUNT_DATA['BUSINESS_ID'] = $_POST['BUSINESS_ID'];
         $ACCOUNT_DATA['BUSINESS_NAME'] = $_POST['BUSINESS_NAME'];
         $ACCOUNT_DATA['ADDRESS'] = $_POST['ADDRESS'];
         $ACCOUNT_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
@@ -342,6 +344,15 @@ if(!empty($_POST)){
                                                                 }
                                                                 ?>
                                                             </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Business ID<span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="BUSINESS_ID" name="BUSINESS_ID" class="form-control" placeholder="Enter Business ID" required data-validation-required-message="This field is required" value="<?php echo $BUSINESS_ID?>">
                                                         </div>
                                                     </div>
                                                 </div>
