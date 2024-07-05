@@ -1,7 +1,6 @@
 <?php
 
 use Stripe\Stripe;
-use Stripe\StripeClient;
 
 function markAppointmentPaid($PK_ENROLLMENT_SERVICE)
 {
@@ -99,11 +98,15 @@ function updateSessionCompletedCount($PK_APPOINTMENT_MASTER)
 }
 
 function copyEnrollment($PK_ENROLLMENT_MASTER){
+    require_once("stripe-php-master/init.php");
     global $db;
     global $db_account;
+    global $master_database;
+    global $account_database;
+
     $enrollment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
     if($enrollment_data->RecordCount() > 0) {
-        $ENROLLMENT_MASTER_DATA['PK_ENROLLMENT_TYPE '] = $enrollment_data->fields['PK_ENROLLMENT_TYPE '];
+        $ENROLLMENT_MASTER_DATA['PK_ENROLLMENT_TYPE '] = 0;
         $ENROLLMENT_MASTER_DATA['ENROLLMENT_NAME'] = $enrollment_data->fields['ENROLLMENT_NAME'];
         $ENROLLMENT_MASTER_DATA['PK_USER_MASTER'] = $enrollment_data->fields['PK_USER_MASTER'];
         $ENROLLMENT_MASTER_DATA['PK_LOCATION'] = $enrollment_data->fields['PK_LOCATION'];
@@ -116,6 +119,7 @@ function copyEnrollment($PK_ENROLLMENT_MASTER){
         $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_PERCENTAGE'] = $enrollment_data->fields['ENROLLMENT_BY_PERCENTAGE'];
         $ENROLLMENT_MASTER_DATA['MEMO'] = $enrollment_data->fields['MEMO'];
         $ENROLLMENT_MASTER_DATA['STATUS'] = 'A';
+        $ENROLLMENT_MASTER_DATA['ENROLLMENT_DATE']  = date("Y-m-d");
         $service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER=".$PK_ENROLLMENT_MASTER);
         $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM, MISCELLANEOUS_ID_CHAR, MISCELLANEOUS_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
         $misc_service_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_CLASS = 5 AND PK_SERVICE_MASTER = ".$service_data->fields['PK_SERVICE_MASTER']);
@@ -190,7 +194,7 @@ function copyEnrollment($PK_ENROLLMENT_MASTER){
         $ENROLLMENT_LEDGER_DATA['BILLED_AMOUNT'] = $ledger_data->fields['BILLED_AMOUNT'];
         $ENROLLMENT_LEDGER_DATA['PAID_AMOUNT'] = $ledger_data->fields['PAID_AMOUNT'];
         $ENROLLMENT_LEDGER_DATA['BALANCE'] = $ledger_data->fields['BALANCE'];
-        $ENROLLMENT_LEDGER_DATA['IS_PAID'] = 0;
+        $ENROLLMENT_LEDGER_DATA['IS_PAID'] = 1;
         $ENROLLMENT_LEDGER_DATA['IS_DOWN_PAYMENT'] = 0;
         $ENROLLMENT_LEDGER_DATA['STATUS'] = 'A';
         db_perform_account('DOA_ENROLLMENT_LEDGER', $ENROLLMENT_LEDGER_DATA, 'insert');
@@ -245,10 +249,6 @@ function copyEnrollment($PK_ENROLLMENT_MASTER){
         $PAYMENT_DATA['AMOUNT'] = $ledger_data->fields['BILLED_AMOUNT'];
         $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
         $TYPE = 'Payment';
-        if ($_POST['PK_PAYMENT_TYPE'] == 2) {
-            $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE']))];
-            $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
-        }
         $PAYMENT_DATA['TYPE'] = $TYPE;
         $PAYMENT_DATA['NOTE'] = null;
         $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
@@ -257,7 +257,6 @@ function copyEnrollment($PK_ENROLLMENT_MASTER){
         $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
         $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
         db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
-
     }
 }
 

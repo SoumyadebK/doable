@@ -59,22 +59,6 @@ $HOUR = $res->fields['HOUR'];
 $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
 $TIME_SLOT_INTERVAL = $res->fields['TIME_SLOT_INTERVAL'];
 
-$AM_USER_NAME = $res->fields['AM_USER_NAME'];
-$AM_PASSWORD = $res->fields['AM_PASSWORD'];
-$AM_REFRESH_TOKEN = $res->fields['AM_REFRESH_TOKEN'];
-
-$SMTP_HOST = '';
-$SMTP_PORT = '';
-$SMTP_USERNAME = '';
-$SMTP_PASSWORD = '';
-$email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-if ($email->RecordCount() > 0) {
-    $SMTP_HOST = $email->fields['HOST'];
-    $SMTP_PORT = $email->fields['PORT'];
-    $SMTP_USERNAME = $email->fields['USER_NAME'];
-    $SMTP_PASSWORD = $email->fields['PASSWORD'];
-}
-
 $help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'settings'");
 if($help->RecordCount() > 0){
     $description = $help->fields['DESCRIPTION'];
@@ -182,6 +166,11 @@ if(!empty($_POST)){
     header("location:settings.php");
 }
 
+$header_text = '';
+$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Settings page'");
+if ($header_data->RecordCount() > 0) {
+    $header_text = $header_data->fields['HEADER_TEXT'];
+}
 
 ?>
 
@@ -242,6 +231,9 @@ if(!empty($_POST)){
                 <div class="col-8">
                     <div class="card">
                         <div class="card-body">
+                            <div class="row" style="text-align: center;">
+                                <h5 style="font-weight: bold;"><?=$header_text?></h5>
+                            </div>
                             <!-- Tab panes -->
                             <div class="tab-content tabcontent-border">
                                 <div class="tab-pane active" id="settings" role="tabpanel">
@@ -436,6 +428,7 @@ if(!empty($_POST)){
                                                 </div>
                                             </div>
 
+
                                             <?php if ($FRANCHISE == 1) {?>
                                             <div class="row smtp" id="smtp" >
                                                 <div class="form-group">
@@ -444,25 +437,25 @@ if(!empty($_POST)){
                                                 <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">SMTP HOST</label>
-                                                        <input type="text" class="form-control" name="SMTP_HOST" value="<?=$SMTP_HOST?>">
+                                                        <input type="text" class="form-control" name="SMTP_HOST" value="<?php /*=$SMTP_HOST*/?>">
                                                     </div>
                                                 </div>
                                                 <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">SMTP PORT</label>
-                                                        <input type="text" class="form-control" name="SMTP_PORT" value="<?=$SMTP_PORT?>">
+                                                        <input type="text" class="form-control" name="SMTP_PORT" value="<?php /*=$SMTP_PORT*/?>">
                                                     </div>
                                                 </div>
                                                 <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">SMTP USERNAME</label>
-                                                        <input type="text" class="form-control" name="SMTP_USERNAME" value="<?=$SMTP_USERNAME?>">
+                                                        <input type="text" class="form-control" name="SMTP_USERNAME" value="<?php /*=$SMTP_USERNAME*/?>">
                                                     </div>
                                                 </div>
                                                 <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">SMTP PASSWORD</label>
-                                                        <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?=$SMTP_PASSWORD?>">
+                                                        <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?php /*=$SMTP_PASSWORD*/?>">
                                                     </div>
                                                 </div>
                                             </div>
@@ -474,23 +467,26 @@ if(!empty($_POST)){
                                                 <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">User Name</label>
-                                                        <input type="text" class="form-control" name="AM_USER_NAME" value="<?=$AM_USER_NAME?>">
+                                                        <input type="text" class="form-control" name="AM_USER_NAME" value="<?php /*=$AM_USER_NAME*/?>">
                                                     </div>
                                                 </div>
                                                 <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Password</label>
-                                                        <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
+                                                        <input type="text" class="form-control" name="AM_PASSWORD" value="<?php /*=$AM_PASSWORD*/?>">
                                                     </div>
                                                 </div>
                                                 <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Refresh Token</label>
-                                                        <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?=$AM_REFRESH_TOKEN?>">
+                                                        <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/?>">
                                                     </div>
                                                 </div>
                                             </div>
                                             <? } ?>
+
+                                            </div>
+
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='setup.php'">Cancel</button>
                                         </div>

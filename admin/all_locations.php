@@ -6,6 +6,12 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     header("location:../login.php");
     exit;
 }
+
+$header_text = '';
+$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Locations page'");
+if ($header_data->RecordCount() > 0) {
+    $header_text = $header_data->fields['HEADER_TEXT'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -37,6 +43,9 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
+                                    <div class="row" style="text-align: center;">
+                                        <h5 style="font-weight: bold;"><?=$header_text?></h5>
+                                    </div>
                                     <div class="table-responsive">
                                         <table id="myTable" class="table table-striped border" data-page-length='50'>
                                             <thead>
