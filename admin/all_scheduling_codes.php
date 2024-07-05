@@ -19,6 +19,12 @@ $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 if(!empty($_POST) && $FUNCTION_NAME == 'saveSortOrder'){
     $db_account->Execute("UPDATE DOA_SCHEDULING_CODE SET SORT_ORDER=".$_POST['ORDER_NUMBER']." WHERE PK_SCHEDULING_CODE=".$_POST['PK_SCHEDULING_CODE']);
 }
+
+$header_text = '';
+$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Scheduling Codes page'");
+if ($header_data->RecordCount() > 0) {
+    $header_text = $header_data->fields['HEADER_TEXT'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -63,6 +69,9 @@ if(!empty($_POST) && $FUNCTION_NAME == 'saveSortOrder'){
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
+                            <div class="row" style="text-align: center;">
+                                <h5 style="font-weight: bold;"><?=$header_text?></h5>
+                            </div>
                             <div class="table-responsive">
                                 <table id="myTable" class="table table-striped border" data-page-length='50'>
                                     <thead>
