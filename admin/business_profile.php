@@ -252,7 +252,11 @@ if(!empty($_POST)){
     header("location:business_profile.php");
 }
 
-
+$header_text = '';
+$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Business Profile page'");
+if ($header_data->RecordCount() > 0) {
+    $header_text = $header_data->fields['HEADER_TEXT'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -312,6 +316,9 @@ if(!empty($_POST)){
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
+                            <div class="row" style="text-align: center;">
+                                <h5 style="font-weight: bold;"><?=$header_text?></h5>
+                            </div>
                             <!-- Nav tabs -->
                             <ul class="nav nav-tabs" role="tablist">
                                 <li class="active"> <a class="nav-link active" data-bs-toggle="tab" id="profile_link" href="#profile" role="tab"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
