@@ -126,41 +126,17 @@ if(!empty($_POST)){
         $SETTINGS_DATA['LOGIN_ID'] = $_POST['LOGIN_ID'];
         $SETTINGS_DATA['APPOINTMENT_REMINDER'] = $_POST['APPOINTMENT_REMINDER'];
         $SETTINGS_DATA['HOUR'] = empty($_POST['HOUR']) ? 0 : $_POST['HOUR'];
-        $SETTINGS_DATA['AM_USER_NAME'] = $_POST['AM_USER_NAME'];
-        $SETTINGS_DATA['AM_PASSWORD'] = $_POST['AM_PASSWORD'];
-        $SETTINGS_DATA['AM_REFRESH_TOKEN'] = $_POST['AM_REFRESH_TOKEN'];
         $SETTINGS_DATA['ACTIVE'] = 1;
         $SETTINGS_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $SETTINGS_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        $SETTINGS_DATA['EDITED_BY'] = 0;
-        $SETTINGS_DATA['EDITED_ON'] = "0000-00-00 00:00:00";
+
         $settings = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
         if ($settings->RecordCount() == 0) {
             db_perform('DOA_ACCOUNT_MASTER', $SETTINGS_DATA, 'insert');
         } else {
+            $SETTINGS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+            $SETTINGS_DATA['EDITED_ON'] = date("Y-m-d H:i");
             db_perform('DOA_ACCOUNT_MASTER', $SETTINGS_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
-        }
-
-        $EMAIL_DATA['HOST'] = $_POST['SMTP_HOST'];
-        $EMAIL_DATA['PORT'] = $_POST['SMTP_PORT'];
-        $EMAIL_DATA['USER_NAME'] = $_POST['SMTP_USERNAME'];
-        $EMAIL_DATA['PASSWORD'] = $_POST['SMTP_PASSWORD'];
-        $EMAIL_DATA['ACTIVE'] = 1;
-        $EMAIL_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $EMAIL_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        $EMAIL_DATA['EDITED_BY'] = 0;
-        $EMAIL_DATA['EDITED_ON'] = "0000-00-00 00:00:00";
-//        unset($_POST['FUNCTION_NAME']);
-//        unset($_POST['SMTP_HOST']);
-//        unset($_POST['SMTP_PORT']);
-//        unset($_POST['SMTP_USERNAME']);
-//        unset($_POST['SMTP_PASSWORD']);
-
-        $email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-        if ($email->RecordCount() == 0) {
-            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'insert');
-        } else {
-            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
         }
     }
     header("location:settings.php");
@@ -426,65 +402,6 @@ if ($header_data->RecordCount() > 0) {
                                                         <input type="text" class="form-control" name="HOUR" value="<?=$HOUR?>">
                                                     </div>
                                                 </div>
-                                            </div>
-
-
-                                            <?php if ($FRANCHISE == 1) {?>
-                                            <div class="row smtp" id="smtp" >
-                                                <div class="form-group">
-                                                    <label class="form-label">SMTP Setup</label>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">SMTP HOST</label>
-                                                        <input type="text" class="form-control" name="SMTP_HOST" value="<?php /*=$SMTP_HOST*/?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">SMTP PORT</label>
-                                                        <input type="text" class="form-control" name="SMTP_PORT" value="<?php /*=$SMTP_PORT*/?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">SMTP USERNAME</label>
-                                                        <input type="text" class="form-control" name="SMTP_USERNAME" value="<?php /*=$SMTP_USERNAME*/?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">SMTP PASSWORD</label>
-                                                        <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?php /*=$SMTP_PASSWORD*/?>">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row smtp" id="smtp" >
-                                                <div class="form-group">
-                                                    <label class="form-label">Arthur Murray API Setup</label>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">User Name</label>
-                                                        <input type="text" class="form-control" name="AM_USER_NAME" value="<?php /*=$AM_USER_NAME*/?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Password</label>
-                                                        <input type="text" class="form-control" name="AM_PASSWORD" value="<?php /*=$AM_PASSWORD*/?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Refresh Token</label>
-                                                        <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/?>">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <? } ?>
-
                                             </div>
 
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>

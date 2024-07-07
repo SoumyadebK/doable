@@ -17,6 +17,11 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
+$FRANCHISE = 0;
+$franchise_data = $db->Execute("SELECT FRANCHISE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+if ($franchise_data->RecordCount() > 0) {
+    $FRANCHISE = $franchise_data->fields['FRANCHISE'];
+}
 
 if(empty($_GET['id'])){
     $PK_LOCATION = 0;
@@ -87,7 +92,7 @@ $SMTP_HOST = '';
 $SMTP_PORT = '';
 $SMTP_USERNAME = '';
 $SMTP_PASSWORD = '';
-$email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = ".$PK_LOCATION);
 if ($email->RecordCount() > 0) {
     $SMTP_HOST = $email->fields['HOST'];
     $SMTP_PORT = $email->fields['PORT'];
@@ -135,7 +140,15 @@ if ($account_payment_info->RecordCount() > 0) {
 
 if(!empty($_POST)){
     if ($_POST['FUNCTION_NAME'] == 'saveLocationData') {
+        $EMAIL_DATA['HOST'] = $_POST['SMTP_HOST'];
+        $EMAIL_DATA['PORT'] = $_POST['SMTP_PORT'];
+        $EMAIL_DATA['USER_NAME'] = $_POST['SMTP_USERNAME'];
+        $EMAIL_DATA['PASSWORD'] = $_POST['SMTP_PASSWORD'];
         unset($_POST['FUNCTION_NAME']);
+        unset($_POST['SMTP_HOST']);
+        unset($_POST['SMTP_PORT']);
+        unset($_POST['SMTP_USERNAME']);
+        unset($_POST['SMTP_PASSWORD']);
         $LOCATION_DATA = $_POST;
         $LOCATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
 
@@ -167,6 +180,20 @@ if(!empty($_POST)){
             $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
             db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_GET[id]'");
+            $PK_LOCATION = $_GET['id'];
+        }
+        $EMAIL_DATA['PK_LOCATION'] = $PK_LOCATION;
+        $EMAIL_DATA['ACTIVE'] = 1;
+        $EMAIL_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $EMAIL_DATA['CREATED_ON'] = date("Y-m-d H:i");
+
+        $email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = ".$PK_LOCATION);
+        if ($email->RecordCount() == 0) {
+            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'insert');
+        } else {
+            $EMAIL_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+            $EMAIL_DATA['EDITED_ON'] = date("Y-m-d H:i");
+            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_LOCATION = '$PK_LOCATION'");
         }
     }
 
@@ -464,6 +491,7 @@ if(!empty($_POST)){
                                                 <?php if($IMAGE_PATH!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $IMAGE_PATH;?>" data-fancybox-group="gallery"><img src = "<?php echo $IMAGE_PATH;?>" style="width:120px; height:120px" /></a></div><?php } ?>
                                             </div>
 
+
                                             <div class="row smtp" id="smtp" >
                                                 <div class="form-group">
                                                     <label class="form-label">SMTP Setup</label>
@@ -494,29 +522,31 @@ if(!empty($_POST)){
                                                 </div>
                                             </div>
 
-                                            <div class="row smtp" id="smtp" >
-                                                <div class="form-group">
-                                                    <label class="form-label">Arthur Murray API Setup</label>
-                                                </div>
-                                                <div class="col-4">
+                                            <?php if ($FRANCHISE == 1) { ?>
+                                                <div class="row smtp" id="smtp" >
                                                     <div class="form-group">
-                                                        <label class="form-label">User Name</label>
-                                                        <input type="text" class="form-control" name="AM_USER_NAME" value="<?=$AM_USER_NAME?>">
+                                                        <label class="form-label">Arthur Murray API Setup</label>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="form-label">User Name</label>
+                                                            <input type="text" class="form-control" name="AM_USER_NAME" value="<?=$AM_USER_NAME?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Password</label>
+                                                            <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Refresh Token</label>
+                                                            <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?=$AM_REFRESH_TOKEN?>">
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Password</label>
-                                                        <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Refresh Token</label>
-                                                        <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?=$AM_REFRESH_TOKEN?>">
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <?php } ?>
 
                                             <?php if(!empty($_GET['id'])) { ?>
                                                 <div class="row" style="margin-bottom: 15px;">
