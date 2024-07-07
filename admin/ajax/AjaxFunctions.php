@@ -45,6 +45,65 @@ function saveServiceInfoData($RESPONSE_DATA){
     echo $PK_SERVICE_MASTER;
 }
 
+function saveServiceData($RESPONSE_DATA){
+    global $db;
+    global $db_account;
+
+    $SERVICE_INFO_DATA['SERVICE_NAME'] = $RESPONSE_DATA['SERVICE_NAME'];
+    $SERVICE_INFO_DATA['PK_SERVICE_CLASS'] = $RESPONSE_DATA['PK_SERVICE_CLASS'];
+    $SERVICE_INFO_DATA['IS_SCHEDULE'] = $RESPONSE_DATA['IS_SCHEDULE'];
+    $SERVICE_INFO_DATA['DESCRIPTION'] = $RESPONSE_DATA['DESCRIPTION'];
+    if(empty($RESPONSE_DATA['PK_SERVICE_MASTER'])){
+        $SERVICE_INFO_DATA['ACTIVE'] = 1;
+        $SERVICE_INFO_DATA['IS_DELETED'] = 0;
+        $SERVICE_INFO_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        $SERVICE_INFO_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform_account('DOA_SERVICE_MASTER', $SERVICE_INFO_DATA, 'insert');
+        $PK_SERVICE_MASTER = $db_account->insert_ID();
+    }else{
+        $SERVICE_INFO_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        $SERVICE_INFO_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+        $SERVICE_INFO_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_SERVICE_MASTER', $SERVICE_INFO_DATA, 'update'," PK_SERVICE_MASTER =  '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
+        $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
+    }
+
+    $db_account->Execute("DELETE FROM `DOA_SERVICE_LOCATION` WHERE `PK_SERVICE_MASTER` = '$PK_SERVICE_MASTER'");
+    if(isset($RESPONSE_DATA['PK_LOCATION'])){
+        $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
+        for($i = 0; $i < count($PK_LOCATION); $i++){
+            $SERVICE_LOCATION_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+            $SERVICE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+            db_perform_account('DOA_SERVICE_LOCATION', $SERVICE_LOCATION_DATA, 'insert');
+        }
+    }
+    echo $PK_SERVICE_MASTER;
+
+    if (count($RESPONSE_DATA['SERVICE_CODE']) > 0) {
+        $ALL_PK_SERVICE_CODE = $RESPONSE_DATA['ALL_PK_SERVICE_CODE'];
+        $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'];
+        $DELETED_CODE = array_diff($ALL_PK_SERVICE_CODE, $PK_SERVICE_CODE);
+        $db_account->Execute("DELETE FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_CODE` IN (".implode(',', $DELETED_CODE).")");
+        for ($i = 0; $i < count($RESPONSE_DATA['SERVICE_CODE']); $i++) {
+            $SERVICE_CODE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+            $SERVICE_CODE_DATA['SERVICE_CODE'] = $RESPONSE_DATA['SERVICE_CODE'][$i];
+            $SERVICE_CODE_DATA['DESCRIPTION'] = $RESPONSE_DATA['SERVICE_CODE_DESCRIPTION'][$i];
+            $SERVICE_CODE_DATA['IS_GROUP'] = $RESPONSE_DATA['IS_GROUP_'.$i] ?? 0;
+            $SERVICE_CODE_DATA['IS_SUNDRY'] = $RESPONSE_DATA['IS_SUNDRY_'.$i] ?? 0;
+            $SERVICE_CODE_DATA['CAPACITY'] = ($SERVICE_CODE_DATA['IS_GROUP'] == 0) ? 0 : $RESPONSE_DATA['CAPACITY'][$i];
+            $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE_'.$i] ?? 0;
+            $SERVICE_CODE_DATA['PRICE'] = ($SERVICE_CODE_DATA['IS_CHARGEABLE'] == 0) ? 0 : $RESPONSE_DATA['PRICE'][$i];
+            $SERVICE_CODE_DATA['IS_DEFAULT'] = $RESPONSE_DATA['IS_DEFAULT_'.$i] ?? 0;
+            //pre_r($SERVICE_CODE_DATA);
+            if ($RESPONSE_DATA['PK_SERVICE_CODE'][$i] > 0){
+                db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'update', "PK_SERVICE_CODE = ".$RESPONSE_DATA['PK_SERVICE_CODE'][$i]);
+            } else {
+                db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
+            }
+        }
+    }
+}
+
 function saveServiceCodeData($RESPONSE_DATA){
     global $db;
     global $db_account;

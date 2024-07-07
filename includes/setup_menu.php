@@ -22,6 +22,7 @@
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 <a class="dropdown-item" href="../admin/all_services.php">Services</a>
+                                <a class="dropdown-item" href="../admin/all_service_codes.php">Services Codes</a>
                                 <a class="dropdown-item" href="../admin/all_packages.php">Packages</a>
                                 <a class="dropdown-item" href="../admin/all_scheduling_codes.php">Scheduling Codes</a>
                                 <a class="dropdown-item" href="../admin/all_document_library.php">Document Library</a>

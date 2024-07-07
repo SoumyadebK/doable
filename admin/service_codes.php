@@ -5,9 +5,9 @@ global $db_account;
 global $master_database;
 
 if (empty($_GET['id']))
-    $title = "Add Service";
+    $title = "Add Service / Service Code";
 else
-    $title = "Edit Service";
+    $title = "Edit Service / Service Code";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -92,7 +92,7 @@ if(empty($_GET['id'])){
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item"><a href="all_services.php">All Services</a></li>
+                            <li class="breadcrumb-item"><a href="all_service_codes.php">All Services / Service Codes</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
                     </div>
@@ -113,7 +113,7 @@ if(empty($_GET['id'])){
                             <!-- Nav tabs -->
                             <ul class="nav nav-tabs" role="tablist">
                                 <li class="active"> <a class="nav-link active" data-bs-toggle="tab" href="#service_info" role="tab"><span class="hidden-sm-up"><i class="ti-info"></i></span> <span class="hidden-xs-down">Info</span></a> </li>
-                                <li> <a class="nav-link <?=(!empty($_GET['id']))?'':'disabled'?>" data-bs-toggle="tab" id="service_codes_link" href="#service_codes" role="tab" <?=(!empty($_GET['id']))?'':'disabled'?>><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Service Codes</span></a> </li>
+                                <!--<li> <a class="nav-link <?php /*=(!empty($_GET['id']))?'':'disabled'*/?>" data-bs-toggle="tab" id="service_codes_link" href="#service_codes" role="tab" <?php /*=(!empty($_GET['id']))?'':'disabled'*/?>><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Service Codes</span></a> </li>-->
                                 <li> <a class="nav-link <?=(!empty($_GET['id']))?'':'disabled'?>" data-bs-toggle="tab" id="service_document_link" href="#service_document" role="tab" <?=(!empty($_GET['id']))?'':'disabled'?>><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Service Document</span></a> </li>
                             </ul>
 
@@ -121,7 +121,7 @@ if(empty($_GET['id'])){
                             <div class="tab-content tabcontent-border">
                                 <div class="tab-pane active" id="service_info" role="tabpanel">
                                     <form class="form-material form-horizontal" id="service_info_form">
-                                        <input type="hidden" name="FUNCTION_NAME" value="saveServiceInfoData">
+                                        <input type="hidden" name="FUNCTION_NAME" value="saveServiceData">
                                         <input type="hidden" name="PK_SERVICE_MASTER" class="PK_SERVICE_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                         <div class="p-20">
                                             <div class="row">
@@ -387,10 +387,10 @@ if(empty($_GET['id'])){
                                 </div>
 
 
-                                <div class="tab-pane" id="service_codes" role="tabpanel">
+                                <!--<div class="tab-pane" id="service_codes" role="tabpanel">
                                     <form class="form-material form-horizontal" id="service_code_form">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveServiceCodeData">
-                                        <input type="hidden" name="PK_SERVICE_MASTER" class="PK_SERVICE_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
+                                        <input type="hidden" name="PK_SERVICE_MASTER" class="PK_SERVICE_MASTER" value="<?php /*=(empty($_GET['id']))?'':$_GET['id']*/?>">
                                         <div class="p-20">
                                             <div id="append_service_code">
                                                 <div class="row align-items-end">
@@ -438,72 +438,72 @@ if(empty($_GET['id'])){
 
 
                                                 <?php
-                                                if(!empty($_GET['id'])) { $i = 0;
+/*                                                if(!empty($_GET['id'])) { $i = 0;
                                                     $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = '$_GET[id]'");
-                                                    while (!$row->EOF) { ?>
-                                                        <input type="hidden" name="ALL_PK_SERVICE_CODE[]" value="<?=$row->fields['PK_SERVICE_CODE']?>">
+                                                    while (!$row->EOF) { */?>
+                                                        <input type="hidden" name="ALL_PK_SERVICE_CODE[]" value="<?php /*=$row->fields['PK_SERVICE_CODE']*/?>">
                                                         <div class="row align-items-end">
-                                                            <input type="hidden" name="PK_SERVICE_CODE[]" value="<?=$row->fields['PK_SERVICE_CODE']?>">
+                                                            <input type="hidden" name="PK_SERVICE_CODE[]" value="<?php /*=$row->fields['PK_SERVICE_CODE']*/?>">
                                                             <div class="col-2">
                                                                 <div class="form-group">
-                                                                    <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code" value="<?=$row->fields['SERVICE_CODE']?>">
+                                                                    <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code" value="<?php /*=$row->fields['SERVICE_CODE']*/?>">
                                                                 </div>
                                                             </div>
                                                             <div class="col-2">
                                                                 <div class="form-group">
-                                                                    <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description" value="<?=$row->fields['DESCRIPTION']?>">
+                                                                    <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description" value="<?php /*=$row->fields['DESCRIPTION']*/?>">
                                                                 </div>
                                                             </div>
                                                             <div class="col-1">
                                                                 <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
                                                                     <div class="col-md-12">
-                                                                        <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="1" <?=(($row->fields['IS_GROUP'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="0"  <?=(($row->fields['IS_GROUP'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
+                                                                        <label><input type="radio" name="IS_GROUP_<?php /*=$i*/?>" class="IS_GROUP" value="1" <?php /*=(($row->fields['IS_GROUP'] == 1) ? 'checked' : '')*/?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="IS_GROUP_<?php /*=$i*/?>" class="IS_GROUP" value="0"  <?php /*=(($row->fields['IS_GROUP'] == 0) ? 'checked' : '')*/?>/>&nbsp;No</label>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div class="col-1">
                                                                 <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
                                                                     <div class="col-md-12">
-                                                                        <label><input type="radio" name="IS_SUNDRY_<?=$i?>" class="IS_SUNDRY" value="1" <?=(($row->fields['IS_SUNDRY'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="IS_SUNDRY_<?=$i?>" class="IS_SUNDRY" value="0"  <?=(($row->fields['IS_SUNDRY'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
+                                                                        <label><input type="radio" name="IS_SUNDRY_<?php /*=$i*/?>" class="IS_SUNDRY" value="1" <?php /*=(($row->fields['IS_SUNDRY'] == 1) ? 'checked' : '')*/?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="IS_SUNDRY_<?php /*=$i*/?>" class="IS_SUNDRY" value="0"  <?php /*=(($row->fields['IS_SUNDRY'] == 0) ? 'checked' : '')*/?>/>&nbsp;No</label>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div class="col-2">
-                                                                <div class="form-group capacity_div" style="display: <?=(($row->fields['IS_GROUP'] == 1) ? '' : 'none')?>">
+                                                                <div class="form-group capacity_div" style="display: <?php /*=(($row->fields['IS_GROUP'] == 1) ? '' : 'none')*/?>">
                                                                     <div class="col-md-12" >
-                                                                        <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY" value="<?=$row->fields['CAPACITY']?>">
+                                                                        <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY" value="<?php /*=$row->fields['CAPACITY']*/?>">
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div class="col-1" >
                                                                 <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
                                                                     <div class="col-md-12">
-                                                                        <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="1" <?=(($row->fields['IS_CHARGEABLE'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="0" <?=(($row->fields['IS_CHARGEABLE'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
+                                                                        <label><input type="radio" name="IS_CHARGEABLE_<?php /*=$i*/?>" class="IS_CHARGEABLE" value="1" <?php /*=(($row->fields['IS_CHARGEABLE'] == 1) ? 'checked' : '')*/?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="IS_CHARGEABLE_<?php /*=$i*/?>" class="IS_CHARGEABLE" value="0" <?php /*=(($row->fields['IS_CHARGEABLE'] == 0) ? 'checked' : '')*/?>/>&nbsp;No</label>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div class="col-2">
-                                                                <div class="form-group service_price" style="display: <?=(($row->fields['IS_CHARGEABLE'] == 0) ? 'none' : '')?>">
+                                                                <div class="form-group service_price" style="display: <?php /*=(($row->fields['IS_CHARGEABLE'] == 0) ? 'none' : '')*/?>">
                                                                     <div class="col-md-12" >
                                                                         <div class="input-group">
-                                                                            <span class="input-group-text"><?=$currency?></span>
-                                                                            <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price" value="<?=$row->fields['PRICE']?>" required>
+                                                                            <span class="input-group-text"><?php /*=$currency*/?></span>
+                                                                            <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price" value="<?php /*=$row->fields['PRICE']*/?>" required>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div class="col-1">
                                                                 <div class="form-group">
-                                                                    <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT_<?=$i?>" title="Default for Ad-hoc" class="form-check-inline" <?=($row->fields['IS_DEFAULT'] == 1)?'checked':''?>>
+                                                                    <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT_<?php /*=$i*/?>" title="Default for Ad-hoc" class="form-check-inline" <?php /*=($row->fields['IS_DEFAULT'] == 1)?'checked':''*/?>>
                                                                     <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <?php $row->MoveNext(); $i++;} ?>
-                                                <?php } else { $i = 1;?>
+                                                        <?php /*$row->MoveNext(); $i++;} */?>
+                                                <?php /*} else { $i = 1;*/?>
                                                     <div class="row align-items-end">
                                                         <input type="hidden" name="PK_SERVICE_CODE[]" value="0">
                                                         <div class="col-2">
@@ -551,7 +551,7 @@ if(empty($_GET['id'])){
                                                             <div class="form-group service_price">
                                                                 <div class="col-md-12" >
                                                                     <div class="input-group">
-                                                                        <span class="input-group-text"><?=$currency?></span>
+                                                                        <span class="input-group-text"><?php /*=$currency*/?></span>
                                                                         <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price">
                                                                     </div>
                                                                 </div>
@@ -564,7 +564,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                     </div>
-                                                <?php } ?>
+                                                <?php /*} */?>
                                             </div>
                                             <div class="row">
                                                 <div class="form-group" style="margin-left: 92%">
@@ -577,7 +577,7 @@ if(empty($_GET['id'])){
                                             </div>
                                         </div>
                                     </form>
-                                </div>
+                                </div>-->
 
                                 <div class="tab-pane" id="service_document" role="tabpanel">
                                     <form method="post" action="" enctype="multipart/form-data">
@@ -822,7 +822,27 @@ if(empty($_GET['id'])){
         window.location.href='all_services.php'
     });
 
+    $(document).on('submit', '#service_info_form', function (event) {
+        event.preventDefault();
+        let form_data = $('#service_info_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            success:function (data) {
+                if (PK_SERVICE_MASTER == 0) {
+                    $('.disabled').attr('disabled', false).removeClass('disabled');
+                    $('.PK_SERVICE_MASTER').val(data);
+                    //$('#service_codes_link')[0].click();
+                    window.location.href='all_service_codes.php';
+                }else{
+                    window.location.href='all_service_codes.php';
+                }
+            }
+        });
+    });
 
+/*
     $(document).on('submit', '#service_info_form', function (event) {
         event.preventDefault();
         let form_data = $('#service_info_form').serialize();
@@ -841,6 +861,7 @@ if(empty($_GET['id'])){
             }
         });
     });
+*/
 
     $(document).on('submit', '#service_code_form', function (event) {
         event.preventDefault();
@@ -850,7 +871,7 @@ if(empty($_GET['id'])){
             type: 'POST',
             data: form_data,
             success:function (data) {
-                window.location.href='all_services.php';
+                window.location.href='all_services_codes.php';
             }
         });
     });
