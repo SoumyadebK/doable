@@ -348,7 +348,7 @@ if(empty($_GET['id'])){
                                                                     $scheduling_code = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
                                                                     while (!$scheduling_code->EOF) { ?>
                                                                         <option value="<?=$scheduling_code->fields['PK_SCHEDULING_CODE']?>"><?=$scheduling_code->fields['SCHEDULING_NAME'].' ('.$scheduling_code->fields['SCHEDULING_CODE'].')'?></option>
-                                                                        <?php $scheduling_code->MoveNext(); } ?>
+                                                                    <?php $scheduling_code->MoveNext(); } ?>
                                                                 </select>
                                                             </div>
                                                         </div>
