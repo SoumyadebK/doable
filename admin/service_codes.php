@@ -201,14 +201,19 @@ if(empty($_GET['id'])){
                                             <?php } ?>
                                             <div id="append_service_code">
                                                 <div class="row align-items-end">
-                                                    <div class="col-2" style="text-align: center;">
+                                                    <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label>Service Code</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-2" style="text-align: center;">
+                                                    <div class="col-1" style="text-align: center;">
                                                         <div class="form-group">
                                                             <label>Description</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-2" style="text-align: center;">
+                                                        <div class="form-group">
+                                                            <label>Scheduling Code</label>
                                                         </div>
                                                     </div>
                                                     <div class="col-1" style="text-align: center;">
@@ -251,14 +256,26 @@ if(empty($_GET['id'])){
                                                         <input type="hidden" name="ALL_PK_SERVICE_CODE[]" value="<?=$row->fields['PK_SERVICE_CODE']?>">
                                                         <div class="row align-items-end">
                                                             <input type="hidden" name="PK_SERVICE_CODE[]" value="<?=$row->fields['PK_SERVICE_CODE']?>">
-                                                            <div class="col-2">
+                                                            <div class="col-1">
                                                                 <div class="form-group">
                                                                     <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code" value="<?=$row->fields['SERVICE_CODE']?>">
                                                                 </div>
                                                             </div>
-                                                            <div class="col-2">
+                                                            <div class="col-1">
                                                                 <div class="form-group">
                                                                     <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description" value="<?=$row->fields['DESCRIPTION']?>">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <select class="multi_select" required id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE">
+                                                                        <option value="">Select Scheduling Code</option>
+                                                                        <?php
+                                                                        $scheduling_code = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=".$PK_SERVICE_MASTER. " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
+                                                                        while (!$scheduling_code->EOF) { ?>
+                                                                            <option data-duration="<?=$scheduling_code->fields['DURATION'];?>" value="<?=$scheduling_code->fields['PK_SCHEDULING_CODE'].','.$scheduling_code->fields['DURATION']?>"><?=$scheduling_code->fields['SCHEDULING_NAME'].' ('.$scheduling_code->fields['SCHEDULING_CODE'].')'?></option>
+                                                                            <?php $scheduling_code->MoveNext(); } ?>
+                                                                    </select>
                                                                 </div>
                                                             </div>
                                                             <div class="col-1">
@@ -313,14 +330,26 @@ if(empty($_GET['id'])){
                                                 <?php } else { $i = 1;?>
                                                     <div class="row align-items-end">
                                                         <input type="hidden" name="PK_SERVICE_CODE[]" value="0">
-                                                        <div class="col-2">
+                                                        <div class="col-1">
                                                             <div class="form-group">
                                                                 <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code">
                                                             </div>
                                                         </div>
-                                                        <div class="col-2">
+                                                        <div class="col-1">
                                                             <div class="form-group">
                                                                 <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-2">
+                                                            <div class="form-group">
+                                                                <select class="multi_select" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" multiple>
+                                                                    <option value="">Select Scheduling Code</option>
+                                                                    <?php
+                                                                    $scheduling_code = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
+                                                                    while (!$scheduling_code->EOF) { ?>
+                                                                        <option value="<?=$scheduling_code->fields['PK_SCHEDULING_CODE']?>"><?=$scheduling_code->fields['SCHEDULING_NAME'].' ('.$scheduling_code->fields['SCHEDULING_CODE'].')'?></option>
+                                                                        <?php $scheduling_code->MoveNext(); } ?>
+                                                                </select>
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
@@ -669,6 +698,8 @@ if(empty($_GET['id'])){
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 <script>
     let PK_SERVICE_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
+
+    $('.multi_select').SumoSelect({search: true, searchText: 'Search...'});
 
     $('.multi_sumo_select_location').SumoSelect({placeholder: 'Select Location', selectAll: true});
 
