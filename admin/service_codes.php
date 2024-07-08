@@ -267,14 +267,14 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                             <div class="col-2">
-                                                                <div class="form-group">
-                                                                    <select class="multi_select" required id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE">
+                                                                <div>
+                                                                    <select class="multi_select" required id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" multiple>
                                                                         <option value="">Select Scheduling Code</option>
                                                                         <?php
                                                                         $scheduling_code = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=".$PK_SERVICE_MASTER. " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
                                                                         while (!$scheduling_code->EOF) { ?>
                                                                             <option data-duration="<?=$scheduling_code->fields['DURATION'];?>" value="<?=$scheduling_code->fields['PK_SCHEDULING_CODE'].','.$scheduling_code->fields['DURATION']?>"><?=$scheduling_code->fields['SCHEDULING_NAME'].' ('.$scheduling_code->fields['SCHEDULING_CODE'].')'?></option>
-                                                                            <?php $scheduling_code->MoveNext(); } ?>
+                                                                        <?php $scheduling_code->MoveNext(); } ?>
                                                                     </select>
                                                                 </div>
                                                             </div>
@@ -341,7 +341,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="col-2">
-                                                            <div class="form-group">
+                                                            <div>
                                                                 <select class="multi_select" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" multiple>
                                                                     <option value="">Select Scheduling Code</option>
                                                                     <?php
