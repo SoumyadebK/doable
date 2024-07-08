@@ -1,6 +1,6 @@
 <?php
 require_once('../global/config.php');
-$title = "All Roles";
+$title = "All Permission";
 
 $status_check = empty($_GET['status'])?'active':$_GET['status'];
 
@@ -19,13 +19,13 @@ $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_ROLES.ROLES LIKE '%".$search_text."%')";
+    $search = " AND (DOA_PERMISSION.PERMISSION_NAME LIKE '%".$search_text."%')";
 } else {
     $search_text = '';
     $search = ' ';
 }
 
-$query = $db->Execute("SELECT count(DOA_ROLES.PK_ROLES) AS TOTAL_RECORDS FROM DOA_ROLES");
+$query = $db->Execute("SELECT count(DOA_PERMISSION.PK_PERMISSION) AS TOTAL_RECORDS FROM DOA_PERMISSION");
 $number_of_result =  $query->fields['TOTAL_RECORDS'];
 $number_of_page = ceil ($number_of_result / $results_per_page);
 
@@ -67,7 +67,7 @@ $page_first_result = ($page-1) * $results_per_page;
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='add_roles.php'" ><i class="fa fa-plus-circle"></i> Add New Role</button>
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='add_permission.php'" ><i class="fa fa-plus-circle"></i> Add New Permission</button>
                     </div>
                 </div>
             </div>
@@ -79,33 +79,25 @@ $page_first_result = ($page-1) * $results_per_page;
                             <div class="table-responsive">
                                 <table class="table table-striped border">
                                     <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Roles</th>
-                                            <th>Permission</th>
-                                            <th>Actions</th>
-                                        </tr>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Permission</th>
+                                        <th>Link</th>
+                                        <th>Actions</th>
+                                    </tr>
                                     </thead>
 
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT * FROM `DOA_ROLES` WHERE PK_ROLES > 0 ".$search." LIMIT " . $page_first_result . ',' . $results_per_page);
+                                    $row = $db->Execute("SELECT * FROM `DOA_PERMISSION` WHERE PK_PERMISSION > 0 ".$search." LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$row->EOF) { ?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_ROLES']?>);"><?=$i;?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_ROLES']?>);"><?=$row->fields['ROLES']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_ROLES']?>);">
-                                                <?php
-                                                $permission_data = $db->Execute("SELECT DOA_PERMISSION.PERMISSION_NAME FROM DOA_ROLES_PERMISSION LEFT JOIN DOA_PERMISSION ON DOA_ROLES_PERMISSION.PK_PERMISSION = DOA_PERMISSION.PK_PERMISSION WHERE DOA_ROLES_PERMISSION.PK_ROLES = ".$row->fields['PK_ROLES']);
-                                                while (!$permission_data->EOF) {
-                                                    echo $permission_data->fields['PERMISSION_NAME']."<br>";
-                                                    $permission_data->MoveNext();
-                                                }
-                                                ?>
-                                            </td>
+                                            <td onclick="editpage(<?=$row->fields['PK_PERMISSION']?>);"><?=$i;?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_PERMISSION']?>);"><?=$row->fields['PERMISSION_NAME']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_PERMISSION']?>);"><?=$row->fields['PERMISSION_LINK']?></td>
                                             <td>
-                                                <a href="add_roles.php?id=<?=$row->fields['PK_ROLES']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="add_permission.php?id=<?=$row->fields['PK_PERMISSION']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
@@ -121,21 +113,21 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <div class="pagination outer">
                                         <ul>
                                             <?php if ($page > 1) { ?>
-                                                <li><a href="all_roles.php?status=<?=$status_check?>&page=1">&laquo;</a></li>
-                                                <li><a href="all_roles.php?status=<?=$status_check?>&page=<?=($page-1)?>">&lsaquo;</a></li>
+                                                <li><a href="all_permissions.php?status=<?=$status_check?>&page=1">&laquo;</a></li>
+                                                <li><a href="all_permissions.php?status=<?=$status_check?>&page=<?=($page-1)?>">&lsaquo;</a></li>
                                             <?php }
                                             for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
                                                 if ($page_count == $page || $page_count == ($page+1) || $page_count == ($page-1) || $page_count == $number_of_page) {
-                                                    echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_roles.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                    echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_permissions.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
                                                 } elseif ($page_count == ($number_of_page-1)){
                                                     echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
                                                 } else {
-                                                    echo '<li><a class="hidden" href="all_roles.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                    echo '<li><a class="hidden" href="all_permissions.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
                                                 }
                                             }
                                             if ($page < $number_of_page) { ?>
-                                                <li><a href="all_roles.php?status=<?=$status_check?>&page=<?=($page+1)?>">&rsaquo;</a></li>
-                                                <li><a href="all_roles.php?status=<?=$status_check?>&page=<?=$number_of_page?>">&raquo;</a></li>
+                                                <li><a href="all_permissions.php?status=<?=$status_check?>&page=<?=($page+1)?>">&rsaquo;</a></li>
+                                                <li><a href="all_permissions.php?status=<?=$status_check?>&page=<?=$number_of_page?>">&raquo;</a></li>
                                             <?php } ?>
                                         </ul>
                                     </div>
@@ -154,7 +146,7 @@ $page_first_result = ($page-1) * $results_per_page;
         $('#myTable').DataTable();
     });
     function editpage(id){
-        window.location.href = "add_roles.php?id="+id;
+        window.location.href = "add_permission.php?id="+id;
     }
 </script>
 </body>
