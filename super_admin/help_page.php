@@ -6,6 +6,12 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' ){
     exit;
 }
 
+if (empty($_GET['id']))
+    $title = "Add Help Page";
+else
+    $title = "Edit Help Page";
+
+
 if(!empty($_POST)){
     //echo "<pre>";print_r($_POST);exit;
     $HELP_PAGE = $_POST;
@@ -45,6 +51,14 @@ if(empty($_GET['id'])){
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
+<style>
+    .ck-editor__editable_inline {
+        min-height: 300px;
+    }
+    .SumoSelect {
+        width: 100%;
+    }
+</style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
@@ -54,7 +68,7 @@ if(empty($_GET['id'])){
         <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><? if(empty($_GET['id'])) echo "Add"; else echo "Edit"; ?> Help Page </h4>
+                    <h4 class="text-themecolor"><?php if(empty($_GET['id'])) echo "Add"; else echo "Edit"; ?> Help Page </h4>
                 </div>
             </div>
             <div class="row">
@@ -86,7 +100,7 @@ if(empty($_GET['id'])){
                                                 Help Text
                                             </div>
                                             <div class="col-md-12">
-                                                <textarea class="form-control required-entry rich" rows="2" id="DESCRIPTION" name="DESCRIPTION"><?=$DESCRIPTION?></textarea>
+                                                <textarea class="ckeditor" rows="2" id="DESCRIPTION" name="DESCRIPTION"><?=$DESCRIPTION?></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -128,31 +142,14 @@ if(empty($_GET['id'])){
 
 </div>
 <?php require_once('../includes/footer.php');?>
-
-<link href="//cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/css/select2.min.css" rel="stylesheet" />
-<script src="//cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.min.js"></script>
-<script src="https://cdn.tiny.cloud/1/d6quzxl18kigwmmr6z03zgk3w47922rw1epwafi19cfnj00i/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
-<script type="text/javascript">
-    jQuery(document).ready(function($) {
-        tinymce.init({
-            selector:'.rich',
-            browser_spellcheck: true,
-            menubar: 'file edit view insert format tools table tc help',
-            statusbar: false,
-            height: '300',
-            plugins: [
-                'advlist lists hr pagebreak',
-                'wordcount code',
-                'nonbreaking save table contextmenu directionality',
-                'template paste textcolor colorpicker textpattern '
-            ],
-            toolbar1: 'bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor backcolor',
-            paste_data_images: true,
-            height: 400,
-        });
-    });
-</script>
-
+<script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/34.2.0/classic/ckeditor.js"></script>
 </body>
-
+<script>
+    ClassicEditor
+        .create( document.querySelector( '#DESCRIPTION' ) )
+        .catch( error => {
+            console.error( error );
+        } );
+</script>
 </html>

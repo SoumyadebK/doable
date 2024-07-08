@@ -111,7 +111,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <tr>
                                                 <td onclick="editpage(<?=$res_type->fields['PK_HELP_PAGE'];?>);"><?php echo $sl++; ?></td>
                                                 <td onclick="editpage(<?=$res_type->fields['PK_HELP_PAGE'];?>);"><?php echo $res_type->fields['TITLE']; ?></td>
-                                                <td onclick="editpage(<?=$res_type->fields['PK_HELP_PAGE'];?>);"><?php echo $res_type->fields['HELP_CATEGORY']; ?></td>
+                                                <td onclick="editpage(<?=$res_type->fields['PK_HELP_PAGE'];?>);"><?php echo $res_type->fields['DESCRIPTION']; ?></td>
                                                 <td onclick="editpage(<?=$res_type->fields['PK_HELP_PAGE'];?>);"><?php echo $res_type->fields['PAGE_LINK']; ?></td>
                                                 <td>
                                                     <a href="help_page.php?id=<?=$res_type->fields['PK_HELP_PAGE']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

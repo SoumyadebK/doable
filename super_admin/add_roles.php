@@ -1,5 +1,6 @@
 <?php
 require_once('../global/config.php');
+global $db;
 
 if (empty($_GET['id']))
     $title = "Add Role";
@@ -12,6 +13,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 }
 
 if(!empty($_POST)){
+    $PK_PERMISSION = $_POST['PK_PERMISSION'];
+    unset($_POST['PK_PERMISSION']);
     $ROLES_DATA = $_POST;
     if(empty($_GET['id'])){
         $ROLES_DATA['IS_MANAGEMENT'] = $_POST['IS_MANAGEMENT'];
@@ -19,13 +22,25 @@ if(!empty($_POST)){
         $ROLES_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $ROLES_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform('DOA_ROLES', $ROLES_DATA, 'insert');
+        $PK_ROLES = $db->insert_ID();
     }else{
         $ROLES_DATA['IS_MANAGEMENT'] = isset($_POST['IS_MANAGEMENT'])?1:0;
         $ROLES_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $ROLES_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $ROLES_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_ROLES', $ROLES_DATA, 'update'," PK_ROLES =  '$_GET[id]'");
+        $PK_ROLES = $_GET['id'];
     }
+
+    $db->Execute("DELETE FROM `DOA_ROLES_PERMISSION` WHERE `PK_ROLES` = '$PK_ROLES'");
+    if(count($PK_PERMISSION) > 0){
+        for($i = 0; $i < count($PK_PERMISSION); $i++){
+            $ROLE_PERMISSION_DATA['PK_ROLES'] = $PK_ROLES;
+            $ROLE_PERMISSION_DATA['PK_PERMISSION'] = $PK_PERMISSION[$i];
+            db_perform('DOA_ROLES_PERMISSION', $ROLE_PERMISSION_DATA, 'insert');
+        }
+    }
+
     header("location:all_roles.php");
 }
 
@@ -89,9 +104,36 @@ if(empty($_GET['id'])){
                                     </div>
                                 </div>
 
-                                <div class="form-group">
-                                    <label class="" for="example-text">Management</label>
-                                    <input type="checkbox" id="IS_MANAGEMENT" name="IS_MANAGEMENT" class="form-check-inline" style="margin-left: 10px;" <?=($IS_MANAGEMENT == 1)?'checked':''?>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label class="form-label">Permission</label>
+                                        <div class="col-md-12 multiselect-box">
+                                            <select class="multi_sumo_select" name="PK_PERMISSION[]" id="PK_PERMISSION" multiple>
+                                                <?php
+                                                $selected_permission = [];
+                                                if(!empty($_GET['id'])) {
+                                                    $selected_permission_row = $db->Execute("SELECT * FROM `DOA_ROLES_PERMISSION` WHERE `PK_ROLES` = '$_GET[id]'");
+                                                    while (!$selected_permission_row->EOF) {
+                                                        $selected_permission[] = $selected_permission_row->fields['PK_PERMISSION'];
+                                                        $selected_permission_row->MoveNext();
+                                                    }
+                                                }
+                                                $row = $db->Execute("SELECT * FROM `DOA_PERMISSION` WHERE ACTIVE = 1");
+                                                while (!$row->EOF) { ?>
+                                                    <option value="<?php echo $row->fields['PK_PERMISSION'];?>" <?=in_array($row->fields['PK_PERMISSION'], $selected_permission)?"selected":""?>><?=$row->fields['PERMISSION_NAME']?></option>
+                                                <?php $row->MoveNext(); } ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row" style="margin-bottom: 15px; margin-top: 10px">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label class="" for="example-text">Management</label>
+                                            <input type="checkbox" id="IS_MANAGEMENT" name="IS_MANAGEMENT" class="form-check-inline" style="margin-left: 10px;" <?=($IS_MANAGEMENT == 1)?'checked':''?>>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <?php if(!empty($_GET['id'])) { ?>
@@ -119,5 +161,8 @@ if(empty($_GET['id'])){
     </div>
 </div>
 <?php require_once('../includes/footer.php');?>
+<script>
+    $('.multi_sumo_select').SumoSelect({placeholder: 'Select Permission', selectAll: true});
+</script>
 </body>
 </html>
