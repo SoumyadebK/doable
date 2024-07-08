@@ -97,10 +97,24 @@ function saveServiceData($RESPONSE_DATA){
             //pre_r($SERVICE_CODE_DATA);
             if ($RESPONSE_DATA['PK_SERVICE_CODE'][$i] > 0){
                 db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'update', "PK_SERVICE_CODE = ".$RESPONSE_DATA['PK_SERVICE_CODE'][$i]);
+                $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'];
             } else {
                 db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
+                $PK_SERVICE_CODE = $db_account->insert_ID();
+            }
+
+            $db_account->Execute("DELETE FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_CODE` = '$PK_SERVICE_CODE'");
+            if(isset($RESPONSE_DATA['PK_SCHEDULING_CODE'])){
+                $PK_SCHEDULING_CODE = $RESPONSE_DATA['PK_SCHEDULING_CODE'];
+                for($j = 0; $j < count($PK_SCHEDULING_CODE); $j++){
+                    $SCHEDULING_CODE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                    $SCHEDULING_CODE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                    $SCHEDULING_CODE_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE[$j];
+                    db_perform_account('DOA_SERVICE_SCHEDULING_CODE', $SCHEDULING_CODE_DATA, 'insert');
+                }
             }
         }
+
     }
 }
 
