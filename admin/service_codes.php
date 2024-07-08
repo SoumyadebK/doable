@@ -512,7 +512,7 @@ if(empty($_GET['id'])){
 <script>
     let PK_SERVICE_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
 
-    $('.multi_select').SumoSelect({search: true, searchText: 'Search...', selectAll: true});
+    $('.multi_select').SumoSelect({search: true, placeholder: 'Select Scheduling Code', searchText: 'Search...', selectAll: true});
 
     $('.multi_sumo_select_location').SumoSelect({placeholder: 'Select Location', selectAll: true});
 
@@ -610,7 +610,7 @@ if(empty($_GET['id'])){
                                         </div>`);
         counter++;
 
-        $('.multi_select').SumoSelect({search: true, searchText: 'Search...', selectAll: true});
+        $('.multi_select').SumoSelect({search: true, placeholder: 'Select Scheduling Code', searchText: 'Search...', selectAll: true});
     }
 
 
