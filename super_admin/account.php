@@ -360,7 +360,7 @@ while (!$account_payment_info->EOF) {
                                                     </div>
                                                     <div class="col-3">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Arthur Murry Franchise ?</label>
+                                                            <label class="col-md-12">Arthur Murray Franchise ?</label>
                                                             <div class="col-md-12">
                                                                 <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="1" <?php if($FRANCHISE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
                                                                 <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if($FRANCHISE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
