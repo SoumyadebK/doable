@@ -52,8 +52,8 @@ if(empty($_GET['id'])){
 <html lang="en">
 <?php require_once('../includes/header.php');?>
 <style>
-    .ck-editor__editable_inline {
-        min-height: 300px;
+    #cke_1_contents {
+        min-height: 400px;
     }
     .SumoSelect {
         width: 100%;
@@ -100,7 +100,7 @@ if(empty($_GET['id'])){
                                                 Help Text
                                             </div>
                                             <div class="col-md-12">
-                                                <textarea class="ckeditor" rows="2" id="DESCRIPTION" name="DESCRIPTION"><?=$DESCRIPTION?></textarea>
+                                                <textarea id="DESCRIPTION" rows="20" name="DESCRIPTION"><?=$DESCRIPTION?></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -143,13 +143,11 @@ if(empty($_GET['id'])){
 </div>
 <?php require_once('../includes/footer.php');?>
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
-<script src="https://cdn.ckeditor.com/ckeditor5/34.2.0/classic/ckeditor.js"></script>
-</body>
+<script src="../assets/ckeditor/ckeditor.js"></script>
 <script>
-    ClassicEditor
-        .create( document.querySelector( '#DESCRIPTION' ) )
-        .catch( error => {
-            console.error( error );
-        } );
+    const editor = CKEDITOR.replace('DESCRIPTION', {
+        versionCheck: false,
+    });
 </script>
+</body>
 </html>

@@ -609,7 +609,6 @@ if(empty($_GET['id'])){
                                             </div>
                                         </div>`);
         counter++;
-
         $('.multi_select').SumoSelect({search: true, placeholder: 'Select Scheduling Code', searchText: 'Search...', selectAll: true});
     }
 
