@@ -248,15 +248,15 @@ if(empty($_GET['id'])){
 </div>
 
 <?php require_once('../includes/footer.php');?>
-
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
+<script src="../assets/ckeditor/ckeditor.js"></script>
 
-
-<script src="https://cdn.ckeditor.com/4.18.0/standard/ckeditor.js"></script>
 <script>
     $('#PK_LOCATION').SumoSelect({placeholder: 'Select Location', selectAll: true});
 
-    const editor = CKEDITOR.replace('ck_editor');
+    const editor = CKEDITOR.replace('ck_editor', {
+        versionCheck: false,
+    });
 
     $(document).on('click', '.tag_name', function () {
         let tag_name = $(this).data('tag');

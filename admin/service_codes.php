@@ -785,6 +785,7 @@ if(empty($_GET['id'])){
                                             </div>
                                         </div>`);
         counter++;
+        $('.multi_select').SumoSelect({search: true, searchText: 'Search...'});
     }
 
     function removeServiceCode(param) {
