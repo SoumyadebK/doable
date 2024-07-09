@@ -61,6 +61,7 @@ $TIME_SLOT_INTERVAL = $res->fields['TIME_SLOT_INTERVAL'];
 
 $help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'settings'");
 if($help->RecordCount() > 0){
+    $title = $help->fields['TITLE'];
     $description = $help->fields['DESCRIPTION'];
 }
 
@@ -418,8 +419,8 @@ if ($header_data->RecordCount() > 0) {
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
-                                <h4 class="col-md-12">
-                                    Help
+                                <h4 class="col-md-12" STYLE="text-align: center">
+                                    <?=$title?>
                                 </h4>
                                 <div class="col-md-12">
                                     <text class="required-entry rich" id="DESCRIPTION"><?=$description?></text>
