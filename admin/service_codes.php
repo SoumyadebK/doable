@@ -45,7 +45,7 @@ if(!empty($_POST)){
             db_perform_account('DOA_SERVICE_DOCUMENTS', $SERVICE_DOCUMENT_DATA, 'insert');
         }
     }
-    header("location:all_services.php");
+    header("location:all_service_codes.php");
 }
 
 if(empty($_GET['id'])){
@@ -54,21 +54,34 @@ if(empty($_GET['id'])){
     $IS_SCHEDULE = 1;
     $DESCRIPTION = '';
     $ACTIVE = '';
-    //$IS_SUNDRY = 0;
-    //$IS_PACKAGE = '';
+
+    $PK_SERVICE_CODE = '';
+    $SERVICE_CODE = '';
+    $PRICE = '';
+    $IS_GROUP = 0;
+    $IS_SUNDRY = 0;
+    $CAPACITY = '';
+    $IS_CHARGEABLE = 0;
 } else {
     $res = $db_account->Execute("SELECT * FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
     if($res->RecordCount() == 0){
-        header("location:all_services.php");
+        header("location:all_service_codes.php");
         exit;
     }
     $SERVICE_NAME = $res->fields['SERVICE_NAME'];
     $PK_SERVICE_CLASS = $res->fields['PK_SERVICE_CLASS'];
     $IS_SCHEDULE = $res->fields['IS_SCHEDULE'];
-    //$IS_SUNDRY = $res->fields['IS_SUNDRY'];
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
-    //$IS_PACKAGE = $res->fields['IS_PACKAGE'];
+
+    $service_code = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = '$_GET[id]'");
+    $PK_SERVICE_CODE = $service_code->fields['PK_SERVICE_CODE'];
+    $SERVICE_CODE = $service_code->fields['SERVICE_CODE'];
+    $PRICE =  $service_code->fields['PRICE'];
+    $IS_GROUP = $service_code->fields['IS_GROUP'];
+    $IS_SUNDRY = $service_code->fields['IS_SUNDRY'];
+    $CAPACITY = $service_code->fields['CAPACITY'];
+    $IS_CHARGEABLE = $service_code->fields['IS_CHARGEABLE'];
 }
 
 ?>
@@ -113,7 +126,6 @@ if(empty($_GET['id'])){
                             <!-- Nav tabs -->
                             <ul class="nav nav-tabs" role="tablist">
                                 <li class="active"> <a class="nav-link active" data-bs-toggle="tab" href="#service_info" role="tab"><span class="hidden-sm-up"><i class="ti-info"></i></span> <span class="hidden-xs-down">Info</span></a> </li>
-                                <!--<li> <a class="nav-link <?php /*=(!empty($_GET['id']))?'':'disabled'*/?>" data-bs-toggle="tab" id="service_codes_link" href="#service_codes" role="tab" <?php /*=(!empty($_GET['id']))?'':'disabled'*/?>><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Service Codes</span></a> </li>-->
                                 <li> <a class="nav-link <?=(!empty($_GET['id']))?'':'disabled'?>" data-bs-toggle="tab" id="service_document_link" href="#service_document" role="tab" <?=(!empty($_GET['id']))?'':'disabled'?>><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Service Document</span></a> </li>
                             </ul>
 
@@ -123,152 +135,134 @@ if(empty($_GET['id'])){
                                     <form class="form-material form-horizontal" id="service_info_form">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveServiceData">
                                         <input type="hidden" name="PK_SERVICE_MASTER" class="PK_SERVICE_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
+                                        <input type="hidden" name="PK_SERVICE_CODE" class="PK_SERVICE_CODE" value="<?=(empty($PK_SERVICE_CODE))?'':$PK_SERVICE_CODE?>">
                                         <div class="p-20">
                                             <div class="row">
-                                                <div class="col-12">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Service Name<span class="text-danger">*</span></label>
-                                                        <input type="text" id="SERVICE_NAME" name="SERVICE_NAME" class="form-control" placeholder="Enter Service name" required value="<?php echo $SERVICE_NAME?>">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
                                                 <div class="col-6">
-                                                    <label class="form-label">Location</label>
-                                                    <div class="col-md-12 multiselect-box">
-                                                        <select class="multi_sumo_select_location" name="PK_LOCATION[]" id="PK_LOCATION" multiple>
-                                                            <?php
-                                                            $selected_location = [];
-                                                            if(!empty($_GET['id'])) {
-                                                                $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_SERVICE_LOCATION` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
-                                                                while (!$selected_location_row->EOF) {
-                                                                    $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
-                                                                    $selected_location_row->MoveNext();
-                                                                }
-                                                            }
-                                                            $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                            while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
-                                                                <?php $row->MoveNext(); } ?>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Service Class</label>
-                                                        <select class="form-control PK_SERVICE_CLASS" name="PK_SERVICE_CLASS" onchange="selectServiceClass(this)">
-                                                            <option value="">Select</option>
-                                                            <?php
-                                                            $row = $db->Execute("SELECT * FROM DOA_SERVICE_CLASS WHERE ACTIVE = 1");
-                                                            while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_SERVICE_CLASS'];?>" <?=($PK_SERVICE_CLASS == $row->fields['PK_SERVICE_CLASS'])?'selected':''?>><?=$row->fields['SERVICE_CLASS']?></option>
-                                                                <?php $row->MoveNext(); } ?>
-                                                        </select>
-                                                    </div>
-                                                </div>
-
-                                                <div class="col-3" id="schedule_div" style="display: <?=($PK_SERVICE_CLASS == 5) ? 'none' : ''?>">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Schedule</label><br>
-                                                        <label><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="1" <?=($IS_SCHEDULE == 1)?'checked':''?>/>&nbsp;Yes</label>
-                                                        <label class="m-l-40"><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="0" <?=($IS_SCHEDULE == 0)?'checked':''?>/>&nbsp;No</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-12">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Description</label>
-                                                        <textarea class="form-control" rows="3" id="DESCRIPTION" name="DESCRIPTION"><?php echo $DESCRIPTION?></textarea>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <?php if(!empty($_GET['id'])) { ?>
-                                                <div class="row" style="margin-bottom: 15px;">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Active</label>
-                                                            <div class="col-md-12" style="padding: 8px;">
-                                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                    <div class="row">
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Service Name<span class="text-danger">*</span></label>
+                                                                <input type="text" id="SERVICE_NAME" name="SERVICE_NAME" class="form-control" placeholder="Enter Service Name" required value="<?php echo $SERVICE_NAME?>">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Service Code<span class="text-danger">*</span></label>
+                                                                <input type="text" id="SERVICE_CODE" name="SERVICE_CODE" class="form-control" placeholder="Enter Service Code" required value="<?php echo $SERVICE_CODE?>">
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            <?php } ?>
-                                            <div id="append_service_code">
-                                                <div class="row align-items-end">
-                                                    <div class="col-1" style="text-align: center;">
-                                                        <div class="form-group">
-                                                            <label>Service Code</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-1" style="text-align: center;">
-                                                        <div class="form-group">
-                                                            <label>Description</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-2" style="text-align: center;">
-                                                        <div class="form-group">
-                                                            <label>Scheduling Code</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-1" style="text-align: center;">
-                                                        <div class="form-group">
-                                                            <label>Is Group?</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-1" style="text-align: center;">
-                                                        <div class="form-group">
-                                                            <label>Is Sundry?</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-2" style="text-align: center;">
-                                                        <div class="form-group">
-                                                            <label>Capacity</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-1" style="text-align: center;">
-                                                        <div class="form-group">
-                                                            <label>Is Chargeable?</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-2" style="text-align: center;">
-                                                        <div class="form-group">
-                                                            <label>Price</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-1" style="text-align: center;">
-                                                        <div class="form-group">
-                                                            <label>Default</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
 
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <label class="form-label">Location</label>
+                                                            <div class="col-md-12 multiselect-box">
+                                                                <label for="PK_LOCATION"></label><select class="multi_sumo_select_location" name="PK_LOCATION[]" id="PK_LOCATION" multiple>
+                                                                    <?php
+                                                                    $selected_location = [];
+                                                                    if(!empty($_GET['id'])) {
+                                                                        $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_SERVICE_LOCATION` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
+                                                                        while (!$selected_location_row->EOF) {
+                                                                            $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                                                            $selected_location_row->MoveNext();
+                                                                        }
+                                                                    }
+                                                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                    while (!$row->EOF) { ?>
+                                                                        <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                                        <?php $row->MoveNext(); } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                                <?php
-                                                if(!empty($_GET['id'])) { $i = 0;
-                                                    $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = '$_GET[id]'");
-                                                    while (!$row->EOF) { ?>
-                                                        <input type="hidden" name="ALL_PK_SERVICE_CODE[]" value="<?=$row->fields['PK_SERVICE_CODE']?>">
-                                                        <div class="row align-items-end">
-                                                            <input type="hidden" name="PK_SERVICE_CODE[]" value="<?=$row->fields['PK_SERVICE_CODE']?>">
-                                                            <div class="col-1">
-                                                                <div class="form-group">
-                                                                    <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code" value="<?=$row->fields['SERVICE_CODE']?>">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Description</label>
+                                                                <textarea class="form-control" rows="3" id="DESCRIPTION" name="DESCRIPTION"><?php echo $DESCRIPTION?></textarea>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row service_price" style="display: <?=($IS_CHARGEABLE == 0) ? 'none' : ''?>">
+                                                        <div class="col-2">
+                                                            <div class="form-group">
+                                                                <label>Price</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12" >
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-text"><?=$currency?></span>
+                                                                        <input type="text" id="PRICE" name="PRICE" class="form-control" placeholder="Price" value="<?=$PRICE?>" required>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-1">
+                                                        </div>
+                                                    </div>
+
+                                                    <?php if(!empty($_GET['id'])) { ?>
+                                                        <div class="row" style="margin-bottom: 15px;">
+                                                            <div class="col-6">
                                                                 <div class="form-group">
-                                                                    <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description" value="<?=$row->fields['DESCRIPTION']?>">
+                                                                    <label class="col-md-12">Active</label>
+                                                                    <div class="col-md-12" style="padding: 8px;">
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-2" style="margin-bottom: 25px">
+                                                        </div>
+                                                    <?php } ?>
+                                                </div>
+                                                <div class="col-6">
+                                                    <h4 style="margin-left: 15%">Options</h4>
+                                                    <div id="append_service_code">
+                                                        <?php
+                                                        if(!empty($_GET['id'])) { ?>
+                                                        <div class="row">
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label>Service Class</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <select class="form-control PK_SERVICE_CLASS" name="PK_SERVICE_CLASS" onchange="selectServiceClass(this)">
+                                                                        <option value="">Select</option>
+                                                                        <?php
+                                                                        $row = $db->Execute("SELECT * FROM DOA_SERVICE_CLASS WHERE ACTIVE = 1");
+                                                                        while (!$row->EOF) { ?>
+                                                                            <option value="<?php echo $row->fields['PK_SERVICE_CLASS'];?>" <?=($PK_SERVICE_CLASS == $row->fields['PK_SERVICE_CLASS'])?'selected':''?>><?=$row->fields['SERVICE_CLASS']?></option>
+                                                                            <?php $row->MoveNext(); } ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row" id="schedule_div" style="display: <?=($PK_SERVICE_CLASS == 5 || $PK_SERVICE_CLASS == 1) ? 'none' : ''?>">
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label>Schedule</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="1" <?=($IS_SCHEDULE == 1)?'checked':''?>/>&nbsp;Yes</label>
+                                                                    <label class="m-l-40"><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="0" <?=($IS_SCHEDULE == 0)?'checked':''?>/>&nbsp;No</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label>Scheduling Code</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-4">
                                                                 <div>
-                                                                    <select class="multi_select" required id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]" multiple>
+                                                                    <label for="PK_SCHEDULING_CODE"></label><select class="multi_select" required id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]" multiple>
                                                                         <?php
                                                                         $selected_scheduling_code  = [];
                                                                         if (!empty($_GET['id'])) {
@@ -281,136 +275,182 @@ if(empty($_GET['id'])){
                                                                         $scheduling_code = $db_account->Execute("SELECT * FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
                                                                         while (!$scheduling_code->EOF) { ?>
                                                                             <option value="<?=$scheduling_code->fields['PK_SCHEDULING_CODE']?>" <?=in_array($scheduling_code->fields['PK_SCHEDULING_CODE'], $selected_scheduling_code)?"selected":""?>><?=$scheduling_code->fields['SCHEDULING_NAME'].' ('.$scheduling_code->fields['SCHEDULING_CODE'].')'?></option>
-                                                                        <?php $scheduling_code->MoveNext(); } ?>
+                                                                            <?php $scheduling_code->MoveNext(); } ?>
                                                                     </select>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-1">
-                                                                <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
-                                                                    <div class="col-md-12">
-                                                                        <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="1" <?=(($row->fields['IS_GROUP'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="IS_GROUP_<?=$i?>" class="IS_GROUP" value="0"  <?=(($row->fields['IS_GROUP'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1">
-                                                                <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
-                                                                    <div class="col-md-12">
-                                                                        <label><input type="radio" name="IS_SUNDRY_<?=$i?>" class="IS_SUNDRY" value="1" <?=(($row->fields['IS_SUNDRY'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="IS_SUNDRY_<?=$i?>" class="IS_SUNDRY" value="0"  <?=(($row->fields['IS_SUNDRY'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+                                                        </div>
+                                                        <div class="row">
                                                             <div class="col-2">
-                                                                <div class="form-group capacity_div" style="display: <?=(($row->fields['IS_GROUP'] == 1) ? '' : 'none')?>">
-                                                                    <div class="col-md-12" >
-                                                                        <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY" value="<?=$row->fields['CAPACITY']?>">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1" >
-                                                                <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
-                                                                    <div class="col-md-12">
-                                                                        <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="1" <?=(($row->fields['IS_CHARGEABLE'] == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="IS_CHARGEABLE_<?=$i?>" class="IS_CHARGEABLE" value="0" <?=(($row->fields['IS_CHARGEABLE'] == 0) ? 'checked' : '')?>/>&nbsp;No</label>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-2">
-                                                                <div class="form-group service_price" style="display: <?=(($row->fields['IS_CHARGEABLE'] == 0) ? 'none' : '')?>">
-                                                                    <div class="col-md-12" >
-                                                                        <div class="input-group">
-                                                                            <span class="input-group-text"><?=$currency?></span>
-                                                                            <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price" value="<?=$row->fields['PRICE']?>" required>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-1">
                                                                 <div class="form-group">
-                                                                    <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT_<?=$i?>" title="Default for Ad-hoc" class="form-check-inline" <?=($row->fields['IS_DEFAULT'] == 1)?'checked':''?>>
-                                                                    <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
+                                                                    <label>Is Group?</label>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                        <?php $row->MoveNext(); $i++;} ?>
-                                                <?php } else { $i = 1;?>
-                                                    <div class="row align-items-end">
-                                                        <input type="hidden" name="PK_SERVICE_CODE[]" value="0">
-                                                        <div class="col-1">
-                                                            <div class="form-group">
-                                                                <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-1">
-                                                            <div class="form-group">
-                                                                <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-2" style="margin-bottom: 25px">
-                                                            <div>
-                                                                <select class="multi_select" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]" multiple>
-                                                                    <?php
-                                                                    $scheduling_code = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
-                                                                    while (!$scheduling_code->EOF) { ?>
-                                                                        <option value="<?=$scheduling_code->fields['PK_SCHEDULING_CODE']?>"><?=$scheduling_code->fields['SCHEDULING_NAME'].' ('.$scheduling_code->fields['SCHEDULING_CODE'].')'?></option>
-                                                                    <?php $scheduling_code->MoveNext(); } ?>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-1">
-                                                            <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
-                                                                <div class="col-md-12">
-                                                                    <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                    <label><input type="radio" name="IS_GROUP_0" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-1">
-                                                            <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
-                                                                <div class="col-md-12">
-                                                                    <label><input type="radio" name="IS_SUNDRY_0" class="IS_SUNDRY" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                    <label><input type="radio" name="IS_SUNDRY_0" class="IS_SUNDRY" value="0" checked/>&nbsp;No</label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-2">
-                                                            <div class="form-group capacity_div" style="display: none;">
-                                                                <div class="col-md-12" >
-                                                                    <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-1">
-                                                            <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
-                                                                <div class="col-md-12" style="margin-bottom: 10px;">
-                                                                    <label><input type="radio" name="IS_CHARGEABLE_0" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                    <label><input type="radio" name="IS_CHARGEABLE_0" class="IS_CHARGEABLE" value="0"/>&nbsp;No</label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-2">
-                                                            <div class="form-group service_price">
-                                                                <div class="col-md-12" >
-                                                                    <div class="input-group">
-                                                                        <span class="input-group-text"><?=$currency?></span>
-                                                                        <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price">
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <label><input type="radio" name="IS_GROUP" class="IS_GROUP" value="1" <?=(($IS_GROUP == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="IS_GROUP" class="IS_GROUP" value="0"  <?=(($IS_GROUP == 0) ? 'checked' : '')?>/>&nbsp;No</label>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-1">
-                                                            <div class="form-group" style="float: right;">
-                                                                <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT_0" title="Default for Ad-hoc" class="form-check-inline">
-                                                                <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
+                                                        <div class="row capacity_div" style="display: <?=(($IS_GROUP == 1) ? '' : 'none')?>">
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label>Capacity</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12" >
+                                                                        <input type="number" class="form-control" name="CAPACITY" id="CAPACITY" value="<?=$CAPACITY?>">
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                        <div class="row">
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label>Is Sundry?</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <label><input type="radio" name="IS_SUNDRY" class="IS_SUNDRY" value="1" <?=(($IS_SUNDRY == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="IS_SUNDRY" class="IS_SUNDRY" value="0"  <?=(($IS_SUNDRY == 0) ? 'checked' : '')?>/>&nbsp;No</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label>Is Chargeable?</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3" >
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <label><input type="radio" name="IS_CHARGEABLE" class="IS_CHARGEABLE" value="1" <?=(($IS_CHARGEABLE == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="IS_CHARGEABLE" class="IS_CHARGEABLE" value="0" <?=(($IS_CHARGEABLE == 0) ? 'checked' : '')?>/>&nbsp;No</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php } else {?>
+                                                        <div class="row">
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label>Service Class</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <select class="form-control PK_SERVICE_CLASS" name="PK_SERVICE_CLASS" onchange="selectServiceClass(this)">
+                                                                        <option value="">Select</option>
+                                                                        <?php
+                                                                        $row = $db->Execute("SELECT * FROM DOA_SERVICE_CLASS WHERE ACTIVE = 1");
+                                                                        while (!$row->EOF) { ?>
+                                                                            <option value="<?php echo $row->fields['PK_SERVICE_CLASS'];?>" <?=($PK_SERVICE_CLASS == $row->fields['PK_SERVICE_CLASS'])?'selected':''?>><?=$row->fields['SERVICE_CLASS']?></option>
+                                                                            <?php $row->MoveNext(); } ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-2" id="schedule_div">
+                                                                <div class="form-group">
+                                                                    <label>Schedule</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3" id="schedule_div" style="display: <?=($PK_SERVICE_CLASS == 5) ? 'none' : ''?>">
+                                                                <div class="form-group">
+                                                                    <label><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="1" <?=($IS_SCHEDULE == 1)?'checked':''?>/>&nbsp;Yes</label>
+                                                                    <label class="m-l-40"><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="0" <?=($IS_SCHEDULE == 0)?'checked':''?>/>&nbsp;No</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label>Scheduling Code</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-4">
+                                                                <div class="col-md-12 multiselect-box">
+                                                                    <select class="multi_select" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]" multiple>
+                                                                        <?php
+                                                                        $scheduling_code = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
+                                                                        while (!$scheduling_code->EOF) { ?>
+                                                                            <option value="<?=$scheduling_code->fields['PK_SCHEDULING_CODE']?>" selected><?=$scheduling_code->fields['SCHEDULING_NAME'].' ('.$scheduling_code->fields['SCHEDULING_CODE'].')'?></option>
+                                                                            <?php $scheduling_code->MoveNext(); } ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label>Is Group?</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <label><input type="radio" name="IS_GROUP" class="IS_GROUP" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="IS_GROUP" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row capacity_div" style="display: <?=(($IS_GROUP == 1) ? '' : 'none')?>">
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label>Capacity</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12" >
+                                                                        <input type="number" class="form-control" name="CAPACITY" id="CAPACITY">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label>Is Sundry?</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <label><input type="radio" name="IS_SUNDRY" class="IS_SUNDRY" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="IS_SUNDRY" class="IS_SUNDRY" value="0" checked/>&nbsp;No</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label>Is Chargeable?</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <label><input type="radio" name="IS_CHARGEABLE" class="IS_CHARGEABLE" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="IS_CHARGEABLE" class="IS_CHARGEABLE" value="0" checked/>&nbsp;No</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <?php } ?>
                                                     </div>
-                                                <?php } ?>
-                                            </div>
-                                            <div class="row">
-                                                <div class="form-group" style="margin-left: 92%">
-                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServiceCode();">Add More</a>
                                                 </div>
                                             </div>
                                             <div class="form-group">
@@ -518,105 +558,21 @@ if(empty($_GET['id'])){
 
     $(document).on('change', '.IS_CHARGEABLE', function () {
         if ($(this).val() == 1){
-            $(this).closest('.row').find('.service_price').slideDown();
+            $('.service_price').slideDown();
             $('#PRICE').removeAttr('required');
         }else {
-            $(this).closest('.row').find('.service_price').slideUp();
+            $('.service_price').slideUp();
             $("#PRICE").attr("required","required");
         }
     });
 
     $(document).on('change', '.IS_GROUP', function () {
         if ($(this).val() == 1){
-            $(this).closest('.row').find('.capacity_div').slideDown();
+            $('.capacity_div').slideDown();
         }else {
-            $(this).closest('.row').find('.capacity_div').slideUp();
+            $('.capacity_div').slideUp();
         }
     });
-
-    let counter = parseInt(<?=$i?>);
-    function addMoreServiceCode() {
-        let PK_SERVICE_CLASS = ($('.PK_SERVICE_CLASS').val())?parseInt($('.PK_SERVICE_CLASS').val()):1;
-        $('#append_service_code').append(`<div class="row align-items-end">
-                                            <input type="hidden" name="PK_SERVICE_CODE[]" value="0">
-                                            <div class="col-1">
-                                                <div class="form-group">
-                                                    <input type="text" name="SERVICE_CODE[]" class="form-control" placeholder="Service Code">
-                                                </div>
-                                            </div>
-                                            <div class="col-1">
-                                                <div class="form-group">
-                                                    <input type="text" name="SERVICE_CODE_DESCRIPTION[]" class="form-control" placeholder="Description">
-                                                </div>
-                                            </div>
-                                            <div class="col-2" style="margin-bottom: 25px">
-                                                            <div>
-                                                                <select class="multi_select" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]" multiple>
-                                                                    <?php
-                                                                    $scheduling_code = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE ACTIVE = 1");
-                                                                    while (!$scheduling_code->EOF) { ?>
-                                                                        <option value="<?=$scheduling_code->fields['PK_SCHEDULING_CODE']?>"><?=$scheduling_code->fields['SCHEDULING_NAME'].' ('.$scheduling_code->fields['SCHEDULING_CODE'].')'?></option>
-                                                                    <?php $scheduling_code->MoveNext(); } ?>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                            <div class="col-1">
-                                                <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
-                                                    <div class="col-md-12">
-                                                        <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <label><input type="radio" name="IS_GROUP_${counter}" class="IS_GROUP" value="0" checked/>&nbsp;No</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                             <div class="col-1 sundry_div">
-                                                <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
-                                                    <div class="col-md-12">
-                                                        <label><input type="radio" name="IS_SUNDRY_${counter}" class="IS_SUNDRY" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <label><input type="radio" name="IS_SUNDRY_${counter}" class="IS_SUNDRY" value="0" checked/>&nbsp;No</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-2">
-                                                <div class="form-group capacity_div" style="display: none;">
-                                                    <div class="col-md-12" >
-                                                        <input type="number" class="form-control" name="CAPACITY[]" id="CAPACITY">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-1">
-                                                <div class="form-group" style="margin-bottom: 35px; margin-left: 12px;">
-                                                    <div class="col-md-12" style="margin-bottom: 10px;">
-                                                        <label><input type="radio" name="IS_CHARGEABLE_${counter}" class="IS_CHARGEABLE" value="1" checked/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <label><input type="radio" name="IS_CHARGEABLE_${counter}" class="IS_CHARGEABLE" value="0"/>&nbsp;No</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-2">
-                                                <div class="form-group service_price">
-                                                    <div class="col-md-12" >
-                                                        <div class="input-group">
-                                                            <span class="input-group-text"><?=$currency?></span>
-                                                            <input type="text" id="PRICE" name="PRICE[]" class="form-control" placeholder="Price">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-1">
-                                                <div class="form-group" style="float: right;">
-                                                    <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT_0" title="Default for Ad-hoc" class="form-check-inline">
-                                                    <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeServiceCode(this);"><i class="ti-trash"></i></a>
-                                                </div>
-                                            </div>
-                                        </div>`);
-        counter++;
-        $('.multi_select').SumoSelect({search: true, placeholder: 'Select Scheduling Code', searchText: 'Search...', selectAll: true});
-    }
-
-
-    function removeServiceCode(param) {
-        $(param).closest('.row').remove();
-        counter--;
-    }
 
     function selectServiceClass(param) {
         let PK_SERVICE_CLASS = parseInt($(param).val());
