@@ -333,6 +333,13 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     }
 
     for ($i = 0; $i < count($ENROLLMENT_LEDGER_PARENT_ARRAY); $i++) {
+        $ledger_data = $db_account->Execute("SELECT `BILLED_AMOUNT`, `DUE_DATE` FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_LEDGER` = ".$ENROLLMENT_LEDGER_PARENT_ARRAY[$i]);
+        if (count($ENROLLMENT_LEDGER_PARENT_ARRAY) > 1) {
+            $PAID_AMOUNT = $ledger_data->fields['BILLED_AMOUNT'];
+        } else {
+            $PAID_AMOUNT = $AMOUNT_TO_PAY;
+        }
+
         if ($AMOUNT_TO_PAY > 0) {
             $LEDGER_DATA_PAYMENT['TRANSACTION_TYPE'] = 'Payment';
             $LEDGER_DATA_PAYMENT['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT_ARRAY[$i];
@@ -340,7 +347,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $LEDGER_DATA_PAYMENT['PK_ENROLLMENT_BILLING'] = $enrollment_billing_data->fields['PK_ENROLLMENT_BILLING'];
             $LEDGER_DATA_PAYMENT['DUE_DATE'] = date('Y-m-d');
             $LEDGER_DATA_PAYMENT['BILLED_AMOUNT'] = 0.00;
-            $LEDGER_DATA_PAYMENT['PAID_AMOUNT'] = $AMOUNT_TO_PAY;
+            $LEDGER_DATA_PAYMENT['PAID_AMOUNT'] = $PAID_AMOUNT;
             $LEDGER_DATA_PAYMENT['BALANCE'] = 0.00;
             $LEDGER_DATA_PAYMENT['IS_PAID'] = 1;
             $LEDGER_DATA_PAYMENT['STATUS'] = 'A';
@@ -350,7 +357,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
             $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_billing_data->fields['PK_ENROLLMENT_BILLING'];
             $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-            $PAYMENT_DATA['AMOUNT'] = $AMOUNT_TO_PAY;
+            $PAYMENT_DATA['AMOUNT'] = $PAID_AMOUNT;
             $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER1;
             $TYPE = 'Payment';
             if ($_POST['PK_PAYMENT_TYPE'] == 2) {
@@ -402,7 +409,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
         }
 
-        if (((count($ENROLLMENT_LEDGER_PARENT_ARRAY) - 1) == $i) && ($REMAINING_AMOUNT > 0)) {
+        if ($REMAINING_AMOUNT > 0) {
             /*$LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = 'Billing';
             $LEDGER_DATA_BILLING['ENROLLMENT_LEDGER_PARENT'] = 0;
             $LEDGER_DATA_BILLING['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
@@ -417,14 +424,12 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
             $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = $REMAINING_AMOUNT;
             $LEDGER_UPDATE_DATA['IS_PAID'] = 0;
-            $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT_ARRAY[$i]'");
-        } elseif (((count($ENROLLMENT_LEDGER_PARENT_ARRAY) - 1) == $i)) {
+        } else {
             $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = 0;
             $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
-            $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT_ARRAY[$i]'");
         }
+        $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT_ARRAY[$i]'");
     }
 
     markEnrollmentComplete($_POST['PK_ENROLLMENT_MASTER']);

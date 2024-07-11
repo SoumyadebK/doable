@@ -385,8 +385,9 @@ if ($PK_USER_MASTER > 0) {
                         <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
                         <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
                         <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>-->
-                        <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
+
                         <?php if(!empty($_GET['id'])) { ?>
+                            <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
                             <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
                             <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" ><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
                             <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
@@ -1414,17 +1415,8 @@ if ($PK_USER_MASTER > 0) {
                                             </div>
 
                                             <div class="tab-pane" id="document" role="tabpanel">
-                                                <div class="card-body" style="margin-top: 10PX">
-                                                <a style="font-weight: bold">Client Enrollment Agreements :-</a><br>
-                                                <?php
-                                                $MASTER_ID = !empty($_GET['master_id']) ? $_GET['master_id'] : '';
-                                                $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = ".$MASTER_ID);
-                                                while (!$res->EOF) {?>
-                                                    <div style="margin-top: 5px">
-                                                    <?=$res->fields['ENROLLMENT_ID']?> - <a href="../uploads/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
-                                                    </div>
-                                                    <?php $res->MoveNext();
-                                                } ?>
+                                                <div class="card-body m-t-10" id="agreement_document">
+
                                                 </div>
                                                 <form id="document_form">
                                                     <input type="hidden" name="FUNCTION_NAME" value="saveDocumentData">
@@ -2625,13 +2617,9 @@ if ($PK_USER_MASTER > 0) {
                 type: 'POST',
                 data: form_data,
                 success:function (data) {
-                    if (PK_USER == 0) {
-                        $('#document_tab_link')[0].click();
-                    }else{
-                        let PK_USER = $('.PK_USER').val();
-                        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                        window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
-                    }
+                    let PK_USER = $('.PK_USER').val();
+                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                    window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
                 }
             });
         });
@@ -2644,13 +2632,9 @@ if ($PK_USER_MASTER > 0) {
                 type: 'POST',
                 data: form_data,
                 success:function (data) {
-                    if (PK_USER == 0) {
-                        $('#document_tab_link')[0].click();
-                    }else{
-                        let PK_USER = $('.PK_USER').val();
-                        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                        window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
-                    }
+                    let PK_USER = $('.PK_USER').val();
+                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                    window.location.href='customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER;
                 }
             });
         });
@@ -2715,6 +2699,21 @@ if ($PK_USER_MASTER > 0) {
                 cache: false,
                 success: function (result) {
                     $('#enrollment_list').html(result);
+                }
+            });
+            window.scrollTo(0,0);
+        }
+
+        function showAgreementDocument() {
+            let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+            $.ajax({
+                url: "pagination/agreement_document.php",
+                type: "GET",
+                data: {master_id:PK_USER_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#agreement_document').html(result);
                 }
             });
             window.scrollTo(0,0);

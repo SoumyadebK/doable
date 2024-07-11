@@ -330,7 +330,7 @@ z-index: 500;
         <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>
-        <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
+        <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" onclick="showAgreementDocument()" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" ><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment_view" onclick="showAppointmentListView(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
@@ -2746,6 +2746,21 @@ z-index: 500;
         window.scrollTo(0,0);
     }
 
+    function showAgreementDocument() {
+        let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "pagination/agreement_document.php",
+            type: "GET",
+            data: {master_id:PK_USER_MASTER},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#agreement_document').html(result);
+            }
+        });
+        window.scrollTo(0,0);
+    }
+
     function showAppointmentListView(page) {
         let PK_USER_MASTER=$('.PK_USER_MASTER').val();
         $.ajax({
@@ -2797,8 +2812,6 @@ z-index: 500;
         window.location.href = "customer.php?id="+id+"&master_id="+master_id;
 
     }
-
-
 </script>
 
 
