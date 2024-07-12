@@ -38,7 +38,7 @@ if (!empty($_POST)) {
     }
 }
 
-if (isset($_POST['PK_SERVICE_MASTER'])) {
+/*if (isset($_POST['PK_SERVICE_MASTER'])) {
     $db_account->Execute("DELETE FROM `DOA_SCHEDULING_SERVICE` WHERE `PK_SCHEDULING_CODE` = ".$PK_SCHEDULING_CODE);
     $PK_SERVICE_MASTER = $_POST['PK_SERVICE_MASTER'];
     for($i = 0; $i < count($PK_SERVICE_MASTER); $i++){
@@ -46,7 +46,7 @@ if (isset($_POST['PK_SERVICE_MASTER'])) {
         $SCHEDULING_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER[$i];
         db_perform_account('DOA_SCHEDULING_SERVICE', $SCHEDULING_SERVICE_DATA, 'insert');
     }
-}
+}*/
 
 if (empty($_GET['id'])) {
     $SCHEDULING_CODE      = '';
@@ -156,28 +156,28 @@ if (empty($_GET['id'])) {
                                     </select>
                                 </div>-->
 
-                                <div class="col-6">
+                                <!--<div class="col-6">
                                     <label class="col-md-12">Services</label>
                                     <div class="col-md-12 multiselect-box" style="width: 100%;">
                                         <select class="multi_sumo_select" name="PK_SERVICE_MASTER[]" id="PK_SERVICE_MASTER" multiple required>
                                             <?php
-                                            $selected_services = [];
+/*                                            $selected_services = [];
                                             if(!empty($_GET['id'])) {
                                                 $selected_service_row = $db_account->Execute("SELECT `PK_SERVICE_MASTER` FROM `DOA_SCHEDULING_SERVICE` WHERE `PK_SCHEDULING_CODE` = '$_GET[id]'");
                                                 while (!$selected_service_row->EOF) {
                                                     $selected_services[] = $selected_service_row->fields['PK_SERVICE_MASTER'];
                                                     $selected_service_row->MoveNext();
                                                 }
-                                            } ?>
-                                            <option value="0" <?=in_array(0, $selected_services)?"selected":""?>>To-Dos</option>
+                                            } */?>
+                                            <option value="0" <?php /*=in_array(0, $selected_services)?"selected":""*/?>>To-Dos</option>
                                             <?php
-                                            $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE ACTIVE = 1  AND IS_DELETED=0");
-                                            while (!$row->EOF) { ?>
-                                                <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=in_array($row->fields['PK_SERVICE_MASTER'], $selected_services)?"selected":""?>><?=$row->fields['SERVICE_NAME']?></option>
-                                            <?php $row->MoveNext(); } ?>
+/*                                            $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE ACTIVE = 1  AND IS_DELETED=0");
+                                            while (!$row->EOF) { */?>
+                                                <option value="<?php /*echo $row->fields['PK_SERVICE_MASTER'];*/?>" <?php /*=in_array($row->fields['PK_SERVICE_MASTER'], $selected_services)?"selected":""*/?>><?php /*=$row->fields['SERVICE_NAME']*/?></option>
+                                            <?php /*$row->MoveNext(); } */?>
                                         </select>
                                     </div>
-                                </div>
+                                </div>-->
                                 <!--<div class="form-group">
                                     <label class="" for="example-text">To Dos</label>
                                     <input type="checkbox" id="TO_DOS" name="TO_DOS" class="form-check-inline" style="margin-left: 10px;" <?php /*=($TO_DOS == 1)?'checked':''*/?>

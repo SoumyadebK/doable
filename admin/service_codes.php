@@ -154,6 +154,59 @@ if(empty($_GET['id'])){
                                                         </div>
                                                     </div>
 
+                                                    <?php
+                                                    if(!empty($_GET['id'])) { ?>
+                                                    <div class="row">
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label>Is Chargeable?</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3" >
+                                                            <div class="form-group">
+                                                                <div class="col-md-12">
+                                                                    <label><input type="radio" name="IS_CHARGEABLE" class="IS_CHARGEABLE" value="1" <?=(($IS_CHARGEABLE == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="IS_CHARGEABLE" class="IS_CHARGEABLE" value="0" <?=(($IS_CHARGEABLE == 0) ? 'checked' : '')?>/>&nbsp;No</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <?php } else { ?>
+                                                    <div class="row">
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label>Is Chargeable?</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12">
+                                                                    <label><input type="radio" name="IS_CHARGEABLE" class="IS_CHARGEABLE" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="IS_CHARGEABLE" class="IS_CHARGEABLE" value="0" checked/>&nbsp;No</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <?php } ?>
+
+                                                    <div class="row service_price" style="display: <?=($IS_CHARGEABLE == 0) ? 'none' : ''?>">
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label>Price</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12" >
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-text"><?=$currency?></span>
+                                                                        <input type="text" id="PRICE" name="PRICE" class="form-control" placeholder="Price" value="<?=$PRICE?>" required>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
                                                     <div class="row">
                                                         <div class="col-6">
                                                             <label class="form-label">Location</label>
@@ -185,23 +238,6 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="row service_price" style="display: <?=($IS_CHARGEABLE == 0) ? 'none' : ''?>">
-                                                        <div class="col-2">
-                                                            <div class="form-group">
-                                                                <label>Price</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <div class="col-md-12" >
-                                                                    <div class="input-group">
-                                                                        <span class="input-group-text"><?=$currency?></span>
-                                                                        <input type="text" id="PRICE" name="PRICE" class="form-control" placeholder="Price" value="<?=$PRICE?>" required>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
 
                                                     <?php if(!empty($_GET['id'])) { ?>
                                                         <div class="row" style="margin-bottom: 15px;">
@@ -223,7 +259,7 @@ if(empty($_GET['id'])){
                                                         <?php
                                                         if(!empty($_GET['id'])) { ?>
                                                         <div class="row">
-                                                            <div class="col-2">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Service Class</label>
                                                                 </div>
@@ -242,7 +278,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="row" id="schedule_div" style="display: <?=($PK_SERVICE_CLASS == 5 || $PK_SERVICE_CLASS == 1) ? 'none' : ''?>">
-                                                            <div class="col-2">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Schedule</label>
                                                                 </div>
@@ -255,12 +291,12 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="row">
-                                                            <div class="col-2">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Scheduling Code</label>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-4">
+                                                            <div class="col-5">
                                                                 <div>
                                                                     <label for="PK_SCHEDULING_CODE"></label><select class="multi_select" required id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]" multiple>
                                                                         <?php
@@ -281,7 +317,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="row">
-                                                            <div class="col-2">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Is Group?</label>
                                                                 </div>
@@ -296,7 +332,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="row capacity_div" style="display: <?=(($IS_GROUP == 1) ? '' : 'none')?>">
-                                                            <div class="col-2">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Capacity</label>
                                                                 </div>
@@ -310,7 +346,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="row">
-                                                            <div class="col-2">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Is Sundry?</label>
                                                                 </div>
@@ -324,24 +360,9 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="row">
-                                                            <div class="col-2">
-                                                                <div class="form-group">
-                                                                    <label>Is Chargeable?</label>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-3" >
-                                                                <div class="form-group">
-                                                                    <div class="col-md-12">
-                                                                        <label><input type="radio" name="IS_CHARGEABLE" class="IS_CHARGEABLE" value="1" <?=(($IS_CHARGEABLE == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="IS_CHARGEABLE" class="IS_CHARGEABLE" value="0" <?=(($IS_CHARGEABLE == 0) ? 'checked' : '')?>/>&nbsp;No</label>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
                                                     <?php } else {?>
                                                         <div class="row">
-                                                            <div class="col-2">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Service Class</label>
                                                                 </div>
@@ -359,13 +380,13 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="row">
-                                                            <div class="col-2" id="schedule_div">
+                                                        <div class="row" id="schedule_div" style="display: <?=($PK_SERVICE_CLASS == 5 || $PK_SERVICE_CLASS == 1) ? 'none' : ''?>">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Schedule</label>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-3" id="schedule_div" style="display: <?=($PK_SERVICE_CLASS == 5) ? 'none' : ''?>">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="1" <?=($IS_SCHEDULE == 1)?'checked':''?>/>&nbsp;Yes</label>
                                                                     <label class="m-l-40"><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="0" <?=($IS_SCHEDULE == 0)?'checked':''?>/>&nbsp;No</label>
@@ -373,7 +394,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="row">
-                                                            <div class="col-2">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Scheduling Code</label>
                                                                 </div>
@@ -391,7 +412,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="row">
-                                                            <div class="col-2">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Is Group?</label>
                                                                 </div>
@@ -406,7 +427,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="row capacity_div" style="display: <?=(($IS_GROUP == 1) ? '' : 'none')?>">
-                                                            <div class="col-2">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Capacity</label>
                                                                 </div>
@@ -420,7 +441,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
                                                         <div class="row">
-                                                            <div class="col-2">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Is Sundry?</label>
                                                                 </div>
@@ -430,21 +451,6 @@ if(empty($_GET['id'])){
                                                                     <div class="col-md-12">
                                                                         <label><input type="radio" name="IS_SUNDRY" class="IS_SUNDRY" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
                                                                         <label><input type="radio" name="IS_SUNDRY" class="IS_SUNDRY" value="0" checked/>&nbsp;No</label>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="row">
-                                                            <div class="col-2">
-                                                                <div class="form-group">
-                                                                    <label>Is Chargeable?</label>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <div class="col-md-12">
-                                                                        <label><input type="radio" name="IS_CHARGEABLE" class="IS_CHARGEABLE" value="1"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="IS_CHARGEABLE" class="IS_CHARGEABLE" value="0" checked/>&nbsp;No</label>
                                                                     </div>
                                                                 </div>
                                                             </div>
