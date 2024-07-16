@@ -66,6 +66,7 @@ $COMMENT = $res->fields['COMMENT'];
 $INTERNAL_COMMENT = $res->fields['INTERNAL_COMMENT'];
 $IMAGE = $res->fields['IMAGE'];
 $VIDEO = $res->fields['VIDEO'];
+$IS_CHARGED = $res->fields['IS_CHARGED'];
 
 $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
 $CHANGED_BY = '';
@@ -341,8 +342,9 @@ z-index: 500;
 <!-- Tab panes -->
 <div class="tab-content tabcontent-border">
     <div class="tab-pane active" id="edit_appointment" role="tabpanel">
-        <form class="form-material form-horizontal" id="appointment_form" action="" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="FUNCTION_NAME" value="saveAppointmentData">
+        <form class="form-material form-horizontal" id="appointment_form" action="includes/save_appointment_details.php" method="post" enctype="multipart/form-data">
+<!--            <input type="hidden" name="FUNCTION_NAME" value="saveAppointmentData">-->
+            <input type="hidden" name="REDIRECT_URL" value="../all_schedules.php">
             <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=$PK_APPOINTMENT_MASTER?>">
             <div style="padding-top: 10px;">
                     <div class="row">
@@ -514,11 +516,12 @@ z-index: 500;
                 </div>-->
 
                 <div class="row m-t-25">
-                    <div class="col-8">
+                    <input type="hidden" name="PK_APPOINTMENT_STATUS_OLD" value="<?=$PK_APPOINTMENT_STATUS?>">
+                    <div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Status : <?php if($PK_APPOINTMENT_STATUS!=2) {?><span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span><?php }?>
                                 <span id="cancel_change_status" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeStatus()">Cancel</a></span></label><br>
-                            <select class="form-control" name="PK_APPOINTMENT_STATUS" id="PK_APPOINTMENT_STATUS" style="display: none;" onchange="changeAppointmentStatus(this)">
+                            <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" style="display: none;" onchange="changeAppointmentStatus(this)">
                                 <option value="">Select Status</option>
                                 <?php
                                 $selected_status = '';
@@ -530,11 +533,16 @@ z-index: 500;
                             <p id="appointment_status"><?=$selected_status?></p>
                         </div>
                     </div>
-                    <!-- <div class="col-3" style="width: 18%;">
-                        <div class="form-group m-t-30">
-                            <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="cancelAppointment()">Cancel Appointments</a>
+                    <div class="col-6">
+                        <input type="hidden" name="IS_CHARGED_OLD" value="<?=$IS_CHARGED?>">
+                        <div class="form-group">
+                            <label class="form-label">Payment Status</label>
+                            <select class="form-control" name="IS_CHARGED" id="IS_CHARGED">
+                                <option value="1" <?=($IS_CHARGED==1)?'selected':''?>>Charge</option>
+                                <option value="0" <?=($IS_CHARGED==0)?'selected':''?>>No charge</option>
+                            </select>
                         </div>
-                    </div> -->
+                    </div>
                 </div>
 
                 <div class="row" id="no_show_div" style="display: <?=($PK_APPOINTMENT_STATUS==4)?'':'none'?>;">

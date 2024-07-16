@@ -6,6 +6,7 @@ global $master_database;
 global $results_per_page;
 
 $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
+$PK_USER = !empty($_GET['pk_user']) ? $_GET['pk_user'] : 0;
 $type = !empty($_GET['type']) ? $_GET['type'] : 0;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
@@ -90,7 +91,7 @@ while (!$row->EOF) {
         $serviceMasterData->MoveNext();
     } ?>
     <div class="border" style="margin: 10px;">
-        <div class="row" onclick="showEnrollmentDetails(this, <?=$PK_USER_MASTER?>, <?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>', '<?=$type?>')" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
+        <div class="row" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>', '<?=$type?>')" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
             <div class="col-2" style="text-align: center; margin-top: 1.5%;">
                 <p><?=$row->fields['LOCATION_NAME']?></p>
                 <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>"><?=$enrollment_name.$row->fields['ENROLLMENT_ID']?></a>
@@ -184,11 +185,11 @@ while (!$row->EOF) {
     } ?>
 
 <script>
-    function showEnrollmentDetails(param, PK_USER_MASTER, PK_ENROLLMENT_MASTER, ENROLLMENT_ID, type) {
+    function showEnrollmentDetails(param, PK_USER, PK_USER_MASTER, PK_ENROLLMENT_MASTER, ENROLLMENT_ID, type) {
         $.ajax({
             url: "pagination/get_enrollment_details.php",
             type: "GET",
-            data: {PK_USER_MASTER:PK_USER_MASTER, PK_ENROLLMENT_MASTER:PK_ENROLLMENT_MASTER, ENROLLMENT_ID:ENROLLMENT_ID, type:type},
+            data: {PK_USER:PK_USER, PK_USER_MASTER:PK_USER_MASTER, PK_ENROLLMENT_MASTER:PK_ENROLLMENT_MASTER, ENROLLMENT_ID:ENROLLMENT_ID, type:type},
             async: false,
             cache: false,
             success: function (result) {
@@ -282,5 +283,20 @@ while (!$row->EOF) {
         for (let i=0; i<RECEIPT_NUMBER_ARRAY.length; i++) {
             window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
         }
+    }
+
+    function editThisAppointment(PK_APPOINTMENT_MASTER, PK_USER, PK_USER_MASTER) {
+        $.ajax({
+            url: "includes/edit_appointment_details.php",
+            type: 'GET',
+            data: {
+                PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
+                PK_USER : PK_USER,
+                PK_USER_MASTER : PK_USER_MASTER
+            },
+            success: function (data) {
+                $('#edit_appointment_modal').html(data).modal('show');
+            }
+        });
     }
 </script>

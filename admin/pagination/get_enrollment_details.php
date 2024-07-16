@@ -6,6 +6,7 @@ global $master_database;
 global $results_per_page;
 global $service_provider_title;
 
+$PK_USER = !empty($_GET['PK_USER']) ? $_GET['PK_USER'] : 0;
 $PK_USER_MASTER = !empty($_GET['PK_USER_MASTER']) ? $_GET['PK_USER_MASTER'] : 0;
 $PK_ENROLLMENT_MASTER = !empty($_GET['PK_ENROLLMENT_MASTER']) ? $_GET['PK_ENROLLMENT_MASTER'] : 0;
 $ENROLLMENT_ID = !empty($_GET['ENROLLMENT_ID']) ? $_GET['ENROLLMENT_ID'] : 0;
@@ -33,7 +34,9 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_SERVICE_CODE.PK_SERVICE_CODE,
                             DOA_SERVICE_CODE.SERVICE_CODE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_APPOINTMENT_MASTER.IS_CHARGED,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
+                            DOA_APPOINTMENT_STATUS.COLOR_CODE AS STATUS_COLOR,
                             DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME
                         FROM
@@ -235,7 +238,10 @@ while (!$serviceCodeData->EOF) {
                 $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] = $per_session_price->fields['TOTAL_AMOUNT_PAID'];
             } ?>
             <tr>
-                <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_NAME']?></td>
+                <td style="text-align: left;">
+                    <a href="javascript:" title="Edit Appointment" onclick="editThisAppointment(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>, <?=$PK_USER?>, <?=$PK_USER_MASTER?>);"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;
+                    <?=$appointment_data->fields['SERVICE_NAME']?>
+                </td>
                 <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled') {?>
                     <td></td>
                 <?php } else {?>
@@ -244,7 +250,12 @@ while (!$serviceCodeData->EOF) {
                 <td style="text-align: left;"><?=$appointment_data->fields['SERVICE_CODE']?></td>
                 <td style="text-align: center;"><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
                 <td style="text-align: center;"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-                <td style="text-align: left;"><?=$appointment_data->fields['APPOINTMENT_STATUS']?></td>
+                <td style="text-align: left; color: <?=$appointment_data->fields['STATUS_COLOR']?>">
+                    <?=$appointment_data->fields['APPOINTMENT_STATUS']?>&nbsp;
+                    <?php if ($appointment_data->fields['IS_CHARGED'] == 1) { ?>
+                        <i class="ti-money"></i>
+                    <?php } ?>
+                </td>
                 <td style="text-align: left;"><?=$appointment_data->fields['NAME']?></td>
                 <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled') {?>
                     <td></td>
