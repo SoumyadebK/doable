@@ -2040,6 +2040,11 @@ if ($PK_USER_MASTER > 0) {
 
 </div>
 
+<!--Add Credit Card Model-->
+<div class="modal fade" id="edit_appointment_modal" tabindex="-1" aria-hidden="true">
+
+</div>
+
     <style>
         .progress-bar {
             border-radius: 5px;
