@@ -91,7 +91,7 @@ while (!$row->EOF) {
         $serviceMasterData->MoveNext();
     } ?>
     <div class="border" style="margin: 10px;">
-        <div class="row" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>', '<?=$type?>')" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
+        <div class="row enrollment_div" style="font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
             <div class="col-2" style="text-align: center; margin-top: 1.5%;">
                 <p><?=$row->fields['LOCATION_NAME']?></p>
                 <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>"><?=$enrollment_name.$row->fields['ENROLLMENT_ID']?></a>
@@ -100,9 +100,9 @@ while (!$row->EOF) {
                 <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
                     <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
                 <?php } ?>
-                <button class="btn btn-danger m-l-10 text-white" style="background-color: #f44336; margin-top: 20px">View Payment Schedule</button>
+                <button class="btn btn-danger m-l-10 text-white" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'billing_details')" style="background-color: #f44336; margin-top: 20px">View Payment Schedule</button>
             </div>
-            <div class="col-8">
+            <div class="col-8" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'appointment_details')" style="cursor: pointer;">
                 <table id="myTable" class="table <?php
                 $details = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                 $paid_count = $details->RecordCount() > 0 ? $details->fields['PAID'] : 0;
@@ -176,7 +176,7 @@ while (!$row->EOF) {
             </div>
         </div>
 
-        <div id="enrollment_details" style="display: none;">
+        <div id="enrollment_details">
 
         </div>
     </div>
@@ -185,7 +185,7 @@ while (!$row->EOF) {
     } ?>
 
 <script>
-    function showEnrollmentDetails(param, PK_USER, PK_USER_MASTER, PK_ENROLLMENT_MASTER, ENROLLMENT_ID, type) {
+    function showEnrollmentDetails(param, PK_USER, PK_USER_MASTER, PK_ENROLLMENT_MASTER, ENROLLMENT_ID, type, details) {
         $.ajax({
             url: "pagination/get_enrollment_details.php",
             type: "GET",
@@ -193,7 +193,12 @@ while (!$row->EOF) {
             async: false,
             cache: false,
             success: function (result) {
-                $(param).next('#enrollment_details').html(result).slideToggle();
+                $(param).closest('.enrollment_div').next('#enrollment_details').html(result);
+                if (details === 'appointment_details') {
+                    $(param).closest('.enrollment_div').next('#enrollment_details').find('.appointment_details').slideToggle();
+                } else {
+                    $(param).closest('.enrollment_div').next('#enrollment_details').find('.billing_details').slideToggle();
+                }
             }
         });
     }

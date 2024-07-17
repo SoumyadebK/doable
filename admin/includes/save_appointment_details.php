@@ -68,6 +68,8 @@ if ($_POST['IS_CHARGED_OLD'] != $_POST['IS_CHARGED']) {
     if ($_POST['IS_CHARGED'] == 1) {
         updateSessionCompletedCount($PK_APPOINTMENT_MASTER);
         $COUNT_UPDATED = 1;
+    } elseif ($_POST['IS_CHARGED'] == 0) {
+        updateSessionNotChargedCount($PK_APPOINTMENT_MASTER);
     }
 } elseif ($_POST['IS_CHARGED'] == 1) {
     $COUNT_UPDATED = 1;
@@ -82,7 +84,7 @@ if ($_POST['PK_APPOINTMENT_STATUS_OLD'] != $_POST['PK_APPOINTMENT_STATUS_NEW']) 
 
     if ($PK_APPOINTMENT_STATUS == 2 && $COUNT_UPDATED == 0) {
         updateSessionCompletedCount($PK_APPOINTMENT_MASTER);
-    } elseif ($PK_APPOINTMENT_STATUS == 6) {
+    } elseif ($PK_APPOINTMENT_STATUS == 6 && $_POST['IS_CHARGED'] == 0) {
         updateSessionCreatedCountByStatus($PK_APPOINTMENT_MASTER);
     }
 }
