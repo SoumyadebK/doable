@@ -16,6 +16,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
+$months = '';
 if(empty($_GET['id'])){
     $PACKAGE_NAME = '';
     $SORT_ORDER = '';
@@ -30,7 +31,12 @@ if(empty($_GET['id'])){
 
     $PACKAGE_NAME = $res->fields['PACKAGE_NAME'];
     $SORT_ORDER = $res->fields['SORT_ORDER'];
+    $EXPIRY_DATE = new DateTime($res->fields['EXPIRY_DATE']);
     $ACTIVE = $res->fields['ACTIVE'];
+    $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
+    $interval = $EXPIRY_DATE->diff($CREATED_ON);
+    $years = $interval->y;
+    $months = $interval->m + ($years * 12);
 }
 
 ?>
@@ -310,7 +316,19 @@ if(empty($_GET['id'])){
                                                 </div>
 
                                                 <div class="row">
-                                                    <div class="col-12">
+                                                    <div class="col-10">
+                                                        <div class="form-group" style="float: right;">
+                                                            <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
+                                                                <option value="">Select Expiration Date</option>
+                                                                <option value="1" <?=($months == 1)?'selected':''?>>30 days</option>
+                                                                <option value="2" <?=($months == 2)?'selected':''?>>60 days</option>
+                                                                <option value="3" <?=($months == 3)?'selected':''?>>90 days</option>
+                                                                <option value="6" <?=($months == 6)?'selected':''?>>180 days</option>
+                                                                <option value="12" <?=($months == 12)?'selected':''?>>365 days</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-2">
                                                         <div class="form-group" style="float: right;">
                                                             <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServices();">Add More</a>
                                                         </div>
