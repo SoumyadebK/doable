@@ -450,9 +450,9 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
                                                             <option value="">Select Package</option>
                                                             <?php
-                                                            $row = $db_account->Execute("SELECT DISTINCT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE LEFT JOIN DOA_PACKAGE_LOCATION ON DOA_PACKAGE.PK_PACKAGE = DOA_PACKAGE_LOCATION.PK_PACKAGE WHERE DOA_PACKAGE_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE = 1 ORDER BY SORT_ORDER");
+                                                            $row = $db_account->Execute("SELECT DISTINCT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME, DOA_PACKAGE.EXPIRY_DATE FROM DOA_PACKAGE LEFT JOIN DOA_PACKAGE_LOCATION ON DOA_PACKAGE.PK_PACKAGE = DOA_PACKAGE_LOCATION.PK_PACKAGE WHERE DOA_PACKAGE_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE = 1 ORDER BY SORT_ORDER");
                                                             while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_PACKAGE'];?>" <?=($row->fields['PK_PACKAGE'] == $PK_PACKAGE)?'selected':''?>><?=$row->fields['PACKAGE_NAME']?></option>
+                                                                <option value="<?php echo $row->fields['PK_PACKAGE'];?>" data-expiry_date="<?=$row->fields['EXPIRY_DATE']?>" <?=($row->fields['PK_PACKAGE'] == $PK_PACKAGE)?'selected':''?>><?=$row->fields['PACKAGE_NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
@@ -1391,6 +1391,23 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                 $('#PK_LOCATION').empty();
                 $('#PK_LOCATION').append(result);
                 showEnrollmentInstructor();
+                showEnrollmentBy();
+            }
+        });
+    }
+
+    function showEnrollmentBy(){
+        let location_id = $('#PK_LOCATION').val();
+        $.ajax({
+            url: "ajax/get_enrollment_by.php",
+            type: "POST",
+            data: {LOCATION_ID: location_id},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#ENROLLMENT_BY_ID').empty();
+                $('#ENROLLMENT_BY_ID').append(result);
+                //$('#ENROLLMENT_BY_ID')[0].sumo.reload();
             }
         });
     }
@@ -1404,8 +1421,8 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             async: false,
             cache: false,
             success: function (result) {
-                $('#ENROLLMENT_BY_ID').empty();
-                $('#ENROLLMENT_BY_ID').append(result);
+                //$('#ENROLLMENT_BY_ID').empty();
+                //$('#ENROLLMENT_BY_ID').append(result);
                 //$('#ENROLLMENT_BY_ID')[0].sumo.reload();
 
                 $('.SERVICE_PROVIDER_ID').empty();
@@ -1554,6 +1571,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
     function selectThisPackage(param) {
         let PK_PACKAGE = $(param).val();
+        let EXPIRY_DATE = $(param).find(':selected').data('expiry_date');
         if (PK_PACKAGE) {
             $.ajax({
                 url: "ajax/get_packages.php",
@@ -1570,6 +1588,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                         TOTAL_AMOUNT += parseFloat($(this).val());
                     });
                     $('.TOTAL_AMOUNT').val(TOTAL_AMOUNT.toFixed(2));
+                    $('#EXPIRY_DATE').val(EXPIRY_DATE/30);
                 }
             });
         } else {
