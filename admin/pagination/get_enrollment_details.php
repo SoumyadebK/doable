@@ -63,21 +63,21 @@ while (!$serviceCodeData->EOF) {
 }
 ?>
 
-<table id="myTable" class="table">
+<table id="myTable" class="table billing_details" style="display: none;">
     <thead style="background-color: #f44336">
-    <tr>
-        <th style="text-align: center;">Due Date</th>
-        <th style="text-align: center;">Transaction Type</th>
-        <th style="text-align: center;">Billed Amount</th>
-        <th style="text-align: center;">Paid Amount</th>
-        <th style="text-align: center;">Payment Type</th>
-        <th style="text-align: center;">Balance</th>
-        <th style="text-align: center;">
-            <?php if ($paid_count > 0) { ?>
-                <input type="checkbox" class="pay_now_check" id="toggleEnrollment_<?=$PK_ENROLLMENT_MASTER?>" onclick="toggleEnrollmentCheckboxes(<?=$PK_ENROLLMENT_MASTER?>)"/><button type="button" class="btn btn-info m-l-10 text-white pay_selected_btn" onclick="paySelected(<?=$PK_ENROLLMENT_MASTER?>, '<?=$ENROLLMENT_ID?>')" disabled> Pay Selected</button>
-            <?php } ?>
-        </th>
-    </tr>
+        <tr>
+            <th style="text-align: center;">Due Date</th>
+            <th style="text-align: center;">Transaction Type</th>
+            <th style="text-align: center;">Billed Amount</th>
+            <th style="text-align: center;">Paid Amount</th>
+            <th style="text-align: center;">Payment Type</th>
+            <th style="text-align: center;">Balance</th>
+            <th style="text-align: center;">
+                <?php if ($paid_count > 0) { ?>
+                    <input type="checkbox" class="pay_now_check" id="toggleEnrollment_<?=$PK_ENROLLMENT_MASTER?>" onclick="toggleEnrollmentCheckboxes(<?=$PK_ENROLLMENT_MASTER?>)"/><button type="button" class="btn btn-info m-l-10 text-white pay_selected_btn" onclick="paySelected(<?=$PK_ENROLLMENT_MASTER?>, '<?=$ENROLLMENT_ID?>')" disabled> Pay Selected</button>
+                <?php } ?>
+            </th>
+        </tr>
     </thead>
 
     <tbody>
@@ -194,7 +194,7 @@ while (!$serviceCodeData->EOF) {
     </tbody>
 </table>
 
-<table id="myTable" class="table border">
+<table id="myTable" class="table border appointment_details" style="display: none;">
     <thead style="background-color: #1E90FF">
     <tr>
         <th style="text-align: left;">Service</th>
@@ -224,7 +224,7 @@ while (!$serviceCodeData->EOF) {
             $PRICE_PER_SESSION = $per_session_price->fields['PRICE_PER_SESSION'];
             $total_amount_needed = $per_session_price->fields['SESSION_CREATED'] * $PRICE_PER_SESSION;
 
-            if($appointment_data->fields['APPOINTMENT_STATUS']!='Cancelled') {
+            if($appointment_data->fields['APPOINTMENT_STATUS'] != 'Cancelled' || $appointment_data->fields['IS_CHARGED'] == 1) {
                 if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
                     $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] - 1;
                     $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] - $per_session_price->fields['PRICE_PER_SESSION'];
@@ -242,7 +242,7 @@ while (!$serviceCodeData->EOF) {
                     <a href="javascript:" title="Edit Appointment" onclick="editThisAppointment(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>, <?=$PK_USER?>, <?=$PK_USER_MASTER?>);"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;
                     <?=$appointment_data->fields['SERVICE_NAME']?>
                 </td>
-                <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled') {?>
+                <?php if($appointment_data->fields['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_data->fields['IS_CHARGED'] == 0) {?>
                     <td></td>
                 <?php } else {?>
                     <td style="text-align: left;"><?=$service_code_array[$appointment_data->fields['SERVICE_CODE']].'/'.$per_session_price->fields['NUMBER_OF_SESSION']?></td>
@@ -257,12 +257,12 @@ while (!$serviceCodeData->EOF) {
                     <?php } ?>
                 </td>
                 <td style="text-align: left;"><?=$appointment_data->fields['NAME']?></td>
-                <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled') {?>
+                <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled' && $appointment_data->fields['IS_CHARGED'] == 0) {?>
                     <td></td>
                 <?php } else {?>
                     <td style="text-align: right;"><?=number_format((float)$PRICE_PER_SESSION, 2, '.', ',');?></td>
                 <?php }?>
-                <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled') {?>
+                <?php if($appointment_data->fields['APPOINTMENT_STATUS']=='Cancelled' && $appointment_data->fields['IS_CHARGED'] == 0) {?>
                     <td></td>
                 <?php } else {
                     $service_credit = $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']]; ?>
