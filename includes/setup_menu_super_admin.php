@@ -21,6 +21,7 @@
                                 <a class="dropdown-item" href="../super_admin/all_appointment_status.php">Appointment Types</a>
                                 <a class="dropdown-item" href="../super_admin/all_business_types.php">Business Types</a>
                                 <a class="dropdown-item" href="../super_admin/csv_uploader.php">CSV Uploader</a>
+                                <a class="dropdown-item" href="../super_admin/all_chat_section.php">Chat Section</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">
