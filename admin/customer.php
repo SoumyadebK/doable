@@ -1504,9 +1504,9 @@ if ($PK_USER_MASTER > 0) {
                                                     <div id="unposted" class="col-md-3 align-self-center" style="margin-left: 20%">
                                                         <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showAppointment(1, 'unposted')"> Show Unposted</button>
                                                     </div>
-                                                    <div id="canceled" class="col-md-2 align-self-center" style="margin-left: -15%">
+                                                    <!--<div id="canceled" class="col-md-2 align-self-center" style="margin-left: -15%">
                                                         <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showAppointment(1, 'cancelled')"> Show Canceled</button>
-                                                    </div>
+                                                    </div>-->
                                                     <div class="col-md-4">
                                                         <a class="btn btn-info d-none d-lg-block m-15 text-white" href="create_appointment.php?id_customer=<?=$_GET['id']?>&master_id_customer=<?=$_GET['master_id']?>&source=customer" style="width: 125px; float: right;"><i class="fa fa-plus-circle"></i> Appointment</a>
                                                     </div>

@@ -176,7 +176,7 @@ while (!$row->EOF) {
             </div>
         </div>
 
-        <div id="enrollment_details">
+        <div id="enrollment_details" style="display: none;">
 
         </div>
     </div>
@@ -193,12 +193,7 @@ while (!$row->EOF) {
             async: false,
             cache: false,
             success: function (result) {
-                $(param).closest('.enrollment_div').next('#enrollment_details').html(result);
-                if (details === 'appointment_details') {
-                    $(param).closest('.enrollment_div').next('#enrollment_details').find('.appointment_details').slideToggle();
-                } else {
-                    $(param).closest('.enrollment_div').next('#enrollment_details').find('.billing_details').slideToggle();
-                }
+                $(param).closest('.enrollment_div').next('#enrollment_details').html(result).slideToggle();
             }
         });
     }
