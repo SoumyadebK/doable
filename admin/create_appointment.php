@@ -265,6 +265,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
             $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
             $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
+            $APPOINTMENT_DATA['SERIAL_NUMBER'] = 0;
         }
 
         $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
@@ -561,8 +562,8 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             if ($(param).data('is_selected') == 0) {
                 start_time_array.push(start_time);
                 end_time_array.push(end_time);
-                $('#START_TIME').val(start_time_array);
-                $('#END_TIME').val(end_time_array);
+                $('#START_TIME').val(start_time_array.sort());
+                $('#END_TIME').val(end_time_array.sort());
                 $('#slot_btn_' + id).data('is_selected', 1);
                 document.getElementById('slot_btn_' + id).style.setProperty('background-color', 'orange', 'important');
             } else {
@@ -576,11 +577,13 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
                     end_time_array.splice(end_time_index, 1);
                 }
 
-                $('#START_TIME').val(start_time_array);
-                $('#END_TIME').val(end_time_array);
+                $('#START_TIME').val(start_time_array.sort());
+                $('#END_TIME').val(end_time_array.sort());
                 $('#slot_btn_' + id).data('is_selected', 0);
                 document.getElementById('slot_btn_' + id).style.setProperty('background-color', 'greenyellow', 'important');
             }
+
+            console.log(start_time_array.sort(), end_time_array.sort());
 
             if (PK_APPOINTMENT_MASTER > 0) {
                 let slot_btn = $(".slot_btn");
