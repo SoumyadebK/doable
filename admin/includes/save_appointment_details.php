@@ -63,7 +63,7 @@ db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update'," PK_AP
 $APPOINTMENT_SP_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID'];
 db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$PK_APPOINTMENT_MASTER'");
 
-$COUNT_UPDATED = 0;
+/*$COUNT_UPDATED = 0;
 if ($_POST['IS_CHARGED_OLD'] != $_POST['IS_CHARGED']) {
     if ($_POST['IS_CHARGED'] == 1) {
         updateSessionCompletedCount($PK_APPOINTMENT_MASTER);
@@ -73,7 +73,7 @@ if ($_POST['IS_CHARGED_OLD'] != $_POST['IS_CHARGED']) {
     }
 } elseif ($_POST['IS_CHARGED'] == 1) {
     $COUNT_UPDATED = 1;
-}
+}*/
 
 if ($_POST['PK_APPOINTMENT_STATUS_OLD'] != $_POST['PK_APPOINTMENT_STATUS_NEW']) {
     $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
@@ -82,11 +82,13 @@ if ($_POST['PK_APPOINTMENT_STATUS_OLD'] != $_POST['PK_APPOINTMENT_STATUS_NEW']) 
     $APPOINTMENT_STATUS_HISTORY_DATA['TIME_STAMP'] = date("Y-m-d H:i");
     db_perform_account('DOA_APPOINTMENT_STATUS_HISTORY', $APPOINTMENT_STATUS_HISTORY_DATA, 'insert');
 
-    if ($PK_APPOINTMENT_STATUS == 2 && $COUNT_UPDATED == 0) {
+    /*if ($PK_APPOINTMENT_STATUS == 2 && $COUNT_UPDATED == 0) {
         updateSessionCompletedCount($PK_APPOINTMENT_MASTER);
     } elseif ($PK_APPOINTMENT_STATUS == 6 && $_POST['IS_CHARGED'] == 0) {
         updateSessionCreatedCountByStatus($PK_APPOINTMENT_MASTER);
-    }
+    }*/
 }
+
+updateSessionCreatedAndCompletedCount($PK_APPOINTMENT_MASTER);
 
 header('Location: '.$_POST['REDIRECT_URL']);

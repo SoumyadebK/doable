@@ -63,8 +63,8 @@ while (!$serviceCodeData->EOF) {
 }
 ?>
 
-<table id="myTable" class="table billing_details" style="display: none;">
-    <thead style="background-color: #f44336">
+<table id="myTable" class="table billing_details">
+    <thead style="background-color: #f44336; cursor:pointer;" onclick="$(this).next().slideToggle();">
         <tr>
             <th style="text-align: center;">Due Date</th>
             <th style="text-align: center;">Transaction Type</th>
@@ -194,19 +194,19 @@ while (!$serviceCodeData->EOF) {
     </tbody>
 </table>
 
-<table id="myTable" class="table border appointment_details" style="display: none;">
-    <thead style="background-color: #1E90FF">
-    <tr>
-        <th style="text-align: left;">Service</th>
-        <th style="text-align: left;">Apt #</th>
-        <th style="text-align: left;">Service Code</th>
-        <th style="text-align: center;">Date</th>
-        <th style="text-align: center;">Time</th>
-        <th style="text-align: left;">Status</th>
-        <th style="text-align: left;"><?=$service_provider_title?></th>
-        <th style="text-align: right;">Session Cost</th>
-        <th style="text-align: right;">Amount $</th>
-    </tr>
+<table id="myTable" class="table border appointment_details">
+    <thead style="background-color: #1E90FF; cursor:pointer;" onclick="$(this).next().slideToggle();">
+        <tr>
+            <th style="text-align: left;">Service</th>
+            <th style="text-align: left;">Apt #</th>
+            <th style="text-align: left;">Service Code</th>
+            <th style="text-align: center;">Date</th>
+            <th style="text-align: center;">Time</th>
+            <th style="text-align: left;">Status</th>
+            <th style="text-align: left;"><?=$service_provider_title?></th>
+            <th style="text-align: right;">Session Cost</th>
+            <th style="text-align: right;">Amount $</th>
+        </tr>
     </thead>
 
     <?php
