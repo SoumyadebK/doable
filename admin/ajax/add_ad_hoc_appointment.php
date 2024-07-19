@@ -86,7 +86,7 @@ $AND_PK_USER = '';
             <div class="col-2">
                 <div class="form-group">
                     <label class="form-label">Location<span class="text-danger">*</span></label>
-                    <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION" onchange="selectThisLocation(this)">
+                    <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION" onchange="selectThisLocation()">
                         <option value="">Select Location</option>
                     </select>
                 </div>
@@ -168,6 +168,7 @@ $AND_PK_USER = '';
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
 <script type="text/javascript">
+
     $('.multi_select').SumoSelect({search: true, searchText: 'Search...'});
 
     $(document).ready(function () {
@@ -201,7 +202,7 @@ $AND_PK_USER = '';
         window.location.href='all_schedules.php?view=list'
     });
 
-    function selectThisCustomerLocation(param){
+    function selectThisCustomerLocation(param) {
         let location_id = $(param).find(':selected').data('location_id');
         let PK_USER = $(param).find(':selected').data('pk_user');
         $.ajax({
@@ -211,11 +212,14 @@ $AND_PK_USER = '';
             async: false,
             cache: false,
             success: function (result) {
-                $('#PK_LOCATION').empty();
-                $('#PK_LOCATION').append(result);
+                $('#PK_LOCATION').empty().append(result).val(location_id);
+                selectThisLocation();
             }
         });
+    }
 
+    function selectThisLocation(){
+        let location_id = $('#PK_LOCATION').val();
         $.ajax({
             url: "ajax/get_instructor.php",
             type: "POST",
@@ -223,41 +227,9 @@ $AND_PK_USER = '';
             async: false,
             cache: false,
             success: function (result) {
-                $('#SERVICE_PROVIDER_ID').empty();
-                $('#SERVICE_PROVIDER_ID').append(result);
+                $('#SERVICE_PROVIDER_ID').empty().append(result);
                 $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
-            }
-        });
-    }
-
-    function selectThisLocation(param){
-        let location_id = $(param).find(':selected').data('location_id');
-        $.ajax({
-            url: "ajax/get_instructor.php",
-            type: "POST",
-            data: {LOCATION_ID: location_id},
-            async: false,
-            cache: false,
-            success: function (result) {
-                $('#SERVICE_PROVIDER_ID').empty();
-                $('#SERVICE_PROVIDER_ID').append(result);
-                $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
-            }
-        });
-    }
-
-    function selectThisEnrollment(param) {
-        let PK_ENROLLMENT_MASTER = $(param).val();
-        $.ajax({
-            url: "ajax/get_service_provider.php",
-            type: "POST",
-            data: {PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER},
-            async: false,
-            cache: false,
-            success: function (result) {
-                $('#SERVICE_PROVIDER_ID').empty();
-                $('#SERVICE_PROVIDER_ID').append(result);
-                $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
+                $('#SERVICE_PROVIDER_ID')[0].sumo.selectItem(SELECTED_SERVICE_PROVIDER_ID);
             }
         });
     }

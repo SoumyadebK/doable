@@ -260,7 +260,7 @@ if(!empty($_GET['id'])) {
     }
 }
 
-$primary_location = '';
+$primary_location = 0;
 if(!empty($_GET['master_id'])) {
     $selected_primary_location = $db->Execute("SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = " . $_GET['master_id']);
     if ($selected_primary_location->RecordCount() > 0) {
@@ -703,17 +703,20 @@ if ($PK_USER_MASTER > 0) {
                                                             <div class="col-6">
                                                                 <label class="col-md-12">Preferred Location</label>
                                                                 <div class="col-md-12 multiselect-box" style="width: 100%;">
+                                                                    <?php
+                                                                    $selected_location = [];
+                                                                    if(!empty($_GET['id'])) {
+                                                                        $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$_GET[id]'");
+                                                                        while (!$selected_location_row->EOF) {
+                                                                            $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                                                            $selected_location_row->MoveNext();
+                                                                        }
+                                                                    }
+                                                                    ?>
+                                                                    <input type="hidden" id="selected_location" value="<?=implode(',', $selected_location);?>">
                                                                     <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple required>
                                                                         <?php
-                                                                        $selected_location = [];
-                                                                        if(!empty($_GET['id'])) {
-                                                                            $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$_GET[id]'");
-                                                                            while (!$selected_location_row->EOF) {
-                                                                                $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
-                                                                                $selected_location_row->MoveNext();
-                                                                            }
-                                                                        }
-                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION != '$primary_location' AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                                         while (!$row->EOF) { ?>
                                                                             <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
                                                                         <?php $row->MoveNext(); } ?>
@@ -724,7 +727,7 @@ if ($PK_USER_MASTER > 0) {
                                                             <div class="col-6">
                                                                 <label class="col-md-12">Primary Location<span class="text-danger">*</span></label>
                                                                 <div class="form-group" style="margin-bottom: 15px;">
-                                                                    <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" required>
+                                                                    <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" onchange="selectThisPrimaryLocation(this)" required>
                                                                         <option value="">Select Primary Location</option>
                                                                         <?php
                                                                         $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
@@ -2523,6 +2526,20 @@ if ($PK_USER_MASTER > 0) {
         function removeThisFamilyMember(param) {
             family_special_day_count--;
             $(param).closest('.family_member').remove();
+        }
+
+        function selectThisPrimaryLocation(param) {
+            let primary_location = $(param).val();
+            let selected_location = $('#selected_location').val();
+            $.ajax({
+                url: "ajax/get_all_locations.php",
+                type: 'GET',
+                data: {primary_location:primary_location, selected_location:selected_location},
+                success:function (data) {
+                    $('#PK_LOCATION_MULTIPLE').empty().append(data);
+                    $('#PK_LOCATION_MULTIPLE')[0].sumo.reload();
+                }
+            });
         }
 
         $(document).on('submit', '#profile_form', function (event) {

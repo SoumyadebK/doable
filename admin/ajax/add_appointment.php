@@ -142,17 +142,18 @@ $AND_PK_USER = '';
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
 <script type="text/javascript">
+
     $('.multi_select').SumoSelect({search: true, searchText: 'Search...'});
     $('#SELECT_CUSTOMER').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
     $('#SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
 
     $(document).ready(function () {
         $('#SELECT_CUSTOMER').trigger("change");
-        //getSlots();
     });
-    <? if(!empty($DATE_ARR)) { ?>
-    def_date = new Date(<?=$DATE_ARR[0]?>,<?=$DATE_ARR[1]?>,<?=$DATE_ARR[2]?>);
-    <? } ?>
+
+    <?php if(!empty($DATE_ARR)) { ?>
+        def_date = new Date(<?=$DATE_ARR[0]?>,<?=$DATE_ARR[1]?>,<?=$DATE_ARR[2]?>);
+    <?php } ?>
     myCalender = new CalendarPicker('#myCalendarWrapper', {
         // If max < min or min > max then the only available day will be today.
         default_date: def_date,
@@ -186,8 +187,7 @@ $AND_PK_USER = '';
             async: false,
             cache: false,
             success: function (result) {
-                $('#PK_SCHEDULING_CODE').empty();
-                $('#PK_SCHEDULING_CODE').append(result);
+                $('#PK_SCHEDULING_CODE').empty().append(result);
                 $('#PK_SCHEDULING_CODE')[0].sumo.reload();
             }
         });
@@ -200,28 +200,12 @@ $AND_PK_USER = '';
             async: false,
             cache: false,
             success: function (result) {
-                $('#SERVICE_PROVIDER_ID').empty();
-                $('#SERVICE_PROVIDER_ID').append(result);
+                $('#SERVICE_PROVIDER_ID').empty().append(result);
                 $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
+                $('#SERVICE_PROVIDER_ID')[0].sumo.selectItem(SELECTED_SERVICE_PROVIDER_ID);
             }
         });
     }
-
-/*    function selectThisEnrollment(param) {
-        let PK_ENROLLMENT_MASTER = $(param).val();
-        $.ajax({
-            url: "ajax/get_service_provider.php",
-            type: "POST",
-            data: {PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER},
-            async: false,
-            cache: false,
-            success: function (result) {
-                $('#SERVICE_PROVIDER_ID').empty();
-                $('#SERVICE_PROVIDER_ID').append(result);
-                $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
-            }
-        });
-    }*/
 
     function changeServiceProvider(){
         $('#change_service_provider').hide();

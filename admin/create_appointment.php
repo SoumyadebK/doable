@@ -260,14 +260,13 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
             $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
             $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
-            $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
         } else {
             $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
             $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
             $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
-            $APPOINTMENT_DATA['SERIAL_NUMBER'] = 0;
         }
 
+        $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
         $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
         $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
         db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
@@ -339,6 +338,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     for ($i=0; $i<count($START_TIME_ARRAY); $i++) {
         $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
         $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
+        $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
         db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
         $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
@@ -434,6 +434,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         let end_time_array = [];
         var myCalender;
         var PK_USER_MASTER = <?=$PK_USER_MASTER?>;
+        var SELECTED_SERVICE_PROVIDER_ID = '<?=$PK_USER?>';
 
         function createAppointment(type, param) {
             let PK_APPOINTMENT_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);

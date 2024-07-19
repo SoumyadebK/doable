@@ -1223,8 +1223,11 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 <?php require_once('../includes/footer.php');?>
 
 <script>
+    let PK_USER_MASTER = parseInt(<?=$PK_USER_MASTER?>);
     $(document).ready(function () {
-        $('#PK_USER_MASTER').trigger("change");
+        if (PK_USER_MASTER > 0) {
+            $('#PK_USER_MASTER').trigger("change");
+        }
     });
 
     const appId = '<?=$SQUARE_APP_ID ?>';

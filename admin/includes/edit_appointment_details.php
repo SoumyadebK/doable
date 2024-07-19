@@ -21,6 +21,7 @@ $START_TIME = $appointment_data->fields['START_TIME'];
 $END_TIME = $appointment_data->fields['END_TIME'];
 $IS_CHARGED = $appointment_data->fields['IS_CHARGED'];
 $COMMENT = $appointment_data->fields['COMMENT'];
+$INTERNAL_COMMENT = $appointment_data->fields['INTERNAL_COMMENT'];
 
 ?>
 <div class="modal-dialog">
@@ -107,10 +108,16 @@ $COMMENT = $appointment_data->fields['COMMENT'];
                     </div>
 
                     <div class="row">
-                        <div class="col-12">
+                        <div class="col-6">
                             <div class="form-group">
-                                <label class="form-label">Comment</label>
+                                <label class="form-label">Comments</label>
                                 <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Internal Comment</label>
+                                <textarea class="form-control" name="INTERNAL_COMMENT" rows="4"><?=$INTERNAL_COMMENT?></textarea>
                             </div>
                         </div>
                     </div>
