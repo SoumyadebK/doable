@@ -103,9 +103,11 @@ if (count($time_slot_array) > 0) {
             }
         }
         $selected = "";
-        if((date('H:i',strtotime($item['slot_start_time'])) == date('H:i',strtotime($START_TIME))) && date('H:i',strtotime($item['slot_end_time'])) == date('H:i',strtotime($END_TIME)) || (!empty($slot_time) && date('H:i',strtotime($item['slot_start_time'])) == date('H:i',strtotime($slot_time))) || (!empty($slot_time) && date('H:i',strtotime($slot_time)) > date('H:i',strtotime($item['slot_start_time']))) && (date('H:i',strtotime($slot_time)) < date('H:i',strtotime($item['slot_end_time'])))){
-            $selected = "background-color: orange !important;";
-        } ?>
+        if ($is_disable === 0) {
+            if ((date('H:i', strtotime($item['slot_start_time'])) == date('H:i', strtotime($START_TIME))) && date('H:i', strtotime($item['slot_end_time'])) == date('H:i', strtotime($END_TIME)) || (!empty($slot_time) && date('H:i', strtotime($item['slot_start_time'])) == date('H:i', strtotime($slot_time))) || (!empty($slot_time) && date('H:i', strtotime($slot_time)) > date('H:i', strtotime($item['slot_start_time']))) && (date('H:i', strtotime($slot_time)) < date('H:i', strtotime($item['slot_end_time'])))) {
+                $selected = "background-color: orange !important;";
+            }
+        }?>
         <div class="col-md-6 form-group">
             <button type="button" data-is_disable="<?=$disabled?>" data-is_selected="<?=(($slot_time)?0:(($selected)?1:0))?>" class="btn waves-effect waves-light btn-light slot_btn <?=($selected)?'selected_slot':''?>" id="slot_btn_<?=$key?>" onclick="set_time(this, <?=$key?>, '<?=$item['slot_start_time']?>', '<?=$item['slot_end_time']?>', <?=$PK_APPOINTMENT_MASTER?>)" style="width:100%; <?=($selected)?:$disabled?>"><?=date('h:i A', strtotime($item['slot_start_time']))?> - <?=date('h:i A', strtotime($item['slot_end_time']))?></button>
         </div>

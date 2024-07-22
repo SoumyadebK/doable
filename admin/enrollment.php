@@ -91,8 +91,7 @@ if(!empty($_GET['id'])) {
     $ACTIVE = $res->fields['ACTIVE'];
     $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
     $interval = $EXPIRY_DATE->diff($CREATED_ON);
-    $years = $interval->y;
-    $months = $interval->m + ($years * 12);
+    $months = intval($interval->days/30);
 
     $billing_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
     if($billing_data->RecordCount() > 0){
@@ -460,9 +459,9 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 <?php
                                                 $payment_gateway_type = $db->Execute("SELECT PAYMENT_GATEWAY_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
                                                 if ($payment_gateway_type->RecordCount() > 0) { ?>
-                                                <div class="col-4">
-                                                    <label class="col-md-12 "><input type="checkbox" id="CHARGE_BY_SESSIONS" name="CHARGE_BY_SESSIONS" class="form-check-inline" value="1" <?=($CHARGE_BY_SESSIONS == 1)?'checked':''?> style="margin-top: 30px; margin-left: 35%" onchange="chargeBySessions(this);"> Charge by sessions</label>
-                                                </div>
+                                                    <div class="col-4">
+                                                        <label class="col-md-12 "><input type="checkbox" id="CHARGE_BY_SESSIONS" name="CHARGE_BY_SESSIONS" class="form-check-inline" value="1" <?=($CHARGE_BY_SESSIONS == 1)?'checked':''?> style="margin-top: 30px; margin-left: 35%" onchange="chargeBySessions(this);"> Charge by sessions</label>
+                                                    </div>
                                                 <?php } ?>
                                                 <div class="col-4">
                                                     <div class="form-group">
@@ -543,7 +542,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                                     $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.") AND ACTIVE = 1 AND IS_DELETED = 0");
                                                                     while (!$row->EOF) { ?>
                                                                         <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($row->fields['PK_SERVICE_MASTER'] == $enrollment_service_data->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
-                                                                        <?php $row->MoveNext(); } ?>
+                                                                    <?php $row->MoveNext(); } ?>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -554,7 +553,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                                     $row = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_MASTER` = ".$enrollment_service_data->fields['PK_SERVICE_MASTER']);
                                                                     while (!$row->EOF) { ?>
                                                                         <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-details="<?=$row->fields['DESCRIPTION']?>" data-price="<?=$row->fields['PRICE']?>" <?=($row->fields['PK_SERVICE_CODE'] == $enrollment_service_data->fields['PK_SERVICE_CODE'])?'selected':''?>><?=$row->fields['SERVICE_CODE']?></option>
-                                                                        <?php $row->MoveNext(); } ?>
+                                                                    <?php $row->MoveNext(); } ?>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -771,31 +770,33 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 if(!empty($_GET['id'])) {
                                                 $enrollment_service_provider_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE_PROVIDER WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
                                                 while (!$enrollment_service_provider_data->EOF) { ?>
-                                                    <div class="row">
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <select class="form-control SERVICE_PROVIDER_ID" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
-                                                                    <option value="">Select</option>
-                                                                    <?php
-                                                                    $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
-                                                                    while (!$row->EOF) { ?>
-                                                                        <option value="<?php echo $row->fields['PK_USER'];?>" <?=($row->fields['PK_USER'] == $enrollment_service_provider_data->fields['SERVICE_PROVIDER_ID'])?'selected':''?>><?=$row->fields['NAME']?></option>
-                                                                    <?php $row->MoveNext(); } ?>
-                                                                </select>
+                                                    <div class="row individual_service_provider_div">
+                                                        <div class="row">
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <select class="form-control SERVICE_PROVIDER_ID" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
+                                                                        <option value="">Select</option>
+                                                                        <?php
+                                                                        $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
+                                                                        while (!$row->EOF) { ?>
+                                                                            <option value="<?php echo $row->fields['PK_USER'];?>" <?=($row->fields['PK_USER'] == $enrollment_service_provider_data->fields['SERVICE_PROVIDER_ID'])?'selected':''?>><?=$row->fields['NAME']?></option>
+                                                                        <?php $row->MoveNext(); } ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-2">
+                                                                <div class="input-group">
+                                                                    <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]" value="<?=number_format((float)$enrollment_service_provider_data->fields['SERVICE_PROVIDER_PERCENTAGE'], 2, '.', '')?>">
+                                                                    <span class="form-control input-group-text">%</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-1">
+                                                                <div class="form-group">
+                                                                    <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    <div class="col-2">
-                                                        <div class="input-group">
-                                                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]" value="<?=number_format((float)$enrollment_service_provider_data->fields['SERVICE_PROVIDER_PERCENTAGE'], 2, '.', '')?>">
-                                                            <span class="form-control input-group-text">%</span>
-                                                        </div>
                                                     </div>
-                                                    <div class="col-1">
-                                                        <div class="form-group">
-                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                                     <?php $enrollment_service_provider_data->MoveNext(); } ?>
                                                 <?php } else { ?>
                                                     <div class="row individual_service_provider_div">
@@ -846,7 +847,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <? } ?>
+                                            <?php } ?>
 
                                             <div class="form-group">
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Continue</button>
@@ -1223,12 +1224,11 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 <?php require_once('../includes/footer.php');?>
 
 <script>
-    let PK_USER_MASTER = parseInt(<?=$PK_USER_MASTER?>);
     $(document).ready(function () {
-        if (PK_USER_MASTER > 0) {
-            $('#PK_USER_MASTER').trigger("change");
-        }
+        $('#PK_USER_MASTER').trigger("change");
     });
+
+    let ENROLLMENT_BY_ID = parseInt(<?=$ENROLLMENT_BY_ID?>);
 
     const appId = '<?=$SQUARE_APP_ID ?>';
     const locationId = '<?=$SQUARE_LOCATION_ID ?>';
@@ -1362,9 +1362,6 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
 <script>
     let PK_ENROLLMENT_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
-    /*if (PK_ENROLLMENT_MASTER > 0){
-        selectThisService($('.PK_SERVICE_MASTER'));
-    }*/
 
     $('#PK_USER_MASTER').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
 
@@ -1380,10 +1377,8 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
     function selectThisCustomer(param){
         let location_id = $(param).find(':selected').data('location_id');
-        //let customer_id = $(param).find(':selected').data('customer_id');
         let PK_USER = $(param).find(':selected').data('pk_user');
         $('#PK_LOCATION').val(location_id);
-        //$('.CUSTOMER_ID').val(customer_id);
         $.ajax({
             url: "ajax/get_locations.php",
             type: "POST",
@@ -1391,9 +1386,10 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             async: false,
             cache: false,
             success: function (result) {
-                $('#PK_LOCATION').empty();
-                $('#PK_LOCATION').append(result);
-                showEnrollmentInstructor();
+                $('#PK_LOCATION').empty().append(result);
+                if (PK_ENROLLMENT_MASTER == 0) {
+                    showEnrollmentInstructor();
+                }
                 showEnrollmentBy();
             }
         });
@@ -1408,9 +1404,10 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             async: false,
             cache: false,
             success: function (result) {
-                $('#ENROLLMENT_BY_ID').empty();
-                $('#ENROLLMENT_BY_ID').append(result);
-                //$('#ENROLLMENT_BY_ID')[0].sumo.reload();
+                $('#ENROLLMENT_BY_ID').empty().append(result);
+                if (PK_ENROLLMENT_MASTER > 0) {
+                    $('#ENROLLMENT_BY_ID').val(ENROLLMENT_BY_ID);
+                }
             }
         });
     }
@@ -1424,13 +1421,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             async: false,
             cache: false,
             success: function (result) {
-                //$('#ENROLLMENT_BY_ID').empty();
-                //$('#ENROLLMENT_BY_ID').append(result);
-                //$('#ENROLLMENT_BY_ID')[0].sumo.reload();
-
-                $('.SERVICE_PROVIDER_ID').empty();
-                $('.SERVICE_PROVIDER_ID').append(result);
-                //$('.SERVICE_PROVIDER_ID').sumo.reload();
+                $('.SERVICE_PROVIDER_ID').empty().append(result);
             }
         });
     }

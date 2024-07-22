@@ -561,7 +561,7 @@ z-index: 500;
                 <div class="row" id="add_info_div">
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="form-label">Comments</label>
+                            <label class="form-label">Comments (Visual for client)</label>
                             <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
                         </div>
                     </div>

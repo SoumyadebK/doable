@@ -215,10 +215,10 @@ function savePackageInfoData($RESPONSE_DATA){
     global $db;
     global $db_account;
 
+    $PACKAGE_DATA['PACKAGE_NAME'] = $RESPONSE_DATA['PACKAGE_NAME'];
+    $PACKAGE_DATA['SORT_ORDER'] = $RESPONSE_DATA['SORT_ORDER'];
+    $PACKAGE_DATA['EXPIRY_DATE'] = $RESPONSE_DATA['EXPIRY_DATE'];
     if (empty($RESPONSE_DATA['PK_PACKAGE'])){
-        $PACKAGE_DATA['PACKAGE_NAME'] = $RESPONSE_DATA['PACKAGE_NAME'];
-        $PACKAGE_DATA['SORT_ORDER'] = $RESPONSE_DATA['SORT_ORDER'];
-        $PACKAGE_DATA['EXPIRY_DATE'] = $RESPONSE_DATA['EXPIRY_DATE'];
         $PACKAGE_DATA['ACTIVE'] = 1;
         $PACKAGE_DATA['IS_DELETED'] = 0;
         $PACKAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
@@ -226,9 +226,6 @@ function savePackageInfoData($RESPONSE_DATA){
         db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'insert');
         $PK_PACKAGE = $db_account->insert_ID();
     } else {
-        $PACKAGE_DATA['PACKAGE_NAME'] = $RESPONSE_DATA['PACKAGE_NAME'];
-        $PACKAGE_DATA['SORT_ORDER'] = $RESPONSE_DATA['SORT_ORDER'];
-        $PACKAGE_DATA['EXPIRY_DATE'] = $RESPONSE_DATA['EXPIRY_DATE'];
         $PACKAGE_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'] ?? 0;
         $PACKAGE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $PACKAGE_DATA['EDITED_ON'] = date("Y-m-d H:i");

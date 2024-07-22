@@ -19,6 +19,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 if(empty($_GET['id'])){
     $PACKAGE_NAME = '';
     $SORT_ORDER = '';
+    $EXPIRY_DATE = '';
     $ACTIVE = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM `DOA_PACKAGE` WHERE `PK_PACKAGE` = '$_GET[id]'");
@@ -500,12 +501,7 @@ if(empty($_GET['id'])){
             type: 'POST',
             data: form_data,
             success:function (data) {
-                if (PK_SERVICE_MASTER == 0) {
-                    $('.PK_SERVICE_MASTER').val(data);
-                    window.location.href = 'all_packages.php';
-                } else {
-                    window.location.href = 'all_packages.php';
-                }
+                window.location.href = 'all_packages.php';
             }
         });
     });

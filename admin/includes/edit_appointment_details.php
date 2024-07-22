@@ -110,7 +110,7 @@ $INTERNAL_COMMENT = $appointment_data->fields['INTERNAL_COMMENT'];
                     <div class="row">
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="form-label">Comments</label>
+                                <label class="form-label">Comments (Visual for client)</label>
                                 <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea>
                             </div>
                         </div>
