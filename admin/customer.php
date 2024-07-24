@@ -701,6 +701,20 @@ if ($PK_USER_MASTER > 0) {
 
                                                         <div class="row">
                                                             <div class="col-6">
+                                                                <label class="col-md-12">Primary Location<span class="text-danger">*</span></label>
+                                                                <div class="form-group" style="margin-bottom: 15px;">
+                                                                    <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" onchange="selectThisPrimaryLocation(this)" required>
+                                                                        <option value="">Select Primary Location</option>
+                                                                        <?php
+                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                        while (!$row->EOF) { ?>
+                                                                            <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($primary_location == $row->fields['PK_LOCATION'])?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                                            <?php $row->MoveNext(); } ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-6">
                                                                 <label class="col-md-12">Preferred Location</label>
                                                                 <div class="col-md-12 multiselect-box" style="width: 100%;">
                                                                     <?php
@@ -719,20 +733,6 @@ if ($PK_USER_MASTER > 0) {
                                                                         $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION != '$primary_location' AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                                         while (!$row->EOF) { ?>
                                                                             <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
-                                                                        <?php $row->MoveNext(); } ?>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="col-6">
-                                                                <label class="col-md-12">Primary Location<span class="text-danger">*</span></label>
-                                                                <div class="form-group" style="margin-bottom: 15px;">
-                                                                    <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" onchange="selectThisPrimaryLocation(this)" required>
-                                                                        <option value="">Select Primary Location</option>
-                                                                        <?php
-                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                                        while (!$row->EOF) { ?>
-                                                                            <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($primary_location == $row->fields['PK_LOCATION'])?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
                                                                         <?php $row->MoveNext(); } ?>
                                                                     </select>
                                                                 </div>

@@ -15,6 +15,7 @@ $ORPHAN_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
+                            DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
                             DOA_SCHEDULING_CODE.COLOR_CODE,
                             GROUP_CONCAT(CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) SEPARATOR ',') AS SERVICE_PROVIDER_NAME,
@@ -71,6 +72,7 @@ if ($orphan_appointment_data->RecordCount() > 0) {
             <th data-type="string" style="cursor: pointer">Day</th>
             <th data-date data-order style="cursor: pointer">Date</th>
             <th data-type="string" style="cursor: pointer">Time</th>
+            <th data-type="string" style="cursor: pointer">Status</th>
         </tr>
     </thead>
 
@@ -88,6 +90,7 @@ if ($orphan_appointment_data->RecordCount() > 0) {
             <td><?=date('l', strtotime($orphan_appointment_data->fields['DATE']))?></td>
             <td><?=date('m/d/Y', strtotime($orphan_appointment_data->fields['DATE']))?></td>
             <td><?=date('h:i A', strtotime($orphan_appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($orphan_appointment_data->fields['END_TIME']))?></td>
+            <td><?=$orphan_appointment_data->fields['APPOINTMENT_STATUS']?></td>
         </tr>
         <?php $orphan_appointment_data->MoveNext();
         $i--; } ?>
