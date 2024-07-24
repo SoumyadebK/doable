@@ -23,6 +23,13 @@ $IS_CHARGED = $appointment_data->fields['IS_CHARGED'];
 $COMMENT = $appointment_data->fields['COMMENT'];
 $INTERNAL_COMMENT = $appointment_data->fields['INTERNAL_COMMENT'];
 
+$status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE AS STATUS_COLOR, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER);
+$CHANGED_BY = '';
+while (!$status_data->EOF) {
+    $CHANGED_BY .= "(<span style='color: ".$status_data->fields['STATUS_COLOR']."'>".$status_data->fields['APPOINTMENT_STATUS']."</span> by ".$status_data->fields['NAME']." at ".date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])).")<br>";
+    $status_data->MoveNext();
+}
+
 ?>
 <div class="modal-dialog">
     <form id="wallet_payment_form"  method="post" action="includes/save_appointment_details.php" enctype="multipart/form-data">
@@ -119,6 +126,12 @@ $INTERNAL_COMMENT = $appointment_data->fields['INTERNAL_COMMENT'];
                                 <label class="form-label">Internal Comment</label>
                                 <textarea class="form-control" name="INTERNAL_COMMENT" rows="4"><?=$INTERNAL_COMMENT?></textarea>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <?=$CHANGED_BY?>
                         </div>
                     </div>
 
