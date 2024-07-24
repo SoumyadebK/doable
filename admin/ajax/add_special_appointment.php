@@ -45,17 +45,9 @@ if (empty($_GET['PK_USER_MASTER'])) {
                         <select class="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
                             <option disabled selected>Select Scheduling Code</option>
                             <?php
-                            $selected_booking_code = [];
-                            if(!empty($_GET['id'])) {
-                                $selected_booking_code_row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = ".$row->fields['PK_SCHEDULING_CODE']);
-                                while (!$selected_booking_code_row->EOF) {
-                                    $selected_booking_code[] = $selected_booking_code_row->fields['PK_SCHEDULING_CODE'];
-                                    $selected_booking_code_row->MoveNext();
-                                }
-                            }
-                            $booking_row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=0");
+                            $booking_row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
                             while (!$booking_row->EOF) { ?>
-                                <option value="<?php echo $booking_row->fields['PK_SCHEDULING_CODE'];?>" data-duration="<?php echo $booking_row->fields['DURATION'];?>" data-scheduling_name="<?php echo $booking_row->fields['SCHEDULING_NAME']?>" data-is_default="<?php echo $booking_row->fields['IS_DEFAULT']?>" <?=in_array($booking_row->fields['PK_SCHEDULING_CODE'], $selected_booking_code)?"selected":""?>><?=$booking_row->fields['SCHEDULING_NAME'].' ('.$booking_row->fields['SCHEDULING_CODE'].')'?></option>
+                                <option value="<?php echo $booking_row->fields['PK_SCHEDULING_CODE'];?>" data-duration="<?php echo $booking_row->fields['DURATION'];?>" data-scheduling_name="<?php echo $booking_row->fields['SCHEDULING_NAME']?>" data-is_default="<?php echo $booking_row->fields['IS_DEFAULT']?>"><?=$booking_row->fields['SCHEDULING_NAME'].' ('.$booking_row->fields['SCHEDULING_CODE'].')'?></option>
                             <?php $booking_row->MoveNext(); } ?>
                         </select>
                     </div>

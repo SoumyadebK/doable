@@ -18,6 +18,7 @@ if (!empty($_POST)) {
     $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
     /*$SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
     $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];*/
+    $SCHEDULING_DATA['TO_DOS'] = $_POST['TO_DOS'] ? 1 : 0;
     $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
     $SCHEDULING_DATA['DURATION'] = $_POST['DURATION'];
     $SCHEDULING_DATA['SORT_ORDER'] = $_POST['SORT_ORDER'];
@@ -49,14 +50,15 @@ if (!empty($_POST)) {
 }*/
 
 if (empty($_GET['id'])) {
-    $SCHEDULING_CODE      = '';
-    $SCHEDULING_NAME            = '';
-    $PK_SCHEDULING_EVENT     = '';
-    $PK_EVENT_ACTION            = '';
-    $COLOR_CODE = '';
-    $DURATION = '';
-    $SORT_ORDER = '';
-    $ACTIVE             = '';
+    $SCHEDULING_CODE        = '';
+    $SCHEDULING_NAME        = '';
+    $PK_SCHEDULING_EVENT    = '';
+    $PK_EVENT_ACTION        = '';
+    $TO_DOS                 = '';
+    $COLOR_CODE             = '';
+    $DURATION               = '';
+    $SORT_ORDER             = '';
+    $ACTIVE                 = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
@@ -67,6 +69,7 @@ if (empty($_GET['id'])) {
     $SCHEDULING_NAME      = $res->fields['SCHEDULING_NAME'];
     $PK_SCHEDULING_EVENT  = $res->fields['PK_SCHEDULING_EVENT'];
     $PK_EVENT_ACTION      = $res->fields['PK_EVENT_ACTION'];
+    $TO_DOS               = $res->fields['TO_DOS'];
     $COLOR_CODE           = $res->fields['COLOR_CODE'];
     $DURATION             = $res->fields['DURATION'];
     $SORT_ORDER           = $res->fields['SORT_ORDER'];
@@ -178,11 +181,11 @@ if (empty($_GET['id'])) {
                                         </select>
                                     </div>
                                 </div>-->
-                                <!--<div class="form-group">
+                                <div class="form-group">
                                     <label class="" for="example-text">To Dos</label>
-                                    <input type="checkbox" id="TO_DOS" name="TO_DOS" class="form-check-inline" style="margin-left: 10px;" <?php /*=($TO_DOS == 1)?'checked':''*/?>
+                                    <input type="checkbox" id="TO_DOS" name="TO_DOS" class="form-check-inline" style="margin-left: 10px;" <?=($TO_DOS == 1)?'checked':''?>
                                 </div>
-                                <div class="form-group" style="margin-top: 15px">
+                                <!--<div class="form-group" style="margin-top: 15px">
                                     <label class="" for="example-text">Is Group</label>
                                     <input type="checkbox" id="IS_GROUP" name="IS_GROUP" class="form-check-inline" style="margin-left: 10px;" <?php /*=($IS_GROUP == 1)?'checked':''*/?>
                                 </div>
