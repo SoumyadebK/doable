@@ -1,6 +1,6 @@
 <?php
 require_once('../global/config.php');
-$title = "All Chat Section";
+$title = "Assistant";
 
 $status_check = empty($_GET['status'])?'active':$_GET['status'];
 
@@ -63,6 +63,7 @@ $page_first_result = ($page-1) * $results_per_page;
                 </div>
                 <div class="col-md-4 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='assistant_title.php'" ><i class="fa fa-edit"></i> Assistant Title</button>&nbsp;&nbsp;
                         <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_chat_prompt.php'" ><i class="fa fa-plus-circle"></i> Chat Prompt</button>&nbsp;&nbsp;
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
