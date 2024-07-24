@@ -117,7 +117,7 @@ function updateSessionCompletedCount($PK_APPOINTMENT_MASTER)
         }
     }*/
 
-    markEnrollmentComplete($serviceCodeData->fields['PK_ENROLLMENT_MASTER']);
+    //markEnrollmentComplete($serviceCodeData->fields['PK_ENROLLMENT_MASTER']);
 
     if($serviceCodeData->fields['CHARGE_BY_SESSIONS'] == 1 && $serviceCodeData->fields['NUMBER_OF_SESSION'] == $serviceCodeData->fields['SESSION_COMPLETED']) {
         copyEnrollment($serviceCodeData->fields['PK_ENROLLMENT_MASTER']);
@@ -154,6 +154,7 @@ function updateSessionCreatedAndCompletedCount($PK_APPOINTMENT_MASTER)
     $ENR_SERVICE_DATA['SESSION_COMPLETED'] = $SESSION_COMPLETED_COUNT;
     db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $PK_ENROLLMENT_SERVICE);
 
+    markEnrollmentComplete($PK_ENROLLMENT_MASTER);
     markAppointmentAdhoc($PK_ENROLLMENT_SERVICE);
 }
 

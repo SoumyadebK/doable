@@ -33,7 +33,7 @@ while (!$status_data->EOF) {
 ?>
 <div class="modal-dialog">
     <form id="wallet_payment_form"  method="post" action="includes/save_appointment_details.php" enctype="multipart/form-data">
-        <input type="hidden" name="REDIRECT_URL" value="../customer.php?id=<?=$PK_USER?>&master_id=<?=$PK_USER_MASTER?>">
+        <input type="hidden" name="REDIRECT_URL" value="../customer.php?id=<?=$PK_USER?>&master_id=<?=$PK_USER_MASTER?>&tab=enrollment">
         <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=$PK_APPOINTMENT_MASTER?>">
         <div class="modal-content">
             <div class="modal-header">
