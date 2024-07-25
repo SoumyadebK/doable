@@ -175,11 +175,19 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         $SPECIAL_APPOINTMENT_DATE_ARRAY[] = date('Y-m-d', strtotime($_POST['DATE']));
     }
 
+    $special_appointment_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_SPECIAL_APPOINTMENT` ORDER BY STANDING_ID DESC LIMIT 1");
+    if ($special_appointment_data->RecordCount() > 0) {
+        $standing_id = $special_appointment_data->fields['STANDING_ID'] + 1;
+    } else {
+        $standing_id = 1;
+    }
+
     if (count($SPECIAL_APPOINTMENT_DATE_ARRAY) > 0) {
         if (isset($_POST['PK_USER'])) {
             for ($j = 0; $j < count($_POST['PK_USER']); $j++) {
                 for ($i = 0; $i < count($SPECIAL_APPOINTMENT_DATE_ARRAY); $i++) {
                     //$SPECIAL_APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                    $SPECIAL_APPOINTMENT_DATA['STANDING_ID'] = $standing_id;
                     $SPECIAL_APPOINTMENT_DATA['PK_LOCATION'] = $LOCATION_ARRAY[0];
                     $SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
                     $SPECIAL_APPOINTMENT_DATA['DATE'] = $SPECIAL_APPOINTMENT_DATE_ARRAY[$i];

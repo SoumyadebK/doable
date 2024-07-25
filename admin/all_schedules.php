@@ -82,7 +82,13 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAp
     $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
     $SPECIAL_APPOINTMENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
     $SPECIAL_APPOINTMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-    db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update'," PK_SPECIAL_APPOINTMENT =  '$PK_SPECIAL_APPOINTMENT'");
+
+    if (isset($_POST['STANDING_ID'])) {
+        db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update', " STANDING_ID =  '$_POST[STANDING_ID]'");
+    } else {
+        $SPECIAL_APPOINTMENT_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
+        db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update'," PK_SPECIAL_APPOINTMENT =  '$PK_SPECIAL_APPOINTMENT'");
+    }
 
     if (isset($_POST['PK_USER'])) {
         $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
@@ -709,8 +715,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     success: function (result) {
                         $('#appointment_details_div').html(result);
                         $('#edit_appointment_half').show();
-                        $('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
-                        $('.PK_SCHEDULING_CODE').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
+                        //$('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
+                        //$('.PK_SCHEDULING_CODE').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
 
                         $('.datepicker-normal').datepicker({
                             format: 'mm/dd/yyyy',

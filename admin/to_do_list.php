@@ -201,7 +201,8 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td><?=date('h:i A', strtotime($special_appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($special_appointment_data->fields['END_TIME']))?></td>
                                             <td><?=$special_appointment_data->fields['APPOINTMENT_STATUS']?></td>
                                             <td>
-                                                <a href="all_schedules.php?id=<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>" onclick='ConfirmDelete(<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="javascript:" onclick='ConfirmDelete(<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>);' title="Delete"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="javascript:" onclick='ConfirmDeleteStanding(<?=$special_appointment_data->fields['STANDING_ID']?>);' title="Delete All Standing"><i class="fa fa-trash-alt"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
                                         <?php $special_appointment_data->MoveNext();
@@ -482,7 +483,22 @@ $page_first_result = ($page-1) * $results_per_page;
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
-                data: {FUNCTION_NAME: 'deleteAppointment', PK_SPECIAL_APPOINTMENT: PK_SPECIAL_APPOINTMENT},
+                data: {FUNCTION_NAME: 'deleteSpecialAppointment', PK_SPECIAL_APPOINTMENT: PK_SPECIAL_APPOINTMENT, IS_STANDING: 0},
+                success: function (data) {
+                    window.location.href = 'to_do_list.php';
+                }
+            });
+        }
+    }
+
+    function ConfirmDeleteStanding(STANDING_ID)
+    {
+        var conf = confirm("Are you sure you want to delete all standing appointment?");
+        if(conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {FUNCTION_NAME: 'deleteSpecialAppointment', PK_SPECIAL_APPOINTMENT: STANDING_ID, IS_STANDING: 1},
                 success: function (data) {
                     window.location.href = 'to_do_list.php';
                 }
