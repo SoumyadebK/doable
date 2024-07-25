@@ -29,7 +29,7 @@ $search_text = '';
 $search = $START_DATE.$END_DATE. ' ';
 if (!empty($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = $START_DATE.$END_DATE." AND (DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%".$search_text."%' OR CUSTOMER.FIRST_NAME LIKE '%".$search_text."%' OR SERVICE_PROVIDER.FIRST_NAME LIKE '%".$search_text."%' OR CUSTOMER.LAST_NAME LIKE '%".$search_text."%' OR SERVICE_PROVIDER.LAST_NAME LIKE '%".$search_text."%' OR CUSTOMER.EMAIL_ID LIKE '%".$search_text."%' OR CUSTOMER.PHONE LIKE '%".$search_text."%')";
+    $search = $START_DATE.$END_DATE." AND (DOA_SPECIAL_APPOINTMENT.TITLE LIKE '%".$search_text."%')";
 }
 
 $SPECIAL_APPOINTMENT_QUERY = "SELECT
@@ -182,6 +182,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <th data-type="string" class="sortable" style="cursor: pointer">Day</th>
                                             <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
                                             <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
+                                            <th data-type="string" class="sortable" style="cursor: pointer">Status</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -199,10 +200,11 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td><?=date('l', strtotime($special_appointment_data->fields['DATE']))?></td>
                                             <td><?=date('m/d/Y', strtotime($special_appointment_data->fields['DATE']))?></td>
                                             <td><?=date('h:i A', strtotime($special_appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($special_appointment_data->fields['END_TIME']))?></td>
-                                            <td><?=$special_appointment_data->fields['APPOINTMENT_STATUS']?></td>
+                                            <td style="color: <?=$special_appointment_data->fields['APPOINTMENT_COLOR']?>"><?=$special_appointment_data->fields['APPOINTMENT_STATUS']?></td>
                                             <td>
-                                                <a href="javascript:" onclick='ConfirmDelete(<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>);' title="Delete"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="javascript:" onclick='ConfirmDeleteStanding(<?=$special_appointment_data->fields['STANDING_ID']?>);' title="Delete All Standing"><i class="fa fa-trash-alt"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="edit_to_do.php?id=<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;
+                                                <a href="javascript:" onclick='ConfirmDelete(<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>);' title="Delete"><i class="fa fa-trash" style="font-size: 16px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="javascript:" onclick='ConfirmDeleteStanding(<?=$special_appointment_data->fields['STANDING_ID']?>);' title="Delete All Standing"><i class="fa fa-trash-alt" style="font-size: 16px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
                                         <?php $special_appointment_data->MoveNext();
