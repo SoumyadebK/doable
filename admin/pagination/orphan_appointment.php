@@ -90,7 +90,7 @@ if ($orphan_appointment_data->RecordCount() > 0) {
             <td><?=date('l', strtotime($orphan_appointment_data->fields['DATE']))?></td>
             <td><?=date('m/d/Y', strtotime($orphan_appointment_data->fields['DATE']))?></td>
             <td><?=date('h:i A', strtotime($orphan_appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($orphan_appointment_data->fields['END_TIME']))?></td>
-            <td><?=$orphan_appointment_data->fields['APPOINTMENT_STATUS']?></td>
+            <td style="color: <?=$orphan_appointment_data->fields['APPOINTMENT_COLOR']?>"><?=$orphan_appointment_data->fields['APPOINTMENT_STATUS']?></td>
         </tr>
         <?php $orphan_appointment_data->MoveNext();
         $i--; } ?>

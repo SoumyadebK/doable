@@ -80,6 +80,7 @@ if ($header_data->RecordCount() > 0) {
                                         <th>Scheduling Name</th>
                                         <th>Color</th>
                                         <th>Sort Order</th>
+                                        <th>To-Dos</th>
                                         <th>Action</th>
                                     </tr>
                                     </thead>
@@ -87,7 +88,7 @@ if ($header_data->RecordCount() > 0) {
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_NAME, DOA_SCHEDULING_CODE.COLOR_CODE, DOA_SCHEDULING_CODE.SORT_ORDER, DOA_SCHEDULING_CODE.ACTIVE FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.ACTIVE =".$status." AND DOA_SCHEDULING_CODE.PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']. " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
+                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_NAME, DOA_SCHEDULING_CODE.COLOR_CODE, DOA_SCHEDULING_CODE.SORT_ORDER, DOA_SCHEDULING_CODE.TO_DOS, DOA_SCHEDULING_CODE.ACTIVE FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.ACTIVE =".$status." AND DOA_SCHEDULING_CODE.PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']. " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['SCHEDULING_CODE']?></td>
@@ -95,6 +96,11 @@ if ($header_data->RecordCount() > 0) {
                                             <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><span style="display: block; width: 44px; height: 22px; background-color: <?=$row->fields['COLOR_CODE']?>"></span></td>
                                             <td><?=$row->fields['SORT_ORDER']?>
                                                 <a href="javascript:" class="btn btn-info waves-effect waves-light m-r-10 text-white myBtn" onclick="editSortOrder(<?=$row->fields['PK_SCHEDULING_CODE']?>, <?=$row->fields['SORT_ORDER']?>);" style="float: right">Set Order</a>
+                                            </td>
+                                            <td style="text-align: center">
+                                                <?php if($row->fields['TO_DOS']==1){ ?>
+                                                    <i style="font-size: 20px" class="fa fa-check-square"></i>
+                                                <?php } ?>
                                             </td>
                                             <td>
                                                 <a href="add_scheduling_codes.php?id=<?=$row->fields['PK_SCHEDULING_CODE']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

@@ -728,7 +728,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     }
                                                                     ?>
                                                                     <input type="hidden" id="selected_location" value="<?=implode(',', $selected_location);?>">
-                                                                    <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple required>
+                                                                    <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
                                                                         <?php
                                                                         $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION != '$primary_location' AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                                         while (!$row->EOF) { ?>
