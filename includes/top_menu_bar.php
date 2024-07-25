@@ -135,6 +135,12 @@ if (!empty($_GET['view'])) {
                             </a>
                         </li>
                         <li>
+                            <a class="waves-effect waves-dark" href="../admin/to_do_list.php" aria-expanded="false">
+                                <i class="icon-notebook"></i>
+                                <span class="hide-menu">To-Do</span>
+                            </a>
+                        </li>
+                        <li>
                             <a class="waves-effect waves-dark" href="../admin/all_customers.php" aria-expanded="false">
                                 <i class="icons-User"></i>
                                 <span class="hide-menu">Customers</span>

@@ -134,7 +134,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                             $row = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_STATUS` WHERE `ACTIVE` = 1");
                             while (!$row->EOF) { ?>
                                 <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($PK_APPOINTMENT_STATUS==$row->fields['PK_APPOINTMENT_STATUS'])?'selected':''?>><?=$row->fields['APPOINTMENT_STATUS']?></option>
-                                <?php $row->MoveNext(); } ?>
+                            <?php $row->MoveNext(); } ?>
                         </select>
                         <p id="appointment_status"><?=$selected_status?></p>
                     </div>
