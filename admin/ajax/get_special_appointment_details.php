@@ -1,7 +1,7 @@
 <?php
 require_once('../../global/config.php');
 
-$res = $db_account->Execute("SELECT DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT, DOA_SPECIAL_APPOINTMENT.TITLE, DOA_SPECIAL_APPOINTMENT.DATE, DOA_SPECIAL_APPOINTMENT.START_TIME, DOA_SPECIAL_APPOINTMENT.END_TIME, DOA_SPECIAL_APPOINTMENT.DESCRIPTION, DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE, DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS, DOA_SPECIAL_APPOINTMENT.ACTIVE, DOA_SPECIAL_APPOINTMENT_CUSTOMER.PK_USER_MASTER  FROM `DOA_SPECIAL_APPOINTMENT` LEFT JOIN DOA_SPECIAL_APPOINTMENT_CUSTOMER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT=DOA_SPECIAL_APPOINTMENT_CUSTOMER.PK_SPECIAL_APPOINTMENT WHERE DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = '$_POST[PK_APPOINTMENT_MASTER]'");
+$res = $db_account->Execute("SELECT DOA_SPECIAL_APPOINTMENT.*  FROM DOA_SPECIAL_APPOINTMENT WHERE PK_SPECIAL_APPOINTMENT = '$_POST[PK_APPOINTMENT_MASTER]'");
 
 if($res->RecordCount() == 0){
     header("location:all_special_appointment.php");
@@ -9,12 +9,12 @@ if($res->RecordCount() == 0){
 }
 
 $PK_SPECIAL_APPOINTMENT = $res->fields['PK_SPECIAL_APPOINTMENT'];
+$STANDING_ID = $res->fields['STANDING_ID'];
 $TITLE = $res->fields['TITLE'];
 $DATE = $res->fields['DATE'];
 $START_TIME = $res->fields['START_TIME'];
 $END_TIME = $res->fields['END_TIME'];
 $DESCRIPTION = $res->fields['DESCRIPTION'];
-$PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
 $PK_SCHEDULING_CODE = $res->fields['PK_SCHEDULING_CODE'];
 $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
 $ACTIVE = $res->fields['ACTIVE'];
@@ -104,18 +104,9 @@ $ACTIVE = $res->fields['ACTIVE'];
                 <div class="col-6">
                     <label class="form-label">Scheduling Code</label>
                     <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
-                        <select class="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
-                            <option disabled selected>Select Scheduling Code</option>
+                        <select class="form-control" name="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
                             <?php
-                            $selected_booking_code = [];
-                            if(!empty($_GET['id'])) {
-                                $selected_booking_code_row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = ".$row->fields['PK_SCHEDULING_CODE']);
-                                while (!$selected_booking_code_row->EOF) {
-                                    $selected_booking_code[] = $selected_booking_code_row->fields['PK_SCHEDULING_CODE'];
-                                    $selected_booking_code_row->MoveNext();
-                                }
-                            }
-                            $booking_row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=0");
+                            $booking_row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
                             while (!$booking_row->EOF) { ?>
                                 <option value="<?php echo $booking_row->fields['PK_SCHEDULING_CODE'];?>" data-duration="<?php echo $booking_row->fields['DURATION'];?>" data-scheduling_name="<?php echo $booking_row->fields['SCHEDULING_NAME']?>" data-is_default="<?php echo $booking_row->fields['IS_DEFAULT']?>" <?=($PK_SCHEDULING_CODE == $booking_row->fields['PK_SCHEDULING_CODE']) ? "selected" : ""?>><?=$booking_row->fields['SCHEDULING_NAME'].' ('.$booking_row->fields['SCHEDULING_CODE'].')'?></option>
                             <?php $booking_row->MoveNext(); } ?>
@@ -142,6 +133,11 @@ $ACTIVE = $res->fields['ACTIVE'];
             </div>
         </div>
     </div>
+
+    <div class="form-group">
+        <label><input type="checkbox" name="STANDING_ID" value="<?=$STANDING_ID?>"> All Standing Session Details Will Be Changed</label>
+    </div>
+
     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
 </form>

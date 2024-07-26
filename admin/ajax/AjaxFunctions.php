@@ -1861,6 +1861,18 @@ function deleteAppointment($RESPONSE_DATA) {
     echo 1;
 }
 
+function deleteSpecialAppointment($RESPONSE_DATA) {
+    global $db_account;
+    $PK_SPECIAL_APPOINTMENT = $RESPONSE_DATA['PK_SPECIAL_APPOINTMENT'];
+    $IS_STANDING = $RESPONSE_DATA['IS_STANDING'];
+    if ($IS_STANDING == 0) {
+        $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT` WHERE `PK_SPECIAL_APPOINTMENT` = " . $PK_SPECIAL_APPOINTMENT);
+    } else {
+        $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT` WHERE `STANDING_ID` = " . $PK_SPECIAL_APPOINTMENT);
+    }
+    echo 1;
+}
+
 function scheduleAppointment($RESPONSE_DATA) {
     global $db_account;
     $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
