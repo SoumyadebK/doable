@@ -29,7 +29,14 @@ $search_text = '';
 $search = $START_DATE.$END_DATE. ' ';
 if (!empty($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = $START_DATE.$END_DATE." AND (DOA_SPECIAL_APPOINTMENT.TITLE LIKE '%".$search_text."%')";
+    $search = $START_DATE.$END_DATE." AND (DOA_SPECIAL_APPOINTMENT.TITLE LIKE '%".$search_text."%') ";
+}
+
+$standing = 0;
+$standing_cond = ' GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT ';
+if (!empty($_GET['standing']) && $_GET['standing'] == 1) {
+    $standing = 1;
+    $standing_cond = " GROUP BY DOA_SPECIAL_APPOINTMENT.STANDING_ID ";
 }
 
 $SPECIAL_APPOINTMENT_QUERY = "SELECT
@@ -54,8 +61,7 @@ $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                 LEFT JOIN DOA_SCHEDULING_CODE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE
                                 WHERE DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
                                 AND DOA_SPECIAL_APPOINTMENT.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
-                                ".$search."
-                                GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT";
+                                ".$search.$standing_cond;
 
 $query = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
 
@@ -144,6 +150,18 @@ $page_first_result = ($page-1) * $results_per_page;
 
             <form class="form-material form-horizontal" id="search_form" action="" method="get">
                 <div class="row page-titles">
+                    <div class="col-md-2 align-self-center">
+                        <h4 class="text-themecolor">All To-Do</h4>
+                    </div>
+
+                    <div class="col-md-2 align-self-center">
+                        <?php if ($standing == 0) { ?>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='to_do_list.php?standing=1'">Show Standing</button>
+                        <?php } else { ?>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='to_do_list.php'">Show All</button>
+                        <?php } ?>
+                    </div>
+
                     <div class="col-2">
                         <div class="form-material form-horizontal">
                             <select class="form-control" name="appointment_status" id="appointment_status" onchange="$('#search_form').submit()">
@@ -152,10 +170,11 @@ $page_first_result = ($page-1) * $results_per_page;
                                 $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
                                 while (!$row->EOF) { ?>
                                     <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($row->fields['PK_APPOINTMENT_STATUS'] == $appointment_status)?"selected":""?>><?=$row->fields['APPOINTMENT_STATUS']?></option>
-                                    <?php $row->MoveNext(); } ?>
+                                <?php $row->MoveNext(); } ?>
                             </select>
                         </div>
                     </div>
+
                     <div class="col-6">
                         <div class="input-group">
                             <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?=!empty($_GET['START_DATE'])?$_GET['START_DATE']:''?>">&nbsp;&nbsp;&nbsp;&nbsp;
@@ -202,9 +221,12 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td><?=date('h:i A', strtotime($special_appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($special_appointment_data->fields['END_TIME']))?></td>
                                             <td style="color: <?=$special_appointment_data->fields['APPOINTMENT_COLOR']?>"><?=$special_appointment_data->fields['APPOINTMENT_STATUS']?></td>
                                             <td>
-                                                <a href="edit_to_do.php?id=<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;
-                                                <a href="javascript:" onclick='ConfirmDelete(<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>);' title="Delete"><i class="fa fa-trash" style="font-size: 16px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="javascript:" onclick='ConfirmDeleteStanding(<?=$special_appointment_data->fields['STANDING_ID']?>);' title="Delete All Standing"><i class="fa fa-trash-alt" style="font-size: 16px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="edit_to_do.php?id=<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;
+                                                <?php if ($standing == 0) { ?>
+                                                    <a href="javascript:" onclick='ConfirmDelete(<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>);' title="Delete"><i class="fa fa-trash" style="font-size: 16px;"></i></a>&nbsp;&nbsp;&nbsp;
+                                                <?php } else { ?>
+                                                    <a href="javascript:" onclick='ConfirmDeleteStanding(<?=$special_appointment_data->fields['STANDING_ID']?>);' title="Delete All Standing"><i class="fa fa-trash-alt" style="font-size: 16px;"></i></a>&nbsp;&nbsp;&nbsp;
+                                                <?php } ?>
                                             </td>
                                         </tr>
                                         <?php $special_appointment_data->MoveNext();
