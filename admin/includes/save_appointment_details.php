@@ -61,6 +61,16 @@ $APPOINTMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
 
 if (isset($_POST['STANDING_ID'])) {
     db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update', " STANDING_ID =  '$_POST[STANDING_ID]'");
+
+    $appointment_id = [];
+    $appointment_id_row = $db_account->Execute("SELECT `PK_APPOINTMENT_MASTER` FROM `DOA_APPOINTMENT_MASTER` WHERE `STANDING_ID` = '$_POST[STANDING_ID]'");
+    while (!$appointment_id_row->EOF) {
+        $appointment_id[] = $appointment_id_row->fields['PK_APPOINTMENT_MASTER'];
+        $appointment_id_row->MoveNext();
+    }
+
+    $APPOINTMENT_SP_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID'];
+    db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'update'," PK_APPOINTMENT_MASTER IN (".implode(',', $appointment_id).")");
 } else {
     $GROUP_CLASS_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
     db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$PK_APPOINTMENT_MASTER'");
