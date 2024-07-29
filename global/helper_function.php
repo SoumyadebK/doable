@@ -19,7 +19,7 @@ function markAppointmentAdhoc($PK_ENROLLMENT_SERVICE)
     global $db_account;
     $session_created = $db_account->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS SESSION_CREATED FROM `DOA_APPOINTMENT_MASTER` WHERE (`PK_APPOINTMENT_STATUS` != 6 OR IS_CHARGED = 1) AND `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
     $SESSION_CREATED_COUNT = ($session_created->RecordCount() > 0) ? $session_created->fields['SESSION_CREATED'] : 0;
-    $enrollment_session = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE'");
+    $enrollment_session = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE, PK_ENROLLMENT_MASTER, PK_SERVICE_MASTER, NUMBER_OF_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE'");
     if ($SESSION_CREATED_COUNT > $enrollment_session->fields['NUMBER_OF_SESSION']) {
         $last_appointment_id = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER FROM DOA_APPOINTMENT_MASTER WHERE PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE' AND PK_APPOINTMENT_STATUS != 6 ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC LIMIT 1");
         $PK_APPOINTMENT_MASTER = $last_appointment_id->fields['PK_APPOINTMENT_MASTER'];
@@ -35,6 +35,15 @@ function markAppointmentAdhoc($PK_ENROLLMENT_SERVICE)
 
         $appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER, DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE, DOA_APPOINTMENT_MASTER.PK_LOCATION, DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = " . $PK_APPOINTMENT_MASTER);
         checkAdhocAppointmentStatus($PK_APPOINTMENT_MASTER, $appointment_data->fields['PK_SERVICE_MASTER'], $appointment_data->fields['PK_SERVICE_CODE'], $appointment_data->fields['PK_USER_MASTER'], $appointment_data->fields['PK_LOCATION']);
+    } elseif ($SESSION_CREATED_COUNT < $enrollment_session->fields['NUMBER_OF_SESSION']) {
+        $last_enrollment_appointment = $db_account->Execute("SELECT PK_APPOINTMENT_MASTER, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_SERVICE FROM DOA_APPOINTMENT_MASTER WHERE PK_SERVICE_MASTER = ".$enrollment_session->fields['PK_SERVICE_MASTER']." AND PK_APPOINTMENT_STATUS != 6 ORDER BY PK_ENROLLMENT_MASTER DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC LIMIT 1");
+        if ($last_enrollment_appointment->fields['PK_ENROLLMENT_MASTER'] > $enrollment_session->fields['PK_ENROLLMENT_MASTER']) {
+            updateSessionCreatedAndCompletedCount($last_enrollment_appointment->fields['PK_APPOINTMENT_MASTER']);
+            $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $enrollment_session->fields['PK_ENROLLMENT_MASTER'];
+            $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $enrollment_session->fields['PK_ENROLLMENT_SERVICE'];
+            db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update', " PK_APPOINTMENT_MASTER = " . $last_enrollment_appointment->fields['PK_APPOINTMENT_MASTER']);
+            updateSessionCreatedAndCompletedCount($last_enrollment_appointment->fields['PK_APPOINTMENT_MASTER']);
+        }
     }
 
 }
@@ -156,6 +165,20 @@ function updateSessionCreatedAndCompletedCount($PK_APPOINTMENT_MASTER)
 
     markEnrollmentComplete($PK_ENROLLMENT_MASTER);
     markAppointmentAdhoc($PK_ENROLLMENT_SERVICE);
+}
+
+function getSessionCreatedCount($PK_ENROLLMENT_SERVICE)
+{
+    global $db_account;
+    $session_created = $db_account->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS SESSION_CREATED FROM `DOA_APPOINTMENT_MASTER` WHERE (`PK_APPOINTMENT_STATUS` != 6 OR IS_CHARGED = 1) AND `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
+    return ($session_created->RecordCount() > 0) ? $session_created->fields['SESSION_CREATED'] : 0;
+}
+
+function getSessionCompletedCount($PK_ENROLLMENT_SERVICE)
+{
+    global $db_account;
+    $session_completed = $db_account->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS SESSION_COMPLETED FROM `DOA_APPOINTMENT_MASTER` WHERE IS_CHARGED = 1 AND `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
+    return ($session_completed->RecordCount() > 0) ? $session_completed->fields['SESSION_COMPLETED'] : 0;
 }
 
 function copyEnrollment($PK_ENROLLMENT_MASTER){
