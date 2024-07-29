@@ -55,15 +55,15 @@ if (isset($_POST['FUNCTION_NAME'])){
     }
 
     if (count($GROUP_CLASS_DATE_ARRAY) > 0) {
-        $group_class_data = $db->Execute("SELECT GROUP_CLASS_ID FROM `DOA_GROUP_CLASS` ORDER BY GROUP_CLASS_ID DESC LIMIT 1");
-        if ($group_class_data->RecordCount() > 0) {
-            $group_class_id = $group_class_data->fields['GROUP_CLASS_ID']+1;
+        $standing_data = $db->Execute("SELECT STANDING_ID FROM `DOA_GROUP_CLASS` ORDER BY STANDING_ID DESC LIMIT 1");
+        if ($standing_data->RecordCount() > 0) {
+            $standing_id = $standing_data->fields['STANDING_ID']+1;
         } else {
-            $group_class_id = 1;
+            $standing_id = 1;
         }
 
         for ($i = 0; $i < count($GROUP_CLASS_DATE_ARRAY); $i++) {
-            $GROUP_CLASS_DATA['GROUP_CLASS_ID'] = $group_class_id;
+            $GROUP_CLASS_DATA['STANDING_ID'] = $standing_id;
             $GROUP_CLASS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
             $GROUP_CLASS_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
             $GROUP_CLASS_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;

@@ -46,6 +46,7 @@ if($res->RecordCount() == 0){
 }
 
 $PK_APPOINTMENT_MASTER = $_POST['PK_APPOINTMENT_MASTER'];
+$STANDING_ID = $res->fields['STANDING_ID'];
 $CUSTOMER_ID = $res->fields['CUSTOMER_ID'];
 $PK_ENROLLMENT_MASTER = $res->fields['PK_ENROLLMENT_MASTER'];
 $SERIAL_NUMBER = $res->fields['SERIAL_NUMBER'];
@@ -594,6 +595,12 @@ z-index: 500;
                         </div>
                     </div>
                 </div>
+
+                <?php if ($STANDING_ID > 0) { ?>
+                    <div class="form-group">
+                        <label><input type="checkbox" name="STANDING_ID" value="<?=$STANDING_ID?>"> All Session Details Will Be Changed</label>
+                    </div>
+                <?php } ?>
 
                 <div class="form-group" style="margin-top: 25px;">
                     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>

@@ -40,6 +40,13 @@ if (!empty($_GET['search_text'])) {
     $search = $START_DATE.$END_DATE." AND (DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%".$search_text."%' OR CUSTOMER.FIRST_NAME LIKE '%".$search_text."%' OR SERVICE_PROVIDER.FIRST_NAME LIKE '%".$search_text."%' OR CUSTOMER.LAST_NAME LIKE '%".$search_text."%' OR SERVICE_PROVIDER.LAST_NAME LIKE '%".$search_text."%' OR CUSTOMER.EMAIL_ID LIKE '%".$search_text."%' OR CUSTOMER.PHONE LIKE '%".$search_text."%')";
 }
 
+$standing = 0;
+$standing_cond = ' GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER ';
+if (!empty($_GET['standing']) && $_GET['standing'] == 1) {
+    $standing = 1;
+    $standing_cond = " GROUP BY DOA_APPOINTMENT_MASTER.STANDING_ID ";
+}
+
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
                             DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
@@ -81,7 +88,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
                         $appointment_time
                         $search
-                        GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
+                        $standing_cond
                         ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC";
 
 $query = $db_account->Execute($ALL_APPOINTMENT_QUERY);
@@ -202,6 +209,14 @@ $page_first_result = ($page-1) * $results_per_page;
                         </div>
                     <?php } ?>
 
+                    <div class="col-md-1 align-self-center">
+                        <?php if ($standing == 0) { ?>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?standing=1'">Show Standing</button>
+                        <?php } else { ?>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php'">Show All</button>
+                        <?php } ?>
+                    </div>
+
                     <div class="col-2">
                         <div class="form-material form-horizontal">
                             <select class="form-control" name="appointment_status" id="appointment_status" onchange="$('#search_form').submit()">
@@ -214,7 +229,7 @@ $page_first_result = ($page-1) * $results_per_page;
                             </select>
                         </div>
                     </div>
-                    <div class="col-6">
+                    <div class="col-5">
                         <div class="input-group">
                             <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?=!empty($_GET['START_DATE'])?$_GET['START_DATE']:''?>">&nbsp;&nbsp;&nbsp;&nbsp;
                             <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date" value="<?=!empty($_GET['END_DATE'])?$_GET['END_DATE']:''?>">&nbsp;&nbsp;&nbsp;&nbsp;

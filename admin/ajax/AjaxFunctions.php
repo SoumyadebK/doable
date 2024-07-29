@@ -1720,6 +1720,14 @@ function saveMultiAppointmentData($RESPONSE_DATA){
                 $PK_LOCATION = 0;
             }
 
+            $standing_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY STANDING_ID DESC LIMIT 1");
+            if ($standing_data->RecordCount() > 0) {
+                $standing_id = $standing_data->fields['STANDING_ID'] + 1;
+            } else {
+                $standing_id = 1;
+            }
+
+            $APPOINTMENT_DATA['STANDING_ID'] = $standing_id;
             $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
             $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
             $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
@@ -2004,7 +2012,7 @@ function copyAppointment($RESPONSE_DATA) {
                 $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
             }
         } else {
-            $APPOINTMENT_DATA['GROUP_CLASS_ID'] = $appointment_details->fields['GROUP_CLASS_ID'];
+            $APPOINTMENT_DATA['STANDING_ID'] = $appointment_details->fields['STANDING_ID'];
             $APPOINTMENT_DATA['GROUP_NAME'] = $appointment_details->fields['GROUP_NAME'];
             $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
             $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;

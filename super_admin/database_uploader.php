@@ -1116,13 +1116,13 @@ if(!empty($_POST))
                     $APPOINTMENT_MASTER_DATA['GROUP_NAME'] = $allGroupAppointments->fields['appt_name'];
                     $APPOINTMENT_MASTER_DATA['APPOINTMENT_TYPE'] = 'GROUP';
 
-                    $group_class_data = $db_account->Execute("SELECT GROUP_CLASS_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY GROUP_CLASS_ID DESC LIMIT 1");
-                    if ($group_class_data->RecordCount() > 0) {
-                        $group_class_id = $group_class_data->fields['GROUP_CLASS_ID'] + 1;
+                    $standing_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY STANDING_ID DESC LIMIT 1");
+                    if ($standing_data->RecordCount() > 0) {
+                        $standing_id = $standing_data->fields['STANDING_ID'] + 1;
                     } else {
-                        $group_class_id = 1;
+                        $standing_id = 1;
                     }
-                    $APPOINTMENT_MASTER_DATA['GROUP_CLASS_ID'] = $group_class_id;
+                    $APPOINTMENT_MASTER_DATA['STANDING_ID'] = $standing_id;
                 } elseif($service_id == 'PRI1' || $service_id == 'PRI2' || $service_id == 'PRI3' || $service_id == 'PRI4' || $service_id == 'NPRI') {
                     $APPOINTMENT_MASTER_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
                     $APPOINTMENT_MASTER_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($PK_USER_MASTER);

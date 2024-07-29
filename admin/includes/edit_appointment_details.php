@@ -12,6 +12,7 @@ $PK_APPOINTMENT_MASTER = $_GET['PK_APPOINTMENT_MASTER'];
 
 $appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.*, DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER);
 
+$STANDING_ID = $appointment_data->fields['STANDING_ID'];
 $PK_SCHEDULING_CODE = $appointment_data->fields['PK_SCHEDULING_CODE'];
 $PK_SERVICE_MASTER = $appointment_data->fields['PK_SERVICE_MASTER'];
 $SERVICE_PROVIDER_ID = $appointment_data->fields['PK_USER'];
@@ -137,6 +138,11 @@ while (!$status_data->EOF) {
 
                 </div>
             </div>
+            <?php if ($STANDING_ID > 0) { ?>
+                <div class="form-group">
+                    <label><input type="checkbox" name="STANDING_ID" value="<?=$STANDING_ID?>"> All Session Details Will Be Changed</label>
+                </div>
+            <?php } ?>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
