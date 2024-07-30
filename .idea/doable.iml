@@ -6,8 +6,8 @@
       <sourceFolder url="file://$MODULE_DIR$/global/square_old/phpoption/phpoption/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/global/square_old/square/connect/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/global/square_old/vlucas/phpdotenv/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/global/stripe-php-master/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/global/stripe-php-master/tests" isTestSource="true" packagePrefix="Stripe\" />
+      <sourceFolder url="file://$MODULE_DIR$/global/stripe-php-master/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/global/PHPMailer-master/src" isTestSource="false" packagePrefix="PHPMailer\PHPMailer\" />
       <sourceFolder url="file://$MODULE_DIR$/global/PHPMailer-master/test" isTestSource="true" packagePrefix="PHPMailer\Test\" />
       <sourceFolder url="file://$MODULE_DIR$/global/square_old/phpoption/phpoption/src/PhpOption" isTestSource="false" packagePrefix="PhpOption\" />
@@ -51,5 +51,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="ckeditor" level="application" />
   </component>
 </module>
