@@ -41,14 +41,21 @@ if (!empty($_GET['search_text'])) {
 }
 
 $standing = 0;
-$standing_cond = ' GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER ';
-if (!empty($_GET['standing']) && $_GET['standing'] == 1) {
-    $standing = 1;
-    $standing_cond = " GROUP BY DOA_APPOINTMENT_MASTER.STANDING_ID ";
+$standing_cond = ' ';
+$standing_group = ' GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER ';
+if (isset($_GET['standing'])) {
+    if ($_GET['standing'] == 1) {
+        $standing = 1;
+        $standing_cond = ' AND DOA_APPOINTMENT_MASTER.STANDING_ID > 0 ';
+        $standing_group = " GROUP BY DOA_APPOINTMENT_MASTER.STANDING_ID ";
+    } else {
+        $standing_cond = ' AND DOA_APPOINTMENT_MASTER.STANDING_ID = 0 ';
+    }
 }
 
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
+                            DOA_APPOINTMENT_MASTER.STANDING_ID,
                             DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
                             DOA_APPOINTMENT_MASTER.GROUP_NAME,
                             DOA_APPOINTMENT_MASTER.SERIAL_NUMBER,
@@ -86,9 +93,10 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
                         AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
                         AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
+                        $standing_cond
                         $appointment_time
                         $search
-                        $standing_cond
+                        $standing_group
                         ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC";
 
 $query = $db_account->Execute($ALL_APPOINTMENT_QUERY);
@@ -213,7 +221,7 @@ $page_first_result = ($page-1) * $results_per_page;
                         <?php if ($standing == 0) { ?>
                             <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?standing=1'">Show Standing</button>
                         <?php } else { ?>
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php'">Show All</button>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?standing=0'">Show Normal</button>
                         <?php } ?>
                     </div>
 
@@ -262,12 +270,16 @@ $page_first_result = ($page-1) * $results_per_page;
                                     </tr>
                                     </thead>
 
-                                    <tbody>
+
                                     <?php
                                     $i=$page_first_result+1;
                                     $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
-                                    while (!$appointment_data->EOF) { ?>
+                                    while (!$appointment_data->EOF) { if ($standing == 0) { ?>
+                                    <tbody>
                                         <tr>
+                                    <?php } else { ?>
+                                        <tr onclick="showStandingAppointmentDetails(this, <?=$appointment_data->fields['STANDING_ID']?>)" style="cursor: pointer;">
+                                    <?php } ?>
                                             <td><?=$i;?></td>
                                             <td><?=(($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class'))?></td>
                                             <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
@@ -303,9 +315,9 @@ $page_first_result = ($page-1) * $results_per_page;
                                                 <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
-                                        <?php $appointment_data->MoveNext();
-                                        $i++; } ?>
                                     </tbody>
+                                    <?php $appointment_data->MoveNext();
+                                    $i++; } ?>
                                 </table>
 
                                 <div class="center">
@@ -572,6 +584,19 @@ $page_first_result = ($page-1) * $results_per_page;
                 }
             });
         }
+    }
+
+    function showStandingAppointmentDetails(param, STANDING_ID) {
+        $.ajax({
+            url: "pagination/get_standing_appointment.php",
+            type: 'GET',
+            data: {STANDING_ID:STANDING_ID},
+            success: function (result) {
+                $('.added_standing').remove();
+                //$('#to_do_list > tbody > tr').eq(i-1).after(html);
+                $(param).closest('tbody').append(result);
+            }
+        });
     }
 
     function ConfirmDelete(PK_APPOINTMENT_MASTER)

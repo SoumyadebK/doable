@@ -33,10 +33,16 @@ if (!empty($_GET['search_text'])) {
 }
 
 $standing = 0;
-$standing_cond = ' GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT ';
-if (!empty($_GET['standing']) && $_GET['standing'] == 1) {
-    $standing = 1;
-    $standing_cond = " GROUP BY DOA_SPECIAL_APPOINTMENT.STANDING_ID ";
+$standing_cond = ' ';
+$standing_group = ' GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT ';
+if (isset($_GET['standing'])) {
+    if ($_GET['standing'] == 1) {
+        $standing = 1;
+        $standing_cond = ' AND DOA_SPECIAL_APPOINTMENT.STANDING_ID > 0 ';
+        $standing_group = " GROUP BY DOA_SPECIAL_APPOINTMENT.STANDING_ID ";
+    } else {
+        $standing_cond = ' AND DOA_SPECIAL_APPOINTMENT.STANDING_ID = 0 ';
+    }
 }
 
 $SPECIAL_APPOINTMENT_QUERY = "SELECT
@@ -61,7 +67,7 @@ $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                 LEFT JOIN DOA_SCHEDULING_CODE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE
                                 WHERE DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
                                 AND DOA_SPECIAL_APPOINTMENT.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
-                                ".$search.$standing_cond;
+                                ".$standing_cond.$search.$standing_group;
 
 $query = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
 
@@ -158,7 +164,7 @@ $page_first_result = ($page-1) * $results_per_page;
                         <?php if ($standing == 0) { ?>
                             <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='to_do_list.php?standing=1'">Show Standing</button>
                         <?php } else { ?>
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='to_do_list.php'">Show All</button>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='to_do_list.php?standing=0'">Show Normal</button>
                         <?php } ?>
                     </div>
 
@@ -191,7 +197,7 @@ $page_first_result = ($page-1) * $results_per_page;
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-striped border" data-page-length='50'>
+                                <table id="to_do_list" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                         <tr>
                                             <th data-type="number" class="sortable" style="cursor: pointer">No</th>
@@ -206,12 +212,18 @@ $page_first_result = ($page-1) * $results_per_page;
                                         </tr>
                                     </thead>
 
-                                    <tbody>
+
                                     <?php
                                     $i=$page_first_result+1;
                                     $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
                                     while (!$special_appointment_data->EOF) { ?>
+                                    <tbody>
+                                    <?php
+                                    if ($standing == 0) { ?>
                                         <tr>
+                                        <?php } else { ?>
+                                        <tr onclick="showStandingToDoDetails(this, <?=$special_appointment_data->fields['STANDING_ID']?>)" style="cursor: pointer;">
+                                        <?php } ?>
                                             <td><?=$i;?></td>
                                             <td><?=$special_appointment_data->fields['TITLE']?></td>
                                             <td><?=$special_appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
@@ -229,9 +241,9 @@ $page_first_result = ($page-1) * $results_per_page;
                                                 <?php } ?>
                                             </td>
                                         </tr>
-                                        <?php $special_appointment_data->MoveNext();
-                                        $i++; } ?>
                                     </tbody>
+                                    <?php $special_appointment_data->MoveNext();
+                                    $i++; } ?>
                                 </table>
 
                                 <div class="center">
@@ -498,6 +510,19 @@ $page_first_result = ($page-1) * $results_per_page;
                 }
             });
         }
+    }
+
+    function showStandingToDoDetails(param, STANDING_ID) {
+        $.ajax({
+            url: "pagination/get_standing_to_do.php",
+            type: 'GET',
+            data: {STANDING_ID:STANDING_ID},
+            success: function (result) {
+                $('.added_standing').remove();
+                //$('#to_do_list > tbody > tr').eq(i-1).after(html);
+                $(param).closest('tbody').append(result);
+            }
+        });
     }
 
     function ConfirmDelete(PK_SPECIAL_APPOINTMENT)

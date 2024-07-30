@@ -136,7 +136,9 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     }
     header("location:".$header);
 } elseif ($FUNCTION_NAME == 'saveSpecialAppointment') {
+    $standing_id = 0;
     $SPECIAL_APPOINTMENT_DATE_ARRAY = [];
+
     if (isset($_POST['IS_STANDING']) && $_POST['IS_STANDING'] == 1) {
         $STARTING_ON = date('Y-m-d', strtotime($_POST['DATE']));
         $LENGTH = $_POST['LENGTH'];
@@ -171,15 +173,15 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
                 }
             }
         }
+
+        $special_appointment_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_SPECIAL_APPOINTMENT` ORDER BY STANDING_ID DESC LIMIT 1");
+        if ($special_appointment_data->RecordCount() > 0) {
+            $standing_id = $special_appointment_data->fields['STANDING_ID'] + 1;
+        } else {
+            $standing_id = 1;
+        }
     } else {
         $SPECIAL_APPOINTMENT_DATE_ARRAY[] = date('Y-m-d', strtotime($_POST['DATE']));
-    }
-
-    $special_appointment_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_SPECIAL_APPOINTMENT` ORDER BY STANDING_ID DESC LIMIT 1");
-    if ($special_appointment_data->RecordCount() > 0) {
-        $standing_id = $special_appointment_data->fields['STANDING_ID'] + 1;
-    } else {
-        $standing_id = 1;
     }
 
     if (count($SPECIAL_APPOINTMENT_DATE_ARRAY) > 0) {

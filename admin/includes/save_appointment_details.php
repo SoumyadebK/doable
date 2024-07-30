@@ -32,6 +32,8 @@ if(isset($_FILES['VIDEO']['name']) && $_FILES['VIDEO']['name'] != ''){
     }
 }
 
+$PK_USER_MASTER = $_POST['PK_USER_MASTER'];
+
 $PK_APPOINTMENT_MASTER = $_POST['PK_APPOINTMENT_MASTER'];
 $PK_APPOINTMENT_STATUS = $_POST['PK_APPOINTMENT_STATUS_NEW'];
 $START_TIME = $_POST['START_TIME'];
@@ -80,7 +82,9 @@ if (isset($_POST['STANDING_ID'])) {
 }
 
 
-
+if ($PK_APPOINTMENT_STATUS == 2 || $_POST['IS_CHARGED'] == 1) {
+    updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $PK_USER_MASTER);
+}
 
 /*$COUNT_UPDATED = 0;
 if ($_POST['IS_CHARGED_OLD'] != $_POST['IS_CHARGED']) {
