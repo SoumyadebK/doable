@@ -126,18 +126,19 @@ while (!$row->EOF) {
                     $total_used_amount = 0;
                     $enrollment_service_array = [];
                     while (!$serviceCodeData->EOF) {
+                        $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
                         $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
                         $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData->fields['PRICE_PER_SESSION'];
                         $TOTAL_PAID_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? $serviceCodeData->fields['NUMBER_OF_SESSION'] : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'], 2);
-                        $ENR_BALANCE = $TOTAL_PAID_SESSION - $serviceCodeData->fields['SESSION_COMPLETED'];
+                        $ENR_BALANCE = $TOTAL_PAID_SESSION - $SESSION_COMPLETED;
 
                         $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
                         $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-                        $total_used_amount +=  ($PRICE_PER_SESSION * $serviceCodeData->fields['SESSION_COMPLETED']); ?>
+                        $total_used_amount +=  ($PRICE_PER_SESSION * $SESSION_COMPLETED); ?>
                         <tr>
                             <td><?=$serviceCodeData->fields['SERVICE_CODE']?></td>
                             <td style="text-align: right"><?=$serviceCodeData->fields['NUMBER_OF_SESSION']?></td>
-                            <td style="text-align: right;"><?=$serviceCodeData->fields['SESSION_COMPLETED']?></td>
+                            <td style="text-align: right;"><?=$SESSION_COMPLETED?></td>
                             <td style="text-align: right; color:<?=($ENR_BALANCE < 0)?'red':'black'?>;"><?=number_format($ENR_BALANCE, 2)?></td>
                             <td style="text-align: right">$<?=number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'], 2)?></td>
                             <td style="text-align: right;"><?=($ENR_BALANCE > 0) ? number_format($ENR_BALANCE, 2) : 0?></td>
