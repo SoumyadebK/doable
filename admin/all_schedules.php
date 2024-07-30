@@ -666,7 +666,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             if (result == 1) {
                                 window.location.href = "create_appointment.php?date="+moment(date).format()+"&SERVICE_PROVIDER_ID="+resource_id;
                             } else {
-                                swal(result);
+                                swal("No slot available!", result, "error");
                             }
                         },
                     });

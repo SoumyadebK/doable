@@ -25,6 +25,6 @@ if (is_null($location_hour_data->fields['OPEN_TIME']) || is_null($location_hour_
     if ($time >= $location_hour_data->fields['OPEN_TIME'] && $time <= $location_hour_data->fields['CLOSE_TIME']) {
         echo 1;
     } else {
-        echo "No slot available on your selected time. "," Available time is " . date('h:i A', strtotime($location_hour_data->fields['OPEN_TIME'])) . " to " . date('h:i A', strtotime($location_hour_data->fields['CLOSE_TIME'])) . "";
+        echo "No slot available on your selected time. Available time is " . date('h:i A', strtotime($location_hour_data->fields['OPEN_TIME'])) . " to " . date('h:i A', strtotime($location_hour_data->fields['CLOSE_TIME'])) . "";
     }
 }
