@@ -1665,6 +1665,13 @@ function saveMultiAppointmentData($RESPONSE_DATA){
     $PK_SERVICE_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[2];
     $PK_SERVICE_CODE = $PK_ENROLLMENT_MASTER_ARRAY[3];
 
+    $enrollment_location = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    if ($enrollment_location->RecordCount() > 0) {
+        $PK_LOCATION = $enrollment_location->fields['PK_LOCATION'];
+    } else {
+        $PK_LOCATION = 0;
+    }
+
     $SCHEDULING_CODE = explode(',', $_POST['PK_SCHEDULING_CODE']);
     $PK_SCHEDULING_CODE = $SCHEDULING_CODE[0];
     $DURATION = $SCHEDULING_CODE[1];
@@ -1712,13 +1719,6 @@ function saveMultiAppointmentData($RESPONSE_DATA){
     if ($RESPONSE_DATA['IS_SUBMIT'] == 1) {
         if (count($APPOINTMENT_DATE_ARRAY) > 0) {
             $SESSION_WILL_CREATE = (count($APPOINTMENT_DATE_ARRAY) < $SESSION_LEFT) ? count($APPOINTMENT_DATE_ARRAY) : $SESSION_LEFT;
-
-            $user_location = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$RESPONSE_DATA['CUSTOMER_ID'][0]);
-            if ($user_location->RecordCount() > 0) {
-                $PK_LOCATION = $user_location->fields['PK_LOCATION'];
-            } else {
-                $PK_LOCATION = 0;
-            }
 
             $standing_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY STANDING_ID DESC LIMIT 1");
             if ($standing_data->RecordCount() > 0) {
