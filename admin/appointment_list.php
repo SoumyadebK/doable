@@ -278,7 +278,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <tbody>
                                         <tr>
                                     <?php } else { ?>
-                                        <tr onclick="showStandingAppointmentDetails(this, <?=$appointment_data->fields['STANDING_ID']?>)" style="cursor: pointer;">
+                                        <tr onclick="showStandingAppointmentDetails(this, <?=$appointment_data->fields['STANDING_ID']?>, <?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>)" style="cursor: pointer;">
                                     <?php } ?>
                                             <td><?=$i;?></td>
                                             <td><?=(($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class'))?></td>
@@ -315,6 +315,9 @@ $page_first_result = ($page-1) * $results_per_page;
                                                 <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
+                                    </tbody>
+                                    <tbody class="standing_list" style="display: none;">
+
                                     </tbody>
                                     <?php $appointment_data->MoveNext();
                                     $i++; } ?>
@@ -586,15 +589,13 @@ $page_first_result = ($page-1) * $results_per_page;
         }
     }
 
-    function showStandingAppointmentDetails(param, STANDING_ID) {
+    function showStandingAppointmentDetails(param, STANDING_ID, PK_APPOINTMENT_MASTER) {
         $.ajax({
             url: "pagination/get_standing_appointment.php",
             type: 'GET',
-            data: {STANDING_ID:STANDING_ID},
+            data: {STANDING_ID:STANDING_ID, PK_APPOINTMENT_MASTER:PK_APPOINTMENT_MASTER},
             success: function (result) {
-                $('.added_standing').remove();
-                //$('#to_do_list > tbody > tr').eq(i-1).after(html);
-                $(param).closest('tbody').append(result);
+                $(param).closest('tbody').next('.standing_list').html(result).slideToggle();
             }
         });
     }
