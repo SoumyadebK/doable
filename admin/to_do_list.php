@@ -67,7 +67,8 @@ $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                 LEFT JOIN DOA_SCHEDULING_CODE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE
                                 WHERE DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
                                 AND DOA_SPECIAL_APPOINTMENT.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
-                                ".$standing_cond.$search.$standing_group;
+                                ".$standing_cond.$search.$standing_group."
+                                ORDER BY DOA_SPECIAL_APPOINTMENT.DATE DESC, DOA_SPECIAL_APPOINTMENT.START_TIME DESC";
 
 $query = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
 
@@ -222,10 +223,15 @@ $page_first_result = ($page-1) * $results_per_page;
                                     if ($standing == 0) { ?>
                                         <tr>
                                         <?php } else { ?>
-                                        <tr onclick="showStandingToDoDetails(this, <?=$special_appointment_data->fields['STANDING_ID']?>)" style="cursor: pointer;">
+                                        <tr onclick="showStandingToDoDetails(this, <?=$special_appointment_data->fields['STANDING_ID']?>, <?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>)" style="cursor: pointer;">
                                         <?php } ?>
                                             <td><?=$i;?></td>
-                                            <td><?=$special_appointment_data->fields['TITLE']?></td>
+                                            <td>
+                                                <?=$special_appointment_data->fields['TITLE']?>
+                                                <?php if ($special_appointment_data->fields['STANDING_ID'] > 0) { ?>
+                                                    <span style="font-weight: bold; color: #1B72B8">(S)</span>
+                                                <?php } ?>
+                                            </td>
                                             <td><?=$special_appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
                                             <!--<td><?php /*=$special_appointment_data->fields['CUSTOMER_NAME']*/?></td>-->
                                             <td><?=date('l', strtotime($special_appointment_data->fields['DATE']))?></td>
@@ -241,6 +247,9 @@ $page_first_result = ($page-1) * $results_per_page;
                                                 <?php } ?>
                                             </td>
                                         </tr>
+                                    </tbody>
+                                    <tbody class="standing_list" style="display: none;">
+
                                     </tbody>
                                     <?php $special_appointment_data->MoveNext();
                                     $i++; } ?>
@@ -512,15 +521,13 @@ $page_first_result = ($page-1) * $results_per_page;
         }
     }
 
-    function showStandingToDoDetails(param, STANDING_ID) {
+    function showStandingToDoDetails(param, STANDING_ID, PK_SPECIAL_APPOINTMENT) {
         $.ajax({
             url: "pagination/get_standing_to_do.php",
             type: 'GET',
-            data: {STANDING_ID:STANDING_ID},
+            data: {STANDING_ID:STANDING_ID, PK_SPECIAL_APPOINTMENT:PK_SPECIAL_APPOINTMENT},
             success: function (result) {
-                $('.added_standing').remove();
-                //$('#to_do_list > tbody > tr').eq(i-1).after(html);
-                $(param).closest('tbody').append(result);
+                $(param).closest('tbody').next('.standing_list').html(result).slideToggle();
             }
         });
     }

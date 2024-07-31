@@ -5,6 +5,7 @@ global $db_account;
 global $master_database;
 
 $STANDING_ID = $_GET['STANDING_ID'];
+$PK_APPOINTMENT_MASTER = $_GET['PK_APPOINTMENT_MASTER'];
 
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
@@ -43,14 +44,14 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
                         LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
                         LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
-                        WHERE DOA_APPOINTMENT_MASTER.STANDINg_ID = ".$STANDING_ID."
+                        WHERE DOA_APPOINTMENT_MASTER.STANDING_ID = ".$STANDING_ID." AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER != $PK_APPOINTMENT_MASTER
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
                         ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC";
 $i = 1;
 $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 while (!$appointment_data->EOF) { ?>
     <tr class="added_standing">
-        <td style="text-align: end;"><?=$i;?></td>
+        <td style="text-align: end;"></td>
         <td><?=(($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class'))?></td>
         <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
         <?php if (!empty($appointment_data->fields['ENROLLMENT_ID']) || !empty($appointment_data->fields['ENROLLMENT_NAME'])) { ?>

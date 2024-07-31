@@ -5,6 +5,7 @@ global $db_account;
 global $master_database;
 
 $STANDING_ID = $_GET['STANDING_ID'];
+$PK_SPECIAL_APPOINTMENT = $_GET['PK_SPECIAL_APPOINTMENT'];
 
 $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                     DOA_SPECIAL_APPOINTMENT.*,
@@ -26,15 +27,20 @@ $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                         
                                 LEFT JOIN DOA_MASTER.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS
                                 LEFT JOIN DOA_SCHEDULING_CODE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE
-                                WHERE DOA_SPECIAL_APPOINTMENT.STANDING_ID = ".$STANDING_ID."
-                                GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT"; ?>
+                                WHERE DOA_SPECIAL_APPOINTMENT.STANDING_ID = ".$STANDING_ID." AND DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT != $PK_SPECIAL_APPOINTMENT
+                                GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT
+                                ORDER BY DOA_SPECIAL_APPOINTMENT.DATE ASC, DOA_SPECIAL_APPOINTMENT.START_TIME ASC"; ?>
 
-<?php $i = 1;
+<?php $i = 2;
 $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
 while (!$special_appointment_data->EOF) { ?>
     <tr class="added_standing">
-        <td style="text-align: end;"><?=$i;?></td>
-        <td><?=$special_appointment_data->fields['TITLE']?></td>
+        <td style="text-align: end;"></td>
+        <td><?=$special_appointment_data->fields['TITLE']?>
+            <?php if ($special_appointment_data->fields['STANDING_ID'] > 0) { ?>
+                <span style="font-weight: bold; color: #1B72B8">(S)</span>
+            <?php } ?>
+        </td>
         <td><?=$special_appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
         <td><?=$special_appointment_data->fields['CUSTOMER_NAME']?></td>
         <td><?=date('l', strtotime($special_appointment_data->fields['DATE']))?></td>
