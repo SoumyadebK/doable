@@ -61,12 +61,12 @@ $ACTIVE = $res->fields['ACTIVE'];
                         <textarea class="form-control" id="DESCRIPTION" name="DESCRIPTION" rows="3"><?=$DESCRIPTION?></textarea>
                     </div>
                 </div>
-                <div class="col-6">
+                <!--<div class="col-6">
                     <label class="form-label">Customer</label>
                     <div style="margin-bottom: 15px; margin-top: 10px; width: 480px;">
                         <select class="multi_sumo_select" name="PK_USER_MASTER[]" multiple>
                             <?php
-                            $selected_customer = [];
+/*                            $selected_customer = [];
                             $selected_customer_row = $db_account->Execute("SELECT DOA_SPECIAL_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_SPECIAL_APPOINTMENT_CUSTOMER LEFT JOIN $master_database.DOA_USER_MASTER ON DOA_SPECIAL_APPOINTMENT_CUSTOMER.PK_USER_MASTER = $master_database.DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_SPECIAL_APPOINTMENT_CUSTOMER.PK_SPECIAL_APPOINTMENT = '$PK_SPECIAL_APPOINTMENT'");
                             while (!$selected_customer_row->EOF) {
                                 $selected_customer[] = $selected_customer_row->fields['PK_USER_MASTER'];
@@ -74,12 +74,12 @@ $ACTIVE = $res->fields['ACTIVE'];
                             }
 
                             $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' ORDER BY DOA_USERS.FIRST_NAME ASC");
-                            while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" <?=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""?>><?=$row->fields['NAME']?></option>
-                                <?php $row->MoveNext(); } ?>
+                            while (!$row->EOF) { */?>
+                                <option value="<?php /*echo $row->fields['PK_USER_MASTER'];*/?>" <?php /*=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""*/?>><?php /*=$row->fields['NAME']*/?></option>
+                                <?php /*$row->MoveNext(); } */?>
                         </select>
                     </div>
-                </div>
+                </div>-->
             </div>
             <div class="row">
                 <div class="col-6">

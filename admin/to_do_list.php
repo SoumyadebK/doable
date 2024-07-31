@@ -203,7 +203,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <th data-type="number" class="sortable" style="cursor: pointer">No</th>
                                             <th data-type="string" class="sortable" style="cursor: pointer">Title</th>
                                             <th data-type="number" class="sortable" style="cursor: pointer">Service Provider</th>
-                                            <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
+                                            <!--<th data-type="string" class="sortable" style="cursor: pointer">Customer</th>-->
                                             <th data-type="string" class="sortable" style="cursor: pointer">Day</th>
                                             <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
                                             <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
@@ -227,7 +227,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td><?=$i;?></td>
                                             <td><?=$special_appointment_data->fields['TITLE']?></td>
                                             <td><?=$special_appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
-                                            <td><?=$special_appointment_data->fields['CUSTOMER_NAME']?></td>
+                                            <!--<td><?php /*=$special_appointment_data->fields['CUSTOMER_NAME']*/?></td>-->
                                             <td><?=date('l', strtotime($special_appointment_data->fields['DATE']))?></td>
                                             <td><?=date('m/d/Y', strtotime($special_appointment_data->fields['DATE']))?></td>
                                             <td><?=date('h:i A', strtotime($special_appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($special_appointment_data->fields['END_TIME']))?></td>

@@ -293,6 +293,8 @@ function currentWeekRange($date): array
                                             <td>
                                                 <?php if ($appointment_data->fields['CUSTOMER_NAME']) { ?>
                                                     <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"></label>
+                                                <?php } else { ?>
+                                                    <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php } ?>
                                             </td>
                                             <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
@@ -348,6 +350,9 @@ function currentWeekRange($date): array
 
 <?php require_once('../includes/footer.php');?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     function selectDate(param) {
         let Date = parseInt($(param).val());
@@ -430,12 +435,45 @@ function currentWeekRange($date): array
         table.draw();
     });
 
-    function ConfirmDelete(anchor)
+/*    function ConfirmDelete(PK_APPOINTMENT_MASTER)
     {
-        let conf = confirm("Are you sure you want to delete?");
-        if(conf)
-            window.location=anchor.attr("href");
+        var conf = confirm("Are you sure you want to delete this appointment?");
+        if(conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {FUNCTION_NAME: 'deleteAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                success: function (data) {
+                    window.location.href = 'operations.php';
+                }
+            });
+        }
+    }*/
+
+    function ConfirmDelete(PK_APPOINTMENT_MASTER)
+    {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {FUNCTION_NAME: 'deleteAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                    success: function (data) {
+                        window.location.href = 'operations.php';
+                    }
+                });
+            }
+        });
     }
+
     function editpage(id){
         window.location.href = "add_schedule.php?id="+id;
     }

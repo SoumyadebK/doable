@@ -131,7 +131,7 @@ if (!empty($_GET['view'])) {
                         <li>
                             <a class="waves-effect waves-dark" href="../admin/appointment_list.php" aria-expanded="false">
                                 <i class="icon-list"></i>
-                                <span class="hide-menu">List</span>
+                                <span class="hide-menu">Appointments</span>
                             </a>
                         </li>
                         <li>
