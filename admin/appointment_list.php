@@ -6,7 +6,7 @@ global $master_database;
 global $results_per_page;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
-
+$LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 $title = "All Appointment";
 
 $status_check = empty($_GET['status']) ? '' : $_GET['status'];
@@ -190,7 +190,7 @@ $page_first_result = ($page-1) * $results_per_page;
                     <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=appointment'"><i class="fa fa-plus-circle"></i> Appointment</button>
                     <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=standing'"><i class="fa fa-plus-circle"></i> Standing</button>
                     <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=ad_hoc'"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>-->
-                    <button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php'"><i class="fa fa-plus-circle"></i> Appointments</button>
+                    <button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="showMessage()"><i class="fa fa-plus-circle"></i> Appointments</button>
                     <button type="button" id="operations" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"><i class="ti-layers-alt"></i> <?=$operation_tab_title?></button>
                 </div>
             </div>
@@ -253,21 +253,21 @@ $page_first_result = ($page-1) * $results_per_page;
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-striped border" data-page-length='50'>
+                                <table class="table <?=($standing == 0) ? 'table-striped' : ''?>" border" data-page-length='50'>
                                     <thead>
-                                    <tr>
-                                        <th data-type="number" class="sortable" style="cursor: pointer">No</th>
-                                        <th data-type="number" class="sortable" style="cursor: pointer">Service Name</th>
-                                        <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
-                                        <th data-type="string" class="sortable" style="cursor: pointer">Enrollment ID</th>
-                                        <th data-type="string" class="sortable" style="cursor: pointer"><?=$service_provider_title?></th>
-                                        <th data-type="string" class="sortable" style="cursor: pointer">Day</th>
-                                        <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
-                                        <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
-                                        <th>Paid</th>
-                                        <th>Completed</th>
-                                        <th>Actions</th>
-                                    </tr>
+                                        <tr>
+                                            <th data-type="number" class="sortable" style="cursor: pointer">No</th>
+                                            <th data-type="number" class="sortable" style="cursor: pointer">Service Name</th>
+                                            <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
+                                            <th data-type="string" class="sortable" style="cursor: pointer">Enrollment ID</th>
+                                            <th data-type="string" class="sortable" style="cursor: pointer"><?=$service_provider_title?></th>
+                                            <th data-type="string" class="sortable" style="cursor: pointer">Day</th>
+                                            <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
+                                            <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
+                                            <th>Paid</th>
+                                            <th>Completed</th>
+                                            <th>Actions</th>
+                                        </tr>
                                     </thead>
 
 
@@ -281,7 +281,11 @@ $page_first_result = ($page-1) * $results_per_page;
                                         <tr onclick="showStandingAppointmentDetails(this, <?=$appointment_data->fields['STANDING_ID']?>, <?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>)" style="cursor: pointer;">
                                     <?php } ?>
                                             <td><?=$i;?></td>
-                                            <td><?=(($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class'))?></td>
+                                            <td><?=(($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class'))?>
+                                                <?php if ($appointment_data->fields['STANDING_ID'] > 0) { ?>
+                                                    <span style="font-weight: bold; color: #1B72B8">(S)</span>
+                                                <?php } ?>
+                                            </td>
                                             <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
                                             <?php if (!empty($appointment_data->fields['ENROLLMENT_ID']) || !empty($appointment_data->fields['ENROLLMENT_NAME'])) { ?>
                                                 <td><?=(($appointment_data->fields['ENROLLMENT_NAME']) ? $appointment_data->fields['ENROLLMENT_NAME'].' - ' : '').$appointment_data->fields['ENROLLMENT_ID']." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
@@ -316,7 +320,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             </td>
                                         </tr>
                                     </tbody>
-                                    <tbody class="standing_list" style="display: none;">
+                                    <tbody class="standing_list" style="display: none; background-color: #dee2e6;">
 
                                     </tbody>
                                     <?php $appointment_data->MoveNext();
@@ -356,7 +360,7 @@ $page_first_result = ($page-1) * $results_per_page;
 </div>
 
 <?php require_once('../includes/footer.php');?>
-
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script>
     $(function () {
         startDate = $("#START_DATE").datepicker({
@@ -435,6 +439,14 @@ $page_first_result = ($page-1) * $results_per_page;
         }*/
 
     });
+
+    function showMessage() {
+        if(<?=count($LOCATION_ARRAY)?> === 1) {
+            window.location.href = 'create_appointment.php';
+        } else {
+            swal("Select One Location!", "Only one location can be selected on top of the page in order to schedule an appointment.", "error");
+        }
+    }
 </script>
 <script>
     function Checktrim(str) {

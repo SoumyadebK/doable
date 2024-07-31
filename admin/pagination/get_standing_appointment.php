@@ -52,7 +52,11 @@ $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 while (!$appointment_data->EOF) { ?>
     <tr class="added_standing">
         <td style="text-align: end;"></td>
-        <td><?=(($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class'))?></td>
+        <td><?=(($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class'))?>
+            <?php if ($appointment_data->fields['STANDING_ID'] > 0) { ?>
+                <span style="font-weight: bold; color: #1B72B8">(S)</span>
+            <?php } ?>
+        </td>
         <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
         <?php if (!empty($appointment_data->fields['ENROLLMENT_ID']) || !empty($appointment_data->fields['ENROLLMENT_NAME'])) { ?>
             <td><?=(($appointment_data->fields['ENROLLMENT_NAME']) ? $appointment_data->fields['ENROLLMENT_NAME'].' - ' : '').$appointment_data->fields['ENROLLMENT_ID']." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>

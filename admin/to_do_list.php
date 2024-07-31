@@ -198,7 +198,7 @@ $page_first_result = ($page-1) * $results_per_page;
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="to_do_list" class="table table-striped border" data-page-length='50'>
+                                <table id="to_do_list" class="table <?=($standing == 0) ? 'table-striped' : ''?> border" data-page-length='50'>
                                     <thead>
                                         <tr>
                                             <th data-type="number" class="sortable" style="cursor: pointer">No</th>
@@ -248,7 +248,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             </td>
                                         </tr>
                                     </tbody>
-                                    <tbody class="standing_list" style="display: none;">
+                                    <tbody class="standing_list" style="display: none; background-color: #dee2e6;">
 
                                     </tbody>
                                     <?php $special_appointment_data->MoveNext();
