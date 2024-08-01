@@ -7,8 +7,6 @@ global $results_per_page;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
-$title = "All Standing";
-
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
@@ -43,6 +41,12 @@ if (isset($_GET['standing'])) {
     } else {
         $standing_cond = ' AND DOA_SPECIAL_APPOINTMENT.STANDING_ID = 0 ';
     }
+}
+
+if ($standing == 1) {
+    $title = "All Standing To-Do";
+} else {
+    $title = "All To-Do";
 }
 
 $SPECIAL_APPOINTMENT_QUERY = "SELECT
@@ -158,7 +162,7 @@ $page_first_result = ($page-1) * $results_per_page;
             <form class="form-material form-horizontal" id="search_form" action="" method="get">
                 <div class="row page-titles">
                     <div class="col-md-2 align-self-center">
-                        <h4 class="text-themecolor">All To-Do</h4>
+                        <h4 class="text-themecolor"><?=$title?></h4>
                     </div>
 
                     <div class="col-md-2 align-self-center">
