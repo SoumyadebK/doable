@@ -7,7 +7,6 @@ global $results_per_page;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
-$title = "All Appointment";
 
 $status_check = empty($_GET['status']) ? '' : $_GET['status'];
 $appointment_time = ' ';
@@ -51,6 +50,12 @@ if (isset($_GET['standing'])) {
     } else {
         $standing_cond = ' AND DOA_APPOINTMENT_MASTER.STANDING_ID = 0 ';
     }
+}
+
+if ($standing == 1) {
+    $title = "All Standing Appointment";
+} else {
+    $title = "All Appointment";
 }
 
 $ALL_APPOINTMENT_QUERY = "SELECT
@@ -203,7 +208,7 @@ $page_first_result = ($page-1) * $results_per_page;
                         <?php } elseif ($status_check=='future') { ?>
                             <h4 class="text-themecolor">Future Appointments</h4>
                         <?php } else { ?>
-                            <h4 class="text-themecolor">All Appointments</h4>
+                            <h4 class="text-themecolor"><?=$title?></h4>
                         <?php } ?>
                     </div>
 
