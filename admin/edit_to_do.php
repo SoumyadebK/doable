@@ -140,7 +140,19 @@ $ACTIVE = $res->fields['ACTIVE'];
                                             <div class="col-6">
                                                 <div class="form-group">
                                                     <label class="form-label">Description</label>
-                                                    <textarea class="form-control" id="DESCRIPTION" name="DESCRIPTION" rows="3"><?=$DESCRIPTION?></textarea>
+                                                    <textarea class="form-control" id="DESCRIPTION" name="DESCRIPTION" rows="2"><?=$DESCRIPTION?></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label">Scheduling Code</label>
+                                                <div class="col-md-12" style="margin-top: 16px;">
+                                                    <select class="form-control" name="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
+                                                        <?php
+                                                        $booking_row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
+                                                        while (!$booking_row->EOF) { ?>
+                                                            <option value="<?php echo $booking_row->fields['PK_SCHEDULING_CODE'];?>" data-duration="<?php echo $booking_row->fields['DURATION'];?>" data-scheduling_name="<?php echo $booking_row->fields['SCHEDULING_NAME']?>" data-is_default="<?php echo $booking_row->fields['IS_DEFAULT']?>" <?=($PK_SCHEDULING_CODE == $booking_row->fields['PK_SCHEDULING_CODE']) ? "selected" : ""?>><?=$booking_row->fields['SCHEDULING_NAME'].' ('.$booking_row->fields['SCHEDULING_CODE'].')'?></option>
+                                                            <?php $booking_row->MoveNext(); } ?>
+                                                    </select>
                                                 </div>
                                             </div>
                                             <!--<div class="col-6">
@@ -183,20 +195,6 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-6">
-                                                <label class="form-label">Scheduling Code</label>
-                                                <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
-                                                    <select class="form-control" name="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
-                                                        <?php
-                                                        $booking_row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
-                                                        while (!$booking_row->EOF) { ?>
-                                                            <option value="<?php echo $booking_row->fields['PK_SCHEDULING_CODE'];?>" data-duration="<?php echo $booking_row->fields['DURATION'];?>" data-scheduling_name="<?php echo $booking_row->fields['SCHEDULING_NAME']?>" data-is_default="<?php echo $booking_row->fields['IS_DEFAULT']?>" <?=($PK_SCHEDULING_CODE == $booking_row->fields['PK_SCHEDULING_CODE']) ? "selected" : ""?>><?=$booking_row->fields['SCHEDULING_NAME'].' ('.$booking_row->fields['SCHEDULING_CODE'].')'?></option>
-                                                            <?php $booking_row->MoveNext(); } ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
                                             <div class="col-6">
                                                 <div class="form-group">
                                                     <label class="form-label">Status:</label>

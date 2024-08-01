@@ -97,7 +97,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         $appointment_time
                         $search
                         $standing_group
-                        ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC";
+                        ORDER BY  DOA_APPOINTMENT_MASTER.START_TIME DESC";
 
 $query = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 
@@ -312,7 +312,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                                     <a href="add_schedule.php?id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 --><?php /*} */?>
                                                 <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
                                     </tbody>
@@ -356,6 +356,9 @@ $page_first_result = ($page-1) * $results_per_page;
 </div>
 
 <?php require_once('../includes/footer.php');?>
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     $(function () {
@@ -602,17 +605,26 @@ $page_first_result = ($page-1) * $results_per_page;
 
     function ConfirmDelete(PK_APPOINTMENT_MASTER)
     {
-        var conf = confirm("Are you sure you want to delete this appointment?");
-        if(conf) {
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: {FUNCTION_NAME: 'deleteAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
-                success: function (data) {
-                    window.location.href = 'appointment_list.php';
-                }
-            });
-        }
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {FUNCTION_NAME: 'deleteAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                    success: function (data) {
+                        window.location.href = 'appointment_list.php';
+                    }
+                });
+            }
+        });
     }
 
     function selectStatus(param){
