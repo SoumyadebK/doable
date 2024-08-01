@@ -42,7 +42,7 @@ while (!$special_appointment_data->EOF) { ?>
             <?php } ?>
         </td>
         <td><?=$special_appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
-        <td><?=$special_appointment_data->fields['CUSTOMER_NAME']?></td>
+        <!--<td><?php /*=$special_appointment_data->fields['CUSTOMER_NAME']*/?></td>-->
         <td><?=date('l', strtotime($special_appointment_data->fields['DATE']))?></td>
         <td><?=date('m/d/Y', strtotime($special_appointment_data->fields['DATE']))?></td>
         <td><?=date('h:i A', strtotime($special_appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($special_appointment_data->fields['END_TIME']))?></td>
