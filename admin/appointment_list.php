@@ -102,7 +102,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         $appointment_time
                         $search
                         $standing_group
-                        ORDER BY  DOA_APPOINTMENT_MASTER.START_TIME DESC";
+                        ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC";
 
 $query = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 
@@ -226,7 +226,7 @@ $page_first_result = ($page-1) * $results_per_page;
                         <?php if ($standing == 0) { ?>
                             <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?standing=1'">Show Standing</button>
                         <?php } else { ?>
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?standing=0'">Show Normal</button>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php'">Show Normal</button>
                         <?php } ?>
                     </div>
 

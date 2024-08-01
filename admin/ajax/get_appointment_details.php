@@ -289,7 +289,6 @@ if($customer_data->RecordCount() > 0){
     $PARTNER_DOB = $customer_details->fields['PARTNER_DOB'];
 }
 
-
 $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = '$CUSTOMER_ID'");
 $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
 
@@ -347,6 +346,7 @@ z-index: 500;
 <!--            <input type="hidden" name="FUNCTION_NAME" value="saveAppointmentData">-->
             <input type="hidden" name="REDIRECT_URL" value="../all_schedules.php">
             <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=$PK_APPOINTMENT_MASTER?>">
+            <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="NORMAL">
             <div style="padding-top: 10px;">
                     <div class="row">
                         <div class="col-4">

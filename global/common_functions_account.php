@@ -176,7 +176,7 @@ function db_perform_account($table, $data, $action = 'insert', $parameters = '')
         }
         $query = substr($query, 0, -2) . ' where ' . $parameters;
     }
-    // echo $query;
+    echo $query;
     return $db_account->Execute($query);
 }
 

@@ -126,7 +126,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
     $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($convertedTime));
     $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
-    $GROUP_CLASS_DATA['IS_CHARGED'] = ($_POST['PK_APPOINTMENT_STATUS'] == 2) ? 1 : $_POST['IS_CHARGED'];
+    //$GROUP_CLASS_DATA['IS_CHARGED'] = ($_POST['PK_APPOINTMENT_STATUS'] == 2) ? 1 : $_POST['IS_CHARGED'];
     $GROUP_CLASS_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
     $GROUP_CLASS_DATA['COMMENT'] = $_POST['COMMENT'];
     $GROUP_CLASS_DATA['INTERNAL_COMMENT'] = $_POST['INTERNAL_COMMENT'];
@@ -158,7 +158,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     }
     $GROUP_CLASS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
     $GROUP_CLASS_DATA['EDITED_ON'] = date("Y-m-d H:i");
-    //pre_r($GROUP_CLASS_DATA);
+
     if (isset($_POST['STANDING_ID'])) {
         db_perform_account('DOA_APPOINTMENT_MASTER', $GROUP_CLASS_DATA, 'update', " STANDING_ID =  '$_POST[STANDING_ID]'");
     } else {
@@ -179,8 +179,8 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         }
     }
 
+    $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
     if (isset($_POST['SERVICE_PROVIDER_ID'])) {
-        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
         for ($k = 0; $k < count($_POST['SERVICE_PROVIDER_ID']); $k++) {
             $GROUP_CLASS_USER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
             $GROUP_CLASS_USER_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID'][$k];
@@ -189,20 +189,11 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     }
 
     if (isset($_POST['PK_APPOINTMENT_STATUS'])) {
-        $appointment_data = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
-        if ($appointment_data->RecordCount() > 0) {
-            $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_MASTER'] = $appointment_data->fields['PK_APPOINTMENT_MASTER'];
-            $APPOINTMENT_STATUS_HISTORY_DATA['PK_USER'] = $_SESSION['PK_USER'];
-            $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
-            $APPOINTMENT_STATUS_HISTORY_DATA['TIME_STAMP'] = date("Y-m-d H:i");
-            db_perform_account('DOA_APPOINTMENT_STATUS_HISTORY', $APPOINTMENT_STATUS_HISTORY_DATA, 'insert');
-        }
-
-        if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
-            updateSessionCompletedCount($_POST['PK_APPOINTMENT_MASTER']);
-        } elseif ($_POST['PK_APPOINTMENT_STATUS'] == 6) {
-            updateSessionCreatedCountByStatus($_POST['PK_APPOINTMENT_MASTER']);
-        }
+        $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+        $APPOINTMENT_STATUS_HISTORY_DATA['PK_USER'] = $_SESSION['PK_USER'];
+        $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+        $APPOINTMENT_STATUS_HISTORY_DATA['TIME_STAMP'] = date("Y-m-d H:i");
+        db_perform_account('DOA_APPOINTMENT_STATUS_HISTORY', $APPOINTMENT_STATUS_HISTORY_DATA, 'insert');
     }
 
     header("location:all_schedules.php");

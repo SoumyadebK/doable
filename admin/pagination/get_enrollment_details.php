@@ -195,7 +195,7 @@ while (!$serviceCodeData->EOF) {
 </table>
 
 <table id="myTable" class="table border appointment_details">
-    <thead style="background-color: #1E90FF; cursor:pointer;" onclick="$(this).next().slideToggle();">
+    <thead style="background-color: #1E90FF; cursor:pointer;" onclick="$(this).closest('.appointment_details').find('tbody').slideToggle();">
         <tr>
             <th style="text-align: left;">Service</th>
             <th style="text-align: left;">Apt #</th>
@@ -235,6 +235,13 @@ while (!$serviceCodeData->EOF) {
                 }
             }
 
+            if ($appointment_data->fields['APPOINTMENT_TYPE'] == 'GROUP') {
+                $appointment_enr_data = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_ENROLLMENT WHERE PK_APPOINTMENT_MASTER = ".$appointment_data->fields['PK_APPOINTMENT_MASTER']." AND PK_USER_MASTER = '$PK_USER_MASTER'");
+                $IS_CHARGED = $appointment_enr_data->fields['IS_CHARGED'];
+            } else {
+                $IS_CHARGED = $appointment_data->fields['IS_CHARGED'];
+            }
+
             if (!isset($total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']])) {
                 $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] = $per_session_price->fields['TOTAL_AMOUNT_PAID'];
             } ?>
@@ -253,7 +260,7 @@ while (!$serviceCodeData->EOF) {
                 <td style="text-align: center;"><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
                 <td style="text-align: left; color: <?=$appointment_data->fields['STATUS_COLOR']?>">
                     <?=$appointment_data->fields['APPOINTMENT_STATUS']?>&nbsp;
-                    <?php if ($appointment_data->fields['IS_CHARGED'] == 1) { ?>
+                    <?php if ($IS_CHARGED == 1) { ?>
                         <i class="ti-money"></i>
                     <?php } ?>
                 </td>

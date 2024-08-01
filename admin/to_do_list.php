@@ -72,7 +72,7 @@ $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                 WHERE DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
                                 AND DOA_SPECIAL_APPOINTMENT.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
                                 ".$standing_cond.$search.$standing_group."
-                                ORDER BY DOA_SPECIAL_APPOINTMENT.DATE DESC, DOA_SPECIAL_APPOINTMENT.START_TIME DESC";
+                                ORDER BY DOA_SPECIAL_APPOINTMENT.DATE ASC, DOA_SPECIAL_APPOINTMENT.START_TIME ASC";
 
 $query = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
 
@@ -169,7 +169,7 @@ $page_first_result = ($page-1) * $results_per_page;
                         <?php if ($standing == 0) { ?>
                             <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='to_do_list.php?standing=1'">Show Standing</button>
                         <?php } else { ?>
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='to_do_list.php?standing=0'">Show Normal</button>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='to_do_list.php'">Show Normal</button>
                         <?php } ?>
                     </div>
 
