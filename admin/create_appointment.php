@@ -99,11 +99,15 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         }
 
         if (count($GROUP_CLASS_DATE_ARRAY) > 0) {
-            $standing_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY STANDING_ID DESC LIMIT 1");
-            if ($standing_data->RecordCount() > 0) {
-                $standing_id = $standing_data->fields['STANDING_ID'] + 1;
-            } else {
-                $standing_id = 1;
+            $standing_id = 0;
+
+            if (count($GROUP_CLASS_DATE_ARRAY) > 1) {
+                $standing_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY STANDING_ID DESC LIMIT 1");
+                if ($standing_data->RecordCount() > 0) {
+                    $standing_id = $standing_data->fields['STANDING_ID'] + 1;
+                } else {
+                    $standing_id = 1;
+                }
             }
 
             for ($j = 0; $j < count($GROUP_CLASS_DATE_ARRAY); $j++) {

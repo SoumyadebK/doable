@@ -36,6 +36,7 @@ function markAppointmentAdhoc($PK_ENROLLMENT_SERVICE)
         $appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER, DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE, DOA_APPOINTMENT_MASTER.PK_LOCATION, DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = " . $PK_APPOINTMENT_MASTER);
         checkAdhocAppointmentStatus($PK_APPOINTMENT_MASTER, $appointment_data->fields['PK_SERVICE_MASTER'], $appointment_data->fields['PK_SERVICE_CODE'], $appointment_data->fields['PK_USER_MASTER'], $appointment_data->fields['PK_LOCATION']);
     } elseif ($SESSION_CREATED_COUNT < $enrollment_session->fields['NUMBER_OF_SESSION']) {
+        markAdhocAppointmentNormal($enrollment_session->fields['PK_ENROLLMENT_MASTER']);
         $last_enrollment_appointment = $db_account->Execute("SELECT PK_APPOINTMENT_MASTER, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_SERVICE FROM DOA_APPOINTMENT_MASTER WHERE PK_SERVICE_MASTER = ".$enrollment_session->fields['PK_SERVICE_MASTER']." AND PK_APPOINTMENT_STATUS != 6 ORDER BY PK_ENROLLMENT_MASTER DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC LIMIT 1");
         if ($last_enrollment_appointment->fields['PK_ENROLLMENT_MASTER'] > $enrollment_session->fields['PK_ENROLLMENT_MASTER']) {
             updateSessionCreatedAndCompletedCount($last_enrollment_appointment->fields['PK_APPOINTMENT_MASTER']);
