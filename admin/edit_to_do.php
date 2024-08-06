@@ -50,6 +50,8 @@ if(!empty($_POST)){
     header("location:to_do_list.php");
 }
 
+$standing = empty($_GET['standing']) ? 0 : 1;
+
 $res = $db_account->Execute("SELECT DOA_SPECIAL_APPOINTMENT.*  FROM DOA_SPECIAL_APPOINTMENT WHERE PK_SPECIAL_APPOINTMENT = '$_GET[id]'");
 
 $PK_SPECIAL_APPOINTMENT = $res->fields['PK_SPECIAL_APPOINTMENT'];
@@ -215,7 +217,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                 </div>
 
                                 <div class="form-group">
-                                    <label><input type="checkbox" name="STANDING_ID" value="<?=$STANDING_ID?>"> All Standing Session Details Will Be Changed</label>
+                                    <label><input type="checkbox" name="STANDING_ID" value="<?=$STANDING_ID?>" <?=($standing == 1) ? 'checked' : ''?>> All Standing Session Details Will Be Changed</label>
                                 </div>
 
                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>

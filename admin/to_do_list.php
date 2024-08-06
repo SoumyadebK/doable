@@ -31,11 +31,13 @@ if (!empty($_GET['search_text'])) {
 }
 
 $standing = 0;
+$standing_select = ' ';
 $standing_cond = ' ';
 $standing_group = ' GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT ';
 if (isset($_GET['standing'])) {
     if ($_GET['standing'] == 1) {
         $standing = 1;
+        $standing_select = ' MIN(DOA_SPECIAL_APPOINTMENT.DATE) AS BEGINNING_DATE, MAX(DOA_SPECIAL_APPOINTMENT.DATE) AS END_DATE, ';
         $standing_cond = ' AND DOA_SPECIAL_APPOINTMENT.STANDING_ID > 0 ';
         $standing_group = " GROUP BY DOA_SPECIAL_APPOINTMENT.STANDING_ID ";
     } else {
@@ -51,6 +53,7 @@ if ($standing == 1) {
 
 $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                     DOA_SPECIAL_APPOINTMENT.*,
+                                    $standing_select
                                     DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                                     DOA_APPOINTMENT_STATUS.STATUS_CODE,
                                     DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
@@ -227,7 +230,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                     if ($standing == 0) { ?>
                                         <tr>
                                         <?php } else { ?>
-                                        <tr onclick="showStandingToDoDetails(this, <?=$special_appointment_data->fields['STANDING_ID']?>, <?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>)" style="cursor: pointer;">
+                                        <tr onclick="showStandingToDoDetails(this, <?=$special_appointment_data->fields['STANDING_ID']?>)" style="cursor: pointer;">
                                         <?php } ?>
                                             <td><?=$i;?></td>
                                             <td>
@@ -239,14 +242,24 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td><?=$special_appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
                                             <!--<td><?php /*=$special_appointment_data->fields['CUSTOMER_NAME']*/?></td>-->
                                             <td><?=date('l', strtotime($special_appointment_data->fields['DATE']))?></td>
-                                            <td><?=date('m/d/Y', strtotime($special_appointment_data->fields['DATE']))?></td>
+                                            <?php if ($standing == 0) { ?>
+                                                <td><?=date('m/d/Y', strtotime($special_appointment_data->fields['DATE']))?></td>&nbsp;&nbsp;&nbsp;
+                                            <?php } else { ?>
+                                                <td><?=date('m/d/Y', strtotime($special_appointment_data->fields['BEGINNING_DATE']))?> - <?=date('m/d/Y', strtotime($special_appointment_data->fields['END_DATE']))?></td>&nbsp;&nbsp;&nbsp;
+                                            <?php } ?>
+
                                             <td><?=date('h:i A', strtotime($special_appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($special_appointment_data->fields['END_TIME']))?></td>
-                                            <td style="color: <?=$special_appointment_data->fields['APPOINTMENT_COLOR']?>"><?=$special_appointment_data->fields['APPOINTMENT_STATUS']?></td>
+                                            <?php if ($standing == 0) { ?>
+                                                <td style="color: <?=$special_appointment_data->fields['APPOINTMENT_COLOR']?>"><?=$special_appointment_data->fields['APPOINTMENT_STATUS']?></td>
+                                            <?php } else { ?>
+                                                <td></td>
+                                            <?php } ?>
                                             <td>
-                                                <a href="edit_to_do.php?id=<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;
                                                 <?php if ($standing == 0) { ?>
+                                                    <a href="edit_to_do.php?id=<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;
                                                     <a href="javascript:" onclick='ConfirmDelete(<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>);' title="Delete"><i class="fa fa-trash" style="font-size: 16px;"></i></a>&nbsp;&nbsp;&nbsp;
                                                 <?php } else { ?>
+                                                    <a href="edit_to_do.php?id=<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>&standing=1" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;
                                                     <a href="javascript:" onclick='ConfirmDeleteStanding(<?=$special_appointment_data->fields['STANDING_ID']?>);' title="Delete All Standing"><i class="fa fa-trash-alt" style="font-size: 16px;"></i></a>&nbsp;&nbsp;&nbsp;
                                                 <?php } ?>
                                             </td>
@@ -525,11 +538,11 @@ $page_first_result = ($page-1) * $results_per_page;
         }
     }
 
-    function showStandingToDoDetails(param, STANDING_ID, PK_SPECIAL_APPOINTMENT) {
+    function showStandingToDoDetails(param, STANDING_ID) {
         $.ajax({
             url: "pagination/get_standing_to_do.php",
             type: 'GET',
-            data: {STANDING_ID:STANDING_ID, PK_SPECIAL_APPOINTMENT:PK_SPECIAL_APPOINTMENT},
+            data: {STANDING_ID:STANDING_ID},
             success: function (result) {
                 $(param).closest('tbody').next('.standing_list').html(result).slideToggle();
             }
