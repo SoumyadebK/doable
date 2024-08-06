@@ -60,6 +60,7 @@ function checkAdhocAppointmentStatus($PK_APPOINTMENT_MASTER, $PK_SERVICE_MASTER,
         db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update'," PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER);
         markAppointmentPaid($enrollment_data->fields['PK_ENROLLMENT_SERVICE']);
         updateSessionCreatedCount($enrollment_data->fields['PK_ENROLLMENT_SERVICE']);
+        markEnrollmentComplete($APPOINTMENT_DATA['PK_ENROLLMENT_MASTER']);
     }
 }
 
@@ -85,6 +86,8 @@ function markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER)
             }
             $appointments->MoveNext();
         }
+
+        markEnrollmentComplete($PK_ENROLLMENT_MASTER);
 
         $enrollmentServiceData->MoveNext();
     }
@@ -441,11 +444,17 @@ function checkCountAdded($PK_APPOINTMENT_MASTER, $PK_USER_MASTER, $PK_ENROLLMENT
 function markEnrollmentComplete($PK_ENROLLMENT_MASTER)
 {
     global $db_account;
-    $enrollment_count_data = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION, SUM(`SESSION_COMPLETED`) AS COMPLETED_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE PRICE_PER_SESSION > 0 AND `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+    $enrollment_total_count = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION, SUM(`SESSION_COMPLETED`) AS COMPLETED_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE PRICE_PER_SESSION > 0 AND `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+    $normal_apt_completed_count = $db_account->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS COMPLETED_SESSION FROM DOA_APPOINTMENT_MASTER WHERE IS_CHARGED = 1 AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
+    $group_apt_completed_count = $db_account->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS COMPLETED_SESSION FROM DOA_APPOINTMENT_ENROLLMENT WHERE IS_CHARGED = 1 AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
+
     $details = $db_account->Execute("SELECT PK_ENROLLMENT_LEDGER FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
     $paid_count = $details->RecordCount() > 0 ? 1 : 0;
-    if (($enrollment_count_data->fields['TOTAL_SESSION'] == $enrollment_count_data->fields['COMPLETED_SESSION']) && ($paid_count === 0)) {
+    if (($enrollment_total_count->fields['TOTAL_SESSION'] == ($normal_apt_completed_count->fields['COMPLETED_SESSION'] + $group_apt_completed_count->fields['COMPLETED_SESSION'])) && ($paid_count === 0)) {
         $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+    } else {
+        $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
     }
 }
