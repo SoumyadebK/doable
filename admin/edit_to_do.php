@@ -4,6 +4,7 @@ global $db;
 global $db_account;
 
 $title = "Edit To-Do";
+$LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -22,6 +23,88 @@ if(!empty($_POST)){
     $SPECIAL_APPOINTMENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
     $SPECIAL_APPOINTMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
 
+    if ($_POST['IS_STANDING'] == 0) {
+        if (count($_POST['PK_USER']) == 1) {
+            $SPECIAL_APPOINTMENT_USER['PK_USER'] = $_POST['PK_USER'][0];
+            db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'update', " PK_SPECIAL_APPOINTMENT =  '$PK_SPECIAL_APPOINTMENT'");
+        } elseif (count($_POST['PK_USER']) >= 1) {
+            for ($j = 0; $j < count($_POST['PK_USER']); $j++) {
+                if ($j == 0) {
+                    $SPECIAL_APPOINTMENT_USER['PK_USER'] = $_POST['PK_USER'][$j];
+                    db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'update', " PK_SPECIAL_APPOINTMENT =  '$PK_SPECIAL_APPOINTMENT'");
+                } else {
+                    $NEW_SPECIAL_APPOINTMENT_DATA['STANDING_ID'] = $_POST['SELECTED_STANDING_ID'];
+                    $NEW_SPECIAL_APPOINTMENT_DATA['PK_LOCATION'] = $LOCATION_ARRAY[0];
+                    $NEW_SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
+                    $NEW_SPECIAL_APPOINTMENT_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
+                    $NEW_SPECIAL_APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+                    $NEW_SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
+                    $NEW_SPECIAL_APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
+                    $NEW_SPECIAL_APPOINTMENT_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
+                    $NEW_SPECIAL_APPOINTMENT_DATA['ACTIVE'] = 1;
+                    $NEW_SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];;
+                    $NEW_SPECIAL_APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                    $NEW_SPECIAL_APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform_account('DOA_SPECIAL_APPOINTMENT', $NEW_SPECIAL_APPOINTMENT_DATA, 'insert');
+                    $PK_SPECIAL_APPOINTMENT_NEW = $db_account->insert_ID();
+
+                    $SPECIAL_APPOINTMENT_USER['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT_NEW;
+                    $SPECIAL_APPOINTMENT_USER['PK_USER'] = $_POST['PK_USER'][$j];
+                    db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
+                }
+            }
+        }
+    } else {
+        $STANDING_ID = $_POST['SELECTED_STANDING_ID'];
+
+        $SAVED_SERVICE_PROVIDER = explode(',', $_POST['SAVED_SERVICE_PROVIDER']);
+        $SELECTED_SERVICE_PROVIDER = $_POST['PK_USER'];
+
+        $ADDED_SP = array_values(array_diff($SELECTED_SERVICE_PROVIDER, $SAVED_SERVICE_PROVIDER));
+        $REMOVED_SP = array_values(array_diff($SAVED_SERVICE_PROVIDER, $SELECTED_SERVICE_PROVIDER));
+
+        if (count($REMOVED_SP) > 0) {
+            $distinct_data = $db_account->Execute("SELECT DISTINCT (DATE) FROM DOA_SPECIAL_APPOINTMENT WHERE STANDING_ID = '$STANDING_ID'");
+            for ($j = 0; $j < count($REMOVED_SP); $j++) {
+                while (!$distinct_data->EOF) {
+                    $DATE = $distinct_data->fields['DATE'];
+                    $special_appt = $db_account->Execute("SELECT DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT FROM `DOA_SPECIAL_APPOINTMENT` INNER JOIN DOA_SPECIAL_APPOINTMENT_USER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT WHERE DOA_SPECIAL_APPOINTMENT.STANDING_ID = '$STANDING_ID' AND DOA_SPECIAL_APPOINTMENT.DATE = '$DATE' AND DOA_SPECIAL_APPOINTMENT_USER.PK_USER = ".$REMOVED_SP[$j]);
+                    $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT` WHERE PK_SPECIAL_APPOINTMENT = ".$special_appt->fields['PK_SPECIAL_APPOINTMENT']);
+                    $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE PK_SPECIAL_APPOINTMENT = ".$special_appt->fields['PK_SPECIAL_APPOINTMENT']);
+                    $distinct_data->MoveNext();
+                }
+            }
+        }
+
+        if (count($ADDED_SP) > 0) {
+            $distinct_data = $db_account->Execute("SELECT DISTINCT (DATE) FROM DOA_SPECIAL_APPOINTMENT WHERE STANDING_ID = '$STANDING_ID'");
+            for ($i = 0; $i < count($ADDED_SP); $i++) {
+                while (!$distinct_data->EOF) {
+                    $NEW_SPECIAL_APPOINTMENT_DATA['STANDING_ID'] = $STANDING_ID;
+                    $NEW_SPECIAL_APPOINTMENT_DATA['PK_LOCATION'] = $LOCATION_ARRAY[0];
+                    $NEW_SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
+                    $NEW_SPECIAL_APPOINTMENT_DATA['DATE'] = $distinct_data->fields['DATE'];
+                    $NEW_SPECIAL_APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+                    $NEW_SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
+                    $NEW_SPECIAL_APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
+                    $NEW_SPECIAL_APPOINTMENT_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
+                    $NEW_SPECIAL_APPOINTMENT_DATA['ACTIVE'] = 1;
+                    $NEW_SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];;
+                    $NEW_SPECIAL_APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                    $NEW_SPECIAL_APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform_account('DOA_SPECIAL_APPOINTMENT', $NEW_SPECIAL_APPOINTMENT_DATA, 'insert');
+                    $PK_SPECIAL_APPOINTMENT_NEW = $db_account->insert_ID();
+
+                    $SPECIAL_APPOINTMENT_USER['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT_NEW;
+                    $SPECIAL_APPOINTMENT_USER['PK_USER'] = $ADDED_SP[$i];
+                    db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
+                    $distinct_data->MoveNext();
+                }
+            }
+        }
+
+    }
+
     if (isset($_POST['STANDING_ID'])) {
         db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update', " STANDING_ID =  '$_POST[STANDING_ID]'");
     } else {
@@ -29,14 +112,14 @@ if(!empty($_POST)){
         db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update'," PK_SPECIAL_APPOINTMENT =  '$PK_SPECIAL_APPOINTMENT'");
     }
 
-    $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
+    /*$db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
     if (isset($_POST['PK_USER'])) {
         for ($i = 0; $i < count($_POST['PK_USER']); $i++) {
             $SPECIAL_APPOINTMENT_USER['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
             $SPECIAL_APPOINTMENT_USER['PK_USER'] = $_POST['PK_USER'][$i];
             db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
         }
-    }
+    }*/
 
 /*    $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_CUSTOMER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
     if (isset($_POST['PK_USER_MASTER'])) {
@@ -65,7 +148,7 @@ $PK_SCHEDULING_CODE = $res->fields['PK_SCHEDULING_CODE'];
 $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
 $ACTIVE = $res->fields['ACTIVE'];
 
-
+$standing_date = $db_account->Execute("SELECT MIN(DOA_SPECIAL_APPOINTMENT.DATE) AS BEGINNING_DATE, MAX(DOA_SPECIAL_APPOINTMENT.DATE) AS END_DATE FROM `DOA_SPECIAL_APPOINTMENT` WHERE STANDING_ID = '$STANDING_ID'");
 ?>
 
 <!DOCTYPE html>
@@ -108,6 +191,8 @@ $ACTIVE = $res->fields['ACTIVE'];
                             <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                 <input type="hidden" name="FUNCTION_NAME" value="saveSpecialAppointmentData">
                                 <input type="hidden" name="PK_SPECIAL_APPOINTMENT" class="PK_SPECIAL_APPOINTMENT" value="<?=$PK_SPECIAL_APPOINTMENT?>">
+                                <input type="hidden" name="SELECTED_STANDING_ID" value="<?=$STANDING_ID?>">
+                                <input type="hidden" name="IS_STANDING" value="<?=$standing?>">
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="row">
@@ -120,7 +205,11 @@ $ACTIVE = $res->fields['ACTIVE'];
                                             <div class="col-6">
                                                 <div class="form-group">
                                                     <label class="form-label">Date</label>
-                                                    <input type="text" id="DATE" name="DATE" class="form-control datepicker-normal" required value="<?php echo ($DATE)?date('m/d/Y', strtotime($DATE)):''?>">
+                                                    <?php if ($standing == 1) { ?>
+                                                        <input type="text" class="form-control" disabled value="<?=date('m/d/Y', strtotime($standing_date->fields['BEGINNING_DATE']))?> - <?=date('m/d/Y', strtotime($standing_date->fields['END_DATE']))?>">
+                                                    <?php } else { ?>
+                                                        <input type="text" id="DATE" name="DATE" class="form-control datepicker-normal" required value="<?php echo ($DATE)?date('m/d/Y', strtotime($DATE)):''?>">
+                                                    <?php } ?>
                                                 </div>
                                             </div>
                                         </div>
@@ -179,21 +268,26 @@ $ACTIVE = $res->fields['ACTIVE'];
                                         </div>
                                         <div class="row">
                                             <div class="col-6">
+                                                <?php
+                                                $selected_service_provider = [];
+                                                if ($standing == 1) {
+                                                    $selected_service_provider_row = $db_account->Execute("SELECT DISTINCT (`PK_USER`) FROM `DOA_SPECIAL_APPOINTMENT_USER` LEFT JOIN DOA_SPECIAL_APPOINTMENT ON DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT WHERE DOA_SPECIAL_APPOINTMENT.STANDING_ID = '$STANDING_ID'");
+                                                } else {
+                                                    $selected_service_provider_row = $db_account->Execute("SELECT DISTINCT (`PK_USER`) FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
+                                                }
+                                                while (!$selected_service_provider_row->EOF) {
+                                                    $selected_service_provider[] = $selected_service_provider_row->fields['PK_USER'];
+                                                    $selected_service_provider_row->MoveNext();
+                                                } ?>
+                                                <input type="hidden" name="SAVED_SERVICE_PROVIDER" value="<?=implode(',', $selected_service_provider)?>">
                                                 <label class="form-label"><?=$service_provider_title?></label>
                                                 <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
-                                                    <select class="multi_sumo_select" name="PK_USER[]" multiple>
+                                                    <select class="multi_sumo_select" name="PK_USER[]" multiple required>
                                                         <?php
-                                                        $selected_service_provider = [];
-                                                        $selected_service_provider_row = $db_account->Execute("SELECT `PK_USER` FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
-                                                        while (!$selected_service_provider_row->EOF) {
-                                                            $selected_service_provider[] = $selected_service_provider_row->fields['PK_USER'];
-                                                            $selected_service_provider_row->MoveNext();
-                                                        }
-
                                                         $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES IN(5) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME ASC");
                                                         while (!$row->EOF) { ?>
                                                             <option value="<?php echo $row->fields['PK_USER'];?>" <?=in_array($row->fields['PK_USER'], $selected_service_provider)?"selected":""?>><?=$row->fields['NAME']?></option>
-                                                            <?php $row->MoveNext(); } ?>
+                                                        <?php $row->MoveNext(); } ?>
                                                     </select>
                                                 </div>
                                             </div>

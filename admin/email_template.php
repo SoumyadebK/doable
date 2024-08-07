@@ -153,11 +153,10 @@ if (empty($_GET['id'])) {
                                 </div>
 
                                 <div class="col-md-12 mb-3">
-                                    <label for="CONTENT">Content</label>
-                                    <input type="text" class="form-control" id="CONTENT" name="CONTENT" value="<?php echo $CONTENT ?>" required>
-                                    <div class="invalid-feedback">
-                                        Please Enter Content.
-                                    </div>
+                                    <label for="CONTENT">Email Content</label>
+                                    <div id="editor" style="height: 500px;"></div>
+                                    <input type="hidden" name="CONTENT" id="CONTENT" >
+                                    <textarea name="TEMP_CONTENT" id="TEMP_CONTENT" style="display:none;"><?=$CONTENT ?></textarea>
                                 </div>
 
                                 <?php if(!empty($_GET['id'])){?>
@@ -189,6 +188,39 @@ if (empty($_GET['id'])) {
 </div>
 <?php require_once('../includes/footer.php');?>
 </body>
+
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+
+<script type="text/javascript">
+    const quill = new Quill('#editor', {
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+                ['link', 'image'],
+
+                [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+                [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+                [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+                [{ 'align': [] }],
+            ],
+        },
+        theme: 'snow',
+    });
+
+    const resetForm = () => {
+        quill.root.innerHTML = document.getElementById('TEMP_CONTENT').value
+    };
+
+    resetForm();
+</script>
+
+
 <script>
     function selectTemplateCategory(param) {
         if ($(param).val() == 1){

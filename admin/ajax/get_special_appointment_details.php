@@ -24,6 +24,7 @@ $ACTIVE = $res->fields['ACTIVE'];
 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
     <input type="hidden" name="FUNCTION_NAME" value="saveSpecialAppointmentData">
     <input type="hidden" name="PK_SPECIAL_APPOINTMENT" class="PK_SPECIAL_APPOINTMENT" value="<?=$PK_SPECIAL_APPOINTMENT?>">
+    <input type="hidden" name="SELECTED_STANDING_ID" value="<?=$STANDING_ID?>">
     <div class="row">
         <div class="col-12">
             <div class="row">
