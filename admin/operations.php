@@ -14,11 +14,7 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 $title = "Appointments";
 
-if (!empty($_GET['date'])) {
-    $appointment_time = " AND DOA_APPOINTMENT_MASTER.DATE <= '".date('Y-m-d')."'";
-} else {
-    $appointment_time = ' ';
-}
+$appointment_time = " AND DOA_APPOINTMENT_MASTER.DATE <= '".date('Y-m-d')."'";
 
 if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
     $SERVICE_PROVIDER_ID = $_GET['SERVICE_PROVIDER_ID'];
