@@ -9,9 +9,9 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 $type = !empty($_GET['type']) ? $_GET['type'] : '';
 $appointment_type = ' ';
 if ($type === 'posted') {
-    $appointment_type = " AND IS_CHARGED = 1";
+    $appointment_type = " AND (DOA_APPOINTMENT_MASTER.IS_CHARGED = 1 || DOA_APPOINTMENT_ENROLLMENT.IS_CHARGED = 1) ";
 } elseif ($type === 'unposted') {
-    $appointment_type = " AND IS_CHARGED = 0";
+    $appointment_type = " AND (DOA_APPOINTMENT_MASTER.IS_CHARGED = 0 || DOA_APPOINTMENT_ENROLLMENT.IS_CHARGED = 0) ";
 } elseif ($type === 'cancelled') {
     $appointment_type = " AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN (4, 6)";
 } else {
