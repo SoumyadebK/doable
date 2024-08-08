@@ -38,13 +38,21 @@ $START_TIME = empty($_POST['START_TIME'])?'09:00:00':$_POST['START_TIME'];
 $END_TIME = empty($_POST['END_TIME'])?'22:00:00':$_POST['END_TIME'];
 $slot_time = empty($_POST['slot_time'])?'':$_POST['slot_time'];
 
-$booked_slot_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS NOT IN (2, 6) AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$SERVICE_PROVIDER_ID." AND DOA_APPOINTMENT_MASTER.DATE = "."'".$date."'");
+$booked_appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS NOT IN (2, 6) AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$SERVICE_PROVIDER_ID." AND DOA_APPOINTMENT_MASTER.DATE = "."'".$date."'");
 $booked_slot_array = [];
 $j = 0;
-while (!$booked_slot_data->EOF) {
-    $booked_slot_array[$j]['START_TIME'] = $booked_slot_data->fields['START_TIME'];
-    $booked_slot_array[$j]['END_TIME'] = $booked_slot_data->fields['END_TIME'];
-    $booked_slot_data->MoveNext();
+while (!$booked_appointment_data->EOF) {
+    $booked_slot_array[$j]['START_TIME'] = $booked_appointment_data->fields['START_TIME'];
+    $booked_slot_array[$j]['END_TIME'] = $booked_appointment_data->fields['END_TIME'];
+    $booked_appointment_data->MoveNext();
+    $j++;
+}
+
+$booked_special_appt_data = $db_account->Execute("SELECT DOA_SPECIAL_APPOINTMENT.START_TIME, DOA_SPECIAL_APPOINTMENT.END_TIME FROM DOA_SPECIAL_APPOINTMENT LEFT JOIN DOA_SPECIAL_APPOINTMENT_USER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT WHERE DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS NOT IN (2, 6) AND DOA_SPECIAL_APPOINTMENT_USER.PK_USER = ".$SERVICE_PROVIDER_ID." AND DOA_SPECIAL_APPOINTMENT.DATE = "."'".$date."'");
+while (!$booked_special_appt_data->EOF) {
+    $booked_slot_array[$j]['START_TIME'] = $booked_special_appt_data->fields['START_TIME'];
+    $booked_slot_array[$j]['END_TIME'] = $booked_special_appt_data->fields['END_TIME'];
+    $booked_special_appt_data->MoveNext();
     $j++;
 }
 
@@ -91,10 +99,10 @@ if (count($time_slot_array) > 0) {
         if ($SLOT_START == '00:00:00' && $SLOT_END == '23:00:00'){
             $disabled = "pointer-events: none; background-color: red !important;";
             $is_disable = 1;
-        }elseif((date('H:i',strtotime($item['slot_start_time'])) < date('H:i',strtotime($SLOT_START))) || date('H:i',strtotime($item['slot_end_time'])) > date('H:i',strtotime($SLOT_END))){
+        } elseif((date('H:i',strtotime($item['slot_start_time'])) < date('H:i',strtotime($SLOT_START))) || date('H:i',strtotime($item['slot_end_time'])) > date('H:i',strtotime($SLOT_END))){
             $disabled = "pointer-events: none; background-color: gray !important;";
             $is_disable = 1;
-        }else {
+        } else {
             foreach ($booked_slot_array as $booked_slot_array_data) {
                 if (((date('H:i', strtotime($item['slot_start_time'])) >= date('H:i', strtotime($booked_slot_array_data['START_TIME']))) && date('H:i', strtotime($item['slot_start_time'])) < date('H:i', strtotime($booked_slot_array_data['END_TIME']))) || ((date('H:i', strtotime($item['slot_end_time'])) > date('H:i', strtotime($booked_slot_array_data['START_TIME']))) && date('H:i', strtotime($item['slot_end_time'])) <= date('H:i', strtotime($booked_slot_array_data['END_TIME'])))) {
                     $disabled = "pointer-events: none; background-color: blue !important; color: white;";
