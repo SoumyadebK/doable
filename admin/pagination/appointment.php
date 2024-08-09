@@ -138,10 +138,12 @@ $page_first_result = ($page-1) * $results_per_page;
             $IMAGE_LINK = $appointment_data->fields['IMAGE'];
             $VIDEO_LINK = $appointment_data->fields['VIDEO'];
             if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
+                $SESSION_CREATED = getSessionCreatedCount($appointment_data->fields['PK_ENROLLMENT_SERVICE']);
                 $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
                 $ENROLLMENT_ID = $appointment_data->fields['ENROLLMENT_ID'];
                 $ENROLLMENT_NAME = $appointment_data->fields['ENROLLMENT_NAME'];
             } else {
+                $SESSION_CREATED = getSessionCreatedCount($appointment_data->fields['APT_ENR_SERVICE']);
                 $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
                 $ENROLLMENT_ID = $appointment_data->fields['APT_ENR_NAME'];
                 $ENROLLMENT_NAME = $appointment_data->fields['APT_ENR_ID'];
@@ -152,7 +154,7 @@ $page_first_result = ($page-1) * $results_per_page;
                 if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
                     $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - 1;
                 } else {
-                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $enr_service_data->fields['SESSION_CREATED'];
+                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $SESSION_CREATED;
                 }
             } ?>
         <tr onclick="$(this).next().slideToggle();">
@@ -190,7 +192,7 @@ $page_first_result = ($page-1) * $results_per_page;
                     <?php /*} */?>
                     <a href="copy_schedule.php?id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
                     <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <?php if ($type == 'cancelled' && ($enr_service_data->RecordCount() > 0 && ($enr_service_data->fields['NUMBER_OF_SESSION']!=$enr_service_data->fields['SESSION_CREATED']))) { ?>
+                <?php if ($type == 'cancelled' && ($enr_service_data->RecordCount() > 0 && ($enr_service_data->fields['NUMBER_OF_SESSION']!=$SESSION_CREATED))) { ?>
                     <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmScheduled(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>,<?=$PK_ENROLLMENT_SERVICE?>);' style="font-size: 18px"><i class="far fa-calendar-check"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <?php } ?>
             </td>
