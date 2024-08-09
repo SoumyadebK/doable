@@ -61,8 +61,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <li><a href="all_appointment_status.php">Appointment Status</a></li>
                                         <li><a href="all_business_types.php">Business Types</a></li>
                                         <li><a href="csv_uploader.php">CSV Uploader</a></li>
-                                        <!--<li><a href="all_scheduling_events.php">Scheduling Event</a></li>
-                                        <li><a href="all_event_actions.php">Event Action</a></li>-->
+                                        <li><a href="all_scheduling_events.php">Scheduling Event</a></li>
+                                        <li><a href="all_event_actions.php">Event Action</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -75,7 +75,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <li><a href="all_payment_types.php">Payment Types</a></li>
                                         <li><a href="all_interests.php">Interests</a></li>
                                         <li><a href="all_document_types.php">Document Types</a></li>
-                                        <!--<li><a href="all_transaction_types.php">Transaction Types</a></li>-->
+                                        <li><a href="all_transaction_types.php">Transaction Types</a></li>
                                         <li><a href="all_skill_levels.php">Skill Level</a></li>
                                         <li><a href="all_relationship.php">Relationship</a></li>
                                         <li><a href="all_service_class.php">Service Class</a></li>
