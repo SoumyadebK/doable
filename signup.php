@@ -554,7 +554,7 @@ $PAYMENT_FAILED_REMINDER_AFTER_DAYS = '';
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="row">
+                                            <!--<div class="row">
                                                 <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="col-md-12" for="example-text">Royalty Percentage</label>
@@ -564,7 +564,7 @@ $PAYMENT_FAILED_REMINDER_AFTER_DAYS = '';
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div>-->
 
                                             <div class="row smtp" id="smtp" >
                                                 <div class="form-group">
