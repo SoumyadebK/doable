@@ -1866,8 +1866,13 @@ function deleteEnrollmentData($RESPONSE_DATA) {
 
 function deleteAppointment($RESPONSE_DATA) {
     global $db_account;
-    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
-    $location_data = $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
+    if ($RESPONSE_DATA['type'] == 'normal') {
+        $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+    } else {
+        $STANDING_ID = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `STANDING_ID` = " . $STANDING_ID);
+    }
     echo 1;
 }
 

@@ -40,11 +40,13 @@ if (!empty($_GET['search_text'])) {
 }
 
 $standing = 0;
+$standing_select = ' ';
 $standing_cond = ' ';
 $standing_group = ' GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER ';
 if (isset($_GET['standing'])) {
     if ($_GET['standing'] == 1) {
         $standing = 1;
+        $standing_select = ' MIN(DOA_APPOINTMENT_MASTER.DATE) AS BEGINNING_DATE, MAX(DOA_APPOINTMENT_MASTER.DATE) AS END_DATE, ';
         $standing_cond = ' AND DOA_APPOINTMENT_MASTER.STANDING_ID > 0 ';
         $standing_group = " GROUP BY DOA_APPOINTMENT_MASTER.STANDING_ID ";
     } else {
@@ -60,6 +62,7 @@ if ($standing == 1) {
 
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
+                            $standing_select
                             DOA_APPOINTMENT_MASTER.STANDING_ID,
                             DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
                             DOA_APPOINTMENT_MASTER.GROUP_NAME,
@@ -301,12 +304,18 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <?php } ?>
                                             <td><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
                                             <td><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
-                                            <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
+
+                                            <?php if ($standing == 0) { ?>
+                                                <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
+                                            <?php } else { ?>
+                                                <td><?=date('m/d/Y', strtotime($appointment_data->fields['BEGINNING_DATE']))?> - <?=date('m/d/Y', strtotime($appointment_data->fields['END_DATE']))?></td>&nbsp;&nbsp;&nbsp;
+                                            <?php } ?>
+
                                             <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
                                             <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
                                             <td style="text-align: center;">
                                                 <?php
-                                                if ($appointment_data->fields['CUSTOMER_NAME']) {
+                                                if ($appointment_data->fields['CUSTOMER_NAME'] && $standing == 0) {
                                                     if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
                                                         <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
                                                     <?php } else { ?>
@@ -320,8 +329,12 @@ $page_first_result = ($page-1) * $results_per_page;
                                                 <?php /*} else { */?>
                                                     <a href="add_schedule.php?id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 --><?php /*} */?>
-                                                <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php if ($standing == 0) { ?>
+                                                    <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>, "normal");'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php } else { ?>
+                                                    <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['STANDING_ID']?>, "standing");'><i class="fa fa-trash"></i></a>
+                                                <?php } ?>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -619,9 +632,9 @@ $page_first_result = ($page-1) * $results_per_page;
         });
     }
 
-    function ConfirmDelete(PK_APPOINTMENT_MASTER)
+    function ConfirmDelete(PK_APPOINTMENT_MASTER, type)
     {
-        Swal.fire({
+        swal({
             title: "Are you sure?",
             text: "You won't be able to revert this!",
             icon: "warning",
@@ -630,11 +643,11 @@ $page_first_result = ($page-1) * $results_per_page;
             cancelButtonColor: "#d33",
             confirmButtonText: "Yes, delete it!"
         }).then((result) => {
-            if (result.isConfirmed) {
+            if (result) {
                 $.ajax({
                     url: "ajax/AjaxFunctions.php",
                     type: 'POST',
-                    data: {FUNCTION_NAME: 'deleteAppointment', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                    data: {FUNCTION_NAME: 'deleteAppointment', type:type, PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
                     success: function (data) {
                         window.location.href = 'appointment_list.php';
                     }

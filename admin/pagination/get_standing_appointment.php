@@ -44,7 +44,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
                         LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
                         LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
-                        WHERE DOA_APPOINTMENT_MASTER.STANDING_ID = ".$STANDING_ID." AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER != $PK_APPOINTMENT_MASTER
+                        WHERE DOA_APPOINTMENT_MASTER.STANDING_ID = ".$STANDING_ID." /*AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER != $PK_APPOINTMENT_MASTER*/
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
                         ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC";
 $i = 1;
@@ -82,7 +82,7 @@ while (!$appointment_data->EOF) { ?>
         </td>
         <td>
             <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <a href="all_schedules.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>, "normal");'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         </td>
     </tr>
 <?php $appointment_data->MoveNext();
