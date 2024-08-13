@@ -302,7 +302,13 @@ while (!$account_payment_info->EOF) {
                     </div>
                 </div>
             </div>
-
+            <div class="col-md-6 align-self-center">
+                <h4 style="color: #39B54A;">
+                    <?php if(!empty($_GET['id'])) {
+                        echo $BUSINESS_NAME;
+                    } ?>
+                </h4>
+            </div>
                 <div class="row">
                     <div class="col-md-12">
                         <div class="card wizard-content">

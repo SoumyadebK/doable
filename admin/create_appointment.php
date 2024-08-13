@@ -256,8 +256,9 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         $PK_LOCATION = 0;
     }
 
-    $enrollment_service_data = $db_account->Execute("SELECT `NUMBER_OF_SESSION`, `SESSION_CREATED` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
-    $SESSION_LEFT = $enrollment_service_data->fields['NUMBER_OF_SESSION'] - $enrollment_service_data->fields['SESSION_CREATED'];
+    $enrollment_service_data = $db_account->Execute("SELECT `NUMBER_OF_SESSION` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
+    $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE);
+    $SESSION_LEFT = $enrollment_service_data->fields['NUMBER_OF_SESSION'] - $SESSION_CREATED;
 
     $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
     $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;

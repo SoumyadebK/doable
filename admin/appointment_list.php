@@ -77,6 +77,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.SERVICE_CODE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_APPOINTMENT_MASTER.IS_CHARGED,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
@@ -316,7 +317,9 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td style="text-align: center;">
                                                 <?php
                                                 if ($appointment_data->fields['CUSTOMER_NAME'] && $standing == 0) {
-                                                    if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
+                                                    if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 6 && $appointment_data->fields['IS_CHARGED'] == 1){ ?>
+                                                        <i class="fa fa-check-circle" style="font-size:25px;color:red;"></i>
+                                                    <?php } elseif ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
                                                         <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
                                                     <?php } else { ?>
                                                         <a href="javascript:" data-id="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='confirmComplete($(this));'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
