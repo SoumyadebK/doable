@@ -22,9 +22,9 @@
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 <!--<a class="dropdown-item" href="../admin/all_services.php">Services</a>-->
+                                <a class="dropdown-item" href="../admin/all_scheduling_codes.php">Scheduling Codes</a>
                                 <a class="dropdown-item" href="../admin/all_service_codes.php">Services</a>
                                 <a class="dropdown-item" href="../admin/all_packages.php">Packages</a>
-                                <a class="dropdown-item" href="../admin/all_scheduling_codes.php">Scheduling Codes</a>
                                 <a class="dropdown-item" href="../admin/all_document_library.php">Document Library</a>
                                 <!--<a class="dropdown-item" href="../admin/all_interests.php">Interests</a>
                                 <a class="dropdown-item" href="../admin/all_skill_levels.php">Skill Levels</a>-->
@@ -49,6 +49,7 @@
                                 <a class="dropdown-item" href="../admin/all_email_accounts.php">Email Accounts</a>
                                 <a class="dropdown-item" href="../admin/all_email_templates.php">Email Templates</a>
                                 <a class="dropdown-item" href="../admin/all_text_templates.php">Text Templates</a>
+                                <a class="dropdown-item" href="../admin/test_chat_gpt.php">Assistant</a>
                             </div>
                         </li>
                     </ul>
@@ -60,14 +61,15 @@
                         if ($address == "business_profile.php" || $address == "all_locations.php" || $address == "all_users.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
                                 <li class="nav-item"><a class="nav-link" href="../admin/business_profile.php">Business Profile</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/settings.php">Settings</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_locations.php">Locations</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_users.php">Users</a></li>
                             </ul>
                         <?php } elseif ($address == "all_services.php" || $address == "all_packages.php" || $address == "all_scheduling_codes.php" || $address == "all_document_library.php" || $address == "all_interests.php" || $address == "all_skill_levels.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_scheduling_codes.php">Scheduling Codes</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_services.php">Services</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_packages.php">Packages</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_scheduling_codes.php">Scheduling Codes</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_document_library.php">Document Library</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_interests.php">Interests</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_skill_levels.php">Skill Levels</a></li>
@@ -84,7 +86,7 @@
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_email_accounts.php">Email Accounts</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_email_templates.php">Email Templates</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_text_templates.php">Text Templates</a></li>
-                            </ul>
+                                <li class="nav-item"><a class="nav-link" href="../admin/test_chat_gpt.php">Assistant</a></li>                            </ul>
                         <?php } ?>
                     </div>
                 </div>
