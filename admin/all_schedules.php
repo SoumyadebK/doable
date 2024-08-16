@@ -13,6 +13,9 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || ($_SESSION['PK_ROL
     exit;
 }
 
+$redirect_date = (!empty($_GET['date'])) ? $_GET['date'] : "";
+
+
 $SERVICE_PROVIDER_ID = ' ';
 if(isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != ''){
     $service_providers = implode(',', $_GET['SERVICE_PROVIDER_ID']);
@@ -139,7 +142,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAp
             db_perform_account('DOA_SPECIAL_APPOINTMENT_CUSTOMER', $SPECIAL_APPOINTMENT_CUSTOMER_DATA, 'insert');
         }
     }*/
-    header("location:all_schedules.php");
+    header("location:all_schedules.php?date=".date('m/d/Y', strtotime($_POST['DATE'])));
 }
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClassData'){
@@ -228,7 +231,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         db_perform_account('DOA_APPOINTMENT_STATUS_HISTORY', $APPOINTMENT_STATUS_HISTORY_DATA, 'insert');
     }
 
-    header("location:all_schedules.php");
+    header("location:all_schedules.php?date=".date('m/d/Y', strtotime($_POST['DATE'])));
 }
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData'){
@@ -295,7 +298,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData
             $EVENT_IMAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
             db_perform_account('DOA_EVENT_IMAGE', $EVENT_IMAGE_DATA, 'insert');
         }
-        header("location:all_schedules.php");
+        header("location:all_schedules.php?date=".date('m/d/Y', strtotime($_POST['START_DATE'])));
     }
 }
 
@@ -494,6 +497,19 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 <script>
+    $(window).on('load', function () {
+       let redirect_date = '<?=$redirect_date?>';
+       if (redirect_date) {
+           let currentDate = new Date(redirect_date);
+
+           let day = currentDate.getDate();
+           let month = currentDate.getMonth()+1;
+           let year = currentDate.getFullYear();
+
+           calendar.gotoDate(month+'/'+day+'/'+year);
+       }
+    });
+
     $('.datepicker-normal').datepicker({
         onSelect: function () {
             $('#IS_SELECTED').val(1);

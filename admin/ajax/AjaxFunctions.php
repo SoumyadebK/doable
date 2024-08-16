@@ -1381,7 +1381,7 @@ function getServiceProviderCount($RESPONSE_DATA){
 
     $event_count = $db_account->Execute("SELECT COUNT(DOA_EVENT.PK_EVENT) AS APPOINTMENT_COUNT FROM DOA_EVENT
                             LEFT JOIN DOA_EVENT_LOCATION ON DOA_EVENT.PK_EVENT = DOA_EVENT_LOCATION.PK_EVENT
-                            WHERE SHARE_WITH_SERVICE_PROVIDERS = 1 AND DOA_EVENT_LOCATION.PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND `START_DATE` = '$date'");
+                            WHERE SHARE_WITH_SERVICE_PROVIDERS = 1 AND ALL_DAY = 0 AND DOA_EVENT_LOCATION.PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND `START_DATE` = '$date'");
 
     $all_service_provider_details = $db->Execute("SELECT PK_USER AS SERVICE_PROVIDER_ID, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME FROM DOA_USERS AS SERVICE_PROVIDER WHERE PK_USER IN (".$all_service_provider.")");
     while (!$all_service_provider_details->EOF){
@@ -1868,11 +1868,16 @@ function deleteAppointment($RESPONSE_DATA) {
     global $db_account;
     if ($RESPONSE_DATA['type'] == 'normal') {
         $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+        $appointment_data = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+        $PK_ENROLLMENT_MASTER = $appointment_data->fields['PK_ENROLLMENT_MASTER'];
         $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
     } else {
         $STANDING_ID = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+        $appointment_data = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM `DOA_APPOINTMENT_MASTER` WHERE `STANDING_ID` = " . $STANDING_ID ." LIMIT 1");
+        $PK_ENROLLMENT_MASTER = $appointment_data->fields['PK_ENROLLMENT_MASTER'];
         $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `STANDING_ID` = " . $STANDING_ID);
     }
+    markEnrollmentComplete($PK_ENROLLMENT_MASTER);
     echo 1;
 }
 

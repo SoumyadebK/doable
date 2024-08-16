@@ -24,17 +24,19 @@ if ($franchise_data->RecordCount() > 0) {
 }
 
 if(empty($_GET['id'])){
+    $account_res = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = '$_SESSION[PK_ACCOUNT_MASTER]'");
+
     $PK_LOCATION = 0;
     $LOCATION_NAME = '';
     $LOCATION_CODE = '';
-    $ADDRESS = '';
-    $ADDRESS_1 = '';
-    $PK_COUNTRY = '';
-    $PK_STATES = '';
-    $CITY = '';
-    $ZIP_CODE = '';
-    $PHONE = '';
-    $EMAIL = '';
+    $ADDRESS = $account_res->fields['ADDRESS'];
+    $ADDRESS_1 = $account_res->fields['ADDRESS_1'];
+    $PK_COUNTRY = $account_res->fields['PK_COUNTRY'];
+    $PK_STATES = $account_res->fields['PK_STATES'];
+    $CITY = $account_res->fields['CITY'];
+    $ZIP_CODE = $account_res->fields['ZIP'];
+    $PHONE = $account_res->fields['PHONE'];
+    $EMAIL = $account_res->fields['EMAIL'];
     $IMAGE_PATH = '';
     $PK_TIMEZONE = '';
     $ROYALTY_PERCENTAGE = '';

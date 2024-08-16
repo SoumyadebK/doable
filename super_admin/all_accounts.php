@@ -92,7 +92,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <tbody>
                                                 <?php
                                                     $i=1;
-                                                    $row = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_BUSINESS_TYPE.BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_BUSINESS_TYPE ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE = DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE where DOA_ACCOUNT_MASTER.ACTIVE = 1 ".$search." ORDER BY CREATED_ON DESC LIMIT " . $page_first_result . ',' . $results_per_page);
+                                                    $row = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_BUSINESS_TYPE.BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_BUSINESS_TYPE ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE = DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE WHERE DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER > 1  ".$search." ORDER BY CREATED_ON DESC LIMIT " . $page_first_result . ',' . $results_per_page);
                                                     while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?=$row->fields['PK_ACCOUNT_MASTER'];?>);"><?=$i;?></td>
