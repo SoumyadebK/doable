@@ -58,7 +58,7 @@
                         $currentURL = $_SERVER['REQUEST_URI'];
                         $url = explode("/", $currentURL);
                         $address = $url[2];
-                        if ($address == "business_profile.php" || $address == "all_locations.php" || $address == "all_users.php") { ?>
+                        if ($address == "business_profile.php" || $address == "settings.php" || $address == "all_locations.php" || $address == "all_users.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
                                 <li class="nav-item"><a class="nav-link" href="../admin/business_profile.php">Business Profile</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/settings.php">Settings</a></li>
