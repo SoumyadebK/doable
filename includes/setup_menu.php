@@ -57,7 +57,11 @@
                         <?php
                         $currentURL = $_SERVER['REQUEST_URI'];
                         $url = explode("/", $currentURL);
-                        $address = $url[2];
+                        if($_SERVER['HTTP_HOST'] == 'localhost' ) {
+                            $address = $url[3];
+                        } else {
+                            $address = $url[2];
+                        }
                         if ($address == "business_profile.php" || $address == "settings.php" || $address == "all_locations.php" || $address == "all_users.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
                                 <li class="nav-item"><a class="nav-link" href="../admin/business_profile.php">Business Profile</a></li>
@@ -65,14 +69,14 @@
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_locations.php">Locations</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_users.php">Users</a></li>
                             </ul>
-                        <?php } elseif ($address == "all_services.php" || $address == "all_packages.php" || $address == "all_scheduling_codes.php" || $address == "all_document_library.php" || $address == "all_interests.php" || $address == "all_skill_levels.php") { ?>
+                        <?php } elseif ($address == "all_service_codes.php" || $address == "all_packages.php" || $address == "all_scheduling_codes.php" || $address == "all_document_library.php" || $address == "all_interests.php" || $address == "all_skill_levels.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_scheduling_codes.php">Scheduling Codes</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_services.php">Services</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_service_codes.php">Services</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_packages.php">Packages</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../admin/all_document_library.php">Document Library</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_interests.php">Interests</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_skill_levels.php">Skill Levels</a></li>
+                                <!--<li class="nav-item"><a class="nav-link" href="../admin/all_interests.php">Interests</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../admin/all_skill_levels.php">Skill Levels</a></li>-->
                             </ul>
                         <?php } elseif ($address == "all_gift_certificates.php" || $address == "all_gift_certificate_setup.php" || $address == "all_event_types.php" || $address == "all_inquiry_methods.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">

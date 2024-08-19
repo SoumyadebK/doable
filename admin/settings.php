@@ -59,10 +59,12 @@ $HOUR = $res->fields['HOUR'];
 $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
 $TIME_SLOT_INTERVAL = $res->fields['TIME_SLOT_INTERVAL'];
 
+$help_title = '';
+$help_description = '';
 $help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'settings'");
 if($help->RecordCount() > 0){
-    $title = $help->fields['TITLE'];
-    $description = $help->fields['DESCRIPTION'];
+    $help_title = $help->fields['TITLE'];
+    $help_description = $help->fields['DESCRIPTION'];
 }
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -420,10 +422,10 @@ if ($header_data->RecordCount() > 0) {
                         <div class="card-body">
                             <div class="row">
                                 <h4 class="col-md-12" STYLE="text-align: center">
-                                    <?=$title?>
+                                    <?=$help_title?>
                                 </h4>
                                 <div class="col-md-12">
-                                    <text class="required-entry rich" id="DESCRIPTION"><?=$description?></text>
+                                    <text class="required-entry rich" id="DESCRIPTION"><?=$help_description?></text>
                                 </div>
                             </div>
                         </div>
