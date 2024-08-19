@@ -19,12 +19,12 @@ if(!empty($_POST)){
         $LOCATION_DATA['ACTIVE'] = 1;
         $LOCATION_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $LOCATION_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_INQUIRY_METHOD', $LOCATION_DATA, 'insert');
+        db_perform_account('DOA_INQUIRY_METHOD', $LOCATION_DATA, 'insert');
     }else{
         $LOCATION_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $LOCATION_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_INQUIRY_METHOD', $LOCATION_DATA, 'update'," PK_INQUIRY_METHOD =  '$_GET[id]'");
+        db_perform_account('DOA_INQUIRY_METHOD', $LOCATION_DATA, 'update'," PK_INQUIRY_METHOD =  '$_GET[id]'");
     }
     header("location:all_inquiry_methods.php");
 }
@@ -35,7 +35,7 @@ if(empty($_GET['id'])){
     $INQUIRY_METHOD = '';
     $ACTIVE = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_INQUIRY_METHOD` WHERE `PK_INQUIRY_METHOD` = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_INQUIRY_METHOD` WHERE `PK_INQUIRY_METHOD` = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_inquiry_methods.php");
@@ -57,7 +57,7 @@ if(empty($_GET['id'])){
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>

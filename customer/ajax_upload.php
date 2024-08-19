@@ -1,4 +1,4 @@
-<?php require_once("../global/config.php"); 
+<?php require_once("../global/config.php");
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == ''/* || $_SESSION['ROLE_ID'] != 1*/){ 
 	header("location:../index.php");
 	exit;

@@ -12,12 +12,12 @@ $success_msg = '';
 if(!empty($_POST)){
     if ($_POST['FORM_TYPE'] == 'change_password_form'){
         if ($_POST['NEW_PASSWORD'] == $_POST['CONFIRM_NEW_PASSWORD']){
-            $result = $db->Execute("SELECT PASSWORD FROM `DOA_USERS` WHERE PK_USER = '$_SESSION[PK_USER]'");
-            if($result->RecordCount() > 0) {
-                if (password_verify($_POST['OLD_PASSWORD'], $result->fields['PASSWORD'])) {
+            $user_default = $db->Execute("SELECT PASSWORD FROM `DOA_USERS` WHERE PK_USER = '$_SESSION[PK_USER]'");
+            if($user_default->RecordCount() > 0) {
+                if (password_verify($_POST['OLD_PASSWORD'], $user_default->fields['PASSWORD'])) {
                     $USER_DATA['PASSWORD'] = password_hash($_POST['NEW_PASSWORD'], PASSWORD_DEFAULT);
                     db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
-                    $success_msg = "Password Changed Successfilly.";
+                    $success_msg = "Password Changed Successfully.";
                 }else{
                     $err_msg = 'Old Password is Wrong.';
                 }
@@ -26,7 +26,6 @@ if(!empty($_POST)){
             $err_msg = 'Password and Confirm Password Not Matched.';
         }
     }else {
-        $USER_DATA['PHONE'] = $_POST['PHONE'];
         if ($_FILES['USER_IMAGE']['name'] != '') {
             $USER_DATA = [];
             $extn = explode(".", $_FILES['USER_IMAGE']['name']);
@@ -41,62 +40,111 @@ if(!empty($_POST)){
                 $USER_DATA['USER_IMAGE'] = $image_path;
             }
         }
+        $USER_DATA['PHONE'] = $_POST['PHONE'];
+        $USER_DATA['GENDER'] = $_POST['GENDER'];
+        $USER_DATA['DOB'] = date('Y-m-d', strtotime($_POST['DOB']));
+        $USER_DATA['ADDRESS'] = $_POST['ADDRESS'];
+        $USER_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
+        $USER_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
+        $USER_DATA['PK_STATES'] = $_POST['PK_STATES'];
+        $USER_DATA['CITY'] = $_POST['CITY'];
+        $USER_DATA['ZIP'] = $_POST['ZIP'];
+        $USER_DATA['NOTES'] = $_POST['NOTES'];
         db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
 
-        $USER_PROFILE_DATA['GENDER'] = $_POST['GENDER'];
-        $USER_PROFILE_DATA['DOB'] = $_POST['DOB'];
-        $USER_PROFILE_DATA['ADDRESS'] = $_POST['ADDRESS'];
-        $USER_PROFILE_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
-        $USER_PROFILE_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
-        $USER_PROFILE_DATA['PK_STATES'] = $_POST['PK_STATES'];
-        $USER_PROFILE_DATA['CITY'] = $_POST['CITY'];
-        $USER_PROFILE_DATA['ZIP'] = $_POST['ZIP'];
-        $USER_PROFILE_DATA['FAX'] = $_POST['FAX'];
-        $USER_PROFILE_DATA['WEBSITE'] = $_POST['WEBSITE'];
-        $USER_PROFILE_DATA['NOTES'] = $_POST['NOTES'];
+        $TEXT_DATA['SID'] = $_POST['SID'];
+        $TEXT_DATA['TOKEN'] = $_POST['TOKEN'];
+        $TEXT_DATA['FROM_NO'] = $_POST['PHONE_NO'];
+        db_perform('TEXT_SETTINGS', $TEXT_DATA, 'update', "PK_TEXT_SETTINGS = 1");
 
-        $res = $db->Execute("SELECT `PK_USER_PROFILE` FROM `DOA_USER_PROFILE` WHERE PK_USER = '$_SESSION[PK_USER]'");
-
-        if ($res->RecordCount() == 0) {
-            $USER_PROFILE_DATA['PK_USER'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['ACTIVE'] = 1;
-            $USER_PROFILE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
+        $PAYMENT_GATEWAY_DATA['PAYMENT_GATEWAY_TYPE'] = $_POST['PAYMENT_GATEWAY_TYPE'];
+        $PAYMENT_GATEWAY_DATA['SECRET_KEY'] = $_POST['SECRET_KEY'];
+        $PAYMENT_GATEWAY_DATA['PUBLISHABLE_KEY'] = $_POST['PUBLISHABLE_KEY'];
+        $PAYMENT_GATEWAY_DATA['ACCESS_TOKEN'] = $_POST['ACCESS_TOKEN'];
+        $PAYMENT_GATEWAY_DATA['APP_ID'] = $_POST['APP_ID'];
+        $PAYMENT_GATEWAY_DATA['LOCATION_ID'] = $_POST['LOCATION_ID'];
+        $PAYMENT_GATEWAY_DATA['LOGIN_ID'] = $_POST['LOGIN_ID'];
+        $PAYMENT_GATEWAY_DATA['TRANSACTION_KEY'] = $_POST['TRANSACTION_KEY'];
+        $PAYMENT_GATEWAY_DATA['AUTHORIZE_CLIENT_KEY'] = $_POST['AUTHORIZE_CLIENT_KEY'];
+        if ($_POST['PAYMENT_GATEWAY_TYPE'] == 0) {
+            db_perform('DOA_PAYMENT_GATEWAY_SETTINGS', $PAYMENT_GATEWAY_DATA, 'insert');
         } else {
-            $USER_PROFILE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
+            db_perform('DOA_PAYMENT_GATEWAY_SETTINGS', $PAYMENT_GATEWAY_DATA, 'update', "PK_PAYMENT_GATEWAY_SETTINGS = 1");
+        }
+
+        $OTHER_SETTING_DATA['PK_OTHER_SETTING'] = $_POST['PK_OTHER_SETTING'];
+        $OTHER_SETTING_DATA['PAYMENT_REMINDER_BEFORE_DAYS'] = $_POST['PAYMENT_REMINDER_BEFORE_DAYS'];
+        $OTHER_SETTING_DATA['PAYMENT_FAILED_REMINDER_AFTER_DAYS'] = $_POST['PAYMENT_FAILED_REMINDER_AFTER_DAYS'];
+        if ($_POST['PK_OTHER_SETTING'] == 0) {
+            db_perform('DOA_OTHER_SETTING', $OTHER_SETTING_DATA, 'insert');
+        } else {
+            db_perform('DOA_OTHER_SETTING', $OTHER_SETTING_DATA, 'update', "PK_OTHER_SETTING = 1");
         }
     }
 }
 
-$res = $db->Execute("SELECT DOA_USERS.PK_ROLES, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES, DOA_ROLES.ROLES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES = DOA_USERS.PK_ROLES WHERE DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
-
-if($res->RecordCount() == 0){
+$user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = ".$_SESSION['PK_USER']);
+$text = $db->Execute( "SELECT * FROM `DOA_TEXT_SETTINGS`");
+$payment_gateway_setting = $db->Execute( "SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
+$other_setting = $db->Execute( "SELECT * FROM `DOA_OTHER_SETTING`");
+if($user_data->RecordCount() == 0){
     header("location:../login.php");
     exit;
 }
 
-$ROLES = $res->fields['ROLES'];
-$USER_ID = $res->fields['USER_ID'];
-$FIRST_NAME = $res->fields['FIRST_NAME'];
-$LAST_NAME = $res->fields['LAST_NAME'];
-$EMAIL_ID = $res->fields['EMAIL_ID'];
-$USER_IMAGE = $res->fields['USER_IMAGE'];
-$GENDER = $res->fields['GENDER'];
-$DOB = $res->fields['DOB'];
-$ADDRESS = $res->fields['ADDRESS'];
-$ADDRESS_1 = $res->fields['ADDRESS_1'];
-$PK_COUNTRY = $res->fields['PK_COUNTRY'];
-$PK_STATES = $res->fields['PK_STATES'];
-$CITY = $res->fields['CITY'];
-$ZIP = $res->fields['ZIP'];
-$PHONE = $res->fields['PHONE'];
-$FAX = $res->fields['FAX'];
-$WEBSITE = $res->fields['WEBSITE'];
-$NOTES = $res->fields['NOTES'];
-$ACTIVE = $res->fields['ACTIVE'];
+$USER_NAME = $user_data->fields['USER_NAME'];
+$FIRST_NAME = $user_data->fields['FIRST_NAME'];
+$LAST_NAME = $user_data->fields['LAST_NAME'];
+$EMAIL_ID = $user_data->fields['EMAIL_ID'];
+$USER_IMAGE = $user_data->fields['USER_IMAGE'];
+$GENDER = $user_data->fields['GENDER'];
+$DOB = $user_data->fields['DOB'];
+$ADDRESS = $user_data->fields['ADDRESS'];
+$ADDRESS_1 = $user_data->fields['ADDRESS_1'];
+$PK_COUNTRY = $user_data->fields['PK_COUNTRY'];
+$PK_STATES = $user_data->fields['PK_STATES'];
+$CITY = $user_data->fields['CITY'];
+$ZIP = $user_data->fields['ZIP'];
+$PHONE = $user_data->fields['PHONE'];
+$NOTES = $user_data->fields['NOTES'];
+$ACTIVE = $user_data->fields['ACTIVE'];
+$SID = $text->fields['SID'];
+$TOKEN = $text->fields['TOKEN'];
+$PHONE_NO = $text->fields['FROM_NO'];
+
+$PK_PAYMENT_GATEWAY_SETTINGS = 0;
+$PAYMENT_GATEWAY_TYPE = '';
+$SECRET_KEY = '';
+$PUBLISHABLE_KEY = '';
+$ACCESS_TOKEN = '';
+$SQUARE_APP_ID ='';
+$SQUARE_LOCATION_ID = '';
+$LOGIN_ID = '';
+$TRANSACTION_KEY = '';
+$AUTHORIZE_CLIENT_KEY = '';
+
+$PK_OTHER_SETTING = 0;
+$PAYMENT_REMINDER_BEFORE_DAYS = '';
+$PAYMENT_FAILED_REMINDER_AFTER_DAYS = '';
+
+if ($payment_gateway_setting->RecordCount() > 0) {
+    $PK_PAYMENT_GATEWAY_SETTINGS = $payment_gateway_setting->fields['PK_PAYMENT_GATEWAY_SETTINGS'];
+    $PAYMENT_GATEWAY_TYPE = $payment_gateway_setting->fields['PAYMENT_GATEWAY_TYPE'];
+    $SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
+    $PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+    $ACCESS_TOKEN = $payment_gateway_setting->fields['ACCESS_TOKEN'];
+    $SQUARE_APP_ID = $payment_gateway_setting->fields['APP_ID'];
+    $SQUARE_LOCATION_ID = $payment_gateway_setting->fields['LOCATION_ID'];
+    $LOGIN_ID = $payment_gateway_setting->fields['LOGIN_ID'];
+    $TRANSACTION_KEY = $payment_gateway_setting->fields['TRANSACTION_KEY'];
+    $AUTHORIZE_CLIENT_KEY = $payment_gateway_setting->fields['AUTHORIZE_CLIENT_KEY'];
+}
+
+if ($other_setting->RecordCount() > 0) {
+    $PK_OTHER_SETTING = $other_setting->fields['PK_OTHER_SETTING'];
+    $PAYMENT_REMINDER_BEFORE_DAYS = $other_setting->fields['PAYMENT_REMINDER_BEFORE_DAYS'];
+    $PAYMENT_FAILED_REMINDER_AFTER_DAYS = $other_setting->fields['PAYMENT_FAILED_REMINDER_AFTER_DAYS'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -108,7 +156,7 @@ $ACTIVE = $res->fields['ACTIVE'];
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -143,7 +191,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                     <label class="col-md-12" for="example-text">Role : </label>
                                 </div>
                                 <div class="col-3">
-                                    <label style="color: #ff9800; "><?php echo $ROLES?></label>
+                                    <label style="color: #ff9800; ">Super Admin</label>
                                 </div>
 
                                 <div class="col-1">
@@ -157,7 +205,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                     <label class="col-md-12" for="example-text">User Name : </label>
                                 </div>
                                 <div class="col-3">
-                                    <label style="color: #ff9800; "><?php echo $USER_ID?></label>
+                                    <label style="color: #ff9800; "><?php echo $USER_NAME?></label>
                                 </div>
                             </div>
                             </br>
@@ -209,15 +257,15 @@ $ACTIVE = $res->fields['ACTIVE'];
                                             <label class="form-label">Gender</label>
                                             <select class="form-control form-select" id="GENDER" name="GENDER">
                                                 <option>Select Gender</option>
-                                                <option value="1" <?php if($GENDER == "1") echo 'selected = "selected"';?>>Male</option>
-                                                <option value="2" <?php if($GENDER == "2") echo 'selected = "selected"';?>>Female</option>
+                                                <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
+                                                <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label class="form-label">Date of Birth</label>
-                                            <input type="text" class="form-control datepicker-past"  id="DOB" name="DOB" value="<?($DOB)?date('m/d/Y', strtotime($DOB)):''?>">
+                                            <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?=($DOB)?date('m/d/Y', strtotime($DOB)):''?>">
                                         </div>
                                     </div>
                                 </div>
@@ -248,11 +296,10 @@ $ACTIVE = $res->fields['ACTIVE'];
                                 <div class="row">
                                     <div class="col-6">
                                         <div class="form-group">
-                                            <label class="col-md-12" for="example-text">Country<span class="text-danger">*</span>
-                                            </label>
+                                            <label class="col-md-12" for="example-text">Country<span class="text-danger">*</span></label>
                                             <div class="col-md-12">
                                                 <div class="col-sm-12">
-                                                    <select class="form-select" required name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
+                                                    <select class="form-control" required name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
                                                         <option>Select Country</option>
                                                         <?php
                                                         $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
@@ -312,38 +359,17 @@ $ACTIVE = $res->fields['ACTIVE'];
                                     </div>
                                     <div class="col-6">
                                         <div class="form-group">
-                                            <label class="col-md-12" for="example-text">Fax
-                                            </label>
-                                            <div class="col-md-12">
-                                                <input type="text" id="FAX" name="FAX" class="form-control" placeholder="Enter Fax" value="<?php echo $FAX;?>">
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            <label class="col-md-12" for="example-text">Website
-                                            </label>
-                                            <div class="col-md-12">
-                                                <input type="text" id="WEBSITE" name="WEBSITE" class="form-control" placeholder="Enter Website" value="<?php echo $WEBSITE?>">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-6">
-                                        <div class="form-group">
                                             <label class="col-md-12" for="example-text">Image Upload
                                             </label>
                                             <div class="col-md-12">
-                                                <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control" > </div>
+                                                <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control" onchange="previewFile(this)">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+
                                 <div class="form-group">
-                                    <?php if($USER_IMAGE!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery"><img src = "<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a></div><?php } ?>
+                                    <?php if($USER_IMAGE!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery"><img id="profile-img" alt="user-img" src = "<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a></div><?php } ?>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-md-12">Remarks</label>
@@ -351,6 +377,118 @@ $ACTIVE = $res->fields['ACTIVE'];
                                         <textarea class="form-control" rows="3" id="NOTES" name="NOTES"><?php echo $NOTES?></textarea>
                                     </div>
                                 </div>
+
+                                <div class="row" style="margin-top: 50px;">
+                                    <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">SID</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="SID" name="SID" class="form-control" placeholder="Enter SID" value="<?php echo $SID?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">Token</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="TOKEN" name="TOKEN" class="form-control" placeholder="Enter TOKEN" value="<?php echo $TOKEN?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">Phone No.</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="PHONE_NO" name="PHONE_NO" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE_NO?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row" style="margin-top: 50px;">
+                                    <b class="btn btn-light" style="margin-bottom: 20px;">Payment Gateway Setting</b>
+                                    <input type="hidden" name="PK_PAYMENT_GATEWAY_SETTINGS" value="<?=$PK_PAYMENT_GATEWAY_SETTINGS?>">
+                                    <div class="col-6">
+                                        <div class="row">
+                                            <div class="form-group">
+                                                <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
+                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
+                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
+                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'checked':''?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row payment_gateway" id="stripe" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'':'none'?>;">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Secret Key</label>
+                                                <input type="text" class="form-control" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Publishable Key</label>
+                                                <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?=$PUBLISHABLE_KEY?>">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row payment_gateway" id="square" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Square')?'':'none'?>">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Application ID</label>
+                                                <input type="text" class="form-control" name="APP_ID" value="<?=$SQUARE_APP_ID?>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Location ID</label>
+                                                <input type="text" class="form-control" name="LOCATION_ID" value="<?=$SQUARE_LOCATION_ID?>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Access Token</label>
+                                                <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?=$ACCESS_TOKEN?>">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row payment_gateway" id="authorized" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'':'none'?>">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Login ID</label>
+                                                <input type="text" class="form-control" name="LOGIN_ID" value="<?=$LOGIN_ID?>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Transaction Key</label>
+                                                <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?=$TRANSACTION_KEY?>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Authorize Client Key</label>
+                                                <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?=$AUTHORIZE_CLIENT_KEY?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row" style="margin-top: 50px;">
+                                    <b class="btn btn-light" style="margin-bottom: 20px;">Subscription & Payment Setting</b>
+                                    <input type="hidden" name="PK_OTHER_SETTING" value="<?=$PK_OTHER_SETTING?>">
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">Payment reminder send before days</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="PAYMENT_REMINDER_BEFORE_DAYS" name="PAYMENT_REMINDER_BEFORE_DAYS" class="form-control" placeholder="Payment reminder send before days" value="<?=$PAYMENT_REMINDER_BEFORE_DAYS?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">Payment failed reminder after days</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="PAYMENT_FAILED_REMINDER_AFTER_DAYS" name="PAYMENT_FAILED_REMINDER_AFTER_DAYS" class="form-control" placeholder="Payment failed reminder after days" value="<?=$PAYMENT_FAILED_REMINDER_AFTER_DAYS?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                             </form>
                         </div>
@@ -360,7 +498,6 @@ $ACTIVE = $res->fields['ACTIVE'];
         </div>
     </div>
     <style>
-
         .progress-bar {
             border-radius: 5px;
             height:18px !important;
@@ -378,7 +515,6 @@ $ACTIVE = $res->fields['ACTIVE'];
         });
 
         function fetch_state(PK_COUNTRY){
-
             jQuery(document).ready(function($) {
                 var data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
 
@@ -395,8 +531,35 @@ $ACTIVE = $res->fields['ACTIVE'];
                 }).responseText;
             });
         }
+
+        function previewFile(input){
+            let file = $("#USER_IMAGE").get(0).files[0];
+            if(file){
+                let reader = new FileReader();
+                reader.onload = function(){
+                    $("#profile-img").attr("src", reader.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
     </script>
     <script>
+        function showPaymentGateway(param) {
+            $('.payment_gateway').slideUp();
+            if($(param).val() === 'Stripe'){
+                $('#stripe').slideDown();
+            }else {
+                if($(param).val() === 'Square'){
+                    $('#square').slideDown();
+                }else {
+                    if($(param).val() === 'Authorized.net'){
+                        $('#authorized').slideDown();
+                    }
+                }
+
+            }
+        }
+
         function isGood(password) {
             //alert(password);
             var password_strength = document.getElementById("password-text");

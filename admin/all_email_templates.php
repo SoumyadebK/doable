@@ -6,6 +6,13 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     header("location:../login.php");
     exit;
 }
+
+$header_text = '';
+$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Email Templates page'");
+if ($header_data->RecordCount() > 0) {
+    $header_text = $header_data->fields['HEADER_TEXT'];
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -17,7 +24,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <?php require_once('../includes/setup_menu.php') ?>
+        <div class="container-fluid body_content m-0">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -32,13 +40,15 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                     </div>
                 </div>
             </div>
-
             <div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
+                            <div class="row" style="text-align: center;">
+                                <h5 style="font-weight: bold;"><?=$header_text?></h5>
+                            </div>
                             <div class="table-responsive">
-                                <table id="myTable" class="table table-striped border">
+                                <table id="myTable" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
                                         <th>Template Name</th>
@@ -51,7 +61,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT * FROM `DOA_EMAIL_TEMPLATE` WHERE PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
+                                    $row = $db_account->Execute("SELECT * FROM `DOA_EMAIL_TEMPLATE` WHERE PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_EMAIL_TEMPLATE']?>);"><?=$row->fields['TEMPLATE_NAME']?></td>

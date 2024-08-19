@@ -1,6 +1,9 @@
 <?php
 require_once('../global/config.php');
 
+use Twilio\Exceptions\ConfigurationException;
+use Twilio\Rest\Client;
+
 if (empty($_GET['id']))
     $title = "Add Appointment";
 else
@@ -18,7 +21,7 @@ if (isset($_POST['FUNCTION_NAME'])){
         unset($_POST['START_TIME']);
         unset($_POST['END_TIME']);
     }
-    $session_cost = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
+    $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
     $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
     if(empty($_POST['PK_APPOINTMENT_MASTER'])){
         $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
@@ -41,7 +44,33 @@ if (isset($_POST['FUNCTION_NAME'])){
             $APPOINTMENT_DATA['ACTIVE'] = 1;
             $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+            db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+
+            require_once("../global/vendor/twilio/sdk/src/Twilio/autoload.php");
+            $text_setting = $db->Execute( "SELECT * FROM `DOA_TEXT_SETTINGS`");
+            $customer_phone_number = $db->Execute("SELECT DOA_USERS.PHONE FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[CUSTOMER_ID]'");
+
+            $sid = $text_setting->fields['SID'];
+            $token = $TOKEN = $text_setting->fields['TOKEN'];
+            $msg = $db->Execute("SELECT CONTENT FROM DOA_TEXT_TEMPLATE WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND PK_EMAIL_TRIGGER = 1");
+            try {
+                $client = new Client($sid, $token);
+                $client->messages->create(
+                    // the number you'd like to send the message to
+                    $customer_phone_number->fields['PHONE'],
+                    [
+                        // A Twilio phone number you purchased at twilio.com/console
+                        'from' => $text_setting->fields['FROM_NO'],
+
+                        // the body of the text message you'd like to send
+                        'body' => $msg->fields['CONTENT']
+                    ]
+                );
+
+            } catch (\Twilio\Exceptions\TwilioException $e) {
+
+            }
+
         }
     }else{
         if($_FILES['IMAGE']['name'] != ''){
@@ -59,15 +88,28 @@ if (isset($_POST['FUNCTION_NAME'])){
         }
         $_POST['EDITED_BY']	= $_SESSION['PK_USER'];
         $_POST['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_APPOINTMENT_MASTER', $_POST, 'update'," PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
+        $query = $db_account->Execute("SELECT PK_APPOINTMENT_STATUS FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
+        $_POST['OLD_PK_APPOINTMENT_STATUS'] = $query->fields['PK_APPOINTMENT_STATUS'];
+        db_perform_account('DOA_APPOINTMENT_MASTER', $_POST, 'update'," PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
 
         if ($_POST['PK_APPOINTMENT_STATUS'] == 2 || ($_POST['PK_APPOINTMENT_STATUS'] == 4 && $_POST['NO_SHOW'] == 'Charge')) {
-            $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
+            $enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
             if ($enrollment_balance->RecordCount() > 0) {
                 $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_USED'] = $enrollment_balance->fields['TOTAL_BALANCE_USED'] + $price_per_session;
                 $ENROLLMENT_BALANCE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
                 $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
+                db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
+            }
+        }
+
+        if (isset($_POST['PK_APPOINTMENT_STATUS'])) {
+            $appointment_data = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
+            if ($appointment_data->RecordCount() > 0) {
+                $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_MASTER'] = $appointment_data->fields['PK_APPOINTMENT_MASTER'];
+                $APPOINTMENT_STATUS_HISTORY_DATA['PK_USER'] = $_SESSION['PK_USER'];
+                $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+                $APPOINTMENT_STATUS_HISTORY_DATA['TIME_STAMP'] = date("Y-m-d H:i");
+                db_perform_account('DOA_APPOINTMENT_STATUS_HISTORY', $APPOINTMENT_STATUS_HISTORY_DATA, 'insert');
             }
         }
     }
@@ -77,32 +119,13 @@ if (isset($_POST['FUNCTION_NAME'])){
     header("location:all_schedules.php?view=list");
 }
 
-function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
-    global $db;
-    $appointment_data = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
-    $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
-    $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
-    $total_paid_appointment = intval($total_paid/$price_per_session);
-    $i = 1;
-    while (!$appointment_data->EOF){
-        $UPDATE_DATA['SERIAL_NUMBER'] = $i;
-        if ($i <= $total_paid_appointment){
-            $UPDATE_DATA['IS_PAID'] = 1;
-        } else {
-            $UPDATE_DATA['IS_PAID'] = 0;
-        }
-        db_perform('DOA_APPOINTMENT_MASTER', $UPDATE_DATA, 'update'," PK_APPOINTMENT_MASTER =  ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
-        $appointment_data->MoveNext();
-        $i++;
-    }
-}
-
 if(empty($_GET['id'])){
     $CUSTOMER_ID = '';
     $PK_ENROLLMENT_MASTER = '';
     $SERIAL_NUMBER = '';
     $PK_SERVICE_MASTER = '';
     $PK_SERVICE_CODE = '';
+    $PK_SCHEDULING_CODE = '';
     $SERVICE_PROVIDER_ID = '';
     $PK_APPOINTMENT_STATUS = '';
     $NO_SHOW = '';
@@ -114,7 +137,7 @@ if(empty($_GET['id'])){
     $START_TIME = '';
     $END_TIME = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_schedules.php?view=list");
@@ -126,6 +149,7 @@ if(empty($_GET['id'])){
     $SERIAL_NUMBER = $res->fields['SERIAL_NUMBER'];
     $PK_SERVICE_MASTER = $res->fields['PK_SERVICE_MASTER'];
     $PK_SERVICE_CODE = $res->fields['PK_SERVICE_CODE'];
+    $PK_SCHEDULING_CODE = $res->fields['PK_SCHEDULING_CODE'];
     $SERVICE_PROVIDER_ID = $res->fields['SERVICE_PROVIDER_ID'];
     $ACTIVE = $res->fields['ACTIVE'];
     $PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
@@ -138,8 +162,22 @@ if(empty($_GET['id'])){
     $DATE_ARR[2] = date("d",strtotime($res->fields['DATE']));
     $START_TIME = $res->fields['START_TIME'];
     $END_TIME = $res->fields['END_TIME'];
+
+    $customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
+
+    $selected_customer = $customer_data->fields['NAME'];
+    $customer_phone = $customer_data->fields['PHONE'];
+    $customer_email = $customer_data->fields['EMAIL_ID'];
+    $selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
+    $selected_user_id = $customer_data->fields['PK_USER'];
 }
 
+$status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_GET[id]'");
+$CHANGED_BY = '';
+while (!$status_data->EOF) {
+    $CHANGED_BY .= "(".$status_data->fields['APPOINTMENT_STATUS']." by ".$status_data->fields['NAME']." at ".date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])).")<br>";
+    $status_data->MoveNext();
+}
 ?>
 
 
@@ -162,7 +200,7 @@ if(empty($_GET['id'])){
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -171,7 +209,7 @@ if(empty($_GET['id'])){
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="all_schedules.php">All Appointment</a></li>
+                            <li class="breadcrumb-item"><a href="../admin/all_schedules.php">All Appointment</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
 
@@ -195,7 +233,7 @@ if(empty($_GET['id'])){
                                                     <select required name="CUSTOMER_ID" id="CUSTOMER_ID" onchange="selectThisCustomer(this);">
                                                         <option value="">Select Customer</option>
                                                         <?php
-                                                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 ORDER BY FIRST_NAME");
+                                                        $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ORDER BY FIRST_NAME");
                                                         while (!$row->EOF) { ?>
                                                             <option value="<?php echo $row->fields['PK_USER_MASTER'];?>"><?=$row->fields['NAME'].' ('.$row->fields['PHONE'].')'?></option>
                                                         <?php $row->MoveNext(); } ?>
@@ -244,20 +282,7 @@ if(empty($_GET['id'])){
                                             <div class="col-2">
                                                 <div class="form-group">
                                                     <label class="form-label">Name: </label>
-                                                    <div id="customer_select" style="display: none;">
-                                                        <select name="CUSTOMER_ID" id="CUSTOMER_ID" onchange="selectThisCustomer(this);">
-                                                            <option value="">Select Customer</option>
-                                                            <?php
-                                                            $selected_customer = '';
-                                                            $selected_customer_id = '';
-                                                            $selected_user_id = '';
-                                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.PK_LOCATION, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 ORDER BY FIRST_NAME");
-                                                            while (!$row->EOF) { if (($CUSTOMER_ID==$row->fields['PK_USER_MASTER'])){$selected_customer = $row->fields['NAME']; $customer_phone = $row->fields['PHONE']; $customer_email = $row->fields['EMAIL_ID']; $selected_customer_id = $row->fields['PK_USER_MASTER']; $selected_user_id = $row->fields['PK_USER'];} ?>
-                                                                <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" <?=($CUSTOMER_ID==$row->fields['PK_USER_MASTER'])?'selected':''?>><?=$row->fields['NAME'].' ('.$row->fields['PHONE'].')'?></option>
-                                                            <?php $row->MoveNext(); } ?>
-                                                        </select>
-                                                    </div>
-                                                    <p><a href="customer.php?id=<?=$selected_customer_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank"><?=$selected_customer?></a></p>
+                                                    <p><a href="../admin/customer.php?id=<?=$selected_customer_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank"><?=$selected_customer?></a></p>
                                                 </div>
                                             </div>
                                             <div class="col-2">
@@ -279,12 +304,10 @@ if(empty($_GET['id'])){
                                                         <option value="">Select Enrollment ID</option>
                                                         <?php
                                                         $selected_enrollment = '';
-                                                        $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.DURATION, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
-
-                                                        //$row = $db->Execute("SELECT PK_ENROLLMENT_MASTER, ENROLLMENT_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+                                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_CODE.DURATION, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
                                                         while (!$row->EOF) { if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
                                                             <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-duration="<?=$row->fields['DURATION']?>" <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$row->fields['ENROLLMENT_ID']?></option>
-                                                        <?php $row->MoveNext(); } ?>
+                                                            <?php $row->MoveNext(); } ?>
                                                     </select>
                                                     <p><?=$selected_enrollment?></p>
                                                 </div>
@@ -304,7 +327,7 @@ if(empty($_GET['id'])){
                                                         <option value="">Select Service</option>
                                                         <?php
                                                         $selected_service = '';
-                                                        $row = $db->Execute("SELECT DISTINCT(DOA_SERVICE_MASTER.PK_SERVICE_MASTER), DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 2 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$CUSTOMER_ID);
+                                                        $row = $db_account->Execute("SELECT DISTINCT(DOA_SERVICE_MASTER.PK_SERVICE_MASTER), DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 2 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$CUSTOMER_ID);
                                                         while (!$row->EOF) { if($PK_SERVICE_MASTER==$row->fields['PK_SERVICE_MASTER']){$selected_service = $row->fields['SERVICE_NAME'];} ?>
                                                             <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($PK_SERVICE_MASTER==$row->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
                                                         <?php $row->MoveNext(); } ?>
@@ -319,13 +342,29 @@ if(empty($_GET['id'])){
                                                         <option value="">Select Service Code</option>
                                                         <?php
                                                         $selected_service_code = '';
-                                                        $row = $db->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = ".$PK_SERVICE_MASTER);
+                                                        $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = ".$PK_SERVICE_MASTER);
                                                         while (!$row->EOF) { if($PK_SERVICE_CODE==$row->fields['PK_SERVICE_CODE']){$selected_service_code = $row->fields['SERVICE_CODE'];} ?>
                                                             <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-duration="<?=$row->fields['DURATION']?>" <?=($PK_SERVICE_CODE==$row->fields['PK_SERVICE_CODE'])?'selected':''?>><?=$row->fields['SERVICE_CODE']?></option>
                                                         <?php $row->MoveNext(); } ?>
                                                     </select>
                                                     <p><?=$selected_service_code?></p>
                                                 </div>
+                                            </div>
+                                            <div class="col-2">
+                                                <label for="PK_SCHEDULING_CODE">Scheduling Code :</label>
+                                                <select id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" class="form-control">
+                                                    <option disabled selected>Select Scheduling Code</option>
+                                                    <?php
+                                                    $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_NAME FROM DOA_SCHEDULING_CODE INNER JOIN DOA_SERVICE_SCHEDULING_CODE ON DOA_SERVICE_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.ACTIVE = 1 AND DOA_SERVICE_SCHEDULING_CODE.PK_SERVICE_CODE=".$PK_SERVICE_CODE);
+                                                    while (!$row->EOF) {
+                                                        $selected = '';
+                                                        if($PK_SCHEDULING_CODE!='' && $PK_SCHEDULING_CODE == $row->fields['PK_SCHEDULING_CODE']){
+                                                            $selected = 'selected';
+                                                        }
+                                                        ?>
+                                                        <option value="<?php echo $row->fields['PK_SCHEDULING_CODE']; ?>" <?php echo $selected ;?>><?php echo $row->fields['SCHEDULING_NAME']; ?></option>
+                                                        <?php $row->MoveNext(); } ?>
+                                                </select>
                                             </div>
                                         </div>
                                         <div class="row">
@@ -338,7 +377,7 @@ if(empty($_GET['id'])){
                                                             <option value="">Select <?=$service_provider_title?></option>
                                                             <?php
                                                             $selected_service_provider = '';
-                                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS JOIN DOA_SERVICE_PROVIDER_SERVICES ON DOA_USERS.PK_USER = DOA_SERVICE_PROVIDER_SERVICES.PK_USER WHERE DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '".$PK_SERVICE_MASTER."' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '".$PK_SERVICE_MASTER.",%' OR DOA_SERVICE_PROVIDER_SERVICES.PK_SERVICE_MASTER LIKE '%,".$PK_SERVICE_MASTER."'");
+                                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS WHERE PK_USER = '$SERVICE_PROVIDER_ID'");
                                                             while (!$row->EOF) { if($SERVICE_PROVIDER_ID==$row->fields['PK_USER']){$selected_service_provider = $row->fields['NAME'];} ?>
                                                                 <option value="<?php echo $row->fields['PK_USER'];?>" <?=($SERVICE_PROVIDER_ID==$row->fields['PK_USER'])?'selected':''?>><?=$row->fields['NAME']?></option>
                                                                 <?php $row->MoveNext(); } ?>
@@ -438,7 +477,7 @@ if(empty($_GET['id'])){
                                             <div class="col-6">
                                                 <div class="form-group">
                                                     <label class="form-label">Comment</label>
-                                                    <textarea class="form-control" name="COMMENT" rows="6"><?=$COMMENT?></textarea>
+                                                    <textarea class="form-control" name="COMMENT" rows="6"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
                                                 </div>
                                             </div>
                                             <div class="col-4">
@@ -458,9 +497,9 @@ if(empty($_GET['id'])){
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
                                             <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                             <?php if(!empty($_GET['id'])) { ?>
-                                                <a href="enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
-                                                <a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
-                                                <a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>
+                                                <a href="../admin/enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
+                                                <!--<a href="../admin/customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
+                                                <a href="../admin/customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>-->
                                             <?php } ?>
 
                                         </div>
@@ -796,7 +835,7 @@ if(empty($_GET['id'])){
                         window.location.href='all_schedules.php?view=list';
                     }
                 });
-            } 
+            }
         }
     </script>
 

@@ -81,7 +81,7 @@ $result_query = mysqli_query($conn,"SELECT * FROM DOA_SERVICE_MASTER WHERE PK_SE
     <?php require_once('../includes/top_menu.php');?>
         <div class="page-wrapper">
             <?php require_once('../includes/top_menu_bar.php') ?>
-            <div class="container-fluid">
+            <div class="container-fluid body_content">
 			 <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
                         <h4 class="text-themecolor"><?=$title?></h4>

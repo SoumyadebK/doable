@@ -50,7 +50,7 @@ else {
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -72,12 +72,14 @@ else {
                     <div class="card">
                         <div class="card-body">
                             <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
-                                <div class="form-group">
-                                    <label class="col-md-12" for="example-text">Business Type<span class="text-danger">*</span>
+                                <div class="row">
+                                <div class="col-8 form-group">
+                                    <label for="example-text">Business Type<span class="text-danger">*</span>
                                     </label>
-                                    <div class="col-md-12">
+                                    <div>
                                         <input type="text" id="BUSINESS_TYPE" name="BUSINESS_TYPE" class="form-control" placeholder="Enter Business Type" value="<?php echo $BUSINESS_TYPE?>">
                                     </div>
+                                </div>
                                 </div>
 
                                 <?php if(!empty($_GET['id'])) { ?>

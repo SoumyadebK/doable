@@ -17,7 +17,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -37,7 +37,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="myTable" class="table table-striped border">
+                                <table id="myTable" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
                                         <th>No</th>
@@ -53,7 +53,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT DOA_SPECIAL_APPOINTMENT.*, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM `DOA_SPECIAL_APPOINTMENT` LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                    $row = $db_account->Execute("SELECT DOA_SPECIAL_APPOINTMENT.*, DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE FROM `DOA_SPECIAL_APPOINTMENT` LEFT JOIN DOA_APPOINTMENT_STATUS ON DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_SPECIAL_APPOINTMENT']?>);"><?=$i;?></td>
@@ -63,7 +63,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                             <td onclick="editpage(<?=$row->fields['PK_SPECIAL_APPOINTMENT']?>);"><?=date('h:i A', strtotime($row->fields['END_TIME']))?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_SPECIAL_APPOINTMENT']?>);"><span class="status-box" style="background-color: <?=$row->fields['COLOR_CODE']?>"><?=$row->fields['APPOINTMENT_STATUS']?></span></td>
                                             <td>
-                                                <a href="add_special_appointment.php?id=<?=$row->fields['PK_SPECIAL_APPOINTMENT']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="../backup/add_special_appointment.php?id=<?=$row->fields['PK_SPECIAL_APPOINTMENT']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
                                         <?php $row->MoveNext();

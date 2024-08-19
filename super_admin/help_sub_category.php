@@ -58,7 +58,9 @@ if($_GET['id'] == ''){
 <div id="main-wrapper">
 	<?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
-        <div class="container-fluid">
+        <?php require_once('../includes/top_menu_bar.php') ?>
+        <?php require_once('../includes/setup_menu_super_admin.php') ?>
+        <div class="container-fluid body_content m-0">
                  <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
                         <h4 class="text-themecolor"><? if($_GET['id'] == '') echo "Add"; else echo "Edit"; ?> <?php echo $title; ?> </h4>

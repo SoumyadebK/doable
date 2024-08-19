@@ -18,12 +18,12 @@ if (!empty($_POST)) {
         $EMAIL_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $EMAIL_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
-        db_perform('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'insert');
+        db_perform_account('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'insert');
         header("location:all_email_templates.php");
     } else {
         $EMAIL_ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $EMAIL_ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'update', " PK_EMAIL_TEMPLATE = '$_GET[id]'");
+        db_perform_account('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'update', " PK_EMAIL_TEMPLATE = '$_GET[id]'");
         header("location:all_email_templates.php");
     }
 
@@ -38,7 +38,7 @@ if (empty($_GET['id'])) {
     $CONTENT            = '';
     $ACTIVE             = '';
 } else {
-    $res = $db->Execute("SELECT * FROM DOA_EMAIL_TEMPLATE WHERE PK_EMAIL_TEMPLATE = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM DOA_EMAIL_TEMPLATE WHERE PK_EMAIL_TEMPLATE = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
         header("location:all_email_templates.php");
         exit;
@@ -62,7 +62,7 @@ if (empty($_GET['id'])) {
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid extra-space">
+        <div class="container-fluid extra-space body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -153,11 +153,10 @@ if (empty($_GET['id'])) {
                                 </div>
 
                                 <div class="col-md-12 mb-3">
-                                    <label for="CONTENT">Content</label>
-                                    <input type="text" class="form-control" id="CONTENT" name="CONTENT" value="<?php echo $CONTENT ?>" required>
-                                    <div class="invalid-feedback">
-                                        Please Enter Content.
-                                    </div>
+                                    <label for="CONTENT">Email Content</label>
+                                    <div id="editor" style="height: 500px;"></div>
+                                    <input type="hidden" name="CONTENT" id="CONTENT" >
+                                    <textarea name="TEMP_CONTENT" id="TEMP_CONTENT" style="display:none;"><?=$CONTENT ?></textarea>
                                 </div>
 
                                 <?php if(!empty($_GET['id'])){?>
@@ -189,6 +188,39 @@ if (empty($_GET['id'])) {
 </div>
 <?php require_once('../includes/footer.php');?>
 </body>
+
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+
+<script type="text/javascript">
+    const quill = new Quill('#editor', {
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+                ['link', 'image'],
+
+                [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+                [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+                [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+                [{ 'align': [] }],
+            ],
+        },
+        theme: 'snow',
+    });
+
+    const resetForm = () => {
+        quill.root.innerHTML = document.getElementById('TEMP_CONTENT').value
+    };
+
+    resetForm();
+</script>
+
+
 <script>
     function selectTemplateCategory(param) {
         if ($(param).val() == 1){

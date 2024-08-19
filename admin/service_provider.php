@@ -1,7 +1,7 @@
 <?php
 require_once('../global/config.php');
+//$service_provider_title ='';
 $userType = $service_provider_title;
-$user_role_condition = " AND PK_ROLES = 5";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -18,8 +18,9 @@ else
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
 $PK_USER = '';
-$PK_ROLES = '';
-$USER_ID = '';
+$PK_USER_MASTER = '';
+$PK_CUSTOMER_DETAILS = '';
+$USER_NAME = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
 $EMAIL_ID = '';
@@ -39,6 +40,7 @@ $NOTES = '';
 $PASSWORD = '';
 $ACTIVE = '';
 $INACTIVE_BY_ADMIN = '';
+$IS_COUNSELLOR = '';
 
 $PK_SERVICE_MASTER = '';
 $MON_START_TIME = '';
@@ -72,15 +74,14 @@ $SUN_MIN_TIME = '';
 $SUN_MAX_TIME = '';
 
 if(!empty($_GET['id'])) {
-    $res = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.PK_ROLES, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.INACTIVE_BY_ADMIN, DOA_USERS.PK_LOCATION, DOA_USERS.USER_TITLE, DOA_USERS.CREATE_LOGIN, DOA_USERS.PASSWORD, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_GET[id]'");
+    $res = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USERS.INACTIVE_BY_ADMIN, DOA_USERS.PK_LOCATION, DOA_USERS.USER_TITLE, DOA_USERS.CREATE_LOGIN, DOA_USERS.PASSWORD, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES, DOA_USERS.IS_COUNSELLOR FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_service_providers.php");
         exit;
     }
     $PK_USER = $res->fields['PK_USER'];
-    $PK_ROLES = $res->fields['PK_ROLES'];
-    $USER_ID = $res->fields['USER_ID'];
+    $USER_NAME = $res->fields['USER_NAME'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
@@ -102,6 +103,7 @@ if(!empty($_GET['id'])) {
     $PASSWORD = $res->fields['PASSWORD'];
     $INACTIVE_BY_ADMIN = $res->fields['INACTIVE_BY_ADMIN'];
     $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
+    $IS_COUNSELLOR = $res->fields['IS_COUNSELLOR'];
 
     $service_data = $db->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_SERVICES` WHERE PK_USER = '$PK_USER'");
     if($service_data->RecordCount() > 0) {
@@ -177,12 +179,28 @@ if(!empty($_GET['id'])) {
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+                    <h4 class="text-themecolor"><?php if(!empty($_GET['id'])) {
+                            echo "Edit ".$FIRST_NAME." ".$LAST_NAME;
+                        }?></h4>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
+                <div class="col-3 align-self-center">
+                <?php if(!empty($_GET['id'])) { ?>
+                        <div>
+                            <select required name="NAME" id="NAME" onchange="editpage(this);">
+                                <option value="">Select Service Provider</option>
+                                <?php
+                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                while (!$row->EOF) {?>
+                                    <option value="<?php echo $row->fields['PK_USER'];?>"><?=$row->fields['NAME']?></option>
+                                    <?php $row->MoveNext(); } ?>
+                            </select>
+                        </div>
+                <?php } ?>
+                </div>
+                <div class="col-md-4 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
@@ -201,13 +219,6 @@ if(!empty($_GET['id'])) {
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="card">
-                                        <div class="card-title">
-                                            <?php
-                                            if(!empty($_GET['id'])) {
-                                                echo $FIRST_NAME." ".$LAST_NAME;
-                                            }
-                                            ?>
-                                        </div>
                                         <div class="card-body">
                                             <!-- Nav tabs -->
                                             <ul class="nav nav-tabs" role="tablist">
@@ -216,13 +227,13 @@ if(!empty($_GET['id'])) {
                                                 <li> <a class="nav-link" id="rates_tab_link" data-bs-toggle="tab" href="#rates" role="tab" ><span class="hidden-sm-up"><i class="ti-money"></i></span> <span class="hidden-xs-down">Rates</span></a> </li>
                                                 <li> <a class="nav-link" id="service_tab_link" data-bs-toggle="tab" href="#service" role="tab" ><span class="hidden-sm-up"><i class="ti-server"></i></span> <span class="hidden-xs-down">Service</span></a> </li>
                                                 <li> <a class="nav-link" data-bs-toggle="tab" href="#documents" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                                                <li> <a class="nav-link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                                                <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                                             </ul>
                                             <!-- Tab panes -->
                                             <div class="tab-content tabcontent-border">
 
                                                 <div class="tab-pane active" id="profile" role="tabpanel">
-                                                    <form id="profile_form">
+                                                    <form class="form-material form-horizontal" id="profile_form">
                                                         <input type="hidden" name="FUNCTION_NAME" value="saveProfileData">
                                                         <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
                                                         <input type="hidden" class="TYPE" name="TYPE" value="3">
@@ -244,9 +255,20 @@ if(!empty($_GET['id'])) {
                                                                         </div>
                                                                     </div>
                                                                 </div>
+                                                                <div class="col-2 mt-3">
+                                                                    <label class="col-md-12"><input type="checkbox" id="IS_COUNSELLOR" name="IS_COUNSELLOR" class="form-check-inline" <?=($IS_COUNSELLOR == 1)?'checked':''?> style="margin-top: 30px;"> Is Counsellor ?</label>
+                                                                </div>
                                                                 <div class="col-md-2">
-                                                                    <?php $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' ".$user_role_condition." ORDER BY PK_ROLES"); ?>
-                                                                    <input type="hidden" name="PK_ROLES" value="<?php echo $row->fields['PK_ROLES'];?>">
+                                                                    <?php
+                                                                    if(!empty($_GET['id'])) {
+                                                                    $PK_USER = $_GET['id'];
+                                                                        $selected_roles_row = $db->Execute("SELECT PK_ROLES FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
+                                                                        while (!$selected_roles_row->EOF) { ?>
+                                                                            <input type="hidden" name="PK_ROLES[]" value="<?=$selected_roles_row->fields['PK_ROLES']?>">
+                                                                    <?php $selected_roles_row->MoveNext(); }
+                                                                    } else { ?>
+                                                                        <input type="hidden" name="PK_ROLES[]" value="5">
+                                                                    <?php } ?>
                                                                 </div>
                                                             </div>
 
@@ -278,8 +300,8 @@ if(!empty($_GET['id'])) {
                                                                         <label class="form-label">Gender</label>
                                                                         <select class="form-control" id="GENDER" name="GENDER">
                                                                             <option>Select Gender</option>
-                                                                            <option value="1" <?php if($GENDER == "1") echo 'selected = "selected"';?>>Male</option>
-                                                                            <option value="2" <?php if($GENDER == "2") echo 'selected = "selected"';?>>Female</option>
+                                                                            <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
+                                                                            <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
                                                                         </select>
                                                                     </div>
                                                                 </div>
@@ -324,7 +346,7 @@ if(!empty($_GET['id'])) {
                                                                                     $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
                                                                                     while (!$row->EOF) { ?>
                                                                                         <option value="<?php echo $row->fields['PK_COUNTRY'];?>" <?=($row->fields['PK_COUNTRY'] == $PK_COUNTRY)?"selected":""?>><?=$row->fields['COUNTRY_NAME']?></option>
-                                                                                        <?php $row->MoveNext(); } ?>
+                                                                                    <?php $row->MoveNext(); } ?>
                                                                                 </select>
                                                                             </div>
                                                                         </div>
@@ -365,7 +387,7 @@ if(!empty($_GET['id'])) {
                                                             <div class="row">
                                                                 <div class="col-6">
                                                                     <label class="form-label">Location</label>
-                                                                    <div class="col-md-12" style="margin-bottom: 15px;">
+                                                                    <div class="col-md-12 multiselect-box">
                                                                         <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
                                                                             <?php
                                                                             $selected_location = [];
@@ -379,7 +401,7 @@ if(!empty($_GET['id'])) {
                                                                             $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                                             while (!$row->EOF) { ?>
                                                                                 <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
-                                                                                <?php $row->MoveNext(); } ?>
+                                                                            <?php $row->MoveNext(); } ?>
                                                                         </select>
                                                                     </div>
                                                                 </div>
@@ -417,6 +439,18 @@ if(!empty($_GET['id'])) {
                                                                     </div>
                                                                 </div>
                                                             </div>
+
+                                                            <?php if(!empty($_GET['id'])) { ?>
+                                                                <div class="row <?=($INACTIVE_BY_ADMIN == 1)?'div_inactive':''?>" style="margin-bottom: 15px; margin-top: 15px;">
+                                                                    <div class="col-md-1">
+                                                                        <label class="form-label">Active : </label>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                    </div>
+                                                                </div>
+                                                            <? } ?>
                                                         </div>
                                                         <div class="form-group">
                                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -426,7 +460,7 @@ if(!empty($_GET['id'])) {
                                                 </div>
 
                                                 <div class="tab-pane" id="login" role="tabpanel">
-                                                    <form id="login_form">
+                                                    <form class="form-material form-horizontal" id="login_form">
                                                         <input type="hidden" name="FUNCTION_NAME" value="saveLoginData">
                                                         <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
                                                         <input type="hidden" class="TYPE" name="TYPE" value="3">
@@ -436,7 +470,7 @@ if(!empty($_GET['id'])) {
                                                                     <div class="form-group">
                                                                         <label class="col-md-12">User Name</label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" id="USER_ID" name="USER_ID" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_ID?>">
+                                                                            <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>">
                                                                         </div>
                                                                     </div>
                                                                     <span id="lblError" style="color: red"></span>
@@ -449,7 +483,7 @@ if(!empty($_GET['id'])) {
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">Password</label>
                                                                             <div class="col-md-12">
-                                                                                <input type="password" required class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
+                                                                                <input type="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -457,7 +491,7 @@ if(!empty($_GET['id'])) {
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">Confirm Password</label>
                                                                             <div class="col-md-12">
-                                                                                <input type="password" required class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
+                                                                                <input type="password" class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -483,37 +517,25 @@ if(!empty($_GET['id'])) {
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Old Password</label>
                                                                                 <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?=$PASSWORD?>">
-                                                                                <input type="password" required name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
+                                                                                <input type="password" name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">New Password</label>
-                                                                                <input type="password" required name="PASSWORD" class="form-control" id="PASSWORD">
+                                                                                <input type="password" name="PASSWORD" class="form-control" id="PASSWORD">
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-3">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Confirm New Password</label>
-                                                                                <input type="password" required name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
+                                                                                <input type="password" name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                     <b id="password_error" style="color: red;"></b>
                                                                 </div>
                                                             <?php } ?>
-
-                                                            <?php if(!empty($_GET['id'])) { ?>
-                                                                <div class="row <?=($INACTIVE_BY_ADMIN == 1)?'div_inactive':''?>" style="margin-bottom: 15px; margin-top: 15px;">
-                                                                    <div class="col-md-1">
-                                                                        <label class="form-label">Active : </label>
-                                                                    </div>
-                                                                    <div class="col-md-4">
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                                                    </div>
-                                                                </div>
-                                                            <? } ?>
                                                         </div>
                                                         <div class="form-group">
                                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -812,14 +834,153 @@ if(!empty($_GET['id'])) {
                                                 </div>
 
                                                 <div class="tab-pane" id="documents" role="tabpanel">
-                                                    <div class="p-20">
-                                                        <h3>Documents Tab Coming Soon</h3>
-                                                    </div>
+                                                    <form id="document_form">
+                                                        <input type="hidden" name="FUNCTION_NAME" value="saveUserDocumentData">
+                                                        <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                        <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?=$PK_CUSTOMER_DETAILS?>">
+                                                        <input type="hidden" class="TYPE" name="TYPE" value="2">
+                                                        <div>
+                                                            <div class="card-body" id="append_user_document">
+                                                                <?php
+                                                                if(!empty($_GET['id'])) { $user_doc_count = 0;
+                                                                    $row = $db->Execute("SELECT * FROM DOA_USER_DOCUMENT WHERE PK_USER = '$PK_USER'");
+                                                                    while (!$row->EOF) { ?>
+                                                                        <div class="row">
+                                                                            <div class="col-5">
+                                                                                <div class="form-group">
+                                                                                    <label class="form-label">Document Name</label>
+                                                                                    <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name" value="<?=$row->fields['DOCUMENT_NAME']?>">
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-5">
+                                                                                <div class="form-group">
+                                                                                    <label class="form-label">Document File</label>
+                                                                                    <input type="file" name="FILE_PATH[]" class="form-control">
+                                                                                    <a target="_blank" href="<?=$row->fields['FILE_PATH']?>">View</a>
+                                                                                    <input type="hidden" name="FILE_PATH_URL[]" value="<?=$row->fields['FILE_PATH']?>">
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-2">
+                                                                                <div class="form-group" style="margin-top: 30px;">
+                                                                                    <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <?php $row->MoveNext(); $user_doc_count++;} ?>
+                                                                <?php } else { $user_doc_count = 1;?>
+                                                                    <div class="row">
+                                                                        <div class="col-5">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Document Name</label>
+                                                                                <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-5">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Document File</label>
+                                                                                <input type="file" name="FILE_PATH[]" class="form-control">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-2">
+                                                                            <div class="form-group" style="margin-top: 30px;">
+                                                                                <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                <?php } ?>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-11">
+                                                                <div class="form-group">
+                                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreUserDocument();"><i class="ti-plus"></i> New</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                                                            <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                        </div>
+                                                    </form>
                                                 </div>
 
                                                 <div class="tab-pane" id="comments" role="tabpanel">
                                                     <div class="p-20">
-                                                        <h3>Comments Tab Coming Soon</h3>
+                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createUserComment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
+                                                        <table id="myTable" class="table table-striped border">
+                                                            <thead>
+                                                            <tr>
+                                                                <th>Commented Date</th>
+                                                                <th>Commented User</th>
+                                                                <th>Comment</th>
+                                                                <th>Actions</th>
+                                                            </tr>
+                                                            </thead>
+
+                                                            <tbody>
+                                                            <?php
+                                                            $comment_data = $db->Execute("SELECT DOA_COMMENT.PK_COMMENT, DOA_COMMENT.COMMENT, DOA_COMMENT.COMMENT_DATE, DOA_COMMENT.ACTIVE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS FULL_NAME FROM `DOA_COMMENT` INNER JOIN DOA_USERS ON DOA_COMMENT.BY_PK_USER = DOA_USERS.PK_USER WHERE `FOR_PK_USER` = ".$PK_USER);
+                                                            $i = 1;
+                                                            while (!$comment_data->EOF) { ?>
+                                                                <tr>
+                                                                    <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=date('m/d/Y', strtotime($comment_data->fields['COMMENT_DATE']))?></td>
+                                                                    <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=$comment_data->fields['FULL_NAME']?></td>
+                                                                    <td onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><?=$comment_data->fields['COMMENT']?></td>
+                                                                    <td>
+                                                                        <a href="javascript:;" onclick="editComment(<?=$comment_data->fields['PK_COMMENT']?>);"><i class="ti-pencil" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <a href="javascript:;" onclick='javascript:deleteComment(<?=$comment_data->fields['PK_COMMENT']?>);return false;'><i class="ti-trash" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <?php if($comment_data->fields['ACTIVE']==1){ ?>
+                                                                            <span class="active-box-green"></span>
+                                                                        <?php } else{ ?>
+                                                                            <span class="active-box-red"></span>
+                                                                        <?php } ?>
+                                                                    </td>
+                                                                </tr>
+                                                                <?php $comment_data->MoveNext();
+                                                                $i++; } ?>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+
+                                                <!--Comment Model-->
+                                                <div id="commentModel" class="modal">
+                                                    <!-- Modal content -->
+                                                    <div class="modal-content" style="width: 50%;">
+                                                        <span class="close close_comment_model" style="margin-left: 96%;">&times;</span>
+                                                        <div class="card">
+                                                            <div class="card-body">
+                                                                <h4><b id="comment_header">Add Comment</b></h4>
+                                                                <form id="comment_add_edit_form" role="form" action="" method="post">
+                                                                    <input type="hidden" name="FUNCTION_NAME" value="saveCommentData">
+                                                                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
+                                                                    <input type="hidden" name="PK_COMMENT" id="PK_COMMENT" value="0">
+                                                                    <div class="p-20">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Comments</label>
+                                                                            <textarea class="form-control" rows="10" name="COMMENT" id="COMMENT" required></textarea>
+                                                                        </div>
+
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Date</label>
+                                                                            <input type="date" class="form-control" name="COMMENT_DATE" id="COMMENT_DATE" required>
+                                                                        </div>
+
+                                                                        <div class="form-group" id="comment_active" style="display: none;">
+                                                                            <label class="form-label">Active</label>
+                                                                            <div>
+                                                                                <label><input type="radio" id="COMMENT_ACTIVE_1" name="ACTIVE" value="1">&nbsp;&nbsp;&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                                <label><input type="radio" id="COMMENT_ACTIVE_0" name="ACTIVE" value="0">&nbsp;&nbsp;&nbsp;No</label>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="form-group">
+                                                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
+                                                                        </div>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -846,6 +1007,90 @@ if(!empty($_GET['id'])) {
     <?php require_once('../includes/footer.php');?>
     <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
     <script>
+        let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
+
+        // Get the modal
+        var comment_model = document.getElementById("commentModel");
+
+        // Get the <span> element that closes the comment_model
+        var comment_span = document.getElementsByClassName("close_comment_model")[0];
+
+        // When the user clicks the button, open the comment_model
+        function openCommentModel() {
+            comment_model.style.display = "block";
+        }
+
+        // When the user clicks on <comment_span> (x), close the comment_model
+        comment_span.onclick = function() {
+            comment_model.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the comment_model, close it
+        window.onclick = function(event) {
+            if (event.target == comment_model) {
+                comment_model.style.display = "none";
+            }
+        }
+
+        function createUserComment() {
+            $('#comment_header').text("Add Comment");
+            $('#PK_COMMENT').val(0);
+            $('#COMMENT').val('');
+            $('#COMMENT_DATE').val('');
+            $('#comment_active').hide();
+            openCommentModel();
+        }
+
+        function editComment(PK_COMMENT) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                dataType: 'JSON',
+                data: {FUNCTION_NAME: 'getEditCommentData', PK_COMMENT: PK_COMMENT},
+                success:function (data) {
+                    $('#comment_header').text("Edit Comment");
+                    $('#PK_COMMENT').val(data.fields.PK_COMMENT);
+                    $('#COMMENT').val(data.fields.COMMENT);
+                    $('#COMMENT_DATE').val(data.fields.COMMENT_DATE);
+                    $('#COMMENT_ACTIVE_'+data.fields.ACTIVE).prop('checked', true);
+                    $('#comment_active').show();
+                    openCommentModel();
+                }
+            });
+        }
+
+        $(document).on('submit', '#comment_add_edit_form', function (event) {
+            event.preventDefault();
+            let form_data = new FormData($('#comment_add_edit_form')[0]); //$('#document_form').serialize();
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                processData: false,
+                contentType: false,
+                success:function (data) {
+                    window.location.href=`service_provider.php?id=${PK_USER}&on_tab=comments`;
+                }
+            });
+        });
+
+        function deleteComment(PK_COMMENT) {
+            let conf = confirm("Are you sure you want to delete?");
+            if(conf) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {FUNCTION_NAME: 'deleteCommentData', PK_COMMENT: PK_COMMENT},
+                    success: function (data) {
+                        window.location.href=`service_provider.php?id=${PK_USER}&on_tab=comments`;
+                    }
+                });
+            }
+        }
+
+        $('#NAME').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
+
+
         $('.datepicker-past').datepicker({
             format: 'mm/dd/yyyy',
             maxDate: 0
@@ -899,6 +1144,10 @@ if(!empty($_GET['id'])) {
 
         $(document).ready(function() {
             fetch_state(<?php  echo $PK_COUNTRY; ?>);
+            let on_tab_link = <?=empty($_GET['on_tab'])?0:$_GET['on_tab']?>;
+            if (on_tab_link.id == 'comments'){
+                $('#comment_tab_link')[0].click();
+            }
         });
 
         function fetch_state(PK_COUNTRY){
@@ -918,8 +1167,6 @@ if(!empty($_GET['id'])) {
         }
     </script>
     <script>
-        let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
-
         function isGood(password) {
             let password_strength = document.getElementById("password-text");
 
@@ -994,6 +1241,35 @@ if(!empty($_GET['id'])) {
             }
         }
 
+        let counter = parseInt(<?=$user_doc_count?>);
+        function addMoreUserDocument() {
+            $('#append_user_document').append(`<div class="row">
+                                                <div class="col-5">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Document Name</label>
+                                                        <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name">
+                                                    </div>
+                                                </div>
+                                                <div class="col-5">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Document File</label>
+                                                        <input type="file" name="FILE_PATH[]" class="form-control">
+                                                    </div>
+                                                </div>
+                                                <div class="col-2">
+                                                    <div class="form-group" style="margin-top: 30px;">
+                                                        <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
+                                                    </div>
+                                                </div>
+                                              </div>`);
+            counter++;
+        }
+
+        function removeUserDocument(param) {
+            $(param).closest('.row').remove();
+            counter--;
+        }
+
         function goLoginInfo() {
             let element = $('#profile').find('input');
             let count = element.length;
@@ -1030,11 +1306,13 @@ if(!empty($_GET['id'])) {
 
         $(document).on('submit', '#profile_form', function (event) {
             event.preventDefault();
-            let form_data = $('#profile_form').serialize();
+            let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
                 data: form_data,
+                processData: false,
+                contentType: false,
                 dataType: 'JSON',
                 success:function (data) {
                     console.log(data);
@@ -1060,7 +1338,7 @@ if(!empty($_GET['id'])) {
             if (PASSWORD === CONFIRM_PASSWORD) {
                 let SAVED_OLD_PASSWORD = $('#SAVED_OLD_PASSWORD').val();
                 let OLD_PASSWORD = $('#OLD_PASSWORD').val();
-                if (SAVED_OLD_PASSWORD)
+                if (SAVED_OLD_PASSWORD && OLD_PASSWORD)
                 {
                     $.ajax({
                         url: "ajax/check_old_password.php",
@@ -1162,6 +1440,27 @@ if(!empty($_GET['id'])) {
                 }
             });
         });
+
+        $(document).on('submit', '#document_form', function (event) {
+            event.preventDefault();
+            let form_data = new FormData($('#document_form')[0]); //$('#document_form').serialize();
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                processData: false,
+                contentType: false,
+                success:function (data) {
+                    window.location.href='all_service_providers.php';
+                }
+            });
+        });
+
+        function editpage(param){
+            var id = $(param).val();
+            window.location.href = "service_provider.php?id="+id;
+
+        }
     </script>
 
 

@@ -6,6 +6,19 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     header("location:../login.php");
     exit;
 }
+
+if (!empty($_GET['NAME'])) {
+    $type = isset($_GET['view']) ? 'view' : 'export';
+    $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
+
+    if ($_GET['NAME'] == 'royalty_service_report') {
+        header('location:royalty_service_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
+    } elseif ($_GET['NAME'] == 'summary_of_studio_business_report'){
+        header('location:summary_of_studio_business_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
+    } elseif ($_GET['NAME'] == 'staff_performance_report'){
+        header('location:staff_performance_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -27,7 +40,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -52,10 +65,50 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <li><a href="#">Business Reports</a></li>
                                         <li><a href="#">Enrollment Reports</a></li>
                                         <li><a href="#">Service Provider Reports</a></li>
-                                        <li><a href="#">Customer Reports</a></li>
+                                        <li><a href="customer_summary_report.php">Customer Reports</a></li>
+                                        <li><a href="student_mailing_list.php">Student Mailing List</a></li>
+                                        <li><a href="total_open_liability.php">Total Open Liability Since Last Activity</a></li>
+                                        <!--<li><a href="royalty_service_report.php">Royalty / Service Report</a></li>
+                                        <li><a href="summary_of_studio_business_report.php">Summary of Studio Business Report</a></li>
+                                        <li><a href="staff_performance_report.php">Staff Performance Report</a></li>-->
                                     </ul>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="row" style="padding: 15px 35px 35px 35px;">
+                            <div class="col-md-3 col-sm-3 mt-3">
+                                <h4 class="card-title">Electronic Weekly Reports</h4>
+                            </div>
+                            <form class="form-material form-horizontal" action="" method="get">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="form-group">
+                                            <select class="form-control" required name="NAME" id="NAME">
+                                                <option value="">Select Report</option>
+                                                <option value="royalty_service_report">ROYALTY / SERVICE REPORT</option>
+                                                <option value="summary_of_studio_business_report">SUMMARY OF STUDIO BUSINESS REPORT</option>
+                                                <option value="staff_performance_report">STAFF PERFORMANCE REPORT</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <input type="text" id="WEEK_NUMBER" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''?>" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="submit" name="view" id="submit"  value="View" style="background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;">
+                                        <input type="submit" name="export" id="submit" style="background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;" value="Export">
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -66,3 +119,31 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 <?php require_once('../includes/footer.php');?>
 </body>
 </html>
+<script>
+    $(".week-picker").datepicker({
+        showWeek: true,
+        beforeShowDay: function (date) {
+            if (date.getDay() === 0) {
+                return [true, ''];
+            }
+            return [false, ''];
+        },
+        onSelect: function(dateText, inst) {
+            $(this).val("Week Number " + $.datepicker.iso8601Week(new Date(dateText)));
+        }
+    });
+
+    function generateReport(){
+        let week_number = $('#WEEK_NUMBER').val();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: "POST",
+            data: {FUNCTION_NAME:'generateAmReport', week_number:week_number},
+            async: false,
+            cache: false,
+            success: function (result) {
+                console.log(result);
+            }
+        });
+    }
+</script>

@@ -176,7 +176,7 @@ function db_perform($table, $data, $action = 'insert', $parameters = '') {
       }
       $query = substr($query, 0, -2) . ' where ' . $parameters;
     }
-    // echo $query;
+    //echo $query;
     return $db->Execute($query);
 }
 
@@ -500,5 +500,12 @@ function pre_r($data){
     echo "<pre>";
     print_r($data);
     echo "</pre>"; die;
+}
+
+function getUserIdMainDb($PK_USER)
+{
+    global $db_account;
+    $user_data = $db_account->Execute("SELECT * FROM `DOA_USERS` WHERE `PK_USER` = '$PK_USER'");
+    return $user_data->fields['PK_USER_MASTER_DB'];
 }
 ?>

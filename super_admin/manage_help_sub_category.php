@@ -1,12 +1,21 @@
 <?error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 require_once("../global/config.php");
+
+$status_check = empty($_GET['status'])?'active':$_GET['status'];
+
+if ($status_check == 'active'){
+    $status = 1;
+} elseif ($status_check == 'inactive') {
+    $status = 0;
+}
+
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' ){
 	header("location:../index.php");
 	exit;
 }
 
 if (empty($_GET['id']))
-    $title = "Help Subcategory";
+    $title = "All Help Subcategory";
 else
     $title = "Help Subcategory";
 
@@ -21,6 +30,27 @@ if($_GET['act'] == 'del')	{
 //$ret_res = mysql_query($res)or die(mysql_error());
 
 //echo "<pre>";print_r($ret_res); EXIT;
+$results_per_page = 100;
+
+if (isset($_GET['search_text'])) {
+    $search_text = $_GET['search_text'];
+    $search = " AND (DOA_M_HELP_SUB_CATEGORY.HELP_SUB_CATEGORY LIKE '%".$search_text."%')";
+} else {
+    $search_text = '';
+    $search = ' ';
+}
+
+$query = $db->Execute("SELECT count(DOA_M_HELP_SUB_CATEGORY.PK_HELP_SUB_CATEGORY) AS TOTAL_RECORDS FROM DOA_M_HELP_SUB_CATEGORY");
+$number_of_result =  $query->fields['TOTAL_RECORDS'];
+$number_of_page = ceil ($number_of_result / $results_per_page);
+
+if (!isset ($_GET['page']) ) {
+    $page = 1;
+} else {
+    $page = $_GET['page'];
+}
+
+$page_first_result = ($page-1) * $results_per_page;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -30,14 +60,29 @@ if($_GET['act'] == 'del')	{
 <div id="main-wrapper">
 	<?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
-        <div class="container-fluid">
+        <?php require_once('../includes/top_menu_bar.php') ?>
+        <?php require_once('../includes/setup_menu_super_admin.php') ?>
+        <div class="container-fluid body_content m-0">
                  <div class="row page-titles">
-                    <div class="col-md-7 align-self-center">
+                    <div class="col-md-5 align-self-center">
                         <h4 class="text-themecolor"> <?php echo $title; ?> </h4>
                     </div>
-                    <div class="col-md-5 align-self-right text-right">
+                     <div class="col-md-3 align-self-center text-end">
+                         <form class="form-material form-horizontal" action="" method="get">
+                             <input type="hidden" name="status" value="<?=$status_check?>" >
+                             <div class="input-group">
+                                 <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
+                                 <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
+                             </div>
+                         </form>
+                     </div>
+                    <div class="col-md-4 align-self-right text-right">
                         <div class="d-flex justify-content-end align-items-right">
-                            <a href="help_sub_category.php" class="btn btn-info d-none d-lg-block m-l-15"><i class="fa fa-plus-circle"></i> Create New</a>
+                            <ol class="breadcrumb justify-content-end">
+                                <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
+                                <li class="breadcrumb-item active"><?=$title?></li>
+                            </ol>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='help_sub_category.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
                         </div>
                     </div>
                 </div>
@@ -48,21 +93,16 @@ if($_GET['act'] == 'del')	{
 								<div class="row">
 									<div class="col-md-12">
 										<?php
-											$res_type = $db->Execute("
-												SELECT PK_HELP_SUB_CATEGORY,DOA_M_HELP_CATEGORY.HELP_CATEGORY,HELP_SUB_CATEGORY,DOA_M_HELP_SUB_CATEGORY.DISPLAY_ORDER, DOA_M_HELP_SUB_CATEGORY.ACTIVE FROM 
-												DOA_M_HELP_SUB_CATEGORY
-												LEFT JOIN DOA_M_HELP_CATEGORY ON DOA_M_HELP_CATEGORY.PK_HELP_CATEGORY = DOA_M_HELP_SUB_CATEGORY.PK_HELP_CATEGORY
-												 ORDER BY DOA_M_HELP_SUB_CATEGORY.DISPLAY_ORDER
-												");
+											$res_type = $db->Execute("SELECT PK_HELP_SUB_CATEGORY,DOA_M_HELP_CATEGORY.HELP_CATEGORY,HELP_SUB_CATEGORY,DOA_M_HELP_SUB_CATEGORY.DISPLAY_ORDER, DOA_M_HELP_SUB_CATEGORY.ACTIVE FROM DOA_M_HELP_SUB_CATEGORY LEFT JOIN DOA_M_HELP_CATEGORY ON DOA_M_HELP_CATEGORY.PK_HELP_CATEGORY = DOA_M_HELP_SUB_CATEGORY.PK_HELP_CATEGORY WHERE DOA_M_HELP_SUB_CATEGORY.ACTIVE=1 ".$search." ORDER BY DOA_M_HELP_SUB_CATEGORY.DISPLAY_ORDER LIMIT " . $page_first_result . ',' . $results_per_page);
 										?>
-										<table id="myTable" class="table table-striped border">
+										<table class="table table-striped border">
 			                    			<thead>
 			                    				<tr>
 													<th>SL</th>
-													<th>Help Subategory</th>
+													<th>Help Subcategory</th>
 													<th>Help Category</th>
 													<th>Display Order</th>
-													<th field="ACTION" width="100px" align="center" sortable="false" >Options</th>
+													<th>Options</th>
 												</tr>
 			                    			</thead>
 			                    			<tbody>
@@ -73,7 +113,7 @@ if($_GET['act'] == 'del')	{
 									                      <td onclick="editpage(<?=$res_type->fields['PK_HELP_SUB_CATEGORY'];?>);"><?php echo $res_type->fields['HELP_SUB_CATEGORY']; ?></td>
 									                      <td onclick="editpage(<?=$res_type->fields['PK_HELP_SUB_CATEGORY'];?>);"><?php echo $res_type->fields['HELP_CATEGORY']; ?></td>
 									                      <td onclick="editpage(<?=$res_type->fields['PK_HELP_SUB_CATEGORY'];?>);"><?php echo $res_type->fields['DISPLAY_ORDER']; ?></td>
-			                                              <td style="text-align: center;padding: 10px 0px 0px 0px;font-size: 25px;">
+			                                              <td>
 			                                                 <a href="help_sub_category.php?id=<?=$res_type->fields['PK_HELP_SUB_CATEGORY']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 			                                                  <a href="" onclick='javascript:delete_row(<?=$res_type->fields['PK_HELP_SUB_CATEGORY']?>);return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>
 			                                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -87,6 +127,29 @@ if($_GET['act'] == 'del')	{
 												<?php $res_type->MoveNext(); endwhile; ?>
 			                    			</tbody>
 			                    		</table>
+                                        <div class="center">
+                                            <div class="pagination outer">
+                                                <ul>
+                                                    <?php if ($page > 1) { ?>
+                                                        <li><a href="manage_help_sub_category.php?status=<?=$status_check?>&page=1">&laquo;</a></li>
+                                                        <li><a href="manage_help_sub_category.php?status=<?=$status_check?>&page=<?=($page-1)?>">&lsaquo;</a></li>
+                                                    <?php }
+                                                    for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
+                                                        if ($page_count == $page || $page_count == ($page+1) || $page_count == ($page-1) || $page_count == $number_of_page) {
+                                                            echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="manage_help_sub_category.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                        } elseif ($page_count == ($number_of_page-1)){
+                                                            echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
+                                                        } else {
+                                                            echo '<li><a class="hidden" href="manage_help_sub_category.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                        }
+                                                    }
+                                                    if ($page < $number_of_page) { ?>
+                                                        <li><a href="manage_help_sub_category.php?status=<?=$status_check?>&page=<?=($page+1)?>">&rsaquo;</a></li>
+                                                        <li><a href="manage_help_sub_category.php?status=<?=$status_check?>&page=<?=$number_of_page?>">&raquo;</a></li>
+                                                    <?php } ?>
+                                                </ul>
+                                            </div>
+                                        </div>
 									</div>
 								</div>
                             </div>

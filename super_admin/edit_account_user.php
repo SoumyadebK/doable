@@ -16,6 +16,7 @@ if(!empty($_POST)){
 
     if(!empty($_GET['id'])){
         $USER_DATA['ACTIVE'] = $_POST['ACTIVE'];
+        $USER_DATA['ABLE_TO_EDIT_PAYMENT_GATEWAY'] = isset($_POST['ABLE_TO_EDIT_PAYMENT_GATEWAY']) ? 1 : 0;
         $USER_DATA['INACTIVE_BY_ADMIN'] = ($_POST['ACTIVE'] == 0) ? 1 : 0;
         $USER_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
@@ -28,7 +29,7 @@ if(empty($_GET['id'])){
     $ACTIVE = '';
 }
 else {
-    $res = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.ACTIVE FROM DOA_USERS WHERE DOA_USERS.PK_USER = '$_GET[id]'");
+    $res = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.ACTIVE, DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE DOA_USERS.PK_USER = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:account.php?id=".$_GET['ac_id']);
@@ -37,8 +38,9 @@ else {
 
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
-    $USER_ID = $res->fields['USER_ID'];
+    $USER_NAME = $res->fields['USER_NAME'];
     $ACTIVE = $res->fields['ACTIVE'];
+    $ABLE_TO_EDIT_PAYMENT_GATEWAY = $res->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
 }
 
 ?>
@@ -51,7 +53,7 @@ else {
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$FIRST_NAME." ".$LAST_NAME?></h4>
@@ -75,7 +77,7 @@ else {
                                     <div class="col-md-12">
                                         <div class="card">
                                             <div class="card-body">
-                                                <h4><span><b>User ID : </b></span><?=$USER_ID?></h4>
+                                                <h4><span><b>User ID : </b></span><?=$USER_NAME?></h4>
                                                 <div class="p-20">
                                                     <h5><b>Change Password</b></h5>
                                                     <div class="row">
@@ -118,6 +120,12 @@ else {
                                                             </div>
                                                         </div>
                                                     <? } ?>
+
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <label class="col-md-12"><input type="checkbox" id="ABLE_TO_EDIT_PAYMENT_GATEWAY" name="ABLE_TO_EDIT_PAYMENT_GATEWAY" class="form-check-inline" <?=($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1)?'checked':''?>> Able to edit payment gateway</label>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                                                 <button type="button" onclick="window.location.href='account.php?id=<?=$_GET['ac_id']?>'" class="btn btn-inverse waves-effect waves-light">Cancel</button>

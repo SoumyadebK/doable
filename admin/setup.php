@@ -20,6 +20,25 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     .menu-list li{
         margin: 10px;
     }
+    .new-top-menu a.dropdown-item {
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+    .new-top-menu a.dropdown-item:hover {
+        background: #f4f4f4;
+    }
+    .new-top-menu .dropdown-item.active, .new-top-menu .dropdown-item:active {
+        color: #000;
+        text-decoration: none;
+        background-color: #f4f4f4;
+    }
+/*    #dropdown-products {
+        display: none;
+    }
+
+    #menu-products:hover #dropdown-products {
+        display: block;
+    }*/
 </style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
@@ -27,7 +46,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <?php require_once('../includes/setup_menu.php') ?>
+        <div class="container-fluid body_content m-0">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -40,8 +60,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                     </div>
                 </div>
             </div>
-
-            <div class="row">
+            <div class="row d-none">
                 <div class="col-12">
                     <div class="card">
                         <div class="row" style="padding: 15px 35px 35px 35px;">
@@ -49,13 +68,15 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                 <h4 class="card-title">General</h4>
                                 <div>
                                     <ul class="menu-list">
-                                        <li><a href="all_users.php">Users</a></li>
-                                        <li><a href="all_service_providers.php"><?=$service_provider_title?></a></li>
-                                        <li><a href="all_locations.php">Locations</a></li>
-                                        <li><a href="all_services.php">Services</a></li>
-                                        <li><a href="all_document_library.php">Document Library</a></li>
-                                        <li><a href="all_inquiry_methods.php">Inquiry Method</a></li>
                                         <li><a href="business_profile.php">Business Profile</a></li>
+                                        <li><a href="all_locations.php">Locations</a></li>
+                                        <li><a href="all_users.php">Users</a></li>
+                                        <!--<li><a href="all_service_providers.php"><?php /*=$service_provider_title*/?></a></li>-->
+                                        <li><a href="all_services.php">Services</a></li>
+                                        <li><a href="all_packages.php">Packages</a></li>
+                                        <li><a href="all_document_library.php">Document Library</a></li>
+                                        <li><a href="all_gift_certificates.php">Gift Certificate</a></li>
+                                        <li><a href="all_gift_certificate_setup.php">Gift Certificate Setup</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -66,6 +87,9 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <li><a href="all_email_accounts.php">Email Accounts</a></li>
                                         <li><a href="all_email_templates.php">Email Templates</a></li>
                                         <li><a href="all_text_templates.php">Text Templates</a></li>
+                                        <li><a href="all_event_types.php">Event Types</a></li>
+                                        <li><a href="all_inquiry_methods.php">Inquiry Method</a></li>
+                                        <li><a href="all_scheduling_codes.php">Scheduling Codes</a></li>
                                     </ul>
                                 </div>
                             </div>

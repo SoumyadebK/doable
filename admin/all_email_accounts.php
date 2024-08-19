@@ -6,6 +6,13 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     header("location:../login.php");
     exit;
 }
+
+$header_text = '';
+$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Email Account page'");
+if ($header_data->RecordCount() > 0) {
+    $header_text = $header_data->fields['HEADER_TEXT'];
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -17,7 +24,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <?php require_once('../includes/setup_menu.php') ?>
+        <div class="container-fluid body_content m-0">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -32,13 +40,15 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                     </div>
                 </div>
             </div>
-
             <div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
+                            <div class="row" style="text-align: center;">
+                                <h5 style="font-weight: bold;"><?=$header_text?></h5>
+                            </div>
                             <div class="table-responsive">
-                                <table id="myTable" class="table table-striped border">
+                                <table id="myTable" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                         <tr>
                                             <th>Host</th>
@@ -51,7 +61,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT * FROM `DOA_EMAIL_ACCOUNT` WHERE PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
+                                    $row = $db_account->Execute("SELECT DISTINCT DOA_EMAIL_ACCOUNT.PK_EMAIL_ACCOUNT, DOA_EMAIL_ACCOUNT.HOST, DOA_EMAIL_ACCOUNT.PORT, DOA_EMAIL_ACCOUNT.USER_NAME, DOA_EMAIL_ACCOUNT.ACTIVE FROM `DOA_EMAIL_ACCOUNT` JOIN DOA_EMAIL_LOCATION ON DOA_EMAIL_ACCOUNT.PK_EMAIL_ACCOUNT=DOA_EMAIL_LOCATION.PK_EMAIL_ACCOUNT WHERE DOA_EMAIL_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_EMAIL_ACCOUNT']?>);"><?=$row->fields['HOST']?></td>

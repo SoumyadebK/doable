@@ -1,32 +1,71 @@
 <?
 require_once('global/config.php');
 $msg = '';
-if(!empty($_POST)){
-    $USER_ID = trim($_POST['USER_ID']);
+$success_msg = '';
+$FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
+
+if ($FUNCTION_NAME == 'loginFunction'){
+    $USER_NAME = trim($_POST['USER_NAME']);
     $PASSWORD = trim($_POST['PASSWORD']);
 
-    $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USERS.USER_ID = '$USER_ID'");
+    $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.DB_NAME, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USERS.USER_NAME = '$USER_NAME'");
     if($result->RecordCount() > 0) {
         if (($result->fields['ACCOUNT_ACTIVE'] == 1 || $result->fields['ACCOUNT_ACTIVE'] == '' || $result->fields['ACCOUNT_ACTIVE'] == NULL) && $result->fields['ACTIVE'] == 1 && $result->fields['CREATE_LOGIN'] == 1) {
             if (password_verify($PASSWORD, $result->fields['PASSWORD'])) {
+                $selected_roles = [];
+                $PK_USER = $result->fields['PK_USER'];
+                $selected_roles_row = $db->Execute("SELECT PK_ROLES FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
+                while (!$selected_roles_row->EOF) {
+                    $selected_roles[] = $selected_roles_row->fields['PK_ROLES'];
+                    $selected_roles_row->MoveNext();
+                }
+
                 $_SESSION['PK_USER'] = $result->fields['PK_USER'];
-                $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
-                $_SESSION['PK_ROLES'] = $result->fields['PK_ROLES'];
+
+                if (in_array(1, $selected_roles)) {
+                    $_SESSION['PK_ROLES'] = 1;
+                } elseif (in_array(2, $selected_roles)) {
+                    $_SESSION['PK_ROLES'] = 2;
+                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
+                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
+                } /*elseif (in_array(3, $selected_roles)) {
+                    $_SESSION['PK_ROLES'] = 3;
+                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
+                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
+                }*/ elseif (in_array(4, $selected_roles)) {
+                    $customer_account_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER, DOA_ACCOUNT_MASTER.DB_NAME FROM DOA_ACCOUNT_MASTER INNER JOIN DOA_USER_MASTER ON DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  = DOA_USER_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USER_MASTER.PK_USER = '$PK_USER' LIMIT 1");
+                    $_SESSION['PK_ROLES'] = 4;
+                    $_SESSION['DB_NAME'] = $customer_account_data->fields['DB_NAME'];
+                    $_SESSION['PK_ACCOUNT_MASTER'] = $customer_account_data->fields['PK_ACCOUNT_MASTER'];
+                } elseif (in_array(5, $selected_roles)) {
+                    $_SESSION['PK_ROLES'] = 5;
+                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
+                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
+                }
+
                 $_SESSION['FIRST_NAME'] = $result->fields['FIRST_NAME'];
                 $_SESSION['LAST_NAME'] = $result->fields['LAST_NAME'];
                 $_SESSION['ACCESS_TOKEN'] = $result->fields['ACCESS_TOKEN'];
                 $_SESSION['TICKET_SYSTEM_ACCESS'] = $result->fields['TICKET_SYSTEM_ACCESS'];
 
+                $row = $db->Execute("SELECT PK_LOCATION FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                $LOCATION_ARRAY = [];
+                while (!$row->EOF) {
+                    $LOCATION_ARRAY[] = $row->fields['PK_LOCATION'];
+                    $row->MoveNext();
+                }
+                $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
+
                 if ($_SESSION['PK_ROLES'] == 1) {
                     header("location: super_admin/all_accounts.php");
-                } elseif ($_SESSION['PK_ROLES'] == 2) {
-                    header("location: admin/all_schedules.php");
+                } elseif ($_SESSION['PK_ROLES'] == 2 || $_SESSION['PK_ROLES'] == 3) {
+                    header("location: admin/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 4) {
                     $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$result->fields['PK_USER']." LIMIT 1");
                     $_SESSION['PK_ACCOUNT_MASTER'] = $account->fields['PK_ACCOUNT_MASTER'];
-                    header("location: customer/all_schedules.php");
+                    header("location: customer/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 5) {
-                    header("location: service_provider/all_schedules.php");
+                    header("location: service_provider/all_schedules.php?view=table");
                 }
             } else {
                 $msg = "Invalid Password";
@@ -69,19 +108,29 @@ if(!empty($_POST)){
     </div>
 </div>
 <section id="wrapper">
+
     <div class="login-register" style="background-image:url(assets/images/background/login_image.jpg);">
+        <div>
+            <img src="assets/images/background/doable_logo.png" style="margin-left:5%; margin-top: -150px; height: 80px; width: auto;">
+        </div>
         <div class="login-box card">
             <div class="card-body">
+
                 <form class="form-horizontal form-material" id="loginform" action="" method="post">
+                    <input type="hidden" name="FUNCTION_NAME" value="loginFunction">
                     <?php if ($msg) {?>
                     <div class="alert alert-danger">
                         <strong><?=$msg;?></strong>
                     </div>
                     <?php } ?>
                     <h3 class="text-center m-b-20">Sign In</h3>
+                    <div>
+                        <img src="assets/images/background/doable_logo.png" style="margin-left: 33%; height: 60px; width: auto;">
+                    </div>
+
                     <div class="form-group ">
                         <div class="col-xs-12">
-                            <input class="form-control" type="text" required="" placeholder="Username" id="USER_ID" name="USER_ID">
+                            <input class="form-control" type="text" required="" placeholder="Username" id="USER_NAME" name="USER_NAME">
                         </div>
                     </div>
                     <div class="form-group">
@@ -97,7 +146,7 @@ if(!empty($_POST)){
                                     <label class="form-check-label" for="customCheck1">Remember me</label>
                                 </div>
                                 <div class="ms-auto">
-                                    <a href="javascript:void(0)" id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot pwd?</a>
+                                    <a href=" " id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot password?</a>
                                 </div>
                             </div>
                         </div>
@@ -105,34 +154,6 @@ if(!empty($_POST)){
                     <div class="form-group text-center">
                         <div class="col-xs-12 p-b-20">
                             <button class="btn w-100 btn-lg btn-info btn-rounded text-white" type="submit">Log In</button>
-                        </div>
-                    </div>
-
-                    <!--<div class="form-group m-b-0">
-                        <div class="col-sm-12 text-center">
-                            Don't have an account? <a href="register.php" class="text-info m-l-5"><b>Sign Up</b></a>
-                        </div>
-                    </div>-->
-                </form>
-                <form class="form-horizontal" id="recoverform" action="index.html">
-                    <div class="form-group ">
-                        <div class="col-xs-12">
-                            <h3>Recover Password</h3>
-                            <p class="text-muted">Enter your Email and instructions will be sent to you! </p>
-                        </div>
-                    </div>
-                    <div class="form-group ">
-                        <div class="col-xs-12">
-                            <input class="form-control" type="text" required="" placeholder="Email"> </div>
-                    </div>
-                    <div class="form-group text-center m-t-20">
-                        <div class="col-xs-12">
-                            <button class="btn btn-primary btn-lg w-100 text-uppercase waves-effect waves-light" type="submit">Reset</button>
-                        </div>
-                    </div>
-                    <div class="form-group m-b-0">
-                        <div class="col-sm-12 text-center">
-                            <a href="javascript:void(0)" id="to-login" class="text-info m-l-5"><b> Go To Login Page </b></a>
                         </div>
                     </div>
                 </form>

@@ -109,7 +109,7 @@ class queryFactory
             $obj->result = $zp_result_array;
             if (sizeof($zp_result_array) > 0) {
                 $obj->EOF = false;
-                while (list($key, $value) = each($zp_result_array[0])) {
+                foreach ($zp_result_array AS $key => $value) {
                     $obj->fields[$key] = $value;
                 }
                 return $obj;
@@ -139,7 +139,7 @@ class queryFactory
                 while (!$obj->EOF) {
                     $zp_result_array = mysqli_fetch_array($zp_db_resource);
                     if ($zp_result_array) {
-                        while (list($key, $value) = each($zp_result_array)) {
+                        foreach ($zp_result_array AS $key => $value) {
                             if (!preg_match('/^[0-9]/', $key)) {
                                 $obj->result[$zp_ii][$key] = $value;
                             }
@@ -150,7 +150,7 @@ class queryFactory
                     }
                     $zp_ii++;
                 }
-                while (list($key, $value) = each($obj->result[$obj->cursor])) {
+                foreach ($obj->result[$obj->cursor] AS $key => $value) {
                     if (!preg_match('/^[0-9]/', $key)) {
                         $obj->fields[$key] = $value;
                     }
@@ -193,7 +193,7 @@ class queryFactory
                 $obj->EOF = false;
                 $zp_result_array = mysqli_fetch_array($zp_db_resource);
                 if ($zp_result_array) {
-                    while (list($key, $value) = each($zp_result_array)) {
+                    foreach ($zp_result_array AS $key => $value) {
                         if (!preg_match('/^[0-9]/', $key)) {
                             $obj->fields[$key] = $value;
                         }
@@ -235,7 +235,7 @@ class queryFactory
             $obj->EOF = false;
             $zp_result_array = mysqli_fetch_array($zp_db_resource);
             if ($zp_result_array) {
-                while (list($key, $value) = each($zp_result_array)) {
+                foreach ($zp_result_array AS $key => $value) {
                     if (!preg_match('/^[0-9]/', $key)) {
                         $obj->fields[$key] = $value;
                     }
@@ -261,6 +261,10 @@ class queryFactory
         return @mysqli_insert_id($this->link);
     }
 
+    public function affected_rows()
+    {
+        return @mysqli_affected_rows($this->link);
+    }
 }
 class queryFactoryResult
 {
@@ -278,7 +282,7 @@ class queryFactoryResult
             if ($this->cursor >= sizeof($this->result)) {
                 $this->EOF = true;
             } else {
-                while (list($key, $value) = each($this->result[$this->cursor])) {
+                foreach ($this->result[$this->cursor] AS $key => $value) {
                     $this->fields[$key] = $value;
                 }
             }
@@ -287,7 +291,7 @@ class queryFactoryResult
             if (!$zp_result_array) {
                 $this->EOF = true;
             } else {
-                while (list($key, $value) = each($zp_result_array)) {
+                foreach ($zp_result_array AS $key => $value) {
                     if (!preg_match('/^[0-9]/', $key)) {
                         $this->fields[$key] = $value;
                     }
@@ -314,7 +318,8 @@ class queryFactoryResult
         global $db;
         if (mysqli_data_seek($this->resource, $zp_row)) {
             $zp_result_array = mysqli_fetch_array($this->resource);
-            while (list($key, $value) = each($zp_result_array)) {
+            
+            foreach ($zp_result_array AS $key => $value) {
                 $this->fields[$key] = $value;
             }
             mysqli_data_seek($this->resource, $zp_row);

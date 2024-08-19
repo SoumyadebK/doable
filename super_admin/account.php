@@ -1,5 +1,13 @@
 <?php
+
+use Stripe\Exception\ApiErrorException;
+use Stripe\PaymentIntent;
+use Stripe\Stripe;
+use Stripe\StripeClient;
+
 require_once('../global/config.php');
+global $db;
+global $db_account;
 
 if (empty($_GET['id']))
     $title = "Add Account";
@@ -13,110 +21,13 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if (!empty($_GET['cond']) && $_GET['cond'] == 'del'){
     $db->Execute("DELETE FROM `DOA_USERS` WHERE `PK_USER` = ".$_GET['PK_USER']);
-    $db->Execute("DELETE FROM `DOA_USER_PROFILE` WHERE `PK_USER` = ".$_GET['PK_USER']);
     header('location:account.php?id='.$_GET['id']);
-}
-
-if(!empty($_POST)){
-    $ACCOUNT_DATA['PK_BUSINESS_TYPE'] = $_POST['PK_BUSINESS_TYPE'];
-    $ACCOUNT_DATA['PK_ACCOUNT_TYPE'] = $_POST['PK_ACCOUNT_TYPE'];
-    $ACCOUNT_DATA['BUSINESS_NAME'] = $_POST['BUSINESS_NAME'];
-    $ACCOUNT_DATA['ADDRESS'] = $_POST['ACCOUNT_ADDRESS'];
-    $ACCOUNT_DATA['ADDRESS_1'] = $_POST['ACCOUNT_ADDRESS_1'];
-    $ACCOUNT_DATA['PK_COUNTRY'] = $_POST['ACCOUNT_PK_COUNTRY'];
-    $ACCOUNT_DATA['PK_STATES'] = $_POST['PK_STATES'];
-    $ACCOUNT_DATA['CITY'] = $_POST['ACCOUNT_CITY'];
-    $ACCOUNT_DATA['ZIP'] = $_POST['ACCOUNT_ZIP'];
-    $ACCOUNT_DATA['PHONE'] = $_POST['ACCOUNT_PHONE'];
-    $ACCOUNT_DATA['FAX'] = $_POST['ACCOUNT_FAX'];
-    $ACCOUNT_DATA['EMAIL'] = $_POST['ACCOUNT_EMAIL'];
-    $ACCOUNT_DATA['WEBSITE'] = $_POST['ACCOUNT_WEBSITE'];
-
-    $USER_DATA['PK_ROLES'] = $_POST['PK_ROLES'];
-    $USER_DATA['USER_ID'] = $_POST['USER_ID'];
-    $USER_DATA['FIRST_NAME'] = $_POST['FIRST_NAME'];
-    $USER_DATA['LAST_NAME'] = $_POST['LAST_NAME'];
-    $USER_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
-    $USER_DATA['PHONE'] = $_POST['PHONE'];
-    if (!empty($_POST['PASSWORD']))
-        $USER_DATA['PASSWORD'] = password_hash($_POST['PASSWORD'], PASSWORD_DEFAULT);
-    if($_FILES['USER_IMAGE']['name'] != ''){
-        $extn 			= explode(".",$_FILES['USER_IMAGE']['name']);
-        $iindex			= count($extn) - 1;
-        $rand_string 	= time()."-".rand(100000,999999);
-        $file11			= 'user_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
-        $extension   	= strtolower($extn[$iindex]);
-
-        if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
-            $image_path    = '../uploads/user_image/'.$file11;
-            move_uploaded_file($_FILES['USER_IMAGE']['tmp_name'], $image_path);
-            $USER_DATA['USER_IMAGE'] = $image_path;
-        }
-    }
-
-    $USER_PROFILE_DATA['GENDER'] = $_POST['GENDER'];
-    $USER_PROFILE_DATA['DOB'] = $_POST['DOB'];
-    $USER_PROFILE_DATA['ADDRESS'] = $_POST['ADDRESS'];
-    $USER_PROFILE_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
-    $USER_PROFILE_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
-    $USER_PROFILE_DATA['PK_STATES'] = $_POST['PK_STATES'];
-    $USER_PROFILE_DATA['CITY'] = $_POST['CITY'];
-    $USER_PROFILE_DATA['ZIP'] = $_POST['ZIP'];
-    $USER_PROFILE_DATA['NOTES'] = $_POST['NOTES'];
-
-    if(empty($_GET['id'])){
-        $ACCOUNT_DATA['ACTIVE'] = 1;
-        $ACCOUNT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $ACCOUNT_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'insert');
-        $PK_ACCOUNT_MASTER = $db->insert_ID();
-        $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-        $USER_DATA['CREATE_LOGIN'] = 1;
-        $USER_DATA['ACTIVE'] = 1;
-        $USER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_USERS', $USER_DATA, 'insert');
-        $PK_USER = $db->insert_ID();
-        $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
-        $USER_PROFILE_DATA['ACTIVE'] = 1;
-        $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
-    }else{
-        $ACCOUNT_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        $ACCOUNT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-        $ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'update'," PK_ACCOUNT_MASTER =  '$_GET[id]'");
-        if (empty($_POST['PK_USER_EDIT'])){
-            $USER_DATA['PK_ACCOUNT_MASTER'] = $_GET[id];
-            $USER_DATA['ACTIVE'] = 1;
-            $USER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-            $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
-            db_perform('DOA_USERS', $USER_DATA, 'insert');
-            $PK_USER = $db->insert_ID();
-            $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
-            $USER_PROFILE_DATA['ACTIVE'] = 1;
-            $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
-        }else {
-            $USER_DATA['ACTIVE'] = $_POST['ACTIVE'];
-            $USER_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_POST[PK_USER_EDIT]'");
-            $USER_PROFILE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-            $USER_PROFILE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update', " PK_USER =  '$_POST[PK_USER_EDIT]'");
-        }
-    }
-
-    header("location:all_accounts.php");
 }
 
 $PK_ACCOUNT_MASTER = '';
 $PK_BUSINESS_TYPE = '';
 $PK_ACCOUNT_TYPE = '';
+$FRANCHISE = '';
 $BUSINESS_NAME = '';
 $ACCOUNT_ADDRESS = '';
 $ACCOUNT_ADDRESS_1 = '';
@@ -130,10 +41,11 @@ $ACCOUNT_FAX = '';
 $ACCOUNT_EMAIL = '';
 $ACCOUNT_WEBSITE = '';
 $ACTIVE = '';
+$ABLE_TO_EDIT_PAYMENT_GATEWAY = '';
+$USERNAME_PREFIX = '';
 
 $PK_USER_EDIT = '';
-$PK_ROLES = '';
-$USER_ID = '';
+$USER_NAME = '';
 $FIRST_NAME = '';
 $LAST_NAME = '';
 $EMAIL_ID = '';
@@ -148,6 +60,13 @@ $CITY = '';
 $ZIP = '';
 $PHONE = '';
 $NOTES = '';
+
+$START_DATE = '';
+$BILLING_TYPE = '';
+$AMOUNT = '';
+$TOTAL_AMOUNT = '';
+$NEXT_RENEWAL_DATE = '';
+$STATUS = '';
 if(!empty($_GET['id'])) {
     $account_res = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = '$_GET[id]'");
     if($account_res->RecordCount() == 0){
@@ -157,6 +76,7 @@ if(!empty($_GET['id'])) {
     $PK_ACCOUNT_MASTER = $_GET['id'];
     $PK_BUSINESS_TYPE = $account_res->fields['PK_BUSINESS_TYPE'];
     $PK_ACCOUNT_TYPE = $account_res->fields['PK_ACCOUNT_TYPE'];
+    $FRANCHISE = $account_res->fields['FRANCHISE'];
     $BUSINESS_NAME = $account_res->fields['BUSINESS_NAME'];
     $ACCOUNT_ADDRESS = $account_res->fields['ADDRESS'];
     $ACCOUNT_ADDRESS_1 = $account_res->fields['ADDRESS_1'];
@@ -169,13 +89,12 @@ if(!empty($_GET['id'])) {
     $ACCOUNT_EMAIL = $account_res->fields['EMAIL'];
     $ACCOUNT_WEBSITE = $account_res->fields['WEBSITE'];
     $ACTIVE = $account_res->fields['ACTIVE'];
+    $USERNAME_PREFIX = $account_res->fields['USERNAME_PREFIX'];
 
-    $user_res = $db->Execute("SELECT DOA_USERS.PK_USER AS PK_USER_EDIT, DOA_USERS.PK_ROLES, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_ID, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_ACCOUNT_MASTER = '$_GET[id]' AND DOA_USERS.CREATED_BY = '$_SESSION[PK_USER]'");
-
+    $user_res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$_GET[id]' AND CREATED_BY = '$_SESSION[PK_USER]'");
     if($user_res->RecordCount() > 0) {
-        $PK_USER_EDIT = $user_res->fields['PK_USER_EDIT'];
-        $PK_ROLES = $user_res->fields['PK_ROLES'];
-        $USER_ID = $user_res->fields['USER_ID'];
+        $PK_USER_EDIT = $user_res->fields['PK_USER'];
+        $USER_NAME = $user_res->fields['USER_NAME'];
         $FIRST_NAME = $user_res->fields['FIRST_NAME'];
         $LAST_NAME = $user_res->fields['LAST_NAME'];
         $EMAIL_ID = $user_res->fields['EMAIL_ID'];
@@ -190,23 +109,186 @@ if(!empty($_GET['id'])) {
         $ZIP = $user_res->fields['ZIP'];
         $PHONE = $user_res->fields['PHONE'];
         $NOTES = $user_res->fields['NOTES'];
+        $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_res->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
+    }
+
+    $user_billing_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_BILLING_DETAILS WHERE PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+    if($user_billing_data->RecordCount() > 0) {
+        $START_DATE = $user_billing_data->fields['START_DATE'];
+        $BILLING_TYPE = $user_billing_data->fields['BILLING_TYPE'];
+        $AMOUNT = $user_billing_data->fields['AMOUNT'];
+        $TOTAL_AMOUNT = $user_billing_data->fields['TOTAL_AMOUNT'];
+        $NEXT_RENEWAL_DATE = $user_billing_data->fields['NEXT_RENEWAL_DATE'];
+        $STATUS = $user_billing_data->fields['STATUS'];
     }
 }
 
+$location_data = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE ACTIVE = 1 AND `PK_ACCOUNT_MASTER`  = ".$PK_ACCOUNT_MASTER);
+$location_count = ($location_data->RecordCount() > 0) ? $location_data->RecordCount() : 1;
 
+$payment_gateway_setting = $db->Execute( "SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
+$SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
+$PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+require_once("../global/stripe-php-master/init.php");
+Stripe::setApiKey($SECRET_KEY);
 
+if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingData') {
+    $AMOUNT = $_POST['AMOUNT'];
+
+    if ($_POST['BILLING_TYPE'] == 'PER_ACCOUNT') {
+        $ACCOUNT_PAYMENT_ID = $_POST['CUSTOMER_ID'];
+        $account = \Stripe\Customer::retrieve($ACCOUNT_PAYMENT_ID);
+        try {
+            $charge = \Stripe\Charge::create(array(
+                "amount" => $AMOUNT * 100,
+                "currency" => "usd",
+                "description" => $BUSINESS_NAME,
+                "customer" => $ACCOUNT_PAYMENT_ID,
+                "statement_descriptor" => "Subscription Charge",
+            ));
+
+            if ($charge->paid == 1) {
+                $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Success';
+                $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->id;
+
+                $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Active';
+                $ACCOUNT_BILLING_DETAILS['NEXT_RENEWAL_DATE'] = date("Y-m-d", strtotime('+1 month', strtotime($NEXT_RENEWAL_DATE)));
+            } else {
+                $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Failed';
+                $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->failure_message;
+
+                $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
+            }
+        } catch (Exception $e) {
+            $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Failed';
+            $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $e->getMessage();
+
+            $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
+        }
+        $ACCOUNT_PAYMENT_DETAILS['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+        $ACCOUNT_PAYMENT_DETAILS['DATE_TIME'] = date('Y-m-d H:i');
+        $ACCOUNT_PAYMENT_DETAILS['AMOUNT'] = $_POST['AMOUNT'];
+        db_perform('DOA_ACCOUNT_PAYMENT_DETAILS', $ACCOUNT_PAYMENT_DETAILS, 'insert');
+    } elseif ($_POST['BILLING_TYPE'] == 'PER_LOCATION') {
+        $PK_LOCATION = $_POST['PK_LOCATION'];
+        for ($i = 0; $i < count($PK_LOCATION); $i++) {
+            $ACCOUNT_PAYMENT_ID = $_POST['LOCATION_CUSTOMER_ID'][$i];
+            $account = \Stripe\Customer::retrieve($ACCOUNT_PAYMENT_ID);
+            try {
+                $charge = \Stripe\Charge::create(array(
+                    "amount" => $AMOUNT * 100,
+                    "currency" => "usd",
+                    "description" => $BUSINESS_NAME,
+                    "customer" => $ACCOUNT_PAYMENT_ID,
+                    "statement_descriptor" => "Subscription Charge",
+                ));
+
+                if ($charge->paid == 1) {
+                    $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Success';
+                    $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->id;
+
+                    $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Active';
+                    $ACCOUNT_BILLING_DETAILS['NEXT_RENEWAL_DATE'] = date("Y-m-d", strtotime('+1 month', strtotime($NEXT_RENEWAL_DATE)));
+                } else {
+                    $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Failed';
+                    $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $charge->failure_message;
+
+                    $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
+                }
+            } catch (Exception $e) {
+                $ACCOUNT_PAYMENT_DETAILS['PAYMENT_STATUS'] = 'Failed';
+                $ACCOUNT_PAYMENT_DETAILS['PAYMENT_INFO'] = $e->getMessage();
+
+                $ACCOUNT_BILLING_DETAILS['STATUS'] = 'Pending';
+            }
+            $ACCOUNT_PAYMENT_DETAILS['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+            $ACCOUNT_PAYMENT_DETAILS['PK_LOCATION'] = $_POST['PK_LOCATION'][$i];
+            $ACCOUNT_PAYMENT_DETAILS['DATE_TIME'] = date('Y-m-d H:i');
+            $ACCOUNT_PAYMENT_DETAILS['AMOUNT'] = $_POST['AMOUNT'];
+            db_perform('DOA_ACCOUNT_PAYMENT_DETAILS', $ACCOUNT_PAYMENT_DETAILS, 'insert');
+        }
+    }
+
+    $ACCOUNT_BILLING_DETAILS['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+    $ACCOUNT_BILLING_DETAILS['BILLING_TYPE'] = $_POST['BILLING_TYPE'];
+    $ACCOUNT_BILLING_DETAILS['START_DATE'] = date("Y-m-d", strtotime($_POST['START_DATE']));
+    $ACCOUNT_BILLING_DETAILS['NEXT_RENEWAL_DATE'] = date("Y-m-d", strtotime('+1 month', strtotime($_POST['START_DATE'])));
+    $ACCOUNT_BILLING_DETAILS['AMOUNT'] = $_POST['AMOUNT'];
+    $ACCOUNT_BILLING_DETAILS['TOTAL_AMOUNT'] = $_POST['TOTAL_AMOUNT'];
+
+    $account_billing_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_BILLING_DETAILS WHERE PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+    if ($account_billing_info->RecordCount() > 0) {
+        $ACCOUNT_BILLING_DETAILS['EDITED_BY'] = $_SESSION['PK_USER'];
+        $ACCOUNT_BILLING_DETAILS['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform('DOA_ACCOUNT_BILLING_DETAILS', $ACCOUNT_BILLING_DETAILS, 'update', " PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+    } else {
+        $ACCOUNT_BILLING_DETAILS['CREATED_BY'] = $_SESSION['PK_USER'];
+        $ACCOUNT_BILLING_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform('DOA_ACCOUNT_BILLING_DETAILS', $ACCOUNT_BILLING_DETAILS, 'insert');
+    }
+
+    header("location:account.php?id=".$PK_ACCOUNT_MASTER);
+}
+
+$account_payment_data = [];
+$account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
+while (!$account_payment_info->EOF) {
+        require_once("../global/stripe-php-master/init.php");
+        $stripe = new StripeClient($SECRET_KEY);
+        $customer_id = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
+        $stripe_customer = $stripe->customers->retrieve($customer_id);
+        $card_id = $stripe_customer->default_source;
+
+        $url = "https://api.stripe.com/v1/customers/".$customer_id."/cards/".$card_id;
+        $AUTH = "Authorization: Bearer ".$SECRET_KEY;
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+                $AUTH
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        $card_details = json_decode($response, true);
+
+        $account_payment_data[] = [
+            'CUSTOMER_ID' => $customer_id,
+            'PK_LOCATION' => $account_payment_info->fields['PK_LOCATION'],
+            'CARD_TYPE' => $card_details['brand'],
+            'LAST4' => $card_details['last4'],
+            'EXP_MONTH' => $card_details['exp_month'],
+            'EXP_YEAR' => $card_details['exp_year'],
+        ];
+        //pre_r($card_details);
+
+    $account_payment_info->MoveNext();
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php');?>
+<style>
+    .SumoSelect {
+        width: 100%;
+    }
+</style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -220,7 +302,13 @@ if(!empty($_GET['id'])) {
                     </div>
                 </div>
             </div>
-
+            <div class="col-md-6 align-self-center">
+                <h4 style="color: #39B54A;">
+                    <?php if(!empty($_GET['id'])) {
+                        echo $BUSINESS_NAME;
+                    } ?>
+                </h4>
+            </div>
                 <div class="row">
                     <div class="col-md-12">
                         <div class="card wizard-content">
@@ -233,6 +321,7 @@ if(!empty($_GET['id'])) {
                                     <?php } else { ?>
                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#login" role="tab" id="logintab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">User List</span></a> </li>
                                     <?php } ?>
+                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                 </ul>
 
                                 <!-- Tab panes -->
@@ -261,7 +350,7 @@ if(!empty($_GET['id'])) {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-6">
+                                                    <div class="col-3">
                                                         <div class="form-group">
                                                             <label class="col-md-12">Account Type<span class="text-danger">*</span>
                                                             </label>
@@ -272,6 +361,15 @@ if(!empty($_GET['id'])) {
                                                                     <input type="radio" name="PK_ACCOUNT_TYPE" id="<?=$row->fields['PK_ACCOUNT_TYPE'];?>" value="<?=$row->fields['PK_ACCOUNT_TYPE'];?>" <?php if($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked';?> required>
                                                                     <label for="<?=$row->fields['PK_ACCOUNT_TYPE'];?>"><?=$row->fields['ACCOUNT_TYPE']?></label>
                                                                 <?php $row->MoveNext(); } ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Arthur Murray Franchise ?</label>
+                                                            <div class="col-md-12">
+                                                                <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="1" <?php if($FRANCHISE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                                <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if($FRANCHISE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -344,7 +442,7 @@ if(!empty($_GET['id'])) {
                                                             <label class="col-md-12">City</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="ACCOUNT_CITY" name="ACCOUNT_CITY" class="form-control" placeholder="Entere City" value="<?php echo $ACCOUNT_CITY?>">
+                                                                <input type="text" id="ACCOUNT_CITY" name="ACCOUNT_CITY" class="form-control" placeholder="Enter City" value="<?php echo $ACCOUNT_CITY?>">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -409,6 +507,19 @@ if(!empty($_GET['id'])) {
                                                         </div>
                                                     </div>
                                                 <? } ?>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Username Prefix
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Enter Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                             </div>
                                             <div class="form-group">
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -429,16 +540,15 @@ if(!empty($_GET['id'])) {
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <label class="form-label mb-0">Roles</label>
-                                                        <?php $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' AND PK_ROLES = 2"); ?>
-                                                        <input type="hidden" name="PK_ROLES" value="<?php echo $row->fields['PK_ROLES'];?>">
-                                                        <input type="text" class="form-control" value="<?=$row->fields['ROLES']?>" readonly>
+                                                        <input type="hidden" name="PK_ROLES" value="2">
+                                                        <input type="text" class="form-control" value="Account Admin" readonly>
                                                     </div>
                                                     <div class="col-6">
                                                         <div class="form-group">
                                                             <label class="col-md-12">User Name<span class="text-danger">*</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="USER_ID" name="USER_ID" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" onkeyup="ValidateUsername()" value="<?=$USER_ID?>">
+                                                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>">
                                                             </div>
                                                         </div>
                                                         <span id="lblError" style="color: red"></span>
@@ -639,6 +749,13 @@ if(!empty($_GET['id'])) {
                                                         <small id="password-text"></small>
                                                     </div>
                                                 </div>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <label class="col-md-12"><input type="checkbox" id="ABLE_TO_EDIT_PAYMENT_GATEWAY" name="ABLE_TO_EDIT_PAYMENT_GATEWAY" class="form-check-inline" <?=($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1)?'checked':''?>> Able to edit payment gateway</label>
+                                                    </div>
+                                                </div>
+
                                             </div>
                                             <div class="form-group">
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -664,13 +781,22 @@ if(!empty($_GET['id'])) {
                                             <tbody>
                                             <?php
                                             $i=1;
-                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_ID, DOA_ROLES.ROLES, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES = DOA_USERS.PK_ROLES WHERE DOA_USERS.PK_ROLES IN(2,3) AND DOA_USERS.PK_ACCOUNT_MASTER='$_GET[id]'");
-                                            while (!$row->EOF) { ?>
+                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7,8) AND DOA_USERS.PK_ACCOUNT_MASTER='$_GET[id]'");
+                                            while (!$row->EOF) {
+                                                $selected_roles = [];
+                                                if(!empty($row->fields['PK_USER'])) {
+                                                    $PK_USER = $row->fields['PK_USER'];
+                                                    $selected_roles_row = $db->Execute("SELECT DOA_ROLES.ROLES FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER'");
+                                                    while (!$selected_roles_row->EOF) {
+                                                        $selected_roles[] = $selected_roles_row->fields['ROLES'];
+                                                        $selected_roles_row->MoveNext();
+                                                    }
+                                                } ?>
                                                 <tr>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$i;?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['NAME']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['USER_ID']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['ROLES']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['USER_NAME']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=implode(', ', $selected_roles)?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['EMAIL_ID']?></td>
                                                     <td style="padding: 10px 0px 0px 0px;font-size: 20px;">
                                                         <a href="edit_account_user.php?id=<?=$row->fields['PK_USER']?>&ac_id=<?=$_GET['id']?>" title="Reset Password" style="color: #03a9f3;"><i class="ti-lock"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -688,6 +814,161 @@ if(!empty($_GET['id'])) {
                                         </table>
                                     </div>
                                     <?php } ?>
+
+
+                                    <div class="tab-pane p-20" id="billing" role="tabpanel">
+                                        <form class="form-material form-horizontal" id="billingForm" method="post" enctype="multipart/form-data">
+                                            <input type="hidden" name="FUNCTION_NAME" value="saveBillingData">
+                                            <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?=$PK_ACCOUNT_MASTER?>">
+                                            <div class="p-20">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Subscription Start Date</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Select Date" value="<?=($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE))?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Next Renewal Date</label>
+                                                            <div class="col-md-12">
+                                                                <p><?=($NEXT_RENEWAL_DATE == '') ? '' : date('m/d/Y', strtotime($NEXT_RENEWAL_DATE))?></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Status</label>
+                                                            <div class="col-md-12">
+                                                                <p><?=$STATUS?></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="row">
+                                                            <div class="form-group">
+                                                                <label class="form-label" style="margin-bottom: 5px;">Billing Type</label><br>
+                                                                <label style="margin-right: 70px;"><input type="radio" name="BILLING_TYPE" class="form-check-inline BILLING_TYPE" value="PER_ACCOUNT" onchange="calculatePaymentAmount()" <?=($BILLING_TYPE == 'PER_ACCOUNT') ? 'checked' : ''?>>Bill Per Account</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" name="BILLING_TYPE" class="form-check-inline BILLING_TYPE" value="PER_LOCATION" onchange="calculatePaymentAmount()" <?=($BILLING_TYPE == 'PER_LOCATION') ? 'checked' : ''?>>Bill Per Location</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Amount</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" onkeyup="calculatePaymentAmount()" value="<?=$AMOUNT?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Total Amount</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="TOTAL_AMOUNT" name="TOTAL_AMOUNT" class="form-control" placeholder="Total Amount" readonly value="<?=$TOTAL_AMOUNT?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div id="add_card">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div id="card-element"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <?php
+                                                foreach ($account_payment_data AS $key => $value) {
+                                                    switch ($value['CARD_TYPE']) {
+                                                        case 'Visa':
+                                                        case 'Visa (debit)':
+                                                            $card_type = 'visa';
+                                                            break;
+                                                        case 'MasterCard':
+                                                        case 'Mastercard (2-series)':
+                                                        case 'Mastercard (debit)':
+                                                        case 'Mastercard (prepaid)':
+                                                            $card_type = 'mastercard';
+                                                            break;
+                                                        case 'American Express':
+                                                            $card_type = 'amex';
+                                                            break;
+                                                        case 'Discover':
+                                                        case 'Discover (debit)':
+                                                            $card_type = 'discover';
+                                                            break;
+                                                        case 'Diners Club':
+                                                        case 'Diners Club (14-digit card)':
+                                                            $card_type = 'diners';
+                                                            break;
+                                                        case 'JCB':
+                                                            $card_type = 'jcb';
+                                                            break;
+                                                        case 'UnionPay':
+                                                        case 'UnionPay (debit)':
+                                                        case 'UnionPay (19-digit card)':
+                                                            $card_type = 'unionpay';
+                                                            break;
+                                                        default:
+                                                            $card_type = '';
+                                                            break;
+
+                                                    }
+                                                    if ($value['PK_LOCATION'] == null) { ?>
+                                                        <input type="hidden" name="CUSTOMER_ID" value="<?=$value['CUSTOMER_ID']?>">
+                                                        <div class="per_account" style="display: <?=($BILLING_TYPE == 'PER_ACCOUNT') ? '' : 'none'?>">
+                                                            <div class="credit-card <?=$card_type?> selectable" style="margin-right: 50%;">
+                                                                <div class="credit-card-last4">
+                                                                    <?=$value['LAST4']?>
+                                                                </div>
+                                                                <div class="credit-card-expiry">
+                                                                    <?=$value['EXP_MONTH'].'/'.$value['EXP_YEAR']?>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php } else { ?>
+                                                        <div class="per_location" style="display: <?=($BILLING_TYPE == 'PER_LOCATION') ? '' : 'none'?>;">
+                                                            <div class="row" style="margin-bottom: 25px;">
+                                                                <div class="col-6">
+                                                                    <label style="margin-bottom: 10px;">Location</label>
+                                                                    <select class="multi_select_location" name="PK_LOCATION[]">
+                                                                        <?php
+                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+                                                                        while (!$row->EOF) { ?>
+                                                                            <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($row->fields['PK_LOCATION'] == $value['PK_LOCATION']) ? 'selected' : ''?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                                        <?php $row->MoveNext(); } ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <input type="hidden" name="LOCATION_CUSTOMER_ID[]" value="<?=$value['CUSTOMER_ID']?>">
+                                                            <div class="credit-card <?=$card_type?> selectable" style="margin-right: 50%;">
+                                                                <div class="credit-card-last4">
+                                                                    <?=$value['LAST4']?>
+                                                                </div>
+                                                                <div class="credit-card-expiry">
+                                                                    <?=$value['EXP_MONTH'].'/'.$value['EXP_YEAR']?>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                <?php }
+                                                } ?>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Process</button>
+                                            </div>
+                                        </form>
+
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -704,10 +985,18 @@ if(!empty($_GET['id'])) {
     }
 </style>
 <?php require_once('../includes/footer.php');?>
+
+<script src="http://igorescobar.github.io/jQuery-Mask-Plugin/js/jquery.mask.min.js"></script>
+
+
 <script>
     $('.datepicker-past').datepicker({
         format: 'mm/dd/yyyy',
         maxDate: 0
+    });
+
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
     });
 
     $(document).ready(function() {
@@ -716,42 +1005,33 @@ if(!empty($_GET['id'])) {
     });
 
     function fetch_state(PK_COUNTRY){
+        let data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
+        let value = $.ajax({
+            url: "ajax/state.php",
+            type: "POST",
+            data: data,
+            async: false,
+            cache :false,
+            success: function (result) {
+                document.getElementById('State_div').innerHTML = result;
 
-        jQuery(document).ready(function($) {
-
-            var data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
-
-            var value = $.ajax({
-                url: "ajax/state.php",
-                type: "POST",
-                data: data,
-                async: false,
-                cache :false,
-                success: function (result) {
-                    document.getElementById('State_div').innerHTML = result;
-
-                }
-            }).responseText;
-        });
+            }
+        }).responseText;
     }
+
     function fetch_Account_State(PK_COUNTRY){
+        let data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$ACCOUNT_PK_STATES;?>";
+        let value = $.ajax({
+            url: "ajax/state.php",
+            type: "POST",
+            data: data,
+            async: false,
+            cache :false,
+            success: function (result) {
+                document.getElementById('Account_State_div').innerHTML = result;
 
-        jQuery(document).ready(function($) {
-
-            var data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$ACCOUNT_PK_STATES;?>";
-
-            var value = $.ajax({
-                url: "ajax/state.php",
-                type: "POST",
-                data: data,
-                async: false,
-                cache :false,
-                success: function (result) {
-                    document.getElementById('Account_State_div').innerHTML = result;
-
-                }
-            }).responseText;
-        });
+            }
+        }).responseText;
     }
 
 </script>
@@ -802,6 +1082,7 @@ if(!empty($_GET['id'])) {
         password_strength.innerHTML = strength;
 
     }
+
     function ValidateUsername() {
         var username = document.getElementById("User_Id").value;
         var lblError = document.getElementById("lblError");
@@ -845,7 +1126,7 @@ if(!empty($_GET['id'])) {
                 if (PK_ACCOUNT_MASTER == 0) {
                     $('#profile_tab_link')[0].click();
                 }else{
-                    window.location.href='all_accounts.php';
+                   window.location.href='all_accounts.php';
                 }
             }
         });
@@ -867,7 +1148,23 @@ if(!empty($_GET['id'])) {
     });
 </script>
 
+<script>
+    function calculatePaymentAmount() {
+        let BILLING_TYPE = $('.BILLING_TYPE:checked').val();
+        let AMOUNT = $('#AMOUNT').val();
+        let LOCATION_COUNT = parseInt(<?=$location_count?>);
 
+        if (BILLING_TYPE == 'PER_ACCOUNT') {
+            $('#TOTAL_AMOUNT').val(AMOUNT);
+            $('.per_account').show();
+            $('.per_location').hide();
+        } else {
+            $('#TOTAL_AMOUNT').val(AMOUNT*LOCATION_COUNT);
+            $('.per_account').hide();
+            $('.per_location').show();
+        }
+    }
+</script>
 
 
 </body>

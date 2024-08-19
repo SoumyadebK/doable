@@ -6,6 +6,12 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     header("location:../login.php");
     exit;
 }
+
+$header_text = '';
+$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Locations page'");
+if ($header_data->RecordCount() > 0) {
+    $header_text = $header_data->fields['HEADER_TEXT'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -17,7 +23,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
             <?php require_once('../includes/top_menu.php');?>
             <div class="page-wrapper">
                 <?php require_once('../includes/top_menu_bar.php') ?>
-                <div class="container-fluid">
+                <?php require_once('../includes/setup_menu.php') ?>
+                <div class="container-fluid body_content m-0">
                     <div class="row page-titles">
                         <div class="col-md-5 align-self-center">
                             <h4 class="text-themecolor"><?=$title?></h4>
@@ -32,13 +39,15 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                             </div>
                         </div>
                     </div>
-
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
+                                    <div class="row" style="text-align: center;">
+                                        <h5 style="font-weight: bold;"><?=$header_text?></h5>
+                                    </div>
                                     <div class="table-responsive">
-                                        <table id="myTable" class="table table-striped border">
+                                        <table id="myTable" class="table table-striped border" data-page-length='50'>
                                             <thead>
                                                 <tr>
                                                     <th>No</th>
@@ -63,7 +72,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                                     <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['EMAIL']?></td>
                                                     <td>
                                                         <a href="location.php?id=<?=$row->fields['PK_LOCATION']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <a href="all_locations.php?type=del&id=<?=$row->fields['PK_LOCATION']?>" onclick='javascript:ConfirmDelete($(this));return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <a href="all_locations.php?type=del&id=<?=$row->fields['PK_LOCATION']?>" onclick='javascript:ConfirmDelete(<?=$row->fields['PK_LOCATION']?>);return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php if($row->fields['ACTIVE']==1){ ?>
                                                             <span class="active-box-green"></span>
                                                         <?php } else{ ?>
@@ -88,12 +97,22 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
             $(function () {
                 $('#myTable').DataTable();
             });
-            function ConfirmDelete(anchor)
+
+            function ConfirmDelete(PK_LOCATION)
             {
                 var conf = confirm("Are you sure you want to delete?");
-                if(conf)
-                window.location=anchor.attr("href");
+                if(conf) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {FUNCTION_NAME: 'deleteLocationData', PK_LOCATION: PK_LOCATION},
+                        success: function (data) {
+                            window.location.href = `all_locations.php`;
+                        }
+                    });
+                }
             }
+
             function editpage(id){
                 //alert(i);
                 window.location.href = "location.php?id="+id;

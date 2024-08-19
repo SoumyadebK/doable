@@ -27,7 +27,8 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <?php require_once('../includes/setup_menu_super_admin.php') ?>
+        <div class="container-fluid body_content m-0">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -41,7 +42,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                 </div>
             </div>
 
-            <div class="row">
+            <!--<div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="row" style="padding: 15px 35px 35px 35px;">
@@ -49,15 +50,19 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                 <h4 class="card-title">General</h4>
                                 <div>
                                     <ul class="menu-list">
+                                        <li><a href="all_rate_types.php">Rate Types</a></li>
                                         <li><a href="all_users.php">Users</a></li>
                                         <li><a href="all_departments.php">Departments</a></li>
                                         <li><a href="all_roles.php">Roles</a></li>
-                                        <li><a href="all_interests.php">Interests</a></li>
                                         <li><a href="all_countries.php">Countries</a></li>
                                         <li><a href="all_states.php">States</a></li>
                                         <li><a href="all_currency.php">Currency</a></li>
                                         <li><a href="all_account_types.php">Account Types</a></li>
+                                        <li><a href="all_appointment_status.php">Appointment Status</a></li>
                                         <li><a href="all_business_types.php">Business Types</a></li>
+                                        <li><a href="csv_uploader.php">CSV Uploader</a></li>
+                                        <li><a href="all_scheduling_events.php">Scheduling Event</a></li>
+                                        <li><a href="all_event_actions.php">Event Action</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -67,12 +72,11 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <ul class="menu-list">
                                         <li><a href="all_enrollment_types.php">Enrollment Types</a></li>
                                         <li><a href="all_agreement_types.php">Agreement Types</a></li>
-                                        <li><a href="all_rate_types.php">Rate Types</a></li>
                                         <li><a href="all_payment_types.php">Payment Types</a></li>
+                                        <li><a href="all_interests.php">Interests</a></li>
                                         <li><a href="all_document_types.php">Document Types</a></li>
                                         <li><a href="all_transaction_types.php">Transaction Types</a></li>
                                         <li><a href="all_skill_levels.php">Skill Level</a></li>
-                                        <li><a href="all_appointment_status.php">Appointment Status</a></li>
                                         <li><a href="all_relationship.php">Relationship</a></li>
                                         <li><a href="all_service_class.php">Service Class</a></li>
                                         <li><a href="all_frequency.php">Frequency</a></li>
@@ -87,7 +91,6 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         <li><a href="all_email_triggers.php">Email Triggers</a></li>
                                         <li><a href="all_template_categories.php">Template Category</a></li>
                                         <li><a href="all_header_texts.php">Header Texts</a></li>
-
                                         <li><a href="manage_help_category.php">Help Category</a></li>
                                         <li><a href="manage_help_sub_category.php">Help Subcategory</a></li>
                                         <li><a href="manage_help.php">Help</a></li>
@@ -97,7 +100,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>-->
         </div>
     </div>
 </div>

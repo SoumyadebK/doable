@@ -17,7 +17,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
             <?php require_once('../includes/top_menu.php');?>
             <div class="page-wrapper">
                 <?php require_once('../includes/top_menu_bar.php') ?>
-                <div class="container-fluid">
+                <div class="container-fluid body_content">
                     <div class="row page-titles">
                         <div class="col-md-5 align-self-center">
                             <h4 class="text-themecolor"><?=$title?></h4>
@@ -40,7 +40,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <h5 class="card-title"><?=$title?></h5>
 
                                     <div class="table-responsive">
-                                        <table id="myTable" class="table table-striped border">
+                                        <table id="myTable" class="table table-striped border" data-page-length='50'>
                                             <thead>
                                                 <tr>
                                                     <th>No</th>

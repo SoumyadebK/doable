@@ -18,12 +18,12 @@ if(!empty($_POST)){
         $EVENT_TYPE_DATA['ACTIVE'] = 1;
         $EVENT_TYPE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $EVENT_TYPE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_EVENT_TYPE', $EVENT_TYPE_DATA, 'insert');
+        db_perform_account('DOA_EVENT_TYPE', $EVENT_TYPE_DATA, 'insert');
     }else{
         $EVENT_TYPE_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $EVENT_TYPE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $EVENT_TYPE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_EVENT_TYPE', $EVENT_TYPE_DATA, 'update'," PK_EVENT_TYPE =  '$_GET[id]'");
+        db_perform_account('DOA_EVENT_TYPE', $EVENT_TYPE_DATA, 'update'," PK_EVENT_TYPE =  '$_GET[id]'");
     }
     header("location:all_event_types.php");
 }
@@ -34,7 +34,7 @@ if(empty($_GET['id'])){
     $ACTIVE = '';
 }
 else {
-    $res = $db->Execute("SELECT * FROM `DOA_EVENT_TYPE` WHERE PK_EVENT_TYPE = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM `DOA_EVENT_TYPE` WHERE PK_EVENT_TYPE = '$_GET[id]'");
     if($res->RecordCount() == 0){
         header("location:all_event_types.php");
         exit;
@@ -53,7 +53,7 @@ else {
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -87,7 +87,7 @@ else {
                                     <label class="col-md-12" for="example-text">Color Code<span class="text-danger">*</span>
                                     </label>
                                     <div class="col-md-3">
-                                        <input type="color" id="COLOR_CODE" name="COLOR_CODE" class="form-control" value="<?php echo $COLOR_CODE?>">
+                                        <input type="color" id="COLOR_CODE" name="COLOR_CODE" value="<?php echo $COLOR_CODE?>" style="margin: 10px; width: 150px;">
                                     </div>
                                 </div>
 

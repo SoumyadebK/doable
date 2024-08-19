@@ -2,6 +2,36 @@
 require_once('../global/config.php');
 $title = "Billing";
 
+$user_master_data = $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$_SESSION['PK_USER']);
+$PK_USER_MASTER_ARRAY = [];
+while (!$user_master_data->EOF){
+    $PK_USER_MASTER_ARRAY[] = $user_master_data->fields['PK_USER_MASTER'];
+    $user_master_data->MoveNext();
+}
+$PK_USER_MASTERS = implode(',', $PK_USER_MASTER_ARRAY);
+
+$results_per_page = 100;
+
+if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
+    $search_text = $_GET['search_text'];
+    $search = " AND DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%'";
+} else {
+    $search_text = '';
+    $search = ' ';
+}
+
+$query = $db->Execute("SELECT count($account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM $account_database.`DOA_ENROLLMENT_MASTER` INNER JOIN $master_database.DOA_LOCATION ON $master_database.DOA_LOCATION.PK_LOCATION = $account_database.DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE $account_database.DOA_ENROLLMENT_MASTER.PK_USER_MASTER IN (".$PK_USER_MASTERS.")".$search);
+$number_of_result =  $query->fields['TOTAL_RECORDS'];
+$number_of_page = ceil ($number_of_result / $results_per_page);
+
+if (!isset ($_GET['page']) ) {
+    $page = 1;
+} else {
+    $page = $_GET['page'];
+}
+$page_first_result = ($page-1) * $results_per_page;
+
+
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4){
     header("location:../login.php");
     exit;
@@ -23,7 +53,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
         if ($_POST['PK_PAYMENT_TYPE'] == 1) {
             if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
-                require_once("../global/stripe/init.php");
+                require_once("../global/stripe-php-master/init.php");
                 \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
                 $STRIPE_TOKEN = $_POST['token'];
                 $AMOUNT = $_POST['AMOUNT'];
@@ -57,24 +87,24 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
         $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
         $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-        db_perform('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+        db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 
-        $enrollment_balance = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
+        $enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
         if ($enrollment_balance->RecordCount() > 0){
             $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $enrollment_balance->fields['TOTAL_BALANCE_PAID']+$_POST['AMOUNT'];
             $ENROLLMENT_BALANCE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
             $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
+            db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
         }else{
             $ENROLLMENT_BALANCE_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
             $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $_POST['AMOUNT'];
             $ENROLLMENT_BALANCE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
             $ENROLLMENT_BALANCE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-            db_perform('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
+            db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
         }
 
-        $PK_ENROLLMENT_PAYMENT = $db->insert_ID();
-        $ledger_record = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+        $PK_ENROLLMENT_PAYMENT = $db_account->insert_ID();
+        $ledger_record = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
         $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
         $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $PK_ENROLLMENT_LEDGER;
         $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
@@ -86,24 +116,18 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $LEDGER_DATA['IS_PAID'] = 1;
         $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
         $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
-        db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
         $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
-        db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
     }else{
-        db_perform('DOA_ENROLLMENT_PAYMENT', $_POST, 'update'," PK_ENROLLMENT_PAYMENT =  '$_POST[PK_ENROLLMENT_PAYMENT]'");
+        db_perform_account('DOA_ENROLLMENT_PAYMENT', $_POST, 'update'," PK_ENROLLMENT_PAYMENT =  '$_POST[PK_ENROLLMENT_PAYMENT]'");
         $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
     }
 
     header('location:billing.php');
 }
 
-$user_master_data = $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$_SESSION['PK_USER']);
-$PK_USER_MASTER_ARRAY = [];
-while (!$user_master_data->EOF){
-    $PK_USER_MASTER_ARRAY[] = $user_master_data->fields['PK_USER_MASTER'];
-    $user_master_data->MoveNext();
-}
-$PK_USER_MASTERS = implode(',', $PK_USER_MASTER_ARRAY);
+
 ?>
 
 <!DOCTYPE html>
@@ -116,18 +140,10 @@ $PK_USER_MASTERS = implode(',', $PK_USER_MASTER_ARRAY);
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
-                </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
-                        <!--<button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='add_schedule.php'" ><i class="fa fa-plus-circle"></i> Create New</button>-->
-                    </div>
                 </div>
             </div>
 
@@ -135,24 +151,25 @@ $PK_USER_MASTERS = implode(',', $PK_USER_MASTER_ARRAY);
                 <div id="appointment_list_half" class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-6">
-                                    <h5 class="card-title"><?=$title?></h5>
-                                </div>
-                            </div>
                             <div class="p-20">
                                 <?php
-                                $i=1;
-                                $row = $db->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER IN (".$PK_USER_MASTERS.") ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+                                $i=$page_first_result+1;
+                                $row = $db->Execute("SELECT $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, $account_database.DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, $account_database.DOA_ENROLLMENT_MASTER.ACTIVE, $master_database.DOA_LOCATION.LOCATION_NAME FROM $account_database.`DOA_ENROLLMENT_MASTER` INNER JOIN $master_database.DOA_LOCATION ON $master_database.DOA_LOCATION.PK_LOCATION = $account_database.DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE $account_database.DOA_ENROLLMENT_MASTER.PK_USER_MASTER IN (".$PK_USER_MASTERS.")".$search." ORDER BY $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
                                 while (!$row->EOF) {
-                                    $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
+                                    $total_bill_and_paid = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
+                                    $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                    $serviceCode = [];
+                                    while (!$serviceCodeData->EOF) {
+                                        $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'];
+                                        $serviceCodeData->MoveNext();
+                                    }
                                     ?>
-                                    <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 18px; *border: 1px solid #ebe5e2; padding: 8px;">
-                                        <div class="col-3" style="width: 18%"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']?></div>
-                                        <div class="col-3" style="width: 18%"><?=$row->fields['LOCATION_NAME']?></div>
+                                    <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
+                                        <div class="col-4" style="width: 30%"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']." || ".implode(', ', $serviceCode)?></div>
+                                        <div class="col-2" style="width: 15%"><?=$row->fields['LOCATION_NAME']?></div>
                                         <div class="col-2" style="width: 20%">Total Billed : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>
                                         <div class="col-2" style="width: 20%">Total Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-                                        <div class="col-2" style="width: 20%">Balance : <?=$total_bill_and_paid->fields['TOTAL_BILL']-$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
+                                        <div class="col-2" style="width: 15%">Balance : <?=$total_bill_and_paid->fields['TOTAL_BILL']-$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
                                     </div>
                                     <table id="myTable" class="table table-striped border" style="display: none">
                                         <thead>
@@ -174,7 +191,7 @@ $PK_USER_MASTERS = implode(',', $PK_USER_MASTER_ARRAY);
                                         $billed_amount = 0;
                                         $paid_amount = 0;
                                         $balance = 0;
-                                        $billing_details = $db->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+                                        $billing_details = $db->Execute("SELECT $account_database.DOA_ENROLLMENT_LEDGER.*, $master_database.DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM $account_database.`DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE ON $account_database.DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = $master_database.DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
                                         while (!$billing_details->EOF) { $billed_amount = $billing_details->fields['BILLED_AMOUNT']; $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance); ?>
                                             <tr>
                                                 <td><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
@@ -192,7 +209,7 @@ $PK_USER_MASTERS = implode(',', $PK_USER_MASTER_ARRAY);
                                                 </td>
                                             </tr>
                                             <?php
-                                            $payment_details = $db->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+                                            $payment_details = $db->Execute("SELECT $account_database.DOA_ENROLLMENT_LEDGER.*, $master_database.DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM $account_database.`DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE ON $account_database.DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = $master_database.DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
                                             if ($payment_details->RecordCount() > 0){ $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']); ?>
                                                 <tr>
                                                     <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
@@ -212,6 +229,30 @@ $PK_USER_MASTERS = implode(',', $PK_USER_MASTER_ARRAY);
                                     </table>
                                     <?php $row->MoveNext();
                                     $i++; } ?>
+
+                                <div class="center">
+                                    <div class="pagination outer">
+                                        <ul>
+                                            <?php if ($page > 1) { ?>
+                                                <li><a href="billing.php?page=1">&laquo;</a></li>
+                                                <li><a href="billing.php?page=<?=($page-1)?>">&lsaquo;</a></li>
+                                            <?php }
+                                            for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
+                                                if ($page_count == $page || $page_count == ($page+1) || $page_count == ($page-1) || $page_count == $number_of_page) {
+                                                    echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="billing.php?page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                } elseif ($page_count == ($number_of_page-1)){
+                                                    echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
+                                                } else {
+                                                    echo '<li><a class="hidden" href="billing.php?page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                }
+                                            }
+                                            if ($page < $number_of_page) { ?>
+                                                <li><a href="billing.php?page=<?=($page+1)?>">&rsaquo;</a></li>
+                                                <li><a href="billing.php?page=<?=$number_of_page?>">&raquo;</a></li>
+                                            <?php } ?>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

@@ -1,6 +1,10 @@
 <?php
-require_once('../../global/config.php');
 
+use Dompdf\Dompdf;
+use Mpdf\Mpdf;
+
+require_once('../../global/config.php');
+error_reporting(0);
 $RESPONSE_DATA = $_POST;
 $FUNCTION_NAME = $RESPONSE_DATA['FUNCTION_NAME'];
 unset($RESPONSE_DATA['FUNCTION_NAME']);
@@ -8,229 +12,642 @@ $FUNCTION_NAME($RESPONSE_DATA);
 
 /*Saving Data from Service Code Page*/
 function saveServiceInfoData($RESPONSE_DATA){
-    error_reporting(0);
     global $db;
-    $RESPONSE_DATA['SERVICE_NAME'] = $_POST['SERVICE_NAME'];
-    $RESPONSE_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
-    $RESPONSE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-    $RESPONSE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    global $db_account;
+    $SERVICE_INFO_DATA['SERVICE_NAME'] = $RESPONSE_DATA['SERVICE_NAME'];
+    $SERVICE_INFO_DATA['PK_SERVICE_CLASS'] = $RESPONSE_DATA['PK_SERVICE_CLASS'];
+    $SERVICE_INFO_DATA['IS_SCHEDULE'] = $RESPONSE_DATA['IS_SCHEDULE'];
+    $SERVICE_INFO_DATA['DESCRIPTION'] = $RESPONSE_DATA['DESCRIPTION'];
     if(empty($RESPONSE_DATA['PK_SERVICE_MASTER'])){
-        $RESPONSE_DATA['ACTIVE'] = 1;
-        $RESPONSE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $RESPONSE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_SERVICE_MASTER', $RESPONSE_DATA, 'insert');
-        $PK_SERVICE_MASTER = $db->insert_ID();
+        $SERVICE_INFO_DATA['ACTIVE'] = 1;
+        $SERVICE_INFO_DATA['IS_DELETED'] = 0;
+        $SERVICE_INFO_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        $SERVICE_INFO_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform_account('DOA_SERVICE_MASTER', $SERVICE_INFO_DATA, 'insert');
+        $PK_SERVICE_MASTER = $db_account->insert_ID();
     }else{
-        $RESPONSE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        $RESPONSE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-        $RESPONSE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_SERVICE_MASTER', $RESPONSE_DATA, 'update'," PK_SERVICE_MASTER =  '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
+        $SERVICE_INFO_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        $SERVICE_INFO_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+        $SERVICE_INFO_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_SERVICE_MASTER', $SERVICE_INFO_DATA, 'update'," PK_SERVICE_MASTER =  '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
         $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
+    }
+
+    $db_account->Execute("DELETE FROM `DOA_SERVICE_LOCATION` WHERE `PK_SERVICE_MASTER` = '$PK_SERVICE_MASTER'");
+    if(isset($RESPONSE_DATA['PK_LOCATION'])){
+        $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
+        for($i = 0; $i < count($PK_LOCATION); $i++){
+            $SERVICE_LOCATION_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+            $SERVICE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+            db_perform_account('DOA_SERVICE_LOCATION', $SERVICE_LOCATION_DATA, 'insert');
+        }
     }
     echo $PK_SERVICE_MASTER;
 }
 
-function saveServiceCodeData($RESPONSE_DATA){
+function saveServiceData($RESPONSE_DATA){
     global $db;
-    if (count($RESPONSE_DATA['SERVICE_CODE']) > 0) {
-        $db->Execute("DELETE FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_MASTER` = '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
-        for ($i = 0; $i < count($RESPONSE_DATA['SERVICE_CODE']); $i++) {
-            $SERVICE_CODE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'];
-            $SERVICE_CODE_DATA['PK_FREQUENCY'] = $RESPONSE_DATA['PK_FREQUENCY'][$i];
-            $SERVICE_CODE_DATA['DURATION'] = $RESPONSE_DATA['DURATION'][$i];
-            $SERVICE_CODE_DATA['IS_GROUP'] = $RESPONSE_DATA['IS_GROUP_'.$i];
-            $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE_'.$i];
-            $SERVICE_CODE_DATA['PRICE'] = $RESPONSE_DATA['PRICE'][$i];
-            $SERVICE_CODE_DATA['SERVICE_CODE'] = $RESPONSE_DATA['SERVICE_CODE'][$i];
-            $SERVICE_CODE_DATA['DESCRIPTION'] = $RESPONSE_DATA['SERVICE_CODE_DESCRIPTION'][$i];
-            db_perform('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
+    global $db_account;
+
+    $SERVICE_INFO_DATA['SERVICE_NAME'] = $RESPONSE_DATA['SERVICE_NAME'];
+    $SERVICE_INFO_DATA['PK_SERVICE_CLASS'] = $RESPONSE_DATA['PK_SERVICE_CLASS'];
+    $SERVICE_INFO_DATA['IS_SCHEDULE'] = $RESPONSE_DATA['IS_SCHEDULE'];
+    $SERVICE_INFO_DATA['DESCRIPTION'] = $RESPONSE_DATA['DESCRIPTION'];
+    if(empty($RESPONSE_DATA['PK_SERVICE_MASTER'])){
+        $SERVICE_INFO_DATA['ACTIVE'] = 1;
+        $SERVICE_INFO_DATA['IS_DELETED'] = 0;
+        $SERVICE_INFO_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        $SERVICE_INFO_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform_account('DOA_SERVICE_MASTER', $SERVICE_INFO_DATA, 'insert');
+        $PK_SERVICE_MASTER = $db_account->insert_ID();
+
+        $SERVICE_CODE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+        $SERVICE_CODE_DATA['SERVICE_CODE'] = $RESPONSE_DATA['SERVICE_CODE'];
+        $SERVICE_CODE_DATA['IS_GROUP'] = $RESPONSE_DATA['IS_GROUP'] ?? 0;
+        $SERVICE_CODE_DATA['IS_SUNDRY'] = $RESPONSE_DATA['IS_SUNDRY'] ?? 0;
+        $SERVICE_CODE_DATA['CAPACITY'] = ($SERVICE_CODE_DATA['IS_GROUP'] == 0) ? 0 : $RESPONSE_DATA['CAPACITY'];
+        $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE'] ?? 0;
+        $SERVICE_CODE_DATA['PRICE'] = ($SERVICE_CODE_DATA['IS_CHARGEABLE'] == 0) ? 0 : $RESPONSE_DATA['PRICE'];
+        db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
+        $PK_SERVICE_CODE = $db_account->insert_ID();
+    }else{
+        $SERVICE_INFO_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        $SERVICE_INFO_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+        $SERVICE_INFO_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_SERVICE_MASTER', $SERVICE_INFO_DATA, 'update'," PK_SERVICE_MASTER =  '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
+        $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
+
+        $SERVICE_CODE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+        $SERVICE_CODE_DATA['SERVICE_CODE'] = $RESPONSE_DATA['SERVICE_CODE'];
+        $SERVICE_CODE_DATA['IS_GROUP'] = $RESPONSE_DATA['IS_GROUP'] ?? 0;
+        $SERVICE_CODE_DATA['IS_SUNDRY'] = $RESPONSE_DATA['IS_SUNDRY'] ?? 0;
+        $SERVICE_CODE_DATA['CAPACITY'] = ($SERVICE_CODE_DATA['IS_GROUP'] == 0) ? 0 : $RESPONSE_DATA['CAPACITY'];
+        $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE'] ?? 0;
+        $SERVICE_CODE_DATA['PRICE'] = ($SERVICE_CODE_DATA['IS_CHARGEABLE'] == 0) ? 0 : $RESPONSE_DATA['PRICE'];
+        db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'update', "PK_SERVICE_CODE = ".$RESPONSE_DATA['PK_SERVICE_CODE']);
+        $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'];
+    }
+
+    $db_account->Execute("DELETE FROM `DOA_SERVICE_LOCATION` WHERE `PK_SERVICE_MASTER` = '$PK_SERVICE_MASTER'");
+    if(isset($RESPONSE_DATA['PK_LOCATION'])){
+        $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
+        for($i = 0; $i < count($PK_LOCATION); $i++){
+            $SERVICE_LOCATION_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+            $SERVICE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+            db_perform_account('DOA_SERVICE_LOCATION', $SERVICE_LOCATION_DATA, 'insert');
+        }
+    }
+    echo $PK_SERVICE_MASTER;
+
+    $db_account->Execute("DELETE FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_CODE` = '$PK_SERVICE_CODE'");
+    if(isset($RESPONSE_DATA['PK_SCHEDULING_CODE'])){
+        $PK_SCHEDULING_CODE = $RESPONSE_DATA['PK_SCHEDULING_CODE'];
+        for($j = 0; $j < count($PK_SCHEDULING_CODE); $j++){
+            $SCHEDULING_CODE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+            $SCHEDULING_CODE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+            $SCHEDULING_CODE_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE[$j];
+            db_perform_account('DOA_SERVICE_SCHEDULING_CODE', $SCHEDULING_CODE_DATA, 'insert');
         }
     }
 }
 
+/*function saveServiceData($RESPONSE_DATA){
+    global $db;
+    global $db_account;
+
+    $SERVICE_INFO_DATA['SERVICE_NAME'] = $RESPONSE_DATA['SERVICE_NAME'];
+    $SERVICE_INFO_DATA['PK_SERVICE_CLASS'] = $RESPONSE_DATA['PK_SERVICE_CLASS'];
+    $SERVICE_INFO_DATA['IS_SCHEDULE'] = $RESPONSE_DATA['IS_SCHEDULE'];
+    $SERVICE_INFO_DATA['DESCRIPTION'] = $RESPONSE_DATA['DESCRIPTION'];
+    if(empty($RESPONSE_DATA['PK_SERVICE_MASTER'])){
+        $SERVICE_INFO_DATA['ACTIVE'] = 1;
+        $SERVICE_INFO_DATA['IS_DELETED'] = 0;
+        $SERVICE_INFO_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        $SERVICE_INFO_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform_account('DOA_SERVICE_MASTER', $SERVICE_INFO_DATA, 'insert');
+        $PK_SERVICE_MASTER = $db_account->insert_ID();
+    }else{
+        $SERVICE_INFO_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        $SERVICE_INFO_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+        $SERVICE_INFO_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_SERVICE_MASTER', $SERVICE_INFO_DATA, 'update'," PK_SERVICE_MASTER =  '$RESPONSE_DATA[PK_SERVICE_MASTER]'");
+        $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
+    }
+
+    $db_account->Execute("DELETE FROM `DOA_SERVICE_LOCATION` WHERE `PK_SERVICE_MASTER` = '$PK_SERVICE_MASTER'");
+    if(isset($RESPONSE_DATA['PK_LOCATION'])){
+        $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
+        for($i = 0; $i < count($PK_LOCATION); $i++){
+            $SERVICE_LOCATION_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+            $SERVICE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+            db_perform_account('DOA_SERVICE_LOCATION', $SERVICE_LOCATION_DATA, 'insert');
+        }
+    }
+    echo $PK_SERVICE_MASTER;
+
+    if (count($RESPONSE_DATA['SERVICE_CODE']) > 0) {
+        $ALL_PK_SERVICE_CODE = $RESPONSE_DATA['ALL_PK_SERVICE_CODE'];
+        $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'];
+        $DELETED_CODE = array_diff($ALL_PK_SERVICE_CODE, $PK_SERVICE_CODE);
+        $db_account->Execute("DELETE FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_CODE` IN (".implode(',', $DELETED_CODE).")");
+        for ($i = 0; $i < count($RESPONSE_DATA['SERVICE_CODE']); $i++) {
+            $SERVICE_CODE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+            $SERVICE_CODE_DATA['SERVICE_CODE'] = $RESPONSE_DATA['SERVICE_CODE'][$i];
+            $SERVICE_CODE_DATA['DESCRIPTION'] = $RESPONSE_DATA['SERVICE_CODE_DESCRIPTION'][$i];
+            $SERVICE_CODE_DATA['IS_GROUP'] = $RESPONSE_DATA['IS_GROUP_'.$i] ?? 0;
+            $SERVICE_CODE_DATA['IS_SUNDRY'] = $RESPONSE_DATA['IS_SUNDRY_'.$i] ?? 0;
+            $SERVICE_CODE_DATA['CAPACITY'] = ($SERVICE_CODE_DATA['IS_GROUP'] == 0) ? 0 : $RESPONSE_DATA['CAPACITY'][$i];
+            $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE_'.$i] ?? 0;
+            $SERVICE_CODE_DATA['PRICE'] = ($SERVICE_CODE_DATA['IS_CHARGEABLE'] == 0) ? 0 : $RESPONSE_DATA['PRICE'][$i];
+            $SERVICE_CODE_DATA['IS_DEFAULT'] = $RESPONSE_DATA['IS_DEFAULT_'.$i] ?? 0;
+            //pre_r($SERVICE_CODE_DATA);
+            if ($RESPONSE_DATA['PK_SERVICE_CODE'][$i] > 0){
+                db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'update', "PK_SERVICE_CODE = ".$RESPONSE_DATA['PK_SERVICE_CODE'][$i]);
+                $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'];
+            } else {
+                db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
+                $PK_SERVICE_CODE = $db_account->insert_ID();
+            }
+
+            $db_account->Execute("DELETE FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_CODE` = '$PK_SERVICE_CODE'");
+            if(isset($RESPONSE_DATA['PK_SCHEDULING_CODE'])){
+                $PK_SCHEDULING_CODE = $RESPONSE_DATA['PK_SCHEDULING_CODE'];
+                for($j = 0; $j < count($PK_SCHEDULING_CODE); $j++){
+                    $SCHEDULING_CODE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                    $SCHEDULING_CODE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                    $SCHEDULING_CODE_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE[$j];
+                    db_perform_account('DOA_SERVICE_SCHEDULING_CODE', $SCHEDULING_CODE_DATA, 'insert');
+                }
+            }
+        }
+
+    }
+}*/
+
+function saveServiceCodeData($RESPONSE_DATA){
+    global $db;
+    global $db_account;
+    if (count($RESPONSE_DATA['SERVICE_CODE']) > 0) {
+        $ALL_PK_SERVICE_CODE = $RESPONSE_DATA['ALL_PK_SERVICE_CODE'];
+        $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'];
+        $DELETED_CODE = array_diff($ALL_PK_SERVICE_CODE, $PK_SERVICE_CODE);
+        $db_account->Execute("DELETE FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_CODE` IN (".implode(',', $DELETED_CODE).")");
+        for ($i = 0; $i < count($RESPONSE_DATA['SERVICE_CODE']); $i++) {
+            $SERVICE_CODE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'];
+            $SERVICE_CODE_DATA['SERVICE_CODE'] = $RESPONSE_DATA['SERVICE_CODE'][$i];
+            $SERVICE_CODE_DATA['DESCRIPTION'] = $RESPONSE_DATA['SERVICE_CODE_DESCRIPTION'][$i];
+            $SERVICE_CODE_DATA['IS_GROUP'] = $RESPONSE_DATA['IS_GROUP_'.$i] ?? 0;
+            $SERVICE_CODE_DATA['IS_SUNDRY'] = $RESPONSE_DATA['IS_SUNDRY_'.$i] ?? 0;
+            $SERVICE_CODE_DATA['CAPACITY'] = ($SERVICE_CODE_DATA['IS_GROUP'] == 0) ? 0 : $RESPONSE_DATA['CAPACITY'][$i];
+            $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE_'.$i] ?? 0;
+            $SERVICE_CODE_DATA['PRICE'] = ($SERVICE_CODE_DATA['IS_CHARGEABLE'] == 0) ? 0 : $RESPONSE_DATA['PRICE'][$i];
+            $SERVICE_CODE_DATA['IS_DEFAULT'] = $RESPONSE_DATA['IS_DEFAULT_'.$i] ?? 0;
+            if ($RESPONSE_DATA['PK_SERVICE_CODE'][$i] > 0){
+                db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'update', "PK_SERVICE_CODE = ".$RESPONSE_DATA['PK_SERVICE_CODE'][$i]);
+            } else {
+                db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
+            }
+        }
+    }
+}
+
+function savePackageInfoData($RESPONSE_DATA){
+    global $db;
+    global $db_account;
+
+    $PACKAGE_DATA['PACKAGE_NAME'] = $RESPONSE_DATA['PACKAGE_NAME'];
+    $PACKAGE_DATA['SORT_ORDER'] = $RESPONSE_DATA['SORT_ORDER'];
+    $PACKAGE_DATA['EXPIRY_DATE'] = $RESPONSE_DATA['EXPIRY_DATE'];
+    if (empty($RESPONSE_DATA['PK_PACKAGE'])){
+        $PACKAGE_DATA['ACTIVE'] = 1;
+        $PACKAGE_DATA['IS_DELETED'] = 0;
+        $PACKAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        $PACKAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'insert');
+        $PK_PACKAGE = $db_account->insert_ID();
+    } else {
+        $PACKAGE_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'] ?? 0;
+        $PACKAGE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+        $PACKAGE_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'update'," PK_PACKAGE =  '$RESPONSE_DATA[PK_PACKAGE]'");
+        $PK_PACKAGE = $RESPONSE_DATA['PK_PACKAGE'];
+    }
+
+    $db_account->Execute("DELETE FROM `DOA_PACKAGE_LOCATION` WHERE `PK_PACKAGE` = '$PK_PACKAGE'");
+    if(isset($RESPONSE_DATA['PK_LOCATION'])){
+        $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
+        for($i = 0; $i < count($PK_LOCATION); $i++){
+            $PACKAGE_LOCATION_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+            $PACKAGE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+            db_perform_account('DOA_PACKAGE_LOCATION', $PACKAGE_LOCATION_DATA, 'insert');
+        }
+    }
+
+    if (isset($RESPONSE_DATA['PK_SERVICE_MASTER']) && count($RESPONSE_DATA['PK_SERVICE_MASTER']) > 0){
+        $db_account->Execute("DELETE FROM `DOA_PACKAGE_SERVICE` WHERE `PK_PACKAGE` = '$PK_PACKAGE'");
+
+        for ($i = 0; $i < count($RESPONSE_DATA['PK_SERVICE_MASTER']); $i++) {
+            $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'][$i];
+            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $RESPONSE_DATA['PK_SERVICE_CODE'][$i];
+            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $RESPONSE_DATA['SERVICE_DETAILS'][$i];
+            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $RESPONSE_DATA['NUMBER_OF_SESSION'][$i];
+            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = $RESPONSE_DATA['PRICE_PER_SESSION'][$i];
+            $PACKAGE_SERVICE_DATA['TOTAL'] = $RESPONSE_DATA['TOTAL'][$i];
+            $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = empty($RESPONSE_DATA['DISCOUNT_TYPE'][$i]) ? 0 : $RESPONSE_DATA['DISCOUNT_TYPE'][$i];
+            $PACKAGE_SERVICE_DATA['DISCOUNT'] = empty($RESPONSE_DATA['DISCOUNT'][$i]) ? 0 : $RESPONSE_DATA['DISCOUNT'][$i];
+            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = $RESPONSE_DATA['FINAL_AMOUNT'][$i];
+            $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+        }
+    }
+}
+
+
 /*Saving Data from Enrollment Page*/
 
 function saveEnrollmentData($RESPONSE_DATA){
-    error_reporting(0);
     global $db;
-    $ENROLLMENT_MASTER_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    global $db_account;
     $ENROLLMENT_MASTER_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
+    $ENROLLMENT_MASTER_DATA['ENROLLMENT_NAME'] = $RESPONSE_DATA['ENROLLMENT_NAME'];
+    $ENROLLMENT_MASTER_DATA['PK_PACKAGE'] = ($RESPONSE_DATA['PK_PACKAGE'] == '') ? 0 : $RESPONSE_DATA['PK_PACKAGE'];
     $ENROLLMENT_MASTER_DATA['PK_LOCATION'] = $RESPONSE_DATA['PK_LOCATION'];
+    $ENROLLMENT_MASTER_DATA['CHARGE_BY_SESSIONS'] = empty($RESPONSE_DATA['CHARGE_BY_SESSIONS']) ? 0 : $RESPONSE_DATA['CHARGE_BY_SESSIONS'];
+    $currentDate = new DateTime();
+    $currentDate->modify('+'.$RESPONSE_DATA['EXPIRY_DATE'].' month');
+    $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $currentDate->format('Y-m-d H:i');
     $ENROLLMENT_MASTER_DATA['PK_AGREEMENT_TYPE'] = $RESPONSE_DATA['PK_AGREEMENT_TYPE'];
     $ENROLLMENT_MASTER_DATA['PK_DOCUMENT_LIBRARY'] = $RESPONSE_DATA['PK_DOCUMENT_LIBRARY'];
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_ID'] = $RESPONSE_DATA['ENROLLMENT_BY_ID'];
+    $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_PERCENTAGE'] = $RESPONSE_DATA['ENROLLMENT_BY_PERCENTAGE'];
+    $ENROLLMENT_MASTER_DATA['MEMO'] = $RESPONSE_DATA['MEMO'];
+    $ENROLLMENT_MASTER_DATA['STATUS'] = 'A';
 
-    if(empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER'])){
-        $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-        $enrollment_data = $db->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]' ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-        if ($enrollment_data->RecordCount() > 0){
-            $last_enrollment_id = str_replace($account_data->fields['ENROLLMENT_ID_CHAR'], '', $enrollment_data->fields['ENROLLMENT_ID']) ;
-            $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR'].(intval($last_enrollment_id)+1);
-        }else{
-            $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR'].$account_data->fields['ENROLLMENT_ID_NUM'];
+    if(empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER']) || $RESPONSE_DATA['PK_ENROLLMENT_MASTER'] == 0){
+        $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM, MISCELLANEOUS_ID_CHAR, MISCELLANEOUS_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        $misc_service_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_CLASS = 5 AND PK_SERVICE_MASTER = ".$RESPONSE_DATA['PK_SERVICE_MASTER'][0]);
+
+        if ($misc_service_data->RecordCount() > 0){
+            $id_data = $db_account->Execute("SELECT MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE ENROLLMENT_ID IS NULL AND PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+            if ($id_data->fields['MISC_ID'] != ' '){
+                $misc_id = explode("-", $id_data->fields['MISC_ID']);
+                $last_misc_id = $misc_id[1];
+                $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".(intval($last_misc_id)+1);
+            }else{
+                $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".$account_data->fields['MISCELLANEOUS_ID_NUM'];
+            }
+        } else {
+            $id_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE MISC_ID IS NULL AND PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+            if ($id_data->fields['ENROLLMENT_ID'] != ' '){
+                $enrollment_id = explode("-", $id_data->fields['ENROLLMENT_ID']);
+                $last_enrollment_id = $enrollment_id[1];
+                $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR']."-".(intval($last_enrollment_id)+1);
+            }else{
+                $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR']."-".$account_data->fields['ENROLLMENT_ID_NUM'];
+            }
         }
+
+        $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+        if ($customer_enrollment_number->RecordCount() > 0){
+            $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = $customer_enrollment_number->fields['CUSTOMER_ENROLLMENT_NUMBER'] + 1;
+        }else{
+            $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
+        }
+
         $ENROLLMENT_MASTER_DATA['ACTIVE'] = 1;
+        $ENROLLMENT_MASTER_DATA['ENROLLMENT_DATE']  = date("Y-m-d");
         $ENROLLMENT_MASTER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $ENROLLMENT_MASTER_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'insert');
-        $PK_ENROLLMENT_MASTER = $db->insert_ID();
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'insert');
+        $PK_ENROLLMENT_MASTER = $db_account->insert_ID();
         createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER,'DOA_ENROLLMENT_MASTER', 'PK_ENROLLMENT_MASTER', $PK_ENROLLMENT_MASTER, $ENROLLMENT_MASTER_DATA, 'insert');
     }else{
-        $ENROLLMENT_MASTER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        $ENROLLMENT_MASTER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'] ?? 1;
         $ENROLLMENT_MASTER_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $ENROLLMENT_MASTER_DATA['EDITED_ON'] = date("Y-m-d H:i");
         createUpdateHistory('enrollment', $RESPONSE_DATA['PK_ENROLLMENT_MASTER'],'DOA_ENROLLMENT_MASTER', 'PK_ENROLLMENT_MASTER', $RESPONSE_DATA['PK_ENROLLMENT_MASTER'], $ENROLLMENT_MASTER_DATA, 'update');
-        db_perform('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
         $PK_ENROLLMENT_MASTER = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
     }
 
+
+
     $total = 0;
+    $default_service_code = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `IS_DEFAULT` = 1 LIMIT 1");
+    $DEFAULT_PK_SERVICE_CODE = ($default_service_code->RecordCount() > 0) ? $default_service_code->fields['PK_SERVICE_CODE'] : 0;
+    $DEFAULT_ENROLLMENT_SERVICE = 0;
+    $is_default_service_code_selected = 0;
     if (isset($RESPONSE_DATA['PK_SERVICE_MASTER']) && count($RESPONSE_DATA['PK_SERVICE_MASTER']) > 0){
-        $db->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
-        for ($i = 0; $i < count($RESPONSE_DATA['PK_SERVICE_MASTER']); $i++){
+        $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+        $final_amount = 0;
+        for ($i = 0; $i < count($RESPONSE_DATA['PK_SERVICE_CODE']); $i++) {
+            $PRICE_PER_SESSION = (($RESPONSE_DATA['FINAL_AMOUNT'][$i] == 0) ? 0 : (($RESPONSE_DATA['FINAL_AMOUNT'][$i] > 0) ? ($RESPONSE_DATA['FINAL_AMOUNT'][$i]/$RESPONSE_DATA['NUMBER_OF_SESSION'][$i]) : $RESPONSE_DATA['PRICE_PER_SESSION'][$i]));
             $ENROLLMENT_SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
             $ENROLLMENT_SERVICE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'][$i];
             $ENROLLMENT_SERVICE_DATA['PK_SERVICE_CODE'] = $RESPONSE_DATA['PK_SERVICE_CODE'][$i];
             $ENROLLMENT_SERVICE_DATA['SERVICE_DETAILS'] = $RESPONSE_DATA['SERVICE_DETAILS'][$i];
-            $ENROLLMENT_SERVICE_DATA['FREQUENCY'] = $RESPONSE_DATA['FREQUENCY'][$i];
             $ENROLLMENT_SERVICE_DATA['NUMBER_OF_SESSION'] = $RESPONSE_DATA['NUMBER_OF_SESSION'][$i];
-            $ENROLLMENT_SERVICE_DATA['PRICE_PER_SESSION'] = $RESPONSE_DATA['PRICE_PER_SESSION'][$i];
+            $ENROLLMENT_SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
             $ENROLLMENT_SERVICE_DATA['TOTAL'] = $RESPONSE_DATA['TOTAL'][$i];
-            db_perform('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'insert');
-            $PK_ENROLLMENT_SERVICE = $db->insert_ID();
-            createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER,'DOA_ENROLLMENT_SERVICE', 'PK_ENROLLMENT_SERVICE', $PK_ENROLLMENT_SERVICE, $ENROLLMENT_SERVICE_DATA, 'insert');
+            $ENROLLMENT_SERVICE_DATA['DISCOUNT_TYPE'] = empty($RESPONSE_DATA['DISCOUNT_TYPE'][$i]) ? 0 : $RESPONSE_DATA['DISCOUNT_TYPE'][$i];
+            $ENROLLMENT_SERVICE_DATA['DISCOUNT'] = empty($RESPONSE_DATA['DISCOUNT'][$i]) ? 0 : $RESPONSE_DATA['DISCOUNT'][$i];
+            $ENROLLMENT_SERVICE_DATA['FINAL_AMOUNT'] = empty($RESPONSE_DATA['FINAL_AMOUNT'][$i]) ? $RESPONSE_DATA['TOTAL'][$i] : $RESPONSE_DATA['FINAL_AMOUNT'][$i];
+            $ENROLLMENT_SERVICE_DATA['STATUS'] = 'A';
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'insert');
+            $PK_ENROLLMENT_SERVICE = $db_account->insert_ID();
+            if ($DEFAULT_PK_SERVICE_CODE === $RESPONSE_DATA['PK_SERVICE_CODE'][$i]) {
+                $is_default_service_code_selected = 1;
+                $DEFAULT_ENROLLMENT_SERVICE = $PK_ENROLLMENT_SERVICE;
+            }
+            //createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER, 'DOA_ENROLLMENT_SERVICE', 'PK_ENROLLMENT_SERVICE', $PK_ENROLLMENT_SERVICE, $ENROLLMENT_SERVICE_DATA, 'insert');
             $total += $RESPONSE_DATA['TOTAL'][$i];
+            $final_amount += $ENROLLMENT_SERVICE_DATA['FINAL_AMOUNT'];
         }
     }
+
+    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE_PROVIDER` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+    for($i = 0; $i < count($RESPONSE_DATA['SERVICE_PROVIDER_ID']); $i++){
+        $ENROLLMENT_SERVICE_PROVIDER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+        $ENROLLMENT_SERVICE_PROVIDER_DATA['SERVICE_PROVIDER_ID'] = $RESPONSE_DATA['SERVICE_PROVIDER_ID'][$i];
+        $ENROLLMENT_SERVICE_PROVIDER_DATA['SERVICE_PROVIDER_PERCENTAGE'] = $RESPONSE_DATA['SERVICE_PROVIDER_PERCENTAGE'][$i];
+        $ENROLLMENT_SERVICE_PROVIDER_DATA['PERCENTAGE_AMOUNT'] = $final_amount*$RESPONSE_DATA['SERVICE_PROVIDER_PERCENTAGE'][$i]/100;
+        //pre_r($ENROLLMENT_SERVICE_PROVIDER_DATA);
+        db_perform_account('DOA_ENROLLMENT_SERVICE_PROVIDER', $ENROLLMENT_SERVICE_PROVIDER_DATA, 'insert');
+    }
+
+    /*if ($is_default_service_code_selected === 1) {
+        $ad_hoc_appointment = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE CUSTOMER_ID = ".$RESPONSE_DATA['PK_USER_MASTER']." AND PK_ENROLLMENT_MASTER = 0");
+        if ($ad_hoc_appointment->RecordCount() > 0) {
+            $UPDATE_APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $UPDATE_APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $DEFAULT_ENROLLMENT_SERVICE;
+            db_perform_account('DOA_APPOINTMENT_MASTER', $UPDATE_APPOINTMENT_DATA, 'update'," CUSTOMER_ID = ".$RESPONSE_DATA['PK_USER_MASTER']." AND PK_ENROLLMENT_MASTER = 0");
+        }
+    }*/
 
     $return_data['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
     $return_data['TOTAL_AMOUNT'] = $total;
     echo json_encode($return_data);
 }
 
+
 function saveEnrollmentBillingData($RESPONSE_DATA){
-    error_reporting(0);
     global $db;
+    global $db_account;
+    global $account_database;
     $PK_ENROLLMENT_SERVICE = $RESPONSE_DATA['PK_ENROLLMENT_SERVICE'];
     $FLEXIBLE_PAYMENT_DATE = isset($RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE'])?$RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE']:[];
     $FLEXIBLE_PAYMENT_AMOUNT = isset($RESPONSE_DATA['FLEXIBLE_PAYMENT_AMOUNT'])?$RESPONSE_DATA['FLEXIBLE_PAYMENT_AMOUNT']:[];
+    if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'One Time') {
+        $NUMBER_OF_PAYMENT = 0;
+    } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Payment Plans') {
+        $NUMBER_OF_PAYMENT = $RESPONSE_DATA['NUMBER_OF_PAYMENT'];
+    } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
+        $NUMBER_OF_PAYMENT = count($FLEXIBLE_PAYMENT_DATE);
+    } else {
+        $NUMBER_OF_PAYMENT = 0;
+    }
     unset($RESPONSE_DATA['PK_ENROLLMENT_SERVICE']);
     unset($RESPONSE_DATA['FLEXIBLE_PAYMENT_DATE']);
     unset($RESPONSE_DATA['FLEXIBLE_PAYMENT_AMOUNT']);
     $RESPONSE_DATA['BILLING_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE']));
     $RESPONSE_DATA['FIRST_DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['FIRST_DUE_DATE']));
     $PK_ENROLLMENT_LEDGER = 0;
-    for ($i = 0; $i < count($PK_ENROLLMENT_SERVICE); $i++) {
-        $ENROLLMENT_SERVICE_DATA['DISCOUNT'] = $RESPONSE_DATA['DISCOUNT'][$i];
-        $ENROLLMENT_SERVICE_DATA['DISCOUNT_TYPE'] = $RESPONSE_DATA['DISCOUNT_TYPE'][$i];
-        $ENROLLMENT_SERVICE_DATA['FINAL_AMOUNT'] = $RESPONSE_DATA['FINAL_AMOUNT'][$i];
-        db_perform('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_DATA, 'update', " PK_ENROLLMENT_SERVICE =  '$PK_ENROLLMENT_SERVICE[$i]'");
-    }
-    if(empty($RESPONSE_DATA['PK_ENROLLMENT_BILLING'])){
-        $ENROLLMENT_BILLING_DATA['PK_ENROLLMENT_MASTER'] = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
-        $ENROLLMENT_BILLING_DATA['BILLING_REF'] = $RESPONSE_DATA['BILLING_REF'];
-        $ENROLLMENT_BILLING_DATA['BILLING_DATE'] = $RESPONSE_DATA['BILLING_DATE'];
-        $ENROLLMENT_BILLING_DATA['DOWN_PAYMENT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
-        $ENROLLMENT_BILLING_DATA['BALANCE_PAYABLE'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
-        $ENROLLMENT_BILLING_DATA['TOTAL_AMOUNT'] = $RESPONSE_DATA['TOTAL_AMOUNT'];
-        $ENROLLMENT_BILLING_DATA['PAYMENT_METHOD'] = $RESPONSE_DATA['PAYMENT_METHOD'];
-        $ENROLLMENT_BILLING_DATA['PAYMENT_TERM'] = $RESPONSE_DATA['PAYMENT_TERM'];
-        $ENROLLMENT_BILLING_DATA['NUMBER_OF_PAYMENT'] = $RESPONSE_DATA['NUMBER_OF_PAYMENT'];
-        if ($RESPONSE_DATA['PK_SERVICE_CLASS'] == 1) {
-            $ENROLLMENT_BILLING_DATA['FIRST_DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['MEMBERSHIP_PAYMENT_DATE']));
-            $ENROLLMENT_BILLING_DATA['INSTALLMENT_AMOUNT'] = $RESPONSE_DATA['MEMBERSHIP_PAYMENT_AMOUNT'];
-        } else {
-            $ENROLLMENT_BILLING_DATA['FIRST_DUE_DATE'] = $RESPONSE_DATA['FIRST_DUE_DATE'];
-            $ENROLLMENT_BILLING_DATA['INSTALLMENT_AMOUNT'] = $RESPONSE_DATA['INSTALLMENT_AMOUNT'];
-        }
 
-        db_perform('DOA_ENROLLMENT_BILLING', $ENROLLMENT_BILLING_DATA, 'insert');
-        $PK_ENROLLMENT_BILLING = $db->insert_ID();
-        if ($RESPONSE_DATA['PK_SERVICE_CLASS'] == 1){
-            $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
-            $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-            $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
-            $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
-            $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
-            $LEDGER_DATA['IS_PAID'] = 0;
-            $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['MEMBERSHIP_PAYMENT_DATE']));
-            $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
-            $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['MEMBERSHIP_PAYMENT_AMOUNT'];
-            db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-            $PK_ENROLLMENT_LEDGER = $db->insert_ID();
-        }else {
-            for ($i = 0; $i < count($PK_ENROLLMENT_SERVICE); $i++) {
-                $SESSION_MASTER_DATA['PK_ENROLLMENT_MASTER'] = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
-                $SESSION_MASTER_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
-                $SESSION_MASTER_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE[$i];
-                $SESSION_MASTER_DATA['SESSION_STATUS'] = 'Purchased';
-                db_perform('DOA_SESSION_MASTER', $SESSION_MASTER_DATA, 'insert');
-            }
+    $document_library_data = $db_account->Execute("SELECT DOA_DOCUMENT_LIBRARY.DOCUMENT_TEMPLATE FROM `DOA_DOCUMENT_LIBRARY` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_DOCUMENT_LIBRARY=DOA_DOCUMENT_LIBRARY.PK_DOCUMENT_LIBRARY WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+    $enrollment_details = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS NUMBER_OF_SESSIONS, SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS TOTAL, SUM(DOA_ENROLLMENT_SERVICE.DISCOUNT) AS DISCOUNT, SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS FINAL_AMOUNT, DOA_ENROLLMENT_BILLING.FIRST_DUE_DATE, DOA_ENROLLMENT_BILLING.PAYMENT_TERM, DOA_ENROLLMENT_BILLING.NUMBER_OF_PAYMENT, DOA_ENROLLMENT_BILLING.INSTALLMENT_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+    $html_template = $document_library_data->fields['DOCUMENT_TEMPLATE'];
+    $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME']." ".$user_data->fields['LAST_NAME'], $html_template);
+    $html_template = str_replace('{STREET_ADD}', $user_data->fields['ADDRESS'], $html_template);
+    $html_template = str_replace('{CITY}', $user_data->fields['CITY'], $html_template);
+    $html_template = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template);
+    $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
+    $html_template = str_replace('{CELL_PHONE}', $user_data->fields['PHONE'], $html_template);
 
-            $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
-            $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-            $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
-            $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
-            $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
-            $LEDGER_DATA['IS_PAID'] = 0;
+    $TYPE_OF_ENROLLMENT='';
+    $SERVICE_DETAILS='';
+    $PVT_LESSONS='';
+    $TUITION='';
+    $DISCOUNT='';
+    $BAL_DUE='';
+    $MISC_SERVICES='';
+    $TUITION_COST='';
+    $DUE_DATE='';
+    $BILLED_AMOUNT='';
 
-            if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'One Time') {
-                $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
-                $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
-                $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
-                db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                $PK_ENROLLMENT_LEDGER = $db->insert_ID();
-            } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Payment Plans') {
-                if ($RESPONSE_DATA['DOWN_PAYMENT'] > 0) {
-                    $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
-                    $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
-                    $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['DOWN_PAYMENT'];
-                    db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                    $PK_ENROLLMENT_LEDGER = $db->insert_ID();
-                }
-                $BALANCE = $RESPONSE_DATA['DOWN_PAYMENT'];
-                for ($i = 0; $i < $RESPONSE_DATA['NUMBER_OF_PAYMENT']; $i++) {
-                    if ($RESPONSE_DATA['PAYMENT_TERM'] == 'Monthly') {
-                        $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+" . $i . " month", strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])));
-                    } elseif ($RESPONSE_DATA['PAYMENT_TERM'] == 'Quarterly') {
-                        $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+" . $i * 3 . " month", strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])));
-                    }
-                    $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['INSTALLMENT_AMOUNT'];
-                    $BALANCE = ($BALANCE + $RESPONSE_DATA['INSTALLMENT_AMOUNT']);
-                    $LEDGER_DATA['BALANCE'] = $BALANCE;
-                    db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                    if ($RESPONSE_DATA['DOWN_PAYMENT'] <= 0 && $i == 0) {
-                        $PK_ENROLLMENT_LEDGER = $db->insert_ID();
-                    }
-                }
-            } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
-                if ($RESPONSE_DATA['DOWN_PAYMENT'] > 0) {
-                    $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
-                    $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
-                    $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['DOWN_PAYMENT'];
-                    db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                    $PK_ENROLLMENT_LEDGER = $db->insert_ID();
-                }
-                $BALANCE = $RESPONSE_DATA['DOWN_PAYMENT'];
-                for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
-                    $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($FLEXIBLE_PAYMENT_DATE[$i]));
-                    $LEDGER_DATA['BILLED_AMOUNT'] = $FLEXIBLE_PAYMENT_AMOUNT[$i];
-                    $BALANCE = ($BALANCE + $FLEXIBLE_PAYMENT_AMOUNT[$i]);
-                    $LEDGER_DATA['BALANCE'] = $BALANCE;
-                    db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                    if ($RESPONSE_DATA['DOWN_PAYMENT'] <= 0 && $i == 0) {
-                        $PK_ENROLLMENT_LEDGER = $db->insert_ID();
-                    }
-                }
-            }
-        }
+    $enrollment_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.EXPIRY_DATE, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+    $enrollment_count = $db_account->Execute("SELECT COUNT(PK_USER_MASTER) AS ENROLLMENT_COUNT FROM DOA_ENROLLMENT_MASTER WHERE PK_USER_MASTER=".$enrollment_service_data->fields['PK_USER_MASTER']);
+    $number = $enrollment_count->RecordCount() > 0 ? $enrollment_count->fields['ENROLLMENT_COUNT'] : '';
+    $ends = array('th','st','nd','rd','th','th','th','th','th','th');
+    $abbreviation = ($number % 100) >= 11 && ($number % 100) <= 13 ? $number . 'th' : $number . $ends[$number % 10];
+    if(empty($enrollment_service_data->fields['ENROLLMENT_NAME'])){
+        $enrollment_name = $abbreviation;
     }else{
-        db_perform('DOA_ENROLLMENT_BILLING', $RESPONSE_DATA, 'update'," PK_ENROLLMENT_BILLING =  '$RESPONSE_DATA[PK_ENROLLMENT_BILLING]'");
-        $PK_ENROLLMENT_BILLING = $RESPONSE_DATA['PK_ENROLLMENT_BILLING'];
+        $enrollment_name = $enrollment_service_data->fields['ENROLLMENT_NAME']." - ".$abbreviation;
     }
+
+    while (!$enrollment_service_data->EOF) {
+        $TYPE_OF_ENROLLMENT = $enrollment_name;
+        $SERVICE_DETAILS .= $enrollment_service_data->fields['SERVICE_DETAILS']."<br>";
+        $PVT_LESSONS .= $enrollment_service_data->fields['NUMBER_OF_SESSION']."<br>";
+        $TUITION .= $enrollment_service_data->fields['TOTAL']."<br>";
+        $DISCOUNT .= $enrollment_service_data->fields['DISCOUNT']."<br>";
+        $BAL_DUE .= $enrollment_service_data->fields['FINAL_AMOUNT']."<br>";
+        $enrollment_service_data->MoveNext();
+    }
+
+    $misc_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.* FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER=DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 5 AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+    while (!$misc_service_data->EOF) {
+        $MISC_SERVICES .= $misc_service_data->fields['SERVICE_DETAILS']."<br>";
+        $TUITION_COST .= $misc_service_data->fields['FINAL_AMOUNT']."<br>";
+        $misc_service_data->MoveNext();
+    }
+
+    $html_template = str_replace('{TYPE_OF_ENROLLMENT}', $TYPE_OF_ENROLLMENT, $html_template);
+    $html_template = str_replace('{SERVICE_DETAILS}', $SERVICE_DETAILS, $html_template);
+    $html_template = str_replace('{PVT_LESSONS}', $PVT_LESSONS, $html_template);
+    $html_template = str_replace('{TUITION}', $TUITION, $html_template);
+    $html_template = str_replace('{DISCOUNT}', $DISCOUNT, $html_template);
+    $html_template = str_replace('{BAL_DUE}', $BAL_DUE, $html_template);
+    $html_template = str_replace('{MISC_SERVICES}', $MISC_SERVICES, $html_template);
+    $html_template = str_replace('{TUITION_COST}', $TUITION_COST, $html_template);
+    $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);
+    $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
+    $html_template = str_replace('{BILLING_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['BILLING_DATE'])), $html_template);
+    $html_template = str_replace('{EXPIRATION_DATE}', date('m-d-Y', strtotime($enrollment_service_data->fields['EXPIRY_DATE'])), $html_template);
+
+    if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
+        for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
+            $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($FLEXIBLE_PAYMENT_DATE[$i])), $html_template);
+        }
+    } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Payment Plans') {
+        $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])), $html_template);
+    } else{
+        $html_template = str_replace('{FIRST_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['BILLING_DATE'])), $html_template);
+    }
+
+    if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
+        $PAYMENT_METHOD='';
+        $PAYMENT_AMOUNT='';
+        $STARTING_DATE='';
+        for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
+            $PAYMENT_METHOD = $RESPONSE_DATA['PAYMENT_METHOD'];
+            $PAYMENT_AMOUNT = count($FLEXIBLE_PAYMENT_DATE).' x '.number_format((float)$FLEXIBLE_PAYMENT_AMOUNT[0], 2, '.', '');
+            $STARTING_DATE = date('m-d-Y', strtotime($FLEXIBLE_PAYMENT_DATE[0]));
+        }
+    } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Payment Plans') {
+        $PAYMENT_METHOD = $RESPONSE_DATA['PAYMENT_TERM'];
+        $PAYMENT_AMOUNT = $RESPONSE_DATA['NUMBER_OF_PAYMENT'];
+        $STARTING_DATE = date('m-d-Y', strtotime($RESPONSE_DATA['FIRST_DUE_DATE']));
+        $html_template = str_replace('{SCHEDULE_AMOUNT}', $RESPONSE_DATA['BALANCE_PAYABLE'], $html_template);
+    } else{
+        $STARTING_DATE = date('m-d-Y', strtotime($RESPONSE_DATA['BILLING_DATE']));
+        $html_template = str_replace('{SCHEDULE_AMOUNT}', $RESPONSE_DATA['BALANCE_PAYABLE'], $html_template);
+    }
+
+    $html_template = str_replace('{DOWN_PAYMENTS}', number_format((float)$RESPONSE_DATA['DOWN_PAYMENT'], 2, '.', ''), $html_template);
+
+    $html_template = str_replace('{REMAINING_BALANCE}', $enrollment_details->fields['FINAL_AMOUNT']-$RESPONSE_DATA['DOWN_PAYMENT'], $html_template);
+    $html_template = str_replace('{PAYMENT_NAME}', $PAYMENT_METHOD, $html_template);
+    $html_template = str_replace('{NO_AMT_PAYMENT}', $PAYMENT_AMOUNT, $html_template);
+    $html_template = str_replace('{INSTALLMENT_AMOUNT}', number_format((float)$RESPONSE_DATA['INSTALLMENT_AMOUNT'], 2, '.', ''), $html_template);
+    $html_template = str_replace('{STARTING_DATE}', $STARTING_DATE, $html_template);
+
+    $business_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.BUSINESS_NAME, DOA_LOCATION.ADDRESS, DOA_LOCATION.ZIP_CODE, DOA_LOCATION.CITY, DOA_STATES.STATE_NAME, DOA_COUNTRY.COUNTRY_NAME, DOA_LOCATION.PHONE FROM DOA_LOCATION INNER JOIN DOA_STATES ON DOA_STATES.PK_STATES = DOA_LOCATION.PK_STATES INNER JOIN DOA_COUNTRY ON DOA_COUNTRY.PK_COUNTRY = DOA_LOCATION.PK_COUNTRY INNER JOIN DOA_ACCOUNT_MASTER ON DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER = DOA_LOCATION.PK_ACCOUNT_MASTER WHERE DOA_LOCATION.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+    $business_phone = !empty($business_data->fields['PHONE']) ? 'Tel. '.$business_data->fields['PHONE'] : '';
+    $html_template = str_replace('{BUSINESS_NAME}', $business_data->fields['BUSINESS_NAME'], $html_template);
+    $html_template = str_replace('{BUSINESS_ADD}', $business_data->fields['ADDRESS'], $html_template);
+    $html_template = str_replace('{BUSINESS_CITY}', $business_data->fields['CITY'], $html_template);
+    $html_template = str_replace('{BUSINESS_STATE}', $business_data->fields['STATE_NAME'], $html_template);
+    $html_template = str_replace('{BUSINESS_COUNTRY}', $business_data->fields['COUNTRY_NAME'], $html_template);
+    $html_template = str_replace('{BUSINESS_ZIP}', $business_data->fields['ZIP_CODE'], $html_template);
+    $html_template = str_replace('{BUSINESS_PHONE}', $business_phone, $html_template);
+
+    $ENROLLMENT_BILLING_DATA['PK_ENROLLMENT_MASTER'] = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
+    $ENROLLMENT_BILLING_DATA['BILLING_REF'] = $RESPONSE_DATA['BILLING_REF'];
+    $ENROLLMENT_BILLING_DATA['BILLING_DATE'] = $RESPONSE_DATA['BILLING_DATE'];
+    $ENROLLMENT_BILLING_DATA['DOWN_PAYMENT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
+    $ENROLLMENT_BILLING_DATA['BALANCE_PAYABLE'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
+    $ENROLLMENT_BILLING_DATA['TOTAL_AMOUNT'] = $RESPONSE_DATA['TOTAL_AMOUNT'];
+    $ENROLLMENT_BILLING_DATA['PAYMENT_METHOD'] = $RESPONSE_DATA['PAYMENT_METHOD'];
+    $ENROLLMENT_BILLING_DATA['PAYMENT_TERM'] = $RESPONSE_DATA['PAYMENT_TERM'];
+    $ENROLLMENT_BILLING_DATA['NUMBER_OF_PAYMENT'] = $NUMBER_OF_PAYMENT;
+    $ENROLLMENT_BILLING_DATA['FIRST_DUE_DATE'] = $RESPONSE_DATA['FIRST_DUE_DATE'];
+    $ENROLLMENT_BILLING_DATA['INSTALLMENT_AMOUNT'] = $RESPONSE_DATA['INSTALLMENT_AMOUNT'];
+
+    if(empty($RESPONSE_DATA['PK_ENROLLMENT_BILLING'])){
+        db_perform_account('DOA_ENROLLMENT_BILLING', $ENROLLMENT_BILLING_DATA, 'insert');
+        $PK_ENROLLMENT_BILLING = $db_account->insert_ID();
+    }else{
+        $PK_ENROLLMENT_BILLING = $RESPONSE_DATA['PK_ENROLLMENT_BILLING'];
+        db_perform_account('DOA_ENROLLMENT_BILLING', $ENROLLMENT_BILLING_DATA, 'update'," PK_ENROLLMENT_BILLING =  '$PK_ENROLLMENT_BILLING'");
+        $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_BILLING` = '$PK_ENROLLMENT_BILLING'");
+    }
+
+    $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
+    $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
+    $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
+    $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
+    $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
+    $LEDGER_DATA['IS_PAID'] = 0;
+
+    $LEDGER_DATA['STATUS'] = 'A';
+    if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'One Time') {
+        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE']));
+        $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
+        $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['BALANCE_PAYABLE'];
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+    } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Payment Plans') {
+        if ($RESPONSE_DATA['DOWN_PAYMENT'] > 0) {
+            $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE']));
+            $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
+            $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['DOWN_PAYMENT'];
+            $LEDGER_DATA['IS_DOWN_PAYMENT'] = 1;
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+        }
+        $LEDGER_DATA['IS_DOWN_PAYMENT'] = 0;
+        $BALANCE = $RESPONSE_DATA['DOWN_PAYMENT'];
+        for ($i = 0; $i < $RESPONSE_DATA['NUMBER_OF_PAYMENT']; $i++) {
+            if ($RESPONSE_DATA['PAYMENT_TERM'] == 'Monthly') {
+                $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+" . $i . " month", strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])));
+            } elseif ($RESPONSE_DATA['PAYMENT_TERM'] == 'Quarterly') {
+                $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+" . $i * 3 . " month", strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])));
+            }
+            $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['INSTALLMENT_AMOUNT'];
+            $BALANCE = ($BALANCE + $RESPONSE_DATA['INSTALLMENT_AMOUNT']);
+            $LEDGER_DATA['BALANCE'] = $BALANCE;
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            if ($RESPONSE_DATA['DOWN_PAYMENT'] <= 0 && $i == 0) {
+                $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+            }
+        }
+    } elseif ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
+        if ($RESPONSE_DATA['DOWN_PAYMENT'] > 0) {
+            $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['BILLING_DATE']));
+            $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['DOWN_PAYMENT'];
+            $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['DOWN_PAYMENT'];
+            $LEDGER_DATA['IS_DOWN_PAYMENT'] = 1;
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+        }
+        $LEDGER_DATA['IS_DOWN_PAYMENT'] = 0;
+        $BALANCE = $RESPONSE_DATA['DOWN_PAYMENT'];
+        for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
+            $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($FLEXIBLE_PAYMENT_DATE[$i]));
+            $LEDGER_DATA['BILLED_AMOUNT'] = $FLEXIBLE_PAYMENT_AMOUNT[$i];
+            $BALANCE = ($BALANCE + $FLEXIBLE_PAYMENT_AMOUNT[$i]);
+            $LEDGER_DATA['BALANCE'] = $BALANCE;
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            if ($RESPONSE_DATA['DOWN_PAYMENT'] <= 0 && $i == 0) {
+                $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+            }
+        }
+        if ($BALANCE < $RESPONSE_DATA['TOTAL_AMOUNT']) {
+            $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+1 month", strtotime($FLEXIBLE_PAYMENT_DATE[(count($FLEXIBLE_PAYMENT_DATE)-1)])));
+            $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
+            $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['TOTAL_AMOUNT']-$BALANCE;
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            if ($RESPONSE_DATA['DOWN_PAYMENT'] <= 0) {
+                $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+            }
+        }
+    }
+
+    $date_amount = $db_account->Execute("SELECT DUE_DATE, BILLED_AMOUNT FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND IS_DOWN_PAYMENT = '0' AND PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+    while (!$date_amount->EOF) {
+        $DUE_DATE .= date('m-d-Y', strtotime($date_amount->fields['DUE_DATE']))."<br>";
+        $BILLED_AMOUNT .= $date_amount->fields['BILLED_AMOUNT']."<br>";
+        $SCHEDULING_AMOUNT += $date_amount->fields['BILLED_AMOUNT'];
+        $date_amount->MoveNext();
+    }
+    $html_template = str_replace('{SCHEDULE_AMOUNT}', $SCHEDULING_AMOUNT, $html_template);
+    $html_template = str_replace('{DUE_DATE}', $DUE_DATE, $html_template);
+    $html_template = str_replace('{BILLED_AMOUNT}', $BILLED_AMOUNT, $html_template);
+    $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
+    db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+
+    markAdhocAppointmentNormal($RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+
     $return_data['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
     $return_data['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
     echo json_encode($return_data);
+}
+
+function generatePdf($html){
+    require_once('../../global/vendor/autoload.php');
+
+    $mpdf = new Mpdf();
+    $mpdf->WriteHTML($html);
+    $mpdf->keep_table_proportions = true;
+    $mpdf->AddPage();
+
+    $file_name = "enrollment_pdf_".time().".pdf";
+    $mpdf->Output("../../uploads/enrollment_pdf/".$file_name, 'F');
+
+    return $file_name;
 }
 
 /*function confirmEnrollmentPayment($RESPONSE_DATA){
@@ -284,27 +701,34 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
 }*/
 
 function saveProfileData($RESPONSE_DATA){
-    error_reporting(0);
     global $db;
+    global $db_account;
 
-    if ($RESPONSE_DATA['PK_ROLES'] == 4) {
-        $USER_DATA['PK_ACCOUNT_MASTER'] = 0;
+    if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
+        $USER_DATA['PK_ACCOUNT_MASTER'] = $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = 0;
     }else{
-        $USER_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $USER_DATA['PK_ACCOUNT_MASTER'] = $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     }
 
-    $USER_DATA['PK_ROLES'] = $RESPONSE_DATA['PK_ROLES'];
-    $USER_DATA['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
-    $USER_DATA['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
-    $USER_DATA['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
-    $USER_DATA['PHONE'] = $RESPONSE_DATA['PHONE'];
-    //$USER_DATA['PK_LOCATION'] = $RESPONSE_DATA['PK_LOCATION'];
-    $USER_DATA['USER_TITLE'] = $RESPONSE_DATA['USER_TITLE'];
-    $USER_DATA['CREATE_LOGIN'] = isset($RESPONSE_DATA['CREATE_LOGIN'])?1:0;
+    $USER_DATA['FIRST_NAME'] = $USER_DATA_ACCOUNT['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
+    $USER_DATA['LAST_NAME'] = $USER_DATA_ACCOUNT['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
+    if (isset($RESPONSE_DATA['CUSTOMER_ID'])) {
+        $USER_DATA['USER_ID'] = $USER_DATA_ACCOUNT['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
+    }
+    $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
+    $USER_DATA['PHONE'] = $USER_DATA_ACCOUNT['PHONE'] = $RESPONSE_DATA['PHONE'];
+    $USER_DATA['CREATE_LOGIN'] = isset($RESPONSE_DATA['CREATE_LOGIN']) ? 1 : 0;
+    $USER_DATA['APPEAR_IN_CALENDAR'] = isset($RESPONSE_DATA['APPEAR_IN_CALENDAR']) ? 1 : 0;
 
     if ($USER_DATA['CREATE_LOGIN'] == 1) {
-        if (!empty($RESPONSE_DATA['PASSWORD'])) {
-            $USER_DATA['USER_ID'] = $RESPONSE_DATA['USER_ID'];
+        if (!empty($RESPONSE_DATA['PASSWORD']) && !empty($RESPONSE_DATA['USER_NAME'])) {
+            $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+            $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
+            if (strpos($RESPONSE_DATA['USER_NAME'], $USERNAME_PREFIX.'.') !== false) {
+                $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+            } else {
+                $USER_DATA['USER_NAME'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['USER_NAME'];
+            }
             $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
         }
     }
@@ -323,109 +747,130 @@ function saveProfileData($RESPONSE_DATA){
             $USER_DATA['USER_IMAGE'] = $image_path;
         }
     }
+    $USER_DATA['TYPE'] = $RESPONSE_DATA['TYPE'];
+    $USER_DATA['DISPLAY_ORDER'] = $RESPONSE_DATA['DISPLAY_ORDER'];
+    $USER_DATA['GENDER'] = $RESPONSE_DATA['GENDER'];
+    $USER_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['DOB']));
+    $USER_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'];
+    $USER_DATA['ADDRESS_1'] = $RESPONSE_DATA['ADDRESS_1'];
+    $USER_DATA['PK_COUNTRY'] = $RESPONSE_DATA['PK_COUNTRY'];
+    $USER_DATA['PK_STATES'] = $RESPONSE_DATA['PK_STATES'];
+    $USER_DATA['CITY'] = $RESPONSE_DATA['CITY'];
+    $USER_DATA['ZIP'] = $RESPONSE_DATA['ZIP'];
+    $USER_DATA['NOTES'] = $RESPONSE_DATA['NOTES'];
 
-    $USER_PROFILE_DATA['GENDER'] = $RESPONSE_DATA['GENDER'];
-    $USER_PROFILE_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['DOB']));
-    $USER_PROFILE_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'];
-    $USER_PROFILE_DATA['ADDRESS_1'] = $RESPONSE_DATA['ADDRESS_1'];
-    $USER_PROFILE_DATA['PK_COUNTRY'] = $RESPONSE_DATA['PK_COUNTRY'];
-    $USER_PROFILE_DATA['PK_STATES'] = $RESPONSE_DATA['PK_STATES'];
-    $USER_PROFILE_DATA['CITY'] = $RESPONSE_DATA['CITY'];
-    $USER_PROFILE_DATA['ZIP'] = $RESPONSE_DATA['ZIP'];
-    $USER_PROFILE_DATA['NOTES'] = $RESPONSE_DATA['NOTES'];
+    if(empty($RESPONSE_DATA['UNIQUE_ID'])){
+        $row = $db->Execute("SELECT UNIQUE_ID FROM DOA_USERS ORDER BY UNIQUE_ID DESC LIMIT 1");
+        if ($row->RecordCount()>0 && $row->fields['UNIQUE_ID']>0) {
+            $USER_DATA['UNIQUE_ID']  =  intval($row->fields['UNIQUE_ID']) + 1;
+        } else {
+            $USER_DATA['UNIQUE_ID']  =  300580;
+        }
+    }
 
     $PK_USER_MASTER = 0;
     $PK_CUSTOMER_DETAILS = 0;
     if(empty($RESPONSE_DATA['PK_USER'])){
-        $USER_DATA['ACTIVE'] = 1;
-        $USER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        $USER_DATA['ACTIVE'] = $USER_DATA_ACCOUNT['ACCOUNT'] = 1;
+        $USER_DATA['CREATED_BY']  = $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
+        $USER_DATA['CREATED_ON']  = $USER_DATA_ACCOUNT['CREATED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_USERS', $USER_DATA, 'insert');
         $PK_USER = $db->insert_ID();
-        $USER_PROFILE_DATA['PK_USER'] = $PK_USER;
-        $USER_PROFILE_DATA['ACTIVE'] = 1;
-        $USER_PROFILE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-        $USER_PROFILE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'insert');
-        if ($RESPONSE_DATA['PK_ROLES'] == 4) {
-            $USER_MASTER_DATE['PK_USER'] = $PK_USER;
-            $USER_MASTER_DATE['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-            $USER_MASTER_DATE['CREATED_BY'] = $_SESSION['PK_USER'];
-            $USER_MASTER_DATE['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_USER_MASTER', $USER_MASTER_DATE, 'insert');
+        $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
+        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
+        $PK_USER_ACCOUNT_DB = $db_account->insert_ID();
+        if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
+            $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
+            $USER_MASTER_DATA['PK_USER'] = $PK_USER;
+            $USER_MASTER_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+            $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = $RESPONSE_DATA['PRIMARY_LOCATION_ID'];
+            $USER_MASTER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+            $USER_MASTER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+            db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
             $PK_USER_MASTER = $db->insert_ID();
         }
     }else{
-        $USER_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-        $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_USERS', $USER_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");
-        $USER_PROFILE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-        $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");
         $PK_USER = $RESPONSE_DATA['PK_USER'];
-        if ($RESPONSE_DATA['PK_ROLES'] == 4) {
+        $USER_DATA['ACTIVE']	= $USER_DATA_ACCOUNT['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        $USER_DATA['EDITED_BY']	= $USER_DATA_ACCOUNT['EDITED_BY'] = $_SESSION['PK_USER'];
+        $USER_DATA['EDITED_ON'] = $USER_DATA_ACCOUNT['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform('DOA_USERS', $USER_DATA, 'update'," PK_USER = ".$PK_USER);
+        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = ".$PK_USER);
+        if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
             $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
+            $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = $RESPONSE_DATA['PRIMARY_LOCATION_ID'];
+            db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'update', " PK_USER_MASTER = ".$PK_USER_MASTER);
         }
     }
 
-    if ($RESPONSE_DATA['TYPE'] == 2) {
+    if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
         $CUSTOMER_USER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $CUSTOMER_USER_DATA['IS_PRIMARY'] = 1;
         $CUSTOMER_USER_DATA['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
         $CUSTOMER_USER_DATA['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
         $CUSTOMER_USER_DATA['PHONE'] = $RESPONSE_DATA['PHONE'];
-        $CUSTOMER_USER_DATA['EMAIL'] = $RESPONSE_DATA['EMAIL'];
+        $CUSTOMER_USER_DATA['EMAIL'] = $RESPONSE_DATA['EMAIL_ID'];
         $CUSTOMER_USER_DATA['GENDER'] = $RESPONSE_DATA['GENDER'];
         $CUSTOMER_USER_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['DOB']));
         $CUSTOMER_USER_DATA['CALL_PREFERENCE'] = $RESPONSE_DATA['CALL_PREFERENCE'];
-        $CUSTOMER_USER_DATA['REMINDER_OPTION'] = implode(',', $RESPONSE_DATA['REMINDER_OPTION']);
+        $CUSTOMER_USER_DATA['REMINDER_OPTION'] = isset($RESPONSE_DATA['REMINDER_OPTION'])?implode(',', $RESPONSE_DATA['REMINDER_OPTION']):'';
         $CUSTOMER_USER_DATA['ATTENDING_WITH'] = $RESPONSE_DATA['ATTENDING_WITH'];
         $CUSTOMER_USER_DATA['PARTNER_FIRST_NAME'] = $RESPONSE_DATA['PARTNER_FIRST_NAME'];
         $CUSTOMER_USER_DATA['PARTNER_LAST_NAME'] = $RESPONSE_DATA['PARTNER_LAST_NAME'];
         $CUSTOMER_USER_DATA['PARTNER_GENDER'] = $RESPONSE_DATA['PARTNER_GENDER'];
         $CUSTOMER_USER_DATA['PARTNER_DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['PARTNER_DOB']));
 
-        $check_customer_data = $db->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
+        $check_customer_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
         if ($check_customer_data->RecordCount() > 0) {
-            db_perform('DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'update', " PK_USER_MASTER =  '$PK_USER_MASTER'");
+            db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'update', " PK_USER_MASTER =  '$PK_USER_MASTER'");
             $PK_CUSTOMER_DETAILS = $RESPONSE_DATA['PK_CUSTOMER_DETAILS'];
         } else {
-            db_perform('DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'insert');
-            $PK_CUSTOMER_DETAILS = $db->insert_ID();
+            db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'insert');
+            $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
         }
 
         if (isset($RESPONSE_DATA['CUSTOMER_PHONE'])) {
-            $db->Execute("DELETE FROM `DOA_CUSTOMER_PHONE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+            $db_account->Execute("DELETE FROM `DOA_CUSTOMER_PHONE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
             for ($i = 0; $i < count($RESPONSE_DATA['CUSTOMER_PHONE']); $i++) {
                 $CUSTOMER_PHONE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                 $CUSTOMER_PHONE['PHONE'] = $RESPONSE_DATA['CUSTOMER_PHONE'][$i];
-                db_perform('DOA_CUSTOMER_PHONE', $CUSTOMER_PHONE, 'insert');
+                db_perform_account('DOA_CUSTOMER_PHONE', $CUSTOMER_PHONE, 'insert');
             }
         }
 
         if (isset($RESPONSE_DATA['CUSTOMER_EMAIL'])) {
-            $db->Execute("DELETE FROM `DOA_CUSTOMER_EMAIL` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+            $db_account->Execute("DELETE FROM `DOA_CUSTOMER_EMAIL` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
             for ($i = 0; $i < count($RESPONSE_DATA['CUSTOMER_EMAIL']); $i++) {
                 $CUSTOMER_EMAIL['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                 $CUSTOMER_EMAIL['EMAIL'] = $RESPONSE_DATA['CUSTOMER_EMAIL'][$i];
-                db_perform('DOA_CUSTOMER_EMAIL', $CUSTOMER_EMAIL, 'insert');
+                db_perform_account('DOA_CUSTOMER_EMAIL', $CUSTOMER_EMAIL, 'insert');
             }
         }
 
         if (isset($RESPONSE_DATA['CUSTOMER_SPECIAL_DATE'])) {
-            $db->Execute("DELETE FROM `DOA_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+            $db_account->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
             for ($i = 0; $i < count($RESPONSE_DATA['CUSTOMER_SPECIAL_DATE']); $i++) {
                 $CUSTOMER_SPECIAL_DATE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                 $CUSTOMER_SPECIAL_DATE['SPECIAL_DATE'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE'][$i];
                 $CUSTOMER_SPECIAL_DATE['DATE_NAME'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE_NAME'][$i];
-                db_perform('DOA_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
+                db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
             }
         }
     }
 
-    if(isset($_POST['PK_USER_LOCATION'])){
-        $PK_USER_LOCATION = $_POST['PK_USER_LOCATION'];
-        $db->Execute("DELETE FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$PK_USER'");
+    if (isset($RESPONSE_DATA['PK_ROLES'])) {
+        $db->Execute("DELETE FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
+        $PK_ROLE = $RESPONSE_DATA['PK_ROLES'];
+        for($i = 0; $i < count($PK_ROLE); $i++){
+            $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+            $USER_ROLE_DATA['PK_ROLES'] = $PK_ROLE[$i];
+            db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
+        }
+    }
+
+    $db->Execute("DELETE FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$PK_USER'");
+    if(isset($RESPONSE_DATA['PK_USER_LOCATION'])){
+        $PK_USER_LOCATION = $RESPONSE_DATA['PK_USER_LOCATION'];
         for($i = 0; $i < count($PK_USER_LOCATION); $i++){
             $CUSTOMER_LOCATION_DATA['PK_USER'] = $PK_USER;
             $CUSTOMER_LOCATION_DATA['PK_LOCATION'] = $PK_USER_LOCATION[$i];
@@ -437,12 +882,16 @@ function saveProfileData($RESPONSE_DATA){
     $return_data['PK_USER_MASTER'] = $PK_USER_MASTER;
     $return_data['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
     echo json_encode($return_data);
+
 }
+
+
+
 
 /*function saveLoginData($RESPONSE_DATA)
 {
     global $db;
-    $USER_DATA['USER_ID'] = $RESPONSE_DATA['USER_ID'];
+    $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
     $USER_DATA['CREATE_LOGIN'] = 1;
     $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
     $USER_DATA['CAN_EDIT_ENROLLMENT'] = isset($RESPONSE_DATA['CAN_EDIT_ENROLLMENT'])?$RESPONSE_DATA['CAN_EDIT_ENROLLMENT']:0;
@@ -461,20 +910,31 @@ function saveProfileData($RESPONSE_DATA){
 
 function saveLoginData($RESPONSE_DATA)
 {
-
     global $db;
-    $USER_DATA['USER_ID'] = $RESPONSE_DATA['USER_ID'];
-    $USER_DATA['CREATE_LOGIN'] = 1;
-    $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
+    if (!empty($RESPONSE_DATA['USER_NAME'])) {
+        $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+        $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
+        if (strpos($RESPONSE_DATA['USER_NAME'], $USERNAME_PREFIX . '.') !== false) {
+            $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+        } else {
+            $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['USER_NAME'];
+        }
+        //$USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $USERNAME_PREFIX.'.'.$RESPONSE_DATA['USER_NAME'];
+        $USER_DATA['CREATE_LOGIN'] = 1;
+    }
+
+    if ((!empty($RESPONSE_DATA['PASSWORD']) && !empty($RESPONSE_DATA['CONFIRM_PASSWORD'])) && ($RESPONSE_DATA['PASSWORD'] == $RESPONSE_DATA['CONFIRM_PASSWORD'])) {
+        $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
+    }
+
     $USER_DATA['CAN_EDIT_ENROLLMENT'] = isset($RESPONSE_DATA['CAN_EDIT_ENROLLMENT'])?$RESPONSE_DATA['CAN_EDIT_ENROLLMENT']:0;
     $USER_DATA['ACTIVE'] = isset($RESPONSE_DATA['ACTIVE'])?$RESPONSE_DATA['ACTIVE']:1;
     $USER_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
     $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
 
-
     //$user_info = $db->Execute("SELECT * FROM `DOA_USERS` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
     // focusbiz code
-    if($RESPONSE_DATA['TICKET_SYSTEM_ACCESS'] == 1) {
+    if(isset($RESPONSE_DATA['TICKET_SYSTEM_ACCESS']) && $RESPONSE_DATA['TICKET_SYSTEM_ACCESS'] == 1) {
         $USER_DATA['TICKET_SYSTEM_ACCESS'] = $RESPONSE_DATA['TICKET_SYSTEM_ACCESS'];
 
         $res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$RESPONSE_DATA[PK_USER]' ");
@@ -490,7 +950,7 @@ function saveLoginData($RESPONSE_DATA)
         $user['ACTIVE']     = $res->fields['ACTIVE'];
 
         if($res->fields['ACCESS_TOKEN'] == "") {
-            $user['USER_ID']    = $res->fields['USER_ID'];
+            $user['USER_NAME']    = $res->fields['USER_NAME'];
             $user['PASSWORD']   = $PASSWORD;
         } else {
             $user['ACCESS_TOKEN']   = $res->fields['ACCESS_TOKEN'];
@@ -592,13 +1052,8 @@ function saveLoginData($RESPONSE_DATA)
     }
     // focusbiz code end
 
-
-    db_perform('DOA_USERS', $USER_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");
-    $USER_PROFILE_DATA['ACTIVE'] = isset($RESPONSE_DATA['ACTIVE'])?$RESPONSE_DATA['ACTIVE']:1;
-    $USER_PROFILE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-    $USER_PROFILE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-    db_perform('DOA_USER_PROFILE', $USER_PROFILE_DATA, 'update'," PK_USER =  '$RESPONSE_DATA[PK_USER]'");
-
+    db_perform('DOA_USERS', $USER_DATA, 'update'," PK_USER = ".$RESPONSE_DATA['PK_USER']);
+    db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = ".$RESPONSE_DATA['PK_USER']);
     echo $RESPONSE_DATA['PK_USER'];
 }
 
@@ -606,12 +1061,13 @@ function saveLoginData($RESPONSE_DATA)
 function saveFamilyData($RESPONSE_DATA)
 {
     global $db;
+    global $db_account;
+
     if (!empty($RESPONSE_DATA['FAMILY_FIRST_NAME']) && $RESPONSE_DATA['PK_CUSTOMER_DETAILS'] > 0) {
-        $db->Execute("DELETE FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_CUSTOMER_PRIMARY` = '$RESPONSE_DATA[PK_CUSTOMER_DETAILS]'");
+        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_CUSTOMER_PRIMARY` = ".$RESPONSE_DATA['PK_CUSTOMER_DETAILS']);
         for ($i = 0; $i < count($RESPONSE_DATA['FAMILY_FIRST_NAME']); $i++) {
             if ($RESPONSE_DATA['FAMILY_FIRST_NAME'][$i] != '') {
                 $FAMILY_DATA['IS_PRIMARY'] = 0;
-                //$FAMILY_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
                 $FAMILY_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
                 $FAMILY_DATA['PK_CUSTOMER_PRIMARY'] = $RESPONSE_DATA['PK_CUSTOMER_DETAILS'];
                 $FAMILY_DATA['FIRST_NAME'] = $RESPONSE_DATA['FAMILY_FIRST_NAME'][$i];
@@ -621,16 +1077,16 @@ function saveFamilyData($RESPONSE_DATA)
                 $FAMILY_DATA['EMAIL'] = $RESPONSE_DATA['FAMILY_EMAIL'][$i];
                 $FAMILY_DATA['GENDER'] = $RESPONSE_DATA['FAMILY_GENDER'][$i];
                 $FAMILY_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['FAMILY_DOB'][$i]));
-                db_perform('DOA_CUSTOMER_DETAILS', $FAMILY_DATA, 'insert');
-                $PK_CUSTOMER_DETAILS = $db->insert_ID();
+                db_perform_account('DOA_CUSTOMER_DETAILS', $FAMILY_DATA, 'insert');
+                $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
 
                 if (isset($RESPONSE_DATA['FAMILY_SPECIAL_DATE'][$i])) {
-                    $db->Execute("DELETE FROM `DOA_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+                    $db_account->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
                     for ($j = 0; $j < count($RESPONSE_DATA['FAMILY_SPECIAL_DATE'][$i]); $j++) {
                         $FAMILY_SPECIAL_DATE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
                         $FAMILY_SPECIAL_DATE['SPECIAL_DATE'] = $RESPONSE_DATA['FAMILY_SPECIAL_DATE'][$i][$j];
                         $FAMILY_SPECIAL_DATE['DATE_NAME'] = $RESPONSE_DATA['FAMILY_SPECIAL_DATE_NAME'][$i][$j];
-                        db_perform('DOA_SPECIAL_DATE', $FAMILY_SPECIAL_DATE, 'insert');
+                        db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $FAMILY_SPECIAL_DATE, 'insert');
                     }
                 }
             }
@@ -641,32 +1097,32 @@ function saveFamilyData($RESPONSE_DATA)
 function saveInterestData($RESPONSE_DATA)
 {
     global $db;
+    global $db_account;
+
     if (isset($RESPONSE_DATA['PK_INTERESTS'])){
-        $res = $db->Execute("DELETE FROM `DOA_USER_INTEREST` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
+        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_INTEREST` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
         for($i = 0; $i < count($RESPONSE_DATA['PK_INTERESTS']); $i++){
-            //$USER_INTEREST_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
             $USER_INTEREST_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
             $USER_INTEREST_DATA['PK_INTERESTS'] = $RESPONSE_DATA['PK_INTERESTS'][$i];
-            db_perform('DOA_USER_INTEREST', $USER_INTEREST_DATA, 'insert');
+            db_perform_account('DOA_CUSTOMER_INTEREST', $USER_INTEREST_DATA, 'insert');
         }
     }
-    if (isset($RESPONSE_DATA['WHAT_PROMPTED_YOU_TO_INQUIRE']) || isset($RESPONSE_DATA['PK_INQUIRY_METHOD']) || isset($RESPONSE_DATA['INQUIRY_TAKER_ID'])){
-        //$USER_INTEREST_OTHER_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
+    if (isset($RESPONSE_DATA['WHAT_PROMPTED_YOU_TO_INQUIRE']) || isset($RESPONSE_DATA['PK_INQUIRY_METHOD']) || isset($RESPONSE_DATA['INQUIRY_TAKER_ID']) || isset($RESPONSE_DATA['INQUIRY_DATE'])){
         $USER_INTEREST_OTHER_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
-        $USER_INTEREST_OTHER_DATA['WHAT_PROMPTED_YOU_TO_INQUIRE'
-        ] = $RESPONSE_DATA['WHAT_PROMPTED_YOU_TO_INQUIRE'];
+        $USER_INTEREST_OTHER_DATA['WHAT_PROMPTED_YOU_TO_INQUIRE'] = $RESPONSE_DATA['WHAT_PROMPTED_YOU_TO_INQUIRE'];
         $USER_INTEREST_OTHER_DATA['PK_SKILL_LEVEL'] = $RESPONSE_DATA['PK_SKILL_LEVEL'];
         $USER_INTEREST_OTHER_DATA['PK_INQUIRY_METHOD'] = $RESPONSE_DATA['PK_INQUIRY_METHOD'];
         $USER_INTEREST_OTHER_DATA['INQUIRY_TAKER_ID'] = $RESPONSE_DATA['INQUIRY_TAKER_ID'];
+        $USER_INTEREST_OTHER_DATA['INQUIRY_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['INQUIRY_DATE']));
 
         $check_interest_other_data = '';
         if ($RESPONSE_DATA['PK_USER_MASTER']){
-            $check_interest_other_data = $db->Execute("SELECT * FROM `DOA_USER_INTEREST_OTHER_DATA` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
+            $check_interest_other_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_INTEREST_OTHER_DATA` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
         }
         if ($check_interest_other_data != '' && $check_interest_other_data->RecordCount() > 0){
-            db_perform('DOA_USER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'update'," PK_USER_MASTER =  '$RESPONSE_DATA[PK_USER_MASTER]'");
+            db_perform_account('DOA_CUSTOMER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'update'," PK_USER_MASTER =  '$RESPONSE_DATA[PK_USER_MASTER]'");
         }else{
-            db_perform('DOA_USER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'insert');
+            db_perform_account('DOA_CUSTOMER_INTEREST_OTHER_DATA', $USER_INTEREST_OTHER_DATA, 'insert');
         }
     }
 }
@@ -674,10 +1130,10 @@ function saveInterestData($RESPONSE_DATA)
 function saveDocumentData($RESPONSE_DATA)
 {
     global $db;
+    global $db_account;
     if (isset($RESPONSE_DATA['DOCUMENT_NAME'])){
-        $db->Execute("DELETE FROM `DOA_USER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
+        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
         for($i = 0; $i < count($RESPONSE_DATA['DOCUMENT_NAME']); $i++){
-            //$USER_DOCUMENT_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
             $USER_DOCUMENT_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
             $USER_DOCUMENT_DATA['DOCUMENT_NAME'] = $RESPONSE_DATA['DOCUMENT_NAME'][$i];
             if(!empty($_FILES['FILE_PATH']['name'][$i])){
@@ -694,7 +1150,35 @@ function saveDocumentData($RESPONSE_DATA)
             } else {
                 $USER_DOCUMENT_DATA['FILE_PATH'] = $RESPONSE_DATA['FILE_PATH_URL'][$i];
             }
-            db_perform('DOA_USER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
+            db_perform_account('DOA_CUSTOMER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
+        }
+    }
+}
+
+function saveUserDocumentData($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    if (isset($RESPONSE_DATA['DOCUMENT_NAME'])){
+        $db_account->Execute("DELETE FROM `DOA_USER_DOCUMENT` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
+        for($i = 0; $i < count($RESPONSE_DATA['DOCUMENT_NAME']); $i++){
+            $USER_DOCUMENT_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
+            $USER_DOCUMENT_DATA['DOCUMENT_NAME'] = $RESPONSE_DATA['DOCUMENT_NAME'][$i];
+            if(!empty($_FILES['FILE_PATH']['name'][$i])){
+                $extn 			= explode(".",$_FILES['FILE_PATH']['name'][$i]);
+                $iindex			= count($extn) - 1;
+                $rand_string 	= time()."-".rand(100000,999999);
+                $file11			= 'user_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
+                $extension   	= strtolower($extn[$iindex]);
+
+                $upload_path    = '../../uploads/user_doc/'.$file11;
+                $image_path    = '../uploads/user_doc/'.$file11;
+                move_uploaded_file($_FILES['FILE_PATH']['tmp_name'][$i], $upload_path);
+                $USER_DOCUMENT_DATA['FILE_PATH'] = $image_path;
+            } else {
+                $USER_DOCUMENT_DATA['FILE_PATH'] = $RESPONSE_DATA['FILE_PATH_URL'][$i];
+            }
+            db_perform_account('DOA_USER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
         }
     }
 }
@@ -703,15 +1187,16 @@ function saveDocumentData($RESPONSE_DATA)
 
 function saveEngagementData($RESPONSE_DATA){
     global $db;
+    global $db_account;
     $USER_RATE_ACTIVE['ACTIVE'] = 0;
-    db_perform('DOA_USER_RATE', $USER_RATE_ACTIVE, 'update', " PK_USER = '$RESPONSE_DATA[PK_USER]'");
+    db_perform_account('DOA_USER_RATE', $USER_RATE_ACTIVE, 'update', " PK_USER = '$RESPONSE_DATA[PK_USER]'");
     $PK_RATE_TYPE = $RESPONSE_DATA['PK_RATE_TYPE'];
     $PK_RATE_TYPE_ACTIVE = $RESPONSE_DATA['PK_RATE_TYPE_ACTIVE'];
     $RATE = $RESPONSE_DATA['RATE'];
     for ($i = 0; $i < count($PK_RATE_TYPE); $i++) {
         if (isset($PK_RATE_TYPE[$i])) {
             $USER_RATE_DATA = [];
-            $res = $db->Execute("SELECT * FROM `DOA_USER_RATE` WHERE PK_RATE_TYPE = '$PK_RATE_TYPE[$i]' AND PK_USER = '$RESPONSE_DATA[PK_USER]'");
+            $res = $db_account->Execute("SELECT * FROM `DOA_USER_RATE` WHERE PK_RATE_TYPE = '$PK_RATE_TYPE[$i]' AND PK_USER = '$RESPONSE_DATA[PK_USER]'");
             if ($res->RecordCount() == 0) {
                 $USER_RATE_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
                 $USER_RATE_DATA['PK_RATE_TYPE'] = $PK_RATE_TYPE[$i];
@@ -719,13 +1204,13 @@ function saveEngagementData($RESPONSE_DATA){
                 $USER_RATE_DATA['ACTIVE'] = isset($PK_RATE_TYPE_ACTIVE[$i])?1:0;
                 $USER_RATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $USER_RATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_USER_RATE', $USER_RATE_DATA, 'insert');
+                db_perform_account('DOA_USER_RATE', $USER_RATE_DATA, 'insert');
             } else {
                 $USER_RATE_DATA['RATE'] = $RATE[$i];
                 $USER_RATE_DATA['ACTIVE'] = isset($PK_RATE_TYPE_ACTIVE[$i])?1:0;
                 $USER_RATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
                 $USER_RATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_USER_RATE', $USER_RATE_DATA, 'update', " PK_RATE_TYPE = '$PK_RATE_TYPE[$i]' AND PK_USER = '$RESPONSE_DATA[PK_USER]'");
+                db_perform_account('DOA_USER_RATE', $USER_RATE_DATA, 'update', " PK_RATE_TYPE = '$PK_RATE_TYPE[$i]' AND PK_USER = '$RESPONSE_DATA[PK_USER]'");
             }
         }
     }
@@ -733,7 +1218,7 @@ function saveEngagementData($RESPONSE_DATA){
     $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
     $COMMISSION_AMOUNT = $RESPONSE_DATA['COMMISSION_AMOUNT'];
     if (count($PK_SERVICE_MASTER) > 0){
-        $db->Execute("DELETE FROM `DOA_SERVICE_COMMISSION` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
+        $db_account->Execute("DELETE FROM `DOA_SERVICE_COMMISSION` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
         for ($i = 0; $i < count($PK_SERVICE_MASTER); $i++){
             $CODE_COMMISSION_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
             $CODE_COMMISSION_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER[$i];
@@ -741,47 +1226,51 @@ function saveEngagementData($RESPONSE_DATA){
             $CODE_COMMISSION_DATA['ACTIVE'] = 1;
             $CODE_COMMISSION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $CODE_COMMISSION_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_SERVICE_COMMISSION', $CODE_COMMISSION_DATA, 'insert');
+            db_perform_account('DOA_SERVICE_COMMISSION', $CODE_COMMISSION_DATA, 'insert');
         }
     }
 }
 
-function saveServiceData($RESPONSE_DATA){
-    //pre_r($RESPONSE_DATA);
+function saveLocationHourData($RESPONSE_DATA){
+    // pre_r($RESPONSE_DATA);
     global $db;
-    $TYPE = $RESPONSE_DATA['TYPE'];
-    unset($RESPONSE_DATA['TYPE']);
-    $RESPONSE_DATA['PK_SERVICE_MASTER'] = implode(',', $RESPONSE_DATA['PK_SERVICE_MASTER']);
-    $RESPONSE_DATA['MON_START_TIME'] = ($RESPONSE_DATA['MON_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['MON_START_TIME'])):'';
-    $RESPONSE_DATA['MON_END_TIME'] = ($RESPONSE_DATA['MON_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['MON_END_TIME'])):'';
-    $RESPONSE_DATA['TUE_START_TIME'] = ($RESPONSE_DATA['TUE_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['TUE_START_TIME'])):'';
-    $RESPONSE_DATA['TUE_END_TIME'] = ($RESPONSE_DATA['TUE_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['TUE_END_TIME'])):'';
-    $RESPONSE_DATA['WED_START_TIME'] = ($RESPONSE_DATA['WED_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['WED_START_TIME'])):'';
-    $RESPONSE_DATA['WED_END_TIME'] = ($RESPONSE_DATA['WED_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['WED_END_TIME'])):'';
-    $RESPONSE_DATA['THU_START_TIME'] = ($RESPONSE_DATA['THU_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['THU_START_TIME'])):'';
-    $RESPONSE_DATA['THU_END_TIME'] = ($RESPONSE_DATA['THU_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['THU_END_TIME'])):'';
-    $RESPONSE_DATA['FRI_START_TIME'] = ($RESPONSE_DATA['FRI_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['FRI_START_TIME'])):'';
-    $RESPONSE_DATA['FRI_END_TIME'] = ($RESPONSE_DATA['FRI_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['FRI_END_TIME'])):'';
-    $RESPONSE_DATA['SAT_START_TIME'] = ($RESPONSE_DATA['SAT_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['SAT_START_TIME'])):'';
-    $RESPONSE_DATA['SAT_END_TIME'] = ($RESPONSE_DATA['SAT_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['SAT_END_TIME'])):'';
-    $RESPONSE_DATA['SUN_START_TIME'] = ($RESPONSE_DATA['SUN_START_TIME'])?date('H:i', strtotime($RESPONSE_DATA['SUN_START_TIME'])):'';
-    $RESPONSE_DATA['SUN_END_TIME'] = ($RESPONSE_DATA['SUN_END_TIME'])?date('H:i', strtotime($RESPONSE_DATA['SUN_END_TIME'])):'';
-    $res = $db->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_SERVICES` WHERE PK_USER = '$RESPONSE_DATA[PK_USER]'");
-    if ($res->RecordCount() == 0) {
-        db_perform('DOA_SERVICE_PROVIDER_SERVICES', $RESPONSE_DATA, 'insert');
-    }else{
-        db_perform('DOA_SERVICE_PROVIDER_SERVICES', $RESPONSE_DATA, 'update', " PK_USER = $RESPONSE_DATA[PK_USER]");
+    global $db_account;
+
+    $PK_USER = $RESPONSE_DATA['PK_USER'];
+    $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
+
+    $db_account->Execute("DELETE FROM `DOA_SERVICE_PROVIDER_LOCATION_HOURS` WHERE `PK_USER` = ".$PK_USER);
+
+    for ($i = 0; $i < count($PK_LOCATION); $i++) {
+        $INSERT_DATA['PK_USER'] = $PK_USER;
+        $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
+        $INSERT_DATA['MON_START_TIME'] = ($RESPONSE_DATA['MON_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['MON_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['MON_END_TIME'] = ($RESPONSE_DATA['MON_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['MON_END_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['TUE_START_TIME'] = ($RESPONSE_DATA['TUE_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['TUE_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['TUE_END_TIME'] = ($RESPONSE_DATA['TUE_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['TUE_END_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['WED_START_TIME'] = ($RESPONSE_DATA['WED_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['WED_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['WED_END_TIME'] = ($RESPONSE_DATA['WED_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['WED_END_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['THU_START_TIME'] = ($RESPONSE_DATA['THU_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['THU_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['THU_END_TIME'] = ($RESPONSE_DATA['THU_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['THU_END_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['FRI_START_TIME'] = ($RESPONSE_DATA['FRI_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['FRI_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['FRI_END_TIME'] = ($RESPONSE_DATA['FRI_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['FRI_END_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['SAT_START_TIME'] = ($RESPONSE_DATA['SAT_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['SAT_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['SAT_END_TIME'] = ($RESPONSE_DATA['SAT_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['SAT_END_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['SUN_START_TIME'] = ($RESPONSE_DATA['SUN_START_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['SUN_START_TIME'][$i])) : '00:00:00';
+        $INSERT_DATA['SUN_END_TIME'] = ($RESPONSE_DATA['SUN_END_TIME'][$i]) ? date('H:i', strtotime($RESPONSE_DATA['SUN_END_TIME'][$i])) : '00:00:00';
+        db_perform_account('DOA_SERVICE_PROVIDER_LOCATION_HOURS', $INSERT_DATA, 'insert');
     }
 }
 
 function saveAppointmentData($RESPONSE_DATA){
     global $db;
+    global $db_account;
     unset($RESPONSE_DATA['TIME']);
     if (empty($RESPONSE_DATA['START_TIME']) || empty($RESPONSE_DATA['END_TIME'])){
         unset($RESPONSE_DATA['START_TIME']);
         unset($RESPONSE_DATA['END_TIME']);
     }
-    $session_cost = $db->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
+    $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
     $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
     if(empty($RESPONSE_DATA['PK_APPOINTMENT_MASTER'])){
         $RESPONSE_DATA['PK_APPOINTMENT_STATUS'] = 1;
@@ -789,7 +1278,7 @@ function saveAppointmentData($RESPONSE_DATA){
         $RESPONSE_DATA['ACTIVE'] = 1;
         $RESPONSE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $RESPONSE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_APPOINTMENT_MASTER', $RESPONSE_DATA, 'insert');
+        db_perform_account('DOA_APPOINTMENT_MASTER', $RESPONSE_DATA, 'insert');
     }else{
         //$RESPONSE_DATA['ACTIVE'] = $_POST['ACTIVE'];
         if($_FILES['IMAGE']['name'] != ''){
@@ -807,64 +1296,138 @@ function saveAppointmentData($RESPONSE_DATA){
         }
         $RESPONSE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $RESPONSE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_APPOINTMENT_MASTER', $RESPONSE_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
+        $query = $db_account->Execute("SELECT PK_APPOINTMENT_STATUS FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
+        $RESPONSE_DATA['OLD_PK_APPOINTMENT_STATUS'] = $query->fields['PK_APPOINTMENT_STATUS'];
+        db_perform_account('DOA_APPOINTMENT_MASTER', $RESPONSE_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
+    }
+
+    if (isset($_POST['PK_APPOINTMENT_STATUS'])) {
+        $appointment_data = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER =  '$_POST[PK_APPOINTMENT_MASTER]'");
+        if ($appointment_data->RecordCount() > 0) {
+            $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_MASTER'] = $appointment_data->fields['PK_APPOINTMENT_MASTER'];
+            $APPOINTMENT_STATUS_HISTORY_DATA['PK_USER'] = $_SESSION['PK_USER'];
+            $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+            $APPOINTMENT_STATUS_HISTORY_DATA['TIME_STAMP'] = date("Y-m-d H:i");
+            db_perform_account('DOA_APPOINTMENT_STATUS_HISTORY', $APPOINTMENT_STATUS_HISTORY_DATA, 'insert');
+        }
     }
 
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 }
 
-function rearrangeSerialNumber($PK_ENROLLMENT_MASTER, $price_per_session){
+function saveAdhocAppointmentData($RESPONSE_DATA){
     global $db;
-    $appointment_data = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY DATE ASC");
-    $total_bill_and_paid = $db->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
-    $total_paid = $total_bill_and_paid->fields['TOTAL_PAID'];
-    $total_paid_appointment = intval($total_paid/$price_per_session);
-    $i = 1;
-    while (!$appointment_data->EOF){
-        $UPDATE_DATA['SERIAL_NUMBER'] = $i;
-        if ($i <= $total_paid_appointment){
-            $UPDATE_DATA['IS_PAID'] = 1;
-        } else {
-            $UPDATE_DATA['IS_PAID'] = 0;
-        }
-        db_perform('DOA_APPOINTMENT_MASTER', $UPDATE_DATA, 'update'," PK_APPOINTMENT_MASTER =  ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
-        $appointment_data->MoveNext();
-        $i++;
+    global $db_account;
+    unset($RESPONSE_DATA['TIME']);
+    if (empty($RESPONSE_DATA['START_TIME']) || empty($RESPONSE_DATA['END_TIME'])){
+        unset($RESPONSE_DATA['START_TIME']);
+        unset($RESPONSE_DATA['END_TIME']);
     }
+    $session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$_POST[PK_SERVICE_MASTER]' AND PK_SERVICE_CODE = '$_POST[PK_SERVICE_CODE]'");
+    $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
+    if(empty($RESPONSE_DATA['PK_APPOINTMENT_MASTER'])){
+        $RESPONSE_DATA['PK_APPOINTMENT_STATUS'] = 1;
+        $RESPONSE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $RESPONSE_DATA['ACTIVE'] = 1;
+        $RESPONSE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        $RESPONSE_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform_account('DOA_APPOINTMENT_MASTER', $RESPONSE_DATA, 'insert');
+    }else{
+        //$RESPONSE_DATA['ACTIVE'] = $_POST['ACTIVE'];
+        if($_FILES['IMAGE']['name'] != ''){
+            $extn 			= explode(".",$_FILES['IMAGE']['name']);
+            $iindex			= count($extn) - 1;
+            $rand_string 	= time()."-".rand(100000,999999);
+            $file11			= 'appointment_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
+            $extension   	= strtolower($extn[$iindex]);
+
+            if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
+                $image_path    = '../uploads/appointment_image/'.$file11;
+                move_uploaded_file($_FILES['IMAGE']['tmp_name'], $image_path);
+                $RESPONSE_DATA['IMAGE'] = $image_path;
+            }
+        }
+        $RESPONSE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+        $RESPONSE_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_APPOINTMENT_MASTER', $RESPONSE_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
+    }
+
+    rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 }
 
 function cancelAppointment($RESPONSE_DATA){
     global $db;
-    $db->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
+    global $db_account;
+    $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
 }
 
 function completeAppointment($RESPONSE_DATA){
     global $db;
+    global $db_account;
     $RESPONSE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
     $RESPONSE_DATA['EDITED_ON'] = date("Y-m-d H:i");
     $RESPONSE_DATA['STATUS'] = 'C';
-    db_perform('DOA_APPOINTMENT_MASTER', $RESPONSE_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
+    db_perform_account('DOA_APPOINTMENT_MASTER', $RESPONSE_DATA, 'update'," PK_APPOINTMENT_MASTER =  '$RESPONSE_DATA[PK_APPOINTMENT_MASTER]'");
 }
 
 function getServiceProviderCount($RESPONSE_DATA){
     global $db;
-    $date = date('Y-m-d', strtotime($RESPONSE_DATA['currentDate']));
+    global $db_account;
+    global $master_database;
+    $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+    $date = $RESPONSE_DATA['currentDate'];
     $all_service_provider = implode(',', $RESPONSE_DATA['all_service_provider']);
-    $service_provider_appointment_count = $db->Execute("SELECT COUNT(`PK_APPOINTMENT_MASTER`) AS APPOINTMENT_COUNT, SERVICE_PROVIDER_ID, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.SERVICE_PROVIDER_ID = SERVICE_PROVIDER.PK_USER WHERE SERVICE_PROVIDER_ID IN (".$all_service_provider.") AND `DATE` = '$date' GROUP BY SERVICE_PROVIDER_ID");
     $return_data = [];
-    $i = 0;
-    while (!$service_provider_appointment_count->EOF){
-        $return_data[$i]['APPOINTMENT_COUNT'] = $service_provider_appointment_count->fields['APPOINTMENT_COUNT'];
-        $return_data[$i]['SERVICE_PROVIDER_ID'] = $service_provider_appointment_count->fields['SERVICE_PROVIDER_ID'];
-        $return_data[$i]['SERVICE_PROVIDER_NAME'] = $service_provider_appointment_count->fields['SERVICE_PROVIDER_NAME'];
-        $service_provider_appointment_count->MoveNext();
-        $i++;
+
+    $event_count = $db_account->Execute("SELECT COUNT(DOA_EVENT.PK_EVENT) AS APPOINTMENT_COUNT FROM DOA_EVENT
+                            LEFT JOIN DOA_EVENT_LOCATION ON DOA_EVENT.PK_EVENT = DOA_EVENT_LOCATION.PK_EVENT
+                            WHERE SHARE_WITH_SERVICE_PROVIDERS = 1 AND ALL_DAY = 0 AND DOA_EVENT_LOCATION.PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND `START_DATE` = '$date'");
+
+    $all_service_provider_details = $db->Execute("SELECT PK_USER AS SERVICE_PROVIDER_ID, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME FROM DOA_USERS AS SERVICE_PROVIDER WHERE PK_USER IN (".$all_service_provider.")");
+    while (!$all_service_provider_details->EOF){
+        $return_data[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT'] = ($event_count->RecordCount() > 0) ? $event_count->fields['APPOINTMENT_COUNT'] : 0; //+$service_provider_special_appointment_count->fields['SPECIAL_APPOINTMENT_COUNT']+$service_provider_group_class_count->fields['GROUP_CLASS_COUNT'];
+        $return_data[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['SERVICE_PROVIDER_ID'] = $all_service_provider_details->fields['SERVICE_PROVIDER_ID'];
+        $return_data[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['SERVICE_PROVIDER_NAME'] = $all_service_provider_details->fields['SERVICE_PROVIDER_NAME'];
+        $all_service_provider_details->MoveNext();
     }
-    echo json_encode($return_data);
+
+    $ALL_APPOINTMENT_QUERY = "SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS APPOINTMENT_COUNT, DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER AS SERVICE_PROVIDER_ID FROM DOA_APPOINTMENT_MASTER
+                            LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
+                            WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
+                            AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7)
+                            AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (".$all_service_provider.") AND `DATE` = '$date' GROUP BY DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER";
+    $service_provider_appointment_count = $db_account->Execute($ALL_APPOINTMENT_QUERY);
+    while (!$service_provider_appointment_count->EOF){
+        $return_data[$service_provider_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT'] = $return_data[$service_provider_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT']+$service_provider_appointment_count->fields['APPOINTMENT_COUNT'];
+        $service_provider_appointment_count->MoveNext();
+    }
+
+    /*$ALL_SPECIAL_APPOINTMENT_QUERY = "SELECT COUNT(DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT) AS APPOINTMENT_COUNT, DOA_SPECIAL_APPOINTMENT_USER.PK_USER AS SERVICE_PROVIDER_ID FROM DOA_SPECIAL_APPOINTMENT
+                            LEFT JOIN DOA_SPECIAL_APPOINTMENT_USER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT
+                            WHERE DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7)
+                            AND DOA_SPECIAL_APPOINTMENT_USER.PK_USER IN (".$all_service_provider.") AND `DATE` = '$date' GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_USER";
+    $service_provider_special_appointment_count = $db_account->Execute($ALL_SPECIAL_APPOINTMENT_QUERY);
+    while (!$service_provider_special_appointment_count->EOF){
+        $return_data[$service_provider_special_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT'] = $return_data[$service_provider_special_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT']+$service_provider_special_appointment_count->fields['APPOINTMENT_COUNT'];
+        $service_provider_special_appointment_count->MoveNext();
+    }*/
+
+    echo json_encode(array_values($return_data));
 }
 
 function selectDefaultLocation($RESPONSE_DATA){
-    $_SESSION['DEFAULT_LOCATION_ID'] = $RESPONSE_DATA['DEFAULT_LOCATION_ID'];
+    global $db;
+    if (empty($RESPONSE_DATA['DEFAULT_LOCATION_ID'])) {
+        $row = $db->Execute("SELECT PK_LOCATION FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        $LOCATION_ARRAY = [];
+        while (!$row->EOF) {
+            $LOCATION_ARRAY[] = $row->fields['PK_LOCATION'];
+            $row->MoveNext();
+        }
+        $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
+    } else {
+        $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $RESPONSE_DATA['DEFAULT_LOCATION_ID']);
+    }
 }
 
 function createUpdateHistory($class, $update_table_primary_key, $table_name, $primary_key_name, $primary_key, $data, $type) {
@@ -988,3 +1551,680 @@ function getPrimaryKeyData($table_name, $primary_key_name, $primary_key) {
         return 0;
     }
 }
+
+function markAppointmentCompleted($RESPONSE_DATA) {
+    global $db;
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2, IS_CHARGED = 1 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER);
+
+    $appointment_details = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE, DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_APPOINTMENT_MASTER RIGHT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
+    while (!$appointment_details->EOF) {
+        if ($appointment_details->fields['APPOINTMENT_TYPE'] === 'GROUP') {
+            updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $appointment_details->fields['PK_USER_MASTER']);
+        } else {
+            updateSessionCompletedCount($PK_APPOINTMENT_MASTER);
+        }
+        $appointment_details->MoveNext();
+    }
+    echo 1;
+}
+
+function markAllAppointmentCompleted($RESPONSE_DATA) {
+    global $db;
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    for($i=0; $i < count($PK_APPOINTMENT_MASTER); $i++){
+        $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS = 2, IS_CHARGED = 1 WHERE PK_APPOINTMENT_MASTER = ".$PK_APPOINTMENT_MASTER[$i]);
+
+        $appointment_details = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE, DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_APPOINTMENT_MASTER RIGHT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER[$i]'");
+        while (!$appointment_details->EOF) {
+            if ($appointment_details->fields['APPOINTMENT_TYPE'] === 'GROUP') {
+                updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER[$i], $appointment_details->fields['PK_USER_MASTER']);
+            } else {
+                updateSessionCompletedCount($PK_APPOINTMENT_MASTER[$i]);
+            }
+            $appointment_details->MoveNext();
+        }
+    }
+    echo 1;
+}
+
+function viewSamplePdf($RESPONSE_DATA) {
+    $files = glob('../../uploads/sample_enrollment_pdf/*'); // get all file names
+    foreach($files as $file){ // iterate files
+        if(is_file($file)) {
+            unlink($file); // delete file
+        }
+    }
+
+    global $http_path;
+    require_once('../../global/vendor/autoload.php');
+    $html = $RESPONSE_DATA['DOCUMENT_TEMPLATE'];
+
+    try {
+        $mpdf = new Mpdf();
+        $mpdf->WriteHTML($html);
+        $file_name = "sample_pdf_".time().".pdf";
+        $mpdf->Output("../../uploads/sample_enrollment_pdf/".$file_name, 'F');
+    } catch (Exception $e) {
+        echo $e->getMessage(); die;
+    }
+
+    echo $http_path."uploads/sample_enrollment_pdf/".$file_name;
+}
+
+/*function viewGiftCertificatePdf($RESPONSE_DATA) {
+    $files = glob('../../uploads/sample_enrollment_pdf/*'); // get all file names
+    foreach($files as $file){ // iterate files
+        if(is_file($file)) {
+            unlink($file); // delete file
+        }
+    }
+
+    global $http_path;
+    require_once('../../global/vendor/autoload.php');
+    $html = $RESPONSE_DATA['DOCUMENT_TEMPLATE'];
+
+    try {
+        $mpdf = new Mpdf();
+        $mpdf->WriteHTML($html);
+        $file_name = "sample_pdf_".time().".pdf";
+        $mpdf->Output("../../uploads/sample_enrollment_pdf/".$file_name, 'F');
+    } catch (Exception $e) {
+        echo $e->getMessage(); die;
+    }
+
+    echo $http_path."uploads/sample_enrollment_pdf/".$file_name;
+}*/
+
+function viewGiftCertificatePdf($RESPONSE_DATA) {
+    try {
+        global $http_path;
+        require_once('../../global/vendor/autoload.php');
+        try {
+            $mpdf = new Mpdf();
+            $html = file_get_contents($http_path . 'admin/gift_certificate_pdf.php?id=' . $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']);
+            $mpdf->SetFont('calibri');
+            $mpdf->WriteHTML($html);
+            $file_name = "gift_certificate_" . $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER'] . ".pdf";
+            $mpdf->Output('../../uploads/gift_certificate_pdf/'.$file_name, 'F');
+        } catch (Exception $e) {
+            echo $e->getMessage(); die;
+        }
+        echo $http_path."uploads/gift_certificate_pdf/".$file_name;
+    } catch (Exception $exception) {
+        echo $exception->getMessage();
+    }
+}
+
+function saveMultiAppointmentData($RESPONSE_DATA){
+    global $db;
+    global $db_account;
+    $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+    $PK_ENROLLMENT_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[0];
+    $PK_ENROLLMENT_SERVICE = $PK_ENROLLMENT_MASTER_ARRAY[1];
+    $PK_SERVICE_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[2];
+    $PK_SERVICE_CODE = $PK_ENROLLMENT_MASTER_ARRAY[3];
+
+    $enrollment_location = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    if ($enrollment_location->RecordCount() > 0) {
+        $PK_LOCATION = $enrollment_location->fields['PK_LOCATION'];
+    } else {
+        $PK_LOCATION = 0;
+    }
+
+    $SCHEDULING_CODE = explode(',', $_POST['PK_SCHEDULING_CODE']);
+    $PK_SCHEDULING_CODE = $SCHEDULING_CODE[0];
+    $DURATION = $SCHEDULING_CODE[1];
+
+    $NUMBER_OF_SESSION = $RESPONSE_DATA['NUMBER_OF_SESSION'];
+    $STARTING_ON = $RESPONSE_DATA['STARTING_ON'];
+    $LENGTH = $RESPONSE_DATA['LENGTH'];
+    $FREQUENCY = $RESPONSE_DATA['FREQUENCY'];
+    $END_DATE = date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
+
+    $START_TIME = $RESPONSE_DATA['START_TIME'];
+    $END_TIME = date("H:i", strtotime($START_TIME)+($DURATION*60));
+
+    $APPOINTMENT_DATE_ARRAY = [];
+    if (!empty($RESPONSE_DATA['OCCURRENCE'])){
+        $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
+        if ($RESPONSE_DATA['OCCURRENCE'] == 'WEEKLY'){
+            if (isset($RESPONSE_DATA['DAYS'])) {
+                $DAYS = $RESPONSE_DATA['DAYS'];
+            } else {
+                $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
+            }
+            while ($APPOINTMENT_DATE < $END_DATE) {
+                $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
+                if (in_array(strtolower($appointment_day), $DAYS)){
+                    $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
+                }
+                $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
+            }
+        }else {
+            $OCCURRENCE_DAYS = (empty($RESPONSE_DATA['OCCURRENCE_DAYS']))?7:$RESPONSE_DATA['OCCURRENCE_DAYS'];
+
+            while ($APPOINTMENT_DATE < $END_DATE) {
+                $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
+                $APPOINTMENT_DATE = date('Y-m-d', strtotime('+ '.$OCCURRENCE_DAYS.' day', strtotime($APPOINTMENT_DATE)));
+                //echo $APPOINTMENT_DATE . "<br>";
+            }
+        }
+    }
+
+    $session_created_data = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_SERVICE`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
+    $SESSION_CREATED = $session_created_data->fields['USED_SESSION_COUNT'];
+    $SESSION_LEFT = $NUMBER_OF_SESSION - $SESSION_CREATED;
+
+    if ($RESPONSE_DATA['IS_SUBMIT'] == 1) {
+        if (count($APPOINTMENT_DATE_ARRAY) > 0) {
+            $SESSION_WILL_CREATE = (count($APPOINTMENT_DATE_ARRAY) < $SESSION_LEFT) ? count($APPOINTMENT_DATE_ARRAY) : $SESSION_LEFT;
+
+            $standing_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY STANDING_ID DESC LIMIT 1");
+            if ($standing_data->RecordCount() > 0) {
+                $standing_id = $standing_data->fields['STANDING_ID'] + 1;
+            } else {
+                $standing_id = 1;
+            }
+
+            $APPOINTMENT_DATA['STANDING_ID'] = $standing_id;
+            $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
+            $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+            $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+            $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
+            $APPOINTMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
+            $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+            $APPOINTMENT_DATA['ACTIVE'] = 1;
+            $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+            $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+            $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+
+            for ($i = 0; $i < $SESSION_WILL_CREATE; $i++) {
+                $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
+                $APPOINTMENT_DATA['DATE'] = $APPOINTMENT_DATE_ARRAY[$i];
+                $APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
+                $APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($END_TIME));
+                db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+                $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
+
+                $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+                for ($j = 0; $j < count($_POST['SERVICE_PROVIDER_ID']); $j++) {
+                    $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                    $APPOINTMENT_SP_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID'][$j];
+                    db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+                }
+
+                $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+                for ($k = 0; $k < count($_POST['CUSTOMER_ID']); $k++) {
+                    $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                    $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
+                    db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
+                }
+                updateSessionCreatedCount($PK_ENROLLMENT_SERVICE);
+            }
+            markAppointmentPaid($PK_ENROLLMENT_SERVICE);
+
+            /*$session_cost = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
+            $price_per_session = $session_cost->fields['PRICE_PER_SESSION'];
+            rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);*/
+        }
+    } else {
+        if (count($APPOINTMENT_DATE_ARRAY) > $SESSION_LEFT) {
+            echo $SESSION_LEFT;
+        } else {
+            echo 0;
+        }
+    }
+}
+
+function getEditCommentData($RESPONSE_DATA) {
+    global $db_account;
+    $PK_COMMENT = $RESPONSE_DATA['PK_COMMENT'];
+    $comment_data = $db_account->Execute("SELECT * FROM `DOA_COMMENT` WHERE `PK_COMMENT` = ".$PK_COMMENT);
+    echo json_encode($comment_data);
+}
+
+function saveCommentData($RESPONSE_DATA){
+    global $db;
+    global $db_account;
+    $COMMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    $COMMENT_DATA['COMMENT'] = $RESPONSE_DATA['COMMENT'];
+    $COMMENT_DATA['COMMENT_DATE'] = date("Y-m-d");
+    $COMMENT_DATA['FOR_PK_USER'] = $RESPONSE_DATA['PK_USER'];
+    $COMMENT_DATA['BY_PK_USER']  = $_SESSION['PK_USER'];
+
+    if ($RESPONSE_DATA['PK_COMMENT'] == 0) {
+        $COMMENT_DATA['ACTIVE'] = 1;
+        $COMMENT_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        $COMMENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+        db_perform_account('DOA_COMMENT', $COMMENT_DATA, 'insert');
+    } else {
+        $COMMENT_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        $COMMENT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+        $COMMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_COMMENT', $COMMENT_DATA, 'update', " PK_COMMENT = ".$RESPONSE_DATA['PK_COMMENT']);
+    }
+    echo 1;
+}
+
+function deleteCommentData($RESPONSE_DATA) {
+    global $db;
+    global $db_account;
+    $PK_COMMENT = $RESPONSE_DATA['PK_COMMENT'];
+    $comment_data = $db_account->Execute("DELETE FROM `DOA_COMMENT` WHERE `PK_COMMENT` = ".$PK_COMMENT);
+    echo 1;
+}
+
+function deleteDocumentLibraryData($RESPONSE_DATA) {
+    global $db_account;
+    $PK_DOCUMENT_LIBRARY = $RESPONSE_DATA['PK_DOCUMENT_LIBRARY'];
+    $document_library_data = $db_account->Execute("DELETE FROM `DOA_DOCUMENT_LIBRARY` WHERE `PK_DOCUMENT_LIBRARY` = ".$PK_DOCUMENT_LIBRARY);
+    echo 1;
+}
+
+function deleteServiceData($RESPONSE_DATA) {
+    global $db_account;
+    $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
+    $service_data = $db_account->Execute("UPDATE `DOA_SERVICE_MASTER` SET IS_DELETED = 1 WHERE `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER);
+    echo 1;
+}
+
+function deletePackageData($RESPONSE_DATA) {
+    global $db_account;
+    $PK_PACKAGE = $RESPONSE_DATA['PK_PACKAGE'];
+    $package_data = $db_account->Execute("UPDATE `DOA_PACKAGE` SET IS_DELETED=1 WHERE `PK_PACKAGE` = ".$PK_PACKAGE);
+    echo 1;
+}
+
+function deleteLocationData($RESPONSE_DATA) {
+    global $db;
+    $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
+    $location_data = $db->Execute("DELETE FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$PK_LOCATION);
+    echo 1;
+}
+
+function deleteEnrollmentData($RESPONSE_DATA) {
+    global $db_account;
+    $PK_ENROLLMENT_MASTER = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
+    $db_account->Execute("DELETE DOA_APPOINTMENT_CUSTOMER FROM DOA_APPOINTMENT_CUSTOMER LEFT JOIN DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER=DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    $db_account->Execute("DELETE DOA_APPOINTMENT_SERVICE_PROVIDER FROM DOA_APPOINTMENT_SERVICE_PROVIDER LEFT JOIN DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER=DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    $db_account->Execute("DELETE DOA_APPOINTMENT_STATUS_HISTORY FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN DOA_APPOINTMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_BALANCE` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_PAYMENT` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE_PROVIDER` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    $db_account->Execute("DELETE FROM DOA_APPOINTMENT_ENROLLMENT WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    $db_account->Execute("DELETE FROM DOA_APPOINTMENT_MASTER WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    echo 1;
+}
+
+function deleteAppointment($RESPONSE_DATA) {
+    global $db_account;
+    if ($RESPONSE_DATA['type'] == 'normal') {
+        $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+        $appointment_data = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+        $PK_ENROLLMENT_MASTER = $appointment_data->fields['PK_ENROLLMENT_MASTER'];
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+    } else {
+        $STANDING_ID = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+        $appointment_data = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM `DOA_APPOINTMENT_MASTER` WHERE `STANDING_ID` = " . $STANDING_ID ." LIMIT 1");
+        $PK_ENROLLMENT_MASTER = $appointment_data->fields['PK_ENROLLMENT_MASTER'];
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `STANDING_ID` = " . $STANDING_ID);
+    }
+    markEnrollmentComplete($PK_ENROLLMENT_MASTER);
+    echo 1;
+}
+
+function deleteSpecialAppointment($RESPONSE_DATA) {
+    global $db_account;
+    $PK_SPECIAL_APPOINTMENT = $RESPONSE_DATA['PK_SPECIAL_APPOINTMENT'];
+    $IS_STANDING = $RESPONSE_DATA['IS_STANDING'];
+    if ($IS_STANDING == 0) {
+        $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT` WHERE `PK_SPECIAL_APPOINTMENT` = " . $PK_SPECIAL_APPOINTMENT);
+    } else {
+        $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT` WHERE `STANDING_ID` = " . $PK_SPECIAL_APPOINTMENT);
+    }
+    echo 1;
+}
+
+function scheduleAppointment($RESPONSE_DATA) {
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $PK_ENROLLMENT_SERVICE = $RESPONSE_DATA['PK_ENROLLMENT_SERVICE'];
+    $location_data = $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_APPOINTMENT_STATUS=1 WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
+    updateSessionCreatedCount($PK_ENROLLMENT_SERVICE);
+    echo 1;
+}
+
+function deleteCustomer($RESPONSE_DATA) {
+    global $db;
+    $PK_USER = $RESPONSE_DATA['PK_USER'];
+    $customer_data = $db->Execute("UPDATE `DOA_USERS` SET IS_DELETED=1 WHERE `PK_USER` = ".$PK_USER);
+    echo 1;
+}
+
+function updateAppointmentData($RESPONSE_DATA) {
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $appointment_data = $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET IS_PAID=1 WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
+    echo 1;
+}
+
+function updateAppointmentDataUnpost($RESPONSE_DATA) {
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $appointment_data = $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET IS_PAID=0 WHERE `PK_APPOINTMENT_MASTER` = ".$PK_APPOINTMENT_MASTER);
+    echo 1;
+}
+
+/**
+ * @throws Exception
+ */
+function modifyAppointment($RESPONSE_DATA) {
+    global $db_account;
+
+    $start_date_time = $RESPONSE_DATA['START_DATE_TIME'];
+    $end_date_time = $RESPONSE_DATA['END_DATE_TIME'];
+    $utc_tz =  new DateTimeZone('UTC');
+
+    $start_dt = new DateTime($start_date_time, $utc_tz);
+    $end_dt = new DateTime($end_date_time, $utc_tz);
+
+    $DATE = $start_dt->format('Y-m-d');
+    $START_TIME = $start_dt->format('H:i');
+    $END_TIME = $end_dt->format('H:i');
+
+    //echo $START_TIME." - ".$END_TIME; die();
+
+    if ($RESPONSE_DATA['TYPE'] === "appointment" || $RESPONSE_DATA['TYPE'] === "group_class") {
+        $APPOINTMENT_DATA['PK_APPOINTMENT_MASTER'] = $RESPONSE_DATA['PK_ID'];
+        $APPOINTMENT_DATA['DATE'] = $DATE;
+        $APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+        $APPOINTMENT_DATA['END_TIME'] = $END_TIME;
+        db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update', " PK_APPOINTMENT_MASTER = " . $RESPONSE_DATA['PK_ID']);
+    } elseif('event' === $RESPONSE_DATA['TYPE']) {
+        $EVENT_DATA['PK_EVENT'] = $RESPONSE_DATA['PK_ID'];
+        $EVENT_DATA['START_DATE'] = $DATE;
+        $EVENT_DATA['START_TIME'] = $START_TIME;
+        $EVENT_DATA['END_TIME'] = $END_TIME;
+        db_perform_account('DOA_EVENT', $EVENT_DATA, 'update', " PK_EVENT = ".$RESPONSE_DATA['PK_ID']);
+    } elseif('special_appointment' === $RESPONSE_DATA['TYPE']) {
+        $SPECIAL_APPOINTMENT_DATA['PK_SPECIAL_APPOINTMENT'] = $RESPONSE_DATA['PK_ID'];
+        $SPECIAL_APPOINTMENT_DATA['DATE'] = $DATE;
+        $SPECIAL_APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+        $SPECIAL_APPOINTMENT_DATA['END_TIME'] = $END_TIME;
+        db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update', " PK_SPECIAL_APPOINTMENT = ".$RESPONSE_DATA['PK_ID']);
+    }
+    if ($RESPONSE_DATA['TYPE'] === "appointment" && $RESPONSE_DATA['SERVICE_PROVIDER_ID'] > 0) {
+        $APPOINTMENT_SP_DATA['PK_USER'] = $RESPONSE_DATA['SERVICE_PROVIDER_ID'];
+        db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'update', " PK_APPOINTMENT_MASTER = ".$RESPONSE_DATA['PK_ID']);
+    }
+    if ($RESPONSE_DATA['TYPE'] === "group_class" && $RESPONSE_DATA['SERVICE_PROVIDER_ID'] > 0) {
+        $is_sp_added = $db_account->Execute("SELECT DOA_APPOINTMENT_SERVICE_PROVIDER.* FROM DOA_APPOINTMENT_SERVICE_PROVIDER WHERE PK_APPOINTMENT_MASTER = ".$RESPONSE_DATA['PK_ID']." AND PK_USER = ".$RESPONSE_DATA['SERVICE_PROVIDER_ID']);
+        if ($is_sp_added->RecordCount() <= 0) {
+            $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $RESPONSE_DATA['PK_ID'];
+            $APPOINTMENT_SP_DATA['PK_USER'] = $RESPONSE_DATA['SERVICE_PROVIDER_ID'];
+            db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+        }
+    }
+    if ($RESPONSE_DATA['TYPE'] === "special_appointment" && $RESPONSE_DATA['SERVICE_PROVIDER_ID'] > 0) {
+        $APPOINTMENT_SP_DATA['PK_USER'] = $RESPONSE_DATA['SERVICE_PROVIDER_ID'];
+        db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $APPOINTMENT_SP_DATA, 'update', " PK_SPECIAL_APPOINTMENT = ".$RESPONSE_DATA['PK_ID']);
+    }
+    echo date('m/d/Y', strtotime($DATE));
+}
+
+function copyAppointment($RESPONSE_DATA) {
+    global $db_account;
+
+    $PK_ID = $RESPONSE_DATA['PK_ID'];
+    $SERVICE_PROVIDER_ID = $RESPONSE_DATA['SERVICE_PROVIDER_ID'];
+    $TYPE = $RESPONSE_DATA['TYPE'];
+    $OPERATION = $RESPONSE_DATA['OPERATION'];
+    $start_date_time = $RESPONSE_DATA['START_DATE_TIME'];
+
+    $utc_tz =  new DateTimeZone('UTC');
+    $start_dt = new DateTime($start_date_time, $utc_tz);
+
+    $DATE = $start_dt->format('Y-m-d');
+    $START_TIME = $start_dt->format('H:i');
+
+    if ($OPERATION === 'copy' && ($TYPE === "appointment" || $TYPE === "group_class")) {
+        $appointment_details = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_ID);
+        $appointment_customer_details = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_ID);
+
+        $enrollment_service_data = $db_account->Execute("SELECT `NUMBER_OF_SESSION`, `SESSION_CREATED` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$appointment_details->fields['PK_ENROLLMENT_SERVICE']);
+        $SESSION_LEFT = $enrollment_service_data->fields['NUMBER_OF_SESSION'] - $enrollment_service_data->fields['SESSION_CREATED'];
+
+        $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $appointment_details->fields['PK_SERVICE_MASTER'];
+        $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $appointment_details->fields['PK_SERVICE_CODE'];
+        $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $appointment_details->fields['PK_SCHEDULING_CODE'];
+        $APPOINTMENT_DATA['PK_LOCATION'] = $appointment_details->fields['PK_LOCATION'];
+        $APPOINTMENT_DATA['DATE'] = $DATE;
+        $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+        $APPOINTMENT_DATA['ACTIVE'] = 1;
+        $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+
+        if ($TYPE === "appointment") {
+            if ($SESSION_LEFT > 0) {
+                $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $appointment_details->fields['PK_ENROLLMENT_MASTER'];
+                $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $appointment_details->fields['PK_ENROLLMENT_SERVICE'];
+                $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+                $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($appointment_customer_details->fields['PK_USER_MASTER']);
+            } else {
+                $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+                $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
+                $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
+            }
+        } else {
+            $APPOINTMENT_DATA['STANDING_ID'] = $appointment_details->fields['STANDING_ID'];
+            $APPOINTMENT_DATA['GROUP_NAME'] = $appointment_details->fields['GROUP_NAME'];
+            $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+            $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
+            $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'GROUP';
+        }
+
+        $scheduling_code = $db_account->Execute("SELECT `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = ".$appointment_details->fields['PK_SCHEDULING_CODE']);
+        $duration = $scheduling_code->fields['DURATION'];
+
+        $APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+        $APPOINTMENT_DATA['END_TIME'] = date('H:i', strtotime($START_TIME)+(60*$duration));
+
+        db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+        $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
+
+        $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+        $APPOINTMENT_SP_DATA['PK_USER'] = $SERVICE_PROVIDER_ID;
+        db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+
+        if ($TYPE === "appointment") {
+            $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $appointment_customer_details->fields['PK_USER_MASTER'];
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
+        }
+
+        updateSessionCreatedCount($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
+
+        markAppointmentPaid($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
+
+    } elseif ($OPERATION === 'move' && ($TYPE === "appointment" || $TYPE === "group_class")) {
+        $appointment_details = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_ID);
+
+        //$APPOINTMENT_DATA['PK_APPOINTMENT_MASTER'] = $PK_ID;
+        $APPOINTMENT_DATA['DATE'] = $DATE;
+
+        $scheduling_code = $db_account->Execute("SELECT `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = ".$appointment_details->fields['PK_SCHEDULING_CODE']);
+        $duration = $scheduling_code->fields['DURATION'];
+
+        $APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+        $APPOINTMENT_DATA['END_TIME'] = date('H:i', strtotime($START_TIME)+(60*$duration));
+
+        db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update', " PK_APPOINTMENT_MASTER = " . $PK_ID);
+
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_ID);
+        $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_ID;
+        $APPOINTMENT_SP_DATA['PK_USER'] = $SERVICE_PROVIDER_ID;
+        db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+    }
+
+
+    echo date('m/d/Y', strtotime($DATE));
+}
+
+function moveToWallet($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    global $account_database;
+
+    $PK_ENROLLMENT_MASTER = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
+    $PK_ENROLLMENT_LEDGER = $RESPONSE_DATA['PK_ENROLLMENT_LEDGER'];
+    $ENROLLMENT_LEDGER_PARENT = $RESPONSE_DATA['ENROLLMENT_LEDGER_PARENT'];
+    $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
+    $BALANCE = $RESPONSE_DATA['BALANCE'];
+    $ENROLLMENT_TYPE = $RESPONSE_DATA['ENROLLMENT_TYPE'];
+    $TRANSACTION_TYPE = $RESPONSE_DATA['TRANSACTION_TYPE'];
+    $PK_PAYMENT_TYPE = ($TRANSACTION_TYPE == 'Move') ? 7 : $RESPONSE_DATA['PK_PAYMENT_TYPE'];
+    $IS_ORIGINAL_RECEIPT = 0;
+
+    $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, MISC_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    if(empty($enrollment_data->fields['ENROLLMENT_NAME'])){
+        $enrollment_name = '';
+    }else {
+        $enrollment_name = $enrollment_data->fields['ENROLLMENT_NAME']." - ";
+    }
+
+    if(empty($enrollment_data->fields['ENROLLMENT_ID'])) {
+        $enrollment_id = $enrollment_data->fields['MISC_ID'];
+    } else {
+        $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
+    }
+
+    $payment_data = $db_account->Execute("SELECT PK_PAYMENT_TYPE, RECEIPT_NUMBER, RECEIPT_PDF_LINK FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_LEDGER=".$PK_ENROLLMENT_LEDGER);
+    if ($PK_PAYMENT_TYPE == 7) {
+        $TYPE = 'Move';
+
+        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+        if ($wallet_data->RecordCount() > 0) {
+            $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
+        } else {
+            $INSERT_DATA['CURRENT_BALANCE'] = $BALANCE;
+        }
+        $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+        $INSERT_DATA['CREDIT'] = $BALANCE;
+        $INSERT_DATA['BALANCE_LEFT'] = $BALANCE;
+        $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+        $INSERT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
+        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+
+        $PAYMENT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
+    } else {
+        $TYPE = 'Refund';
+        $IS_ORIGINAL_RECEIPT = 1;
+
+        $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY CONVERT(RECEIPT_NUMBER, DECIMAL) DESC LIMIT 1");
+        if ($receipt->RecordCount() > 0) {
+            $lastSerialNumber = $receipt->fields['RECEIPT_NUMBER'];
+            $RECEIPT_NUMBER = $lastSerialNumber + 1;
+        } else {
+            $RECEIPT_NUMBER = 1;
+        }
+
+        $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+    }
+
+    $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+    $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollmentBillingData->fields['PK_ENROLLMENT_BILLING'];
+    $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE;
+    $PAYMENT_DATA['AMOUNT'] = $BALANCE;
+    $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
+    $PAYMENT_DATA['TYPE'] = $TYPE;
+    $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+    $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+    $PAYMENT_DATA['PAYMENT_INFO'] = $TYPE;
+    $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+    $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = $IS_ORIGINAL_RECEIPT;
+    db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+
+    $UPDATE_PAYMENT_DATA['IS_REFUNDED'] = 1;
+    db_perform_account('DOA_ENROLLMENT_PAYMENT', $UPDATE_PAYMENT_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+
+    if ($ENROLLMENT_TYPE == 'active') {
+        $UPDATE_DATA['IS_PAID'] = 2;
+        $UPDATE_DATA['TRANSACTION_TYPE'] = $TRANSACTION_TYPE;
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+
+        $enrollment_billing_data = $db_account->Execute("SELECT `BILLED_AMOUNT`, `AMOUNT_REMAIN` FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_LEDGER` = '$ENROLLMENT_LEDGER_PARENT'");
+        $AMOUNT_REMAIN = $enrollment_billing_data->fields['AMOUNT_REMAIN'] + $BALANCE;
+        if ($AMOUNT_REMAIN >= $enrollment_billing_data->fields['BILLED_AMOUNT']) {
+            $PARENT_DATA['AMOUNT_REMAIN'] = 0;
+            $PARENT_DATA['IS_PAID'] = 0;
+        } else {
+            $PARENT_DATA['IS_PAID'] = 0;
+            $PARENT_DATA['AMOUNT_REMAIN'] = $AMOUNT_REMAIN;
+        }
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $PARENT_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT'");
+
+
+        $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+        $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+        $ACTUAL_AMOUNT = $enrollmentBillingData->fields['TOTAL_AMOUNT'];
+        while (!$enrollmentServiceData->EOF) {
+            $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT']*100)/$ACTUAL_AMOUNT;
+            $serviceAmount = ($BALANCE*$servicePercent)/100;
+            $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] - $serviceAmount;
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update'," PK_ENROLLMENT_SERVICE = ".$enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+            markAppointmentPaid($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+            $enrollmentServiceData->MoveNext();
+        }
+    } else {
+        $UPDATE_DATA['IS_PAID'] = 1;
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+    }
+}
+
+function generateReceiptPdf($html){
+    require_once('../../global/vendor/autoload.php');
+
+    $mpdf = new Mpdf();
+    $mpdf->WriteHTML($html);
+
+    $file_name = "enrollment_receipt_pdf_".time().".pdf";
+    $mpdf->Output("../../uploads/enrollment_pdf/".$file_name, 'F');
+
+    return $file_name;
+}
+
+function generateAmReport($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+
+    $WEEK_NUMBER = explode(' ', $RESPONSE_DATA['week_number'])[2];
+    $YEAR = date('Y');
+    $START_END_DATE = getStartAndEndDate($WEEK_NUMBER+1, $YEAR);
+
+    pre_r($START_END_DATE);
+}
+
+function getStartAndEndDate($week, $year): array
+{
+    $dto = new DateTime();
+    $dto->setISODate($year, $week);
+    $ret['week_start'] = $dto->modify('-1 day')->format('Y-m-d');
+    $dto->modify('+6 days');
+    $ret['week_end'] = $dto->format('Y-m-d');
+    return $ret;
+}
+
+

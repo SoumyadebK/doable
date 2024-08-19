@@ -58,7 +58,7 @@ if (empty($_GET['id'])) {
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid extra-space">
+        <div class="container-fluid extra-space body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
@@ -139,7 +139,7 @@ if (empty($_GET['id'])) {
 
 
                                 <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Save'; } else { echo 'Update'; }?></button>
-                                <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_text_accounts.php'" >Cancel</button>
+                                <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_text_templates.php'" >Cancel</button>
                             </form>
                         </div>
                     </div>

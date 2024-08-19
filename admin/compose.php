@@ -194,7 +194,7 @@ if($default_selected_cus)
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
+        <div class="container-fluid body_content">
 
 	<? if($_GET['mail_type'] == ''){
 		require_once("menu.php");
@@ -258,7 +258,7 @@ if($default_selected_cus)
 													<div class="span9 col-md-10">
 														<select name="RECEPTION[]" id="RECEPTION" class="form-control required-entry select2" style="width:95%" multiple required>
 															<option value="">Select</option>
-															<? $res_type = $res_type = $db->Execute("select PK_USER,USER_ID,FIRST_NAME,LAST_NAME from DOA_USERS WHERE ACTIVE = '1' AND PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER AND PK_USER != $_SESSION[PK_USER] OR PK_USER IN (".implode(',', $replay_user_array).")");
+															<? $res_type = $res_type = $db->Execute("select PK_USER,USER_NAME,FIRST_NAME,LAST_NAME from DOA_USERS WHERE ACTIVE = '1' AND PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER AND PK_USER != $_SESSION[PK_USER] OR PK_USER IN (".implode(',', $replay_user_array).")");
 															while (!$res_type->EOF) {
 																$PK_USER = $res_type->fields['PK_USER'];
 																$selected = '';
