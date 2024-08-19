@@ -1,161 +1,82 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="AutoImportSettings">
-    <option name="autoReloadType" value="SELECTIVE" />
-  </component>
   <component name="ChangeListManager">
-    <list default="true" id="705f12a9-d54c-4624-a602-35c243b38dad" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/phpunit.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/phpunit.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="15c692b1-be7a-4b35-8c1a-1e9fafe6ddda" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ComposerConfigs">
-    <option name="configs">
-<<<<<<< HEAD
-      <option value="$PROJECT_DIR$/global/PHPMailer-master/composer.json" />
-      <option value="$PROJECT_DIR$/global/square_old/square/connect/composer.json" />
-      <option value="$PROJECT_DIR$/assets/node_modules/dropzone-master/composer.json" />
-      <option value="$PROJECT_DIR$/global/authorizenet/composer.json" />
-      <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/composer.json" />
-      <option value="$PROJECT_DIR$/global/stripe-php-master/composer.json" />
-      <option value="$PROJECT_DIR$/assets/node_modules/Magnific-Popup-master/composer.json" />
-      <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/composer.json" />
-      <option value="$PROJECT_DIR$/assets/node_modules/select2/composer.json" />
-      <option value="$PROJECT_DIR$/global/tcpdf/composer.json" />
-      <option value="$PROJECT_DIR$/global/square_old/symfony/polyfill-ctype/composer.json" />
-      <option value="$PROJECT_DIR$/assets/node_modules/holderjs/composer.json" />
-    </option>
-  </component>
   <component name="ComposerSettings">
-=======
-      <option value="$PROJECT_DIR$/global/square_old/symfony/polyfill-ctype/composer.json" />
-      <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/composer.json" />
-      <option value="$PROJECT_DIR$/assets/node_modules/Magnific-Popup-master/composer.json" />
-      <option value="$PROJECT_DIR$/global/authorizenet/composer.json" />
-      <option value="$PROJECT_DIR$/global/tcpdf/composer.json" />
-      <option value="$PROJECT_DIR$/assets/node_modules/select2/composer.json" />
-      <option value="$PROJECT_DIR$/assets/node_modules/holderjs/composer.json" />
-      <option value="$PROJECT_DIR$/global/PHPMailer-master/composer.json" />
-      <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/composer.json" />
-      <option value="$PROJECT_DIR$/global/stripe-php-master/composer.json" />
-      <option value="$PROJECT_DIR$/assets/node_modules/dropzone-master/composer.json" />
-      <option value="$PROJECT_DIR$/global/square_old/square/connect/composer.json" />
-    </option>
-  </component>
-  <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
->>>>>>> 07089919ad45d99e85174dcee316a789e6e24e9b
-    <pharConfigPath>$PROJECT_DIR$/global/composer.json</pharConfigPath>
     <execution />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="MarkdownSettingsMigration">
-    <option name="stateVersion" value="1" />
+  <component name="GitToolBoxStore">
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="soumyadeb" />
+                    <option name="lastUsedInstant" value="1724046497" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="main" />
+                    <option name="lastUsedInstant" value="1724046341" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$" />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="C:\xampp\php\php.exe">
-    <include_path>
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/unirest-php" />
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/core" />
-      <path value="$PROJECT_DIR$/global/vendor/square/square" />
-      <path value="$PROJECT_DIR$/global/vendor/composer" />
-      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
-      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
-      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
-      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
-      <path value="$PROJECT_DIR$/global/vendor/paragonie/random_compat" />
-      <path value="$PROJECT_DIR$/global/vendor/psr/http-message" />
-      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
-      <path value="$PROJECT_DIR$/global/vendor/psr/log" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/sebastian/recursion-context" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/symfony/filesystem" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/sebastian/diff" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/symfony/yaml" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/sebastian/comparator" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/pdepend/pdepend" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/symfony/config" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/sebastian/global-state" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/symfony/dependency-injection" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/sebastian/environment" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/symfony/polyfill-ctype" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/sebastian/exporter" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/sebastian/version" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/phpmd/phpmd" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/phpunit/php-code-coverage" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/phpunit/php-file-iterator" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/phpunit/php-text-template" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/doctrine/instantiator" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/phpunit/phpunit" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/phpunit/phpunit-mock-objects" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/phpunit/php-timer" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/phpunit/php-token-stream" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/webmozart/assert" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/phpspec/prophecy" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/composer" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/phpdocumentor/reflection-docblock" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/phpdocumentor/type-resolver" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/phpdocumentor/reflection-common" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/psr/log" />
-      <path value="$PROJECT_DIR$/global/authorizenet/vendor/psr/container" />
-    </include_path>
-  </component>
-<<<<<<< HEAD
-  <component name="ProjectId" id="2PWV5M0ONrpPIzumAXIA1ghLisO" />
-=======
-  <component name="ProjectId" id="2PXc2RqTjMyNFqOpKJYIvXQmJFz" />
->>>>>>> 07089919ad45d99e85174dcee316a789e6e24e9b
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/opt/homebrew/Cellar/php@7.3/7.3.33_5/bin/php" />
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 1
+}]]></component>
+  <component name="ProjectId" id="2krejEZNMVIRNT8XfwZkPYQD5ZA" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-<<<<<<< HEAD
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "soumyadeb",
+    "last_opened_file_path": "/Applications/XAMPP/xamppfiles/htdocs/doable_new",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "vue.rearranger.settings.migration": "true"
-=======
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;roumya&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
->>>>>>> 07089919ad45d99e85174dcee316a789e6e24e9b
   }
-}</component>
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-PS-241.14494.237" />
+        <option value="bundled-php-predefined-ba97393d7c68-8f0632a2a215-com.jetbrains.php.sharedIndexes-PS-241.14494.237" />
+      </set>
+    </attachedChunks>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="705f12a9-d54c-4624-a602-35c243b38dad" name="Changes" comment="" />
-      <created>1683524242161</created>
+      <changelist id="15c692b1-be7a-4b35-8c1a-1e9fafe6ddda" name="Changes" comment="" />
+      <created>1724046255962</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1683524242161</updated>
-      <workItem from="1683524246999" duration="20342000" />
-      <workItem from="1683606665924" duration="19947000" />
-      <workItem from="1683697644000" duration="1192000" />
-      <workItem from="1683724284884" duration="3726000" />
-      <workItem from="1683811513745" duration="692000" />
+      <updated>1724046255962</updated>
+      <workItem from="1724046257027" duration="326000" />
     </task>
     <servers />
   </component>
