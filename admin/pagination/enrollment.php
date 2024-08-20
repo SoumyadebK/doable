@@ -300,4 +300,33 @@ while (!$row->EOF) {
             }
         });
     }
+
+    function editBillingDueDate(PK_ENROLLMENT_LEDGER, DUE_DATE) {
+        $('#PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#old_due_date').val(DUE_DATE);
+        $('#due_date').val(DUE_DATE);
+        $('#billing_due_date_model').modal('show');
+    }
+
+    function getEditHistory(param, PK_ENROLLMENT_LEDGER, type) {
+        $.ajax({
+            url: "includes/get_update_history.php",
+            type: 'GET',
+            data: {
+                PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                CLASS : type,
+                FIELD_NAME : 'DUE_DATE'
+            },
+            success: function (data) {
+                $(param).popover({
+                    title: 'Due Date Update Details',
+                    placement: 'top',
+                    trigger: 'hover',
+                    content: data,
+                    container: 'body',
+                    html: true,
+                }).popover('show');
+            }
+        });
+    }
 </script>

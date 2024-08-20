@@ -283,8 +283,9 @@ function saveEnrollmentData($RESPONSE_DATA){
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_PERCENTAGE'] = $RESPONSE_DATA['ENROLLMENT_BY_PERCENTAGE'];
     $ENROLLMENT_MASTER_DATA['MEMO'] = $RESPONSE_DATA['MEMO'];
     $ENROLLMENT_MASTER_DATA['STATUS'] = 'A';
+    $ENROLLMENT_MASTER_DATA['ENROLLMENT_DATE'] = date("Y-m-d", strtotime($RESPONSE_DATA['ENROLLMENT_DATE']));
 
-    if(empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER']) || $RESPONSE_DATA['PK_ENROLLMENT_MASTER'] == 0){
+    if(empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER']) || $RESPONSE_DATA['PK_ENROLLMENT_MASTER'] == 0) {
         $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM, MISCELLANEOUS_ID_CHAR, MISCELLANEOUS_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
         $misc_service_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_CLASS = 5 AND PK_SERVICE_MASTER = ".$RESPONSE_DATA['PK_SERVICE_MASTER'][0]);
 
@@ -316,13 +317,12 @@ function saveEnrollmentData($RESPONSE_DATA){
         }
 
         $ENROLLMENT_MASTER_DATA['ACTIVE'] = 1;
-        $ENROLLMENT_MASTER_DATA['ENROLLMENT_DATE']  = date("Y-m-d");
         $ENROLLMENT_MASTER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $ENROLLMENT_MASTER_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'insert');
         $PK_ENROLLMENT_MASTER = $db_account->insert_ID();
         createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER,'DOA_ENROLLMENT_MASTER', 'PK_ENROLLMENT_MASTER', $PK_ENROLLMENT_MASTER, $ENROLLMENT_MASTER_DATA, 'insert');
-    }else{
+    } else {
         $ENROLLMENT_MASTER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'] ?? 1;
         $ENROLLMENT_MASTER_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $ENROLLMENT_MASTER_DATA['EDITED_ON'] = date("Y-m-d H:i");
@@ -2242,6 +2242,36 @@ function verifyPassword($RESPONSE_DATA)
         $USER_UPDATE_DATA['DELETED_BY'] = $_SESSION['PK_USER'];
         $USER_UPDATE_DATA['DELETED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_USERS', $USER_UPDATE_DATA, 'update'," PK_USER =  '$PK_USER'");
+        echo 1;
+    } else {
+        echo 0;
+    }
+}
+
+function updateBillingDueDate($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+
+    $PK_ENROLLMENT_LEDGER = $RESPONSE_DATA['PK_ENROLLMENT_LEDGER'];
+    $old_due_date = $RESPONSE_DATA['old_due_date'];
+    $due_date = $RESPONSE_DATA['due_date'];
+
+    $PASSWORD = $RESPONSE_DATA['due_date_verify_password'];
+    $user_data = $db->Execute("SELECT PASSWORD FROM DOA_USERS WHERE PK_USER = ".$_SESSION['PK_USER']);
+
+    if (password_verify($PASSWORD, $user_data->fields['PASSWORD'])) {
+        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($due_date));
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+
+        $UPDATE_HISTORY_DATA['CLASS'] = 'enrollment_ledger';
+        $UPDATE_HISTORY_DATA['PRIMARY_KEY'] = $PK_ENROLLMENT_LEDGER;
+        $UPDATE_HISTORY_DATA['FIELD_NAME'] = 'DUE_DATE';
+        $UPDATE_HISTORY_DATA['FROM_VALUE'] = $old_due_date;
+        $UPDATE_HISTORY_DATA['TO_VALUE'] = $due_date;
+        $UPDATE_HISTORY_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+        $UPDATE_HISTORY_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_UPDATE_HISTORY', $UPDATE_HISTORY_DATA, 'insert');
         echo 1;
     } else {
         echo 0;
