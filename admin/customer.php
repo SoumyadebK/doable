@@ -396,6 +396,7 @@ if ($PK_USER_MASTER > 0) {
                             <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                             <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#credit_card" role="tab" ><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
                             <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" ><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
+                            <li> <a class="nav-link" id="delete_tab_link" data-bs-toggle="tab" href="javascript:" onclick="deleteThisCustomer(<?=$PK_USER?>)"><span class="hidden-sm-up"><i class="ti-trash"></i></span> <span class="hidden-xs-down">Delete</span></a> </li>
                         <?php } ?>
                     </ul>
                 </div>
@@ -2043,18 +2044,54 @@ if ($PK_USER_MASTER > 0) {
 
 </div>
 
-<!--Add Credit Card Model-->
+<!--Edit Appointment Model-->
 <div class="modal fade" id="edit_appointment_modal" tabindex="-1" aria-hidden="true">
 
 </div>
 
-    <style>
-        .progress-bar {
-            border-radius: 5px;
-            height:18px !important;
-        }
-    </style>
-    <?php require_once('../includes/footer.php');?>
+<!--Verify Password Model-->
+<div class="modal fade" id="verify_password_model" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="verify_password_form"  method="post">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Verify Password</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label">Enter your profile password</label>
+                                <input type="password" id="verify_password" name="verify_password" class="form-control" placeholder="Password" required>
+                                <p id="verify_password_error" style="color: red;"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .progress-bar {
+        border-radius: 5px;
+        height:18px !important;
+    }
+</style>
+<?php require_once('../includes/footer.php');?>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+    import Swal from 'sweetalert2';
+    const Swal = require('sweetalert2');
+</script>
 
     <script>
         let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
@@ -2962,6 +2999,56 @@ if ($PK_USER_MASTER > 0) {
         $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
         stripePaymentFunction('save_credit_card');
     }
+
+
+
+    function deleteThisCustomer(PK_USER) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this profile will erase all data related to this person. Even previous numbers, reports, appointments and enrollments.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#verify_password_model').modal('show');
+            } else {
+                Swal.fire({
+                    title: "Cancelled",
+                    text: "Your imaginary file is safe :)",
+                    icon: "error"
+                });
+            }
+        });
+    }
+
+    $('#verify_password_form').on('submit', function (event) {
+        event.preventDefault();
+        let pk_user = $('.PK_USER').val();
+        let password = $('#verify_password').val();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {FUNCTION_NAME: 'verifyPassword', pk_user:pk_user, PASSWORD: password},
+            success: function (data) {
+                $('#verify_password_error').slideUp();
+                if (data == 1) {
+                    Swal.fire({
+                        title: "Deleted!",
+                        text: "Your file has been deleted.",
+                        icon: "success",
+                        timer: 3000,
+                    }).then((result) => {
+                        window.location.href='all_customers.php';
+                    });
+                } else {
+                    $('#verify_password_error').text("Incorrect Password").slideDown();
+                }
+            }
+        });
+    })
 </script>
 </body>
 </html>

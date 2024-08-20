@@ -14,6 +14,7 @@
                                 <a class="dropdown-item" href="../admin/settings.php">Settings</a>
                                 <a class="dropdown-item" href="../admin/all_locations.php">Locations</a>
                                 <a class="dropdown-item" href="../admin/all_users.php">Users / Employees / Service Providers</a>
+                                <a class="dropdown-item" href="../admin/deleted_customer.php">Deleted Customer</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">
@@ -62,35 +63,36 @@
                         } else {
                             $address = $url[2];
                         }
-                        if ($address == "business_profile.php" || $address == "settings.php" || $address == "all_locations.php" || $address == "all_users.php") { ?>
+                        if ($address == "business_profile.php" || $address == "settings.php" || $address == "all_locations.php" || $address == "all_users.php" || $address == "deleted_customer.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
-                                <li class="nav-item"><a class="nav-link" href="../admin/business_profile.php">Business Profile</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/settings.php">Settings</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_locations.php">Locations</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_users.php">Users</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'business_profile.php') ? 'active' : ''?>" href="../admin/business_profile.php">Business Profile</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'settings.php') ? 'active' : ''?>" href="../admin/settings.php">Settings</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_locations.php') ? 'active' : ''?>" href="../admin/all_locations.php">Locations</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_users.php') ? 'active' : ''?>" href="../admin/all_users.php">Users</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'deleted_customer.php') ? 'active' : ''?>" href="../admin/deleted_customer.php">Deleted Customer</a></li>
                             </ul>
                         <?php } elseif ($address == "all_service_codes.php" || $address == "all_packages.php" || $address == "all_scheduling_codes.php" || $address == "all_document_library.php" || $address == "all_interests.php" || $address == "all_skill_levels.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_scheduling_codes.php">Scheduling Codes</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_service_codes.php">Services</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_packages.php">Packages</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_document_library.php">Document Library</a></li>
-                                <!--<li class="nav-item"><a class="nav-link" href="../admin/all_interests.php">Interests</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_skill_levels.php">Skill Levels</a></li>-->
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_scheduling_codes.php') ? 'active' : ''?>" href="../admin/all_scheduling_codes.php">Scheduling Codes</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_service_codes.php') ? 'active' : ''?>" href="../admin/all_service_codes.php">Services</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_packages.php') ? 'active' : ''?>" href="../admin/all_packages.php">Packages</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_document_library.php') ? 'active' : ''?>" href="../admin/all_document_library.php">Document Library</a></li>
+                                <!--<li class="nav-item"><a class="nav-link <?=($address == 'all_interests.php') ? 'active' : ''?>" href="../admin/all_interests.php">Interests</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_skill_levels.php') ? 'active' : ''?>" href="../admin/all_skill_levels.php">Skill Levels</a></li>-->
                             </ul>
                         <?php } elseif ($address == "all_gift_certificates.php" || $address == "all_gift_certificate_setup.php" || $address == "all_event_types.php" || $address == "all_inquiry_methods.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_gift_certificates.php">Gift Certificate</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_gift_certificate_setup.php">Gift Certificate Setup</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_event_types.php">Event Types</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_inquiry_methods.php">Inquiry Method</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_gift_certificates.php') ? 'active' : ''?>" href="../admin/all_gift_certificates.php">Gift Certificate</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_gift_certificate_setup.php') ? 'active' : ''?>" href="../admin/all_gift_certificate_setup.php">Gift Certificate Setup</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_event_types.php') ? 'active' : ''?>" href="../admin/all_event_types.php">Event Types</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_inquiry_methods.php') ? 'active' : ''?>" href="../admin/all_inquiry_methods.php">Inquiry Method</a></li>
                             </ul>
-                        <?php } elseif ($address == "all_email_accounts.php" || $address == "all_email_templates.php" || $address == "all_text_templates.php") { ?>
+                        <?php } elseif ($address == "all_email_accounts.php" || $address == "all_email_templates.php" || $address == "all_text_templates.php" || $address == "test_chat_gpt.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_email_accounts.php">Email Accounts</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_email_templates.php">Email Templates</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/all_text_templates.php">Text Templates</a></li>
-                                <li class="nav-item"><a class="nav-link" href="../admin/test_chat_gpt.php">Assistant</a></li>                            </ul>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_email_accounts.php') ? 'active' : ''?>" href="../admin/all_email_accounts.php">Email Accounts</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_email_templates.php') ? 'active' : ''?>" href="../admin/all_email_templates.php">Email Templates</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_text_templates.php') ? 'active' : ''?>" href="../admin/all_text_templates.php">Text Templates</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'test_chat_gpt.php') ? 'active' : ''?>" href="../admin/test_chat_gpt.php">Assistant</a></li>                            </ul>
                         <?php } ?>
                     </div>
                 </div>

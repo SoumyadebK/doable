@@ -2227,4 +2227,25 @@ function getStartAndEndDate($week, $year): array
     return $ret;
 }
 
+function verifyPassword($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+
+    $PASSWORD = $RESPONSE_DATA['PASSWORD'];
+    $user_data = $db->Execute("SELECT PASSWORD FROM DOA_USERS WHERE PK_USER = ".$_SESSION['PK_USER']);
+
+    if (password_verify($PASSWORD, $user_data->fields['PASSWORD'])) {
+        $PK_USER = $RESPONSE_DATA['pk_user'];
+
+        $USER_UPDATE_DATA['IS_DELETED'] = 1;
+        $USER_UPDATE_DATA['DELETED_BY'] = $_SESSION['PK_USER'];
+        $USER_UPDATE_DATA['DELETED_ON'] = date("Y-m-d H:i");
+        db_perform('DOA_USERS', $USER_UPDATE_DATA, 'update'," PK_USER =  '$PK_USER'");
+        echo 1;
+    } else {
+        echo 0;
+    }
+}
+
 

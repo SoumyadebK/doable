@@ -189,7 +189,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                                 <?php } else{ ?>
                                                     <span class="active-box-red"></span>
                                                 <?php } ?>
-                                                <a href="all_customers.php?type=del&id=<?=$row->fields['PK_SERVICE_MASTER']?>" onclick='ConfirmDelete(<?=$row->fields['PK_USER']?>);' title="Delete"><i class="ti-trash" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <!--<a href="all_customers.php?type=del&id=<?php /*=$row->fields['PK_SERVICE_MASTER']*/?>" onclick='ConfirmDelete(<?php /*=$row->fields['PK_USER']*/?>);' title="Delete"><i class="ti-trash" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
                                             </td>
                                         </tr>
                                     <?php $row->MoveNext();
@@ -259,7 +259,6 @@ $page_first_result = ($page-1) * $results_per_page;
 </script>
 
 
-// start sorting
 <script>
     $(function() {
         const ths = $("th");
@@ -440,7 +439,6 @@ $page_first_result = ($page-1) * $results_per_page;
 
 
 </script>
-//end sorting
 
 <!--<script>
         $('#myTable').dataTable( {
