@@ -22,7 +22,9 @@ if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
     $header = 'all_enrollments.php';
 }
 
+$PK_ENROLLMENT_MASTER = 0;
 $ENROLLMENT_NAME = '';
+$ENROLLMENT_DATE = date('m/d/Y');
 $PK_LOCATION = '';
 $PK_PACKAGE = '';
 $TOTAL = '';
@@ -76,8 +78,10 @@ if(!empty($_GET['id'])) {
         header("location:all_enrollments.php");
         exit;
     }
+    $PK_ENROLLMENT_MASTER = $_GET['id'];
     $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
     $ENROLLMENT_NAME = $res->fields['ENROLLMENT_NAME'];
+    $ENROLLMENT_DATE = date('m/d/Y', strtotime($res->fields['ENROLLMENT_DATE']));
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $PK_PACKAGE = $res->fields['PK_PACKAGE'];
     $CHARGE_BY_SESSIONS = $res->fields['CHARGE_BY_SESSIONS'];
@@ -156,6 +160,10 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 <?php require_once('../includes/header.php');?>
 <link href="https://fonts.googleapis.com/css2?family=PT+Mono&display=swap" rel="stylesheet">
 <style>
+    .disabled_div {
+        pointer-events: none;
+        opacity: 60%;
+    }
     #advice-required-entry-ACCEPT_HANDLING{width: 150px;top: 20px;position: absolute;}
     .StripeElement {
         display: block;
@@ -413,7 +421,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                         <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                         <div class="p-20">
                                             <div class="row">
-                                                <div class="col-4">
+                                                <div class="col-3">
                                                     <div>
                                                         <label class="form-label">Customer<span class="text-danger">*</span></label><br>
                                                         <select required name="PK_USER_MASTER" id="PK_USER_MASTER" onchange="selectThisCustomer(this);">
@@ -426,7 +434,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div class="col-4">
+                                                <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">Location<span class="text-danger">*</span></label>
                                                         <select class="form-control" required name="PK_LOCATION" id="PK_LOCATION" onchange="showEnrollmentInstructor();">
@@ -434,15 +442,21 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div class="col-4">
+                                                <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">Enrollment Name</label>
                                                         <input type="text" id="ENROLLMENT_NAME" name="ENROLLMENT_NAME" class="form-control" placeholder="Enter Enrollment Name" value="<?=$ENROLLMENT_NAME?>">
                                                     </div>
                                                 </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Enrollment Date</label>
+                                                        <input type="text" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" class="form-control datepicker-normal" placeholder="Enter Enrollment Date" value="<?=$ENROLLMENT_DATE?>" required>
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <div class="row">
+                                            <div class="row <?=($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : ''?>">
                                                 <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Packages</label>
@@ -533,7 +547,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
                                                 while (!$enrollment_service_data->EOF) {
                                                     $total += $enrollment_service_data->fields['FINAL_AMOUNT']; ?>
-                                                    <div class="row">
+                                                    <div class="row <?=($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : ''?>">
                                                         <div class="col-2">
                                                             <div class="form-group">
                                                                 <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
@@ -676,7 +690,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 </div>
                                             </div>
 
-                                            <div class="col-3" style="margin-left: 75%; margin-top: -15px;">
+                                            <div class="col-3 <?=($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : ''?>" style="margin-left: 75%; margin-top: -15px;">
                                                 <div class="form-group">
                                                     <div class="row">
                                                         <div class="col-md-4">
@@ -689,7 +703,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 </div>
                                             </div>
 
-                                            <div class="row add_more">
+                                            <div class="row add_more <?=($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : ''?>">
                                                 <div class="col-12">
                                                     <div class="form-group" style="float: right; display: <?=$CHARGE_BY_SESSIONS==1 ? 'none' : ''?>">
                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServices();">Add More</a>
@@ -881,7 +895,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                 </div>
 
                                 <!--Billing Tab-->
-                                <div class="tab-pane" id="billing" role="tabpanel" style="pointer-events: <?=($PK_ENROLLMENT_BILLING>0)?'none':''?>; opacity: <?=($PK_ENROLLMENT_BILLING>0)?'60%':''?>">
+                                <div class="tab-pane <?=($PK_ENROLLMENT_BILLING>0) ? 'disabled_div' : ''?>" id="billing" role="tabpanel">
                                     <div class="card">
                                         <div class="card-body">
                                             <form class="form-material form-horizontal" id="billing_form">

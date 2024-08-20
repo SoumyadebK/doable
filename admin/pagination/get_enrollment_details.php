@@ -94,7 +94,11 @@ while (!$serviceCodeData->EOF) {
         $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
         ?>
         <tr style="border-style: hidden; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
-            <td style="text-align: center;"><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
+            <td style="text-align: center;">
+                <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, 'enrollment_ledger')"><i class="ti-info-alt"></i></a>&nbsp;&nbsp;
+                <?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?>&nbsp;&nbsp;
+                <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, '<?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?>')"><i class="ti-pencil-alt"></i></a>
+            </td>
             <td style="text-align: center;"><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
             <td style="text-align: right;"><?=$billing_details->fields['BILLED_AMOUNT']?></td>
             <td></td>
@@ -146,7 +150,11 @@ while (!$serviceCodeData->EOF) {
                     $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                 } ?>
                 <tr style="border-style: hidden; color: <?=($payment_details->fields['IS_PAID'] == 2) ? 'green' : ''?>; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
-                    <td style="text-align: center;"><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
+                    <td style="text-align: center;">
+                        <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?=$PK_ENROLLMENT_LEDGER?>, 'enrollment_ledger')"><i class="ti-info-alt"></i></a>&nbsp;&nbsp;
+                        <?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?>&nbsp;&nbsp;
+                        <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?=$PK_ENROLLMENT_LEDGER?>, '<?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?>')"><i class="ti-pencil-alt"></i></a>
+                    </td>
                     <td style="text-align: center;"><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
                     <td></td>
                     <td style="text-align: right;"><?=$payment_details->fields['AMOUNT']?></td>
@@ -247,7 +255,7 @@ while (!$serviceCodeData->EOF) {
             } ?>
             <tr>
                 <td style="text-align: left;">
-                    <a href="javascript:" title="Edit Appointment" onclick="editThisAppointment(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>, <?=$PK_USER?>, <?=$PK_USER_MASTER?>);"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;
+                    <a href="javascript:" title="Edit Appointment" onclick="editThisAppointment(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>, <?=$PK_USER?>, <?=$PK_USER_MASTER?>);"><i class="ti-pencil-alt"></i></a>&nbsp;&nbsp;
                     <?=$appointment_data->fields['SERVICE_NAME']?>
                 </td>
                 <?php if($appointment_data->fields['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_data->fields['IS_CHARGED'] == 0) {?>
