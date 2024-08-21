@@ -2227,7 +2227,7 @@ function getStartAndEndDate($week, $year): array
     return $ret;
 }
 
-function verifyPassword($RESPONSE_DATA)
+function deleteCustomerAfterVerify($RESPONSE_DATA)
 {
     global $db;
     global $db_account;
