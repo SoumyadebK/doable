@@ -864,7 +864,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                             <?php } ?>
 
                                             <div class="form-group">
-                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Continue</button>
+                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=($PK_ENROLLMENT_MASTER > 0) ? 'Save' : 'Continue'?></button>
                                                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                             </div>
                                         </div>
@@ -1714,8 +1714,12 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                 data: form_data,
                 dataType: 'json',
                 success: function (data) {
-                    $('.PK_ENROLLMENT_MASTER').val(data.PK_ENROLLMENT_MASTER);
-                    $('#billing_link')[0].click();
+                    if (PK_ENROLLMENT_MASTER > 0) {
+                        window.location.reload();
+                    } else {
+                        $('.PK_ENROLLMENT_MASTER').val(data.PK_ENROLLMENT_MASTER);
+                        $('#billing_link')[0].click();
+                    }
                 }
             });
         }

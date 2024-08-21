@@ -5,17 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="15c692b1-be7a-4b35-8c1a-1e9fafe6ddda" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/admin/includes/get_update_history.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_enrollments.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_enrollments.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/appointment_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/appointment_list.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/customer.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/customer.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/deleted_customer.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/deleted_customer.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/enrollment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/operations.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/operations.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/pagination/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/enrollment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/pagination/get_enrollment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/get_enrollment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/royalty_service_report.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/royalty_service_report.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -125,7 +119,8 @@
       <workItem from="1724046819230" duration="7748000" />
       <workItem from="1724081310064" duration="5311000" />
       <workItem from="1724132082797" duration="10692000" />
-      <workItem from="1724166007899" duration="12391000" />
+      <workItem from="1724166007899" duration="13456000" />
+      <workItem from="1724233701042" duration="4706000" />
     </task>
     <servers />
   </component>
