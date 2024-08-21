@@ -4,7 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< HEAD
     <list default="true" id="15c692b1-be7a-4b35-8c1a-1e9fafe6ddda" name="Changes" comment="" />
+=======
+    <list default="true" id="15c692b1-be7a-4b35-8c1a-1e9fafe6ddda" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/staff_performance_report.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/staff_performance_report.php" afterDir="false" />
+    </list>
+>>>>>>> 8ede0d6ba2d4c23eff1797d98898a7032e7fa913
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -80,19 +87,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;soumyadeb&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Applications/XAMPP/xamppfiles/htdocs/doable_new&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "roumya",
+    "last_opened_file_path": "/Applications/XAMPP/xamppfiles/htdocs/doable_new",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -113,8 +120,13 @@
       <workItem from="1724046819230" duration="7748000" />
       <workItem from="1724081310064" duration="5311000" />
       <workItem from="1724132082797" duration="10692000" />
+<<<<<<< HEAD
       <workItem from="1724166007899" duration="13456000" />
       <workItem from="1724233701042" duration="5352000" />
+=======
+      <workItem from="1724166007899" duration="12391000" />
+      <workItem from="1724253361944" duration="2266000" />
+>>>>>>> 8ede0d6ba2d4c23eff1797d98898a7032e7fa913
     </task>
     <servers />
   </component>
