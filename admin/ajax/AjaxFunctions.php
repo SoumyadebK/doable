@@ -2,6 +2,7 @@
 
 use Dompdf\Dompdf;
 use Mpdf\Mpdf;
+use Mpdf\MpdfException;
 
 require_once('../../global/config.php');
 error_reporting(0);
@@ -616,6 +617,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
         }
     }
 
+    $SCHEDULING_AMOUNT = 0;
     $date_amount = $db_account->Execute("SELECT DUE_DATE, BILLED_AMOUNT FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND IS_DOWN_PAYMENT = '0' AND PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
     while (!$date_amount->EOF) {
         $DUE_DATE .= date('m-d-Y', strtotime($date_amount->fields['DUE_DATE']))."<br>";
@@ -636,7 +638,11 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     echo json_encode($return_data);
 }
 
-function generatePdf($html){
+/**
+ * @throws MpdfException
+ */
+function generatePdf($html): string
+{
     require_once('../../global/vendor/autoload.php');
 
     $mpdf = new Mpdf();
@@ -2246,6 +2252,15 @@ function deleteCustomerAfterVerify($RESPONSE_DATA)
     } else {
         echo 0;
     }
+}
+
+function reactiveCustomer($RESPONSE_DATA)
+{
+    global $db;
+
+    $PK_USER = $RESPONSE_DATA['PK_USER'];
+
+    $db->Execute("UPDATE DOA_USERS set IS_DELETED = 0, DELETED_BY = 0, DELETED_ON = NULL WHERE PK_USER = ".$PK_USER);
 }
 
 function updateBillingDueDate($RESPONSE_DATA)
