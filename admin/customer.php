@@ -209,6 +209,7 @@ $PARTNER_LAST_NAME = '';
 $PARTNER_GENDER = '';
 $PARTNER_DOB = '';
 $INACTIVE_BY_ADMIN = '';
+$CREATED_ON = '';
 if(!empty($_GET['id'])) {
     $res = $db->Execute("SELECT * FROM DOA_USERS WHERE IS_DELETED = 0 AND DOA_USERS.PK_USER = '$_GET[id]'");
 
@@ -237,6 +238,7 @@ if(!empty($_GET['id'])) {
     $PASSWORD = $res->fields['PASSWORD'];
     $INACTIVE_BY_ADMIN = $res->fields['INACTIVE_BY_ADMIN'];
     $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
+    $CREATED_ON = $res->fields['CREATED_ON'];
 
     $user_interest_other_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_INTEREST_OTHER_DATA` WHERE `PK_USER_MASTER` = '$_GET[master_id]'");
     if($user_interest_other_data->RecordCount() > 0){
@@ -513,7 +515,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-2">
+                                                            <div class="col-1">
                                                                 <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMorePhone();"><i class="ti-plus"></i> New</a>
                                                             </div>
                                                             <div class="col-3">
@@ -524,11 +526,17 @@ if ($PK_USER_MASTER > 0) {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-2">
+                                                            <div class="col-1">
                                                                 <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreEmail();"><i class="ti-plus"></i> New</a>
                                                             </div>
                                                             <div class="col-2">
                                                                 <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?=($CREATE_LOGIN == 1)?'checked':''?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
+                                                            </div>
+                                                            <div class="col-md-2">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Created On</label>
+                                                                    <input type="text" class="form-control datepicker-normal" id="CREATED_ON" name="CREATED_ON" value="<?=($CREATED_ON == '' || $CREATED_ON == '0000-00-00')?date('m/d/Y'):date('m/d/Y', strtotime($CREATED_ON))?>">
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div class="row">

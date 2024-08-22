@@ -773,7 +773,7 @@ function saveProfileData($RESPONSE_DATA){
     if(empty($RESPONSE_DATA['PK_USER'])){
         $USER_DATA['ACTIVE'] = $USER_DATA_ACCOUNT['ACCOUNT'] = 1;
         $USER_DATA['CREATED_BY']  = $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
-        $USER_DATA['CREATED_ON']  = $USER_DATA_ACCOUNT['CREATED_ON'] = date("Y-m-d H:i");
+        $USER_DATA['CREATED_ON']  = $RESPONSE_DATA['CREATED_ON'];
         db_perform('DOA_USERS', $USER_DATA, 'insert');
         $PK_USER = $db->insert_ID();
         $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
@@ -794,6 +794,7 @@ function saveProfileData($RESPONSE_DATA){
         $USER_DATA['ACTIVE']	= $USER_DATA_ACCOUNT['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
         $USER_DATA['EDITED_BY']	= $USER_DATA_ACCOUNT['EDITED_BY'] = $_SESSION['PK_USER'];
         $USER_DATA['EDITED_ON'] = $USER_DATA_ACCOUNT['EDITED_ON'] = date("Y-m-d H:i");
+        $USER_DATA['CREATED_ON']  =  date('Y-m-d', strtotime($RESPONSE_DATA['CREATED_ON']));
         db_perform('DOA_USERS', $USER_DATA, 'update'," PK_USER = ".$PK_USER);
         db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = ".$PK_USER);
         if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
