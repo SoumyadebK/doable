@@ -60,7 +60,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                         ?>
                                         <tr>
                                             <td><?=$i;?></td>
-                                            <td><?=$row->fields['USER_NAME']?> (<?=$row->fields['UNIQUE_ID']?>)</td>
+                                            <td><?=$row->fields['UNIQUE_ID']?></td>
                                             <td><?=$row->fields['NAME']?></td>
                                             <td><?=($deleted_by->RecordCount() > 0) ? $deleted_by->fields['NAME'] : ''?></td>
                                             <td>
