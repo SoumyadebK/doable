@@ -412,14 +412,14 @@ if(!empty($_POST))
             $allEnrollmentTypes = getAllEnrollmentTypes();
             while (!$allEnrollmentTypes->EOF) {
                 $enrollment_type = $allEnrollmentTypes->fields['enrollment_type'];
-                $table_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_TYPE WHERE ENROLLMENT_TYPE='$enrollment_type' AND PK_ACCOUNT_MASTER='$PK_ACCOUNT_MASTER'");
+                $table_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_TYPE WHERE ENROLLMENT_TYPE='$enrollment_type' AND PK_ACCOUNT_MASTER='$PK_ACCOUNT_MASTER'");
                 if ($table_data->RecordCount() == 0) {
                     $INSERT_DATA['ENROLLMENT_TYPE'] = $enrollment_type;
                     $INSERT_DATA['CODE'] = $allEnrollmentTypes->fields['code'];
                     $INSERT_DATA['ACTIVE'] = 1;
                     $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                     $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                    db_perform_account('DOA_ENROLLMENT_TYPE', $INSERT_DATA, 'insert');
+                    db_perform('DOA_ENROLLMENT_TYPE', $INSERT_DATA, 'insert');
                 }
                 $allEnrollmentTypes->MoveNext();
             }
