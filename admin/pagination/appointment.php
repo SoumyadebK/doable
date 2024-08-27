@@ -139,12 +139,12 @@ $page_first_result = ($page-1) * $results_per_page;
             $IMAGE_LINK = $appointment_data->fields['IMAGE'];
             $VIDEO_LINK = $appointment_data->fields['VIDEO'];
             if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
-                $SESSION_CREATED = getSessionCreatedCount($appointment_data->fields['PK_ENROLLMENT_SERVICE']);
+                $SESSION_CREATED = getSessionCreatedCount($appointment_data->fields['PK_ENROLLMENT_SERVICE'], $appointment_data->fields['APPOINTMENT_TYPE']);
                 $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
                 $ENROLLMENT_ID = $appointment_data->fields['ENROLLMENT_ID'];
                 $ENROLLMENT_NAME = $appointment_data->fields['ENROLLMENT_NAME'];
             } else {
-                $SESSION_CREATED = getSessionCreatedCount($appointment_data->fields['APT_ENR_SERVICE']);
+                $SESSION_CREATED = getSessionCreatedCount($appointment_data->fields['APT_ENR_SERVICE'], $appointment_data->fields['APPOINTMENT_TYPE']);
                 $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
                 $ENROLLMENT_ID = $appointment_data->fields['APT_ENR_NAME'];
                 $ENROLLMENT_NAME = $appointment_data->fields['APT_ENR_ID'];

@@ -1721,8 +1721,7 @@ function saveMultiAppointmentData($RESPONSE_DATA){
         }
     }
 
-    $session_created_data = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_SERVICE`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
-    $SESSION_CREATED = $session_created_data->fields['USED_SESSION_COUNT'];
+    $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
     $SESSION_LEFT = $NUMBER_OF_SESSION - $SESSION_CREATED;
 
     if ($RESPONSE_DATA['IS_SUBMIT'] == 1) {
@@ -2006,8 +2005,9 @@ function copyAppointment($RESPONSE_DATA) {
         $appointment_details = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_ID);
         $appointment_customer_details = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_ID);
 
-        $enrollment_service_data = $db_account->Execute("SELECT `NUMBER_OF_SESSION`, `SESSION_CREATED` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$appointment_details->fields['PK_ENROLLMENT_SERVICE']);
-        $SESSION_LEFT = $enrollment_service_data->fields['NUMBER_OF_SESSION'] - $enrollment_service_data->fields['SESSION_CREATED'];
+        $enrollment_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$appointment_details->fields['PK_ENROLLMENT_SERVICE']);
+        $SESSION_CREATED = getSessionCreatedCount($appointment_details->fields['PK_ENROLLMENT_SERVICE'], (($TYPE === "appointment") ? 'NORMAL' : 'GROUP'));
+        $SESSION_LEFT = $enrollment_service_data->fields['NUMBER_OF_SESSION'] - $SESSION_CREATED;
 
         $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $appointment_details->fields['PK_SERVICE_MASTER'];
         $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $appointment_details->fields['PK_SERVICE_CODE'];
