@@ -1,5 +1,7 @@
 <?php
 require_once('../global/config.php');
+global $db;
+global $db_account;
 
 if (empty($_GET['id']))
     $title = "Add Appointment";
@@ -68,9 +70,8 @@ if (isset($_POST['FUNCTION_NAME'])){
             }
         }
 
-        $session_created_data = $db->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_SERVICE_MASTER` = ".$PK_SERVICE_MASTER." AND PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
-        $SESSION_CREATED = $session_created_data->fields['SESSION_COUNT'];
-        $SESSION_LEFT = $NUMBER_OF_SESSION-$SESSION_CREATED;
+        $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
+        $SESSION_LEFT = $NUMBER_OF_SESSION - $SESSION_CREATED;
 
         if (count($APPOINTMENT_DATE_ARRAY) > 0) {
             $SESSION_WILL_CREATE = (count($APPOINTMENT_DATE_ARRAY) < $SESSION_LEFT) ? count($APPOINTMENT_DATE_ARRAY) : $SESSION_LEFT;

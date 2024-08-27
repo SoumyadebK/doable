@@ -228,7 +228,7 @@ while (!$serviceCodeData->EOF) {
         $service_credit_array = [];
         $total_amount_paid_array = [];
         while (!$appointment_data->EOF) {
-            $SESSION_CREATED = getSessionCreatedCount($pk_enrollment_service);
+            $SESSION_CREATED = getSessionCreatedCount($pk_enrollment_service, $appointment_data->fields['APPOINTMENT_TYPE']);
             $per_session_price = $db_account->Execute("SELECT TOTAL_AMOUNT_PAID, PRICE_PER_SESSION, NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$pk_enrollment_service);
             $PRICE_PER_SESSION = $per_session_price->fields['PRICE_PER_SESSION'];
             $total_amount_needed = $SESSION_CREATED * $PRICE_PER_SESSION;
