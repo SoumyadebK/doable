@@ -6,9 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="15c692b1-be7a-4b35-8c1a-1e9fafe6ddda" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/super_admin/database_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/database_uploader.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/user_image/user_image_11672034320-695867.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/user_image/user_image_33391684427182-137623.jpg" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -121,7 +118,9 @@
       <workItem from="1724337895643" duration="3798000" />
       <workItem from="1724394441307" duration="2848000" />
       <workItem from="1724679169581" duration="12039000" />
-      <workItem from="1724738037691" duration="4179000" />
+      <workItem from="1724738037691" duration="8881000" />
+      <workItem from="1724770590650" duration="65000" />
+      <workItem from="1724770665615" duration="1959000" />
     </task>
     <servers />
   </component>
