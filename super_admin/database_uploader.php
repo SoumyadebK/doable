@@ -649,7 +649,7 @@ if(!empty($_POST))
                             db_perform_account('DOA_ENROLLMENT_LEDGER', $PAYMENT_LEDGER_DATA, 'insert');
                             $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
 
-                            if ($enrollment_payment->fields['payment_method'] == 'Save Card') {
+                            if ($enrollment_payment->fields['payment_method'] == 'Save Card' || $enrollment_payment->fields['payment_method'] == 'Charge') {
                                 $payment_type = $enrollment_payment->fields['card_type'];
                             } else {
                                 $payment_type = $enrollment_payment->fields['payment_method'];
