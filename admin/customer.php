@@ -272,6 +272,7 @@ if(!empty($_GET['master_id'])) {
 
 if ($PK_USER_MASTER > 0) {
     makeMiscComplete($PK_USER_MASTER);
+    checkAllEnrollmentStatus($PK_USER_MASTER);
 }
 ?>
 <!DOCTYPE html>
