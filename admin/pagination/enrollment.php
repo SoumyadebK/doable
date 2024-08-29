@@ -11,9 +11,9 @@ $type = !empty($_GET['type']) ? $_GET['type'] : 0;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 if ($type == 'completed') {
-    $enr_condition = " (DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 1 OR DOA_ENROLLMENT_MASTER.STATUS = 'C') ";
+    $enr_condition = " (DOA_ENROLLMENT_MASTER.STATUS = 'CO' || DOA_ENROLLMENT_MASTER.STATUS = 'C') ";
 } else {
-    $enr_condition = " DOA_ENROLLMENT_MASTER.STATUS != 'C' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ";
+    $enr_condition = " (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') ";
 }
 ?>
 
@@ -110,8 +110,8 @@ while (!$row->EOF) {
             <div class="col-8" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'appointment_details')" style="cursor: pointer;">
                 <table id="myTable" class="table <?php
                 $details = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                $paid_count = $details->RecordCount() > 0 ? $details->fields['PAID'] : 0;
-                if ($paid_count==0) { echo 'table-success'; }else{echo "table-striped";}?> border">
+                $paid_count = $details->fields['PAID'];
+                if ($paid_count == 0) { echo 'table-success'; }else{ echo "table-striped"; } ?> border">
                     <thead>
                         <tr>
                             <th></th>
