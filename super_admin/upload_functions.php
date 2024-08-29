@@ -55,7 +55,7 @@ function getAllEnrollmentTypes() {
 
 function getAllEnrollments() {
     global $db1;
-    return $db1->Execute("SELECT * FROM enrollment");
+    return $db1->Execute("SELECT * FROM enrollment WHERE `ENROLLMENT_NAME` NOT LIKE '%Renewal (NO SALE)%';");
 }
 
 function getAllEnrollmentServices() {
@@ -100,7 +100,7 @@ function getAllGroupAppointments() {
 
 function getAllStudentIds($service_appt_id) {
     global $db1;
-    return $db1->Execute("SELECT student_id FROM service_appt WHERE id = '$service_appt_id'");
+    return $db1->Execute("SELECT student_id, payment_status FROM group_parties WHERE service_appt_id = '$service_appt_id'");
 }
 
 function getRole($role_id){
