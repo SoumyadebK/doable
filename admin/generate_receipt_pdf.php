@@ -67,7 +67,7 @@ while (!$enrollment_payment->EOF) {
                                 <td>" . $enrollment_payment->fields['PAYMENT_TYPE'] . "# : </td>
                                 <td style='text-align:right'>" . $PAYMENT_INFO->CHECK_NUMBER . "</td>
                             </tr>";
-        } elseif (in_array($enrollment_payment->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14, 15])) {
+        } elseif (in_array($enrollment_payment->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
             $PAYMENT_INFO = json_decode($enrollment_payment->fields['PAYMENT_INFO']);
             $PAYMENT_DETAILS = "<tr>
                                 <td>" . $enrollment_payment->fields['PAYMENT_TYPE'] . "# : </td>
