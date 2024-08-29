@@ -649,7 +649,11 @@ if(!empty($_POST))
                             db_perform_account('DOA_ENROLLMENT_LEDGER', $PAYMENT_LEDGER_DATA, 'insert');
                             $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
 
-                            $payment_type = $enrollment_payment->fields['payment_method'];
+                            if ($enrollment_payment->fields['payment_method'] == 'Save Card') {
+                                $payment_type = $enrollment_payment->fields['card_type'];
+                            } else {
+                                $payment_type = $enrollment_payment->fields['payment_method'];
+                            }
                             $PK_PAYMENT_TYPE = $db->Execute("SELECT PK_PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE = '$payment_type'");
 
                             $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
@@ -660,7 +664,15 @@ if(!empty($_POST))
                             $ENROLLMENT_PAYMENT_DATA['AMOUNT'] = abs($enrollment_payment->fields['amount_paid']);
                             $ENROLLMENT_PAYMENT_DATA['NOTE'] = $enrollment_payment->fields['title'];
                             $ENROLLMENT_PAYMENT_DATA['PAYMENT_DATE'] = $newDate;
-                            $ENROLLMENT_PAYMENT_DATA['PAYMENT_INFO'] = $enrollment_payment->fields['transaction_id'];
+                            $PAYMENT_INFO = null;
+                            if ($enrollment_payment->fields['card_number'] > 0) {
+                                $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $enrollment_payment->fields['transaction_id'], 'LAST4' => $enrollment_payment->fields['card_number']];
+                                $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                            } elseif ($enrollment_payment->fields['check_number'] > 0) {
+                                $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $enrollment_payment->fields['check_number'], 'CHECK_DATE' => $newDate];
+                                $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                            }
+                            $ENROLLMENT_PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO; ;
                             $ENROLLMENT_PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
                             $ENROLLMENT_PAYMENT_DATA['RECEIPT_NUMBER'] = $enrollment_payment->fields['receipt'];
 
@@ -689,123 +701,6 @@ if(!empty($_POST))
                 $allEnrollments->MoveNext();
             }
             break;
-
-        /*case "DOA_ENROLLMENT_SERVICE":
-            $allEnrollmentServices = getAllEnrollmentServices();
-            while (!$allEnrollmentServices->EOF) {
-                $enrollmentId = $allEnrollmentServices->fields['enrollment_id'];
-                $doableEnrollmentId = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_MASTER WHERE ENROLLMENT_ID = '$enrollmentId' AND PK_LOCATION = '$PK_LOCATION'");
-                $PK_ENROLLMENT_MASTER = $doableEnrollmentId->fields['PK_ENROLLMENT_MASTER'];
-
-                $service_code = $allEnrollmentServices->fields['service_id'];
-                $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code'");
-                $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
-                $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
-                $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                $SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
-                $SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
-                $SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
-                $SERVICE_DATA['NUMBER_OF_SESSION'] = $allEnrollmentServices->fields['quantity'];
-                [$getTotal, $getDiscount, $getFinalAmount] = getEnrollmentDetails($enrollmentId);
-
-                $SERVICE_DATA['PRICE_PER_SESSION'] = ($allEnrollmentServices->fields['quantity'] > 0) ? $getFinalAmount / $allEnrollmentServices->fields['quantity'] : 0;
-                $SERVICE_DATA['TOTAL'] = $getTotal;
-                $SERVICE_DATA['DISCOUNT'] = $getDiscount;
-                $SERVICE_DATA['DISCOUNT_TYPE'] = ($getDiscount > 0) ? 1 : 0;
-                $SERVICE_DATA['FINAL_AMOUNT'] = $getFinalAmount;
-                db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
-                $allEnrollmentServices->MoveNext();
-            }
-            break;*/
-
-        /*case "DOA_ENROLLMENT_PAYMENT":
-            $allEnrollmentPayments = getAllEnrollmentPayments();
-            while (!$allEnrollmentPayments->EOF) {
-                $enrollmentId = $allEnrollmentPayments->fields['enroll_id'];
-                $doableEnrollmentId = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER, ENROLLMENT_NAME FROM DOA_ENROLLMENT_MASTER WHERE ENROLLMENT_ID = '$enrollmentId' AND PK_LOCATION = '$PK_LOCATION'");
-                $PK_ENROLLMENT_MASTER = $doableEnrollmentId->fields['PK_ENROLLMENT_MASTER'];
-                $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-
-                $PK_ENROLLMENT_BILLING = $db_account->Execute("SELECT PK_ENROLLMENT_BILLING, TOTAL_AMOUNT FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ");
-                $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING->fields['PK_ENROLLMENT_BILLING'];
-                $TOTAL_AMOUNT = $PK_ENROLLMENT_BILLING->fields['TOTAL_AMOUNT'];
-
-                $orgDate = $allEnrollmentPayments->fields['date_paid'];
-                $newDate = date("Y-m-d", strtotime($orgDate));
-
-                $payment_type = $allEnrollmentPayments->fields['payment_method'];
-                $PK_PAYMENT_TYPE = $db_account->Execute("SELECT PK_PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE='$payment_type'");
-
-                $ENROLLMENT_PAYMENT_DATA['PK_PAYMENT_TYPE'] = ($PK_PAYMENT_TYPE->RecordCount() > 0) ? $PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE'] : 0;
-                $ENROLLMENT_PAYMENT_DATA['TYPE'] = $allEnrollmentPayments->fields['record_type'];
-                $ENROLLMENT_PAYMENT_DATA['AMOUNT'] = $allEnrollmentPayments->fields['amount_paid'];
-                $ENROLLMENT_PAYMENT_DATA['NOTE'] = $allEnrollmentPayments->fields['title'];
-                $ENROLLMENT_PAYMENT_DATA['PAYMENT_DATE'] = $newDate;
-                $ENROLLMENT_PAYMENT_DATA['PAYMENT_INFO'] = $allEnrollmentPayments->fields['transaction_id'];
-                $ENROLLMENT_PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
-                $ENROLLMENT_PAYMENT_DATA['RECEIPT_NUMBER'] = $allEnrollmentPayments->fields['receipt'];
-
-                if ($allEnrollmentPayments->fields['record_type'] === 'Payment') {
-                    $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                    $LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING->fields['PK_ENROLLMENT_BILLING'];
-                    $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
-                    $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-                    $LEDGER_DATA['DUE_DATE'] = $newDate;
-                    $LEDGER_DATA['BILLED_AMOUNT'] = $allEnrollmentPayments->fields['amount_paid'];
-                    $LEDGER_DATA['PAID_AMOUNT'] = 0;
-                    $LEDGER_DATA['BALANCE'] = $allEnrollmentPayments->fields['amount_paid'];
-                    $LEDGER_DATA['IS_PAID'] = 1;
-                    $LEDGER_DATA['STATUS'] = 'A';
-                    db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                    $ENROLLMENT_LEDGER_PARENT = $db_account->insert_ID();
-
-                    $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                    $LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING->fields['PK_ENROLLMENT_BILLING'];
-                    $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
-                    $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT;
-                    $LEDGER_DATA['DUE_DATE'] = $newDate;
-                    $LEDGER_DATA['BILLED_AMOUNT'] = 0;
-                    $LEDGER_DATA['PAID_AMOUNT'] = $allEnrollmentPayments->fields['amount_paid'];
-                    $LEDGER_DATA['BALANCE'] = 0;
-                    $LEDGER_DATA['IS_PAID'] = 1;
-                    $LEDGER_DATA['STATUS'] = 'A';
-                    db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                    $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
-
-                    $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
-
-                    $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
-                    $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
-                    $ACTUAL_AMOUNT = $enrollmentBillingData->fields['TOTAL_AMOUNT'];
-                    while (!$enrollmentServiceData->EOF) {
-                        $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT'] * 100) / $ACTUAL_AMOUNT;
-                        $serviceAmount = ($ENROLLMENT_PAYMENT_DATA['AMOUNT'] * $servicePercent) / 100;
-
-                        $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] + $serviceAmount;
-                        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
-                        $enrollmentServiceData->MoveNext();
-                    }
-                } elseif ($allEnrollmentPayments->fields['record_type'] === 'Refunded') {
-                    $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                    $LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING->fields['PK_ENROLLMENT_BILLING'];
-                    $LEDGER_DATA['TRANSACTION_TYPE'] = $allEnrollmentPayments->fields['record_type'];
-                    $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = -1;
-                    $LEDGER_DATA['DUE_DATE'] = $newDate;
-                    $LEDGER_DATA['BILLED_AMOUNT'] = 0;
-                    $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
-                    $LEDGER_DATA['BALANCE'] = $allEnrollmentPayments->fields['amount_paid'];
-                    $LEDGER_DATA['IS_PAID'] = 1;
-                    $LEDGER_DATA['STATUS'] = 'A';
-                    db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                    $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
-
-                    $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
-                }
-                db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
-
-                $allEnrollmentPayments->MoveNext();
-            }
-            break;*/
 
         case "DOA_SPECIAL_APPOINTMENT":
             $allSpecialAppointment = getAllGeneralAppt();
