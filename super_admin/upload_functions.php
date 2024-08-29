@@ -55,7 +55,7 @@ function getAllEnrollmentTypes() {
 
 function getAllEnrollments() {
     global $db1;
-    return $db1->Execute("SELECT * FROM enrollment");
+    return $db1->Execute("SELECT * FROM enrollment WHERE `ENROLLMENT_NAME` NOT LIKE '%Renewal (NO SALE)%';");
 }
 
 function getAllEnrollmentServices() {
