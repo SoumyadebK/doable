@@ -27,8 +27,7 @@ while (!$row->EOF) {
 
     $PRICE_PER_SESSION = $row->fields['PRICE_PER_SESSION'];
     $TOTAL_AMOUNT_PAID = ($row->fields['TOTAL_AMOUNT_PAID'] != null) ? $row->fields['TOTAL_AMOUNT_PAID'] : 0;
-    $used_session = $db_account->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE (PK_APPOINTMENT_STATUS != 6 OR IS_CHARGED = 1) AND `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$row->fields['PK_SERVICE_CODE']);
-    $USED_SESSION_COUNT = ($used_session->RecordCount() > 0) ? $used_session->fields['USED_SESSION_COUNT'] : 0;
+    $USED_SESSION_COUNT = getSessionCreatedCount($row->fields['PK_SERVICE_CODE'], 'NORMAL');
     $paid_session = ($PRICE_PER_SESSION > 0) ? number_format(($TOTAL_AMOUNT_PAID/$PRICE_PER_SESSION), 2) : $row->fields['NUMBER_OF_SESSION'];
 
     if (($row->fields['NUMBER_OF_SESSION'] - $USED_SESSION_COUNT) > 0) { ?>
