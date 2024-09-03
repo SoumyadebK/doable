@@ -28,7 +28,7 @@ if (isset($_GET['search_text']) || isset($_GET['FROM_DATE']) || isset($_GET['END
     $FROM_DATE = date('Y-m-d', strtotime($_GET['FROM_DATE']));
     $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%'OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%')". " AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '$FROM_DATE' AND '$END_DATE'";
+    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%'OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%')". " AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
 } else {
     $FROM_DATE='';
     $END_DATE='';

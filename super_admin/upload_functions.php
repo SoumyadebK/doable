@@ -53,6 +53,16 @@ function getAllEnrollmentTypes() {
     return $db1->Execute("SELECT * FROM enrollment_type");
 }
 
+function getAllPackages() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM packages");
+}
+
+function getPackageServices($package_id) {
+    global $db1;
+    return $db1->Execute("SELECT * FROM package_services WHERE package_id = '$package_id'");
+}
+
 function getAllEnrollments() {
     global $db1;
     return $db1->Execute("SELECT * FROM enrollment WHERE `enrollmentname` NOT LIKE '%Renewal (NO SALE)%'");
