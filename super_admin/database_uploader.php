@@ -1156,6 +1156,40 @@ if(!empty($_POST))
             }
             break;
 
+        case 'SP_TIME':
+            $startTime = getStartTime();
+            $endTime = getEndTime();
+
+            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER) FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$PK_LOCATION.") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+            while (!$row->EOF) {
+
+                $SERVICE_PROVIDER_HOURS['PK_USER'] = $row->fields['PK_USER'];
+                $SERVICE_PROVIDER_HOURS['PK_LOCATION'] = $PK_LOCATION;
+                $SERVICE_PROVIDER_HOURS['MON_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['MON_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['TUE_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['TUE_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['WED_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['WED_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['THU_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['THU_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['FRI_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['FRI_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['SAT_START_TIME'] = '00:00:00';
+                $SERVICE_PROVIDER_HOURS['SAT_END_TIME'] = '00:00:00';
+                $SERVICE_PROVIDER_HOURS['SUN_START_TIME'] = '00:00:00';
+                $SERVICE_PROVIDER_HOURS['SUN_END_TIME'] = '00:00:00';
+
+                $location_data = $db->Execute("SELECT PK_SERVICE_PROVIDER_LOCATION_HOURS FROM DOA_SERVICE_PROVIDER_LOCATION_HOURS WHERE PK_USER = ".$row->fields['PK_USER']);
+                if ($location_data->RecordCount() == 0) {
+                    db_perform_account('DOA_SERVICE_PROVIDER_LOCATION_HOURS', $SERVICE_PROVIDER_HOURS, 'insert');
+                }
+
+                $row->MoveNext();
+            }
+            break;
+
+
         default:
             break;
     }
@@ -1267,6 +1301,8 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <option value="DOA_ENROLLMENT_PAYMENT">DOA_ENROLLMENT_PAYMENT</option>-->
                                 <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
                                 <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
+
+                                <option value="SP_TIME">Service Provider Time</option>
                             </select>
                             <div id="view_download_div" class="m-10"></div>
                         </div>
@@ -1286,3 +1322,6 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
     }
 </script>
 </html>
+
+CZXPK8979C
+289687942941

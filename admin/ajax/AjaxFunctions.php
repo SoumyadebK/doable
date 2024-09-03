@@ -52,6 +52,7 @@ function saveServiceData($RESPONSE_DATA){
 
     $SERVICE_INFO_DATA['SERVICE_NAME'] = $RESPONSE_DATA['SERVICE_NAME'];
     $SERVICE_INFO_DATA['PK_SERVICE_CLASS'] = $RESPONSE_DATA['PK_SERVICE_CLASS'];
+    $SERVICE_INFO_DATA['MISC_TYPE'] = $RESPONSE_DATA['MISC_TYPE'];
     $SERVICE_INFO_DATA['IS_SCHEDULE'] = $RESPONSE_DATA['IS_SCHEDULE'];
     $SERVICE_INFO_DATA['DESCRIPTION'] = $RESPONSE_DATA['DESCRIPTION'];
     if(empty($RESPONSE_DATA['PK_SERVICE_MASTER'])){
@@ -299,6 +300,7 @@ function saveEnrollmentData($RESPONSE_DATA){
             }else{
                 $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".$account_data->fields['MISCELLANEOUS_ID_NUM'];
             }
+            $ENROLLMENT_MASTER_DATA['MISC_TYPE'] = $misc_service_data->fields['MISC_TYPE'];
         } else {
             $id_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE MISC_ID IS NULL AND PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
             if ($id_data->fields['ENROLLMENT_ID'] != ' '){
