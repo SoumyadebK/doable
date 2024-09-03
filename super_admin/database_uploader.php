@@ -536,6 +536,14 @@ if(!empty($_POST))
 
                 $ENROLLMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
 
+                $package_name = getPackageCode($allEnrollments->fields['package_code']);
+                $enrollment_package = $db_account->Execute("SELECT PK_PACKAGE FROM `DOA_PACKAGE` WHERE PACKAGE_NAME = '$package_name'");
+                if ($enrollment_package->RecordCount() > 0) {
+                    $ENROLLMENT_DATA['PK_PACKAGE'] = $enrollment_package->fields['PK_PACKAGE'];
+                } else {
+                    $ENROLLMENT_DATA['PK_PACKAGE'] = 0;
+                }
+
                 $user_id = $allEnrollments->fields['closer'];
                 $doableUserId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND USER_ID = '$user_id'");
                 $ENROLLMENT_DATA['ENROLLMENT_BY_ID'] = ($doableUserId->RecordCount() > 0) ? $doableUserId->fields['PK_USER'] : 0;
