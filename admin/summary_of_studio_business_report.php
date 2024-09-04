@@ -17,7 +17,7 @@ if (!empty($_GET['week_number'])){
     $week_number = $_GET['week_number'];
     $YEAR = date('Y');
     $dto = new DateTime();
-    $dto->setISODate($YEAR, $week_number+1);
+    $dto->setISODate($YEAR, $week_number);
     $from_date = $dto->modify('-1 day')->format('Y-m-d');
     $dto->modify('+6 days');
     $to_date = $dto->format('Y-m-d');

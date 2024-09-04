@@ -351,6 +351,8 @@ if(empty($_GET['id'])){
 
     <script type="text/javascript">
         $('.datepicker-normal').datepicker({
+            changeMonth: true,
+            changeYear: true,
             format: 'mm/dd/yyyy',
         });
 

@@ -458,7 +458,7 @@ if(!empty($_POST))
                 $PACKAGE_DATA['PACKAGE_NAME'] = $allPackages->fields['package_name'];
                 $PACKAGE_DATA['SORT_ORDER'] = $allPackages->fields['sorder'];
                 $PACKAGE_DATA['EXPIRY_DATE'] = 30;
-                $PACKAGE_DATA['ACTIVE'] = 1;
+                $PACKAGE_DATA['ACTIVE'] = ($allPackages->fields['closed'] == 1) ? 0 : 1;
                 $PACKAGE_DATA['IS_DELETED'] = 0;
                 $PACKAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
                 $PACKAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
@@ -467,6 +467,8 @@ if(!empty($_POST))
 
                 $PACKAGE_LOCATION_DATA['PK_PACKAGE'] = $PK_PACKAGE;
                 $PACKAGE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+
+
                 db_perform_account('DOA_PACKAGE_LOCATION', $PACKAGE_LOCATION_DATA, 'insert');
 
                 $packageServiceData = getPackageServices($allPackages->fields['package_id']);
@@ -491,6 +493,13 @@ if(!empty($_POST))
 
                     $packageServiceData->MoveNext();
                 }
+
+                /*$package_name = $allPackages->fields['package_name'];
+                $package_data = $db_account->Execute("SELECT PK_PACKAGE FROM DOA_PACKAGE WHERE PACKAGE_NAME = '$package_name'");
+                if ($package_data->RecordCount() > 0) {
+                    $PACKAGE_DATA['ACTIVE'] = ($allPackages->fields['closed'] == 1) ? 0 : 1;
+                    db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'update', ' PK_PACKAGE = '.$package_data->fields['PK_PACKAGE']);
+                }*/
 
                 $allPackages->MoveNext();
             }

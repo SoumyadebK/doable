@@ -252,6 +252,8 @@ if (isset($_POST['FUNCTION_NAME'])){
 
     <script type="text/javascript">
         $('.datepicker-normal').datepicker({
+            changeMonth: true,
+            changeYear: true,
             format: 'mm/dd/yyyy',
         });
 

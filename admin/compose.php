@@ -460,6 +460,8 @@ if($default_selected_cus)
 	}
 
 	    $('.datepicker-past').datepicker({
+            changeMonth: true,
+            changeYear: true,
 	        format: 'mm/dd/yyyy',
 	        maxDate: 0
 	    });
