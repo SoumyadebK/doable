@@ -21,6 +21,7 @@ if (!empty($_POST)) {
     $SCHEDULING_DATA['TO_DOS'] = $_POST['TO_DOS'] ? 1 : 0;
     $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
     $SCHEDULING_DATA['DURATION'] = $_POST['DURATION'];
+    $SCHEDULING_DATA['UNIT'] = $_POST['UNIT'];
     $SCHEDULING_DATA['SORT_ORDER'] = $_POST['SORT_ORDER'];
     if ($_GET['id'] == '') {
         $SCHEDULING_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
@@ -52,6 +53,7 @@ if (!empty($_POST)) {
 if (empty($_GET['id'])) {
     $SCHEDULING_CODE        = '';
     $SCHEDULING_NAME        = '';
+    $UNIT                   = '';
     $PK_SCHEDULING_EVENT    = '';
     $PK_EVENT_ACTION        = '';
     $TO_DOS                 = '';
@@ -67,6 +69,7 @@ if (empty($_GET['id'])) {
     }
     $SCHEDULING_CODE      = $res->fields['SCHEDULING_CODE'];
     $SCHEDULING_NAME      = $res->fields['SCHEDULING_NAME'];
+    $UNIT                 = $res->fields['UNIT'];
     $PK_SCHEDULING_EVENT  = $res->fields['PK_SCHEDULING_EVENT'];
     $PK_EVENT_ACTION      = $res->fields['PK_EVENT_ACTION'];
     $TO_DOS               = $res->fields['TO_DOS'];
@@ -200,6 +203,18 @@ if (empty($_GET['id'])) {
                                         <input type="color" id="COLOR_CODE" name="COLOR_CODE" value="<?php echo $COLOR_CODE?>" style="margin: 10px; width: 150px;">
                                     </div>
                                 </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Unit<span class="text-danger">*</span></label>
+                                    <div class="col-md-3">
+                                        <select class="form-control" name="UNIT" required>
+                                            <option value="">Select</option>
+                                            <option value="0.5" <?=($UNIT == '0.5') ? 'selected' : ''?>>0.5</option>
+                                            <option value="1" <?=($UNIT == '1') ? 'selected' : ''?>>1</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div class="form-group">
                                     <label class="col-md-12" for="example-text">Duration</label>
                                     <div class="row">

@@ -58,7 +58,6 @@ if(empty($_GET['id'])){
     $PK_SERVICE_CODE = '';
     $SERVICE_CODE = '';
     $PRICE = '';
-    $UNIT = '';
     $IS_GROUP = 0;
     $IS_SUNDRY = 0;
     $CAPACITY = '';
@@ -84,7 +83,6 @@ if(empty($_GET['id'])){
     $IS_SUNDRY = $service_code->fields['IS_SUNDRY'];
     $CAPACITY = $service_code->fields['CAPACITY'];
     $IS_CHARGEABLE = $service_code->fields['IS_CHARGEABLE'];
-    $UNIT = $service_code->fields['UNIT'];
 }
 
 ?>
@@ -207,17 +205,6 @@ if(empty($_GET['id'])){
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Unit<span class="text-danger">*</span></label>
-                                                            <select class="form-control" name="UNIT" required>
-                                                                <option value="">Select</option>
-                                                                <option value="0.5" <?=($UNIT == '0.5') ? 'selected' : ''?>>0.5</option>
-                                                                <option value="1" <?=($UNIT == '1') ? 'selected' : ''?>>1</option>
-                                                            </select>
                                                         </div>
                                                     </div>
 
