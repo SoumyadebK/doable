@@ -53,9 +53,19 @@ function getAllEnrollmentTypes() {
     return $db1->Execute("SELECT * FROM enrollment_type");
 }
 
+function getAllPackages() {
+    global $db1;
+    return $db1->Execute("SELECT * FROM packages");
+}
+
+function getPackageServices($package_id) {
+    global $db1;
+    return $db1->Execute("SELECT * FROM package_services WHERE package_id = '$package_id'");
+}
+
 function getAllEnrollments() {
     global $db1;
-    return $db1->Execute("SELECT * FROM enrollment WHERE `ENROLLMENT_NAME` NOT LIKE '%Renewal (NO SALE)%';");
+    return $db1->Execute("SELECT * FROM enrollment WHERE `enrollmentname` NOT LIKE '%Renewal (NO SALE)%'");
 }
 
 function getAllEnrollmentServices() {
@@ -194,17 +204,26 @@ function getEnrollmentType($enrollmentTypeId): array
     return [$enrollmentTypeData->fields['enrollment_type'], $enrollmentTypeData->fields['code']];
 }
 
+function getUser($user_id) {
+    global $db1;
+    $customer_taker = $db1->Execute("SELECT email FROM users WHERE user_id = '$user_id'");
+    if ($customer_taker->RecordCount() > 0) {
+        return $customer_taker->fields['email'];
+    } else {
+        return 0;
+    }
+}
 function getEnrollmentDetails($enrollment_id) {
     global $db1;
     $enrollment_details = $db1->Execute("SELECT sale_value, discount, total_cost FROM enrollment WHERE enrollment_id = '$enrollment_id'");
     return [$enrollment_details->fields['sale_value'], $enrollment_details->fields['discount'], $enrollment_details->fields['total_cost']];
 }
 
-function getUser($user_id) {
+function getPackageCode($package_id) {
     global $db1;
-    $customer_taker = $db1->Execute("SELECT email FROM users WHERE user_id = '$user_id'");
-    if ($customer_taker->RecordCount() > 0) {
-        return $customer_taker->fields['email'];
+    $package_data = $db1->Execute("SELECT package_name FROM packages WHERE package_id = '$package_id'");
+    if ($package_data->RecordCount() > 0) {
+        return $package_data->fields['package_name'];
     } else {
         return 0;
     }

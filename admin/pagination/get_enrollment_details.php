@@ -82,8 +82,8 @@ while (!$serviceCodeData->EOF) {
 
     <tbody>
     <?php
-    $payment_count = $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER." AND TRANSACTION_TYPE = 'Payment' AND IS_PAID = 1");
-    $payment_counter = $payment_count->RecordCount();
+    /*$payment_count = $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER." AND TRANSACTION_TYPE = 'Payment' AND IS_PAID = 1");
+    $payment_counter = $payment_count->RecordCount();*/
     $b = 0;
     $p = 0;
     $billed_amount = 0;
@@ -116,7 +116,7 @@ while (!$serviceCodeData->EOF) {
             </td>
         </tr>
         <?php
-        $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.AMOUNT, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE (DOA_ENROLLMENT_LEDGER.IS_PAID != 2 || DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Refund') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = DOA_ENROLLMENT_PAYMENT.TYPE AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+        $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.AMOUNT, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE (DOA_ENROLLMENT_LEDGER.IS_PAID != 2 || DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Refund' || DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Adjustment') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = DOA_ENROLLMENT_PAYMENT.TYPE AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
         if ($payment_details->RecordCount() > 0) {
             $p++;
             $balance = $billed_amount;
@@ -162,7 +162,7 @@ while (!$serviceCodeData->EOF) {
                     <td></td>
                     <td style="text-align: right;"><?=$payment_details->fields['AMOUNT']?></td>
                     <td style="text-align: center;"><?=$payment_type?></td>
-                    <td style="text-align: right;"><?=($payment_details->fields['TRANSACTION_TYPE'] == 'Payment') ? number_format((float)$balance, 2, '.', '') : ''?></td>
+                    <td style="text-align: right;"><?=($payment_details->fields['TRANSACTION_TYPE'] == 'Payment' || $payment_details->fields['TRANSACTION_TYPE'] == 'Adjustment') ? number_format((float)$balance, 2, '.', '') : ''?></td>
                     <td style="text-align: right;">
                         <?php if (($payment_details->fields['IS_PAID'] == 1) && ($payment_details->fields['STATUS'] == 'A')) { ?>
                             <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['AMOUNT']?>, 'active', 'Move', <?=$p?>)">Move</a>

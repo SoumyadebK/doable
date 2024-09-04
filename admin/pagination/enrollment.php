@@ -11,9 +11,9 @@ $type = !empty($_GET['type']) ? $_GET['type'] : 0;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 if ($type == 'completed') {
-    $enr_condition = " (DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 1 OR DOA_ENROLLMENT_MASTER.STATUS = 'C') ";
+    $enr_condition = " (DOA_ENROLLMENT_MASTER.STATUS = 'CO' || DOA_ENROLLMENT_MASTER.STATUS = 'C') ";
 } else {
-    $enr_condition = " DOA_ENROLLMENT_MASTER.STATUS != 'C' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ";
+    $enr_condition = " (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') ";
 }
 ?>
 
@@ -109,9 +109,9 @@ while (!$row->EOF) {
             </div>
             <div class="col-8" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'appointment_details')" style="cursor: pointer;">
                 <table id="myTable" class="table <?php
-                $details = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                $paid_count = $details->RecordCount() > 0 ? $details->fields['PAID'] : 0;
-                if ($paid_count==0) { echo 'table-success'; }else{echo "table-striped";}?> border">
+                $details = $db_account->Execute("SELECT PK_ENROLLMENT_LEDGER FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                $paid_count = ($details->RecordCount() > 0) ? $details->RecordCount() : 0;
+                if ($paid_count == 0) { echo 'table-success'; }else{ echo "table-striped"; } ?> border">
                     <thead>
                         <tr>
                             <th></th>
@@ -125,13 +125,18 @@ while (!$row->EOF) {
 
                     <tbody>
                     <?php
-                    $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                    $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                     $total_amount = 0;
                     $total_paid_amount = 0;
                     $total_used_amount = 0;
                     $enrollment_service_array = [];
                     while (!$serviceCodeData->EOF) {
-                        $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                        if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
+                            $SESSION_COMPLETED = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                        } else {
+                            $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                        }
+
                         $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
                         $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData->fields['PRICE_PER_SESSION'];
                         $TOTAL_PAID_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? $serviceCodeData->fields['NUMBER_OF_SESSION'] : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'], 2);
