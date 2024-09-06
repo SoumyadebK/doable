@@ -1198,6 +1198,45 @@ if(!empty($_POST))
             }
             break;
 
+        case 'OTHER_PAYMENT':
+            $enrollment_payment = getAllEnrollmentPaymentByChargeId(0);
+            if ($enrollment_payment->RecordCount() > 0) {
+                while (!$enrollment_payment->EOF) {
+                    $orgDate = $enrollment_payment->fields['date_paid'];
+                    $newDate = date("Y-m-d", strtotime($orgDate));
+
+                    if ($enrollment_payment->fields['payment_method'] == 'Save Card' || $enrollment_payment->fields['payment_method'] == 'Charge') {
+                        $payment_type = $enrollment_payment->fields['card_type'];
+                    } else {
+                        $payment_type = $enrollment_payment->fields['payment_method'];
+                    }
+                    $PK_PAYMENT_TYPE = $db->Execute("SELECT PK_PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE = '$payment_type'");
+
+                    $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+                    $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = 0;
+                    $ENROLLMENT_PAYMENT_DATA['PK_PAYMENT_TYPE'] = ($PK_PAYMENT_TYPE->RecordCount() > 0) ? $PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE'] : 0;
+                    $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = 0;
+                    $ENROLLMENT_PAYMENT_DATA['TYPE'] = $enrollment_payment->fields['record_type'];
+                    $ENROLLMENT_PAYMENT_DATA['AMOUNT'] = abs($enrollment_payment->fields['amount_paid']);
+                    $ENROLLMENT_PAYMENT_DATA['NOTE'] = $enrollment_payment->fields['title'];
+                    $ENROLLMENT_PAYMENT_DATA['PAYMENT_DATE'] = $newDate;
+                    $PAYMENT_INFO = null;
+                    if ($enrollment_payment->fields['card_number'] > 0) {
+                        $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $enrollment_payment->fields['transaction_id'], 'LAST4' => $enrollment_payment->fields['card_number']];
+                        $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                    } elseif ($enrollment_payment->fields['check_number'] > 0) {
+                        $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $enrollment_payment->fields['check_number'], 'CHECK_DATE' => $newDate];
+                        $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                    }
+                    $ENROLLMENT_PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO; ;
+                    $ENROLLMENT_PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+                    $ENROLLMENT_PAYMENT_DATA['RECEIPT_NUMBER'] = $enrollment_payment->fields['receipt'];
+                    db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
+                    $enrollment_payment->MoveNext();
+                }
+            }
+            break;
+
 
         default:
             break;
@@ -1310,6 +1349,8 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <option value="DOA_ENROLLMENT_PAYMENT">DOA_ENROLLMENT_PAYMENT</option>-->
                                 <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
                                 <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
+
+                                <option value="OTHER_PAYMENT">OTHER_PAYMENT</option>
 
                                 <option value="SP_TIME">Service Provider Time</option>
                             </select>
