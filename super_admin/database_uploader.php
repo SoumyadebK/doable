@@ -108,6 +108,7 @@ if(!empty($_POST))
                 $USER_DATA['ZIP'] = $allUsers->fields['zip'];
                 $USER_DATA['NOTES'] = $allUsers->fields['remarks'];
                 $USER_DATA['ACTIVE'] = $allUsers->fields['is_active'];
+                $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allUsers->fields['date_added']));
                 $USER_DATA['APPEAR_IN_CALENDAR'] = $allUsers->fields['appear_in_calendar'];
                 $USER_DATA['DISPLAY_ORDER'] = $allUsers->fields['position'];
                 $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
@@ -208,6 +209,7 @@ if(!empty($_POST))
                     $USER_DATA['ZIP'] = $allCustomers->fields['zip'];
                     $USER_DATA['NOTES'] = $allCustomers->fields['quote'];
                     $USER_DATA['ACTIVE'] = ($allCustomers->fields['student_status'] == 'A') ? 1 : 0;
+                    $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allCustomers->fields['inquiry_date']));
                     $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                     $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
                     db_perform('DOA_USERS', $USER_DATA, 'insert');
@@ -560,6 +562,7 @@ if(!empty($_POST))
                 $ENROLLMENT_BY_PERCENTAGE = 100;
                 $ENROLLMENT_DATA['ENROLLMENT_BY_PERCENTAGE'] = number_format($ENROLLMENT_BY_PERCENTAGE, 2);
                 $ENROLLMENT_DATA['ACTIVE'] = 1;
+                $ENROLLMENT_DATA['IS_SALE'] = $allEnrollments->fields['is_sale'];
                 $ENROLLMENT_DATA['STATUS'] = "A";
                 $ENROLLMENT_DATA['ENROLLMENT_DATE'] = $allEnrollments->fields['enrollment_date'];
                 $ENROLLMENT_DATA['EXPIRY_DATE'] = $allEnrollments->fields['expdate'];
@@ -1237,6 +1240,26 @@ if(!empty($_POST))
             }
             break;
 
+        case 'USER_JOINING_DATE':
+            $allCustomers = getAllCustomers();
+            while (!$allCustomers->EOF) {
+                $user_id = $allCustomers->fields['customer_id'];
+                $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allCustomers->fields['inquiry_date']));
+                db_perform('DOA_USERS', $USER_DATA, 'update', " USER_ID = '$user_id'");
+                $allCustomers->MoveNext();
+            }
+            break;
+
+        case 'ENR_IS_SALE':
+            $allEnrollments = getAllEnrollments();
+            while (!$allEnrollments->EOF) {
+                $ENROLLMENT_DATA['IS_SALE'] = $allEnrollments->fields['is_sale'];
+                $enrollment_id = $allEnrollments->fields['enrollment_id'];
+                db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'update', " ENROLLMENT_ID = '$enrollment_id'");
+                $allEnrollments->MoveNext();
+            }
+            break;
+
 
         default:
             break;
@@ -1353,6 +1376,10 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <option value="OTHER_PAYMENT">OTHER_PAYMENT</option>
 
                                 <option value="SP_TIME">Service Provider Time</option>
+
+                                <option value="USER_JOINING_DATE">USER_JOINING_DATE</option>
+
+                                <option value="ENR_IS_SALE">ENR_IS_SALE</option>
                             </select>
                             <div id="view_download_div" class="m-10"></div>
                         </div>
