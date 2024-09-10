@@ -1,7 +1,7 @@
 <?php
 require_once('../../global/config.php');
 ?>
-<select class="form-control" name="PK_STATES" id="PK_STATES">
+<select class="form-control" name="PK_STATES" id="PK_STATES" required>
     <option value="">Select State</option>
     <?php
     $PK_COUNTRY = $_POST['PK_COUNTRY'];

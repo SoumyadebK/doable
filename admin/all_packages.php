@@ -6,6 +6,14 @@ global $master_database;
 
 $title = "All Packages";
 
+$status_check = empty($_GET['status'])?'active':$_GET['status'];
+
+if ($status_check == 'active'){
+    $status = 1;
+} elseif ($status_check == 'inactive') {
+    $status = 0;
+}
+
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
@@ -30,10 +38,25 @@ if ($header_data->RecordCount() > 0) {
         <?php require_once('../includes/setup_menu.php') ?>
         <div class="container-fluid body_content m-0">
             <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+                <div class="col-md-3 align-self-center">
+                    <?php if ($status_check=='inactive') { ?>
+                        <h4 class="text-themecolor">Not Active Packages</h4>
+                    <?php } elseif ($status_check=='active') { ?>
+                        <h4 class="text-themecolor">Active Packages</h4>
+                    <?php } ?>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
+
+                <?php if ($status_check=='inactive') { ?>
+                    <div class="col-md-3 align-self-center">
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_packages.php?status=active'"><i class="fa fa-user"></i> Show Active</button>
+                    </div>
+                <?php } elseif ($status_check=='active') { ?>
+                    <div class="col-md-3 align-self-center">
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_packages.php?status=inactive'"><i class="fa fa-user-times"></i> Show Not Active</button>
+                    </div>
+                <?php } ?>
+
+                <div class="col-md-6 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
@@ -66,7 +89,7 @@ if ($header_data->RecordCount() > 0) {
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT * FROM DOA_PACKAGE WHERE IS_DELETED = 0 ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
+                                    $row = $db_account->Execute("SELECT * FROM DOA_PACKAGE WHERE IS_DELETED = 0 AND DOA_PACKAGE.ACTIVE = '$status' ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
                                     while (!$row->EOF) {
                                         $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.SERVICE_CODE, DOA_PACKAGE_SERVICE.NUMBER_OF_SESSION FROM DOA_SERVICE_CODE JOIN DOA_PACKAGE_SERVICE ON DOA_PACKAGE_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_PACKAGE_SERVICE.PK_PACKAGE = ".$row->fields['PK_PACKAGE']);
                                         $serviceCode = [];
