@@ -33,6 +33,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.PK_SERVICE_CODE,
                             DOA_SERVICE_CODE.SERVICE_CODE,
+                            DOA_SCHEDULING_CODE.UNIT,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_APPOINTMENT_MASTER.IS_CHARGED,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
@@ -41,6 +42,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME
                         FROM
                             DOA_APPOINTMENT_MASTER
+                        LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
                         LEFT JOIN DOA_APPOINTMENT_ENROLLMENT ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER
                         LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
                         LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
@@ -232,14 +234,15 @@ while (!$serviceCodeData->EOF) {
         $total_amount_paid_array = [];
         while (!$appointment_data->EOF) {
             $SESSION_CREATED = getSessionCreatedCount($pk_enrollment_service, $appointment_data->fields['APPOINTMENT_TYPE']);
+            $UNIT = $appointment_data->fields['UNIT'];
             $per_session_price = $db_account->Execute("SELECT TOTAL_AMOUNT_PAID, PRICE_PER_SESSION, NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$pk_enrollment_service);
-            $PRICE_PER_SESSION = $per_session_price->fields['PRICE_PER_SESSION'];
-            $total_amount_needed = $SESSION_CREATED * $PRICE_PER_SESSION;
+            $PRICE_PER_SESSION = $per_session_price->fields['PRICE_PER_SESSION']*$UNIT;
+            $total_amount_needed = $SESSION_CREATED * $per_session_price->fields['PRICE_PER_SESSION'];
 
             if($appointment_data->fields['APPOINTMENT_STATUS'] != 'Cancelled' || $appointment_data->fields['IS_CHARGED'] == 1) {
                 if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
-                    $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] - 1;
-                    $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] - $per_session_price->fields['PRICE_PER_SESSION'];
+                    $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] - $UNIT;
+                    $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] - $PRICE_PER_SESSION;
                 } else {
                     $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $SESSION_CREATED;
                     $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $total_amount_needed;

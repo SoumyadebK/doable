@@ -4,7 +4,6 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15c692b1-be7a-4b35-8c1a-1e9fafe6ddda" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -83,7 +82,7 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;roumya&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;soumyadeb&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Applications/XAMPP/xamppfiles/htdocs/doable_new&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -113,6 +112,13 @@
       <workItem from="1724046819230" duration="7748000" />
       <workItem from="1724081310064" duration="5311000" />
       <workItem from="1724132082797" duration="10692000" />
+      <workItem from="1725474893452" duration="3663000" />
+      <workItem from="1725548067332" duration="14010000" />
+      <workItem from="1725632439317" duration="2141000" />
+      <workItem from="1725634643409" duration="9861000" />
+      <workItem from="1725861202089" duration="21058000" />
+      <workItem from="1725913777879" duration="1247000" />
+      <workItem from="1725959954693" duration="680000" />
     </task>
     <servers />
   </component>
