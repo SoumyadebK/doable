@@ -713,19 +713,19 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
 
                                             <div class="row">
-                                                <div class="col-3">
+                                                <!--<div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">Agreement Type<span class="text-danger">*</span></label>
                                                         <select class="form-control" required name="PK_AGREEMENT_TYPE" id="PK_AGREEMENT_TYPE">
                                                             <option value="">Select Agreement Type</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT PK_AGREEMENT_TYPE, AGREEMENT_TYPE FROM DOA_AGREEMENT_TYPE WHERE ACTIVE = 1 ORDER BY PK_AGREEMENT_TYPE");
-                                                            while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_AGREEMENT_TYPE'];?>" <?=($PK_AGREEMENT_TYPE == $row->fields['PK_AGREEMENT_TYPE'])?'selected':''?>><?=$row->fields['AGREEMENT_TYPE']?></option>
-                                                                <?php $row->MoveNext(); } ?>
+/*                                                            $row = $db->Execute("SELECT PK_AGREEMENT_TYPE, AGREEMENT_TYPE FROM DOA_AGREEMENT_TYPE WHERE ACTIVE = 1 ORDER BY PK_AGREEMENT_TYPE");
+                                                            while (!$row->EOF) { */?>
+                                                                <option value="<?php /*echo $row->fields['PK_AGREEMENT_TYPE'];*/?>" <?php /*=($PK_AGREEMENT_TYPE == $row->fields['PK_AGREEMENT_TYPE'])?'selected':''*/?>><?php /*=$row->fields['AGREEMENT_TYPE']*/?></option>
+                                                                <?php /*$row->MoveNext(); } */?>
                                                         </select>
                                                     </div>
-                                                </div>
+                                                </div>-->
                                                 <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">Agreement Template<span class="text-danger">*</span></label>

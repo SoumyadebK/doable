@@ -1,6 +1,15 @@
 <?php
 require_once('../global/config.php');
+
 $title = "Document Library";
+
+$status_check = empty($_GET['status'])?'active':$_GET['status'];
+
+if ($status_check == 'active'){
+    $status = 1;
+} elseif ($status_check == 'inactive') {
+    $status = 0;
+}
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
@@ -27,10 +36,25 @@ if ($header_data->RecordCount() > 0) {
         <?php require_once('../includes/setup_menu.php') ?>
         <div class="container-fluid body_content m-0">
             <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+                <div class="col-md-3 align-self-center">
+                    <?php if ($status_check=='inactive') { ?>
+                        <h4 class="text-themecolor">Not Active Document Library</h4>
+                    <?php } elseif ($status_check=='active') { ?>
+                        <h4 class="text-themecolor">Active Document Library</h4>
+                    <?php } ?>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
+
+                <?php if ($status_check=='inactive') { ?>
+                    <div class="col-md-3 align-self-center">
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_document_library.php?status=active'"><i class="fa fa-user"></i> Show Active</button>
+                    </div>
+                <?php } elseif ($status_check=='active') { ?>
+                    <div class="col-md-3 align-self-center">
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_document_library.php?status=inactive'"><i class="fa fa-user-times"></i> Show Not Active</button>
+                    </div>
+                <?php } ?>
+
+                <div class="col-md-6 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
@@ -60,7 +84,7 @@ if ($header_data->RecordCount() > 0) {
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` JOIN DOA_DOCUMENT_LOCATION ON DOA_DOCUMENT_LIBRARY.PK_DOCUMENT_LIBRARY=DOA_DOCUMENT_LOCATION.PK_DOCUMENT_LIBRARY WHERE DOA_DOCUMENT_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]' GROUP BY DOA_DOCUMENT_LIBRARY.DOCUMENT_NAME") ;
+                                    $row = $db_account->Execute("SELECT * FROM `DOA_DOCUMENT_LIBRARY` JOIN DOA_DOCUMENT_LOCATION ON DOA_DOCUMENT_LIBRARY.PK_DOCUMENT_LIBRARY=DOA_DOCUMENT_LOCATION.PK_DOCUMENT_LIBRARY WHERE DOA_DOCUMENT_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_DOCUMENT_LIBRARY.ACTIVE = '$status' AND PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]' GROUP BY DOA_DOCUMENT_LIBRARY.DOCUMENT_NAME") ;
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_DOCUMENT_LIBRARY']?>);"><?=$i;?></td>
