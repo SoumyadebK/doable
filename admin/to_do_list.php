@@ -12,10 +12,15 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
-$appointment_status = empty($_GET['appointment_status']) ? '1, 2, 3, 5, 7, 8' : $_GET['appointment_status'];
-
 $START_DATE = ' ';
 $END_DATE = ' ';
+
+if (empty($_GET['START_DATE']) && empty($_GET['END_DATE']) && empty($_GET['search_text'])) {
+    $START_DATE = " AND DOA_SPECIAL_APPOINTMENT.DATE = '".date('Y-m-d')."'";
+}
+
+$appointment_status = empty($_GET['appointment_status']) ? '1, 2, 3, 5, 7, 8' : $_GET['appointment_status'];
+
 if (!empty($_GET['START_DATE'])) {
     $START_DATE = " AND DOA_SPECIAL_APPOINTMENT.DATE >= '".date('Y-m-d', strtotime($_GET['START_DATE']))."'";
 }

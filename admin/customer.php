@@ -623,7 +623,7 @@ if ($PK_USER_MASTER > 0) {
                                                                 <div class="form-group">
                                                                     <label class="form-label">Gender</label>
                                                                     <select class="form-control" id="GENDER" name="GENDER">
-                                                                        <option>Select Gender</option>
+                                                                        <option value="">Select Gender</option>
                                                                         <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
                                                                         <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
                                                                         <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
@@ -665,7 +665,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     <label class="col-md-12">Country</label>
                                                                     <div class="col-md-12">
                                                                         <div class="col-sm-12">
-                                                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
+                                                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
                                                                                 <option>Select Country</option>
                                                                                 <?php
                                                                                 $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
