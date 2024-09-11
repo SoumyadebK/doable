@@ -50,7 +50,7 @@ if ($type === 'export') {
     $access_token = getAccessToken();
     $authorization = "Authorization: Bearer ".$access_token;
 
-    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+    /*$row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
 
     $regular_data = $db_account->Execute("SELECT SUM(DISTINCT DOA_ENROLLMENT_PAYMENT.AMOUNT) AS CASH FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER != 5 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'");
     $regular_cash = $regular_data->fields['CASH'] > 0 ? $regular_data->fields['CASH'] : '0.00';
@@ -171,7 +171,7 @@ if ($type === 'export') {
     ];
 
     $url = constant('ami_api_url').'/api/v1/reports';
-    $post_data = callArturMurrayApi($url, $data, $authorization);
+    $post_data = callArturMurrayApi($url, $data, $authorization);*/
 
     //pre_r(json_decode($post_data));
 }
@@ -205,11 +205,25 @@ if ($type === 'export') {
                 </div>
             </div>
 
+            <?php
+            if ($type === 'export') {
+                echo "<h3>Data export to Arthur Murray API Successfully</h3>";
+                /*$data = json_decode($post_data);
+                if (isset($data->error)) {
+                    echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->error_description.'</div>';
+                } elseif (isset($data->errors)) {
+                    if (isset($data->errors->errors[0])) {
+                        echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $data->errors->errors[0] . '</div>';
+                    } else {
+                        echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->message.'</div>';
+                    }
+                } else {
+                    echo "<h3>Data export to Arthur Murray API Successfully</h3>";
+                }*/
+            } else { ?>
             <div class="row">
                 <div class="col-12">
                     <div class="card">
-
-
                         <div class="card-body">
                             <div>
                                 <img src="../assets/images/background/doable_logo.png" style="margin-bottom:-35px; height: 60px; width: auto;">
@@ -592,6 +606,8 @@ if ($type === 'export') {
                     </div>
                 </div>
             </div>
+            <?php } ?>
+
         </div>
     </div>
 </div>
