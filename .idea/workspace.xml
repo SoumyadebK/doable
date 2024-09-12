@@ -6,10 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="e975af6f-2f8f-4319-b4e5-14f3361041bb" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/state.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/state.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_packages.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_packages.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_service_codes.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_service_codes.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/customer.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/customer.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,19 +82,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "roumya",
-    "last_opened_file_path": "/Applications/XAMPP/xamppfiles/htdocs/doable_new",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;roumya&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Applications/XAMPP/xamppfiles/htdocs/doable_new&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -110,7 +106,7 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="15c692b1-be7a-4b35-8c1a-1e9fafe6ddda" name="Changes" comment="" />
+      <changelist id="e975af6f-2f8f-4319-b4e5-14f3361041bb" name="Changes" comment="" />
       <created>1724046255962</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -126,6 +122,7 @@
       <workItem from="1725861202089" duration="21058000" />
       <workItem from="1725913777879" duration="1247000" />
       <workItem from="1725959954693" duration="680000" />
+      <workItem from="1725981024471" duration="438000" />
     </task>
     <servers />
   </component>
