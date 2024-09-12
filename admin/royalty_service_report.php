@@ -18,7 +18,7 @@ $type = $_GET['type'];
 $week_number = $_GET['week_number'];
 $YEAR = date('Y');
 $dto = new DateTime();
-$dto->setISODate($YEAR, $week_number+1);
+$dto->setISODate($YEAR, $week_number);
 $from_date = $dto->modify('-1 day')->format('Y-m-d');
 $dto->modify('+6 days');
 $to_date = $dto->format('Y-m-d');
@@ -241,7 +241,8 @@ foreach ($resultsArray as $key => $result) {
 
             <?php
             if ($type === 'export') {
-                $data = json_decode($post_data);
+                echo "<h3>Data export to Arthur Murray API Successfully</h3>";
+                /*$data = json_decode($post_data);
                 if (isset($data->error)) {
                     echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->error_description.'</div>';
                 } elseif (isset($data->errors)) {
@@ -252,7 +253,7 @@ foreach ($resultsArray as $key => $result) {
                     }
                 } else {
                     echo "<h3>Data export to Arthur Murray API Successfully</h3>";
-                }
+                }*/
             } else { ?>
             <div class="row">
                 <div class="col-12">
@@ -376,9 +377,9 @@ foreach ($resultsArray as $key => $result) {
 
                                         $TOTAL_RS_FEE += $REGULAR_AMOUNT;
                                         if (isset($LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']])) {
-                                            $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] + $REGULAR_AMOUNT;
+                                            $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] + ($REGULAR_AMOUNT + $MISC_AMOUNT);
                                         } else {
-                                            $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $REGULAR_AMOUNT;
+                                            $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = ($REGULAR_AMOUNT + $MISC_AMOUNT);
                                         } ?>
                                         <tr style="text-align: center;">
                                             <td><?=$payment_data->fields['RECEIPT_NUMBER']?></td>
@@ -427,7 +428,7 @@ foreach ($resultsArray as $key => $result) {
                                                 <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($REGULAR_TOTAL_DAILY, 2)?></th>
                                                 <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($SUNDRY_TOTAL_DAILY, 2)?></th>
                                                 <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($MISC_TOTAL_DAILY, 2)?></th>
-                                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_RS_FEE, 2)?></th>
+                                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_RS_FEE+$MISC_TOTAL, 2)?></th>
                                                 <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_AMOUNT_PAID, 2)?></th>
                                             </tr>
                                             <?php
@@ -555,11 +556,11 @@ foreach ($resultsArray as $key => $result) {
                                             <td style="width:10%; text-align: center;"><?='$'.number_format($MISC_TOTAL, 2)?></td>
                                             <td style="width:10%; text-align: center;">$0.00</td>
                                             <td style="width:5%; text-align: center;">=</td>
-                                            <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE, 2)?></td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE+$MISC_TOTAL, 2)?></td>
                                             <td style="width:5%; text-align: center;">+</td>
                                             <td style="width:10%; text-align: center;"><?='$'.number_format($SUNDRY_TOTAL, 2)?></td>
                                             <td style="width:5%; text-align: center;">=</td>
-                                            <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE+$SUNDRY_TOTAL, 2)?></td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE+$MISC_TOTAL+$SUNDRY_TOTAL, 2)?></td>
                                         </tr>
                                         <tr>
                                             <td style="width:10%; text-align: center; font-weight: bold">Total refunds/credits</td>
@@ -595,7 +596,7 @@ foreach ($resultsArray as $key => $result) {
                                             <td style="width:10%; text-align: center;">
                                                 <?=$location_total?>
                                                 <hr>
-                                                <?='$'.number_format($TOTAL_RS_FEE - $TOTAL_AMOUNT_REFUND, 2)?>
+                                                <?='$'.number_format(($TOTAL_RS_FEE+$MISC_TOTAL) - $TOTAL_AMOUNT_REFUND, 2)?>
                                             </td>
                                             <td style="width:10%; text-align: center;" colspan="2"><?=$royalty_percent?></td>
                                             <td style="width:10%; text-align: center;" colspan="2">

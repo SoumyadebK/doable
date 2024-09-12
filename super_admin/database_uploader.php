@@ -108,6 +108,7 @@ if(!empty($_POST))
                 $USER_DATA['ZIP'] = $allUsers->fields['zip'];
                 $USER_DATA['NOTES'] = $allUsers->fields['remarks'];
                 $USER_DATA['ACTIVE'] = $allUsers->fields['is_active'];
+                $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allUsers->fields['date_added']));
                 $USER_DATA['APPEAR_IN_CALENDAR'] = $allUsers->fields['appear_in_calendar'];
                 $USER_DATA['DISPLAY_ORDER'] = $allUsers->fields['position'];
                 $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
@@ -208,6 +209,7 @@ if(!empty($_POST))
                     $USER_DATA['ZIP'] = $allCustomers->fields['zip'];
                     $USER_DATA['NOTES'] = $allCustomers->fields['quote'];
                     $USER_DATA['ACTIVE'] = ($allCustomers->fields['student_status'] == 'A') ? 1 : 0;
+                    $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allCustomers->fields['inquiry_date']));
                     $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                     $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
                     db_perform('DOA_USERS', $USER_DATA, 'insert');
@@ -458,7 +460,7 @@ if(!empty($_POST))
                 $PACKAGE_DATA['PACKAGE_NAME'] = $allPackages->fields['package_name'];
                 $PACKAGE_DATA['SORT_ORDER'] = $allPackages->fields['sorder'];
                 $PACKAGE_DATA['EXPIRY_DATE'] = 30;
-                $PACKAGE_DATA['ACTIVE'] = 1;
+                $PACKAGE_DATA['ACTIVE'] = ($allPackages->fields['closed'] == 1) ? 0 : 1;
                 $PACKAGE_DATA['IS_DELETED'] = 0;
                 $PACKAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
                 $PACKAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
@@ -467,6 +469,8 @@ if(!empty($_POST))
 
                 $PACKAGE_LOCATION_DATA['PK_PACKAGE'] = $PK_PACKAGE;
                 $PACKAGE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+
+
                 db_perform_account('DOA_PACKAGE_LOCATION', $PACKAGE_LOCATION_DATA, 'insert');
 
                 $packageServiceData = getPackageServices($allPackages->fields['package_id']);
@@ -491,6 +495,13 @@ if(!empty($_POST))
 
                     $packageServiceData->MoveNext();
                 }
+
+                /*$package_name = $allPackages->fields['package_name'];
+                $package_data = $db_account->Execute("SELECT PK_PACKAGE FROM DOA_PACKAGE WHERE PACKAGE_NAME = '$package_name'");
+                if ($package_data->RecordCount() > 0) {
+                    $PACKAGE_DATA['ACTIVE'] = ($allPackages->fields['closed'] == 1) ? 0 : 1;
+                    db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'update', ' PK_PACKAGE = '.$package_data->fields['PK_PACKAGE']);
+                }*/
 
                 $allPackages->MoveNext();
             }
@@ -551,6 +562,7 @@ if(!empty($_POST))
                 $ENROLLMENT_BY_PERCENTAGE = 100;
                 $ENROLLMENT_DATA['ENROLLMENT_BY_PERCENTAGE'] = number_format($ENROLLMENT_BY_PERCENTAGE, 2);
                 $ENROLLMENT_DATA['ACTIVE'] = 1;
+                $ENROLLMENT_DATA['IS_SALE'] = $allEnrollments->fields['is_sale'];
                 $ENROLLMENT_DATA['STATUS'] = "A";
                 $ENROLLMENT_DATA['ENROLLMENT_DATE'] = $allEnrollments->fields['enrollment_date'];
                 $ENROLLMENT_DATA['EXPIRY_DATE'] = $allEnrollments->fields['expdate'];
@@ -1156,6 +1168,99 @@ if(!empty($_POST))
             }
             break;
 
+        case 'SP_TIME':
+            $startTime = getStartTime();
+            $endTime = getEndTime();
+
+            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER) FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$PK_LOCATION.") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+            while (!$row->EOF) {
+
+                $SERVICE_PROVIDER_HOURS['PK_USER'] = $row->fields['PK_USER'];
+                $SERVICE_PROVIDER_HOURS['PK_LOCATION'] = $PK_LOCATION;
+                $SERVICE_PROVIDER_HOURS['MON_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['MON_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['TUE_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['TUE_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['WED_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['WED_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['THU_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['THU_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['FRI_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['FRI_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                $SERVICE_PROVIDER_HOURS['SAT_START_TIME'] = '00:00:00';
+                $SERVICE_PROVIDER_HOURS['SAT_END_TIME'] = '00:00:00';
+                $SERVICE_PROVIDER_HOURS['SUN_START_TIME'] = '00:00:00';
+                $SERVICE_PROVIDER_HOURS['SUN_END_TIME'] = '00:00:00';
+
+                $location_data = $db->Execute("SELECT PK_SERVICE_PROVIDER_LOCATION_HOURS FROM DOA_SERVICE_PROVIDER_LOCATION_HOURS WHERE PK_USER = ".$row->fields['PK_USER']);
+                if ($location_data->RecordCount() == 0) {
+                    db_perform_account('DOA_SERVICE_PROVIDER_LOCATION_HOURS', $SERVICE_PROVIDER_HOURS, 'insert');
+                }
+
+                $row->MoveNext();
+            }
+            break;
+
+        case 'OTHER_PAYMENT':
+            $enrollment_payment = getAllEnrollmentPaymentByChargeId(0);
+            if ($enrollment_payment->RecordCount() > 0) {
+                while (!$enrollment_payment->EOF) {
+                    $orgDate = $enrollment_payment->fields['date_paid'];
+                    $newDate = date("Y-m-d", strtotime($orgDate));
+
+                    if ($enrollment_payment->fields['payment_method'] == 'Save Card' || $enrollment_payment->fields['payment_method'] == 'Charge') {
+                        $payment_type = $enrollment_payment->fields['card_type'];
+                    } else {
+                        $payment_type = $enrollment_payment->fields['payment_method'];
+                    }
+                    $PK_PAYMENT_TYPE = $db->Execute("SELECT PK_PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE = '$payment_type'");
+
+                    $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+                    $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = 0;
+                    $ENROLLMENT_PAYMENT_DATA['PK_PAYMENT_TYPE'] = ($PK_PAYMENT_TYPE->RecordCount() > 0) ? $PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE'] : 0;
+                    $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = 0;
+                    $ENROLLMENT_PAYMENT_DATA['TYPE'] = $enrollment_payment->fields['record_type'];
+                    $ENROLLMENT_PAYMENT_DATA['AMOUNT'] = abs($enrollment_payment->fields['amount_paid']);
+                    $ENROLLMENT_PAYMENT_DATA['NOTE'] = $enrollment_payment->fields['title'];
+                    $ENROLLMENT_PAYMENT_DATA['PAYMENT_DATE'] = $newDate;
+                    $PAYMENT_INFO = null;
+                    if ($enrollment_payment->fields['card_number'] > 0) {
+                        $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $enrollment_payment->fields['transaction_id'], 'LAST4' => $enrollment_payment->fields['card_number']];
+                        $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                    } elseif ($enrollment_payment->fields['check_number'] > 0) {
+                        $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $enrollment_payment->fields['check_number'], 'CHECK_DATE' => $newDate];
+                        $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                    }
+                    $ENROLLMENT_PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO; ;
+                    $ENROLLMENT_PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+                    $ENROLLMENT_PAYMENT_DATA['RECEIPT_NUMBER'] = $enrollment_payment->fields['receipt'];
+                    db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
+                    $enrollment_payment->MoveNext();
+                }
+            }
+            break;
+
+        case 'USER_JOINING_DATE':
+            $allCustomers = getAllCustomers();
+            while (!$allCustomers->EOF) {
+                $user_id = $allCustomers->fields['customer_id'];
+                $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allCustomers->fields['inquiry_date']));
+                db_perform('DOA_USERS', $USER_DATA, 'update', " USER_ID = '$user_id'");
+                $allCustomers->MoveNext();
+            }
+            break;
+
+        case 'ENR_IS_SALE':
+            $allEnrollments = getAllEnrollments();
+            while (!$allEnrollments->EOF) {
+                $ENROLLMENT_DATA['IS_SALE'] = $allEnrollments->fields['is_sale'];
+                $enrollment_id = $allEnrollments->fields['enrollment_id'];
+                db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'update', " ENROLLMENT_ID = '$enrollment_id'");
+                $allEnrollments->MoveNext();
+            }
+            break;
+
+
         default:
             break;
     }
@@ -1267,6 +1372,14 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <option value="DOA_ENROLLMENT_PAYMENT">DOA_ENROLLMENT_PAYMENT</option>-->
                                 <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
                                 <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
+
+                                <option value="OTHER_PAYMENT">OTHER_PAYMENT</option>
+
+                                <option value="SP_TIME">Service Provider Time</option>
+
+                                <option value="USER_JOINING_DATE">USER_JOINING_DATE</option>
+
+                                <option value="ENR_IS_SALE">ENR_IS_SALE</option>
                             </select>
                             <div id="view_download_div" class="m-10"></div>
                         </div>
@@ -1286,3 +1399,6 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
     }
 </script>
 </html>
+
+CZXPK8979C
+289687942941

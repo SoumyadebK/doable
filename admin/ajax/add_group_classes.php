@@ -198,6 +198,8 @@ $AND_PK_USER = ' ';
     $('.multi_select').SumoSelect({search: true, searchText: 'Search...'});
 
     $('.datepicker-normal').datepicker({
+        changeMonth: true,
+        changeYear: true,
         format: 'mm/dd/yyyy',
     });
 

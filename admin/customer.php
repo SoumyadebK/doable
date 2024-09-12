@@ -510,9 +510,9 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="row">
                                                             <div class="col-3">
                                                                 <div class="form-group">
-                                                                    <label class="form-label">Phone<span class="text-danger" id="phone_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
+                                                                    <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
+                                                                        <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE?>" required>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -521,9 +521,9 @@ if ($PK_USER_MASTER > 0) {
                                                             </div>
                                                             <div class="col-3">
                                                                 <div class="form-group">
-                                                                    <label class="form-label">Email<span class="text-danger" id="email_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
+                                                                    <label class="form-label">Email<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
-                                                                        <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?=$EMAIL_ID?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
+                                                                        <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?=$EMAIL_ID?>" required>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -549,9 +549,9 @@ if ($PK_USER_MASTER > 0) {
                                                                         <div class="row">
                                                                             <div class="col-9">
                                                                                 <div class="form-group">
-                                                                                    <label class="form-label">Phone</label>
+                                                                                    <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                                     <div class="col-md-12">
-                                                                                        <input type="text" name="CUSTOMER_PHONE[]" class="form-control" placeholder="Enter Phone Number" value="<?=$customer_phone->fields['PHONE']?>">
+                                                                                        <input type="text" name="CUSTOMER_PHONE[]" class="form-control" placeholder="Enter Phone Number" value="<?=$customer_phone->fields['PHONE']?>" required>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -570,9 +570,9 @@ if ($PK_USER_MASTER > 0) {
                                                                         <div class="row">
                                                                             <div class="col-9">
                                                                                 <div class="form-group">
-                                                                                    <label class="col-md-12">Email</label>
+                                                                                    <label class="col-md-12">Email<span class="text-danger">*</span></label>
                                                                                     <div class="col-md-12">
-                                                                                        <input type="email" name="CUSTOMER_EMAIL[]" class="form-control" placeholder="Enter Email Address" value="<?=$customer_email->fields['EMAIL']?>">
+                                                                                        <input type="email" name="CUSTOMER_EMAIL[]" class="form-control" placeholder="Enter Email Address" value="<?=$customer_email->fields['EMAIL']?>" required>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -623,7 +623,7 @@ if ($PK_USER_MASTER > 0) {
                                                                 <div class="form-group">
                                                                     <label class="form-label">Gender</label>
                                                                     <select class="form-control" id="GENDER" name="GENDER">
-                                                                        <option>Select Gender</option>
+                                                                        <option value="">Select Gender</option>
                                                                         <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
                                                                         <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
                                                                         <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
@@ -662,10 +662,10 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="row">
                                                             <div class="col-6">
                                                                 <div class="form-group">
-                                                                    <label class="col-md-12">Country</label>
+                                                                    <label class="col-md-12">Country<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
                                                                         <div class="col-sm-12">
-                                                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
+                                                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
                                                                                 <option>Select Country</option>
                                                                                 <?php
                                                                                 $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
@@ -680,7 +680,7 @@ if ($PK_USER_MASTER > 0) {
 
                                                             <div class="col-6">
                                                                 <div class="form-group">
-                                                                    <label class="col-md-12">State</label>
+                                                                    <label class="col-md-12">State<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
                                                                         <div class="col-sm-12">
                                                                             <div id="State_div"></div>

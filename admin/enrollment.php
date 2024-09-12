@@ -463,7 +463,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
                                                             <option value="">Select Package</option>
                                                             <?php
-                                                            $row = $db_account->Execute("SELECT DISTINCT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME, DOA_PACKAGE.EXPIRY_DATE FROM DOA_PACKAGE LEFT JOIN DOA_PACKAGE_LOCATION ON DOA_PACKAGE.PK_PACKAGE = DOA_PACKAGE_LOCATION.PK_PACKAGE WHERE DOA_PACKAGE_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE = 1 ORDER BY SORT_ORDER");
+                                                            $row = $db_account->Execute("SELECT DISTINCT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME, DOA_PACKAGE.EXPIRY_DATE FROM DOA_PACKAGE LEFT JOIN DOA_PACKAGE_LOCATION ON DOA_PACKAGE.PK_PACKAGE = DOA_PACKAGE_LOCATION.PK_PACKAGE WHERE DOA_PACKAGE_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE = 1 ORDER BY SORT_ORDER ASC");
                                                             while (!$row->EOF) { ?>
                                                                 <option value="<?php echo $row->fields['PK_PACKAGE'];?>" data-expiry_date="<?=$row->fields['EXPIRY_DATE']?>" <?=($row->fields['PK_PACKAGE'] == $PK_PACKAGE)?'selected':''?>><?=$row->fields['PACKAGE_NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>
@@ -553,7 +553,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                                 <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
                                                                     <option>Select Service</option>
                                                                     <?php
-                                                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.") AND ACTIVE = 1 AND IS_DELETED = 0");
+                                                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.") AND ACTIVE = 1 AND IS_DELETED = 0 ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME ASC");
                                                                     while (!$row->EOF) { ?>
                                                                         <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($row->fields['PK_SERVICE_MASTER'] == $enrollment_service_data->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
                                                                     <?php $row->MoveNext(); } ?>
@@ -624,7 +624,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                                 <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
                                                                     <option>Select</option>
                                                                     <?php
-                                                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.") AND IS_DELETED = 0");
+                                                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.") AND IS_DELETED = 0 ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME ASC");
                                                                     while (!$row->EOF) { ?>
                                                                         <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>"><?=$row->fields['SERVICE_NAME']?></option>
                                                                     <?php $row->MoveNext(); } ?>
@@ -713,19 +713,19 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
 
                                             <div class="row">
-                                                <div class="col-3">
+                                                <!--<div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">Agreement Type<span class="text-danger">*</span></label>
                                                         <select class="form-control" required name="PK_AGREEMENT_TYPE" id="PK_AGREEMENT_TYPE">
                                                             <option value="">Select Agreement Type</option>
                                                             <?php
-                                                            $row = $db->Execute("SELECT PK_AGREEMENT_TYPE, AGREEMENT_TYPE FROM DOA_AGREEMENT_TYPE WHERE ACTIVE = 1 ORDER BY PK_AGREEMENT_TYPE");
-                                                            while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_AGREEMENT_TYPE'];?>" <?=($PK_AGREEMENT_TYPE == $row->fields['PK_AGREEMENT_TYPE'])?'selected':''?>><?=$row->fields['AGREEMENT_TYPE']?></option>
-                                                                <?php $row->MoveNext(); } ?>
+/*                                                            $row = $db->Execute("SELECT PK_AGREEMENT_TYPE, AGREEMENT_TYPE FROM DOA_AGREEMENT_TYPE WHERE ACTIVE = 1 ORDER BY PK_AGREEMENT_TYPE");
+                                                            while (!$row->EOF) { */?>
+                                                                <option value="<?php /*echo $row->fields['PK_AGREEMENT_TYPE'];*/?>" <?php /*=($PK_AGREEMENT_TYPE == $row->fields['PK_AGREEMENT_TYPE'])?'selected':''*/?>><?php /*=$row->fields['AGREEMENT_TYPE']*/?></option>
+                                                                <?php /*$row->MoveNext(); } */?>
                                                         </select>
                                                     </div>
-                                                </div>
+                                                </div>-->
                                                 <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">Agreement Template<span class="text-danger">*</span></label>

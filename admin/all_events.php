@@ -267,6 +267,8 @@ $page_first_result = ($page-1) * $results_per_page;
     $(function () {
 
         startDate = $("#START_DATE").datepicker({
+            changeMonth: true,
+            changeYear: true,
             numberOfMonths: 1,
             onSelect: function(selected) {
                 $("#END_DATE").datepicker("option","minDate", selected);
@@ -274,6 +276,8 @@ $page_first_result = ($page-1) * $results_per_page;
             }
         });
         $("#END_DATE").datepicker({
+            changeMonth: true,
+            changeYear: true,
             numberOfMonths: 1,
             onSelect: function(selected) {
                 $("#START_DATE").datepicker("option","maxDate", selected)

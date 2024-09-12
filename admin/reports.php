@@ -122,6 +122,11 @@ if (!empty($_GET['NAME'])) {
 <script>
     $(".week-picker").datepicker({
         showWeek: true,
+        showOtherMonths: true,
+        selectOtherMonths: true,
+        changeMonth: true,
+        changeYear: true,
+        calculateWeek: wk,
         beforeShowDay: function (date) {
             if (date.getDay() === 0) {
                 return [true, ''];
@@ -129,9 +134,17 @@ if (!empty($_GET['NAME'])) {
             return [false, ''];
         },
         onSelect: function(dateText, inst) {
-            $(this).val("Week Number " + $.datepicker.iso8601Week(new Date(dateText)));
+            let d = new Date(dateText);
+            d.setDate(d.getDate() -363);
+            $(this).val("Week Number " + $.datepicker.iso8601Week(d));
         }
     });
+
+    function wk(d) {
+        var d = new Date(d);
+        d.setDate(d.getDate() -363);
+        return '#' + $.datepicker.iso8601Week(d);
+    }
 
     function generateReport(){
         let week_number = $('#WEEK_NUMBER').val();
