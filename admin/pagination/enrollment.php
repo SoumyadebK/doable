@@ -157,11 +157,11 @@ while (!$row->EOF) {
                     } ?>
                     <tr>
                         <td>Amount</td>
-                        <td style="text-align: right;"><?=$total_amount?></td>
-                        <td style="text-align: right;"><?=$total_used_amount?></td>
+                        <td style="text-align: right;"><?=number_format($total_amount, 2)?></td>
+                        <td style="text-align: right;"><?=number_format($total_used_amount, 2)?></td>
                         <td style="text-align: right; color:<?=($total_paid_amount-$total_used_amount<-0.03)?'red':'black'?>;"><?=number_format((($total_paid_amount-$total_used_amount<0.03) ? 0 : $total_paid_amount-$total_used_amount), 2)?></td>
                         <td style="text-align: right;">$<?=number_format($total_paid_amount, 2)?></td>
-                        <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? $total_paid_amount-$total_used_amount : 0?></td>
+                        <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? number_format($total_paid_amount-$total_used_amount, 2) : 0?></td>
                     </tr>
                     </tbody>
                 </table>
