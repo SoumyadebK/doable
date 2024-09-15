@@ -241,8 +241,7 @@ foreach ($resultsArray as $key => $result) {
 
             <?php
             if ($type === 'export') {
-                echo "<h3>Data export to Arthur Murray API Successfully</h3>";
-                /*$data = json_decode($post_data);
+                $data = json_decode($post_data);
                 if (isset($data->error)) {
                     echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->error_description.'</div>';
                 } elseif (isset($data->errors)) {
@@ -253,7 +252,7 @@ foreach ($resultsArray as $key => $result) {
                     }
                 } else {
                     echo "<h3>Data export to Arthur Murray API Successfully</h3>";
-                }*/
+                }
             } else { ?>
             <div class="row">
                 <div class="col-12">

@@ -181,6 +181,14 @@ function updateSessionCreatedAndCompletedCount($PK_APPOINTMENT_MASTER)
 function getSessionCreatedCount($PK_ENROLLMENT_SERVICE, $TYPE = null)
 {
     global $db_account;
+    if ($TYPE == null) {
+        $enrollmentServiceData = $db_account->Execute("SELECT DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE'");
+        if ($enrollmentServiceData->fields['IS_GROUP'] == 0) {
+            $TYPE = 'GROUP';
+        } else {
+            $TYPE = 'NORMAL';
+        }
+    }
     if ($TYPE == 'NORMAL') {
         $session_created = $db_account->Execute("SELECT SUM(DOA_SCHEDULING_CODE.UNIT) AS SESSION_CREATED FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE WHERE (`PK_APPOINTMENT_STATUS` != 6 OR IS_CHARGED = 1) AND APPOINTMENT_TYPE = 'NORMAL' AND `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
         return ($session_created->RecordCount() > 0 && $session_created->fields['SESSION_CREATED'] != NULL) ? $session_created->fields['SESSION_CREATED'] : 0;
