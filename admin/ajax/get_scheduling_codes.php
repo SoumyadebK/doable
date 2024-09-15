@@ -9,8 +9,8 @@ if (isset($_POST['PK_ENROLLMENT_MASTER'])) {
     $PK_SERVICE_MASTER = $PK_SERVICE_MASTER_ARRAY[0];
 }
 
-$no_of_session = $_POST['no_of_session'];
-$used_session = $_POST['used_session'];
+$no_of_session = $_POST['no_of_session'] ?? 2;
+$used_session = $_POST['used_session'] ?? 1;
 $session_left = (float)($no_of_session - $used_session);
 ?>
 <option value="">Select Scheduling Code</option>
