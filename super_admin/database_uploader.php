@@ -110,6 +110,7 @@ if(!empty($_POST))
                 $USER_DATA['ACTIVE'] = $allUsers->fields['is_active'];
                 $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allUsers->fields['date_added']));
                 $USER_DATA['APPEAR_IN_CALENDAR'] = $allUsers->fields['appear_in_calendar'];
+                $USER_DATA['IS_DELETED'] = 0;
                 $USER_DATA['DISPLAY_ORDER'] = $allUsers->fields['position'];
                 $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -213,6 +214,7 @@ if(!empty($_POST))
                         $USER_DATA['NOTES'] = $allCustomers->fields['quote'];
                         $USER_DATA['ACTIVE'] = ($allCustomers->fields['student_status'] == 'A') ? 1 : 0;
                         $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allCustomers->fields['inquiry_date']));
+                        $USER_DATA['IS_DELETED'] = 0;
                         $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                         $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
                         db_perform('DOA_USERS', $USER_DATA, 'insert');
@@ -340,11 +342,11 @@ if(!empty($_POST))
                                 db_perform_account('DOA_CUSTOMER_INTEREST_OTHER_DATA', $INQUIRY_VALUE, 'insert');
                             }
                         }
-                        $allCustomers->MoveNext();
                     } catch (Exception $ex) {
                         echo $ex->getMessage() . "<br>";
                     }
                 }
+                $allCustomers->MoveNext();
             }
             break;
 
@@ -1403,6 +1405,3 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
     }
 </script>
 </html>
-
-CZXPK8979C
-289687942941
