@@ -103,12 +103,12 @@ $CANCEL_FUTURE_APPOINTMENT = $_GET['CANCEL_FUTURE_APPOINTMENT'];
         $total_used_amount +=  ($PRICE_PER_SESSION * $value['SESSION_COMPLETED']);
         if (isset($value['ADJUSTABLE_AMOUNT'])) {
             $adjusted_amount = "<span style='margin-left: 8px; padding: 5px; background-color: ".(($value['ADJUSTABLE_AMOUNT'] > 0) ? 'green' : 'red')."; border-radius: 5px; color: white;'>".$value['ADJUSTABLE_AMOUNT']."</span>"; ?>
-            <input type="hidden" name="PK_ENROLLMENT_SERVICE[]" value="<?=$key?>">
             <input type="hidden" name="TOTAL_AMOUNT_PAID[]" value="<?=$value['TOTAL_AMOUNT_PAID']+$value['ADJUSTABLE_AMOUNT']?>">
         <?php } else {
             $adjusted_amount = '';
         }
         ?>
+        <input type="hidden" name="PK_ENROLLMENT_SERVICE[]" value="<?=$key?>">
         <tr>
             <td><?=$value['SERVICE_CODE']?></td>
             <td style="text-align: right"><?=$value['NUMBER_OF_SESSION']?></td>
