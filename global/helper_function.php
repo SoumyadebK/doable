@@ -183,7 +183,7 @@ function getSessionCreatedCount($PK_ENROLLMENT_SERVICE, $TYPE = null)
     global $db_account;
     if ($TYPE == null) {
         $enrollmentServiceData = $db_account->Execute("SELECT DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE'");
-        if ($enrollmentServiceData->fields['IS_GROUP'] == 0) {
+        if ($enrollmentServiceData->fields['IS_GROUP'] == 1) {
             $TYPE = 'GROUP';
         } else {
             $TYPE = 'NORMAL';
@@ -204,7 +204,7 @@ function getPaidSessionCount($PK_ENROLLMENT_SERVICE)
 {
     global $db_account;
     $enrollmentServiceData = $db_account->Execute("SELECT DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE'");
-    if ($enrollmentServiceData->fields['IS_GROUP'] == 0) {
+    if ($enrollmentServiceData->fields['IS_GROUP'] == 1) {
         $TYPE = 'GROUP';
     } else {
         $TYPE = 'NORMAL';
