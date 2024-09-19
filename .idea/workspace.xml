@@ -5,16 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="15c692b1-be7a-4b35-8c1a-1e9fafe6ddda" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_customers.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_customers.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_enrollments.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_enrollments.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/appointment_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/appointment_list.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/pagination/get_standing_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/get_standing_appointment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/pagination/get_standing_to_do.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/get_standing_to_do.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/settings.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/settings.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/to_do_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/to_do_list.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/helper_function.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/helper_function.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -104,6 +96,11 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -139,7 +136,9 @@
       <workItem from="1726496091018" duration="127000" />
       <workItem from="1726496243922" duration="3939000" />
       <workItem from="1726584029878" duration="4391000" />
-      <workItem from="1726592198301" duration="9414000" />
+      <workItem from="1726592198301" duration="10133000" />
+      <workItem from="1726670301551" duration="6387000" />
+      <workItem from="1726738203930" duration="363000" />
     </task>
     <servers />
   </component>
