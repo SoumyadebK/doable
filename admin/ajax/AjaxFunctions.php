@@ -2152,11 +2152,27 @@ function moveToWallet($RESPONSE_DATA)
     }
 
     $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    if ($ENROLLMENT_TYPE == 'active') {
+        $LEDGER_DATA['TRANSACTION_TYPE'] = $TYPE;
+        $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT;
+        $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+        $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $enrollmentBillingData->fields['PK_ENROLLMENT_BILLING'];
+        $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
+        $LEDGER_DATA['IS_PAID'] = 1;
+        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
+        $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
+        $LEDGER_DATA['BALANCE'] = $BALANCE;
+        $LEDGER_DATA['STATUS'] = 'A';
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+
+        $PK_ENROLLMENT_LEDGER_NEW = $db_account->insert_ID();
+    }
+
     $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
     $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollmentBillingData->fields['PK_ENROLLMENT_BILLING'];
     $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE;
     $PAYMENT_DATA['AMOUNT'] = $BALANCE;
-    $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
+    $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = ($ENROLLMENT_TYPE == 'active') ? $PK_ENROLLMENT_LEDGER_NEW : $PK_ENROLLMENT_LEDGER;
     $PAYMENT_DATA['TYPE'] = $TYPE;
     $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
     $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
@@ -2170,7 +2186,7 @@ function moveToWallet($RESPONSE_DATA)
 
     if ($ENROLLMENT_TYPE == 'active') {
         $UPDATE_DATA['IS_PAID'] = 2;
-        $UPDATE_DATA['TRANSACTION_TYPE'] = $TRANSACTION_TYPE;
+        //$UPDATE_DATA['TRANSACTION_TYPE'] = $TRANSACTION_TYPE;
         db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
 
         $enrollment_billing_data = $db_account->Execute("SELECT `BILLED_AMOUNT`, `AMOUNT_REMAIN` FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_LEDGER` = '$ENROLLMENT_LEDGER_PARENT'");
