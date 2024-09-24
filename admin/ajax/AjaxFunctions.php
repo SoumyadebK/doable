@@ -3,6 +3,9 @@
 use Dompdf\Dompdf;
 use Mpdf\Mpdf;
 use Mpdf\MpdfException;
+use Stripe\Exception\ApiErrorException;
+use Stripe\Stripe;
+use Stripe\StripeClient;
 
 require_once('../../global/config.php');
 error_reporting(0);
@@ -2088,8 +2091,12 @@ function copyAppointment($RESPONSE_DATA) {
     echo date('m/d/Y', strtotime($DATE));
 }
 
+/**
+ * @throws ApiErrorException
+ */
 function moveToWallet($RESPONSE_DATA)
 {
+    require_once("../../global/stripe-php-master/init.php");
     global $db;
     global $db_account;
     global $account_database;
@@ -2099,6 +2106,7 @@ function moveToWallet($RESPONSE_DATA)
     $ENROLLMENT_LEDGER_PARENT = $RESPONSE_DATA['ENROLLMENT_LEDGER_PARENT'];
     $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
     $BALANCE = $RESPONSE_DATA['BALANCE'];
+    $REFUND_AMOUNT = $RESPONSE_DATA['REFUND_AMOUNT'];
     $ENROLLMENT_TYPE = $RESPONSE_DATA['ENROLLMENT_TYPE'];
     $TRANSACTION_TYPE = $RESPONSE_DATA['TRANSACTION_TYPE'];
     $PK_PAYMENT_TYPE = ($TRANSACTION_TYPE == 'Move') ? 7 : $RESPONSE_DATA['PK_PAYMENT_TYPE'];
@@ -2138,6 +2146,7 @@ function moveToWallet($RESPONSE_DATA)
 
         $PAYMENT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
     } else {
+        $BALANCE = $REFUND_AMOUNT;
         $TYPE = 'Refund';
         $IS_ORIGINAL_RECEIPT = 1;
 
@@ -2170,6 +2179,25 @@ function moveToWallet($RESPONSE_DATA)
     }
 
     $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE' AND PK_ENROLLMENT_LEDGER = '$PK_ENROLLMENT_LEDGER'");
+    $PAYMENT_INFO = ($old_payment_data->RecordCount() > 0) ? $old_payment_data->fields['PAYMENT_INFO'] : $TYPE;;
+    if ($PK_PAYMENT_TYPE == 1) {
+        $payment_info = json_decode($old_payment_data->fields['PAYMENT_INFO']);
+        if (isset($payment_info->CHARGE_ID)) {
+            $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+            $SECRET_KEY = $account_data->fields['SECRET_KEY'];
+
+            Stripe::setApiKey($SECRET_KEY);
+
+            $transaction_id = $payment_info->CHARGE_ID;
+            $refund = \Stripe\Refund::create([
+                'charge' => $transaction_id,
+            ]);
+
+            $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $refund->id, 'LAST4' => $payment_info->LAST4];
+            $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+        }
+    }
+
     $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
     $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollmentBillingData->fields['PK_ENROLLMENT_BILLING'];
     $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE;
@@ -2178,7 +2206,7 @@ function moveToWallet($RESPONSE_DATA)
     $PAYMENT_DATA['TYPE'] = $TYPE;
     $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
     $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-    $PAYMENT_DATA['PAYMENT_INFO'] = ($old_payment_data->RecordCount() > 0) ? $old_payment_data->fields['PAYMENT_INFO'] : $TYPE;
+    $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
     $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
     $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = $IS_ORIGINAL_RECEIPT;
     db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
@@ -2201,7 +2229,6 @@ function moveToWallet($RESPONSE_DATA)
             $PARENT_DATA['AMOUNT_REMAIN'] = $AMOUNT_REMAIN;
         }
         db_perform_account('DOA_ENROLLMENT_LEDGER', $PARENT_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT'");
-
 
         $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
         $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
