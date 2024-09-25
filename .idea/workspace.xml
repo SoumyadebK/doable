@@ -4,10 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< HEAD
     <list default="true" id="15c692b1-be7a-4b35-8c1a-1e9fafe6ddda" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/super_admin/database_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/database_uploader.php" afterDir="false" />
     </list>
+=======
+    <list default="true" id="15c692b1-be7a-4b35-8c1a-1e9fafe6ddda" name="Changes" comment="" />
+>>>>>>> dda21e5b71fbd38ee1ad9804a774bfbb4fa9577f
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -57,7 +61,7 @@
       </RecentBranches>
     </option>
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/opt/homebrew/Cellar/php@7.3/7.3.33_5/bin/php">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="C:\xampp\php\php.exe">
     <include_path>
       <path value="$PROJECT_DIR$/global/vendor/paragonie/random_compat" />
       <path value="$PROJECT_DIR$/global/vendor/psr/http-message" />
@@ -96,16 +100,11 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
-    </key>
-  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-PS-241.14494.237" />
-        <option value="bundled-php-predefined-ba97393d7c68-8f0632a2a215-com.jetbrains.php.sharedIndexes-PS-241.14494.237" />
+        <option value="bundled-js-predefined-1d06a55b98c1-91d5c284f522-JavaScript-PS-241.15989.102" />
+        <option value="bundled-php-predefined-ba97393d7c68-c76157a7178b-com.jetbrains.php.sharedIndexes-PS-241.15989.102" />
       </set>
     </attachedChunks>
   </component>
@@ -134,6 +133,7 @@
       <workItem from="1726131100931" duration="717000" />
       <workItem from="1726415200486" duration="831000" />
       <workItem from="1726496091018" duration="127000" />
+<<<<<<< HEAD
       <workItem from="1726496243922" duration="3939000" />
       <workItem from="1726584029878" duration="4391000" />
       <workItem from="1726592198301" duration="10133000" />
@@ -143,6 +143,9 @@
       <workItem from="1727072963597" duration="14512000" />
       <workItem from="1727183825974" duration="15054000" />
       <workItem from="1727257445329" duration="1175000" />
+=======
+      <workItem from="1726496243922" duration="5242000" />
+>>>>>>> dda21e5b71fbd38ee1ad9804a774bfbb4fa9577f
     </task>
     <servers />
   </component>
