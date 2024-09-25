@@ -259,6 +259,7 @@ while (!$row->EOF) {
         if (TRANSACTION_TYPE == 'Refund' && PK_PAYMENT_TYPE == 0) {
             $('.trigger_this').removeClass('trigger_this');
             $(param).addClass('trigger_this');
+            $('#REFUND_AMOUNT').val(BALANCE);
             $('#refund_modal').modal('show');
         } else {
             if (TRANSACTION_TYPE == 'Move' && confirm_move == 0) {
@@ -267,24 +268,36 @@ while (!$row->EOF) {
                 $('#move_amount').text(parseFloat(BALANCE).toFixed(2));
                 $('#move_to_wallet_model').modal('show');
             } else {
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    data: {
-                        FUNCTION_NAME: 'moveToWallet',
-                        PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
-                        PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
-                        ENROLLMENT_LEDGER_PARENT: ENROLLMENT_LEDGER_PARENT,
-                        PK_USER_MASTER: PK_USER_MASTER,
-                        BALANCE: BALANCE,
-                        ENROLLMENT_TYPE: ENROLLMENT_TYPE,
-                        TRANSACTION_TYPE: TRANSACTION_TYPE,
-                        PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
-                    },
-                    success: function (data) {
-                        window.location.reload();
+                let REFUND_AMOUNT = $('#REFUND_AMOUNT').val();
+                if ((PK_PAYMENT_TYPE == 1) && (REFUND_AMOUNT != BALANCE)) {
+                    alert("For refund on Credit Card the amount can't change");
+                    $('#REFUND_AMOUNT').val(BALANCE);
+                } else {
+                    if (REFUND_AMOUNT > BALANCE) {
+                        alert("Refund amount can't be grater then balance");
+                        $('#REFUND_AMOUNT').val(BALANCE);
+                    } else {
+                        $.ajax({
+                            url: "ajax/AjaxFunctions.php",
+                            type: 'POST',
+                            data: {
+                                FUNCTION_NAME: 'moveToWallet',
+                                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                                PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                                ENROLLMENT_LEDGER_PARENT: ENROLLMENT_LEDGER_PARENT,
+                                PK_USER_MASTER: PK_USER_MASTER,
+                                BALANCE: BALANCE,
+                                REFUND_AMOUNT: REFUND_AMOUNT,
+                                ENROLLMENT_TYPE: ENROLLMENT_TYPE,
+                                TRANSACTION_TYPE: TRANSACTION_TYPE,
+                                PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
+                            },
+                            success: function (data) {
+                                window.location.reload();
+                            }
+                        });
                     }
-                });
+                }
             }
         }
     }

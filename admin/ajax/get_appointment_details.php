@@ -2893,14 +2893,6 @@ z-index: 500;
         $('#appointment_status').slideDown();
     }
 
-    function changeAppointmentStatus(param) {
-        if ($(param).val() == 4){
-            $('#no_show_div').slideDown();
-        }else {
-            $('#no_show_div').slideUp();
-        }
-    }
-
     function cancelAppointment() {
         let text = "Did you really want to confirm Appointment?";
         if (confirm(text) == true) {
@@ -2969,6 +2961,12 @@ z-index: 500;
             $('#no_show_div').slideDown();
         }else {
             $('#no_show_div').slideUp();
+        }
+
+        if ($(param).val() == 2) {
+            $('#IS_CHARGED').val(1);
+        } else {
+            $('#IS_CHARGED').val(0);
         }
     }
 

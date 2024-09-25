@@ -2009,8 +2009,15 @@ if ($PK_USER_MASTER > 0) {
                                     $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
                                     while (!$row->EOF) { ?>
                                         <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                        <?php $row->MoveNext(); } ?>
+                                    <?php $row->MoveNext(); } ?>
                                 </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="REFUND_AMOUNT">How much refund you want?</label>
+                            <div class="col-md-12">
+                                <input class="form-control" name="REFUND_AMOUNT" id="REFUND_AMOUNT" value="0">
                             </div>
                         </div>
                     </div>
@@ -2022,7 +2029,6 @@ if ($PK_USER_MASTER > 0) {
         </div>
     </div>
 </div>
-
 
 
 <!--Confirm Model-->

@@ -183,7 +183,7 @@ function getSessionCreatedCount($PK_ENROLLMENT_SERVICE, $TYPE = null)
     global $db_account;
     if ($TYPE == null) {
         $enrollmentServiceData = $db_account->Execute("SELECT DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE'");
-        if ($enrollmentServiceData->fields['IS_GROUP'] == 0) {
+        if ($enrollmentServiceData->fields['IS_GROUP'] == 1) {
             $TYPE = 'GROUP';
         } else {
             $TYPE = 'NORMAL';
@@ -191,6 +191,27 @@ function getSessionCreatedCount($PK_ENROLLMENT_SERVICE, $TYPE = null)
     }
     if ($TYPE == 'NORMAL') {
         $session_created = $db_account->Execute("SELECT SUM(DOA_SCHEDULING_CODE.UNIT) AS SESSION_CREATED FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE WHERE (`PK_APPOINTMENT_STATUS` != 6 OR IS_CHARGED = 1) AND APPOINTMENT_TYPE = 'NORMAL' AND `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
+        return ($session_created->RecordCount() > 0 && $session_created->fields['SESSION_CREATED'] != NULL) ? $session_created->fields['SESSION_CREATED'] : 0;
+    } elseif ($TYPE == 'GROUP') {
+        $group_session_created = $db_account->Execute("SELECT SUM(DOA_SCHEDULING_CODE.UNIT) AS SESSION_CREATED FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE INNER JOIN DOA_APPOINTMENT_ENROLLMENT ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
+        return ($group_session_created->RecordCount() > 0 && $group_session_created->fields['SESSION_CREATED'] != NULL) ? $group_session_created->fields['SESSION_CREATED'] : 0;
+    } else {
+        return 0;
+    }
+}
+
+function getPaidSessionCount($PK_ENROLLMENT_SERVICE)
+{
+    global $db_account;
+    $enrollmentServiceData = $db_account->Execute("SELECT DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE'");
+    if ($enrollmentServiceData->fields['IS_GROUP'] == 1) {
+        $TYPE = 'GROUP';
+    } else {
+        $TYPE = 'NORMAL';
+    }
+
+    if ($TYPE == 'NORMAL') {
+        $session_created = $db_account->Execute("SELECT SUM(DOA_SCHEDULING_CODE.UNIT) AS SESSION_CREATED FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE WHERE (`PK_APPOINTMENT_STATUS` != 6 OR IS_CHARGED = 1) AND IS_PAID = 1 AND APPOINTMENT_TYPE = 'NORMAL' AND `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
         return ($session_created->RecordCount() > 0 && $session_created->fields['SESSION_CREATED'] != NULL) ? $session_created->fields['SESSION_CREATED'] : 0;
     } elseif ($TYPE == 'GROUP') {
         $group_session_created = $db_account->Execute("SELECT SUM(DOA_SCHEDULING_CODE.UNIT) AS SESSION_CREATED FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE INNER JOIN DOA_APPOINTMENT_ENROLLMENT ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
@@ -457,7 +478,7 @@ function checkCountAdded($PK_APPOINTMENT_MASTER, $PK_USER_MASTER, $PK_ENROLLMENT
     }
 }
 
-function markEnrollmentComplete($PK_ENROLLMENT_MASTER)
+function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
 {
     global $db_account;
     $enrollment_total_count = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
@@ -470,17 +491,32 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER)
         $enrollmentServiceData->MoveNext();
     }
 
-    $details = $db_account->Execute("SELECT PK_ENROLLMENT_LEDGER FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    $details = $db_account->Execute("SELECT PK_ENROLLMENT_LEDGER FROM `DOA_ENROLLMENT_LEDGER` WHERE (DOA_ENROLLMENT_LEDGER.IS_PAID = 0 OR DOA_ENROLLMENT_LEDGER.IS_PAID = 2) AND PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
     $paid_count = $details->RecordCount() > 0 ? 1 : 0;
-    if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0)) {
-        $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
-        $ENR_UPDATE_DATA['STATUS'] = 'CO';
-    } elseif ($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) {
-        $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
-        $ENR_UPDATE_DATA['STATUS'] = 'A';
+
+    $enr_data = $db_account->Execute("SELECT STATUS FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+    if ($enr_data->fields['STATUS'] == 'C' || $enr_data->fields['STATUS'] == 'CA') {
+        if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0)) {
+            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+            $ENR_UPDATE_DATA['STATUS'] = 'C';
+        } elseif ($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) {
+            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+            $ENR_UPDATE_DATA['STATUS'] = 'CA';
+        } else {
+            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
+            $ENR_UPDATE_DATA['STATUS'] = 'CA';
+        }
     } else {
-        $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
-        $ENR_UPDATE_DATA['STATUS'] = 'A';
+        if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0)) {
+            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+            $ENR_UPDATE_DATA['STATUS'] = 'CO';
+        } elseif ($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) {
+            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+            $ENR_UPDATE_DATA['STATUS'] = 'A';
+        } else {
+            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
+            $ENR_UPDATE_DATA['STATUS'] = 'A';
+        }
     }
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
 }

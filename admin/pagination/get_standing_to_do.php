@@ -34,7 +34,7 @@ $SPECIAL_APPOINTMENT_QUERY = "SELECT
 <?php $i = 2;
 $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
 while (!$special_appointment_data->EOF) { ?>
-    <tr class="added_standing">
+    <tr class="added_standing" style="background-color: #dee2e6;">
         <td style="text-align: end;"></td>
         <td><?=$special_appointment_data->fields['TITLE']?>
             <?php if ($special_appointment_data->fields['STANDING_ID'] > 0) { ?>

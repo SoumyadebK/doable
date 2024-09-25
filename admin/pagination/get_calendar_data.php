@@ -66,6 +66,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_SCHEDULING_CODE.COLOR_CODE,
                             DOA_SCHEDULING_CODE.SCHEDULING_CODE,
                             DOA_SCHEDULING_CODE.DURATION,
+                            DOA_SCHEDULING_CODE.UNIT,
                             GROUP_CONCAT(DISTINCT(DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER) SEPARATOR ',') AS SERVICE_PROVIDER_ID,
                             GROUP_CONCAT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) SEPARATOR ',') AS CUSTOMER_NAME,
                             DOA_PACKAGE.PACKAGE_NAME
@@ -150,11 +151,12 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
         } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'GROUP') {
             $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
         }
-        $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, SESSION_CREATED, SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
+        $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
         $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE, $appointment_data->fields['APPOINTMENT_TYPE']);
+        $UNIT = $appointment_data->fields['UNIT'];
         if ($enr_service_data->RecordCount() > 0) {
             if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
-                $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - 1;
+                $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - $UNIT;
             } else {
                 $service_code_array[$PK_ENROLLMENT_SERVICE] = $SESSION_CREATED;
             }
