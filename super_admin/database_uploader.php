@@ -731,7 +731,7 @@ if(!empty($_POST))
                     $BILLING_LEDGER_DATA['STATUS'] = 'A';
                     $BILLING_LEDGER_DATA['IS_DOWN_PAYMENT'] = (strpos($allEnrollmentCharges->fields['title'], 'down payment')  !== false) ? 1 : 0;
                     db_perform_account('DOA_ENROLLMENT_LEDGER', $BILLING_LEDGER_DATA, 'insert');
-                    $ENROLLMENT_LEDGER_PARENT = $db_account->insert_ID();
+                    $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
 
                     $enrollment_payment = getAllEnrollmentPaymentByChargeId($allEnrollmentCharges->fields['id']);
                     if ($enrollment_payment->RecordCount() > 0) {
@@ -739,7 +739,7 @@ if(!empty($_POST))
                             $orgDate = $enrollment_payment->fields['date_paid'];
                             $newDate = date("Y-m-d", strtotime($orgDate));
 
-                            $PAYMENT_LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                            /*$PAYMENT_LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                             $PAYMENT_LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
                             $PAYMENT_LEDGER_DATA['TRANSACTION_TYPE'] = $enrollment_payment->fields['record_type'];
                             $PAYMENT_LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT;
@@ -750,7 +750,7 @@ if(!empty($_POST))
                             $PAYMENT_LEDGER_DATA['IS_PAID'] = ($enrollment_payment->fields['record_type'] === 'Payment') ? 1 : 2;
                             $PAYMENT_LEDGER_DATA['STATUS'] = 'A';
                             db_perform_account('DOA_ENROLLMENT_LEDGER', $PAYMENT_LEDGER_DATA, 'insert');
-                            $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+                            $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();*/
 
                             if ($enrollment_payment->fields['payment_method'] == 'Save Card' || $enrollment_payment->fields['payment_method'] == 'Charge') {
                                 $payment_type = $enrollment_payment->fields['card_type'];
@@ -794,7 +794,6 @@ if(!empty($_POST))
                                 db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
                                 $enrollmentServiceData->MoveNext();
                             }
-                            $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
                             db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
                             $enrollment_payment->MoveNext();
                         }
