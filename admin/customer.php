@@ -2109,6 +2109,7 @@ if ($PK_USER_MASTER > 0) {
         <form id="edit_due_date_form"  method="post">
             <input type="hidden" name="PK_ENROLLMENT_LEDGER" id="PK_ENROLLMENT_LEDGER">
             <input type="hidden" name="old_due_date" id="old_due_date">
+            <input type="hidden" name="edit_type" id="edit_type">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4><b>Edit Due Date</b></h4>
@@ -3115,18 +3116,19 @@ if ($PK_USER_MASTER > 0) {
         });
     });
 
-    $('#billing_due_date_model').on('submit', function (event) {
+    $('#edit_due_date_form').on('submit', function (event) {
         event.preventDefault();
 
         let PK_ENROLLMENT_LEDGER = $('#PK_ENROLLMENT_LEDGER').val();
         let old_due_date = $('#old_due_date').val();
         let due_date = $('#due_date').val();
+        let edit_type = $('#edit_type').val();
         let due_date_verify_password = $('#due_date_verify_password').val();
 
         $.ajax({
             url: "ajax/AjaxFunctions.php",
             type: 'POST',
-            data: {FUNCTION_NAME: 'updateBillingDueDate', PK_ENROLLMENT_LEDGER:PK_ENROLLMENT_LEDGER, old_due_date:old_due_date, due_date: due_date, due_date_verify_password:due_date_verify_password},
+            data: {FUNCTION_NAME: 'updateBillingDueDate', PK_ENROLLMENT_LEDGER:PK_ENROLLMENT_LEDGER, old_due_date:old_due_date, due_date: due_date, edit_type:edit_type, due_date_verify_password:due_date_verify_password},
             success: function (data) {
                 $('#due_date_verify_password_error').slideUp();
                 if (data == 1) {

@@ -100,7 +100,7 @@ while (!$serviceCodeData->EOF) {
             <td style="text-align: center;">
                 <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, 'enrollment_ledger')"><i class="ti-info-alt"></i></a>&nbsp;&nbsp;
                 <?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?>&nbsp;&nbsp;
-                <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, '<?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?>')"><i class="ti-pencil-alt"></i></a>
+                <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, '<?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?>', 'billing')"><i class="ti-pencil-alt"></i></a>
             </td>
             <td style="text-align: center;"><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
             <td style="text-align: right;"><?=$billing_details->fields['BILLED_AMOUNT']?></td>
@@ -119,7 +119,7 @@ while (!$serviceCodeData->EOF) {
             </td>
         </tr>
         <?php
-        $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.AMOUNT, DOA_ENROLLMENT_PAYMENT.NOTE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = DOA_ENROLLMENT_PAYMENT.TYPE AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+        $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_LEDGER = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
         if ($payment_details->RecordCount() > 0) {
             $p++;
             $balance = $billed_amount;
@@ -127,11 +127,11 @@ while (!$serviceCodeData->EOF) {
                 $PK_ENROLLMENT_MASTER = $payment_details->fields['PK_ENROLLMENT_MASTER'];
                 $PK_ENROLLMENT_LEDGER = $payment_details->fields['PK_ENROLLMENT_LEDGER'];
 
-                if ($payment_details->fields['TRANSACTION_TYPE'] == 'Payment' && $payment_details->fields['IS_PAID'] == 1) {
+                if ($payment_details->fields['TYPE'] == 'Payment' && $payment_details->fields['IS_REFUNDED'] == 0) {
                     $balance -= $payment_details->fields['AMOUNT'];
                 }
 
-                if ($payment_details->fields['TRANSACTION_TYPE'] == 'Move') {
+                if ($payment_details->fields['TYPE'] == 'Move') {
                     $payment_type = 'Wallet';
                 } elseif ($payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
                     $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
@@ -155,21 +155,21 @@ while (!$serviceCodeData->EOF) {
                 } else{
                     $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                 } ?>
-                <tr style="border-style: hidden; color: <?=($payment_details->fields['TRANSACTION_TYPE'] == 'Refund') ? 'green' : ''?>; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
+                <tr style="border-style: hidden; color: <?=($payment_details->fields['TYPE'] == 'Refund') ? 'green' : ''?>; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
                     <td style="text-align: center;">
-                        <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?=$PK_ENROLLMENT_LEDGER?>, 'enrollment_ledger')"><i class="ti-info-alt"></i></a>&nbsp;&nbsp;
-                        <?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?>&nbsp;&nbsp;
-                        <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?=$PK_ENROLLMENT_LEDGER?>, '<?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?>')"><i class="ti-pencil-alt"></i></a>
+                        <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, 'enrollment_payment')"><i class="ti-info-alt"></i></a>&nbsp;&nbsp;
+                        <?=date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE']))?>&nbsp;&nbsp;
+                        <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, '<?=date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE']))?>', 'payment')"><i class="ti-pencil-alt"></i></a>
                     </td>
-                    <td style="text-align: center;"><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
+                    <td style="text-align: center;"><?=$payment_details->fields['TYPE']?></td>
                     <td></td>
                     <td style="text-align: right;"><?=$payment_details->fields['AMOUNT']?></td>
                     <td style="text-align: center;"><?=$payment_type?></td>
-                    <td style="text-align: right;"><?=($payment_details->fields['TRANSACTION_TYPE'] == 'Payment' || $payment_details->fields['TRANSACTION_TYPE'] == 'Adjustment') ? number_format((float)$balance, 2, '.', '') : ''?></td>
+                    <td style="text-align: right;"><?=($payment_details->fields['TYPE'] == 'Payment' || $payment_details->fields['TYPE'] == 'Adjustment') ? number_format((float)$balance, 2, '.', '') : ''?></td>
                     <td style="text-align: right;">
-                        <?php if (($payment_details->fields['IS_PAID'] == 1) && ($payment_details->fields['STATUS'] == 'A') && ($payment_details->fields['TRANSACTION_TYPE'] == 'Payment')) { ?>
-                            <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['AMOUNT']?>, 'active', 'Move', <?=$p?>)">Move</a>
-                            <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['AMOUNT']?>, 'active', 'Refund', <?=$p?>)">Refund</a>
+                        <?php if (($payment_details->fields['IS_REFUNDED'] == 0) && ($billing_details->fields['STATUS'] == 'A') && ($payment_details->fields['TYPE'] == 'Payment')) { ?>
+                            <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['AMOUNT']?>, 'active', 'Move', <?=$p?>)">Move</a>
+                            <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['AMOUNT']?>, 'active', 'Refund', <?=$p?>)">Refund</a>
                         <?php } ?>
                         <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?=$PK_ENROLLMENT_MASTER?>, '<?=$payment_details->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
                     </td>
@@ -180,27 +180,46 @@ while (!$serviceCodeData->EOF) {
         $b++;
         $billing_details->MoveNext();
     }
-    $cancelled_enrollment = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER FROM `DOA_ENROLLMENT_LEDGER` LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_LEDGER WHERE DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER." AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = -1 ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE ASC, DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER ASC");
-    while (!$cancelled_enrollment->EOF) {
+    $cancelled_enrollment_ledger = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER." AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = -1");
+    while (!$cancelled_enrollment_ledger->EOF) {
         ?>
-        <tr style="color: <?=(($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment->fields['TRANSACTION_TYPE'] == 'Balance Owed') ? 'red' : ''))?>;">
-            <td style="text-align: center;"><?=date('m/d/Y', strtotime($cancelled_enrollment->fields['DUE_DATE']))?></td>
-            <td style="text-align: center;"><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
-            <td style="text-align: right;"><?=$cancelled_enrollment->fields['BILLED_AMOUNT']?></td>
+        <tr style="color: <?=(($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Balance Owed') ? 'red' : ''))?>;">
+            <td style="text-align: center;"><?=date('m/d/Y', strtotime($cancelled_enrollment_ledger->fields['DUE_DATE']))?></td>
+            <td style="text-align: center;">Canceled<?php /*=$cancelled_enrollment_ledger->fields['TRANSACTION_TYPE']*/?></td>
+            <td style="text-align: right;"><?=$cancelled_enrollment_ledger->fields['BILLED_AMOUNT']?></td>
             <td style="text-align: right;"></td>
-            <td style="text-align: center;"><?=$cancelled_enrollment->fields['TRANSACTION_TYPE']?></td>
-            <td style="text-align: right;"><?=number_format((float)$cancelled_enrollment->fields['BALANCE'], 2, '.', '')?></td>
+            <td style="text-align: center;"><?=$cancelled_enrollment_ledger->fields['TRANSACTION_TYPE']?></td>
+            <td style="text-align: right;"><?=number_format((float)$cancelled_enrollment_ledger->fields['BALANCE'], 2, '.', '')?></td>
             <td style="text-align: right;">
-                <?php if($cancelled_enrollment->fields['IS_PAID'] == 0) { ?>
-                    <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$cancelled_enrollment->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_LEDGER']?>, <?=$cancelled_enrollment->fields['BILLED_AMOUNT']?>, '');">Pay Now</button>
-                <?php } elseif($cancelled_enrollment->fields['IS_PAID'] == 2) { ?>
-                    <button class="btn btn-success waves-effect waves-light m-l-10 text-white" onclick="moveToWallet(this, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment->fields['PK_ENROLLMENT_LEDGER']?>, <?=$cancelled_enrollment->fields['ENROLLMENT_LEDGER_PARENT']?>, <?=$PK_USER_MASTER?>, <?=$cancelled_enrollment->fields['BALANCE']?>, 'cancelled', 'Refund', 0)">Refund</button>
-                <?php } elseif ($cancelled_enrollment->fields['RECEIPT_NUMBER']) { ?>
-                    <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?=$cancelled_enrollment->fields['PK_ENROLLMENT_MASTER']?>, '<?=$cancelled_enrollment->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
+                <?php if($cancelled_enrollment_ledger->fields['IS_PAID'] == 0) { ?>
+                    <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$cancelled_enrollment_ledger->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment_ledger->fields['PK_ENROLLMENT_LEDGER']?>, <?=$cancelled_enrollment_ledger->fields['BILLED_AMOUNT']?>, '');">Pay Now</button>
+                <?php } elseif($cancelled_enrollment_ledger->fields['IS_PAID'] == 2) { ?>
+                    <button class="btn btn-success waves-effect waves-light m-l-10 text-white" onclick="moveToWallet(this, 0, <?=$cancelled_enrollment_ledger->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment_ledger->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=$cancelled_enrollment_ledger->fields['BALANCE']?>, 'cancelled', 'Refund', 0)">Refund</button>
                 <?php } ?>
             </td>
         </tr>
-        <?php $cancelled_enrollment->MoveNext();
+
+        <?php
+        $cancelled_enrollment_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_LEDGER = ".$cancelled_enrollment_ledger->fields['PK_ENROLLMENT_LEDGER']);
+        if ($cancelled_enrollment_payment_details->RecordCount() > 0) {
+            $p++;
+            $balance = $billed_amount;
+            while (!$cancelled_enrollment_payment_details->EOF) { ?>
+            <tr style="border-style: hidden; color: <?=($cancelled_enrollment_payment_details->fields['TYPE'] == 'Refund') ? 'green' : ''?>; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
+                <td style="text-align: center;"><?=date('m/d/Y', strtotime($cancelled_enrollment_payment_details->fields['PAYMENT_DATE']))?></td>
+                <td style="text-align: center;"><?=$cancelled_enrollment_payment_details->fields['TYPE']?></td>
+                <td></td>
+                <td style="text-align: right;"><?=$cancelled_enrollment_payment_details->fields['AMOUNT']?></td>
+                <td style="text-align: center;"><?=$cancelled_enrollment_payment_details->fields['PAYMENT_TYPE']?></td>
+                <td style="text-align: right;"></td>
+                <td style="text-align: right;">
+                    <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?=$PK_ENROLLMENT_MASTER?>, '<?=$cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
+                </td>
+            </tr>
+        <?php $cancelled_enrollment_payment_details->MoveNext();
+            }
+        }
+        $cancelled_enrollment_ledger->MoveNext();
     } ?>
 
     </tbody>

@@ -253,7 +253,7 @@ while (!$row->EOF) {
         }
     });
 
-    function moveToWallet(param, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, ENROLLMENT_LEDGER_PARENT, PK_USER_MASTER, BALANCE, ENROLLMENT_TYPE, TRANSACTION_TYPE, PAYMENT_COUNTER) {
+    function moveToWallet(param, PK_ENROLLMENT_PAYMENT, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, PK_USER_MASTER, BALANCE, ENROLLMENT_TYPE, TRANSACTION_TYPE, PAYMENT_COUNTER) {
         let PK_PAYMENT_TYPE = $('#PK_PAYMENT_TYPE_REFUND').val();
         let confirm_move = $('#confirm_move').val();
         if (TRANSACTION_TYPE == 'Refund' && PK_PAYMENT_TYPE == 0) {
@@ -282,9 +282,9 @@ while (!$row->EOF) {
                             type: 'POST',
                             data: {
                                 FUNCTION_NAME: 'moveToWallet',
+                                PK_ENROLLMENT_PAYMENT : PK_ENROLLMENT_PAYMENT,
                                 PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
                                 PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
-                                ENROLLMENT_LEDGER_PARENT: ENROLLMENT_LEDGER_PARENT,
                                 PK_USER_MASTER: PK_USER_MASTER,
                                 BALANCE: BALANCE,
                                 REFUND_AMOUNT: REFUND_AMOUNT,
@@ -324,10 +324,11 @@ while (!$row->EOF) {
         });
     }
 
-    function editBillingDueDate(PK_ENROLLMENT_LEDGER, DUE_DATE) {
+    function editBillingDueDate(PK_ENROLLMENT_LEDGER, DUE_DATE, TYPE) {
         $('#PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
         $('#old_due_date').val(DUE_DATE);
         $('#due_date').val(DUE_DATE);
+        $('#edit_type').val(TYPE);
         $('#billing_due_date_model').modal('show');
     }
 
