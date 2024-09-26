@@ -70,7 +70,7 @@
                         $_SESSION["PK_ROLES"] == 4 ||
                         $_SESSION["PK_ROLES"] == 5
                     ) { ?>
-                        <p style="font-size: 23px; font-weight: 400; color: white; margin-left: 40px; margin-top: 14px;"><?= $business_name ?></p>
+                        <p style="width: 450px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 23px; font-weight: 400; color: white; margin-left: 40px; margin-top: 14px;"><?= $business_name ?></p>
                     <?php } ?>
                 </li>
             </ul>
