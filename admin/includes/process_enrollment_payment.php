@@ -341,7 +341,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         }
 
         if ($AMOUNT_TO_PAY > 0) {
-            $LEDGER_DATA_PAYMENT['TRANSACTION_TYPE'] = 'Payment';
+            /*$LEDGER_DATA_PAYMENT['TRANSACTION_TYPE'] = 'Payment';
             $LEDGER_DATA_PAYMENT['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT_ARRAY[$i];
             $LEDGER_DATA_PAYMENT['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
             $LEDGER_DATA_PAYMENT['PK_ENROLLMENT_BILLING'] = $enrollment_billing_data->fields['PK_ENROLLMENT_BILLING'];
@@ -352,13 +352,13 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $LEDGER_DATA_PAYMENT['IS_PAID'] = 1;
             $LEDGER_DATA_PAYMENT['STATUS'] = 'A';
             db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_PAYMENT, 'insert');
-            $PK_ENROLLMENT_LEDGER1 = $db_account->insert_ID();
+            $PK_ENROLLMENT_LEDGER1 = $db_account->insert_ID();*/
 
             $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
             $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_billing_data->fields['PK_ENROLLMENT_BILLING'];
             $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
             $PAYMENT_DATA['AMOUNT'] = $PAID_AMOUNT;
-            $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER1;
+            $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $ENROLLMENT_LEDGER_PARENT_ARRAY[$i];
             $TYPE = 'Payment';
             if ($_POST['PK_PAYMENT_TYPE'] == 2) {
                 $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE']))];
@@ -375,7 +375,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         }
 
         if (isset($_POST['PARTIAL_PAYMENT']) && $PARTIAL_AMOUNT > 0) {
-            $LEDGER_DATA_PAYMENT['TRANSACTION_TYPE'] = 'Payment';
+            /*$LEDGER_DATA_PAYMENT['TRANSACTION_TYPE'] = 'Payment';
             $LEDGER_DATA_PAYMENT['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT_ARRAY[$i];
             $LEDGER_DATA_PAYMENT['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
             $LEDGER_DATA_PAYMENT['PK_ENROLLMENT_BILLING'] = $enrollment_billing_data->fields['PK_ENROLLMENT_BILLING'];
@@ -386,14 +386,14 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $LEDGER_DATA_PAYMENT['IS_PAID'] = 1;
             $LEDGER_DATA_PAYMENT['STATUS'] = 'A';
             db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_PAYMENT, 'insert');
-            $PK_ENROLLMENT_LEDGER2 = $db_account->insert_ID();
+            $PK_ENROLLMENT_LEDGER2 = $db_account->insert_ID();*/
 
             $PAYMENT_INFO = '';
             $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
             $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_billing_data->fields['PK_ENROLLMENT_BILLING'];
             $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE_PARTIAL'];
             $PAYMENT_DATA['AMOUNT'] = $PARTIAL_AMOUNT;
-            $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER2;
+            $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $ENROLLMENT_LEDGER_PARENT_ARRAY[$i];
             $TYPE = 'Payment';
             if ($_POST['PK_PAYMENT_TYPE_PARTIAL'] == 2) {
                 $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER_PARTIAL'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE_PARTIAL']))];

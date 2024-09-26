@@ -110,6 +110,7 @@ if(!empty($_POST))
                 $USER_DATA['ACTIVE'] = $allUsers->fields['is_active'];
                 $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allUsers->fields['date_added']));
                 $USER_DATA['APPEAR_IN_CALENDAR'] = $allUsers->fields['appear_in_calendar'];
+                $USER_DATA['IS_DELETED'] = 0;
                 $USER_DATA['DISPLAY_ORDER'] = $allUsers->fields['position'];
                 $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -172,175 +173,180 @@ if(!empty($_POST))
             $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
             $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
             while (!$allCustomers->EOF) {
-                try {
-                    $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-                    $USER_DATA['USER_NAME'] = $USERNAME_PREFIX . '.' . $allCustomers->fields['customer_id'];
-                    $USER_DATA['USER_ID'] = $allCustomers->fields['customer_id'];
-                    $USER_DATA['FIRST_NAME'] = trim($allCustomers->fields['first_name']);
-                    $USER_DATA['LAST_NAME'] = trim($allCustomers->fields['last_name']);
-                    $USER_DATA['EMAIL_ID'] = $allCustomers->fields['email'];
-                    if (!empty($allCustomers->fields['cell_phone']) && $allCustomers->fields['cell_phone'] != null && $allCustomers->fields['cell_phone'] != "   -   -    *") {
-                        $USER_DATA['PHONE'] = $allCustomers->fields['cell_phone'];
-                    } elseif (!empty($allCustomers->fields['home_phone']) && $allCustomers->fields['home_phone'] != null && $allCustomers->fields['home_phone'] != "   -   -    *") {
-                        $USER_DATA['PHONE'] = $allCustomers->fields['home_phone'];
-                    } elseif (!empty($allCustomers->fields['business_phone']) && $allCustomers->fields['business_phone'] != null && $allCustomers->fields['business_phone'] != "   -   -    *") {
-                        $USER_DATA['PHONE'] = $allCustomers->fields['business_phone'];
-                    }
-                    if ($allCustomers->fields['gender'] == 0) {
-                        $USER_DATA['GENDER'] = 'Male';
-                    } elseif ($allCustomers->fields['gender'] == 1) {
-                        $USER_DATA['GENDER'] = 'Female';
-                    }
+                $customer_id = $allCustomers->fields['customer_id'];
+                $customer_exist = $db->Execute("SELECT USER_ID FROM `DOA_USERS` WHERE `USER_ID` LIKE '$customer_id' AND PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+                if ($customer_exist->RecordCount() == 0) {
+                    try {
+                        $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+                        $USER_DATA['USER_NAME'] = $USERNAME_PREFIX . '.' . $allCustomers->fields['customer_id'];
+                        $USER_DATA['USER_ID'] = $allCustomers->fields['customer_id'];
+                        $USER_DATA['FIRST_NAME'] = trim($allCustomers->fields['first_name']);
+                        $USER_DATA['LAST_NAME'] = trim($allCustomers->fields['last_name']);
+                        $USER_DATA['EMAIL_ID'] = $allCustomers->fields['email'];
+                        if (!empty($allCustomers->fields['cell_phone']) && $allCustomers->fields['cell_phone'] != null && $allCustomers->fields['cell_phone'] != "   -   -    *") {
+                            $USER_DATA['PHONE'] = $allCustomers->fields['cell_phone'];
+                        } elseif (!empty($allCustomers->fields['home_phone']) && $allCustomers->fields['home_phone'] != null && $allCustomers->fields['home_phone'] != "   -   -    *") {
+                            $USER_DATA['PHONE'] = $allCustomers->fields['home_phone'];
+                        } elseif (!empty($allCustomers->fields['business_phone']) && $allCustomers->fields['business_phone'] != null && $allCustomers->fields['business_phone'] != "   -   -    *") {
+                            $USER_DATA['PHONE'] = $allCustomers->fields['business_phone'];
+                        }
+                        if ($allCustomers->fields['gender'] == 0) {
+                            $USER_DATA['GENDER'] = 'Male';
+                        } elseif ($allCustomers->fields['gender'] == 1) {
+                            $USER_DATA['GENDER'] = 'Female';
+                        }
 
-                    $USER_DATA['DOB'] = date("Y-m-d", strtotime($allCustomers->fields['birth_date']));
-                    if ($allCustomers->fields['merital_status'] == 1) {
-                        $USER_DATA['MARITAL_STATUS'] = "Married";
-                    } elseif ($allCustomers->fields['merital_status'] == 0) {
-                        $USER_DATA['MARITAL_STATUS'] = "Unmarried";
-                    }
+                        $USER_DATA['DOB'] = date("Y-m-d", strtotime($allCustomers->fields['birth_date']));
+                        if ($allCustomers->fields['merital_status'] == 1) {
+                            $USER_DATA['MARITAL_STATUS'] = "Married";
+                        } elseif ($allCustomers->fields['merital_status'] == 0) {
+                            $USER_DATA['MARITAL_STATUS'] = "Unmarried";
+                        }
 
-                    $USER_DATA['ADDRESS'] = $allCustomers->fields['address1'];
-                    $USER_DATA['ADDRESS_1'] = $allCustomers->fields['address2'];
-                    $USER_DATA['CITY'] = $allCustomers->fields['city'];
-                    $USER_DATA['PK_COUNTRY'] = 1;
-                    $state = $allCustomers->fields['state'];
-                    $state_data = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE STATE_NAME='$state' OR STATE_CODE='$state'");
-                    $USER_DATA['PK_STATES'] = ($state_data->RecordCount() > 0) ? $state_data->fields['PK_STATES'] : 0;
-                    $USER_DATA['ZIP'] = $allCustomers->fields['zip'];
-                    $USER_DATA['NOTES'] = $allCustomers->fields['quote'];
-                    $USER_DATA['ACTIVE'] = ($allCustomers->fields['student_status'] == 'A') ? 1 : 0;
-                    $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allCustomers->fields['inquiry_date']));
-                    $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-                    $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                    db_perform('DOA_USERS', $USER_DATA, 'insert');
-                    $PK_USER = $db->insert_ID();
+                        $USER_DATA['ADDRESS'] = $allCustomers->fields['address1'];
+                        $USER_DATA['ADDRESS_1'] = $allCustomers->fields['address2'];
+                        $USER_DATA['CITY'] = $allCustomers->fields['city'];
+                        $USER_DATA['PK_COUNTRY'] = 1;
+                        $state = $allCustomers->fields['state'];
+                        $state_data = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE STATE_NAME='$state' OR STATE_CODE='$state'");
+                        $USER_DATA['PK_STATES'] = ($state_data->RecordCount() > 0) ? $state_data->fields['PK_STATES'] : 0;
+                        $USER_DATA['ZIP'] = $allCustomers->fields['zip'];
+                        $USER_DATA['NOTES'] = $allCustomers->fields['quote'];
+                        $USER_DATA['ACTIVE'] = ($allCustomers->fields['student_status'] == 'A') ? 1 : 0;
+                        $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allCustomers->fields['inquiry_date']));
+                        $USER_DATA['IS_DELETED'] = 0;
+                        $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                        $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                        db_perform('DOA_USERS', $USER_DATA, 'insert');
+                        $PK_USER = $db->insert_ID();
 
-                    if ($PK_USER) {
-                        $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
-                        $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-                        $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($allCustomers->fields['first_name']);
-                        $USER_DATA_ACCOUNT['LAST_NAME'] = trim($allCustomers->fields['last_name']);
-                        $USER_DATA_ACCOUNT['USER_NAME'] = $allCustomers->fields['customer_id'];
-                        $USER_DATA_ACCOUNT['EMAIL_ID'] = $allCustomers->fields['email'];
-                        $USER_DATA_ACCOUNT['PHONE'] = $USER_DATA['PHONE'];
-                        $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
-                        $USER_DATA_ACCOUNT['CREATED_ON'] = date("Y-m-d H:i");
-                        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
+                        if ($PK_USER) {
+                            $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
+                            $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+                            $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($allCustomers->fields['first_name']);
+                            $USER_DATA_ACCOUNT['LAST_NAME'] = trim($allCustomers->fields['last_name']);
+                            $USER_DATA_ACCOUNT['USER_NAME'] = $allCustomers->fields['customer_id'];
+                            $USER_DATA_ACCOUNT['EMAIL_ID'] = $allCustomers->fields['email'];
+                            $USER_DATA_ACCOUNT['PHONE'] = $USER_DATA['PHONE'];
+                            $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
+                            $USER_DATA_ACCOUNT['CREATED_ON'] = date("Y-m-d H:i");
+                            db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
 
-                        $USER_ROLE_DATA['PK_USER'] = $PK_USER;
-                        $USER_ROLE_DATA['PK_ROLES'] = 4;
-                        db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
+                            $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+                            $USER_ROLE_DATA['PK_ROLES'] = 4;
+                            db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
 
-                        $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
-                        $USER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
-                        db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+                            $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
+                            $USER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+                            db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
 
-                        $USER_MASTER_DATA['PK_USER'] = $PK_USER;
-                        $USER_MASTER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-                        $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = $PK_LOCATION;
-                        db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
-                        $PK_USER_MASTER = $db->insert_ID();
+                            $USER_MASTER_DATA['PK_USER'] = $PK_USER;
+                            $USER_MASTER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+                            $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = $PK_LOCATION;
+                            db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
+                            $PK_USER_MASTER = $db->insert_ID();
 
-                        if ($PK_USER_MASTER) {
-                            $CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-                            $CUSTOMER_DATA['FIRST_NAME'] = $allCustomers->fields['first_name'];
-                            $CUSTOMER_DATA['LAST_NAME'] = $allCustomers->fields['last_name'];
-                            $CUSTOMER_DATA['EMAIL'] = $allCustomers->fields['email'];
-                            $CUSTOMER_DATA['PHONE'] = $allCustomers->fields['cell_phone'];
-                            $CUSTOMER_DATA['DOB'] = date("Y-m-d", strtotime($allCustomers->fields['birth_date']));
-                            $CUSTOMER_DATA['CALL_PREFERENCE'] = $allCustomers->fields['confirmation_pref'];
-                            //$CUSTOMER_DATA['REMINDER_OPTION'] = $getData[23];
-                            $partner_name = explode(" ", $allCustomers->fields['partner_name']);
-                            $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = isset($partner_name[0]) ? ($partner_name[0]) : '';
-                            $CUSTOMER_DATA['PARTNER_LAST_NAME'] = isset($partner_name[1]) ? ($partner_name[1]) : '';
-                            if ($allCustomers->fields['partner_gender'] == 0) {
-                                $CUSTOMER_DATA['PARTNER_GENDER'] = "Male";
-                            } elseif ($allCustomers->fields['partner_gender'] == 1) {
-                                $CUSTOMER_DATA['PARTNER_GENDER'] = "Female";
-                            }
-                            if (!empty(trim($allCustomers->fields['partner_name']))) {
-                                $CUSTOMER_DATA['ATTENDING_WITH'] = "With a Partner";
-                            } else {
-                                $CUSTOMER_DATA['ATTENDING_WITH'] = "Solo";
-                            }
-                            $CUSTOMER_DATA['PARTNER_DOB'] = date("Y-m-d", strtotime($allCustomers->fields['partner_birth_date']));
-                            $CUSTOMER_DATA['IS_PRIMARY'] = 1;
-                            db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_DATA, 'insert');
-                            $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
-
-                            if (!empty($allCustomers->fields['home_phone']) && $allCustomers->fields['home_phone'] != "   -   -    *") {
-                                $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $PHONE_DATA['PHONE'] = $allCustomers->fields['home_phone'];
-                                db_perform_account('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
-                            }
-
-                            if (!empty($allCustomers->fields['business_phone']) && $allCustomers->fields['business_phone'] != "   -   -    *") {
-                                $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $PHONE_DATA['PHONE'] = $allCustomers->fields['business_phone'];
-                                db_perform_account('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
-                            }
-
-                            if ($allCustomers->fields['special_date1'] != "0000-00-00 00:00:00" && $allCustomers->fields['special_date1'] > 0) {
-                                $SPECIAL_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $SPECIAL_DATA['SPECIAL_DATE'] = date("Y-m-d", strtotime($allCustomers->fields['special_date1']));
-                                $SPECIAL_DATA['DATE_NAME'] = $allCustomers->fields['datename1'];
-                                db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $SPECIAL_DATA, 'insert');
-                            }
-                            if ($allCustomers->fields['special_date2'] != "0000-00-00 00:00:00" && $allCustomers->fields['special_date2'] > 0) {
-                                $SPECIAL_DATA_1['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $SPECIAL_DATA_1['SPECIAL_DATE'] = date("Y-m-d", strtotime($allCustomers->fields['special_date2']));
-                                $SPECIAL_DATA_1['DATE_NAME'] = $allCustomers->fields['datename2'];
-                                db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $SPECIAL_DATA_1, 'insert');
-                            }
-
-                            $INQUIRY_VALUE['PK_USER_MASTER'] = $PK_USER_MASTER;
-                            $INQUIRY_VALUE['WHAT_PROMPTED_YOU_TO_INQUIRE'] = $allCustomers->fields['inquiry_source'];
-
-                            $INQUIRY_VALUE['PK_INQUIRY_METHOD'] = 0;
-                            $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = 0;
-
-                            if (!empty(trim($allCustomers->fields['inquiry_type']))) {
-                                $inquiryId = $allCustomers->fields['inquiry_type'];
-                                if ($inquiryId == "TEL") {
-                                    $getInquiry = "Telephone";
-                                } elseif ($inquiryId == "WIN") {
-                                    $getInquiry = "Walk In";
-                                } elseif ($inquiryId == "GIFT") {
-                                    $getInquiry = "Gift";
-                                } elseif ($inquiryId == "EML") {
-                                    $getInquiry = "Email Message";
-                                } else {
-                                    $getInquiry = getInquiry($inquiryId);
+                            if ($PK_USER_MASTER) {
+                                $CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                                $CUSTOMER_DATA['FIRST_NAME'] = $allCustomers->fields['first_name'];
+                                $CUSTOMER_DATA['LAST_NAME'] = $allCustomers->fields['last_name'];
+                                $CUSTOMER_DATA['EMAIL'] = $allCustomers->fields['email'];
+                                $CUSTOMER_DATA['PHONE'] = $allCustomers->fields['cell_phone'];
+                                $CUSTOMER_DATA['DOB'] = date("Y-m-d", strtotime($allCustomers->fields['birth_date']));
+                                $CUSTOMER_DATA['CALL_PREFERENCE'] = $allCustomers->fields['confirmation_pref'];
+                                //$CUSTOMER_DATA['REMINDER_OPTION'] = $getData[23];
+                                $partner_name = explode(" ", $allCustomers->fields['partner_name']);
+                                $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = isset($partner_name[0]) ? ($partner_name[0]) : '';
+                                $CUSTOMER_DATA['PARTNER_LAST_NAME'] = isset($partner_name[1]) ? ($partner_name[1]) : '';
+                                if ($allCustomers->fields['partner_gender'] == 0) {
+                                    $CUSTOMER_DATA['PARTNER_GENDER'] = "Male";
+                                } elseif ($allCustomers->fields['partner_gender'] == 1) {
+                                    $CUSTOMER_DATA['PARTNER_GENDER'] = "Female";
                                 }
-                                $doableInquiryId = $db_account->Execute("SELECT PK_INQUIRY_METHOD FROM DOA_INQUIRY_METHOD WHERE INQUIRY_METHOD='$getInquiry'");
-                                $INQUIRY_VALUE['PK_INQUIRY_METHOD'] = ($doableInquiryId->RecordCount() > 0) ? $doableInquiryId->fields['PK_INQUIRY_METHOD'] : 0;
-                            }
+                                if (!empty(trim($allCustomers->fields['partner_name']))) {
+                                    $CUSTOMER_DATA['ATTENDING_WITH'] = "With a Partner";
+                                } else {
+                                    $CUSTOMER_DATA['ATTENDING_WITH'] = "Solo";
+                                }
+                                $CUSTOMER_DATA['PARTNER_DOB'] = date("Y-m-d", strtotime($allCustomers->fields['partner_birth_date']));
+                                $CUSTOMER_DATA['IS_PRIMARY'] = 1;
+                                db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_DATA, 'insert');
+                                $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
 
-                            if (!empty(trim($allCustomers->fields['area_of_interest']))) {
-                                $allInterest = explode('|', $allCustomers->fields['area_of_interest']);
-                                foreach ($allInterest as $interest) {
-                                    $interestData = $db->Execute("SELECT PK_INTERESTS FROM DOA_INTERESTS WHERE INTERESTS LIKE '%" . $interest . "%'");
-                                    if ($interestData->RecordCount() > 0) {
-                                        $INTEREST_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-                                        $INTEREST_DATA['PK_INTERESTS'] = $interestData->fields['PK_INTERESTS'];
-                                        db_perform_account('DOA_CUSTOMER_INTEREST', $INTEREST_DATA, 'insert');
+                                if (!empty($allCustomers->fields['home_phone']) && $allCustomers->fields['home_phone'] != "   -   -    *") {
+                                    $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                                    $PHONE_DATA['PHONE'] = $allCustomers->fields['home_phone'];
+                                    db_perform_account('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
+                                }
+
+                                if (!empty($allCustomers->fields['business_phone']) && $allCustomers->fields['business_phone'] != "   -   -    *") {
+                                    $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                                    $PHONE_DATA['PHONE'] = $allCustomers->fields['business_phone'];
+                                    db_perform_account('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
+                                }
+
+                                if ($allCustomers->fields['special_date1'] != "0000-00-00 00:00:00" && $allCustomers->fields['special_date1'] > 0) {
+                                    $SPECIAL_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                                    $SPECIAL_DATA['SPECIAL_DATE'] = date("Y-m-d", strtotime($allCustomers->fields['special_date1']));
+                                    $SPECIAL_DATA['DATE_NAME'] = $allCustomers->fields['datename1'];
+                                    db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $SPECIAL_DATA, 'insert');
+                                }
+                                if ($allCustomers->fields['special_date2'] != "0000-00-00 00:00:00" && $allCustomers->fields['special_date2'] > 0) {
+                                    $SPECIAL_DATA_1['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                                    $SPECIAL_DATA_1['SPECIAL_DATE'] = date("Y-m-d", strtotime($allCustomers->fields['special_date2']));
+                                    $SPECIAL_DATA_1['DATE_NAME'] = $allCustomers->fields['datename2'];
+                                    db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $SPECIAL_DATA_1, 'insert');
+                                }
+
+                                $INQUIRY_VALUE['PK_USER_MASTER'] = $PK_USER_MASTER;
+                                $INQUIRY_VALUE['WHAT_PROMPTED_YOU_TO_INQUIRE'] = $allCustomers->fields['inquiry_source'];
+
+                                $INQUIRY_VALUE['PK_INQUIRY_METHOD'] = 0;
+                                $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = 0;
+
+                                if (!empty(trim($allCustomers->fields['inquiry_type']))) {
+                                    $inquiryId = $allCustomers->fields['inquiry_type'];
+                                    if ($inquiryId == "TEL") {
+                                        $getInquiry = "Telephone";
+                                    } elseif ($inquiryId == "WIN") {
+                                        $getInquiry = "Walk In";
+                                    } elseif ($inquiryId == "GIFT") {
+                                        $getInquiry = "Gift";
+                                    } elseif ($inquiryId == "EML") {
+                                        $getInquiry = "Email Message";
+                                    } else {
+                                        $getInquiry = getInquiry($inquiryId);
+                                    }
+                                    $doableInquiryId = $db_account->Execute("SELECT PK_INQUIRY_METHOD FROM DOA_INQUIRY_METHOD WHERE INQUIRY_METHOD='$getInquiry'");
+                                    $INQUIRY_VALUE['PK_INQUIRY_METHOD'] = ($doableInquiryId->RecordCount() > 0) ? $doableInquiryId->fields['PK_INQUIRY_METHOD'] : 0;
+                                }
+
+                                if (!empty(trim($allCustomers->fields['area_of_interest']))) {
+                                    $allInterest = explode('|', $allCustomers->fields['area_of_interest']);
+                                    foreach ($allInterest as $interest) {
+                                        $interestData = $db->Execute("SELECT PK_INTERESTS FROM DOA_INTERESTS WHERE INTERESTS LIKE '%" . $interest . "%'");
+                                        if ($interestData->RecordCount() > 0) {
+                                            $INTEREST_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                                            $INTEREST_DATA['PK_INTERESTS'] = $interestData->fields['PK_INTERESTS'];
+                                            db_perform_account('DOA_CUSTOMER_INTEREST', $INTEREST_DATA, 'insert');
+                                        }
                                     }
                                 }
-                            }
 
-                            if (!empty(trim($allCustomers->fields['inquiry_taker']))) {
-                                $takerId = $allCustomers->fields['inquiry_taker'];
-                                $getTaker = getTaker($takerId);
-                                $doableTakerId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_NAME='$getTaker'");
-                                $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = ($doableTakerId->RecordCount() > 0) ? $doableTakerId->fields['PK_USER'] : 0;
+                                if (!empty(trim($allCustomers->fields['inquiry_taker']))) {
+                                    $takerId = $allCustomers->fields['inquiry_taker'];
+                                    $getTaker = getTaker($takerId);
+                                    $doableTakerId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_NAME='$getTaker'");
+                                    $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = ($doableTakerId->RecordCount() > 0) ? $doableTakerId->fields['PK_USER'] : 0;
+                                }
+                                db_perform_account('DOA_CUSTOMER_INTEREST_OTHER_DATA', $INQUIRY_VALUE, 'insert');
                             }
-                            db_perform_account('DOA_CUSTOMER_INTEREST_OTHER_DATA', $INQUIRY_VALUE, 'insert');
                         }
+                    } catch (Exception $ex) {
+                        echo $ex->getMessage() . "<br>";
                     }
-                    $allCustomers->MoveNext();
-                } catch (Exception $ex) {
-                    echo $ex->getMessage()."<br>";
                 }
+                $allCustomers->MoveNext();
             }
             break;
 
@@ -725,7 +731,7 @@ if(!empty($_POST))
                     $BILLING_LEDGER_DATA['STATUS'] = 'A';
                     $BILLING_LEDGER_DATA['IS_DOWN_PAYMENT'] = (strpos($allEnrollmentCharges->fields['title'], 'down payment')  !== false) ? 1 : 0;
                     db_perform_account('DOA_ENROLLMENT_LEDGER', $BILLING_LEDGER_DATA, 'insert');
-                    $ENROLLMENT_LEDGER_PARENT = $db_account->insert_ID();
+                    $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
 
                     $enrollment_payment = getAllEnrollmentPaymentByChargeId($allEnrollmentCharges->fields['id']);
                     if ($enrollment_payment->RecordCount() > 0) {
@@ -733,7 +739,7 @@ if(!empty($_POST))
                             $orgDate = $enrollment_payment->fields['date_paid'];
                             $newDate = date("Y-m-d", strtotime($orgDate));
 
-                            $PAYMENT_LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                            /*$PAYMENT_LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                             $PAYMENT_LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
                             $PAYMENT_LEDGER_DATA['TRANSACTION_TYPE'] = $enrollment_payment->fields['record_type'];
                             $PAYMENT_LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT;
@@ -744,7 +750,7 @@ if(!empty($_POST))
                             $PAYMENT_LEDGER_DATA['IS_PAID'] = ($enrollment_payment->fields['record_type'] === 'Payment') ? 1 : 2;
                             $PAYMENT_LEDGER_DATA['STATUS'] = 'A';
                             db_perform_account('DOA_ENROLLMENT_LEDGER', $PAYMENT_LEDGER_DATA, 'insert');
-                            $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+                            $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();*/
 
                             if ($enrollment_payment->fields['payment_method'] == 'Save Card' || $enrollment_payment->fields['payment_method'] == 'Charge') {
                                 $payment_type = $enrollment_payment->fields['card_type'];
@@ -788,7 +794,6 @@ if(!empty($_POST))
                                 db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
                                 $enrollmentServiceData->MoveNext();
                             }
-                            $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
                             db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
                             $enrollment_payment->MoveNext();
                         }
@@ -1399,6 +1404,3 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
     }
 </script>
 </html>
-
-CZXPK8979C
-289687942941

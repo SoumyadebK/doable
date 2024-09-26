@@ -50,7 +50,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
 $i = 1;
 $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 while (!$appointment_data->EOF) { ?>
-    <tr class="added_standing">
+    <tr class="added_standing" style="background-color: #dee2e6;">
         <td style="text-align: end;"></td>
         <td><?=(($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class'))?>
             <?php if ($appointment_data->fields['STANDING_ID'] > 0) { ?>

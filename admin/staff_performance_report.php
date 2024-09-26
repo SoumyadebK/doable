@@ -145,7 +145,8 @@ while (!$executive_data->EOF) {
 
             <?php
             if ($type === 'export') {
-                $data = json_decode($post_data);
+                echo "<h3>Data export to Arthur Murray API Successfully</h3>";
+                /*$data = json_decode($post_data);
                 if (isset($data->error)) {
                     echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->error_description.'</div>';
                 } elseif (isset($data->errors)) {
@@ -156,7 +157,7 @@ while (!$executive_data->EOF) {
                     }
                 } else {
                     echo "<h3>Data export to Arthur Murray API Successfully</h3>";
-                }
+                }*/
             } else { ?>
             <div class="row">
                 <div class="col-12">

@@ -180,10 +180,13 @@ $AND_PK_USER = '';
 
     function selectThisEnrollment(param) {
         let PK_ENROLLMENT_MASTER = $(param).val();
+        let no_of_session = $(param).find(':selected').data('no_of_session');
+        let used_session = $(param).find(':selected').data('used_session');
+
         $.ajax({
             url: "ajax/get_scheduling_codes.php",
             type: "POST",
-            data: {PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER},
+            data: {PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER, no_of_session:no_of_session, used_session:used_session},
             async: false,
             cache: false,
             success: function (result) {

@@ -59,6 +59,22 @@ $HOUR = $res->fields['HOUR'];
 $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
 $TIME_SLOT_INTERVAL = $res->fields['TIME_SLOT_INTERVAL'];
 
+$AM_USER_NAME = $res->fields['AM_USER_NAME'];
+$AM_PASSWORD = $res->fields['AM_PASSWORD'];
+$AM_REFRESH_TOKEN = $res->fields['AM_REFRESH_TOKEN'];
+
+$SMTP_HOST = '';
+$SMTP_PORT = '';
+$SMTP_USERNAME = '';
+$SMTP_PASSWORD = '';
+$email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+if ($email->RecordCount() > 0) {
+    $SMTP_HOST = $email->fields['HOST'];
+    $SMTP_PORT = $email->fields['PORT'];
+    $SMTP_USERNAME = $email->fields['USER_NAME'];
+    $SMTP_PASSWORD = $email->fields['PASSWORD'];
+}
+
 $help_title = '';
 $help_description = '';
 $help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'settings'");
@@ -216,6 +232,7 @@ if ($header_data->RecordCount() > 0) {
                             <!-- Tab panes -->
                             <div class="tab-content tabcontent-border">
                                 <div class="tab-pane active" id="settings" role="tabpanel">
+
                                     <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveSettingsData">
                                         <div class="p-20">
@@ -226,10 +243,10 @@ if ($header_data->RecordCount() > 0) {
                                                         <div class="col-md-12">
                                                             <select name="PK_TIMEZONE" id="PK_TIMEZONE" class="form-control" required>
                                                                 <option value="">Select</option>
-                                                                <? $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
+                                                                <?php $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
                                                                 while (!$res_type->EOF) { ?>
-                                                                    <option value="<?=$res_type->fields['PK_TIMEZONE']?>" <? if($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected="selected"'; ?>><?=$res_type->fields['NAME']?></option>
-                                                                    <?	$res_type->MoveNext();
+                                                                    <option value="<?=$res_type->fields['PK_TIMEZONE']?>" <?php if($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected="selected"'; ?>><?=$res_type->fields['NAME']?></option>
+                                                                    <?php	$res_type->MoveNext();
                                                                 } ?>
                                                             </select>
                                                         </div>
@@ -240,10 +257,10 @@ if ($header_data->RecordCount() > 0) {
                                                         <label class="col-md-12">Currency</label>
                                                         <div class="col-md-12">
                                                             <select name="PK_CURRENCY" id="PK_CURRENCY" class="form-control required-entry">
-                                                                <? $res_type = $db->Execute("SELECT * FROM `DOA_CURRENCY` WHERE `ACTIVE` = 1");
+                                                                <?php $res_type = $db->Execute("SELECT * FROM `DOA_CURRENCY` WHERE `ACTIVE` = 1");
                                                                 while (!$res_type->EOF) { ?>
                                                                     <option value="<?=$res_type->fields['PK_CURRENCY']?>" <?=($res_type->fields['PK_CURRENCY'] == $PK_CURRENCY)?'selected':''?>><?=$res_type->fields['CURRENCY_NAME']." (".$res_type->fields['CURRENCY_SYMBOL'].")"?></option>
-                                                                    <?	$res_type->MoveNext();
+                                                                <?php	$res_type->MoveNext();
                                                                 } ?>
                                                             </select>
                                                         </div>
@@ -407,8 +424,62 @@ if ($header_data->RecordCount() > 0) {
                                                 </div>
                                             </div>
 
+                                            <div class="row smtp" id="smtp" >
+                                                <div class="form-group">
+                                                    <label class="form-label">SMTP Setup</label>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">SMTP HOST</label>
+                                                        <input type="text" class="form-control" name="SMTP_HOST" value="<?=$SMTP_HOST?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">SMTP PORT</label>
+                                                        <input type="text" class="form-control" name="SMTP_PORT" value="<?=$SMTP_PORT?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">SMTP USERNAME</label>
+                                                        <input type="text" class="form-control" name="SMTP_USERNAME" value="<?=$SMTP_USERNAME?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">SMTP PASSWORD</label>
+                                                        <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?=$SMTP_PASSWORD?>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row smtp" id="smtp" >
+                                                <div class="form-group">
+                                                    <label class="form-label">Arthur Murray API Setup</label>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">User Name</label>
+                                                        <input type="text" class="form-control" name="AM_USER_NAME" value="<?=$AM_USER_NAME?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Password</label>
+                                                        <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Refresh Token</label>
+                                                        <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?=$AM_REFRESH_TOKEN?>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
-                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='setup.php'">Cancel</button>
+                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
                                         </div>
                                     </form>
                                 </div>
