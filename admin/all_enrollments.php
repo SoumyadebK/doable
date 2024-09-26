@@ -1,5 +1,10 @@
 <?php
+
+use Stripe\Stripe;
+
 require_once('../global/config.php');
+require_once("../global/stripe-php-master/init.php");
+
 global $db;
 global $db_account;
 global $master_database;
@@ -177,6 +182,30 @@ if (isset($_POST['SUBMIT'])){
                 $RECEIPT_NUMBER = 1;
             }
 
+            $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE_REFUND' AND TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
+            $PAYMENT_INFO = ($old_payment_data->RecordCount() > 0) ? $old_payment_data->fields['PAYMENT_INFO'] : 'Refund';;
+            if ($PK_PAYMENT_TYPE_REFUND == 1) {
+                $payment_info = json_decode($old_payment_data->fields['PAYMENT_INFO']);
+                if (isset($payment_info->CHARGE_ID)) {
+                    $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                    $SECRET_KEY = $account_data->fields['SECRET_KEY'];
+
+                    Stripe::setApiKey($SECRET_KEY);
+
+                    $transaction_id = $payment_info->CHARGE_ID;
+                    try {
+                        $refund = \Stripe\Refund::create([
+                            'charge' => $transaction_id,
+                            'amount' => $TOTAL_POSITIVE_BALANCE * 100
+                        ]);
+                    } catch (Exception $e) {
+                        echo $e->getMessage(); die();
+                    }
+                    $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $refund->id, 'LAST4' => $payment_info->LAST4];
+                    $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                }
+            }
+
             $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
             $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
             $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE_REFUND;
@@ -185,7 +214,7 @@ if (isset($_POST['SUBMIT'])){
             $PAYMENT_DATA['TYPE'] = 'Refund';
             $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
             $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-            $PAYMENT_DATA['PAYMENT_INFO'] = 'Refund';
+            $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
             $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
             $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
             $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;

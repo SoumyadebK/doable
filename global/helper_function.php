@@ -518,7 +518,9 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
             $ENR_UPDATE_DATA['STATUS'] = 'A';
         }
     }
-    db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+    db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+    db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+    db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
 }
 
 function getAppointmentSerialNumber($PK_USER_MASTER){

@@ -204,13 +204,37 @@ while (!$serviceCodeData->EOF) {
         if ($cancelled_enrollment_payment_details->RecordCount() > 0) {
             $p++;
             $balance = $billed_amount;
-            while (!$cancelled_enrollment_payment_details->EOF) { ?>
+            while (!$cancelled_enrollment_payment_details->EOF) {
+                if ($cancelled_enrollment_payment_details->fields['TYPE'] == 'Move') {
+                    $payment_type = 'Wallet';
+                } elseif ($cancelled_enrollment_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
+                    $payment_info = json_decode($cancelled_enrollment_payment_details->fields['PAYMENT_INFO']);
+                    $payment_type = $cancelled_enrollment_payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                } elseif (in_array($cancelled_enrollment_payment_details->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
+                    $payment_info = json_decode($cancelled_enrollment_payment_details->fields['PAYMENT_INFO']);
+                    $payment_type = $cancelled_enrollment_payment_details->fields['PAYMENT_TYPE']." # ".((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
+                } elseif ($cancelled_enrollment_payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
+                    $receipt_number_array = explode(',', $cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER']);
+                    $payment_type_array = [];
+                    foreach ($receipt_number_array as $receipt_number) {
+                        $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
+                        if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
+                            $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
+                            $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                        } else {
+                            $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
+                        }
+                    }
+                    $payment_type = implode(', ', $payment_type_array);
+                } else{
+                    $payment_type = $cancelled_enrollment_payment_details->fields['PAYMENT_TYPE'];
+                } ?>
             <tr style="border-style: hidden; color: <?=($cancelled_enrollment_payment_details->fields['TYPE'] == 'Refund') ? 'green' : ''?>; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
                 <td style="text-align: center;"><?=date('m/d/Y', strtotime($cancelled_enrollment_payment_details->fields['PAYMENT_DATE']))?></td>
                 <td style="text-align: center;"><?=$cancelled_enrollment_payment_details->fields['TYPE']?></td>
                 <td></td>
                 <td style="text-align: right;"><?=$cancelled_enrollment_payment_details->fields['AMOUNT']?></td>
-                <td style="text-align: center;"><?=$cancelled_enrollment_payment_details->fields['PAYMENT_TYPE']?></td>
+                <td style="text-align: center;"><?=$payment_type?></td>
                 <td style="text-align: right;"></td>
                 <td style="text-align: right;">
                     <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?=$PK_ENROLLMENT_MASTER?>, '<?=$cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>

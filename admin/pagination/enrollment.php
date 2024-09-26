@@ -269,34 +269,33 @@ while (!$row->EOF) {
                 $('#move_to_wallet_model').modal('show');
             } else {
                 let REFUND_AMOUNT = $('#REFUND_AMOUNT').val();
-                if ((PK_PAYMENT_TYPE == 1) && (REFUND_AMOUNT != BALANCE)) {
-                    alert("For refund on Credit Card the amount can't change");
+                if (REFUND_AMOUNT > BALANCE) {
+                    alert("Refund amount can't be grater then balance");
                     $('#REFUND_AMOUNT').val(BALANCE);
                 } else {
-                    if (REFUND_AMOUNT > BALANCE) {
-                        alert("Refund amount can't be grater then balance");
-                        $('#REFUND_AMOUNT').val(BALANCE);
-                    } else {
-                        $.ajax({
-                            url: "ajax/AjaxFunctions.php",
-                            type: 'POST',
-                            data: {
-                                FUNCTION_NAME: 'moveToWallet',
-                                PK_ENROLLMENT_PAYMENT : PK_ENROLLMENT_PAYMENT,
-                                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
-                                PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
-                                PK_USER_MASTER: PK_USER_MASTER,
-                                BALANCE: BALANCE,
-                                REFUND_AMOUNT: REFUND_AMOUNT,
-                                ENROLLMENT_TYPE: ENROLLMENT_TYPE,
-                                TRANSACTION_TYPE: TRANSACTION_TYPE,
-                                PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
-                            },
-                            success: function (data) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'moveToWallet',
+                            PK_ENROLLMENT_PAYMENT : PK_ENROLLMENT_PAYMENT,
+                            PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                            PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                            PK_USER_MASTER: PK_USER_MASTER,
+                            BALANCE: BALANCE,
+                            REFUND_AMOUNT: REFUND_AMOUNT,
+                            ENROLLMENT_TYPE: ENROLLMENT_TYPE,
+                            TRANSACTION_TYPE: TRANSACTION_TYPE,
+                            PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
+                        },
+                        success: function (data) {
+                            if (data == 1) {
                                 window.location.reload();
+                            } else {
+                                alert(data);
                             }
-                        });
-                    }
+                        }
+                    });
                 }
             }
         }
