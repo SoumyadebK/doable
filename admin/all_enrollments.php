@@ -1,5 +1,10 @@
 <?php
+
+use Stripe\Stripe;
+
 require_once('../global/config.php');
+require_once("../global/stripe-php-master/init.php");
+
 global $db;
 global $db_account;
 global $master_database;
@@ -28,7 +33,7 @@ if (isset($_GET['search_text']) || isset($_GET['FROM_DATE']) || isset($_GET['END
     $FROM_DATE = date('Y-m-d', strtotime($_GET['FROM_DATE']));
     $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%'OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%')". " AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '$FROM_DATE' AND '$END_DATE'";
+    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%'OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%')". " AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
 } else {
     $FROM_DATE='';
     $END_DATE='';
@@ -36,7 +41,7 @@ if (isset($_GET['search_text']) || isset($_GET['FROM_DATE']) || isset($_GET['END
     $search = ' ';
 }
 
-$query = $db_account->Execute("SELECT count(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM  DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].")".$search);
+$query = $db_account->Execute("SELECT count(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM  DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].")".$search);
 
 $number_of_result = ($query->RecordCount() > 0) ? $query->fields['TOTAL_RECORDS'] : 1;
 $number_of_page = ceil ($number_of_result / $results_per_page);
@@ -71,15 +76,32 @@ if (isset($_POST['SUBMIT'])){
     } else {
         $UPDATE_DATA['STATUS'] = 'CA';
     }
+    $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
 
+    $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
     if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1){
-        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER' AND TYPE = 'CREATED'");
-        $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND PK_APPOINTMENT_STATUS != 2";
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 1");
+        $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0";
     } else {
-        $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND PK_APPOINTMENT_STATUS != 2 AND IS_PAID = 0";
+        $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0 AND IS_PAID = 0";
     }
 
     $BALANCE = $TOTAL_POSITIVE_BALANCE + $TOTAL_NEGATIVE_BALANCE;
+
+    for ($i = 0; $i < count($_POST['PK_ENROLLMENT_SERVICE']); $i++) {
+        $enr_service_data = $db_account->Execute("SELECT PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = ".$_POST['PK_ENROLLMENT_SERVICE'][$i]);
+        if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1) {
+            $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getSessionCompletedCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
+        } else {
+            $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getPaidSessionCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
+        }
+        if ($TOTAL_POSITIVE_BALANCE > 0) {
+            $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'] = $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] * $enr_service_data->fields['PRICE_PER_SESSION'];
+        }
+        $ENR_SERVICE_UPDATE['FINAL_AMOUNT'] = $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'];
+        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE, 'update'," PK_ENROLLMENT_SERVICE = ".$_POST['PK_ENROLLMENT_SERVICE'][$i]);
+    }
+
     if ($_POST['USE_AVAILABLE_CREDIT'] == 1) {
         $TOTAL_POSITIVE_BALANCE += $TOTAL_NEGATIVE_BALANCE;
         $TOTAL_NEGATIVE_BALANCE = $TOTAL_POSITIVE_BALANCE;
@@ -89,23 +111,39 @@ if (isset($_POST['SUBMIT'])){
         }
     }
 
-    db_perform_account('DOA_APPOINTMENT_MASTER', $UPDATE_DATA, 'update', $CONDITION);
+    db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
 
     db_perform_account('DOA_ENROLLMENT_MASTER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
     db_perform_account('DOA_ENROLLMENT_SERVICE', $UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
     db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
 
-    $LEDGER_DATA['TRANSACTION_TYPE'] = 'Canceled';
-    $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = -1;
-    $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-    $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
-    $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
-    $LEDGER_DATA['IS_PAID'] = 1;
-    $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
-    $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
-    $LEDGER_DATA['BALANCE'] = $BALANCE;
-    $LEDGER_DATA['STATUS'] = $UPDATE_DATA['STATUS'];
-    db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+    if ($TOTAL_NEGATIVE_BALANCE < 0) {
+        $LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Balance Owed' : 'Billing';
+        $LEDGER_DATA_BILLING['ENROLLMENT_LEDGER_PARENT'] = -1;
+        $LEDGER_DATA_BILLING['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+        $LEDGER_DATA_BILLING['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+        $LEDGER_DATA_BILLING['PAID_AMOUNT'] = 0.00;
+        $LEDGER_DATA_BILLING['IS_PAID'] = 0;
+        $LEDGER_DATA_BILLING['STATUS'] = 'A';
+        $LEDGER_DATA_BILLING['DUE_DATE'] = date('Y-m-d');
+        $LEDGER_DATA_BILLING['BILLED_AMOUNT'] = abs($TOTAL_NEGATIVE_BALANCE);
+        $LEDGER_DATA_BILLING['BALANCE'] = abs($TOTAL_NEGATIVE_BALANCE);
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_BILLING, 'insert');
+        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+    } elseif ($TOTAL_POSITIVE_BALANCE > 0) {
+        $LEDGER_DATA['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund';
+        $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = -1;
+        $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+        $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+        $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
+        $LEDGER_DATA['IS_PAID'] = ($_POST['SUBMIT'] === 'Submit') ? 1 : 2;
+        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
+        $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
+        $LEDGER_DATA['BALANCE'] = $BALANCE;
+        $LEDGER_DATA['STATUS'] = $UPDATE_DATA['STATUS'];
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+    }
 
     $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
     if ($TOTAL_POSITIVE_BALANCE > 0) {
@@ -122,26 +160,50 @@ if (isset($_POST['SUBMIT'])){
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');*/
 
-        $LEDGER_DATA_REFUND['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund';
+        /*$LEDGER_DATA_REFUND['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund';
         $LEDGER_DATA_REFUND['ENROLLMENT_LEDGER_PARENT'] = -1;
         $LEDGER_DATA_REFUND['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
         $LEDGER_DATA_REFUND['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
         $LEDGER_DATA_REFUND['PAID_AMOUNT'] = 0.00;
-        $LEDGER_DATA_REFUND['IS_PAID'] = 2;
+        $LEDGER_DATA_REFUND['IS_PAID'] = ($LEDGER_DATA_REFUND['TRANSACTION_TYPE'] === 'Refund') ? 1 : 2;
         $LEDGER_DATA_REFUND['DUE_DATE'] = date('Y-m-d');
         $LEDGER_DATA_REFUND['BILLED_AMOUNT'] = 0.00;
         $LEDGER_DATA_REFUND['BALANCE'] = $TOTAL_POSITIVE_BALANCE;
         $LEDGER_DATA_REFUND['STATUS'] = $UPDATE_DATA['STATUS'];
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_REFUND, 'insert');
-        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();*/
 
-        if ($LEDGER_DATA_REFUND['TRANSACTION_TYPE'] == 'Refund') {
+        if ($_POST['SUBMIT'] === 'Submit') {
             $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY CONVERT(RECEIPT_NUMBER, DECIMAL) DESC LIMIT 1");
             if ($receipt->RecordCount() > 0) {
                 $lastSerialNumber = $receipt->fields['RECEIPT_NUMBER'];
                 $RECEIPT_NUMBER = $lastSerialNumber + 1;
             } else {
                 $RECEIPT_NUMBER = 1;
+            }
+
+            $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE_REFUND' AND TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
+            $PAYMENT_INFO = ($old_payment_data->RecordCount() > 0) ? $old_payment_data->fields['PAYMENT_INFO'] : 'Refund';;
+            if ($PK_PAYMENT_TYPE_REFUND == 1) {
+                $payment_info = json_decode($old_payment_data->fields['PAYMENT_INFO']);
+                if (isset($payment_info->CHARGE_ID)) {
+                    $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                    $SECRET_KEY = $account_data->fields['SECRET_KEY'];
+
+                    Stripe::setApiKey($SECRET_KEY);
+
+                    $transaction_id = $payment_info->CHARGE_ID;
+                    try {
+                        $refund = \Stripe\Refund::create([
+                            'charge' => $transaction_id,
+                            'amount' => $TOTAL_POSITIVE_BALANCE * 100
+                        ]);
+                    } catch (Exception $e) {
+                        echo $e->getMessage(); die();
+                    }
+                    $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $refund->id, 'LAST4' => $payment_info->LAST4];
+                    $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                }
             }
 
             $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
@@ -152,26 +214,15 @@ if (isset($_POST['SUBMIT'])){
             $PAYMENT_DATA['TYPE'] = 'Refund';
             $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
             $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-            $PAYMENT_DATA['PAYMENT_INFO'] = 'Refund';
+            $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
             $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
             $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
             $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
             db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
         }
     }
-    if ($TOTAL_NEGATIVE_BALANCE < 0) {
-        $LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Balance Owed' : 'Billing';
-        $LEDGER_DATA_BILLING['ENROLLMENT_LEDGER_PARENT'] = -1;
-        $LEDGER_DATA_BILLING['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-        $LEDGER_DATA_BILLING['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
-        $LEDGER_DATA_BILLING['PAID_AMOUNT'] = 0.00;
-        $LEDGER_DATA_BILLING['IS_PAID'] = 0;
-        $LEDGER_DATA_BILLING['STATUS'] = 'A';
-        $LEDGER_DATA_BILLING['DUE_DATE'] = date('Y-m-d');
-        $LEDGER_DATA_BILLING['BILLED_AMOUNT'] = abs($TOTAL_NEGATIVE_BALANCE);
-        $LEDGER_DATA_BILLING['BALANCE'] = abs($TOTAL_NEGATIVE_BALANCE);
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_BILLING, 'insert');
-    }
+
+    markEnrollmentComplete($PK_ENROLLMENT_MASTER);
     header('location:all_enrollments.php');
 }
 
@@ -282,7 +333,7 @@ if (isset($_POST['SUBMIT'])){
                                     <tbody>
                                     <?php
                                     $i=$page_first_result+1;
-                                    $row = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED, DOA_USER_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT FROM DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ".$search." ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT " . $page_first_result . ',' . $results_per_page);
+                                    $row = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED, DOA_USER_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT FROM DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ".$search." ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$row->EOF) {
                                         $name = $row->fields['ENROLLMENT_NAME'];
                                         if (is_null($row->fields['MISC_ID'])) {

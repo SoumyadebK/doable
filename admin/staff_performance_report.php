@@ -13,90 +13,73 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 $type = $_GET['type'];
 
-if (!empty($_GET['week_number'])){
-    $week_number = $_GET['week_number'];
-    $YEAR = date('Y');
-    $dto = new DateTime();
-    $dto->setISODate($YEAR, $week_number+1);
-    $from_date = $dto->modify('-1 day')->format('Y-m-d');
-    $dto->modify('+6 days');
-    $to_date = $dto->format('Y-m-d');
+$week_number = $_GET['week_number'];
+$YEAR = date('Y');
+$dto = new DateTime();
+$dto->setISODate($YEAR, $week_number);
+$from_date = $dto->modify('-1 day')->format('Y-m-d');
+$dto->modify('+6 days');
+$to_date = $dto->format('Y-m-d');
 
-    $date_between = "AND DOA_ENROLLMENT_MASTER.CREATED_ON BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
-    $appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
-} else {
-    $from_date = '';
-    $to_date = '';
-    $week_number = '';
-    $date_between = '';
-    $appointment_date = '';
-}
-$res = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-$business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
+$enrollment_date = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
+$appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
+
+$account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
+$business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
 
 if ($type === 'export') {
     $access_token = getAccessToken();
     $authorization = "Authorization: Bearer ".$access_token;
+
     $line_item = [];
 
-    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-    while (!$row->EOF) {
-        if (empty($row->fields['LAST_NAME'])) {
-            $last_name = '';
-        } else {
-            $last_name = $row->fields['LAST_NAME'] . ',';
-        }
-        $private_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS PRIVATE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'AD-HOC') AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 " . $appointment_date . " AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = " . $row->fields['PK_USER']);
-        $private = $private_data->RecordCount() > 0 ? $private_data->fields['PRIVATE'] : 0;
-        $group_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 " . $appointment_date . " AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = " . $row->fields['PK_USER']);
-        $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
+    $staff_data = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+    while (!$staff_data->EOF) {
+        $staff_member = getStaffCode($authorization, $staff_data->fields['FIRST_NAME'], $staff_data->fields['LAST_NAME']);
+        $staff_type = 'INSTRUCTOR';
+        $number_guests = 0;
 
-        $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE, DOA_ENROLLMENT_SERVICE.STATUS FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = " . $row->fields['PK_USER'] . " $date_between ORDER BY DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
-        $INTERVIEW_TOTAL = 0;
-        $RENEWAL_TOTAL = 0;
-        $j = 1;
-        while (!$enrollment_data->EOF) {
-            if ($j <= 3) {
-                if ($enrollment_data->fields['STATUS'] == 'A') {
-                    $INTERVIEW_TOTAL += (($enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
-                } else {
-                    $INTERVIEW_TOTAL += (($enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
-                }
-            } else {
-                if ($enrollment_data->fields['STATUS'] == 'A') {
-                    $RENEWAL_TOTAL += (($enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
-                } else {
-                    $RENEWAL_TOTAL += (($enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
-                }
-            }
-            $j++;
-            $enrollment_data->MoveNext();
-        }
+        $private_data = $db_account->Execute("SELECT SUM(DOA_SCHEDULING_CODE.UNIT) AS PRIVATE_COUNT FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'AD-HOC') AND DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER != 2 AND DOA_APPOINTMENT_MASTER.IS_CHARGED = 1 ".$appointment_date." AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$staff_data->fields['PK_USER']);
+        $private_lessons = $private_data->fields['PRIVATE_COUNT'] ?? 0;
 
-        $staff_members = [];
-        while (!$row->EOF) {
-            $staff_members[] = getStaffCode($authorization, $row->fields['FIRST_NAME'], $row->fields['LAST_NAME']);
-            $row->MoveNext();
-        }
+        $group_data = $db_account->Execute("SELECT SUM(DOA_SCHEDULING_CODE.UNIT) AS GROUP_COUNT FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER != 2 AND DOA_APPOINTMENT_MASTER.IS_CHARGED = 1 ".$appointment_date." AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$staff_data->fields['PK_USER']);
+        $number_in_class = $group_data->fields['GROUP_COUNT'] ?? 0;
+
+        $dor_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE_PROVIDER.PERCENTAGE_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'DOR' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$staff_data->fields['PK_USER']." $enrollment_date");
+        $dor_sanct_competition = $dor_misc_data->fields['MISC_TOTAL'] ?? 0;
+
+        $showcase_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE_PROVIDER.PERCENTAGE_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'SHOWCASE' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$staff_data->fields['PK_USER']." $enrollment_date");
+        $showcase_medal_ball = $showcase_misc_data->fields['MISC_TOTAL'] ?? 0;
+
+        $general_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE_PROVIDER.PERCENTAGE_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'GENERAL' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$staff_data->fields['PK_USER']." $enrollment_date");
+        $party_time_non_unit = $general_misc_data->fields['MISC_TOTAL'] ?? 0;
+
+        $interview_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE_PROVIDER.PERCENTAGE_AMOUNT) AS INTERVIEW_TOTAL FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE NOT IN (13,16) AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$staff_data->fields['PK_USER']." $enrollment_date");
+        $interview_department = $interview_data->fields['INTERVIEW_TOTAL'] ?? 0;
+
+        $renewal_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE_PROVIDER.PERCENTAGE_AMOUNT) AS RENEWAL_TOTAL FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 13 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$staff_data->fields['PK_USER']." $enrollment_date");
+        $renewal_department = $renewal_data->fields['RENEWAL_TOTAL'] ?? 0;
 
         $line_item[] = array(
-            "staff_type" => "INSTRUCTOR",
-            "number_guests" => $private,
-            "private_lessons" => $group,
-            "number_in_class" => '',
-            "dor_sanct_competition" => '',
-            "showcase_medal_ball" => '',
-            "party_time_non_unit" => '',
-            "interview_department" => $INTERVIEW_TOTAL,
-            "renewal_department" => $RENEWAL_TOTAL,
-            "staff_members" => $staff_members,
+            "staff_member" => $staff_member,
+            "staff_type" => $staff_type,
+            "number_guests" => $number_guests,
+            "private_lessons" => $private_lessons,
+            "number_in_class" => $number_in_class,
+            "dor_sanct_competition" => $dor_sanct_competition,
+            "showcase_medal_ball" => $showcase_medal_ball,
+            "party_time_non_unit" => $party_time_non_unit,
+            "interview_department" => $interview_department,
+            "renewal_department" => $renewal_department,
         );
-        $row->MoveNext();
+
+        $staff_data->MoveNext();
     }
 
     $data = [
         'type' => 'staff_performance',
-        'prepared_by' => $row->fields['FIRST_NAME'].' '.$row->fields['LAST_NAME'],
+        'prepared_by' => $user_data->fields['FIRST_NAME'].' '.$user_data->fields['LAST_NAME'],
         'week_number' => $week_number,
         'week_year' => $YEAR,
         'line_items' => $line_item,
@@ -126,6 +109,13 @@ foreach ($resultsArray as $key => $result) {
         $concatenatedResults .= ", ";
     }
 }
+
+$executive_data = $db_account->Execute("SELECT DISTINCT(ENROLLMENT_BY_ID) AS ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER > 0 $enrollment_date");
+$executive_id = [];
+while (!$executive_data->EOF) {
+    $executive_id[] = $executive_data->fields['ENROLLMENT_BY_ID'];
+    $executive_data->MoveNext();
+}
 ?>
 
 <!DOCTYPE html>
@@ -153,6 +143,22 @@ foreach ($resultsArray as $key => $result) {
                 </div>
             </div>
 
+            <?php
+            if ($type === 'export') {
+                echo "<h3>Data export to Arthur Murray API Successfully</h3>";
+                /*$data = json_decode($post_data);
+                if (isset($data->error)) {
+                    echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->error_description.'</div>';
+                } elseif (isset($data->errors)) {
+                    if (isset($data->errors->errors[0])) {
+                        echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $data->errors->errors[0] . '</div>';
+                    } else {
+                        echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->message.'</div>';
+                    }
+                } else {
+                    echo "<h3>Data export to Arthur Murray API Successfully</h3>";
+                }*/
+            } else { ?>
             <div class="row">
                 <div class="col-12">
                     <div class="card">
@@ -167,7 +173,7 @@ foreach ($resultsArray as $key => $result) {
                                     <thead>
                                     <tr>
                                         <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="5">Franchisee: <?=$business_name." (".$concatenatedResults.")"?></th>
-                                        <th style="width:50%; text-align: center; font-weight: bold" colspan="4">Week # <?=$week_number?> (<?=date('m-d-Y', strtotime($from_date))?> - <?=date('m-d-Y', strtotime($to_date))?>)</th>
+                                        <th style="width:50%; text-align: center; font-weight: bold" colspan="4">Week # <?=$week_number?> (<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</th>
                                     </tr>
                                     <tr>
                                         <th style="width:10%; text-align: center" rowspan="2">Staff name</th>
@@ -192,107 +198,64 @@ foreach ($resultsArray as $key => $result) {
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
                                     while (!$row->EOF) {
-                                        if(empty($row->fields['LAST_NAME'])) {
-                                            $last_name = '';
-                                        } else {
-                                            $last_name = $row->fields['LAST_NAME'].',';
-                                        }
-                                        $private_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS PRIVATE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'AD-HOC') AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 ".$appointment_date." AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
-                                        $private = $private_data->RecordCount() > 0 ? $private_data->fields['PRIVATE'] : 0;
-                                        $group_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 ".$appointment_date." AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
-                                        $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
+                                        $last_name = empty($row->fields['LAST_NAME']) ? '' : $row->fields['LAST_NAME'].',';
 
-                                        $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE, DOA_ENROLLMENT_SERVICE.STATUS FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$row->fields['PK_USER']." $date_between ORDER BY DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
-                                        $INTERVIEW_TOTAL=0;
-                                        $RENEWAL_TOTAL=0;
-                                        $j=1;
-                                        while (!$enrollment_data->EOF) {
-                                            if($j <= 3) {
-                                                if($enrollment_data->fields['STATUS']=='A'){
-                                                    $INTERVIEW_TOTAL += (($enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
-                                                } else {
-                                                    $INTERVIEW_TOTAL += (($enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
-                                                }
-                                            } else {
-                                                if($enrollment_data->fields['STATUS']=='A'){
-                                                    $RENEWAL_TOTAL += (($enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
-                                                } else {
-                                                    $RENEWAL_TOTAL += (($enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['SERVICE_PROVIDER_PERCENTAGE']) / 100);
-                                                }
-                                            }
-                                            $j++;
-                                            $enrollment_data->MoveNext();
-                                        }
+                                        $private_data = $db_account->Execute("SELECT SUM(DOA_SCHEDULING_CODE.UNIT) AS PRIVATE_COUNT FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'AD-HOC') AND DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER != 2 AND DOA_APPOINTMENT_MASTER.IS_CHARGED = 1 ".$appointment_date." AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
+                                        $group_data = $db_account->Execute("SELECT SUM(DOA_SCHEDULING_CODE.UNIT) AS GROUP_COUNT FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER != 2 AND DOA_APPOINTMENT_MASTER.IS_CHARGED = 1 ".$appointment_date." AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
+
+                                        $dor_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE_PROVIDER.PERCENTAGE_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'DOR' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$row->fields['PK_USER']." $enrollment_date");
+                                        $showcase_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE_PROVIDER.PERCENTAGE_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'SHOWCASE' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$row->fields['PK_USER']." $enrollment_date");
+                                        $general_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE_PROVIDER.PERCENTAGE_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'GENERAL' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$row->fields['PK_USER']." $enrollment_date");
+
+                                        $interview_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE_PROVIDER.PERCENTAGE_AMOUNT) AS INTERVIEW_TOTAL FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE NOT IN (13,16) AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$row->fields['PK_USER']." $enrollment_date");
+                                        $renewal_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE_PROVIDER.PERCENTAGE_AMOUNT) AS RENEWAL_TOTAL FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 13 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = ".$row->fields['PK_USER']." $enrollment_date");
                                         ?>
                                         <tr>
                                             <td><?=$last_name.' '.$row->fields['FIRST_NAME']?></td>
                                             <td></td>
-                                            <td style="text-align: center"><?=$private?></td>
-                                            <td style="text-align: center"><?=$group?></td>
-                                            <td style="text-align: right"><?=''?></td>
-                                            <td style="text-align: right"><?=''?></td>
-                                            <td style="text-align: right"><?=''?></td>
-                                            <td style="text-align: right"><?=number_format($INTERVIEW_TOTAL , 2)?></td>
-                                            <td style="text-align: right"><?=number_format($RENEWAL_TOTAL , 2)?></td>
+                                            <td style="text-align: center"><?=$private_data->fields['PRIVATE_COUNT'] ?? 0?></td>
+                                            <td style="text-align: center"><?=$group_data->fields['GROUP_COUNT'] ?? 0?></td>
+                                            <td style="text-align: right">$<?=number_format($dor_misc_data->fields['MISC_TOTAL'] , 2)?></td>
+                                            <td style="text-align: right">$<?=number_format($showcase_misc_data->fields['MISC_TOTAL'] , 2)?></td>
+                                            <td style="text-align: right">$<?=number_format($general_misc_data->fields['MISC_TOTAL'] , 2)?></td>
+                                            <td style="text-align: right">$<?=number_format($interview_data->fields['INTERVIEW_TOTAL'] , 2)?></td>
+                                            <td style="text-align: right">$<?=number_format($renewal_data->fields['RENEWAL_TOTAL'] , 2)?></td>
                                         </tr>
                                         <?php $row->MoveNext();
                                         $i++; } ?>
                                     </tbody>
+
                                     <thead>
-                                    <tr>
-                                        <th style="width:10%; text-align: center; font-weight: bold; font-style: italic" colspan="9">EXECUTIVES</th>
-                                    </tr>
+                                        <tr>
+                                            <th style="width:10%; text-align: center; font-weight: bold; font-style: italic" colspan="9">EXECUTIVES</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.TYPE, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USER_ROLES.PK_ROLES FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_ROLES ON DOA_ROLES.PK_ROLES=DOA_USER_ROLES.PK_ROLES WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ROLES.IS_MANAGEMENT=1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." GROUP BY DOA_USERS.PK_USER");
+                                    $row = $db->Execute("SELECT DISTINCT (PK_USER) AS PK_USER, FIRST_NAME, LAST_NAME FROM DOA_USERS WHERE PK_USER IN (".implode(',', $executive_id).")");
                                     while (!$row->EOF) {
-                                        if(empty($row->fields['LAST_NAME'])) {
-                                            $last_name = '';
-                                        } else {
-                                            $last_name = $row->fields['LAST_NAME'].',';
-                                        }
-                                        $role = $row->fields['PK_ROLES'];
-                                        $private_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS PRIVATE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'AD-HOC') AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
-                                        $private = $private_data->RecordCount() > 0 ? $private_data->fields['PRIVATE'] : 0;
-                                        $group_data = $db_account->Execute("SELECT count(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS CLASS FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 2 AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = ".$row->fields['PK_USER']);
-                                        $group = $group_data->RecordCount() > 0 ? $group_data->fields['CLASS'] : 0;
+                                        $last_name = empty($row->fields['LAST_NAME']) ? '' : $row->fields['LAST_NAME'].',';
 
-                                        $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_PERCENTAGE, DOA_ENROLLMENT_SERVICE.STATUS FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." $date_between ORDER BY DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
-                                        $INTERVIEW_TOTAL=0;
-                                        $RENEWAL_TOTAL=0;
-                                        $j=1;
-                                        while (!$enrollment_data->EOF) {
-                                            if($j <= 3) {
-                                                if($enrollment_data->fields['STATUS']=='A'){
-                                                    $INTERVIEW_TOTAL += $enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['ENROLLMENT_BY_PERCENTAGE'] / 100;
-                                                } else {
-                                                    $INTERVIEW_TOTAL += $enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['ENROLLMENT_BY_PERCENTAGE'] / 100;
-                                                }
-                                            } else {
-                                                if($enrollment_data->fields['STATUS']=='A'){
-                                                    $RENEWAL_TOTAL += $enrollment_data->fields['FINAL_AMOUNT'] * $enrollment_data->fields['ENROLLMENT_BY_PERCENTAGE'] / 100;
-                                                } else {
-                                                    $RENEWAL_TOTAL += $enrollment_data->fields['TOTAL_AMOUNT_PAID'] * $enrollment_data->fields['ENROLLMENT_BY_PERCENTAGE'] / 100;
-                                                }
-                                            }
-                                            $j++;
-                                            $enrollment_data->MoveNext();
-                                        }
+                                        $executive_dor_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'DOR' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." $enrollment_date");
+                                        $executive_showcase_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'SHOWCASE' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." $enrollment_date");
+                                        $executive_general_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'GENERAL' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." $enrollment_date");
+
+                                        $executive_interview_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS INTERVIEW_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE NOT IN (13,16) AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." $enrollment_date");
+                                        $executive_renewal_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS RENEWAL_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 13 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = ".$row->fields['PK_USER']." $enrollment_date");
                                         ?>
                                         <tr>
                                             <td><?=$last_name.' '.$row->fields['FIRST_NAME']?></td>
-                                            <td style="text-align: center"></td>
-                                            <td style="text-align: center"><?=$private?></td>
-                                            <td style="text-align: center"><?=$group?></td>
-                                            <td style="text-align: right"></td>
-                                            <td style="text-align: right"></td>
-                                            <td style="text-align: right"></td>
-                                            <td style="text-align: right"><?=number_format($INTERVIEW_TOTAL, 2)?></td>
-                                            <td style="text-align: right"><?=number_format($RENEWAL_TOTAL, 2)?></td>
+                                            <td style="text-align: center">-----</td>
+                                            <td style="text-align: center">-----</td>
+                                            <td style="text-align: center">-----</td>
+                                            <td style="text-align: right">$<?=number_format($executive_dor_misc_data->fields['MISC_TOTAL'] , 2)?></td>
+                                            <td style="text-align: right">$<?=number_format($executive_showcase_misc_data->fields['MISC_TOTAL'] , 2)?></td>
+                                            <td style="text-align: right">$<?=number_format($executive_general_misc_data->fields['MISC_TOTAL'] , 2)?></td>
+                                            <td style="text-align: right">$<?=number_format($executive_interview_data->fields['INTERVIEW_TOTAL'] , 2)?></td>
+                                            <td style="text-align: right">$<?=number_format($executive_renewal_data->fields['RENEWAL_TOTAL'] , 2)?></td>
                                         </tr>
                                         <?php $row->MoveNext();
                                         $i++; } ?>
@@ -303,6 +266,7 @@ foreach ($resultsArray as $key => $result) {
                     </div>
                 </div>
             </div>
+        <?php } ?>
         </div>
     </div>
 </div>

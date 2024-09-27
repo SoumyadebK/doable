@@ -86,12 +86,13 @@ while (!$enrollment_data->EOF) {
         $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
 
         if ($appointment_data->fields['APPOINTMENT_STATUS'] != 'Cancelled') {
-            $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, PRICE_PER_SESSION, SESSION_CREATED, SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
+            $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE, $appointment_data->fields['APPOINTMENT_TYPE']);
+            $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, PRICE_PER_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
             if ($enr_service_data->RecordCount() > 0) {
                 if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
                     $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - 1;
                 } else {
-                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $enr_service_data->fields['SESSION_CREATED'];
+                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $SESSION_CREATED;
                 }
             }
         }

@@ -209,8 +209,9 @@ $PARTNER_LAST_NAME = '';
 $PARTNER_GENDER = '';
 $PARTNER_DOB = '';
 $INACTIVE_BY_ADMIN = '';
+$CREATED_ON = '';
 if(!empty($_GET['id'])) {
-    $res = $db->Execute("SELECT * FROM DOA_USERS WHERE DOA_USERS.PK_USER = '$_GET[id]'");
+    $res = $db->Execute("SELECT * FROM DOA_USERS WHERE IS_DELETED = 0 AND DOA_USERS.PK_USER = '$_GET[id]'");
 
     if($res->RecordCount() == 0){
         header("location:all_customers.php");
@@ -237,6 +238,7 @@ if(!empty($_GET['id'])) {
     $PASSWORD = $res->fields['PASSWORD'];
     $INACTIVE_BY_ADMIN = $res->fields['INACTIVE_BY_ADMIN'];
     $CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
+    $CREATED_ON = $res->fields['CREATED_ON'];
 
     $user_interest_other_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_INTEREST_OTHER_DATA` WHERE `PK_USER_MASTER` = '$_GET[master_id]'");
     if($user_interest_other_data->RecordCount() > 0){
@@ -270,6 +272,7 @@ if(!empty($_GET['master_id'])) {
 
 if ($PK_USER_MASTER > 0) {
     makeMiscComplete($PK_USER_MASTER);
+    checkAllEnrollmentStatus($PK_USER_MASTER);
 }
 ?>
 <!DOCTYPE html>
@@ -387,15 +390,16 @@ if ($PK_USER_MASTER > 0) {
                         <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>-->
 
                         <?php if(!empty($_GET['id'])) { ?>
-                            <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                            <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
-                            <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" ><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
-                            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'posted')" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
+                            <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
+                            <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
+                            <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
+                            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'posted')" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
-                            <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
-                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#credit_card" role="tab" ><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
-                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" ><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
+                            <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#credit_card" role="tab"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
+                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab"><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
+                            <li> <a class="nav-link" id="delete_tab_link" data-bs-toggle="tab" href="#delete_customer" role="tab"><span class="hidden-sm-up"><i class="ti-trash"></i></span> <span class="hidden-xs-down">Delete</span></a> </li>
                         <?php } ?>
                     </ul>
                 </div>
@@ -506,28 +510,34 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="row">
                                                             <div class="col-3">
                                                                 <div class="form-group">
-                                                                    <label class="form-label">Phone<span class="text-danger" id="phone_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
+                                                                    <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
+                                                                        <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE?>" required>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-2">
+                                                            <div class="col-1">
                                                                 <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMorePhone();"><i class="ti-plus"></i> New</a>
                                                             </div>
                                                             <div class="col-3">
                                                                 <div class="form-group">
-                                                                    <label class="form-label">Email<span class="text-danger" id="email_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
+                                                                    <label class="form-label">Email<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
-                                                                        <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?=$EMAIL_ID?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
+                                                                        <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?=$EMAIL_ID?>" required>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-2">
+                                                            <div class="col-1">
                                                                 <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreEmail();"><i class="ti-plus"></i> New</a>
                                                             </div>
                                                             <div class="col-2">
                                                                 <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?=($CREATE_LOGIN == 1)?'checked':''?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
+                                                            </div>
+                                                            <div class="col-md-2">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Created On</label>
+                                                                    <input type="text" class="form-control datepicker-normal" id="CREATED_ON" name="CREATED_ON" value="<?=($CREATED_ON == '' || $CREATED_ON == '0000-00-00')?date('m/d/Y'):date('m/d/Y', strtotime($CREATED_ON))?>">
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div class="row">
@@ -539,9 +549,9 @@ if ($PK_USER_MASTER > 0) {
                                                                         <div class="row">
                                                                             <div class="col-9">
                                                                                 <div class="form-group">
-                                                                                    <label class="form-label">Phone</label>
+                                                                                    <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                                     <div class="col-md-12">
-                                                                                        <input type="text" name="CUSTOMER_PHONE[]" class="form-control" placeholder="Enter Phone Number" value="<?=$customer_phone->fields['PHONE']?>">
+                                                                                        <input type="text" name="CUSTOMER_PHONE[]" class="form-control" placeholder="Enter Phone Number" value="<?=$customer_phone->fields['PHONE']?>" required>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -560,9 +570,9 @@ if ($PK_USER_MASTER > 0) {
                                                                         <div class="row">
                                                                             <div class="col-9">
                                                                                 <div class="form-group">
-                                                                                    <label class="col-md-12">Email</label>
+                                                                                    <label class="col-md-12">Email<span class="text-danger">*</span></label>
                                                                                     <div class="col-md-12">
-                                                                                        <input type="email" name="CUSTOMER_EMAIL[]" class="form-control" placeholder="Enter Email Address" value="<?=$customer_email->fields['EMAIL']?>">
+                                                                                        <input type="email" name="CUSTOMER_EMAIL[]" class="form-control" placeholder="Enter Email Address" value="<?=$customer_email->fields['EMAIL']?>" required>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -613,7 +623,7 @@ if ($PK_USER_MASTER > 0) {
                                                                 <div class="form-group">
                                                                     <label class="form-label">Gender</label>
                                                                     <select class="form-control" id="GENDER" name="GENDER">
-                                                                        <option>Select Gender</option>
+                                                                        <option value="">Select Gender</option>
                                                                         <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
                                                                         <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
                                                                         <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
@@ -652,10 +662,10 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="row">
                                                             <div class="col-6">
                                                                 <div class="form-group">
-                                                                    <label class="col-md-12">Country</label>
+                                                                    <label class="col-md-12">Country<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
                                                                         <div class="col-sm-12">
-                                                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
+                                                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
                                                                                 <option>Select Country</option>
                                                                                 <?php
                                                                                 $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
@@ -670,7 +680,7 @@ if ($PK_USER_MASTER > 0) {
 
                                                             <div class="col-6">
                                                                 <div class="form-group">
-                                                                    <label class="col-md-12">State</label>
+                                                                    <label class="col-md-12">State<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
                                                                         <div class="col-sm-12">
                                                                             <div id="State_div"></div>
@@ -1926,6 +1936,14 @@ if ($PK_USER_MASTER > 0) {
                                                 </div>
                                             </div>
 
+                                            <div class="tab-pane" id="delete_customer" role="tabpanel">
+                                                <div class="p-20">
+                                                    <div class="form-group">
+                                                        <button type="button" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="deleteThisCustomer(<?=$PK_USER?>)" style="margin-top: 2%; margin-left: 46%;">Delete This Account</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <!--Comment Model-->
                                             <div id="commentModel" class="modal">
                                                 <!-- Modal content -->
@@ -1991,8 +2009,15 @@ if ($PK_USER_MASTER > 0) {
                                     $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
                                     while (!$row->EOF) { ?>
                                         <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                        <?php $row->MoveNext(); } ?>
+                                    <?php $row->MoveNext(); } ?>
                                 </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="REFUND_AMOUNT">How much refund you want?</label>
+                            <div class="col-md-12">
+                                <input class="form-control" name="REFUND_AMOUNT" id="REFUND_AMOUNT" value="0">
                             </div>
                         </div>
                     </div>
@@ -2004,7 +2029,6 @@ if ($PK_USER_MASTER > 0) {
         </div>
     </div>
 </div>
-
 
 
 <!--Confirm Model-->
@@ -2043,18 +2067,97 @@ if ($PK_USER_MASTER > 0) {
 
 </div>
 
-<!--Add Credit Card Model-->
+<!--Edit Appointment Model-->
 <div class="modal fade" id="edit_appointment_modal" tabindex="-1" aria-hidden="true">
 
 </div>
 
-    <style>
-        .progress-bar {
-            border-radius: 5px;
-            height:18px !important;
-        }
-    </style>
-    <?php require_once('../includes/footer.php');?>
+<!--Verify Password Model-->
+<div class="modal fade" id="verify_password_model" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="verify_password_form"  method="post">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Verify Password</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label">Enter your profile password</label>
+                                <input type="password" id="verify_password" name="verify_password" class="form-control" placeholder="Password" required>
+                                <p id="verify_password_error" style="color: red;"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--Edit Billing Due Date Model-->
+<div class="modal fade" id="billing_due_date_model" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="edit_due_date_form"  method="post">
+            <input type="hidden" name="PK_ENROLLMENT_LEDGER" id="PK_ENROLLMENT_LEDGER">
+            <input type="hidden" name="old_due_date" id="old_due_date">
+            <input type="hidden" name="edit_type" id="edit_type">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Edit Due Date</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label">Due Date</label>
+                                <input type="text" id="due_date" name="due_date" class="form-control datepicker-normal" placeholder="Due Date" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label">Enter your profile password</label>
+                                <input type="password" id="due_date_verify_password" name="due_date_verify_password" class="form-control" placeholder="Password" required>
+                                <p id="due_date_verify_password_error" style="color: red;"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .progress-bar {
+        border-radius: 5px;
+        height:18px !important;
+    }
+</style>
+<?php require_once('../includes/footer.php');?>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+    import Swal from 'sweetalert2';
+    const Swal = require('sweetalert2');
+</script>
 
     <script>
         let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
@@ -2962,6 +3065,88 @@ if ($PK_USER_MASTER > 0) {
         $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
         stripePaymentFunction('save_credit_card');
     }
+
+
+
+    function deleteThisCustomer(PK_USER) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this profile will erase all data related to this person. Even previous numbers, reports, appointments and enrollments.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#verify_password_model').modal('show');
+            } else {
+                Swal.fire({
+                    title: "Cancelled",
+                    text: "Your imaginary file is safe :)",
+                    icon: "error"
+                });
+            }
+        });
+    }
+
+    $('#verify_password_form').on('submit', function (event) {
+        event.preventDefault();
+        let pk_user = $('.PK_USER').val();
+        let password = $('#verify_password').val();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {FUNCTION_NAME: 'deleteCustomerAfterVerify', pk_user:pk_user, PASSWORD: password},
+            success: function (data) {
+                $('#verify_password_error').slideUp();
+                if (data == 1) {
+                    Swal.fire({
+                        title: "Deleted!",
+                        text: "Your file has been deleted.",
+                        icon: "success",
+                        timer: 3000,
+                    }).then((result) => {
+                        window.location.href='all_customers.php';
+                    });
+                } else {
+                    $('#verify_password_error').text("Incorrect Password").slideDown();
+                }
+            }
+        });
+    });
+
+    $('#edit_due_date_form').on('submit', function (event) {
+        event.preventDefault();
+
+        let PK_ENROLLMENT_LEDGER = $('#PK_ENROLLMENT_LEDGER').val();
+        let old_due_date = $('#old_due_date').val();
+        let due_date = $('#due_date').val();
+        let edit_type = $('#edit_type').val();
+        let due_date_verify_password = $('#due_date_verify_password').val();
+
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {FUNCTION_NAME: 'updateBillingDueDate', PK_ENROLLMENT_LEDGER:PK_ENROLLMENT_LEDGER, old_due_date:old_due_date, due_date: due_date, edit_type:edit_type, due_date_verify_password:due_date_verify_password},
+            success: function (data) {
+                $('#due_date_verify_password_error').slideUp();
+                if (data == 1) {
+                    Swal.fire({
+                        title: "Updated!",
+                        text: "Due Date is Updated.",
+                        icon: "success",
+                        timer: 3000,
+                    }).then((result) => {
+                        $('#billing_due_date_model').modal('hide');
+                        showEnrollmentList(1, 'normal');
+                    });
+                } else {
+                    $('#due_date_verify_password_error').text("Incorrect Password").slideDown();
+                }
+            }
+        });
+    });
 </script>
 </body>
 </html>

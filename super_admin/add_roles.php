@@ -17,6 +17,7 @@ if(!empty($_POST)){
     unset($_POST['PK_PERMISSION']);
     $ROLES_DATA = $_POST;
     if(empty($_GET['id'])){
+        $ROLES_DATA['SORT_ORDER'] = $_POST['SORT_ORDER'];
         $ROLES_DATA['IS_MANAGEMENT'] = $_POST['IS_MANAGEMENT'];
         $ROLES_DATA['ACTIVE'] = 1;
         $ROLES_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
@@ -25,6 +26,7 @@ if(!empty($_POST)){
         $PK_ROLES = $db->insert_ID();
     }else{
         $ROLES_DATA['IS_MANAGEMENT'] = isset($_POST['IS_MANAGEMENT'])?1:0;
+        $ROLES_DATA['SORT_ORDER'] = $_POST['SORT_ORDER'];
         $ROLES_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $ROLES_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $ROLES_DATA['EDITED_ON'] = date("Y-m-d H:i");
@@ -48,6 +50,7 @@ $ROLES	       = '';
 
 if(empty($_GET['id'])){
     $ROLES = '';
+    $SORT_ORDER = '';
     $IS_MANAGEMENT = '';
     $ACTIVE = '';
 } else {
@@ -57,6 +60,7 @@ if(empty($_GET['id'])){
         exit;
     }
     $ROLES = $res->fields['ROLES'];
+    $SORT_ORDER = $res->fields['SORT_ORDER'];
     $IS_MANAGEMENT = $res->fields['IS_MANAGEMENT'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
@@ -99,6 +103,16 @@ if(empty($_GET['id'])){
                                             <label class="col-md-12" for="example-text">Roles<span class="text-danger">*</span></label>
                                             <div class="col-md-12">
                                                 <input type="text" id="ROLES" name="ROLES" class="form-control" placeholder="Enter Roles" required value="<?php echo $ROLES?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">Sort Order</label>
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <input type="text" class="form-control" id="SORT_ORDER" name="SORT_ORDER" value="<?php echo $SORT_ORDER?>">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

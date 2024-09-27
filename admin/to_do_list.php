@@ -12,10 +12,15 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
-$appointment_status = empty($_GET['appointment_status']) ? '1, 2, 3, 5, 7, 8' : $_GET['appointment_status'];
-
 $START_DATE = ' ';
 $END_DATE = ' ';
+
+if (empty($_GET['START_DATE']) && empty($_GET['END_DATE']) && empty($_GET['search_text'])) {
+    $START_DATE = " AND DOA_SPECIAL_APPOINTMENT.DATE = '".date('Y-m-d')."'";
+}
+
+$appointment_status = empty($_GET['appointment_status']) ? '1, 2, 3, 5, 7, 8' : $_GET['appointment_status'];
+
 if (!empty($_GET['START_DATE'])) {
     $START_DATE = " AND DOA_SPECIAL_APPOINTMENT.DATE >= '".date('Y-m-d', strtotime($_GET['START_DATE']))."'";
 }
@@ -220,12 +225,12 @@ $page_first_result = ($page-1) * $results_per_page;
                                         </tr>
                                     </thead>
 
-
+                                    <tbody>
                                     <?php
                                     $i=$page_first_result+1;
                                     $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
                                     while (!$special_appointment_data->EOF) { ?>
-                                    <tbody>
+
                                     <?php
                                     if ($standing == 0) { ?>
                                         <tr>
@@ -264,12 +269,13 @@ $page_first_result = ($page-1) * $results_per_page;
                                                 <?php } ?>
                                             </td>
                                         </tr>
-                                    </tbody>
-                                    <tbody class="standing_list" style="display: none; background-color: #dee2e6;">
 
-                                    </tbody>
+                                    <!--<tbody class="standing_list" style="display: none; background-color: #dee2e6;">
+
+                                    </tbody>-->
                                     <?php $special_appointment_data->MoveNext();
                                     $i++; } ?>
+                                    </tbody>
                                 </table>
 
                                 <div class="center">
@@ -539,12 +545,13 @@ $page_first_result = ($page-1) * $results_per_page;
     }
 
     function showStandingToDoDetails(param, STANDING_ID) {
+        $(param).nextUntil('tr.header').remove();
         $.ajax({
             url: "pagination/get_standing_to_do.php",
             type: 'GET',
             data: {STANDING_ID:STANDING_ID},
             success: function (result) {
-                $(param).closest('tbody').next('.standing_list').html(result).slideToggle();
+                $(result).insertAfter($(param).closest('tr'));
             }
         });
     }

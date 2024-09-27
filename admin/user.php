@@ -203,7 +203,7 @@ if(!empty($_GET['id'])) {
                                                                     <div class="col-md-12 multiselect-box">
                                                                         <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
                                                                             <?php
-                                                                            $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' ".$user_role_condition." ORDER BY PK_ROLES");
+                                                                            $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' ".$user_role_condition." ORDER BY SORT_ORDER");
                                                                             while (!$row->EOF) { ?>
                                                                                 <option value="<?php echo $row->fields['PK_ROLES'];?>" <?=in_array($row->fields['PK_ROLES'], $selected_roles)?"selected":""?>><?=$row->fields['ROLES']?></option>
                                                                             <?php $row->MoveNext(); } ?>

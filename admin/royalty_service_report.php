@@ -18,7 +18,7 @@ $type = $_GET['type'];
 $week_number = $_GET['week_number'];
 $YEAR = date('Y');
 $dto = new DateTime();
-$dto->setISODate($YEAR, $week_number+1);
+$dto->setISODate($YEAR, $week_number);
 $from_date = $dto->modify('-1 day')->format('Y-m-d');
 $dto->modify('+6 days');
 $to_date = $dto->format('Y-m-d');
@@ -29,7 +29,7 @@ $PAYMENT_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                         DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
                         DOA_PAYMENT_TYPE.PAYMENT_TYPE,
-                        CONCAT(DOA_USERS.FIRST_NAME, ' ' ,DOA_USERS.LAST_NAME) AS STUDENT_NAME,
+                        CONCAT(CUSTOMER.FIRST_NAME, ' ' ,CUSTOMER.LAST_NAME) AS STUDENT_NAME,
                         CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
                         CLOSER.LAST_NAME AS CLOSER_LAST_NAME,
                         DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
@@ -43,9 +43,9 @@ $PAYMENT_QUERY = "SELECT
                     LEFT JOIN $master_database.DOA_USERS AS CLOSER ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER
                     
                     LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
-                    LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
+                    LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER
                     
-                    WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE != 7 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.")
+                    WHERE CUSTOMER.IS_DELETED = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE != 7 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.")
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'
                     ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
 
@@ -54,7 +54,7 @@ $REFUND_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                         DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
                         DOA_PAYMENT_TYPE.PAYMENT_TYPE,
-                        CONCAT(DOA_USERS.FIRST_NAME, ' ' ,DOA_USERS.LAST_NAME) AS STUDENT_NAME,
+                        CONCAT(CUSTOMER.FIRST_NAME, ' ' ,CUSTOMER.LAST_NAME) AS STUDENT_NAME,
                         CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
                         CLOSER.LAST_NAME AS CLOSER_LAST_NAME,
                         DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
@@ -68,9 +68,9 @@ $REFUND_QUERY = "SELECT
                     LEFT JOIN $master_database.DOA_USERS AS CLOSER ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER
                     
                     LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
-                    LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
+                    LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER
                     
-                    WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE != 7 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.")
+                    WHERE CUSTOMER.IS_DELETED = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE != 7 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.")
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'
                     ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
 
@@ -376,9 +376,9 @@ foreach ($resultsArray as $key => $result) {
 
                                         $TOTAL_RS_FEE += $REGULAR_AMOUNT;
                                         if (isset($LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']])) {
-                                            $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] + $REGULAR_AMOUNT;
+                                            $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] + ($REGULAR_AMOUNT + $MISC_AMOUNT);
                                         } else {
-                                            $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $REGULAR_AMOUNT;
+                                            $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = ($REGULAR_AMOUNT + $MISC_AMOUNT);
                                         } ?>
                                         <tr style="text-align: center;">
                                             <td><?=$payment_data->fields['RECEIPT_NUMBER']?></td>
@@ -427,7 +427,7 @@ foreach ($resultsArray as $key => $result) {
                                                 <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($REGULAR_TOTAL_DAILY, 2)?></th>
                                                 <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($SUNDRY_TOTAL_DAILY, 2)?></th>
                                                 <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($MISC_TOTAL_DAILY, 2)?></th>
-                                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_RS_FEE, 2)?></th>
+                                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_RS_FEE+$MISC_TOTAL, 2)?></th>
                                                 <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?='$'.number_format($TOTAL_AMOUNT_PAID, 2)?></th>
                                             </tr>
                                             <?php
@@ -555,11 +555,11 @@ foreach ($resultsArray as $key => $result) {
                                             <td style="width:10%; text-align: center;"><?='$'.number_format($MISC_TOTAL, 2)?></td>
                                             <td style="width:10%; text-align: center;">$0.00</td>
                                             <td style="width:5%; text-align: center;">=</td>
-                                            <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE, 2)?></td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE+$MISC_TOTAL, 2)?></td>
                                             <td style="width:5%; text-align: center;">+</td>
                                             <td style="width:10%; text-align: center;"><?='$'.number_format($SUNDRY_TOTAL, 2)?></td>
                                             <td style="width:5%; text-align: center;">=</td>
-                                            <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE+$SUNDRY_TOTAL, 2)?></td>
+                                            <td style="width:10%; text-align: center;"><?='$'.number_format($TOTAL_RS_FEE+$MISC_TOTAL+$SUNDRY_TOTAL, 2)?></td>
                                         </tr>
                                         <tr>
                                             <td style="width:10%; text-align: center; font-weight: bold">Total refunds/credits</td>
@@ -595,7 +595,7 @@ foreach ($resultsArray as $key => $result) {
                                             <td style="width:10%; text-align: center;">
                                                 <?=$location_total?>
                                                 <hr>
-                                                <?='$'.number_format($TOTAL_RS_FEE - $TOTAL_AMOUNT_REFUND, 2)?>
+                                                <?='$'.number_format(($TOTAL_RS_FEE+$MISC_TOTAL) - $TOTAL_AMOUNT_REFUND, 2)?>
                                             </td>
                                             <td style="width:10%; text-align: center;" colspan="2"><?=$royalty_percent?></td>
                                             <td style="width:10%; text-align: center;" colspan="2">

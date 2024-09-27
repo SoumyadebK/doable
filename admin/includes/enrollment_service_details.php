@@ -30,18 +30,20 @@ $CANCEL_FUTURE_APPOINTMENT = $_GET['CANCEL_FUTURE_APPOINTMENT'];
     $total_used_amount = 0;
     $service_code_array = [];
     while (!$serviceCodeData->EOF) {
+        $SESSION_CREATED = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+        $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
         if ($CANCEL_FUTURE_APPOINTMENT == 1) {
-            $used_session_amount = $serviceCodeData->fields['SESSION_COMPLETED'] * $serviceCodeData->fields['PRICE_PER_SESSION'];
+            $used_session_amount = $SESSION_COMPLETED * $serviceCodeData->fields['PRICE_PER_SESSION'];
         } else {
-            $session_created_amount = $serviceCodeData->fields['SESSION_CREATED'] * $serviceCodeData->fields['PRICE_PER_SESSION'];
-            $session_completed_amount = $serviceCodeData->fields['SESSION_COMPLETED'] * $serviceCodeData->fields['PRICE_PER_SESSION'];
+            $session_created_amount = $SESSION_CREATED * $serviceCodeData->fields['PRICE_PER_SESSION'];
+            $session_completed_amount = $SESSION_COMPLETED * $serviceCodeData->fields['PRICE_PER_SESSION'];
             $used_session_amount = (($session_completed_amount > $serviceCodeData->fields['TOTAL_AMOUNT_PAID']) ? $session_completed_amount : (($session_created_amount > $serviceCodeData->fields['TOTAL_AMOUNT_PAID']) ? $serviceCodeData->fields['TOTAL_AMOUNT_PAID'] : $session_created_amount));
         }
         $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['SERVICE_CODE'] = $serviceCodeData->fields['SERVICE_CODE'];
         $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['NUMBER_OF_SESSION'] = $serviceCodeData->fields['NUMBER_OF_SESSION'];
         $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['PRICE_PER_SESSION'] = $serviceCodeData->fields['PRICE_PER_SESSION'];
         $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['TOTAL_AMOUNT_PAID'] = $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-        $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['SESSION_COMPLETED'] = $serviceCodeData->fields['SESSION_COMPLETED'];
+        $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['SESSION_COMPLETED'] = $SESSION_COMPLETED;
         $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['USED_AMOUNT'] = $used_session_amount;
         $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['BALANCE'] = $serviceCodeData->fields['TOTAL_AMOUNT_PAID'] - $used_session_amount;
         $service_code_array[$serviceCodeData->fields['PK_ENROLLMENT_SERVICE']]['FINAL_AMOUNT'] = $serviceCodeData->fields['FINAL_AMOUNT'];
@@ -101,12 +103,12 @@ $CANCEL_FUTURE_APPOINTMENT = $_GET['CANCEL_FUTURE_APPOINTMENT'];
         $total_used_amount +=  ($PRICE_PER_SESSION * $value['SESSION_COMPLETED']);
         if (isset($value['ADJUSTABLE_AMOUNT'])) {
             $adjusted_amount = "<span style='margin-left: 8px; padding: 5px; background-color: ".(($value['ADJUSTABLE_AMOUNT'] > 0) ? 'green' : 'red')."; border-radius: 5px; color: white;'>".$value['ADJUSTABLE_AMOUNT']."</span>"; ?>
-            <input type="hidden" name="PK_ENROLLMENT_SERVICE[]" value="<?=$key?>">
             <input type="hidden" name="TOTAL_AMOUNT_PAID[]" value="<?=$value['TOTAL_AMOUNT_PAID']+$value['ADJUSTABLE_AMOUNT']?>">
         <?php } else {
             $adjusted_amount = '';
         }
         ?>
+        <input type="hidden" name="PK_ENROLLMENT_SERVICE[]" value="<?=$key?>">
         <tr>
             <td><?=$value['SERVICE_CODE']?></td>
             <td style="text-align: right"><?=$value['NUMBER_OF_SESSION']?></td>
@@ -119,11 +121,11 @@ $CANCEL_FUTURE_APPOINTMENT = $_GET['CANCEL_FUTURE_APPOINTMENT'];
     } ?>
     <tr>
         <td>Amount</td>
-        <td style="text-align: right;"><?=$total_amount?></td>
-        <td style="text-align: right;"><?=$total_used_amount?></td>
-        <td style="text-align: right; color:<?=($total_paid_amount-$total_used_amount<0)?'red':'black'?>;"><?=$total_paid_amount-$total_used_amount?></td>
-        <td style="text-align: right;"><?=$total_paid_amount?></td>
-        <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? $total_paid_amount-$total_used_amount : 0?></td>
+        <td style="text-align: right;"><?=number_format($total_amount, 2)?></td>
+        <td style="text-align: right;"><?=number_format($total_used_amount, 2)?></td>
+        <td style="text-align: right; color:<?=($total_paid_amount-$total_used_amount<0)?'red':'black'?>;"><?=number_format($total_paid_amount-$total_used_amount, 2)?></td>
+        <td style="text-align: right;"><?=number_format($total_paid_amount, 2)?></td>
+        <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? number_format($total_paid_amount-$total_used_amount, 2) : 0?></td>
     </tr>
     </tbody>
 </table>

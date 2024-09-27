@@ -933,7 +933,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             calendar.refetchEvents();
         }
         calendar.refetchResources();
-        getServiceProviderCount();
+        setTimeout(function() { getServiceProviderCount() }, 1000);
     });
 
     function createAppointment(type, param) {

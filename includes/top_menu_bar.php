@@ -91,7 +91,7 @@ if (!empty($_GET['view'])) {
                 </nav>
             </div>
             --><?php /*} */?>
-            <nav class="my-2 my-md-0 mr-md-3 new-top-nav col-md-8">
+            <nav class="my-2 my-md-0 mr-md-3 new-top-nav col-md-12">
                 <ul id="sidebarnav" style="float: right;">
                     <?php if($_SESSION['PK_ROLES'] == 1) { ?>
                         <li>

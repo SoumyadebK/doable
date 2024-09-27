@@ -11,9 +11,9 @@ $type = !empty($_GET['type']) ? $_GET['type'] : 0;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 if ($type == 'completed') {
-    $enr_condition = " (DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 1 OR DOA_ENROLLMENT_MASTER.STATUS = 'C') ";
+    $enr_condition = " (DOA_ENROLLMENT_MASTER.STATUS = 'CO' || DOA_ENROLLMENT_MASTER.STATUS = 'C') ";
 } else {
-    $enr_condition = " DOA_ENROLLMENT_MASTER.STATUS != 'C' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ";
+    $enr_condition = " (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') ";
 }
 ?>
 
@@ -29,6 +29,7 @@ if ($_GET['type'] == 'normal') { ?>
             <?php
             $total_paid = 0;
             $misc_paid = 0;
+            $total_used = 0;
             $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
 
             $total_paid_data = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_PAYMENT.*, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
@@ -44,8 +45,12 @@ if ($_GET['type'] == 'normal') { ?>
             $total_refund_data = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_REFUND FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
             $total_refund = ($total_refund_data->RecordCount() > 0) ? $total_refund_data->fields['TOTAL_REFUND'] : 0.00;
 
-            $total_used_data = $db_account->Execute("SELECT SUM(PRICE_PER_SESSION*SESSION_COMPLETED) AS TOTAL_USED FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
-            $total_used = ($total_used_data->RecordCount() > 0) ? $total_used_data->fields['TOTAL_USED'] : 0.00;
+            $enr_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS != 'C' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
+            while (!$enr_service_data->EOF) {
+                $SESSION_COMPLETED = getSessionCompletedCount($enr_service_data->fields['PK_ENROLLMENT_SERVICE']);
+                $total_used += ($SESSION_COMPLETED*$enr_service_data->fields['PRICE_PER_SESSION']);
+                $enr_service_data->MoveNext();
+            }
             ?>
             <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="create_csv.php?id_customer=<?=$_GET['pk_user']?>&master_id_customer=<?=$PK_USER_MASTER?>&source=customer" style="width: 120px; "><i class="fa fa-file-export"></i> Export</a>
             <h5 id="wallet_balance_span">Credit Balance : $<?=number_format((float)$total_paid-(float)$total_used, 2)?></h5>
@@ -104,9 +109,9 @@ while (!$row->EOF) {
             </div>
             <div class="col-8" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'appointment_details')" style="cursor: pointer;">
                 <table id="myTable" class="table <?php
-                $details = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                $paid_count = $details->RecordCount() > 0 ? $details->fields['PAID'] : 0;
-                if ($paid_count==0) { echo 'table-success'; }else{echo "table-striped";}?> border">
+                $details = $db_account->Execute("SELECT PK_ENROLLMENT_LEDGER FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                $paid_count = ($details->RecordCount() > 0) ? $details->RecordCount() : 0;
+                if ($paid_count == 0) { echo 'table-success'; }else{ echo "table-striped"; } ?> border">
                     <thead>
                         <tr>
                             <th></th>
@@ -120,13 +125,18 @@ while (!$row->EOF) {
 
                     <tbody>
                     <?php
-                    $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                    $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                     $total_amount = 0;
                     $total_paid_amount = 0;
                     $total_used_amount = 0;
                     $enrollment_service_array = [];
                     while (!$serviceCodeData->EOF) {
-                        $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                        if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
+                            $SESSION_COMPLETED = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                        } else {
+                            $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                        }
+
                         $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
                         $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData->fields['PRICE_PER_SESSION'];
                         $TOTAL_PAID_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? $serviceCodeData->fields['NUMBER_OF_SESSION'] : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'], 2);
@@ -147,11 +157,11 @@ while (!$row->EOF) {
                     } ?>
                     <tr>
                         <td>Amount</td>
-                        <td style="text-align: right;"><?=$total_amount?></td>
-                        <td style="text-align: right;"><?=$total_used_amount?></td>
+                        <td style="text-align: right;"><?=number_format($total_amount, 2)?></td>
+                        <td style="text-align: right;"><?=number_format($total_used_amount, 2)?></td>
                         <td style="text-align: right; color:<?=($total_paid_amount-$total_used_amount<-0.03)?'red':'black'?>;"><?=number_format((($total_paid_amount-$total_used_amount<0.03) ? 0 : $total_paid_amount-$total_used_amount), 2)?></td>
                         <td style="text-align: right;">$<?=number_format($total_paid_amount, 2)?></td>
-                        <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? $total_paid_amount-$total_used_amount : 0?></td>
+                        <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? number_format($total_paid_amount-$total_used_amount, 2) : 0?></td>
                     </tr>
                     </tbody>
                 </table>
@@ -243,12 +253,13 @@ while (!$row->EOF) {
         }
     });
 
-    function moveToWallet(param, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, ENROLLMENT_LEDGER_PARENT, PK_USER_MASTER, BALANCE, ENROLLMENT_TYPE, TRANSACTION_TYPE, PAYMENT_COUNTER) {
+    function moveToWallet(param, PK_ENROLLMENT_PAYMENT, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, PK_USER_MASTER, BALANCE, ENROLLMENT_TYPE, TRANSACTION_TYPE, PAYMENT_COUNTER) {
         let PK_PAYMENT_TYPE = $('#PK_PAYMENT_TYPE_REFUND').val();
         let confirm_move = $('#confirm_move').val();
         if (TRANSACTION_TYPE == 'Refund' && PK_PAYMENT_TYPE == 0) {
             $('.trigger_this').removeClass('trigger_this');
             $(param).addClass('trigger_this');
+            $('#REFUND_AMOUNT').val(BALANCE);
             $('#refund_modal').modal('show');
         } else {
             if (TRANSACTION_TYPE == 'Move' && confirm_move == 0) {
@@ -257,24 +268,35 @@ while (!$row->EOF) {
                 $('#move_amount').text(parseFloat(BALANCE).toFixed(2));
                 $('#move_to_wallet_model').modal('show');
             } else {
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    data: {
-                        FUNCTION_NAME: 'moveToWallet',
-                        PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
-                        PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
-                        ENROLLMENT_LEDGER_PARENT: ENROLLMENT_LEDGER_PARENT,
-                        PK_USER_MASTER: PK_USER_MASTER,
-                        BALANCE: BALANCE,
-                        ENROLLMENT_TYPE: ENROLLMENT_TYPE,
-                        TRANSACTION_TYPE: TRANSACTION_TYPE,
-                        PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
-                    },
-                    success: function (data) {
-                        window.location.reload();
-                    }
-                });
+                let REFUND_AMOUNT = $('#REFUND_AMOUNT').val();
+                if (REFUND_AMOUNT > BALANCE) {
+                    alert("Refund amount can't be grater then balance");
+                    $('#REFUND_AMOUNT').val(BALANCE);
+                } else {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'moveToWallet',
+                            PK_ENROLLMENT_PAYMENT : PK_ENROLLMENT_PAYMENT,
+                            PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                            PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                            PK_USER_MASTER: PK_USER_MASTER,
+                            BALANCE: BALANCE,
+                            REFUND_AMOUNT: REFUND_AMOUNT,
+                            ENROLLMENT_TYPE: ENROLLMENT_TYPE,
+                            TRANSACTION_TYPE: TRANSACTION_TYPE,
+                            PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
+                        },
+                        success: function (data) {
+                            if (data == 1) {
+                                window.location.reload();
+                            } else {
+                                alert(data);
+                            }
+                        }
+                    });
+                }
             }
         }
     }
@@ -297,6 +319,36 @@ while (!$row->EOF) {
             },
             success: function (data) {
                 $('#edit_appointment_modal').html(data).modal('show');
+            }
+        });
+    }
+
+    function editBillingDueDate(PK_ENROLLMENT_LEDGER, DUE_DATE, TYPE) {
+        $('#PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#old_due_date').val(DUE_DATE);
+        $('#due_date').val(DUE_DATE);
+        $('#edit_type').val(TYPE);
+        $('#billing_due_date_model').modal('show');
+    }
+
+    function getEditHistory(param, PK_ENROLLMENT_LEDGER, type) {
+        $.ajax({
+            url: "includes/get_update_history.php",
+            type: 'GET',
+            data: {
+                PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                CLASS : type,
+                FIELD_NAME : 'DUE_DATE'
+            },
+            success: function (data) {
+                $(param).popover({
+                    title: 'Due Date Update Details',
+                    placement: 'top',
+                    trigger: 'hover',
+                    content: data,
+                    container: 'body',
+                    html: true,
+                }).popover('show');
             }
         });
     }

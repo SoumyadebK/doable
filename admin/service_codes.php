@@ -70,6 +70,7 @@ if(empty($_GET['id'])){
     }
     $SERVICE_NAME = $res->fields['SERVICE_NAME'];
     $PK_SERVICE_CLASS = $res->fields['PK_SERVICE_CLASS'];
+    $MISC_TYPE = $res->fields['MISC_TYPE'];
     $IS_SCHEDULE = $res->fields['IS_SCHEDULE'];
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
@@ -277,7 +278,26 @@ if(empty($_GET['id'])){
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="row" id="schedule_div" style="display: <?=($PK_SERVICE_CLASS == 5 || $PK_SERVICE_CLASS == 1) ? 'none' : ''?>">
+
+                                                        <div class="row service_class_type" id="misc_type_div" style="display: <?=($PK_SERVICE_CLASS == 5) ? '' : 'none'?>">
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label>Misc. Type</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <select class="form-control MISC_TYPE" name="MISC_TYPE">
+                                                                        <option value="">Select</option>
+                                                                        <option value="GENERAL" <?=($MISC_TYPE == 'GENERAL') ? 'selected' : ''?>>General</option>
+                                                                        <option value="DOR" <?=($MISC_TYPE == 'DOR') ? 'selected' : ''?>>DOR</option>
+                                                                        <option value="SHOWCASE" <?=($MISC_TYPE == 'SHOWCASE') ? 'selected' : ''?>>Showcase</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row service_class_type" id="schedule_div" style="display: <?=($PK_SERVICE_CLASS == 2) ? '' : 'none'?>">
                                                             <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Schedule</label>
@@ -302,7 +322,7 @@ if(empty($_GET['id'])){
                                                                         <?php
                                                                         $selected_scheduling_code  = [];
                                                                         if (!empty($_GET['id'])) {
-                                                                            $selected_scheduling_code_row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE` FROM `DOA_SERVICE_SCHEDULING_CODE` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
+                                                                            $selected_scheduling_code_row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE` FROM `DOA_SCHEDULING_SERVICE` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
                                                                             while (!$selected_scheduling_code_row->EOF) {
                                                                                 $selected_scheduling_code[] = $selected_scheduling_code_row->fields['PK_SCHEDULING_CODE'];
                                                                                 $selected_scheduling_code_row->MoveNext();
@@ -311,7 +331,7 @@ if(empty($_GET['id'])){
                                                                         $scheduling_code = $db_account->Execute("SELECT * FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
                                                                         while (!$scheduling_code->EOF) { ?>
                                                                             <option value="<?=$scheduling_code->fields['PK_SCHEDULING_CODE']?>" <?=in_array($scheduling_code->fields['PK_SCHEDULING_CODE'], $selected_scheduling_code)?"selected":""?>><?=$scheduling_code->fields['SCHEDULING_NAME'].' ('.$scheduling_code->fields['SCHEDULING_CODE'].')'?></option>
-                                                                            <?php $scheduling_code->MoveNext(); } ?>
+                                                                        <?php $scheduling_code->MoveNext(); } ?>
                                                                     </select>
                                                                 </div>
                                                             </div>
@@ -375,12 +395,31 @@ if(empty($_GET['id'])){
                                                                         $row = $db->Execute("SELECT * FROM DOA_SERVICE_CLASS WHERE ACTIVE = 1");
                                                                         while (!$row->EOF) { ?>
                                                                             <option value="<?php echo $row->fields['PK_SERVICE_CLASS'];?>" <?=($PK_SERVICE_CLASS == $row->fields['PK_SERVICE_CLASS'])?'selected':''?>><?=$row->fields['SERVICE_CLASS']?></option>
-                                                                            <?php $row->MoveNext(); } ?>
+                                                                        <?php $row->MoveNext(); } ?>
                                                                     </select>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="row" id="schedule_div" style="display: <?=($PK_SERVICE_CLASS == 5 || $PK_SERVICE_CLASS == 1) ? 'none' : ''?>">
+
+                                                        <div class="row service_class_type" id="misc_type_div" style="display: <?=($PK_SERVICE_CLASS == 5) ? '' : 'none'?>">
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label>Misc. Type</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <select class="form-control MISC_TYPE" name="MISC_TYPE">
+                                                                        <option value="">Select</option>
+                                                                        <option value="GENERAL">General</option>
+                                                                        <option value="DOR">DOR</option>
+                                                                        <option value="SHOWCASE">Showcase</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row service_class_type" id="schedule_div" style="display: <?=($PK_SERVICE_CLASS == 2) ? '' : 'none'?>">
                                                             <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Schedule</label>
@@ -582,25 +621,14 @@ if(empty($_GET['id'])){
 
     function selectServiceClass(param) {
         let PK_SERVICE_CLASS = parseInt($(param).val());
+        $('.service_class_type').slideUp();
 
-        if (PK_SERVICE_CLASS === 1 || PK_SERVICE_CLASS === 5){
-            $('#frequency_duration_label').text('Frequency');
-            $('.duration_div').hide();
-            $('.frequency_div').show();
-            $('#schedule_div').slideUp();
-        }else {
-            if (PK_SERVICE_CLASS === 2){
-                $('#frequency_duration_label').text('Duration');
-                $('.duration_div').show();
-                $('.frequency_div').hide();
-                $('#schedule_div').slideDown();
-            }
+        if (PK_SERVICE_CLASS === 2){
+            $('#schedule_div').slideDown();
         }
 
-        if (PK_SERVICE_CLASS === 5) {
-            $('#sundry_div').show();
-        } else {
-            $('#sundry_div').hide();
+        if (PK_SERVICE_CLASS === 5){
+            $('#misc_type_div').slideDown();
         }
     }
 

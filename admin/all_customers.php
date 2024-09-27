@@ -127,20 +127,20 @@ $page_first_result = ($page-1) * $results_per_page;
                             <div class="table-responsive">
                                 <table id="myTable1" class="table table-striped border">
                                     <thead>
-                                    <tr>
-                                        <th data-type="number" class="sortable" style="cursor: pointer">No</th>
-                                        <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Name</th>
-                                        <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Primary Location</th>
-                                        <th data-type="string" class="sortable" style="width:15%; cursor: pointer;">Preferred Locations</th>
-                                        <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Partner</th>
-                                        <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Customer ID</th>
-                                        <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Email Id</th>
-                                        <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Phone</th>
-                                        <th data-type="number" class="sortable" style="width:10%; cursor: pointer;">Total Paid</th>
-                                        <th data-type="number" class="sortable" style="width:10%; cursor: pointer;">Credit</th>
-                                        <th data-type="number" class="sortable" style="width:10%; cursor: pointer;">Balance</th>
-                                        <th style="width:10%;">Actions</th>
-                                    </tr>
+                                        <tr>
+                                            <th data-type="number" class="sortable" style="cursor: pointer">No</th>
+                                            <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Name</th>
+                                            <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Primary Location</th>
+                                            <th data-type="string" class="sortable" style="width:15%; cursor: pointer;">Preferred Locations</th>
+                                            <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Partner</th>
+                                            <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Customer ID</th>
+                                            <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Email Id</th>
+                                            <th data-type="string" class="sortable" style="width:10%; cursor: pointer;">Phone</th>
+                                            <th data-type="number" class="sortable" style="width:10%; cursor: pointer;">Total Paid</th>
+                                            <th data-type="number" class="sortable" style="width:10%; cursor: pointer;">Credit</th>
+                                            <th data-type="number" class="sortable" style="width:10%; cursor: pointer;">Balance</th>
+                                            <th style="width:10%;">Actions</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
                                     <?php
@@ -153,8 +153,12 @@ $page_first_result = ($page-1) * $results_per_page;
                                         $total_paid_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$row->fields['PK_USER_MASTER']);
                                         $total_paid = $total_paid_data->fields['TOTAL_PAID'];
 
-                                        $total_used_data = $db_account->Execute("SELECT SUM(PRICE_PER_SESSION*SESSION_COMPLETED) AS TOTAL_USED FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$row->fields['PK_USER_MASTER']);
-                                        $total_used = ($total_used_data->RecordCount() > 0) ? $total_used_data->fields['TOTAL_USED'] : 0.00;
+                                        $enr_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS != 'C' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$row->fields['PK_USER_MASTER']);
+                                        while (!$enr_service_data->EOF) {
+                                            $SESSION_COMPLETED = getSessionCompletedCount($enr_service_data->fields['PK_ENROLLMENT_SERVICE']);
+                                            $total_used += ($SESSION_COMPLETED*$enr_service_data->fields['PRICE_PER_SESSION']);
+                                            $enr_service_data->MoveNext();
+                                        }
 
                                         $selected_preferred_location = $db->Execute("SELECT DOA_LOCATION.LOCATION_NAME FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_USER_LOCATION.PK_LOCATION WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$row->fields['PK_USER_MASTER']);
                                         $preferred_location = [];
@@ -189,7 +193,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                                 <?php } else{ ?>
                                                     <span class="active-box-red"></span>
                                                 <?php } ?>
-                                                <a href="all_customers.php?type=del&id=<?=$row->fields['PK_SERVICE_MASTER']?>" onclick='ConfirmDelete(<?=$row->fields['PK_USER']?>);' title="Delete"><i class="ti-trash" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <!--<a href="all_customers.php?type=del&id=<?php /*=$row->fields['PK_SERVICE_MASTER']*/?>" onclick='ConfirmDelete(<?php /*=$row->fields['PK_USER']*/?>);' title="Delete"><i class="ti-trash" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
                                             </td>
                                         </tr>
                                     <?php $row->MoveNext();
@@ -259,7 +263,6 @@ $page_first_result = ($page-1) * $results_per_page;
 </script>
 
 
-// start sorting
 <script>
     $(function() {
         const ths = $("th");
@@ -440,7 +443,6 @@ $page_first_result = ($page-1) * $results_per_page;
 
 
 </script>
-//end sorting
 
 <!--<script>
         $('#myTable').dataTable( {
