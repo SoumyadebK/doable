@@ -29,7 +29,27 @@ if ($not_billed_enrollment->RecordCount() > 0) {
     $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` IN (".implode(',', $PK_ENROLLMENT_MASTER_ARRAY).")");
 }
 
-if (isset($_GET['search_text']) || isset($_GET['FROM_DATE']) || isset($_GET['END_DATE'])) {
+
+
+$START_DATE = ' ';
+$END_DATE = ' ';
+if (!empty($_GET['FROM_DATE'])) {
+    $START_DATE = " AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE >= '".date('Y-m-d', strtotime($_GET['FROM_DATE']))."'";
+}
+if (!empty($_GET['END_DATE'])) {
+    $END_DATE = " AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE <= '".date('Y-m-d', strtotime($_GET['END_DATE']))."'";
+}
+
+$search_text = '';
+$search = $START_DATE.$END_DATE. ' ';
+if (!empty($_GET['search_text'])) {
+    $search_text = $_GET['search_text'];
+    $search = $START_DATE.$END_DATE." AND (DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%'OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%') ";
+}
+
+
+
+/*if (isset($_GET['search_text']) || isset($_GET['FROM_DATE']) || isset($_GET['END_DATE'])) {
     $FROM_DATE = date('Y-m-d', strtotime($_GET['FROM_DATE']));
     $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
     $search_text = $_GET['search_text'];
@@ -39,7 +59,7 @@ if (isset($_GET['search_text']) || isset($_GET['FROM_DATE']) || isset($_GET['END
     $END_DATE='';
     $search_text = '';
     $search = ' ';
-}
+}*/
 
 $query = $db_account->Execute("SELECT count(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM  DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].")".$search);
 
@@ -287,10 +307,10 @@ if (isset($_POST['SUBMIT'])){
                     <form class="form-material form-horizontal" action="" method="get">
                         <div class="input-group" style="width: 80%; margin: auto;">
                             <div style="margin-right: 5px">
-                                <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-past" value="<?=($FROM_DATE == '' || $FROM_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($FROM_DATE))?>">
+                                <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-past" value="<?=($START_DATE == ' ' || $START_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($_GET['FROM_DATE']))?>">
                             </div>
                             <div style="margin-right: 5px">
-                                <input type="text" id="END_DATE" name="END_DATE" placeholder="To Date" class="form-control datepicker-normal" value="<?=($END_DATE == '' || $END_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($END_DATE))?>">
+                                <input type="text" id="END_DATE" name="END_DATE" placeholder="To Date" class="form-control datepicker-normal" value="<?=($END_DATE == ' ' || $END_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($_GET['END_DATE']))?>">
                             </div>
                             <div style="margin-right: 5px">
                                 <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
@@ -381,14 +401,16 @@ if (isset($_POST['SUBMIT'])){
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);">
                                                 <?php if ($row->fields['STATUS']=='A') { ?>
                                                     <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
-                                                <?php } else { ?>
+                                                <?php } elseif ($row->fields['STATUS']=='CO') { ?>
+                                                    <span class="fa fa-check-circle" style="font-size:21px;color:#0048ff;"></span>
+                                                <?php } elseif ($row->fields['STATUS']=='C') { ?>
                                                     <span class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></span>
                                                 <?php } ?>
                                             </td>
                                             <td>
                                                 <?php if ($row->fields['STATUS']=='A') { ?>
                                                     <a href="javascript:;" onclick="cancelEnrollment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px;"></a>
-                                                <?php } else { ?>
+                                                <?php } elseif ($row->fields['STATUS']=='C') { ?>
                                                         <p style="color: red;">Cancelled</p>
                                                     <!--<a href="all_enrollments.php?id=<?php /*=$row->fields['PK_ENROLLMENT_MASTER']*/?>&status=active">Active Enrollment</a>-->
                                                 <?php } ?>

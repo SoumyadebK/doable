@@ -399,6 +399,9 @@ function saveEnrollmentData($RESPONSE_DATA){
 }
 
 
+/**
+ * @throws MpdfException
+ */
 function saveEnrollmentBillingData($RESPONSE_DATA){
     global $db;
     global $db_account;

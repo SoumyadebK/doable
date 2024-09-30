@@ -15,9 +15,9 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 
 if ($type == 'completed') {
-    $ledger_condition = " ((DOA_ENROLLMENT_LEDGER.STATUS = 'C' OR DOA_ENROLLMENT_LEDGER.STATUS = 'A') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1) ";
+    $ledger_condition = " (DOA_ENROLLMENT_LEDGER.STATUS = 'CO' || DOA_ENROLLMENT_LEDGER.STATUS = 'C') ";
 } else {
-    $ledger_condition = " (((DOA_ENROLLMENT_LEDGER.STATUS = 'C' OR DOA_ENROLLMENT_LEDGER.STATUS = 'CA') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1) OR DOA_ENROLLMENT_LEDGER.STATUS = 'A')";
+    $ledger_condition = " (DOA_ENROLLMENT_LEDGER.STATUS = 'CA' || DOA_ENROLLMENT_LEDGER.STATUS = 'A') ";
 }
 
 
@@ -304,7 +304,7 @@ while (!$serviceCodeData->EOF) {
             if (!isset($total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']])) {
                 $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] = $per_session_price->fields['TOTAL_AMOUNT_PAID'];
             }
-
+            $service_credit = $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']];
             $appointment_array[] = [
                 "PK_APPOINTMENT_MASTER" => $appointment_data->fields['PK_APPOINTMENT_MASTER'],
                 "SERVICE_NAME" => $appointment_data->fields['SERVICE_NAME'],
@@ -317,7 +317,7 @@ while (!$serviceCodeData->EOF) {
                 "APPOINTMENT_TIME" => date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME'])),
                 "SERVICE_PROVIDER" => $appointment_data->fields['NAME'],
                 "PRICE_PER_SESSION" => $PRICE_PER_SESSION,
-                "SERVICE_CREDIT" => $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']]
+                "SERVICE_CREDIT" => (number_format($service_credit, 2) >= -0.05 && number_format($service_credit, 2) <= -0.01) ? 0.00 : $service_credit,
             ];
             $appointment_data->MoveNext();
         }
