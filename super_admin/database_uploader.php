@@ -80,88 +80,92 @@ if(!empty($_POST))
             $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
             $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
             while (!$allUsers->EOF) {
-                $roleId = $allUsers->fields['role'];
-                $getRole = getRole($roleId);
-                $doableRoleId = $db->Execute("SELECT PK_ROLES FROM DOA_ROLES WHERE ROLES='$getRole'");
-                $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-                $USER_DATA['FIRST_NAME'] = trim($allUsers->fields['first_name']);
-                $USER_DATA['LAST_NAME'] = trim($allUsers->fields['last_name']);
-                $USER_DATA['USER_NAME'] = $USERNAME_PREFIX.'.'.$allUsers->fields['user_name'];
-                $USER_DATA['USER_ID'] = $allUsers->fields['user_id'];
-                $USER_DATA['EMAIL_ID'] = $allUsers->fields['email'];
-                if (!empty($allUsers->fields['cell_phone']) && $allUsers->fields['cell_phone'] != null) {
-                    $USER_DATA['PHONE'] = $allUsers->fields['cell_phone'];
-                } elseif (!empty($allUsers->fields['home_phone']) && $allUsers->fields['home_phone'] != null) {
-                    $USER_DATA['PHONE'] = $allUsers->fields['home_phone'];
-                }
-                $USER_DATA['PASSWORD'] = password_hash($allUsers->fields['user_pass'], PASSWORD_DEFAULT);
-                $USER_DATA['CREATE_LOGIN'] = ($USER_DATA['USER_NAME'] && $USER_DATA['PASSWORD']) ? 1 : 0;
-                $USER_DATA['GENDER'] = ($allUsers->fields['gender'] == 'M') ? 'Male' : 'Female';
-                $USER_DATA['DOB'] = date("Y-m-d", strtotime($allUsers->fields['birth_date']));
-                $USER_DATA['ADDRESS'] = $allUsers->fields['address1'];
-                $USER_DATA['ADDRESS_1'] = $allUsers->fields['address2'];
-                $USER_DATA['CITY'] = $allUsers->fields['city'];
-                $USER_DATA['PK_COUNTRY'] = 1;
-                $state = $allUsers->fields['state'];
-                $state_data = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE STATE_NAME='$state' OR STATE_CODE='$state'");
-                $USER_DATA['PK_STATES'] = ($state_data->RecordCount() > 0) ? $state_data->fields['PK_STATES'] : 0;
-                $USER_DATA['ZIP'] = $allUsers->fields['zip'];
-                $USER_DATA['NOTES'] = $allUsers->fields['remarks'];
-                $USER_DATA['ACTIVE'] = $allUsers->fields['is_active'];
-                $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allUsers->fields['date_added']));
-                $USER_DATA['APPEAR_IN_CALENDAR'] = $allUsers->fields['appear_in_calendar'];
-                $USER_DATA['IS_DELETED'] = 0;
-                $USER_DATA['DISPLAY_ORDER'] = $allUsers->fields['position'];
-                $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-                $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_USERS', $USER_DATA, 'insert');
-                $PK_USER = $db->insert_ID();
-
-                if ($PK_USER) {
-                    $USER_ROLE_DATA['PK_USER'] = $PK_USER;
-                    $USER_ROLE_DATA['PK_ROLES'] = ($doableRoleId->RecordCount() > 0) ? $doableRoleId->fields['PK_ROLES'] : 0;
-                    db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
-
-                    $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
-                    $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-                    $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($allUsers->fields['first_name']);
-                    $USER_DATA_ACCOUNT['LAST_NAME'] = trim($allUsers->fields['last_name']);
-                    $USER_DATA_ACCOUNT['USER_NAME'] = $allUsers->fields['user_name'];
-                    $USER_DATA_ACCOUNT['EMAIL_ID'] = $allUsers->fields['email'];
+                $user_id = $allUsers->fields['user_id'];
+                $user_exist = $db->Execute("SELECT USER_ID FROM `DOA_USERS` WHERE `USER_ID` LIKE '$user_id' AND PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+                if ($user_exist->RecordCount() == 0) {
+                    $roleId = $allUsers->fields['role'];
+                    $getRole = getRole($roleId);
+                    $doableRoleId = $db->Execute("SELECT PK_ROLES FROM DOA_ROLES WHERE ROLES='$getRole'");
+                    $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+                    $USER_DATA['FIRST_NAME'] = trim($allUsers->fields['first_name']);
+                    $USER_DATA['LAST_NAME'] = trim($allUsers->fields['last_name']);
+                    $USER_DATA['USER_NAME'] = $USERNAME_PREFIX . '.' . $allUsers->fields['user_name'];
+                    $USER_DATA['USER_ID'] = $allUsers->fields['user_id'];
+                    $USER_DATA['EMAIL_ID'] = $allUsers->fields['email'];
                     if (!empty($allUsers->fields['cell_phone']) && $allUsers->fields['cell_phone'] != null) {
-                        $USER_DATA_ACCOUNT['PHONE'] = $allUsers->fields['cell_phone'];
+                        $USER_DATA['PHONE'] = $allUsers->fields['cell_phone'];
                     } elseif (!empty($allUsers->fields['home_phone']) && $allUsers->fields['home_phone'] != null) {
-                        $USER_DATA_ACCOUNT['PHONE'] = $allUsers->fields['home_phone'];
+                        $USER_DATA['PHONE'] = $allUsers->fields['home_phone'];
                     }
-                    $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
-                    $USER_DATA_ACCOUNT['CREATED_ON'] = date("Y-m-d H:i");
-                    db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
+                    $USER_DATA['PASSWORD'] = password_hash($allUsers->fields['user_pass'], PASSWORD_DEFAULT);
+                    $USER_DATA['CREATE_LOGIN'] = ($USER_DATA['USER_NAME'] && $USER_DATA['PASSWORD']) ? 1 : 0;
+                    $USER_DATA['GENDER'] = ($allUsers->fields['gender'] == 'M') ? 'Male' : 'Female';
+                    $USER_DATA['DOB'] = date("Y-m-d", strtotime($allUsers->fields['birth_date']));
+                    $USER_DATA['ADDRESS'] = $allUsers->fields['address1'];
+                    $USER_DATA['ADDRESS_1'] = $allUsers->fields['address2'];
+                    $USER_DATA['CITY'] = $allUsers->fields['city'];
+                    $USER_DATA['PK_COUNTRY'] = 1;
+                    $state = $allUsers->fields['state'];
+                    $state_data = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE STATE_NAME='$state' OR STATE_CODE='$state'");
+                    $USER_DATA['PK_STATES'] = ($state_data->RecordCount() > 0) ? $state_data->fields['PK_STATES'] : 0;
+                    $USER_DATA['ZIP'] = $allUsers->fields['zip'];
+                    $USER_DATA['NOTES'] = $allUsers->fields['remarks'];
+                    $USER_DATA['ACTIVE'] = $allUsers->fields['is_active'];
+                    $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allUsers->fields['date_added']));
+                    $USER_DATA['APPEAR_IN_CALENDAR'] = $allUsers->fields['appear_in_calendar'];
+                    $USER_DATA['IS_DELETED'] = 0;
+                    $USER_DATA['DISPLAY_ORDER'] = $allUsers->fields['position'];
+                    $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                    $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform('DOA_USERS', $USER_DATA, 'insert');
+                    $PK_USER = $db->insert_ID();
 
-                    $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
-                    $USER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
-                    db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+                    if ($PK_USER) {
+                        $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+                        $USER_ROLE_DATA['PK_ROLES'] = ($doableRoleId->RecordCount() > 0) ? $doableRoleId->fields['PK_ROLES'] : 0;
+                        db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
 
-                    if ($USER_ROLE_DATA['PK_ROLES'] == 5) {
-                        $startTime = getStartTime();
-                        $endTime = getEndTime();
+                        $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
+                        $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+                        $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($allUsers->fields['first_name']);
+                        $USER_DATA_ACCOUNT['LAST_NAME'] = trim($allUsers->fields['last_name']);
+                        $USER_DATA_ACCOUNT['USER_NAME'] = $allUsers->fields['user_name'];
+                        $USER_DATA_ACCOUNT['EMAIL_ID'] = $allUsers->fields['email'];
+                        if (!empty($allUsers->fields['cell_phone']) && $allUsers->fields['cell_phone'] != null) {
+                            $USER_DATA_ACCOUNT['PHONE'] = $allUsers->fields['cell_phone'];
+                        } elseif (!empty($allUsers->fields['home_phone']) && $allUsers->fields['home_phone'] != null) {
+                            $USER_DATA_ACCOUNT['PHONE'] = $allUsers->fields['home_phone'];
+                        }
+                        $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
+                        $USER_DATA_ACCOUNT['CREATED_ON'] = date("Y-m-d H:i");
+                        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
 
-                        $SERVICE_PROVIDER_HOURS['PK_USER'] = $PK_USER;
-                        $SERVICE_PROVIDER_HOURS['PK_LOCATION'] = $PK_LOCATION;
-                        $SERVICE_PROVIDER_HOURS['MON_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
-                        $SERVICE_PROVIDER_HOURS['MON_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
-                        $SERVICE_PROVIDER_HOURS['TUE_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
-                        $SERVICE_PROVIDER_HOURS['TUE_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
-                        $SERVICE_PROVIDER_HOURS['WED_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
-                        $SERVICE_PROVIDER_HOURS['WED_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
-                        $SERVICE_PROVIDER_HOURS['THU_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
-                        $SERVICE_PROVIDER_HOURS['THU_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
-                        $SERVICE_PROVIDER_HOURS['FRI_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
-                        $SERVICE_PROVIDER_HOURS['FRI_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
-                        $SERVICE_PROVIDER_HOURS['SAT_START_TIME'] = '00:00:00';
-                        $SERVICE_PROVIDER_HOURS['SAT_END_TIME'] = '00:00:00';
-                        $SERVICE_PROVIDER_HOURS['SUN_START_TIME'] = '00:00:00';
-                        $SERVICE_PROVIDER_HOURS['SUN_END_TIME'] = '00:00:00';
-                        db_perform_account('DOA_SERVICE_PROVIDER_LOCATION_HOURS', $SERVICE_PROVIDER_HOURS, 'insert');
+                        $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
+                        $USER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+                        db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+
+                        if ($USER_ROLE_DATA['PK_ROLES'] == 5) {
+                            $startTime = getStartTime();
+                            $endTime = getEndTime();
+
+                            $SERVICE_PROVIDER_HOURS['PK_USER'] = $PK_USER;
+                            $SERVICE_PROVIDER_HOURS['PK_LOCATION'] = $PK_LOCATION;
+                            $SERVICE_PROVIDER_HOURS['MON_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                            $SERVICE_PROVIDER_HOURS['MON_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                            $SERVICE_PROVIDER_HOURS['TUE_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                            $SERVICE_PROVIDER_HOURS['TUE_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                            $SERVICE_PROVIDER_HOURS['WED_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                            $SERVICE_PROVIDER_HOURS['WED_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                            $SERVICE_PROVIDER_HOURS['THU_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                            $SERVICE_PROVIDER_HOURS['THU_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                            $SERVICE_PROVIDER_HOURS['FRI_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                            $SERVICE_PROVIDER_HOURS['FRI_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                            $SERVICE_PROVIDER_HOURS['SAT_START_TIME'] = '00:00:00';
+                            $SERVICE_PROVIDER_HOURS['SAT_END_TIME'] = '00:00:00';
+                            $SERVICE_PROVIDER_HOURS['SUN_START_TIME'] = '00:00:00';
+                            $SERVICE_PROVIDER_HOURS['SUN_END_TIME'] = '00:00:00';
+                            db_perform_account('DOA_SERVICE_PROVIDER_LOCATION_HOURS', $SERVICE_PROVIDER_HOURS, 'insert');
+                        }
                     }
                 }
                 $allUsers->MoveNext();
