@@ -3,8 +3,8 @@
         <tr>
             <th style="text-align: center;">Service Code</th>
             <th style="text-align: center;">Enroll</th>
-            <th style="text-align: center;">Remain</th>
             <th style="text-align: center;">Used</th>
+            <th style="text-align: center;">Remain</th>
             <th style="text-align: center;">Balance</th>
             <th style="text-align: center;">Paid</th>
         </tr>
@@ -46,8 +46,8 @@
             <tr>
                 <td style="text-align: center;"><?=$service_code['CODE']?></td>
                 <td style="text-align: center;"><?=$service_code['ENROLL']?></td>
-                <td style="text-align: center;"><?=$service_code['REMAIN']?></td>
                 <td style="text-align: center;"><?=$service_code['USED']?></td>
+                <td style="text-align: center;"><?=$service_code['REMAIN']?></td>
                 <td style="text-align: center; color:<?=($service_code['BALANCE']<0)?'red':'black'?>;"><?=$service_code['BALANCE']?></td>
                 <td style="text-align: center;">$<?=number_format($service_code['PAID'], 2)?></td>
             </tr>
