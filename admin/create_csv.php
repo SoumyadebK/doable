@@ -6,6 +6,14 @@ global $db_account;
 global $master_database;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
+$type = !empty($_GET['type']) ? $_GET['type'] : 0;
+$enr_condition = ' ';
+if ($type == 'completed') {
+    $enr_condition = " AND (DOA_ENROLLMENT_MASTER.STATUS = 'CO' || DOA_ENROLLMENT_MASTER.STATUS = 'C') ";
+} elseif ($type == 'active') {
+    $enr_condition = " AND (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') ";
+}
+
 $PK_USER_MASTER = $_GET['master_id_customer'];
 
 $ALL_APPOINTMENT_QUERY = "SELECT
@@ -52,7 +60,7 @@ header('Content-Disposition: attachment;filename="' . $filename . '"');
 $headers = array('Enrollment', 'Payment Schedule', 'Amount', 'Receipt Number', '', '', '', '',  '', 'Receipt Number', 'Method', 'Memo'); // Adjust headers as needed
 fputcsv($file, $headers);
 
-$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, CONCAT(DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, '-' ,DOA_ENROLLMENT_MASTER.ENROLLMENT_ID) AS ENROLLMENT FROM `DOA_ENROLLMENT_MASTER` WHERE PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND STATUS != 'C' AND ALL_APPOINTMENT_DONE = 0 AND PK_USER_MASTER = $PK_USER_MASTER ORDER BY PK_ENROLLMENT_MASTER DESC");
+$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, CONCAT(DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, '-' ,DOA_ENROLLMENT_MASTER.ENROLLMENT_ID) AS ENROLLMENT FROM `DOA_ENROLLMENT_MASTER` WHERE PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND PK_USER_MASTER = $PK_USER_MASTER $enr_condition ORDER BY PK_ENROLLMENT_MASTER DESC");
 while (!$enrollment_data->EOF) {
     $headers_1 = array('Enrollment', 'Payment Schedule', 'Amount', 'Receipt Number', '', '', '', '',  '', '', '', '', '',  ''); // Adjust headers as needed
     fputcsv($file, $headers_1);
