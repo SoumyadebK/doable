@@ -139,11 +139,19 @@ while (!$row->EOF) {
 
                         $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
                         $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData->fields['PRICE_PER_SESSION'];
-                        $TOTAL_PAID_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? $serviceCodeData->fields['NUMBER_OF_SESSION'] : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'], 2);
+
+                        if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
+                            $TOTAL_PAID_SESSION = $SESSION_COMPLETED;
+                            $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['FINAL_AMOUNT'];
+                        } else {
+                            $TOTAL_PAID_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? $serviceCodeData->fields['NUMBER_OF_SESSION'] : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $serviceCodeData->fields['PRICE_PER_SESSION'], 2);
+                            $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                        }
+
                         $ENR_BALANCE = $TOTAL_PAID_SESSION - $SESSION_COMPLETED;
 
                         $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
-                        $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                        $total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
                         $total_used_amount +=  ($PRICE_PER_SESSION * $SESSION_COMPLETED); ?>
                         <tr>
                             <td><?=$serviceCodeData->fields['SERVICE_CODE']?></td>

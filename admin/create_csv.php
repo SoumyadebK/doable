@@ -69,7 +69,7 @@ while (!$enrollment_data->EOF) {
     while (!$payment_data->EOF) {
         $enrollment_payment_data = [];
         $enrollment_payment_data[] = $enrollment_data->fields['ENROLLMENT'];
-        $enrollment_payment_data[] = $payment_data->fields['PAYMENT_DATE'];
+        $enrollment_payment_data[] = date('m/d/Y', strtotime($payment_data->fields['PAYMENT_DATE']));
         $enrollment_payment_data[] = $payment_data->fields['AMOUNT'];
         $enrollment_payment_data[] = $payment_data->fields['RECEIPT_NUMBER'];
         $enrollment_payment_data[] = '';
