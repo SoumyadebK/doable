@@ -330,7 +330,7 @@ while (!$serviceCodeData->EOF) {
                     <?=$appointment_value['SERVICE_NAME']?>
                 </td>
                 <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
-                    if ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_data->fields['IS_CHARGED'] == 1) { ?>
+                    if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
                     <td style="text-align: left;"><?=$appointment_value['APPOINTMENT_NUMBER']?></td>
                 <?php } else { ?>
                     <td></td>
@@ -346,13 +346,13 @@ while (!$serviceCodeData->EOF) {
                 </td>
                 <td style="text-align: left;"><?=$appointment_value['SERVICE_PROVIDER']?></td>
                 <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
-                    if ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_data->fields['IS_CHARGED'] == 1) { ?>
+                    if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
                         <td style="text-align: right;"><?=number_format((float)$appointment_value['PRICE_PER_SESSION'], 2, '.', ',');?></td>
                 <?php } else {?>
                         <td></td>
                 <?php }?>
                 <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
-                    if ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_data->fields['IS_CHARGED'] == 1) { ?>
+                    if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
                         <td style="color:<?=($appointment_value['SERVICE_CREDIT'] < 0)?'red':'black'?>; text-align: right;"><?=number_format((float)($appointment_value['SERVICE_CREDIT']), 2, '.', ',');?></td>
                 <?php } else { ?>
                         <td></td>
