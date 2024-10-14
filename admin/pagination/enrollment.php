@@ -32,7 +32,7 @@ if ($_GET['type'] == 'normal') { ?>
             $total_used = 0;
             $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
 
-            $total_paid_data = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_PAYMENT.*, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
+            $total_paid_data = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_PAYMENT.*, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') AND (DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' || DOA_ENROLLMENT_PAYMENT.TYPE = 'Adjustment') AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
             while (!$total_paid_data->EOF) {
                 if ($total_paid_data->fields['PK_SERVICE_CLASS'] == 5) {
                     $misc_paid += $total_paid_data->fields['AMOUNT'];
@@ -44,15 +44,14 @@ if ($_GET['type'] == 'normal') { ?>
 
             $total_refund_data = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_REFUND FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
             $total_refund = ($total_refund_data->RecordCount() > 0) ? $total_refund_data->fields['TOTAL_REFUND'] : 0.00;
-
-            $enr_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS != 'C' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
+            $enr_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
             while (!$enr_service_data->EOF) {
                 $SESSION_COMPLETED = getSessionCompletedCount($enr_service_data->fields['PK_ENROLLMENT_SERVICE']);
                 $total_used += ($SESSION_COMPLETED*$enr_service_data->fields['PRICE_PER_SESSION']);
                 $enr_service_data->MoveNext();
             }
             ?>
-            <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="create_csv.php?id_customer=<?=$_GET['pk_user']?>&master_id_customer=<?=$PK_USER_MASTER?>&source=customer" style="width: 120px; "><i class="fa fa-file-export"></i> Export</a>
+            <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:" onclick="$('#export_model').modal('show');" style="width: 120px; "><i class="fa fa-file-export"></i> Export</a>
             <h5 id="wallet_balance_span">Credit Balance : $<?=number_format((float)$total_paid-(float)$total_used, 2)?></h5>
             <h5 id="wallet_balance_span">Miscellaneous Balance : $<?=number_format($misc_paid, 2)?></h5>
             <h5 id="wallet_balance_span">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></h5>
@@ -139,11 +138,19 @@ while (!$row->EOF) {
 
                         $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
                         $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData->fields['PRICE_PER_SESSION'];
-                        $TOTAL_PAID_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? $serviceCodeData->fields['NUMBER_OF_SESSION'] : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'], 2);
+
+                        if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
+                            $TOTAL_PAID_SESSION = $SESSION_COMPLETED;
+                            $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['FINAL_AMOUNT'];
+                        } else {
+                            $TOTAL_PAID_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? $serviceCodeData->fields['NUMBER_OF_SESSION'] : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $serviceCodeData->fields['PRICE_PER_SESSION'], 2);
+                            $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                        }
+
                         $ENR_BALANCE = $TOTAL_PAID_SESSION - $SESSION_COMPLETED;
 
                         $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
-                        $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                        $total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
                         $total_used_amount +=  ($PRICE_PER_SESSION * $SESSION_COMPLETED); ?>
                         <tr>
                             <td><?=$serviceCodeData->fields['SERVICE_CODE']?></td>
@@ -158,7 +165,7 @@ while (!$row->EOF) {
                     <tr>
                         <td>Amount</td>
                         <td style="text-align: right;"><?=number_format($total_amount, 2)?></td>
-                        <td style="text-align: right;"><?=number_format($total_used_amount, 2)?></td>
+                        <td style="text-align: right;"><?=number_format($total_amount-$total_used_amount<0.00 ? $total_amount : $total_used_amount, 2)?></td>
                         <td style="text-align: right; color:<?=($total_paid_amount-$total_used_amount<-0.03)?'red':'black'?>;"><?=number_format((($total_paid_amount-$total_used_amount<0.03) ? 0 : $total_paid_amount-$total_used_amount), 2)?></td>
                         <td style="text-align: right;">$<?=number_format($total_paid_amount, 2)?></td>
                         <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? number_format($total_paid_amount-$total_used_amount, 2) : 0?></td>
@@ -269,34 +276,33 @@ while (!$row->EOF) {
                 $('#move_to_wallet_model').modal('show');
             } else {
                 let REFUND_AMOUNT = $('#REFUND_AMOUNT').val();
-                if ((PK_PAYMENT_TYPE == 1) && (REFUND_AMOUNT != BALANCE)) {
-                    alert("For refund on Credit Card the amount can't change");
+                if (REFUND_AMOUNT > BALANCE) {
+                    alert("Refund amount can't be grater then balance");
                     $('#REFUND_AMOUNT').val(BALANCE);
                 } else {
-                    if (REFUND_AMOUNT > BALANCE) {
-                        alert("Refund amount can't be grater then balance");
-                        $('#REFUND_AMOUNT').val(BALANCE);
-                    } else {
-                        $.ajax({
-                            url: "ajax/AjaxFunctions.php",
-                            type: 'POST',
-                            data: {
-                                FUNCTION_NAME: 'moveToWallet',
-                                PK_ENROLLMENT_PAYMENT : PK_ENROLLMENT_PAYMENT,
-                                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
-                                PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
-                                PK_USER_MASTER: PK_USER_MASTER,
-                                BALANCE: BALANCE,
-                                REFUND_AMOUNT: REFUND_AMOUNT,
-                                ENROLLMENT_TYPE: ENROLLMENT_TYPE,
-                                TRANSACTION_TYPE: TRANSACTION_TYPE,
-                                PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
-                            },
-                            success: function (data) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'moveToWallet',
+                            PK_ENROLLMENT_PAYMENT : PK_ENROLLMENT_PAYMENT,
+                            PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                            PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                            PK_USER_MASTER: PK_USER_MASTER,
+                            BALANCE: BALANCE,
+                            REFUND_AMOUNT: REFUND_AMOUNT,
+                            ENROLLMENT_TYPE: ENROLLMENT_TYPE,
+                            TRANSACTION_TYPE: TRANSACTION_TYPE,
+                            PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
+                        },
+                        success: function (data) {
+                            if (data == 1) {
                                 window.location.reload();
+                            } else {
+                                alert(data);
                             }
-                        });
-                    }
+                        }
+                    });
                 }
             }
         }

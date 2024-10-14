@@ -13,11 +13,13 @@ $ENROLLMENT_ID = !empty($_GET['ENROLLMENT_ID']) ? $_GET['ENROLLMENT_ID'] : 0;
 $type = !empty($_GET['type']) ? $_GET['type'] : 0;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
+
 if ($type == 'completed') {
-    $ledger_condition = " ((DOA_ENROLLMENT_LEDGER.STATUS = 'C' OR DOA_ENROLLMENT_LEDGER.STATUS = 'A') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1) ";
+    $ledger_condition = " (DOA_ENROLLMENT_LEDGER.STATUS = 'CO' || DOA_ENROLLMENT_LEDGER.STATUS = 'C') ";
 } else {
-    $ledger_condition = " (((DOA_ENROLLMENT_LEDGER.STATUS = 'C' OR DOA_ENROLLMENT_LEDGER.STATUS = 'CA') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 1) OR DOA_ENROLLMENT_LEDGER.STATUS = 'A')";
+    $ledger_condition = " (DOA_ENROLLMENT_LEDGER.STATUS = 'CA' || DOA_ENROLLMENT_LEDGER.STATUS = 'A') ";
 }
+
 
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
@@ -204,13 +206,37 @@ while (!$serviceCodeData->EOF) {
         if ($cancelled_enrollment_payment_details->RecordCount() > 0) {
             $p++;
             $balance = $billed_amount;
-            while (!$cancelled_enrollment_payment_details->EOF) { ?>
+            while (!$cancelled_enrollment_payment_details->EOF) {
+                if ($cancelled_enrollment_payment_details->fields['TYPE'] == 'Move') {
+                    $payment_type = 'Wallet';
+                } elseif ($cancelled_enrollment_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
+                    $payment_info = json_decode($cancelled_enrollment_payment_details->fields['PAYMENT_INFO']);
+                    $payment_type = $cancelled_enrollment_payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                } elseif (in_array($cancelled_enrollment_payment_details->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
+                    $payment_info = json_decode($cancelled_enrollment_payment_details->fields['PAYMENT_INFO']);
+                    $payment_type = $cancelled_enrollment_payment_details->fields['PAYMENT_TYPE']." # ".((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
+                } elseif ($cancelled_enrollment_payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
+                    $receipt_number_array = explode(',', $cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER']);
+                    $payment_type_array = [];
+                    foreach ($receipt_number_array as $receipt_number) {
+                        $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
+                        if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
+                            $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
+                            $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                        } else {
+                            $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
+                        }
+                    }
+                    $payment_type = implode(', ', $payment_type_array);
+                } else{
+                    $payment_type = $cancelled_enrollment_payment_details->fields['PAYMENT_TYPE'];
+                } ?>
             <tr style="border-style: hidden; color: <?=($cancelled_enrollment_payment_details->fields['TYPE'] == 'Refund') ? 'green' : ''?>; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
                 <td style="text-align: center;"><?=date('m/d/Y', strtotime($cancelled_enrollment_payment_details->fields['PAYMENT_DATE']))?></td>
                 <td style="text-align: center;"><?=$cancelled_enrollment_payment_details->fields['TYPE']?></td>
                 <td></td>
                 <td style="text-align: right;"><?=$cancelled_enrollment_payment_details->fields['AMOUNT']?></td>
-                <td style="text-align: center;"><?=$cancelled_enrollment_payment_details->fields['PAYMENT_TYPE']?></td>
+                <td style="text-align: center;"><?=$payment_type?></td>
                 <td style="text-align: right;"></td>
                 <td style="text-align: right;">
                     <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?=$PK_ENROLLMENT_MASTER?>, '<?=$cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
@@ -258,7 +284,8 @@ while (!$serviceCodeData->EOF) {
             $PRICE_PER_SESSION = $per_session_price->fields['PRICE_PER_SESSION'] * $UNIT;
             //$total_amount_needed = $SESSION_CREATED * $per_session_price->fields['PRICE_PER_SESSION'];
 
-            if ($appointment_data->fields['APPOINTMENT_STATUS'] != 'Cancelled' || $appointment_data->fields['IS_CHARGED'] == 1) {
+            /*if (($appointment_data->fields['APPOINTMENT_STATUS'] != 'Cancelled' && $appointment_data->fields['APPOINTMENT_STATUS'] != 'No Show') || $appointment_data->fields['IS_CHARGED'] == 1)*/
+            if ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_data->fields['IS_CHARGED'] == 1) {
                 if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
                     $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] + $UNIT;
                     $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] + $PRICE_PER_SESSION;
@@ -278,7 +305,7 @@ while (!$serviceCodeData->EOF) {
             if (!isset($total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']])) {
                 $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] = $per_session_price->fields['TOTAL_AMOUNT_PAID'];
             }
-
+            $service_credit = $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']];
             $appointment_array[] = [
                 "PK_APPOINTMENT_MASTER" => $appointment_data->fields['PK_APPOINTMENT_MASTER'],
                 "SERVICE_NAME" => $appointment_data->fields['SERVICE_NAME'],
@@ -291,7 +318,7 @@ while (!$serviceCodeData->EOF) {
                 "APPOINTMENT_TIME" => date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME'])),
                 "SERVICE_PROVIDER" => $appointment_data->fields['NAME'],
                 "PRICE_PER_SESSION" => $PRICE_PER_SESSION,
-                "SERVICE_CREDIT" => $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']]
+                "SERVICE_CREDIT" => (number_format($service_credit, 2) >= -0.05 && number_format($service_credit, 2) <= -0.01) ? 0.00 : $service_credit,
             ];
             $appointment_data->MoveNext();
         }
@@ -302,11 +329,12 @@ while (!$serviceCodeData->EOF) {
                     <a href="javascript:" title="Edit Appointment" onclick="editThisAppointment(<?=$appointment_value['PK_APPOINTMENT_MASTER']?>, <?=$PK_USER?>, <?=$PK_USER_MASTER?>);"><i class="ti-pencil-alt"></i></a>&nbsp;&nbsp;
                     <?=$appointment_value['SERVICE_NAME']?>
                 </td>
-                <?php if($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) {?>
-                    <td></td>
-                <?php } else { ?>
+                <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
+                    if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
                     <td style="text-align: left;"><?=$appointment_value['APPOINTMENT_NUMBER']?></td>
-                <?php }?>
+                <?php } else { ?>
+                    <td></td>
+                <?php } ?>
                 <td style="text-align: left;"><?=$appointment_value['SERVICE_CODE']?></td>
                 <td style="text-align: center;"><?=$appointment_value['APPOINTMENT_DATE']?></td>
                 <td style="text-align: center;"><?=$appointment_value['APPOINTMENT_TIME']?></td>
@@ -317,16 +345,18 @@ while (!$serviceCodeData->EOF) {
                     <?php } ?>
                 </td>
                 <td style="text-align: left;"><?=$appointment_value['SERVICE_PROVIDER']?></td>
-                <?php if($appointment_value['APPOINTMENT_STATUS']=='Cancelled' && $appointment_value['IS_CHARGED'] == 0) {?>
-                    <td></td>
+                <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
+                    if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
+                        <td style="text-align: right;"><?=number_format((float)$appointment_value['PRICE_PER_SESSION'], 2, '.', ',');?></td>
                 <?php } else {?>
-                    <td style="text-align: right;"><?=number_format((float)$appointment_value['PRICE_PER_SESSION'], 2, '.', ',');?></td>
+                        <td></td>
                 <?php }?>
-                <?php if($appointment_value['APPOINTMENT_STATUS']=='Cancelled' && $appointment_value['IS_CHARGED'] == 0) {?>
-                    <td></td>
+                <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
+                    if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
+                        <td style="color:<?=($appointment_value['SERVICE_CREDIT'] < 0)?'red':'black'?>; text-align: right;"><?=number_format((float)($appointment_value['SERVICE_CREDIT']), 2, '.', ',');?></td>
                 <?php } else { ?>
-                    <td style="color:<?=($appointment_value['SERVICE_CREDIT'] < 0)?'red':'black'?>; text-align: right;"><?=number_format((float)($appointment_value['SERVICE_CREDIT']), 2, '.', ',');?></td>
-                <?php }?>
+                        <td></td>
+                <?php } ?>
             </tr>
         <?php } ?>
         </tbody>

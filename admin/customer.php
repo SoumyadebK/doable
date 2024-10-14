@@ -272,6 +272,7 @@ if(!empty($_GET['master_id'])) {
 
 if ($PK_USER_MASTER > 0) {
     makeMiscComplete($PK_USER_MASTER);
+    makeExpiryEnrollmentComplete($PK_USER_MASTER);
     checkAllEnrollmentStatus($PK_USER_MASTER);
 }
 ?>
@@ -2051,6 +2052,30 @@ if ($PK_USER_MASTER > 0) {
             <div class="modal-footer">
                 <button type="button" class="btn btn-info waves-effect waves-light m-l-20 text-white" onclick="$('#confirm_move').val(1);$('.trigger_this').trigger('click');">Yes</button>
                 <button type="button" class="btn btn-danger waves-effect waves-light m-l-10 text-white" onclick="$('#confirm_move').val(0);$('#move_to_wallet_model').modal('hide');">No</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--Export Model-->
+<div class="modal fade" id="export_model" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" style="max-width: 450px; margin-top: 200px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>How you want to Export?</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <a class="btn btn-info waves-effect waves-light text-white" href="create_csv.php?id_customer=<?=$_GET['id']?>&master_id_customer=<?=$PK_USER_MASTER?>&source=customer&type=active">Only Active</a>
+                            <a class="btn btn-info waves-effect waves-light text-white" href="create_csv.php?id_customer=<?=$_GET['id']?>&master_id_customer=<?=$PK_USER_MASTER?>&source=customer&type=completed">Only Complete</a>
+                            <a class="btn btn-info waves-effect waves-light text-white" href="create_csv.php?id_customer=<?=$_GET['id']?>&master_id_customer=<?=$PK_USER_MASTER?>&source=customer&type=all">Active & Complete</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

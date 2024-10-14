@@ -399,6 +399,9 @@ function saveEnrollmentData($RESPONSE_DATA){
 }
 
 
+/**
+ * @throws MpdfException
+ */
 function saveEnrollmentBillingData($RESPONSE_DATA){
     global $db;
     global $db_account;
@@ -1404,6 +1407,7 @@ function getServiceProviderCount($RESPONSE_DATA){
     }
 
     $ALL_APPOINTMENT_QUERY = "SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS APPOINTMENT_COUNT, DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER AS SERVICE_PROVIDER_ID FROM DOA_APPOINTMENT_MASTER
+                            INNER JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
                             LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
                             WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
                             AND (EXISTS(SELECT DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER FROM  DOA_APPOINTMENT_ENROLLMENT WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP') OR DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'AD-HOC'))
@@ -2179,7 +2183,11 @@ function moveToWallet($RESPONSE_DATA)
         $PK_ENROLLMENT_LEDGER_NEW = $db_account->insert_ID();
     }*/
 
-    $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE' AND PK_ENROLLMENT_LEDGER = '$PK_ENROLLMENT_LEDGER'");
+    if ($PK_ENROLLMENT_PAYMENT == 0) {
+        $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE' AND TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
+    } else {
+        $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE' AND PK_ENROLLMENT_PAYMENT = '$PK_ENROLLMENT_PAYMENT'");
+    }
     $PAYMENT_INFO = ($old_payment_data->RecordCount() > 0) ? $old_payment_data->fields['PAYMENT_INFO'] : $TYPE;;
     if ($PK_PAYMENT_TYPE == 1) {
         $payment_info = json_decode($old_payment_data->fields['PAYMENT_INFO']);
@@ -2190,10 +2198,14 @@ function moveToWallet($RESPONSE_DATA)
             Stripe::setApiKey($SECRET_KEY);
 
             $transaction_id = $payment_info->CHARGE_ID;
-            $refund = \Stripe\Refund::create([
-                'charge' => $transaction_id,
-            ]);
-
+            try {
+                $refund = \Stripe\Refund::create([
+                    'charge' => $transaction_id,
+                    'amount' => $BALANCE * 100
+                ]);
+            } catch (Exception $e) {
+                echo $e->getMessage(); die();
+            }
             $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $refund->id, 'LAST4' => $payment_info->LAST4];
             $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
         }
@@ -2248,6 +2260,7 @@ function moveToWallet($RESPONSE_DATA)
         db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
     }
     markEnrollmentComplete($PK_ENROLLMENT_MASTER);
+    echo 1;
 }
 
 function generateReceiptPdf($html){

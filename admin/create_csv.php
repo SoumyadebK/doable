@@ -6,6 +6,14 @@ global $db_account;
 global $master_database;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
+$type = !empty($_GET['type']) ? $_GET['type'] : 0;
+$enr_condition = ' ';
+if ($type == 'completed') {
+    $enr_condition = " AND (DOA_ENROLLMENT_MASTER.STATUS = 'CO' || DOA_ENROLLMENT_MASTER.STATUS = 'C') ";
+} elseif ($type == 'active') {
+    $enr_condition = " AND (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') ";
+}
+
 $PK_USER_MASTER = $_GET['master_id_customer'];
 
 $ALL_APPOINTMENT_QUERY = "SELECT
@@ -23,6 +31,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_SERVICE_CODE.PK_SERVICE_CODE,
                             DOA_SERVICE_CODE.SERVICE_CODE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_APPOINTMENT_MASTER.IS_CHARGED,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER_NAME
@@ -52,7 +61,7 @@ header('Content-Disposition: attachment;filename="' . $filename . '"');
 $headers = array('Enrollment', 'Payment Schedule', 'Amount', 'Receipt Number', '', '', '', '',  '', 'Receipt Number', 'Method', 'Memo'); // Adjust headers as needed
 fputcsv($file, $headers);
 
-$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, CONCAT(DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, '-' ,DOA_ENROLLMENT_MASTER.ENROLLMENT_ID) AS ENROLLMENT FROM `DOA_ENROLLMENT_MASTER` WHERE PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND STATUS != 'C' AND ALL_APPOINTMENT_DONE = 0 AND PK_USER_MASTER = $PK_USER_MASTER ORDER BY PK_ENROLLMENT_MASTER DESC");
+$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, CONCAT(DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, '-' ,DOA_ENROLLMENT_MASTER.ENROLLMENT_ID) AS ENROLLMENT FROM `DOA_ENROLLMENT_MASTER` WHERE PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND PK_USER_MASTER = $PK_USER_MASTER $enr_condition ORDER BY PK_ENROLLMENT_MASTER DESC");
 while (!$enrollment_data->EOF) {
     $headers_1 = array('Enrollment', 'Payment Schedule', 'Amount', 'Receipt Number', '', '', '', '',  '', '', '', '', '',  ''); // Adjust headers as needed
     fputcsv($file, $headers_1);
@@ -61,7 +70,7 @@ while (!$enrollment_data->EOF) {
     while (!$payment_data->EOF) {
         $enrollment_payment_data = [];
         $enrollment_payment_data[] = $enrollment_data->fields['ENROLLMENT'];
-        $enrollment_payment_data[] = $payment_data->fields['PAYMENT_DATE'];
+        $enrollment_payment_data[] = date('m/d/Y', strtotime($payment_data->fields['PAYMENT_DATE']));
         $enrollment_payment_data[] = $payment_data->fields['AMOUNT'];
         $enrollment_payment_data[] = $payment_data->fields['RECEIPT_NUMBER'];
         $enrollment_payment_data[] = '';
@@ -85,7 +94,7 @@ while (!$enrollment_data->EOF) {
     while (!$appointment_data->EOF) {
         $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
 
-        if ($appointment_data->fields['APPOINTMENT_STATUS'] != 'Cancelled') {
+        if ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_data->fields['IS_CHARGED'] == 1) {
             $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE, $appointment_data->fields['APPOINTMENT_TYPE']);
             $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, PRICE_PER_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
             if ($enr_service_data->RecordCount() > 0) {
@@ -99,11 +108,12 @@ while (!$enrollment_data->EOF) {
 
         $appointment_details = [];
         $appointment_details[] = $appointment_data->fields['SERVICE_NAME'];
-        if ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Cancelled') {
-            $appointment_details[] = '';
-        } else {
+        if ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_data->fields['IS_CHARGED'] == 1) {
             $appointment_details[] = (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? $service_code_array[$PK_ENROLLMENT_SERVICE] . ' of ' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '';
+        } else {
+            $appointment_details[] = '';
         }
+
         $appointment_details[] = $appointment_data->fields['SERVICE_CODE'];
         $appointment_details[] = date('m/d/Y', strtotime($appointment_data->fields['DATE']));
         $appointment_details[] = date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME']));
