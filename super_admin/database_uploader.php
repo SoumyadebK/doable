@@ -944,7 +944,7 @@ if(!empty($_POST))
                     $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 2;
                     $APPOINTMENT_MASTER_DATA['IS_CHARGED'] = 1;
                 }
-                $APPOINTMENT_MASTER_DATA['COMMENT'] = $allPrivateAppointments->fields['appts_comment'];
+                $APPOINTMENT_MASTER_DATA['INTERNAL_COMMENT'] = $allPrivateAppointments->fields['appts_comment'];
                 $APPOINTMENT_MASTER_DATA['GROUP_NAME'] = null;
                 $APPOINTMENT_MASTER_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
                 $APPOINTMENT_MASTER_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($PK_USER_MASTER);
@@ -1054,7 +1054,7 @@ if(!empty($_POST))
                     $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = 2;
                     $GROUP_CLASS_DATA['IS_CHARGED'] = 1;
                 }
-                $GROUP_CLASS_DATA['COMMENT'] = $allGroupAppointments->fields['appts_comment'];
+                $GROUP_CLASS_DATA['INTERNAL_COMMENT'] = $allGroupAppointments->fields['appts_comment'];
                 $GROUP_CLASS_DATA['GROUP_NAME'] = null;
                 if($service_id == 'PRT' || $service_id == 'GRP1' ||  $service_id == 'GRP2' || $service_id == 'GRP3') {
                     $GROUP_CLASS_DATA['GROUP_NAME'] = $allGroupAppointments->fields['appt_name'];

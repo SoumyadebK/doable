@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="97d428f3-d769-4da9-a867-930a9d0ffa4c" name="Changes" comment="" />
+    <list default="true" id="97d428f3-d769-4da9-a867-930a9d0ffa4c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/database_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/database_uploader.php" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -56,20 +59,20 @@
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="C:\xampp\php\php.exe">
     <include_path>
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
+      <path value="$PROJECT_DIR$/global/vendor/composer" />
+      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
+      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
       <path value="$PROJECT_DIR$/global/vendor/paragonie/random_compat" />
       <path value="$PROJECT_DIR$/global/vendor/psr/http-message" />
       <path value="$PROJECT_DIR$/global/vendor/psr/log" />
-      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
+      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
+      <path value="$PROJECT_DIR$/global/vendor/square/square" />
+      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
+      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
       <path value="$PROJECT_DIR$/global/vendor/apimatic/unirest-php" />
       <path value="$PROJECT_DIR$/global/vendor/apimatic/core" />
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
-      <path value="$PROJECT_DIR$/global/vendor/square/square" />
-      <path value="$PROJECT_DIR$/global/vendor/composer" />
-      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
-      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
-      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
-      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
     </include_path>
   </component>
   <component name="ProjectColorInfo">{
@@ -80,19 +83,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;roumya&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Applications/XAMPP/xamppfiles/htdocs/doable_new&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/Applications/XAMPP/xamppfiles/htdocs/doable_new",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
