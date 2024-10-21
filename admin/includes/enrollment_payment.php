@@ -218,7 +218,7 @@
                         <div class="row form-group partial_payment_div" style="display: none;">
                             <div class="col-6">
                                 <div class="form-group">
-                                    <label class="form-label">Partial Amount</label>
+                                    <label class="form-label">Partial Payment</label>
                                     <div class="col-md-12">
                                         <input type="text" name="PARTIAL_AMOUNT" id="PARTIAL_AMOUNT" value="<?=($AMOUNT) ?? 0?>" class="form-control" onkeyup="calculatePartialPayment('partial')">
                                     </div>

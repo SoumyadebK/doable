@@ -996,14 +996,6 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-6">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Billing Date</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="BILLING_DATE" id="BILLING_DATE" value="<?=($BILLING_DATE == '')?date('m/d/Y'):date('m/d/Y', strtotime($BILLING_DATE))?>" class="form-control datepicker-normal">
-                                                                </div>
-                                                            </div>
-                                                        </div>
 
 
                                                         <div class="row">
@@ -1025,16 +1017,24 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-6">
+                                                            <!--<div class="col-6">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Amount</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" id="AMOUNT_SHOW" value="<?=$INSTALLMENT_AMOUNT?>" class="form-control">
+                                                                        <input type="text" id="AMOUNT_SHOW" value="<?php /*=$INSTALLMENT_AMOUNT*/?>" class="form-control">
+                                                                    </div>
+                                                                </div>
+                                                            </div>-->
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Billing Date</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="BILLING_DATE" id="BILLING_DATE" value="<?=($BILLING_DATE == '')?date('m/d/Y'):date('m/d/Y', strtotime($BILLING_DATE))?>" class="form-control datepicker-normal">
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="row">
                                                             <div class="col-3" id="down_payment_div" style="display: <?=($PAYMENT_METHOD == 'One Time')?'none':''?>">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Down Payment</label>
@@ -1097,7 +1097,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                             <div class="row">
                                                                 <div class="col-3">
                                                                     <div class="form-group">
-                                                                        <label class="form-label">Payment Date</label>
+                                                                        <label class="form-label">Next Payment Dates</label>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-3">
