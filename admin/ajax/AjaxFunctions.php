@@ -2083,14 +2083,15 @@ function copyAppointment($RESPONSE_DATA) {
         $APPOINTMENT_DATA['START_TIME'] = $START_TIME;
         $APPOINTMENT_DATA['END_TIME'] = date('H:i', strtotime($START_TIME)+(60*$duration));
 
-        db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update', " PK_APPOINTMENT_MASTER = " . $PK_ID);
+        if ($PK_ID > 0) {
+            db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update', " PK_APPOINTMENT_MASTER = " . $PK_ID);
 
-        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_ID);
-        $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_ID;
-        $APPOINTMENT_SP_DATA['PK_USER'] = $SERVICE_PROVIDER_ID;
-        db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+            $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = " . $PK_ID);
+            $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_ID;
+            $APPOINTMENT_SP_DATA['PK_USER'] = $SERVICE_PROVIDER_ID;
+            db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+        }
     }
-
 
     echo date('m/d/Y', strtotime($DATE));
 }

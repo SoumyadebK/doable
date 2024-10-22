@@ -178,11 +178,13 @@
                             </li>
                         </ul>
                     </div>
+                </li>
+                <li class="nav-item" style="margin-top: 4px;">
                     <?php if ($_SESSION["PK_ROLES"] != 1) { ?>
-                    <a class="navbar-brand" href="">
-                        <img src="../assets/images/doable_logo.png" alt="LOGO" style="height: 60px; width: auto;">
-                    </a>
-                    <? } ?>
+                        <a class="navbar-brand" href="javascript:">
+                            <img src="../assets/images/doable_logo.png" alt="LOGO" style="height: 60px; width: auto;">
+                        </a>
+                    <?php } ?>
                 </li>
             </ul>
         </div>

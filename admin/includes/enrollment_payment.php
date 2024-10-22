@@ -202,7 +202,7 @@
                         <div class="row">
                             <div class="col-12 partial_payment">
                                 <div class="form-group">
-                                    <label class="col-md-12 mt-3"><input type="checkbox" id="PARTIAL_PAYMENT" name="PARTIAL_PAYMENT" class="form-check-inline" onchange="showPartialPaymentDiv(this)"> Partial Payment</label>
+                                    <label class="col-md-12 mt-3"><input type="checkbox" id="PARTIAL_PAYMENT" name="PARTIAL_PAYMENT" class="form-check-inline" onchange="showPartialPaymentDiv(this)"> Multiple Payment Type</label>
                                 </div>
                             </div>
                         </div>
@@ -291,38 +291,37 @@
 
 <script src="https://js.stripe.com/v3/"></script>
 <script type="text/javascript">
-    function stripePaymentFunction(type) {
-        var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
-        var elements = stripe.elements();
+    var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
+    var elements = stripe.elements();
 
-        var style = {
-            base: {
-                height: '34px',
-                padding: '6px 12px',
-                fontSize: '14px',
-                lineHeight: '1.42857143',
-                color: '#555',
-                backgroundColor: '#fff',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                '::placeholder': {
-                    color: '#ddd'
-                }
-            },
-            invalid: {
-                color: '#fa755a',
-                iconColor: '#fa755a'
+    var style = {
+        base: {
+            height: '34px',
+            padding: '6px 12px',
+            fontSize: '14px',
+            lineHeight: '1.42857143',
+            color: '#555',
+            backgroundColor: '#fff',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            '::placeholder': {
+                color: '#ddd'
             }
-        };
+        },
+        invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
+        }
+    };
 
-        // Create an instance of the card Element.
-        var card = elements.create('card', {style: style});
+    // Create an instance of the card Element.
+    var card = elements.create('card', {style: style});
 
+    function stripePaymentFunction(type) {
         // Add an instance of the card Element into the `card-element` <div>.
         if (($('#card-element')).length > 0) {
             card.mount('#card-element');
         }
-
         // Handle real-time validation errors from the card Element.
         card.addEventListener('change', function (event) {
             var displayError = document.getElementById('card-errors');
@@ -332,34 +331,35 @@
                 displayError.textContent = '';
             }
         });
-
         // Handle form submission.
-        var form = document.getElementById(type+'_payment_form');
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            stripe.createToken(card).then(function (result) {
-                if (result.error) {
-                    // Inform the user if there was an error.
-                    let errorElement = document.getElementById('card-errors');
-                    errorElement.textContent = result.error.message;
-                } else {
-                    // Send the token to your server.
-                    stripeTokenHandler(result.token);
-                }
-            });
-        });
+        let form = document.getElementById(type+'_payment_form');
+        form.addEventListener('submit', listener);
+    }
 
-        // Submit the form with the token ID.
-        function stripeTokenHandler(token) {
-            // Insert the token ID into the form, so it gets submitted to the server
-            let form = document.getElementById(type+'_payment_form');
-            let hiddenInput = document.createElement('input');
-            hiddenInput.setAttribute('type', 'hidden');
-            hiddenInput.setAttribute('name', 'token');
-            hiddenInput.setAttribute('value', token.id);
-            form.appendChild(hiddenInput);
-            form.submit();
-        }
+    const listener = async event => {
+        event.preventDefault();
+        stripe.createToken(card).then(function (result) {
+            if (result.error) {
+                // Inform the user if there was an error.
+                let errorElement = document.getElementById('card-errors');
+                errorElement.textContent = result.error.message;
+            } else {
+                // Send the token to your server.
+                stripeTokenHandler(result.token);
+            }
+        });
+    }
+
+    // Submit the form with the token ID.
+    function stripeTokenHandler(token) {
+        // Insert the token ID into the form, so it gets submitted to the server
+        let form = document.getElementById(type+'_payment_form');
+        let hiddenInput = document.createElement('input');
+        hiddenInput.setAttribute('type', 'hidden');
+        hiddenInput.setAttribute('name', 'token');
+        hiddenInput.setAttribute('value', token.id);
+        form.appendChild(hiddenInput);
+        form.submit();
     }
 </script>
 
@@ -372,6 +372,8 @@
         let paymentType = parseInt($(param).val());
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         $(param).closest('.payment_modal').find('.payment_type_div').slideUp();
+        let form = document.getElementById(type+'_payment_form');
+        form.removeEventListener('submit', listener);
         $(param).closest('.payment_modal').find('#card-element').remove();
         switch (paymentType) {
             case 1:

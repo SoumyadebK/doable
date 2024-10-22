@@ -356,6 +356,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         height: 2.5em;
     }
 
+    .fc-time-grid-event .fc-content {
+        color: #000000;
+    }
+
     .SumoSelect {
         width: 100%;
     }
