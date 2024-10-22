@@ -25,6 +25,25 @@ $header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AN
 if ($header_data->RecordCount() > 0) {
     $header_text = $header_data->fields['HEADER_TEXT'];
 }
+
+$code='';
+$name='';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = $_POST['id'];  // Assuming you have a unique id for each row
+    $code = $_POST['code'];
+    $name = $_POST['name'];
+    $duration = $_POST['duration'];
+    $unit = $_POST['unit'];
+    $color = $_POST['color'];
+    $order = $_POST['order'];
+    $todos = $_POST['todos'];
+
+// SQL to update the row
+    $sql = $db_account->Execute("UPDATE DOA_SCHEDULING_CODE SET SCHEDULING_CODE='$code', SCHEDULING_NAME='$name', DURATION='$duration', UNIT='$unit', COLOR_CODE='$color', SORT_ORDER='$order', TO_DOS='$todos' WHERE PK_SCHEDULING_CODE=".$id);
+    echo "UPDATE DOA_SCHEDULING_CODE SET SCHEDULING_CODE='$code', SCHEDULING_NAME='$name', DURATION='$duration', UNIT='$unit', COLOR_CODE='$color', SORT_ORDER='$order', TO_DOS='$todos' WHERE PK_SCHEDULING_CODE=".$id;
+
+    echo json_encode(["status" => "success", "message" => "Record updated successfully"]);
+}
 ?>
 
 <!DOCTYPE html>
@@ -78,6 +97,8 @@ if ($header_data->RecordCount() > 0) {
                                     <tr>
                                         <th>Scheduling code</th>
                                         <th>Scheduling Name</th>
+                                        <th>Duration</th>
+                                        <th>Unit</th>
                                         <th>Color</th>
                                         <th>Sort Order</th>
                                         <th>To-Dos</th>
@@ -88,22 +109,26 @@ if ($header_data->RecordCount() > 0) {
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_NAME, DOA_SCHEDULING_CODE.COLOR_CODE, DOA_SCHEDULING_CODE.SORT_ORDER, DOA_SCHEDULING_CODE.TO_DOS, DOA_SCHEDULING_CODE.ACTIVE FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.ACTIVE =".$status." AND DOA_SCHEDULING_CODE.PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']. " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
+                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_NAME, DOA_SCHEDULING_CODE.DURATION, DOA_SCHEDULING_CODE.UNIT, DOA_SCHEDULING_CODE.COLOR_CODE, DOA_SCHEDULING_CODE.SORT_ORDER, DOA_SCHEDULING_CODE.TO_DOS, DOA_SCHEDULING_CODE.ACTIVE FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.ACTIVE =".$status." AND DOA_SCHEDULING_CODE.PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']. " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
                                     while (!$row->EOF) { ?>
-                                        <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['SCHEDULING_CODE']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><?=$row->fields['SCHEDULING_NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_SCHEDULING_CODE']?>);"><span style="display: block; width: 44px; height: 22px; background-color: <?=$row->fields['COLOR_CODE']?>"></span></td>
-                                            <td><?=$row->fields['SORT_ORDER']?>
-                                                <a href="javascript:" class="btn btn-info waves-effect waves-light m-r-10 text-white myBtn" onclick="editSortOrder(<?=$row->fields['PK_SCHEDULING_CODE']?>, <?=$row->fields['SORT_ORDER']?>);" style="float: right">Set Order</a>
-                                            </td>
-                                            <td style="text-align: center">
+                                        <tr data-id="<?=$row->fields['PK_SCHEDULING_CODE']?>">
+                                            <td class="code"><?=$row->fields['SCHEDULING_CODE']?></td>
+                                            <td class="name"><?=$row->fields['SCHEDULING_NAME']?></td>
+                                            <td class="duration"><?=$row->fields['DURATION']?></td>
+                                            <td class="unit"><?=$row->fields['UNIT']?></td>
+                                            <td class="color"><span style="display: block; width: 44px; height: 22px; background-color: <?=$row->fields['COLOR_CODE']?>"></span></td>
+                                            <td class="order"><?=$row->fields['SORT_ORDER']?></td>
+                                            <td class="todos" style="text-align: center">
                                                 <?php if($row->fields['TO_DOS']==1){ ?>
-                                                    <i style="font-size: 20px" class="fa fa-check-square"></i>
+                                                    <input type="checkbox" class="active-checkbox" checked>
+                                                <?php } else { ?>
+                                                    <input type="checkbox" class="active-checkbox">
                                                 <?php } ?>
                                             </td>
                                             <td>
-                                                <a href="add_scheduling_codes.php?id=<?=$row->fields['PK_SCHEDULING_CODE']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <!--<a href="add_scheduling_codes.php?id=<?php /*=$row->fields['PK_SCHEDULING_CODE']*/?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
+                                                <button class="editBtn btn btn-info waves-effect waves-light m-r-10 text-white myBtn">Edit</button>
+                                                <button class="saveBtn btn btn-info waves-effect waves-light m-r-10 text-white myBtn" style="display: none">Save</button>
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
@@ -116,7 +141,7 @@ if ($header_data->RecordCount() > 0) {
                                     </tbody>
                                 </table>
 
-                                <div class="modal fade" id="sort_order_modal" tabindex="-1" aria-hidden="true">
+                                <!--<div class="modal fade" id="sort_order_modal" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <form id="sort_order_form" role="form" action="all_scheduling_codes.php" method="post">
                                             <div class="modal-content" style="width: 50%; margin: 15% auto;">
@@ -147,7 +172,7 @@ if ($header_data->RecordCount() > 0) {
                                             </div>
                                         </form>
                                     </div>
-                                </div>
+                                </div>-->
 
                             </div>
                         </div>
@@ -177,11 +202,124 @@ if ($header_data->RecordCount() > 0) {
         window.location.href = "add_scheduling_codes.php?id="+id;
     }
 
-    function editSortOrder(PK_SCHEDULING_CODE, SORT_ORDER) {
+    /*function editSortOrder(PK_SCHEDULING_CODE, SORT_ORDER) {
         $('#PK_SCHEDULING_CODE').val(PK_SCHEDULING_CODE);
         $('#ORDER_NUMBER').val(SORT_ORDER);
         $('#sort_order_modal').modal('show');
-    }
+    }*/
+
+    // Get all the edit buttons and save buttons in the table
+    const editButtons = document.querySelectorAll('.editBtn');
+    const saveButtons = document.querySelectorAll('.saveBtn');
+
+    // Loop through each edit button and add an event listener
+    editButtons.forEach((editButton, index) => {
+        editButton.addEventListener('click', function() {
+            // Find the row containing the clicked button
+            const row = editButton.closest('tr');
+            const codeCell = row.querySelector('.code');
+            const nameCell = row.querySelector('.name');
+            const durationCell = row.querySelector('.duration');
+            const unitCell = row.querySelector('.unit');
+            const colorCell = row.querySelector('.color');
+            const orderCell = row.querySelector('.order');
+            const todosCell = row.querySelector('.todos');
+
+            // Replace the cell content with input fields containing the current text
+            codeCell.innerHTML = `<input type="text" value="${codeCell.textContent}" class="edit-code">`;
+            nameCell.innerHTML = `<input type="text" value="${nameCell.textContent}" class="edit-name">`;
+            durationCell.innerHTML = `<input type="text" value="${durationCell.textContent}" class="edit-duration">`;
+            unitCell.innerHTML = `<input type="text" value="${unitCell.textContent}" class="edit-unit">`;
+            colorCell.innerHTML = `<input type="color" value="${colorCell.textContent}" class="edit-color">`;
+            orderCell.innerHTML = `<input type="text" value="${orderCell.textContent}" class="edit-order">`;
+            todosCell.innerHTML = `<input type="checkbox" value="${todosCell.textContent}" class="edit-todos">`;
+
+            // Show the save button and hide the edit button
+            editButton.style.display = 'none';
+            saveButtons[index].style.display = 'inline-block';
+        });
+    });
+
+    // Loop through each save button and add an event listener
+    saveButtons.forEach((saveButton, index) => {
+        saveButton.addEventListener('click', function() {
+            // Find the row containing the clicked button
+            const row = saveButton.closest('tr');
+
+            const codeCell = row.querySelector('.code');
+            const nameCell = row.querySelector('.name');
+            const durationCell = row.querySelector('.duration');
+            const unitCell = row.querySelector('.unit');
+            const colorCell = row.querySelector('.color');
+            const orderCell = row.querySelector('.order');
+            //const isChecked = row.checked ? 1 : 0;
+            const checkboxes = document.querySelectorAll('.active-checkbox');
+            const todosCell = checkboxes.checked ? 1 : 0;
+
+            const editCode = row.querySelector('.edit-code');
+            const editName = row.querySelector('.edit-name');
+            const editDuration = row.querySelector('.edit-duration');
+            const editUnit = row.querySelector('.edit-unit');
+            const editColour = row.querySelector('.edit-color');
+            const editOrder = row.querySelector('.edit-order');
+            const editTodos = row.querySelector('.edit-todos');
+
+            // Get the updated values from the input fields
+            const updatedCode = editCode.value;
+            const updatedName = editName.value;
+            const updatedDuration = editDuration.value;
+            const updatedUnit = editUnit.value;
+            const updatedColour = editColour.value;
+            const updatedOrder = editOrder.value;
+            const updatedTodos = editTodos.value;
+
+            // Assuming you have an ID field (for example, as a data attribute)
+            const id = row.getAttribute('data-id');
+
+            // Prepare the data to be sent
+            const data = {
+                id: id,
+                code: updatedCode,
+                name: updatedName,
+                duration: updatedDuration,
+                unit: updatedUnit,
+                color: updatedColour,
+                order: updatedOrder,
+                todos: updatedTodos
+                //todos: updatedTodos
+            };
+
+            // Send the updated data to the backend using Fetch API
+            fetch('all_scheduling_codes.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(data) // Send data as form URL-encoded
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Replace the input fields with the updated text
+                        codeCell.textContent = updatedCode;
+                        nameCell.textContent = updatedName;
+                        durationCell.textContent = updatedDuration;
+                        unitCell.textContent = updatedUnit;
+                        colorCell.textContent = updatedColour;
+                        orderCell.textContent = updatedOrder;
+                        todosCell.textContent = updatedTodos;
+
+                        // Show the edit button and hide the save button
+                        saveButton.style.display = 'none';
+                        editButtons[index].style.display = 'inline-block';
+                    } else {
+                        alert('Error saving data: ' + data.message);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    });
+
 </script>
 </body>
 </html>
