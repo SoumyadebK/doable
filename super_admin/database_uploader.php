@@ -425,6 +425,7 @@ if(!empty($_POST))
                     $SCHEDULING_CODE['DURATION'] = $allSchedulingCodes->fields['duration'];
                     $SCHEDULING_CODE['SORT_ORDER'] = $allSchedulingCodes->fields['sort_order'];
                     $SCHEDULING_CODE['COLOR_CODE'] = $allSchedulingCodes->fields['color_hexcode'];;
+                    $SCHEDULING_CODE['TO_DOS'] = ($allSchedulingCodes->fields['service_id'] == 'GEN') ? 1 : 0;
                     $SCHEDULING_CODE['CREATED_BY'] = $_SESSION['PK_USER'];
                     $SCHEDULING_CODE['CREATED_ON'] = date("Y-m-d H:i");
                     db_perform_account('DOA_SCHEDULING_CODE', $SCHEDULING_CODE, 'insert');
