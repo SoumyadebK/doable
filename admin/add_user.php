@@ -376,8 +376,9 @@ else {
                                                 <div class="form-group has-success">
                                                     <label class="form-label">Gender</label>
                                                     <select class="form-control form-select" id="Gender" name="Gender">
-                                                        <option value="1" <?php if($GENDER == "1") echo 'selected = "selected"';?>>Male</option>
-                                                        <option value="2" <?php if($GENDER == "2") echo 'selected = "selected"';?>>Female</option>
+                                                        <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
+                                                        <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
+                                                        <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
                                                     </select>
                                                     <small class="form-control-feedback"> Select your gender </small> </div>
                                             </div>

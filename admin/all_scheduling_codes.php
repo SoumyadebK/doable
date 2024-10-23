@@ -25,25 +25,6 @@ $header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AN
 if ($header_data->RecordCount() > 0) {
     $header_text = $header_data->fields['HEADER_TEXT'];
 }
-
-$code='';
-$name='';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id = $_POST['id'];  // Assuming you have a unique id for each row
-    $code = $_POST['code'];
-    $name = $_POST['name'];
-    $duration = $_POST['duration'];
-    $unit = $_POST['unit'];
-    $color = $_POST['color'];
-    $order = $_POST['order'];
-    $todos = $_POST['todos'];
-
-// SQL to update the row
-    $sql = $db_account->Execute("UPDATE DOA_SCHEDULING_CODE SET SCHEDULING_CODE='$code', SCHEDULING_NAME='$name', DURATION='$duration', UNIT='$unit', COLOR_CODE='$color', SORT_ORDER='$order', TO_DOS='$todos' WHERE PK_SCHEDULING_CODE=".$id);
-    echo "UPDATE DOA_SCHEDULING_CODE SET SCHEDULING_CODE='$code', SCHEDULING_NAME='$name', DURATION='$duration', UNIT='$unit', COLOR_CODE='$color', SORT_ORDER='$order', TO_DOS='$todos' WHERE PK_SCHEDULING_CODE=".$id;
-
-    echo json_encode(["status" => "success", "message" => "Record updated successfully"]);
-}
 ?>
 
 <!DOCTYPE html>
@@ -116,13 +97,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <td class="name"><?=$row->fields['SCHEDULING_NAME']?></td>
                                             <td class="duration"><?=$row->fields['DURATION']?></td>
                                             <td class="unit"><?=$row->fields['UNIT']?></td>
-                                            <td class="color"><span style="display: block; width: 44px; height: 22px; background-color: <?=$row->fields['COLOR_CODE']?>"></span></td>
+                                            <td class="color" data-value="<?=$row->fields['COLOR_CODE']?>"><span style="display: block; width: 44px; height: 22px; background-color: <?=$row->fields['COLOR_CODE']?>"></span></td>
                                             <td class="order"><?=$row->fields['SORT_ORDER']?></td>
-                                            <td class="todos" style="text-align: center">
+                                            <td class="todos" data-value="<?=$row->fields['TO_DOS']?>" style="text-align: center">
                                                 <?php if($row->fields['TO_DOS']==1){ ?>
-                                                    <input type="checkbox" class="active-checkbox" checked>
+                                                    <input type="checkbox" class="active-checkbox" checked disabled>
                                                 <?php } else { ?>
-                                                    <input type="checkbox" class="active-checkbox">
+                                                    <input type="checkbox" class="active-checkbox" disabled>
                                                 <?php } ?>
                                             </td>
                                             <td>
@@ -230,9 +211,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             nameCell.innerHTML = `<input type="text" value="${nameCell.textContent}" class="edit-name">`;
             durationCell.innerHTML = `<input type="text" value="${durationCell.textContent}" class="edit-duration">`;
             unitCell.innerHTML = `<input type="text" value="${unitCell.textContent}" class="edit-unit">`;
-            colorCell.innerHTML = `<input type="color" value="${colorCell.textContent}" class="edit-color">`;
+            colorCell.innerHTML = `<input type="color" value="${colorCell.getAttribute('data-value')}" class="edit-color">`;
             orderCell.innerHTML = `<input type="text" value="${orderCell.textContent}" class="edit-order">`;
-            todosCell.innerHTML = `<input type="checkbox" value="${todosCell.textContent}" class="edit-todos">`;
+            todosCell.innerHTML = `<input type="checkbox" class="edit-todos" ${(todosCell.getAttribute('data-value') == 1) ? 'checked' : ''}>`;
 
             // Show the save button and hide the edit button
             editButton.style.display = 'none';
@@ -252,9 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const unitCell = row.querySelector('.unit');
             const colorCell = row.querySelector('.color');
             const orderCell = row.querySelector('.order');
-            //const isChecked = row.checked ? 1 : 0;
-            const checkboxes = document.querySelectorAll('.active-checkbox');
-            const todosCell = checkboxes.checked ? 1 : 0;
+            const todosCell = row.querySelector('.todos');
 
             const editCode = row.querySelector('.edit-code');
             const editName = row.querySelector('.edit-name');
@@ -271,7 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const updatedUnit = editUnit.value;
             const updatedColour = editColour.value;
             const updatedOrder = editOrder.value;
-            const updatedTodos = editTodos.value;
+            const updatedTodos = editTodos.checked;
 
             // Assuming you have an ID field (for example, as a data attribute)
             const id = row.getAttribute('data-id');
@@ -286,11 +265,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 color: updatedColour,
                 order: updatedOrder,
                 todos: updatedTodos
-                //todos: updatedTodos
             };
 
             // Send the updated data to the backend using Fetch API
-            fetch('all_scheduling_codes.php', {
+            fetch('includes/save_scheduling_code.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -305,9 +283,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         nameCell.textContent = updatedName;
                         durationCell.textContent = updatedDuration;
                         unitCell.textContent = updatedUnit;
-                        colorCell.textContent = updatedColour;
+                        colorCell.innerHTML = `<span style="display: block; width: 44px; height: 22px; background-color: ${updatedColour}"></span>`;
                         orderCell.textContent = updatedOrder;
-                        todosCell.textContent = updatedTodos;
+                        todosCell.innerHTML = `<input type="checkbox" class="active-checkbox" ${(updatedTodos == 1) ? 'checked' : ''} disabled>`;
 
                         // Show the edit button and hide the save button
                         saveButton.style.display = 'none';
