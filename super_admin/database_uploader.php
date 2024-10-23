@@ -816,51 +816,53 @@ if(!empty($_POST))
                 $header = $allSpecialAppointment->fields['appt_name'];
                 $start_date = $allSpecialAppointment->fields['appt_date'];
                 $start_time = $allSpecialAppointment->fields['appt_time'];
-                $table_data = $db_account->Execute("SELECT PK_SPECIAL_APPOINTMENT FROM DOA_SPECIAL_APPOINTMENT WHERE TITLE = '$header' AND DATE = '$start_date' AND START_TIME = '$start_time'");
-                if ($table_data->RecordCount() == 0) {
-                    $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
-                    $INSERT_DATA['TITLE'] = $header;
-                    $INSERT_DATA['DATE'] = $start_date;
-                    $INSERT_DATA['START_TIME'] =$start_time;
-                    $duration = $allSpecialAppointment->fields['duration'];
-                    $endDateTime = strtotime($start_date . ' ' . $start_time) + ($duration * 60);
-                    $convertedDate = date('Y-m-d', $endDateTime);
-                    $convertedTime = date('H:i:s', $endDateTime);
-                    $INSERT_DATA['END_TIME'] = $convertedTime;
-                    $INSERT_DATA['DESCRIPTION'] = $allSpecialAppointment->fields['appts_comment'];
+                /*$table_data = $db_account->Execute("SELECT PK_SPECIAL_APPOINTMENT FROM DOA_SPECIAL_APPOINTMENT WHERE TITLE = '$header' AND DATE = '$start_date' AND START_TIME = '$start_time'");
+                if ($table_data->RecordCount() == 0) {*/
 
-                    $booking_code = $allSpecialAppointment->fields['booking_code'];
-                    $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code'");
-                    if ($getServiceCodeId->RecordCount() > 0) {
-                        $PK_SCHEDULING_CODE = $getServiceCodeId->fields['PK_SCHEDULING_CODE'];
-                    } else {
-                        $PK_SCHEDULING_CODE = 0;
-                    }
-                    $INSERT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
+                $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
+                $INSERT_DATA['TITLE'] = $header;
+                $INSERT_DATA['DATE'] = $start_date;
+                $INSERT_DATA['START_TIME'] = $start_time;
+                $duration = $allSpecialAppointment->fields['duration'];
+                $endDateTime = strtotime($start_date . ' ' . $start_time) + ($duration * 60);
+                $convertedDate = date('Y-m-d', $endDateTime);
+                $convertedTime = date('H:i:s', $endDateTime);
+                $INSERT_DATA['END_TIME'] = $convertedTime;
+                $INSERT_DATA['DESCRIPTION'] = $allSpecialAppointment->fields['appts_comment'];
 
-                    if ($start_date > date('Y-m-d')) {
-                        $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 1;
-                    } else {
-                        $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 2;
-                    }
-
-                    if ($allSpecialAppointment->fields['appt_status'] == "A") {
-                        $INSERT_DATA['ACTIVE'] = 1;
-                    } else {
-                        $INSERT_DATA['ACTIVE'] = 0;
-                    }
-
-                    $created_by = explode(" ", $allSpecialAppointment->fields['created_by']);
-                    $firstName = ($created_by[0]) ?: '';
-                    $lastName = ($created_by[1]) ?: '';
-                    $doableNameId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND FIRST_NAME='$firstName' AND LAST_NAME = '$lastName'");
-                    $INSERT_DATA['CREATED_BY'] = $doableNameId->fields['PK_USER'];
-                    $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                    db_perform_account('DOA_SPECIAL_APPOINTMENT', $INSERT_DATA, 'insert');
-                    $PK_SPECIAL_APPOINTMENT = $db_account->insert_ID();
+                $booking_code = $allSpecialAppointment->fields['booking_code'];
+                $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code'");
+                if ($getServiceCodeId->RecordCount() > 0) {
+                    $PK_SCHEDULING_CODE = $getServiceCodeId->fields['PK_SCHEDULING_CODE'];
                 } else {
-                    $PK_SPECIAL_APPOINTMENT = $table_data->fields['PK_SPECIAL_APPOINTMENT'];
+                    $PK_SCHEDULING_CODE = 0;
                 }
+                $INSERT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
+
+                if ($start_date > date('Y-m-d')) {
+                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+                } else {
+                    $INSERT_DATA['PK_APPOINTMENT_STATUS'] = 2;
+                }
+
+                if ($allSpecialAppointment->fields['appt_status'] == "A") {
+                    $INSERT_DATA['ACTIVE'] = 1;
+                } else {
+                    $INSERT_DATA['ACTIVE'] = 0;
+                }
+
+                $created_by = explode(" ", $allSpecialAppointment->fields['created_by']);
+                $firstName = ($created_by[0]) ?: '';
+                $lastName = ($created_by[1]) ?: '';
+                $doableNameId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND FIRST_NAME='$firstName' AND LAST_NAME = '$lastName'");
+                $INSERT_DATA['CREATED_BY'] = $doableNameId->fields['PK_USER'];
+                $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                db_perform_account('DOA_SPECIAL_APPOINTMENT', $INSERT_DATA, 'insert');
+                $PK_SPECIAL_APPOINTMENT = $db_account->insert_ID();
+
+                /*} else {
+                    $PK_SPECIAL_APPOINTMENT = $table_data->fields['PK_SPECIAL_APPOINTMENT'];
+                }*/
 
                 $user_id = $allSpecialAppointment->fields['user_id'];
                 $doableUserId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND USER_ID = '$user_id'");
