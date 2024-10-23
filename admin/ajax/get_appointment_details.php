@@ -763,6 +763,7 @@ z-index: 500;
                                 <option>Select Gender</option>
                                 <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
                                 <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
+                                <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
                             </select>
                         </div>
                     </div>
@@ -999,6 +1000,7 @@ z-index: 500;
                                     <option value="">Select Gender</option>
                                     <option value="Male" <?=(($PARTNER_GENDER=='Male')?'selected':'')?>>Male</option>
                                     <option value="Female" <?=(($PARTNER_GENDER=='Female')?'selected':'')?>>Female</option>
+                                    <option value="Other" <?=(($PARTNER_GENDER=='Other')?'selected':'')?>>Other</option>
                                 </select>
                             </div>
                         </div>
@@ -1227,6 +1229,7 @@ z-index: 500;
                                             <option>Select Gender</option>
                                             <option value="Male" <?php if($family_member_details->fields['GENDER'] == "Male") echo 'selected = "selected"';?>>Male</option>
                                             <option value="Female" <?php if($family_member_details->fields['GENDER'] == "Female") echo 'selected = "selected"';?>>Female</option>
+                                            <option value="Other" <?php if($family_member_details->fields['GENDER'] == "Other") echo 'selected = "selected"';?>>Other</option>
                                         </select>
                                     </div>
                                 </div>
@@ -1370,6 +1373,7 @@ z-index: 500;
                                         <option>Select Gender</option>
                                         <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
                                         <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
+                                        <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
                                     </select>
                                 </div>
                             </div>
@@ -2349,6 +2353,7 @@ z-index: 500;
                                                                         <option>Select Gender</option>
                                                                         <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
                                                                         <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
+                                                                        <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
                                                                     </select>
                                                                 </div>
                                                             </div>
