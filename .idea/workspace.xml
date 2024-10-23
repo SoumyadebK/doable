@@ -4,11 +4,27 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bd5b59a3-afbb-4169-9ac9-2b59019e9e6e" name="Changes" comment="" />
+    <list default="true" id="97d428f3-d769-4da9-a867-930a9d0ffa4c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/database_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/database_uploader.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/upload_functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/upload_functions.php" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerConfigs">
+    <option name="configs">
+      <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/composer.json" />
+      <option value="$PROJECT_DIR$/global/tcpdf/composer.json" />
+      <option value="$PROJECT_DIR$/global/PHPMailer-master/composer.json" />
+      <option value="$PROJECT_DIR$/global/authorizenet/composer.json" />
+      <option value="$PROJECT_DIR$/global/stripe-php-master/composer.json" />
+      <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/composer.json" />
+      <option value="$PROJECT_DIR$/global/square_old/square/connect/composer.json" />
+      <option value="$PROJECT_DIR$/global/square_old/symfony/polyfill-ctype/composer.json" />
+    </option>
   </component>
   <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
     <pharConfigPath>$PROJECT_DIR$/global/composer.json</pharConfigPath>
@@ -17,70 +33,122 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="C:\xampp\php\php.exe">
+  <component name="GitToolBoxStore">
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="soumyadeb" />
+                    <option name="lastUsedInstant" value="1724046497" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="main" />
+                    <option name="lastUsedInstant" value="1724046341" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$" />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/opt/homebrew/Cellar/php/8.3.12_1/bin/php">
     <include_path>
-      <path value="$PROJECT_DIR$/global/vendor/composer" />
-      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
-      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
-      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
-      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
-      <path value="$PROJECT_DIR$/global/vendor/paragonie/random_compat" />
-      <path value="$PROJECT_DIR$/global/vendor/psr/http-message" />
-      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
-      <path value="$PROJECT_DIR$/global/vendor/psr/log" />
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/unirest-php" />
       <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
       <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/core" />
+      <path value="$PROJECT_DIR$/global/vendor/composer" />
+      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
+      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
+      <path value="$PROJECT_DIR$/global/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/global/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/global/vendor/psr/log" />
+      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
       <path value="$PROJECT_DIR$/global/vendor/square/square" />
+      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
+      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/unirest-php" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/core" />
     </include_path>
   </component>
   <component name="ProjectColorInfo">{
-  &quot;customColor&quot;: &quot;&quot;,
-  &quot;associatedIndex&quot;: 0
+  &quot;associatedIndex&quot;: 1
 }</component>
-  <component name="ProjectId" id="2mpEnEUOLo3zsKcc2luZpnt9hfY" />
+  <component name="ProjectId" id="2krejEZNMVIRNT8XfwZkPYQD5ZA" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;soumyadeb&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/Applications/XAMPP/xamppfiles/htdocs/doable_new",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-91d5c284f522-JavaScript-PS-241.15989.102" />
-        <option value="bundled-php-predefined-ba97393d7c68-c76157a7178b-com.jetbrains.php.sharedIndexes-PS-241.15989.102" />
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-PS-242.23339.16" />
+        <option value="bundled-php-predefined-a98d8de5180a-90914f2295cb-com.jetbrains.php.sharedIndexes-PS-242.23339.16" />
       </set>
     </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="bd5b59a3-afbb-4169-9ac9-2b59019e9e6e" name="Changes" comment="" />
-      <created>1727765289270</created>
+      <changelist id="97d428f3-d769-4da9-a867-930a9d0ffa4c" name="Changes" comment="" />
+      <created>1724046255962</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1727765289270</updated>
-      <workItem from="1727765292812" duration="793000" />
-      <workItem from="1728403427140" duration="873000" />
-      <workItem from="1728898468531" duration="38000" />
-      <workItem from="1728898527853" duration="318000" />
-      <workItem from="1729697675669" duration="967000" />
+      <updated>1724046255962</updated>
+      <workItem from="1724046257027" duration="518000" />
+      <workItem from="1724046819230" duration="7748000" />
+      <workItem from="1724081310064" duration="5311000" />
+      <workItem from="1724132082797" duration="10692000" />
+      <workItem from="1724337895643" duration="3798000" />
+      <workItem from="1724394441307" duration="2848000" />
+      <workItem from="1724679169581" duration="12039000" />
+      <workItem from="1724738037691" duration="8881000" />
+      <workItem from="1724770590650" duration="65000" />
+      <workItem from="1724770665615" duration="1959000" />
+      <workItem from="1724912474089" duration="8228000" />
+      <workItem from="1724942442067" duration="8235000" />
+      <workItem from="1725346634724" duration="2594000" />
+      <workItem from="1726130892988" duration="188000" />
+      <workItem from="1726131100931" duration="717000" />
+      <workItem from="1726415200486" duration="831000" />
+      <workItem from="1726496091018" duration="127000" />
+      <workItem from="1728913972052" duration="1052000" />
+      <workItem from="1728915183476" duration="599000" />
+      <workItem from="1729311701847" duration="2347000" />
+      <workItem from="1729691404416" duration="6370000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+        <option value="GitHub.CommitStatus" />
+      </list>
+    </option>
   </component>
 </project>
