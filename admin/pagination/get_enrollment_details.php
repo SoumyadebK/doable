@@ -305,14 +305,14 @@ while (!$serviceCodeData->EOF) {
             if (!isset($total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']])) {
                 $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] = $per_session_price->fields['TOTAL_AMOUNT_PAID'];
             }
-            $service_credit = $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']];
+            $service_credit = ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_data->fields['IS_CHARGED'] == 1) ? $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']] : 0;
             $appointment_array[] = [
                 "PK_APPOINTMENT_MASTER" => $appointment_data->fields['PK_APPOINTMENT_MASTER'],
                 "SERVICE_NAME" => $appointment_data->fields['SERVICE_NAME'],
                 "APPOINTMENT_STATUS" => $appointment_data->fields['APPOINTMENT_STATUS'],
                 "STATUS_COLOR" => $appointment_data->fields['STATUS_COLOR'],
                 "IS_CHARGED" => $IS_CHARGED,
-                "APPOINTMENT_NUMBER" => $service_code_array[$appointment_data->fields['SERVICE_CODE']] . '/' . $per_session_price->fields['NUMBER_OF_SESSION'],
+                "APPOINTMENT_NUMBER" => ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_data->fields['IS_CHARGED'] == 1) ? $service_code_array[$appointment_data->fields['SERVICE_CODE']] . '/' . $per_session_price->fields['NUMBER_OF_SESSION'] : '',
                 "SERVICE_CODE" => $appointment_data->fields['SERVICE_CODE'],
                 "APPOINTMENT_DATE" => date('m/d/Y', strtotime($appointment_data->fields['DATE'])),
                 "APPOINTMENT_TIME" => date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME'])),
