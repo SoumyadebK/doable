@@ -188,17 +188,22 @@ if (!empty($_GET['view'])) {
 
                     <?php if($_SESSION['PK_ROLES'] == 4) { ?>
                         <li>
-                            <?php if ($view=='list') { ?>
-                                <a class="waves-effect waves-dark" href="../customer/all_schedules.php?view=table" aria-expanded="false">
-                                    <i class="icon-calender"></i>
-                                    <span class="hide-menu">Calendar</span>
-                                </a>
-                            <?php } elseif ($view=='table') { ?>
-                                <a class="waves-effect waves-dark" href="../customer/all_schedules.php?view=list" aria-expanded="false">
-                                    <i class="icon-list"></i>
-                                    <span class="hide-menu">List</span>
-                                </a>
-                            <?php } ?>
+                            <a class="waves-effect waves-dark" href="../customer/all_schedules.php" aria-expanded="false">
+                                <i class="icon-calender"></i>
+                                <span class="hide-menu">Calendar</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="waves-effect waves-dark" href="../customer/appointment_list.php" aria-expanded="false">
+                                <i class="icon-list"></i>
+                                <span class="hide-menu">Appointments</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="waves-effect waves-dark" href="../customer/operations.php" aria-expanded="false">
+                                <i class="ti-layers-alt"></i>
+                                <span class="hide-menu"><?=$operation_tab_title?></span>
+                            </a>
                         </li>
                         <li>
                             <a class="waves-effect waves-dark" href="../customer/all_gift_certificates.php" aria-expanded="false">
