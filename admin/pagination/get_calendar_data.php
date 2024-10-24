@@ -192,8 +192,8 @@ if ($appointment_type == 'TO-DO' || $appointment_type == '') {
             'end' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['END_TIME'])),
             'color' => $special_appointment_data->fields['COLOR_CODE'],
             'type' => 'special_appointment',
-            'status' => $special_appointment_data->fields['STATUS_CODE'],
-            'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],
+            /*'status' => $special_appointment_data->fields['STATUS_CODE'],
+            'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
             'comment' => '',
             'internal_comment' => '',
             'statusCode' => '',
