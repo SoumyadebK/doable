@@ -5,26 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="af953b44-8bc9-4bc5-84b1-1165dd7649ff" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/customer/ajax/add_appointment.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/ajax/add_group_classes.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/ajax/add_multiple_appointment.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/ajax/add_special_appointment.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/ajax/check_service_provider_slot.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/ajax/get_event_details.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/ajax/get_instructor.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/ajax/get_scheduling_codes.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/ajax/get_special_appointment_details.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/appointment_list.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/create_appointment.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/includes/get_update_history.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/includes/save_appointment_details.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/operations.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/pagination/completed_services.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/pagination/get_calendar_data.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/pagination/get_enrollment_details.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/pagination/get_resource_data.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/pagination/orphan_appointment.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/customer/pagination/pending_services.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -108,6 +88,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "roumya",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
