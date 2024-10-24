@@ -178,9 +178,9 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                             <th>Transaction Type</th>
                                             <th>Billed Amount</th>
                                             <th>Paid Amount</th>
+                                            <th>Balance</th>
                                             <th>Payment Type</th>
                                             <th>Description</th>
-                                            <th>Balance</th>
                                             <th>Paid</th>
                                             <th>Actions</th>
                                         </tr>
@@ -191,40 +191,73 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                         $billed_amount = 0;
                                         $paid_amount = 0;
                                         $balance = 0;
-                                        $billing_details = $db->Execute("SELECT $account_database.DOA_ENROLLMENT_LEDGER.*, $master_database.DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM $account_database.`DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE ON $account_database.DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = $master_database.DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
-                                        while (!$billing_details->EOF) { $billed_amount = $billing_details->fields['BILLED_AMOUNT']; $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance); ?>
+                                        $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+                                        while (!$billing_details->EOF) {
+                                            $billed_amount = $billing_details->fields['BILLED_AMOUNT'];
+                                            $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
+                                            ?>
                                             <tr>
                                                 <td><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
                                                 <td><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
                                                 <td><?=$billing_details->fields['BILLED_AMOUNT']?></td>
                                                 <td></td>
-                                                <td><?=$billing_details->fields['PAYMENT_TYPE']?></td>
-                                                <td></td>
                                                 <td><?=number_format((float)$balance, 2, '.', '')?></td>
+                                                <td></td>
+                                                <td></td>
                                                 <td><?=(($billing_details->fields['TRANSACTION_TYPE']=='Billing')?(($billing_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
                                                 <td>
                                                     <?php if($billing_details->fields['IS_PAID']==0) { ?>
-                                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="payNow(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>);">Pay Now</a>
+                                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="payNow(<?=$billing_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>);">Pay Now</a>
                                                     <?php } ?>
                                                 </td>
                                             </tr>
                                             <?php
-                                            $payment_details = $db->Execute("SELECT $account_database.DOA_ENROLLMENT_LEDGER.*, $master_database.DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM $account_database.`DOA_ENROLLMENT_LEDGER` LEFT JOIN $master_database.DOA_PAYMENT_TYPE ON $account_database.DOA_ENROLLMENT_LEDGER.PK_PAYMENT_TYPE = $master_database.DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE ENROLLMENT_LEDGER_PARENT = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
-                                            if ($payment_details->RecordCount() > 0){ $balance = ($billed_amount - $payment_details->fields['PAID_AMOUNT']); ?>
-                                                <tr>
-                                                    <td><?=date('m/d/Y', strtotime($payment_details->fields['DUE_DATE']))?></td>
-                                                    <td><?=$payment_details->fields['TRANSACTION_TYPE']?></td>
-                                                    <td></td>
-                                                    <td><?=$payment_details->fields['PAID_AMOUNT']?></td>
-                                                    <td><?=$payment_details->fields['PAYMENT_TYPE']?></td>
-                                                    <td></td>
-                                                    <td><?=number_format((float)$balance, 2, '.', '')?></td>
-                                                    <td><?=(($payment_details->fields['TRANSACTION_TYPE']=='Billing')?(($payment_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
-                                                    <td>
-                                                    </td>
-                                                </tr>
-                                            <? } ?>
-                                            <?php $billing_details->MoveNext(); } ?>
+                                            $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_LEDGER = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
+                                            if ($payment_details->RecordCount() > 0) {
+                                                while (!$payment_details->EOF) {
+                                                    $PK_ENROLLMENT_MASTER = $payment_details->fields['PK_ENROLLMENT_MASTER'];
+                                                    $PK_ENROLLMENT_LEDGER = $payment_details->fields['PK_ENROLLMENT_LEDGER'];
+                                                    if ($payment_details->fields['TYPE'] == 'Payment' && $payment_details->fields['IS_REFUNDED'] == 0) {
+                                                        $balance -= $payment_details->fields['AMOUNT'];
+                                                    }
+                                                    if ($payment_details->fields['TYPE'] == 'Move') {
+                                                        $payment_type = 'Wallet';
+                                                    } elseif ($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
+                                                        $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
+                                                        $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                                                    } elseif ($payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
+                                                        $receipt_number_array = explode(',', $payment_details->fields['RECEIPT_NUMBER']);
+                                                        $payment_type_array = [];
+                                                        foreach ($receipt_number_array as $receipt_number) {
+                                                            $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
+                                                            if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
+                                                                $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
+                                                                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                                                            } else {
+                                                                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
+                                                            }
+                                                        }
+                                                        $payment_type = implode(', ', $payment_type_array);
+                                                    } else {
+                                                        $payment_type = $payment_details->fields['PAYMENT_TYPE'];
+                                                    } ?>
+                                                    <tr style="color: <?=($payment_details->fields['IS_PAID'] == 2) ? 'green' : ''?>">
+                                                        <td><?=date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE']))?></td>
+                                                        <td><?=$payment_details->fields['TYPE']?></td>
+                                                        <td></td>
+                                                        <td style="text-align: right;"><?=$payment_details->fields['AMOUNT']?></td>
+                                                        <td></td>
+                                                        <td style="text-align: center;"><?=$payment_type?></td>
+                                                        <td style="text-align: center;"><?=$payment_details->fields['NOTE']?></td>
+                                                        <td><?=(($payment_details->fields['TYPE']=='Billing')?(($payment_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
+                                                        <td>
+                                                            <a onclick="openReceipt(<?=$PK_ENROLLMENT_MASTER?>, '<?=$payment_details->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
+                                                        </td>
+                                                    </tr>
+                                            <?php $payment_details->MoveNext();
+                                                }
+                                            }
+                                            $billing_details->MoveNext(); } ?>
                                         </tbody>
                                     </table>
                                     <?php $row->MoveNext();
@@ -392,6 +425,9 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     </div>
 </div>
 
+<!--Payment Model-->
+<?php include('includes/enrollment_payment.php'); ?>
+
 <?php require_once('../includes/footer.php');?>
 
 </body>
@@ -488,8 +524,26 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
         $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
         $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
+        $('#ACTUAL_AMOUNT').val(BILLED_AMOUNT);
         $('#payment_confirmation_form_div').slideDown();
-        window.scrollTo(0, document.body.scrollHeight);
+        $('#PK_PAYMENT_TYPE').val('');
+        $('.payment_type_div').slideUp();
+        $('#wallet_balance_div').slideUp();
+        $('#remaining_amount_div').slideUp();
+        $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+        $('#enrollment_payment_modal').modal('show');
+    }
+
+    $(document).on('click', '.credit-card', function () {
+        $('.credit-card').css("opacity", "1");
+        $(this).css("opacity", "0.6");
+    });
+
+    function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
+        let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
+        for (let i=0; i<RECEIPT_NUMBER_ARRAY.length; i++) {
+            window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
+        }
     }
 
     function selectPaymentType(param){

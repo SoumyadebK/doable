@@ -29,11 +29,7 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
     $PK_USER = '';
 }
 
-if (empty($_GET['master_id_customer'])) {
-    $PK_USER_MASTER = 0;
-} else {
-    $PK_USER_MASTER = $_GET['master_id_customer'];
-}
+$PK_USER_MASTER = $_SESSION['PK_USER_MASTER'];
 
 if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
     $header = 'customer.php?id='.$_GET['id_customer'].'&master_id='.$_GET['master_id_customer'].'&tab=appointment';

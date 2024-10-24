@@ -5,7 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="af953b44-8bc9-4bc5-84b1-1165dd7649ff" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/customer/includes/enrollment_payment.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/customer/includes/process_enrollment_payment.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/ajax/add_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/ajax/add_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/billing.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/billing.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/create_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/create_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/operations.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/includes/top_menu_bar.php" beforeDir="false" afterPath="$PROJECT_DIR$/includes/top_menu_bar.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,6 +97,7 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "roumya",
+    "last_opened_file_path": "C:/xampp/htdocs/doable/customer/includes",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -99,9 +108,9 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\xampp\htdocs\doable\customer\includes" />
       <recent name="C:\xampp\htdocs\doable\customer\ajax" />
       <recent name="C:\xampp\htdocs\doable\customer" />
-      <recent name="C:\xampp\htdocs\doable\customer\includes" />
       <recent name="C:\xampp\htdocs\doable\customer\pagination" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -119,7 +128,7 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="97d428f3-d769-4da9-a867-930a9d0ffa4c" name="Changes" comment="" />
+      <changelist id="af953b44-8bc9-4bc5-84b1-1165dd7649ff" name="Changes" comment="" />
       <created>1724046255962</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -144,6 +153,8 @@
       <workItem from="1728913972052" duration="1052000" />
       <workItem from="1728915183476" duration="599000" />
       <workItem from="1729311701847" duration="2347000" />
+      <workItem from="1729743323645" duration="2241000" />
+      <workItem from="1729775354607" duration="10823000" />
     </task>
     <servers />
   </component>
