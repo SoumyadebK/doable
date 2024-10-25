@@ -2,7 +2,8 @@
 require_once('../global/config.php');
 $title = "Billing";
 
-$user_master_data = $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$_SESSION['PK_USER']);
+$user_master_data = $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER_MASTER = ".$_SESSION['PK_USER_MASTER']);
+$PK_USER = $user_master_data->fields['PK_USER'];
 $PK_USER_MASTER_ARRAY = [];
 while (!$user_master_data->EOF){
     $PK_USER_MASTER_ARRAY[] = $user_master_data->fields['PK_USER_MASTER'];
@@ -145,149 +146,29 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
+                <div class="col-md-4 align-self-center">
+                    <ul class="nav nav-tabs" role="tablist" style="width: 61%">
+                            <li> <a class="nav-link active" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
+                            <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
+                    </ul>
+                </div>
             </div>
 
             <div class="row">
-                <div id="appointment_list_half" class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="p-20">
-                                <?php
-                                $i=$page_first_result+1;
-                                $row = $db->Execute("SELECT $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, $account_database.DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, $account_database.DOA_ENROLLMENT_MASTER.ACTIVE, $master_database.DOA_LOCATION.LOCATION_NAME FROM $account_database.`DOA_ENROLLMENT_MASTER` INNER JOIN $master_database.DOA_LOCATION ON $master_database.DOA_LOCATION.PK_LOCATION = $account_database.DOA_ENROLLMENT_MASTER.PK_LOCATION  WHERE $account_database.DOA_ENROLLMENT_MASTER.PK_USER_MASTER IN (".$PK_USER_MASTERS.")".$search." ORDER BY $account_database.DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
-                                while (!$row->EOF) {
-                                    $total_bill_and_paid = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BILL, SUM(PAID_AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_LEDGER WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-                                    $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                                    $serviceCode = [];
-                                    while (!$serviceCodeData->EOF) {
-                                        $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'];
-                                        $serviceCodeData->MoveNext();
-                                    }
-                                    ?>
-                                    <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
-                                        <div class="col-4" style="width: 30%"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']." || ".implode(', ', $serviceCode)?></div>
-                                        <div class="col-2" style="width: 15%"><?=$row->fields['LOCATION_NAME']?></div>
-                                        <div class="col-2" style="width: 20%">Total Billed : <?=$total_bill_and_paid->fields['TOTAL_BILL'];?></div>
-                                        <div class="col-2" style="width: 20%">Total Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-                                        <div class="col-2" style="width: 15%">Balance : <?=$total_bill_and_paid->fields['TOTAL_BILL']-$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-                                    </div>
-                                    <table id="myTable" class="table table-striped border" style="display: none">
-                                        <thead>
-                                        <tr>
-                                            <th>Due Date</th>
-                                            <th>Transaction Type</th>
-                                            <th>Billed Amount</th>
-                                            <th>Paid Amount</th>
-                                            <th>Balance</th>
-                                            <th>Payment Type</th>
-                                            <th>Description</th>
-                                            <th>Paid</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                        </thead>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="tab-content tabcontent-border">
+                            <!--Enrollment Model-->
+                            <div class="tab-pane active" id="enrollment" role="tabpanel">
+                                <div id="enrollment_list" class="p-20">
 
-                                        <tbody>
-                                        <?php
-                                        $billed_amount = 0;
-                                        $paid_amount = 0;
-                                        $balance = 0;
-                                        $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']." AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
-                                        while (!$billing_details->EOF) {
-                                            $billed_amount = $billing_details->fields['BILLED_AMOUNT'];
-                                            $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
-                                            ?>
-                                            <tr>
-                                                <td><?=date('m/d/Y', strtotime($billing_details->fields['DUE_DATE']))?></td>
-                                                <td><?=$billing_details->fields['TRANSACTION_TYPE']?></td>
-                                                <td><?=$billing_details->fields['BILLED_AMOUNT']?></td>
-                                                <td></td>
-                                                <td><?=number_format((float)$balance, 2, '.', '')?></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td><?=(($billing_details->fields['TRANSACTION_TYPE']=='Billing')?(($billing_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
-                                                <td>
-                                                    <?php if($billing_details->fields['IS_PAID']==0) { ?>
-                                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="payNow(<?=$billing_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>);">Pay Now</a>
-                                                    <?php } ?>
-                                                </td>
-                                            </tr>
-                                            <?php
-                                            $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_LEDGER = ".$billing_details->fields['PK_ENROLLMENT_LEDGER']);
-                                            if ($payment_details->RecordCount() > 0) {
-                                                while (!$payment_details->EOF) {
-                                                    $PK_ENROLLMENT_MASTER = $payment_details->fields['PK_ENROLLMENT_MASTER'];
-                                                    $PK_ENROLLMENT_LEDGER = $payment_details->fields['PK_ENROLLMENT_LEDGER'];
-                                                    if ($payment_details->fields['TYPE'] == 'Payment' && $payment_details->fields['IS_REFUNDED'] == 0) {
-                                                        $balance -= $payment_details->fields['AMOUNT'];
-                                                    }
-                                                    if ($payment_details->fields['TYPE'] == 'Move') {
-                                                        $payment_type = 'Wallet';
-                                                    } elseif ($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
-                                                        $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
-                                                        $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
-                                                    } elseif ($payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
-                                                        $receipt_number_array = explode(',', $payment_details->fields['RECEIPT_NUMBER']);
-                                                        $payment_type_array = [];
-                                                        foreach ($receipt_number_array as $receipt_number) {
-                                                            $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
-                                                            if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
-                                                                $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
-                                                                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
-                                                            } else {
-                                                                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
-                                                            }
-                                                        }
-                                                        $payment_type = implode(', ', $payment_type_array);
-                                                    } else {
-                                                        $payment_type = $payment_details->fields['PAYMENT_TYPE'];
-                                                    } ?>
-                                                    <tr style="color: <?=($payment_details->fields['IS_PAID'] == 2) ? 'green' : ''?>">
-                                                        <td><?=date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE']))?></td>
-                                                        <td><?=$payment_details->fields['TYPE']?></td>
-                                                        <td></td>
-                                                        <td style="text-align: right;"><?=$payment_details->fields['AMOUNT']?></td>
-                                                        <td></td>
-                                                        <td style="text-align: center;"><?=$payment_type?></td>
-                                                        <td style="text-align: center;"><?=$payment_details->fields['NOTE']?></td>
-                                                        <td><?=(($payment_details->fields['TYPE']=='Billing')?(($payment_details->fields['IS_PAID']==1)?'YES':'NO'):'')?></td>
-                                                        <td>
-                                                            <a onclick="openReceipt(<?=$PK_ENROLLMENT_MASTER?>, '<?=$payment_details->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
-                                                        </td>
-                                                    </tr>
-                                            <?php $payment_details->MoveNext();
-                                                }
-                                            }
-                                            $billing_details->MoveNext(); } ?>
-                                        </tbody>
-                                    </table>
-                                    <?php $row->MoveNext();
-                                    $i++; } ?>
-
-                                <div class="center">
-                                    <div class="pagination outer">
-                                        <ul>
-                                            <?php if ($page > 1) { ?>
-                                                <li><a href="billing.php?page=1">&laquo;</a></li>
-                                                <li><a href="billing.php?page=<?=($page-1)?>">&lsaquo;</a></li>
-                                            <?php }
-                                            for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
-                                                if ($page_count == $page || $page_count == ($page+1) || $page_count == ($page-1) || $page_count == $number_of_page) {
-                                                    echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="billing.php?page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
-                                                } elseif ($page_count == ($number_of_page-1)){
-                                                    echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
-                                                } else {
-                                                    echo '<li><a class="hidden" href="billing.php?page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
-                                                }
-                                            }
-                                            if ($page < $number_of_page) { ?>
-                                                <li><a href="billing.php?page=<?=($page+1)?>">&rsaquo;</a></li>
-                                                <li><a href="billing.php?page=<?=$number_of_page?>">&raquo;</a></li>
-                                            <?php } ?>
-                                        </ul>
-                                    </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
 
                         <div class="card" id="payment_confirmation_form_div" style="display: none;">
                             <div class="card-body">
@@ -519,6 +400,24 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     $('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
     });
+
+    let PK_USER = parseInt(<?=empty($PK_USER)?0:$PK_USER?>);
+    let PK_USER_MASTER = parseInt(<?=empty($_SESSION['PK_USER_MASTER'])?0:$_SESSION['PK_USER_MASTER']?>);
+
+    function showEnrollmentList(page, type) {
+        let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "pagination/enrollment.php",
+            type: "GET",
+            data: {search_text:'', page:page, type:type, pk_user:PK_USER, master_id:PK_USER_MASTER},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#enrollment_list').html(result);
+            }
+        });
+        window.scrollTo(0,0);
+    }
 
     function payNow(PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, BILLED_AMOUNT) {
         $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);

@@ -5,7 +5,7 @@ global $db_account;
 global $master_database;
 global $results_per_page;
 
-$PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
+$PK_USER_MASTER = !empty($_SESSION['PK_USER_MASTER']) ? $_SESSION['PK_USER_MASTER'] : 0;
 $PK_USER = !empty($_GET['pk_user']) ? $_GET['pk_user'] : 0;
 $type = !empty($_GET['type']) ? $_GET['type'] : 0;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
@@ -63,7 +63,7 @@ if ($_GET['type'] == 'normal') { ?>
     <div class="row" style="margin-bottom: -15px; margin-top: 10px;">
         <div class="col-12 d-flex justify-content-end">
             <?php
-            $all_row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+            $all_row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ACTIVE FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_SESSION[PK_USER_MASTER]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
             ?>
             <!--<input type="checkbox" id="toggleAll" onclick="toggleAllCheckboxes()"/>
             <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="payAll(<?php /*=$all_row->fields['PK_ENROLLMENT_MASTER']*/?>, '<?php /*=$all_row->fields['ENROLLMENT_ID']*/?>')">Pay All</a>-->
@@ -112,14 +112,14 @@ while (!$row->EOF) {
                 $paid_count = ($details->RecordCount() > 0) ? $details->RecordCount() : 0;
                 if ($paid_count == 0) { echo 'table-success'; }else{ echo "table-striped"; } ?> border">
                     <thead>
-                        <tr>
-                            <th></th>
-                            <th style="text-align: right;">Enrolled</th>
-                            <th style="text-align: right;">Used</th>
-                            <th style="text-align: right;">Balance</th>
-                            <th style="text-align: right;">Paid</th>
-                            <th style="text-align: right;">Service Credit</th>
-                        </tr>
+                    <tr>
+                        <th></th>
+                        <th style="text-align: right;">Enrolled</th>
+                        <th style="text-align: right;">Used</th>
+                        <th style="text-align: right;">Balance</th>
+                        <th style="text-align: right;">Paid</th>
+                        <th style="text-align: right;">Service Credit</th>
+                    </tr>
                     </thead>
 
                     <tbody>
@@ -160,7 +160,7 @@ while (!$row->EOF) {
                             <td style="text-align: right">$<?=number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'], 2)?></td>
                             <td style="text-align: right;"><?=($ENR_BALANCE > 0) ? number_format($ENR_BALANCE, 2) : 0?></td>
                         </tr>
-                    <?php $serviceCodeData->MoveNext();
+                        <?php $serviceCodeData->MoveNext();
                     } ?>
                     <tr>
                         <td>Amount</td>
@@ -174,23 +174,23 @@ while (!$row->EOF) {
                 </table>
             </div>
             <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
-            <?php if ($paid_count == 0) { ?>
+                <?php if ($paid_count == 0) { ?>
                     <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
-            <?php } elseif ($row->fields['STATUS'] == 'C') { ?>
+                <?php } elseif ($row->fields['STATUS'] == 'C') { ?>
                     <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
-            <?php } ?>
-            <?php
+                <?php } ?>
+                <?php
                 if($row->fields['STATUS'] === 'C' || $row->fields['STATUS'] === 'CA') { ?>
                     <p style="color: red; margin-top: 25%;">Cancelled</p>
-            <?php } ?>
-            <?php
+                <?php } ?>
+                <?php
                 if($row->fields['STATUS'] === 'CA') {
                     if ($total_paid_amount-$total_used_amount > 0) { ?>
                         <p style="color: green; margin-top: 20%;">Refund Credit Available</p>
                     <?php } elseif ($total_paid_amount-$total_used_amount < 0) { ?>
                         <p style="color: red; margin-top: 20%;">Balance Owed</p>
                     <?php } ?>
-            <?php } ?>
+                <?php } ?>
             </div>
         </div>
 
@@ -199,8 +199,8 @@ while (!$row->EOF) {
         </div>
     </div>
     <?php
-        $row->MoveNext();
-    } ?>
+    $row->MoveNext();
+} ?>
 
 <script>
     function showEnrollmentDetails(param, PK_USER, PK_USER_MASTER, PK_ENROLLMENT_MASTER, ENROLLMENT_ID, type, details) {
