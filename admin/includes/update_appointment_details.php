@@ -96,7 +96,7 @@ if ($APPOINTMENT_TYPE == 'GROUP') {
         db_perform_account('DOA_APPOINTMENT_STATUS_HISTORY', $APPOINTMENT_STATUS_HISTORY_DATA, 'insert');
     }
 
-    updateSessionCreatedAndCompletedCount($PK_APPOINTMENT_MASTER);
+    adjustEnrollmentAppointment($PK_APPOINTMENT_MASTER);
 }
 
 header('Location: '.$_POST['REDIRECT_URL']);

@@ -257,7 +257,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     }
 
     $enrollment_service_data = $db_account->Execute("SELECT `NUMBER_OF_SESSION` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
-    $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
+    $SESSION_CREATED = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
     $SESSION_LEFT = $enrollment_service_data->fields['NUMBER_OF_SESSION'] - $SESSION_CREATED;
 
     $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;

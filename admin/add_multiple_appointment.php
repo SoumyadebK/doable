@@ -70,7 +70,7 @@ if (isset($_POST['FUNCTION_NAME'])){
             }
         }
 
-        $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
+        $SESSION_CREATED = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
         $SESSION_LEFT = $NUMBER_OF_SESSION - $SESSION_CREATED;
 
         if (count($APPOINTMENT_DATE_ARRAY) > 0) {
