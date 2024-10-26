@@ -899,7 +899,7 @@ if(!empty($_POST))
                     $SESSION_COUNT = ($enrollment_data->RecordCount() > 0) ? $enrollment_data->fields['NUMBER_OF_SESSION'] : 0;
 
                     if ($PK_ENROLLMENT_MASTER_CHECK > 0 && $PK_ENROLLMENT_SERVICE_CHECK > 0) {
-                        $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE_CHECK, 'NORMAL');
+                        $SESSION_CREATED = getSessionCreatedCountForUpload($PK_ENROLLMENT_SERVICE_CHECK, 'NORMAL');
                         if (($SESSION_CREATED > 0) && ($SESSION_CREATED >= $SESSION_COUNT)) {
                             $db_account->Execute("UPDATE `DOA_ENROLLMENT_MASTER` SET `ALL_APPOINTMENT_DONE` = '1' WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER_CHECK'");
                             $new_enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_MASTER.PK_LOCATION = '$PK_LOCATION' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ORDER BY DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE ASC LIMIT 1");
@@ -952,7 +952,13 @@ if(!empty($_POST))
                     }
                     $APPOINTMENT_MASTER_DATA['INTERNAL_COMMENT'] = $allPrivateAppointments->fields['appts_comment'];
                     $APPOINTMENT_MASTER_DATA['GROUP_NAME'] = null;
-                    $APPOINTMENT_MASTER_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+
+                    if ($PK_ENROLLMENT_MASTER == 0 || $PK_ENROLLMENT_SERVICE == 0) {
+                        $APPOINTMENT_MASTER_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
+                    } else {
+                        $APPOINTMENT_MASTER_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+                    }
+
                     $APPOINTMENT_MASTER_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($PK_USER_MASTER);
                     $APPOINTMENT_MASTER_DATA['ACTIVE'] = 1;
                     if ($allPrivateAppointments->fields['payment_status'] == "V") {

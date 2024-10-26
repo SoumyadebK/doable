@@ -93,26 +93,9 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         ".$APPOINTMENT_DATE_CONDITION."
                         ".$APPOINTMENT_TYPE_QUERY." 
                         AND DOA_APPOINTMENT_MASTER.STATUS = 'A' ".$APPOINTMENT_SERVICE_PROVIDER_ID."
+                        AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = '$_SESSION[PK_USER_MASTER]'
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
                         ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC";
-
-$SPECIAL_APPOINTMENT_QUERY = "SELECT
-                                    DOA_SPECIAL_APPOINTMENT.*,
-                                    DOA_APPOINTMENT_STATUS.STATUS_CODE,
-                                    DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
-                                    DOA_SCHEDULING_CODE.COLOR_CODE,
-                                    DOA_SCHEDULING_CODE.DURATION,
-                                    GROUP_CONCAT(SERVICE_PROVIDER.PK_USER SEPARATOR ',') AS SERVICE_PROVIDER_ID
-                                FROM
-                                    `DOA_SPECIAL_APPOINTMENT`
-                                LEFT JOIN DOA_SPECIAL_APPOINTMENT_USER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT
-                                LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_SPECIAL_APPOINTMENT_USER.PK_USER = SERVICE_PROVIDER.PK_USER
-                                LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS
-                                LEFT JOIN DOA_SCHEDULING_CODE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE
-                                WHERE DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
-                                AND DOA_SPECIAL_APPOINTMENT.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
-                                ".$SPL_APPOINTMENT_DATE_CONDITION."
-                                GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT";
 
 $EVENT_QUERY = "SELECT DISTINCT
                     DOA_EVENT.*,
@@ -178,28 +161,6 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             'duration' => $appointment_data->fields['DURATION'],
         ];
         $appointment_data->MoveNext();
-    }
-}
-
-if ($appointment_type == 'TO-DO' || $appointment_type == '') {
-    $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
-    while (!$special_appointment_data->EOF) {
-        $appointment_array[] = [
-            'id' => $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'],
-            'resourceIds' => explode(',', $special_appointment_data->fields['SERVICE_PROVIDER_ID']),
-            'title' => $special_appointment_data->fields['TITLE'],
-            'start' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['START_TIME'])),
-            'end' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['END_TIME'])),
-            'color' => $special_appointment_data->fields['COLOR_CODE'],
-            'type' => 'special_appointment',
-            /*'status' => $special_appointment_data->fields['STATUS_CODE'],
-            'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
-            'comment' => '',
-            'internal_comment' => '',
-            'statusCode' => '',
-            'duration' => $special_appointment_data->fields['DURATION'],
-        ];
-        $special_appointment_data->MoveNext();
     }
 }
 

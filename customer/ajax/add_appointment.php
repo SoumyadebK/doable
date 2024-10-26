@@ -3,10 +3,10 @@ require_once('../../global/config.php');
 global $db;
 global $db_account;
 
-if (empty($_SESSION['PK_USER_MASTER'])) {
+if (empty($_GET['PK_USER_MASTER'])) {
     $PK_USER_MASTER = 0;
 } else {
-    $PK_USER_MASTER = $_SESSION['PK_USER_MASTER'];
+    $PK_USER_MASTER = $_GET['PK_USER_MASTER'];
 }
 
 if (empty($_GET['PK_USER'])) {
