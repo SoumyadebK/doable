@@ -19,6 +19,7 @@
                     <input type="hidden" name="BILLING_REF" id="PAYMENT_BILLING_REF">
                     <input type="hidden" name="BILLING_DATE" id="PAYMENT_BILLING_DATE">
                     <input type="hidden" name="header" value="<?=$header?>">
+                    <input type="hidden" name="enr_type" id="enr_type" value="enrollment">
 
                     <div class="p-20">
                         <div class="row">
@@ -352,6 +353,7 @@
 
     // Submit the form with the token ID.
     function stripeTokenHandler(token) {
+        let type = $('#enr_type').val();
         // Insert the token ID into the form, so it gets submitted to the server
         let form = document.getElementById(type+'_payment_form');
         let hiddenInput = document.createElement('input');
