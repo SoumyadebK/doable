@@ -5,7 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="af953b44-8bc9-4bc5-84b1-1165dd7649ff" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/customer/includes/enrollment_payment.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/includes/enrollment_payment.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/customer/generate_receipt_pdf.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/ajax/AjaxFunctions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/billing.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/billing.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/pagination/get_enrollment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/pagination/get_enrollment_details.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,8 +92,8 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/xampp/htdocs/doable/customer/pagination",
+    "git-widget-placeholder": "roumya",
+    "last_opened_file_path": "C:/xampp/htdocs/doable/customer",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -100,10 +104,10 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\xampp\htdocs\doable\customer" />
       <recent name="C:\xampp\htdocs\doable\customer\pagination" />
       <recent name="C:\xampp\htdocs\doable\customer\includes" />
       <recent name="C:\xampp\htdocs\doable\customer\ajax" />
-      <recent name="C:\xampp\htdocs\doable\customer" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\xampp\htdocs\doable\customer\pagination" />
@@ -150,7 +154,7 @@
       <workItem from="1729844309586" duration="601000" />
       <workItem from="1729862628469" duration="4789000" />
       <workItem from="1729933745836" duration="5174000" />
-      <workItem from="1730125437041" duration="8372000" />
+      <workItem from="1730125437041" duration="13315000" />
     </task>
     <servers />
   </component>
