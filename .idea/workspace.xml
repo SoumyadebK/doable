@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="af953b44-8bc9-4bc5-84b1-1165dd7649ff" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/includes/add_money_to_wallet.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/add_money_to_wallet.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/includes/enrollment_payment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/enrollment_payment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/service_provider/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/all_schedules.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/service_provider/pagination/get_calendar_data.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/service_provider/pagination/get_resource_data.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -92,7 +90,7 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/xampp/htdocs/doable/customer/pagination",
+    "last_opened_file_path": "/Applications/XAMPP/xamppfiles/htdocs/doable/service_provider/pagination",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -103,6 +101,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/service_provider/pagination" />
       <recent name="C:\xampp\htdocs\doable\customer\pagination" />
       <recent name="C:\xampp\htdocs\doable\customer\includes" />
       <recent name="C:\xampp\htdocs\doable\customer\ajax" />
