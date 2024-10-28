@@ -908,7 +908,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             success: function (result) {
                 let appointment_data = JSON.parse(result);
                 for(let i=0; i<appointment_data.length; i++) {
-                    $('th[data-resource-id="'+appointment_data[i].SERVICE_PROVIDER_ID+'"]').text(appointment_data[i].SERVICE_PROVIDER_NAME+' - '+appointment_data[i].APPOINTMENT_COUNT);
+                    $('th[data-resource-id="'+appointment_data[i].SERVICE_PROVIDER_ID+'"]').text(appointment_data[i].SERVICE_PROVIDER_NAME);
                 }
             }
         });
