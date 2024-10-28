@@ -27,7 +27,7 @@ while (!$row->EOF) {
 
     $PRICE_PER_SESSION = $row->fields['PRICE_PER_SESSION'];
     $TOTAL_AMOUNT_PAID = ($row->fields['TOTAL_AMOUNT_PAID'] != null) ? $row->fields['TOTAL_AMOUNT_PAID'] : 0;
-    $USED_SESSION_COUNT = getSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE'], 'NORMAL');
+    $USED_SESSION_COUNT = getAllSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE'], 'NORMAL');
     $paid_session = ($PRICE_PER_SESSION > 0) ? number_format(($TOTAL_AMOUNT_PAID/$PRICE_PER_SESSION), 2) : $row->fields['NUMBER_OF_SESSION'];
 
     if (($row->fields['NUMBER_OF_SESSION'] - $USED_SESSION_COUNT) > 0) { ?>

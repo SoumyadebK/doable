@@ -257,7 +257,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     }
 
     $enrollment_service_data = $db_account->Execute("SELECT `NUMBER_OF_SESSION` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
-    $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
+    $SESSION_CREATED = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
     $SESSION_LEFT = $enrollment_service_data->fields['NUMBER_OF_SESSION'] - $SESSION_CREATED;
 
     $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
@@ -300,7 +300,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
             db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
         }
-        updateSessionCreatedCount($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
+        //updateSessionCreatedCount($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
     }
     markAppointmentPaid($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
 
@@ -463,13 +463,13 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
                 url = "ajax/add_special_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>";
             }
             if (type === 'appointment') {
-                url = "ajax/add_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER="+PK_USER_MASTER+"";
+                url = "ajax/add_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>";
             }
             if (type === 'ad_hoc') {
-                url = "ajax/add_ad_hoc_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER="+PK_USER_MASTER+"&id="+PK_APPOINTMENT_MASTER;
+                url = "ajax/add_ad_hoc_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>&id="+PK_APPOINTMENT_MASTER;
             }
             if (type === 'standing') {
-                url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER="+PK_USER_MASTER+"&source=<?=$source?>&id_customer=<?=$id_customer?>";
+                url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>&source=<?=$source?>&id_customer=<?=$id_customer?>";
             }
             $.ajax({
                 url: url,
