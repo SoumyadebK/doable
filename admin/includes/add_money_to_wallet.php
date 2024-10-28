@@ -12,7 +12,6 @@
                     <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
                     <input type="hidden" name="PK_USER_MASTER" class="CUSTOMER_ID" id="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
                     <input type="hidden" name="header" value="<?=$header?>">
-                    <input type="hidden" id="enr_type" value="wallet">
 
                     <div class="p-20">
                         <div class="row">

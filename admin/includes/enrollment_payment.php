@@ -19,7 +19,6 @@
                     <input type="hidden" name="BILLING_REF" id="PAYMENT_BILLING_REF">
                     <input type="hidden" name="BILLING_DATE" id="PAYMENT_BILLING_DATE">
                     <input type="hidden" name="header" value="<?=$header?>">
-                    <input type="hidden" name="enr_type" id="enr_type" value="enrollment">
 
                     <div class="p-20">
                         <div class="row">
@@ -317,8 +316,10 @@
 
     // Create an instance of the card Element.
     var card = elements.create('card', {style: style});
+    var pay_type = '';
 
     function stripePaymentFunction(type) {
+        pay_type = type;
         // Add an instance of the card Element into the `card-element` <div>.
         if (($('#card-element')).length > 0) {
             card.mount('#card-element');
@@ -353,9 +354,8 @@
 
     // Submit the form with the token ID.
     function stripeTokenHandler(token) {
-        let type = $('#enr_type').val();
         // Insert the token ID into the form, so it gets submitted to the server
-        let form = document.getElementById(type+'_payment_form');
+        let form = document.getElementById(pay_type+'_payment_form');
         let hiddenInput = document.createElement('input');
         hiddenInput.setAttribute('type', 'hidden');
         hiddenInput.setAttribute('name', 'token');
@@ -459,7 +459,7 @@
             case 'Credit Card':
                 if (PAYMENT_GATEWAY == 'Stripe') {
                     $('#card_div').html(`<div id="card-element"></div>`);
-                    stripePaymentFunction();
+                    stripePaymentFunction('enrollment');
                 }
                 $('#partial_credit_card_payment').slideDown();
                 break;
