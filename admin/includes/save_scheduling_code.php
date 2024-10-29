@@ -7,6 +7,7 @@ global $db_account;
 $SCHEDULING_DATA['SCHEDULING_CODE'] = $_POST['code'];
 $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['name'];
 $SCHEDULING_DATA['TO_DOS'] = ($_POST['todos'] == "true") ? 1 : 0;
+$SCHEDULING_DATA['ACTIVE'] = ($_POST['active'] == "true") ? 1 : 0;
 $SCHEDULING_DATA['COLOR_CODE'] = $_POST['color'];
 $SCHEDULING_DATA['DURATION'] = $_POST['duration'];
 $SCHEDULING_DATA['UNIT'] = $_POST['unit'];
