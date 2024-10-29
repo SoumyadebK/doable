@@ -469,11 +469,7 @@ $page_first_result = ($page-1) * $results_per_page;
     });
 
     function showMessage() {
-        if(<?=count($LOCATION_ARRAY)?> === 1) {
-            window.location.href = 'create_appointment.php';
-        } else {
-            swal("Select One Location!", "Only one location can be selected on top of the page in order to schedule an appointment.", "error");
-        }
+        window.location.href = 'create_appointment.php';
     }
 </script>
 <script>
