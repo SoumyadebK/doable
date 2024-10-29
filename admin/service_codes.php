@@ -297,7 +297,7 @@ if(empty($_GET['id'])){
                                                             </div>
                                                         </div>
 
-                                                        <div class="row service_class_type" id="schedule_div" style="display: <?=($PK_SERVICE_CLASS == 2) ? '' : 'none'?>">
+                                                        <!--<div class="row service_class_type" id="schedule_div" style="display: <?php /*=($PK_SERVICE_CLASS == 2) ? '' : 'none'*/?>">
                                                             <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label>Schedule</label>
@@ -305,11 +305,11 @@ if(empty($_GET['id'])){
                                                             </div>
                                                             <div class="col-3">
                                                                 <div class="form-group">
-                                                                    <label><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="1" <?=($IS_SCHEDULE == 1)?'checked':''?>/>&nbsp;Yes</label>
-                                                                    <label class="m-l-40"><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="0" <?=($IS_SCHEDULE == 0)?'checked':''?>/>&nbsp;No</label>
+                                                                    <label><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="1" <?php /*=($IS_SCHEDULE == 1)?'checked':''*/?>/>&nbsp;Yes</label>
+                                                                    <label class="m-l-40"><input type="radio" class="IS_SCHEDULE" name="IS_SCHEDULE" value="0" <?php /*=($IS_SCHEDULE == 0)?'checked':''*/?>/>&nbsp;No</label>
                                                                 </div>
                                                             </div>
-                                                        </div>
+                                                        </div>-->
                                                         <div class="row">
                                                             <div class="col-3">
                                                                 <div class="form-group">
@@ -623,9 +623,9 @@ if(empty($_GET['id'])){
         let PK_SERVICE_CLASS = parseInt($(param).val());
         $('.service_class_type').slideUp();
 
-        if (PK_SERVICE_CLASS === 2){
+        /*if (PK_SERVICE_CLASS === 2){
             $('#schedule_div').slideDown();
-        }
+        }*/
 
         if (PK_SERVICE_CLASS === 5){
             $('#misc_type_div').slideDown();
