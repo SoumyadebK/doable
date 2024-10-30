@@ -5,10 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="af953b44-8bc9-4bc5-84b1-1165dd7649ff" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/admin/ajax/add_demo_appointment.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/admin/pagination/demo_appointment.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_scheduling_codes.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_scheduling_codes.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/includes/save_scheduling_code.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/save_scheduling_code.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/create_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/create_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/customer.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/customer.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/pagination/get_calendar_data.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/get_calendar_data.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/database_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/database_uploader.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/upload_functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/upload_functions.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -116,8 +121,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-PS-241.14494.237" />
-        <option value="bundled-php-predefined-ba97393d7c68-8f0632a2a215-com.jetbrains.php.sharedIndexes-PS-241.14494.237" />
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-PS-242.23726.107" />
+        <option value="bundled-php-predefined-a98d8de5180a-90914f2295cb-com.jetbrains.php.sharedIndexes-PS-242.23726.107" />
       </set>
     </attachedChunks>
   </component>
@@ -155,6 +160,7 @@
       <workItem from="1729862628469" duration="4789000" />
       <workItem from="1729933745836" duration="5174000" />
       <workItem from="1730125437041" duration="8372000" />
+      <workItem from="1730305412763" duration="9277000" />
     </task>
     <servers />
   </component>

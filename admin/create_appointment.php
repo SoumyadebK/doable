@@ -377,6 +377,74 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
     header("location:".$header);
+} elseif ($FUNCTION_NAME == 'saveDemoAppointmentData') {
+    unset($_POST['TIME']);
+    unset($_POST['FUNCTION_NAME']);
+    if (empty($_POST['START_TIME']) || empty($_POST['END_TIME'])){
+        unset($_POST['START_TIME']);
+        unset($_POST['END_TIME']);
+    }
+
+    $PK_SERVICE_MASTER = $_POST['PK_SERVICE_MASTER'];
+    $PK_SERVICE_CODE = $_POST['PK_SERVICE_CODE'];
+
+    $SCHEDULING_CODE = explode(',', $_POST['SCHEDULING_CODE']);
+    $PK_SCHEDULING_CODE = $SCHEDULING_CODE[0];
+    $DURATION = $SCHEDULING_CODE[1];
+
+    /*$default_service_code = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `IS_DEFAULT` = 1 LIMIT 1");*/
+
+    $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
+    $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
+
+    /*$user_location = $db->Execute("SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = ".$_POST['CUSTOMER_ID'][0]);
+    if ($user_location->RecordCount() > 0) {
+        $PK_LOCATION = $user_location->fields['PRIMARY_LOCATION_ID'];
+    } else {
+        $PK_LOCATION = 0;
+    }*/
+
+    $PK_LOCATION = $_POST['PK_LOCATION'];
+
+    $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+    $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
+    $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+    $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+    $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
+    $APPOINTMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
+    $APPOINTMENT_DATA['DATE'] = $_POST['DATE'];
+    $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+    $APPOINTMENT_DATA['ACTIVE'] = 1;
+    $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'DEMO';
+    $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+    $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+
+    for ($i=0; $i<count($START_TIME_ARRAY); $i++) {
+        $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
+        $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
+        $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
+        db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+        $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
+
+
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+        for ($j = 0; $j < count($_POST['SERVICE_PROVIDER_ID']); $j++) {
+            $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $APPOINTMENT_SP_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID'][$j];
+            db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+        }
+
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+        for ($k = 0; $k < count($_POST['CUSTOMER_ID']); $k++) {
+            $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
+        }
+    }
+
+    //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
+
+    header("location:".$header);
 }
 
 ?>
@@ -424,6 +492,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
                             <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('appointment', this);"><i class="fa fa-plus-circle"></i> Appointment</button>
                             <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('ad_hoc', this);"><i class="fa fa-plus-circle"></i> Ad-hoc</button>
                             <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('standing', this);"><i class="fa fa-plus-circle"></i> Standing</button>
+                            <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('demo', this);"><i class="fa fa-plus-circle"></i> For Record Only</button>
                         <?php } ?>
                     </div>
                 </div>
@@ -470,6 +539,9 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             }
             if (type === 'standing') {
                 url = "ajax/add_multiple_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>&source=<?=$source?>&id_customer=<?=$id_customer?>";
+            }
+            if (type === 'demo') {
+                url = "ajax/add_demo_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER=<?=$PK_USER_MASTER?>";
             }
             $.ajax({
                 url: url,
