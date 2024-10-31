@@ -145,6 +145,9 @@ if(!empty($_POST)){
         $SETTINGS_DATA['LOGIN_ID'] = $_POST['LOGIN_ID'];
         $SETTINGS_DATA['APPOINTMENT_REMINDER'] = $_POST['APPOINTMENT_REMINDER'];
         $SETTINGS_DATA['HOUR'] = empty($_POST['HOUR']) ? 0 : $_POST['HOUR'];
+        $SETTINGS_DATA['AM_USER_NAME'] = $_POST['AM_USER_NAME'];
+        $SETTINGS_DATA['AM_PASSWORD'] = $_POST['AM_PASSWORD'];
+        $SETTINGS_DATA['AM_REFRESH_TOKEN'] = $_POST['AM_REFRESH_TOKEN'];
         $SETTINGS_DATA['ACTIVE'] = 1;
         $SETTINGS_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $SETTINGS_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -156,6 +159,21 @@ if(!empty($_POST)){
             $SETTINGS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $SETTINGS_DATA['EDITED_ON'] = date("Y-m-d H:i");
             db_perform('DOA_ACCOUNT_MASTER', $SETTINGS_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
+        }
+
+        $EMAIL_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $EMAIL_ACCOUNT_DATA['HOST'] = $_POST['SMTP_HOST'];
+        $EMAIL_ACCOUNT_DATA['PORT'] = $_POST['SMTP_PORT'];
+        $EMAIL_ACCOUNT_DATA['USER_NAME'] = $_POST['SMTP_USERNAME'];
+        $EMAIL_ACCOUNT_DATA['PASSWORD'] = $_POST['SMTP_PASSWORD'];
+
+        $email_data = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        if ($email_data->RecordCount() == 0) {
+            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'insert');
+        } else {
+            $EMAIL_ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+            $EMAIL_ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
+            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
         }
     }
     header("location:settings.php");
