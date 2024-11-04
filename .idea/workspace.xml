@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="ae48719a-9984-4ae4-b861-97d9b5644ae8" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/admin/ajax/add_demo_appointment.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/admin/pagination/demo_appointment.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/customer/generate_receipt_pdf.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/customer/includes/enrollment_payment.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/customer/includes/process_enrollment_payment.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/service_provider/pagination/get_calendar_data.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/service_provider/pagination/get_resource_data.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/uploads/enrollment_pdf/enrollment_pdf_1730136048.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/add_multiple_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/add_multiple_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/add_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/add_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/get_enrollments.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_enrollments.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_scheduling_codes.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_scheduling_codes.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_service_codes.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_service_codes.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/create_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/create_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/customer.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/customer.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/includes/edit_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/edit_appointment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/includes/enrollment_payment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/enrollment_payment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/includes/save_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/update_appointment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/includes/save_scheduling_code.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/save_scheduling_code.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/pagination/get_calendar_data.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/get_calendar_data.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/service_codes.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/service_codes.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/appointment_reminder_cron.php" beforeDir="false" afterPath="$PROJECT_DIR$/appointment_reminder_cron.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/ajax/AjaxFunctions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/ajax/add_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/ajax/add_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/ajax/get_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/ajax/get_appointment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/appointment_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/appointment_list.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/billing.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/billing.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/create_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/create_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/operations.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/pagination/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/pagination/enrollment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/pagination/get_enrollment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/pagination/get_enrollment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/helper_function.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/helper_function.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/includes/top_menu_bar.php" beforeDir="false" afterPath="$PROJECT_DIR$/includes/top_menu_bar.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service_provider/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/database_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/database_uploader.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/upload_functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/upload_functions.php" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
+    <pharConfigPath>$PROJECT_DIR$/global/composer.json</pharConfigPath>
+    <execution />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="C:\xampp\php\php.exe">
+    <include_path>
+      <path value="$PROJECT_DIR$/global/vendor/composer" />
+      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
+      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
+      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
+      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
+      <path value="$PROJECT_DIR$/global/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/global/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
+      <path value="$PROJECT_DIR$/global/vendor/psr/log" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/unirest-php" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/core" />
+      <path value="$PROJECT_DIR$/global/vendor/square/square" />
+    </include_path>
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 1
+}]]></component>
+  <component name="ProjectId" id="2oOXs0lwGCJzBRqLTeJa9QKAWeN" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "Merging soumyadeb",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-1d06a55b98c1-91d5c284f522-JavaScript-PS-241.15989.102" />
+        <option value="bundled-php-predefined-ba97393d7c68-c76157a7178b-com.jetbrains.php.sharedIndexes-PS-241.15989.102" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ae48719a-9984-4ae4-b861-97d9b5644ae8" name="Changes" comment="" />
+      <created>1730741806985</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1730741806985</updated>
+      <workItem from="1730741810193" duration="416000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

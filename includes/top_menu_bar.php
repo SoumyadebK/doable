@@ -200,12 +200,6 @@ if (!empty($_GET['view'])) {
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/operations.php" aria-expanded="false">
-                                <i class="ti-layers-alt"></i>
-                                <span class="hide-menu"><?=$operation_tab_title?></span>
-                            </a>
-                        </li>
-                        <li>
                             <a class="waves-effect waves-dark" href="../customer/all_gift_certificates.php" aria-expanded="false">
                                 <i class="icons-Gift-Box"></i>
                                 <span class="hide-menu">Gift Cards</span>

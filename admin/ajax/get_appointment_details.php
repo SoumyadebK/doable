@@ -17,6 +17,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_MASTER.PK_SERVICE_MASTER,
+                            DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.SERVICE_CODE,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
@@ -51,6 +52,7 @@ $CUSTOMER_ID = $res->fields['CUSTOMER_ID'];
 $PK_ENROLLMENT_MASTER = $res->fields['PK_ENROLLMENT_MASTER'];
 $SERIAL_NUMBER = $res->fields['SERIAL_NUMBER'];
 $PK_SERVICE_MASTER = $res->fields['PK_SERVICE_MASTER'];
+$SERVICE_NAME = $res->fields['SERVICE_NAME'];
 $PK_SERVICE_CODE = $res->fields['PK_SERVICE_CODE'];
 $PK_SCHEDULING_CODE = $res->fields['PK_SCHEDULING_CODE'];
 $SERVICE_PROVIDER_ID = $res->fields['SERVICE_PROVIDER_ID'];
@@ -342,7 +344,7 @@ z-index: 500;
 <!-- Tab panes -->
 <div class="tab-content tabcontent-border">
     <div class="tab-pane active" id="edit_appointment" role="tabpanel">
-        <form class="form-material form-horizontal" id="appointment_form" action="includes/save_appointment_details.php" method="post" enctype="multipart/form-data">
+        <form class="form-material form-horizontal" id="appointment_form" action="includes/update_appointment_details.php" method="post" enctype="multipart/form-data">
 <!--            <input type="hidden" name="FUNCTION_NAME" value="saveAppointmentData">-->
             <input type="hidden" name="REDIRECT_URL" value="../all_schedules.php?date=<?=$DATE?>">
             <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=$PK_APPOINTMENT_MASTER?>">
@@ -368,21 +370,24 @@ z-index: 500;
                             </div>
                         </div>
 
-                        <div class="col-4">
-                            <div class="form-group">
-                                <label class="form-label">Enrollment ID : </label>
-                                <select class="form-control" required name="PK_SERVICE_MASTER" id="PK_SERVICE_MASTER" style="display: none;" onchange="selectThisEnrollment(this);" disabled>
-                                    <option value="">Select Enrollment ID</option>
-                                    <?php
-                                    $selected_enrollment = '';
-                                    $row = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER, ENROLLMENT_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
-                                    while (!$row->EOF) { if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
-                                        <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'];?>" <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$row->fields['ENROLLMENT_ID']?></option>
-                                        <?php $row->MoveNext(); } ?>
-                                </select>
-                                <p><?=$selected_enrollment?></p>
+                        <?php if ($SERVICE_NAME != 'For records only') { ?>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label class="form-label">Enrollment ID : </label>
+                                    <select class="form-control" required name="PK_SERVICE_MASTER" id="PK_SERVICE_MASTER" style="display: none;" onchange="selectThisEnrollment(this);" disabled>
+                                        <option value="">Select Enrollment ID</option>
+                                        <?php
+                                        $selected_enrollment = '';
+                                        $row = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER, ENROLLMENT_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+                                        while (!$row->EOF) { if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
+                                            <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'];?>" <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$row->fields['ENROLLMENT_ID']?></option>
+                                            <?php $row->MoveNext(); } ?>
+                                    </select>
+                                    <p><?=$selected_enrollment?></p>
+                                </div>
                             </div>
-                        </div>
+                        <?php } ?>
+
                         <div class="col-4">
                             <div class="form-group">
                                 <label class="form-label">Apt #: </label>
@@ -534,16 +539,19 @@ z-index: 500;
                             <p id="appointment_status"><?=$selected_status?></p>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <input type="hidden" name="IS_CHARGED_OLD" value="<?=$IS_CHARGED?>">
-                        <div class="form-group">
-                            <label class="form-label">Payment Status</label>
-                            <select class="form-control" name="IS_CHARGED" id="IS_CHARGED">
-                                <option value="1" <?=($IS_CHARGED==1)?'selected':''?>>Charge</option>
-                                <option value="0" <?=($IS_CHARGED==0)?'selected':''?>>No charge</option>
-                            </select>
+
+                    <?php if ($SERVICE_NAME != 'For records only') { ?>
+                        <div class="col-6">
+                            <input type="hidden" name="IS_CHARGED_OLD" value="<?=$IS_CHARGED?>">
+                            <div class="form-group">
+                                <label class="form-label">Payment Status</label>
+                                <select class="form-control" name="IS_CHARGED" id="IS_CHARGED">
+                                    <option value="1" <?=($IS_CHARGED==1)?'selected':''?>>Charge</option>
+                                    <option value="0" <?=($IS_CHARGED==0)?'selected':''?>>No charge</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
+                    <?php } ?>
                 </div>
 
                 <div class="row" id="no_show_div" style="display: <?=($PK_APPOINTMENT_STATUS==4)?'':'none'?>;">

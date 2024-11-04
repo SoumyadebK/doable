@@ -84,6 +84,7 @@ if ($header_data->RecordCount() > 0) {
                                         <th>Sort Order</th>
                                         <th>To-Dos</th>
                                         <th>Action</th>
+                                        <th></th>
                                     </tr>
                                     </thead>
 
@@ -106,15 +107,17 @@ if ($header_data->RecordCount() > 0) {
                                                     <input type="checkbox" class="active-checkbox" disabled>
                                                 <?php } ?>
                                             </td>
-                                            <td>
-                                                <!--<a href="add_scheduling_codes.php?id=<?php /*=$row->fields['PK_SCHEDULING_CODE']*/?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
-                                                <button class="editBtn btn btn-info waves-effect waves-light m-r-10 text-white myBtn">Edit</button>
-                                                <button class="saveBtn btn btn-info waves-effect waves-light m-r-10 text-white myBtn" style="display: none">Save</button>
+                                            <td class="is_active" data-value="<?=$row->fields['ACTIVE']?>">
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
                                                     <span class="active-box-red"></span>
                                                 <?php } ?>
+                                                <!--<a href="add_scheduling_codes.php?id=<?php /*=$row->fields['PK_SCHEDULING_CODE']*/?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
+                                            </td>
+                                            <td>
+                                                <button class="editBtn btn btn-info waves-effect waves-light m-r-10 text-white myBtn">Edit</button>
+                                                <button class="saveBtn btn btn-info waves-effect waves-light m-r-10 text-white myBtn" style="display: none">Save</button>
                                             </td>
                                         </tr>
                                         <?php $row->MoveNext();
@@ -205,6 +208,7 @@ if ($header_data->RecordCount() > 0) {
             const colorCell = row.querySelector('.color');
             const orderCell = row.querySelector('.order');
             const todosCell = row.querySelector('.todos');
+            const activeCell = row.querySelector('.is_active');
 
             // Replace the cell content with input fields containing the current text
             codeCell.innerHTML = `<input type="text" value="${codeCell.textContent}" class="edit-code">`;
@@ -214,6 +218,7 @@ if ($header_data->RecordCount() > 0) {
             colorCell.innerHTML = `<input type="color" value="${colorCell.getAttribute('data-value')}" class="edit-color">`;
             orderCell.innerHTML = `<input type="text" value="${orderCell.textContent}" class="edit-order">`;
             todosCell.innerHTML = `<input type="checkbox" class="edit-todos" ${(todosCell.getAttribute('data-value') == 1) ? 'checked' : ''}>`;
+            activeCell.innerHTML = `<input type="checkbox" class="edit-active" ${(activeCell.getAttribute('data-value') == 1) ? 'checked' : ''}>`;
 
             // Show the save button and hide the edit button
             editButton.style.display = 'none';
@@ -234,6 +239,7 @@ if ($header_data->RecordCount() > 0) {
             const colorCell = row.querySelector('.color');
             const orderCell = row.querySelector('.order');
             const todosCell = row.querySelector('.todos');
+            const activeCell = row.querySelector('.is_active');
 
             const editCode = row.querySelector('.edit-code');
             const editName = row.querySelector('.edit-name');
@@ -242,6 +248,7 @@ if ($header_data->RecordCount() > 0) {
             const editColour = row.querySelector('.edit-color');
             const editOrder = row.querySelector('.edit-order');
             const editTodos = row.querySelector('.edit-todos');
+            const editActive = row.querySelector('.edit-active');
 
             // Get the updated values from the input fields
             const updatedCode = editCode.value;
@@ -251,6 +258,8 @@ if ($header_data->RecordCount() > 0) {
             const updatedColour = editColour.value;
             const updatedOrder = editOrder.value;
             const updatedTodos = editTodos.checked;
+            const updatedActive = editActive.checked;
+
 
             // Assuming you have an ID field (for example, as a data attribute)
             const id = row.getAttribute('data-id');
@@ -264,7 +273,8 @@ if ($header_data->RecordCount() > 0) {
                 unit: updatedUnit,
                 color: updatedColour,
                 order: updatedOrder,
-                todos: updatedTodos
+                todos: updatedTodos,
+                active: updatedActive
             };
 
             // Send the updated data to the backend using Fetch API
@@ -286,6 +296,7 @@ if ($header_data->RecordCount() > 0) {
                         colorCell.innerHTML = `<span style="display: block; width: 44px; height: 22px; background-color: ${updatedColour}"></span>`;
                         orderCell.textContent = updatedOrder;
                         todosCell.innerHTML = `<input type="checkbox" class="active-checkbox" ${(updatedTodos == 1) ? 'checked' : ''} disabled>`;
+                        activeCell.innerHTML = `${(updatedActive == 1) ? '<span class="active-box-green"></span>' : '<span class="active-box-red"></span>'}`
 
                         // Show the edit button and hide the save button
                         saveButton.style.display = 'none';

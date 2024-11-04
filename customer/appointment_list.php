@@ -205,7 +205,7 @@ $page_first_result = ($page-1) * $results_per_page;
                     <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=standing'"><i class="fa fa-plus-circle"></i> Standing</button>
                     <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=ad_hoc'"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>-->
                     <button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="showMessage()"><i class="fa fa-plus-circle"></i> Appointments</button>
-                    <button type="button" id="operations" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"><i class="ti-layers-alt"></i> <?=$operation_tab_title?></button>
+                    <!--<button type="button" id="operations" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"><i class="ti-layers-alt"></i> <?php /*=$operation_tab_title*/?></button>-->
                 </div>
             </div>
 
@@ -469,11 +469,7 @@ $page_first_result = ($page-1) * $results_per_page;
     });
 
     function showMessage() {
-        if(<?=count($LOCATION_ARRAY)?> === 1) {
-            window.location.href = 'create_appointment.php';
-        } else {
-            swal("Select One Location!", "Only one location can be selected on top of the page in order to schedule an appointment.", "error");
-        }
+        window.location.href = 'create_appointment.php';
     }
 </script>
 <script>

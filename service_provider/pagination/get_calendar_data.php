@@ -29,7 +29,7 @@ try {
 $appointment_status = empty($_POST['STATUS_CODE']) ? '1, 2, 3, 5, 7, 8' : $_POST['STATUS_CODE'];
 
 $appointment_type = '';
-$APPOINTMENT_TYPE_QUERY = " AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'AD-HOC', 'GROUP', 'DEMO') ";
+$APPOINTMENT_TYPE_QUERY = " AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'AD-HOC', 'GROUP') ";
 if (isset($_POST['APPOINTMENT_TYPE']) && $_POST['APPOINTMENT_TYPE'] != '') {
     $appointment_type = $_POST['APPOINTMENT_TYPE'];
     $APPOINTMENT_TYPE_QUERY = " AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = '$appointment_type' ";
@@ -141,9 +141,6 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
                 $PACKAGE = " || "."$PACKAGE_NAME";
             }
             $title = $appointment_data->fields['CUSTOMER_NAME'].$PACKAGE . ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['ENROLLMENT_ID'] === 0) ? '(Ad-Hoc)' : $appointment_data->fields['ENROLLMENT_ID']) . ' - ' . $appointment_data->fields['SERIAL_NUMBER'] . (($appointment_data->fields['IS_PAID'] == 1) ? ' (Paid)' : ' (Unpaid)');
-            $type = "appointment";
-        } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'DEMO') {
-            $title = $appointment_data->fields['CUSTOMER_NAME'].' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . ' - ' . $appointment_data->fields['SERIAL_NUMBER'];
             $type = "appointment";
         } else {
             $title = (($appointment_data->fields['CUSTOMER_NAME'] !== null) ? (count(explode(',', $appointment_data->fields['CUSTOMER_NAME']))) : '0') . ' - ' . $appointment_data->fields['GROUP_NAME'] . ' - ' . $appointment_data->fields['SERVICE_NAME'] . ' - ' . $appointment_data->fields['SERVICE_CODE'];

@@ -73,7 +73,6 @@ function saveServiceData($RESPONSE_DATA){
         $SERVICE_CODE_DATA['CAPACITY'] = ($SERVICE_CODE_DATA['IS_GROUP'] == 0) ? 0 : $RESPONSE_DATA['CAPACITY'];
         $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE'] ?? 0;
         $SERVICE_CODE_DATA['PRICE'] = ($SERVICE_CODE_DATA['IS_CHARGEABLE'] == 0) ? 0 : $RESPONSE_DATA['PRICE'];
-        $SERVICE_CODE_DATA['UNIT'] = $RESPONSE_DATA['UNIT'];
         db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
         $PK_SERVICE_CODE = $db_account->insert_ID();
     }else{
@@ -90,7 +89,6 @@ function saveServiceData($RESPONSE_DATA){
         $SERVICE_CODE_DATA['CAPACITY'] = ($SERVICE_CODE_DATA['IS_GROUP'] == 0) ? 0 : $RESPONSE_DATA['CAPACITY'];
         $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE'] ?? 0;
         $SERVICE_CODE_DATA['PRICE'] = ($SERVICE_CODE_DATA['IS_CHARGEABLE'] == 0) ? 0 : $RESPONSE_DATA['PRICE'];
-        $SERVICE_CODE_DATA['UNIT'] = $RESPONSE_DATA['UNIT'];
         db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'update', "PK_SERVICE_CODE = ".$RESPONSE_DATA['PK_SERVICE_CODE']);
         $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'];
     }
@@ -1731,7 +1729,7 @@ function saveMultiAppointmentData($RESPONSE_DATA){
         }
     }
 
-    $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
+    $SESSION_CREATED = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
     $SESSION_LEFT = $NUMBER_OF_SESSION - $SESSION_CREATED;
 
     if ($RESPONSE_DATA['IS_SUBMIT'] == 1) {
@@ -2016,7 +2014,7 @@ function copyAppointment($RESPONSE_DATA) {
         $appointment_customer_details = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = ".$PK_ID);
 
         $enrollment_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$appointment_details->fields['PK_ENROLLMENT_SERVICE']);
-        $SESSION_CREATED = getSessionCreatedCount($appointment_details->fields['PK_ENROLLMENT_SERVICE'], (($TYPE === "appointment") ? 'NORMAL' : 'GROUP'));
+        $SESSION_CREATED = getAllSessionCreatedCount($appointment_details->fields['PK_ENROLLMENT_SERVICE'], (($TYPE === "appointment") ? 'NORMAL' : 'GROUP'));
         $SESSION_LEFT = $enrollment_service_data->fields['NUMBER_OF_SESSION'] - $SESSION_CREATED;
 
         $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $appointment_details->fields['PK_SERVICE_MASTER'];

@@ -10,7 +10,7 @@
                     <input type="hidden" name="sourceId" id="sourceId">
                     <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
                     <!--<input type="hidden" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">-->
-                    <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
+                    <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
                     <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=($PK_ENROLLMENT_BILLING) ?? 0?>">
                     <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
                     <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
@@ -19,6 +19,7 @@
                     <input type="hidden" name="BILLING_REF" id="PAYMENT_BILLING_REF">
                     <input type="hidden" name="BILLING_DATE" id="PAYMENT_BILLING_DATE">
                     <input type="hidden" name="header" value="<?=$header?>">
+                    <input type="hidden" name="enr_type" id="enr_type" value="enrollment">
 
                     <div class="p-20">
                         <div class="row">
@@ -56,7 +57,7 @@
                                         <select class="form-control PAYMENT_TYPE ENROLLMENT_PAYMENT_TYPE" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this, 'enrollment')">
                                             <option value="">Select</option>
                                             <?php
-                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE = 1 AND ACTIVE = 1");
                                             while (!$row->EOF) { ?>
                                                 <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
                                             <?php $row->MoveNext(); } ?>
@@ -231,7 +232,7 @@
                                         <select class="form-control" name="PK_PAYMENT_TYPE_PARTIAL" id="PK_PAYMENT_TYPE_PARTIAL" onchange="selectPartialPaymentType(this)">
                                             <option value="">Select</option>
                                             <?php
-                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
+                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE = 'Credit Card' AND ACTIVE = 1");
                                             while (!$row->EOF) { ?>
                                                 <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
                                             <?php $row->MoveNext(); } ?>
@@ -316,10 +317,8 @@
 
     // Create an instance of the card Element.
     var card = elements.create('card', {style: style});
-    var pay_type = '';
 
     function stripePaymentFunction(type) {
-        pay_type = type;
         // Add an instance of the card Element into the `card-element` <div>.
         if (($('#card-element')).length > 0) {
             card.mount('#card-element');
@@ -354,8 +353,9 @@
 
     // Submit the form with the token ID.
     function stripeTokenHandler(token) {
+        let type = $('#enr_type').val();
         // Insert the token ID into the form, so it gets submitted to the server
-        let form = document.getElementById(pay_type+'_payment_form');
+        let form = document.getElementById(type+'_payment_form');
         let hiddenInput = document.createElement('input');
         hiddenInput.setAttribute('type', 'hidden');
         hiddenInput.setAttribute('name', 'token');
@@ -459,7 +459,7 @@
             case 'Credit Card':
                 if (PAYMENT_GATEWAY == 'Stripe') {
                     $('#card_div').html(`<div id="card-element"></div>`);
-                    stripePaymentFunction('enrollment');
+                    stripePaymentFunction();
                 }
                 $('#partial_credit_card_payment').slideDown();
                 break;

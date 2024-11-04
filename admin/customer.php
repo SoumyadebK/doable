@@ -395,6 +395,7 @@ if ($PK_USER_MASTER > 0) {
                             <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
                             <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
                             <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'posted')" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
+                            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#demo_appointment" onclick="showDemoAppointment(1)" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">For Record Only</span></a> </li>
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
                             <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
@@ -1538,6 +1539,12 @@ if ($PK_USER_MASTER > 0) {
                                                     <label>List of Canceled Appointments</label>
                                                 </div>
                                                 <div id="appointment_list" class="p-20">
+
+                                                </div>
+                                            </div>
+
+                                            <div class="tab-pane" id="demo_appointment" role="tabpanel">
+                                                <div id="demo_appointment_list" class="p-20">
 
                                                 </div>
                                             </div>
@@ -2930,6 +2937,21 @@ if ($PK_USER_MASTER > 0) {
                             }
                         }
                     }
+                }
+            });
+            window.scrollTo(0,0);
+        }
+
+        function showDemoAppointment(page) {
+            let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+            $.ajax({
+                url: "pagination/demo_appointment.php",
+                type: "GET",
+                data: {search_text:'', page:page, master_id:PK_USER_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#demo_appointment_list').html(result)
                 }
             });
             window.scrollTo(0,0);
