@@ -166,6 +166,9 @@ if(!empty($_POST)){
         $EMAIL_ACCOUNT_DATA['PORT'] = $_POST['SMTP_PORT'];
         $EMAIL_ACCOUNT_DATA['USER_NAME'] = $_POST['SMTP_USERNAME'];
         $EMAIL_ACCOUNT_DATA['PASSWORD'] = $_POST['SMTP_PASSWORD'];
+        $EMAIL_ACCOUNT_DATA['ACTIVE'] = 1;
+        $EMAIL_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $EMAIL_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
         $email_data = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
         if ($email_data->RecordCount() == 0) {
