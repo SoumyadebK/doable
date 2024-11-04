@@ -63,6 +63,14 @@ $AM_USER_NAME = $res->fields['AM_USER_NAME'];
 $AM_PASSWORD = $res->fields['AM_PASSWORD'];
 $AM_REFRESH_TOKEN = $res->fields['AM_REFRESH_TOKEN'];
 
+$TEXTING_FEATURE_ENABLED = $res->fields['TEXTING_FEATURE_ENABLED'];
+$TWILIO_ACCOUNT_TYPE  = $res->fields['TWILIO_ACCOUNT_TYPE'];
+
+$text = $db->Execute( "SELECT * FROM `DOA_TEXT_SETTINGS` WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$SID = $text->fields['SID'];
+$TOKEN = $text->fields['TOKEN'];
+$PHONE_NO = $text->fields['FROM_NO'];
+
 $SMTP_HOST = '';
 $SMTP_PORT = '';
 $SMTP_USERNAME = '';
@@ -159,6 +167,23 @@ if(!empty($_POST)){
             $SETTINGS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $SETTINGS_DATA['EDITED_ON'] = date("Y-m-d H:i");
             db_perform('DOA_ACCOUNT_MASTER', $SETTINGS_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
+        }
+
+        $TWILIO_SETTING_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $TWILIO_SETTING_DATA['SID'] = $_POST['SID'];
+        $TWILIO_SETTING_DATA['TOKEN'] = $_POST['TOKEN'];
+        $TWILIO_SETTING_DATA['FROM_NO'] = $_POST['PHONE_NO'];
+        $TWILIO_SETTING_DATA['ACTIVE'] = 1;
+        $TWILIO_SETTING_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $TWILIO_SETTING_DATA['CREATED_ON'] = date("Y-m-d H:i");
+
+        $twilio_data = $db->Execute("SELECT * FROM DOA_TEXT_SETTINGS WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        if ($twilio_data->RecordCount() == 0) {
+            db_perform('DOA_TEXT_SETTINGS', $TWILIO_SETTING_DATA, 'insert');
+        } else {
+            $TWILIO_SETTING_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+            $TWILIO_SETTING_DATA['EDITED_ON'] = date("Y-m-d H:i");
+            db_perform('DOA_TEXT_SETTINGS', $TWILIO_SETTING_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
         }
 
         $EMAIL_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
@@ -443,6 +468,36 @@ if ($header_data->RecordCount() > 0) {
                                                         <input type="text" class="form-control" name="HOUR" value="<?=$HOUR?>">
                                                     </div>
                                                 </div>
+
+                                                <?php if($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) { ?>
+                                                <div class="row" >
+                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">SID</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="SID" name="SID" class="form-control" placeholder="Enter SID" value="<?php echo $SID?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Token</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="TOKEN" name="TOKEN" class="form-control" placeholder="Enter TOKEN" value="<?php echo $TOKEN?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Phone No.</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="PHONE_NO" name="PHONE_NO" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE_NO?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <?php } ?>
                                             </div>
 
                                             <div class="row smtp" id="smtp" >
