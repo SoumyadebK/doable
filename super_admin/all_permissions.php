@@ -82,7 +82,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <tr>
                                         <th>No</th>
                                         <th>Permission</th>
-                                        <th>Link</th>
+                                        <!--<th>Link</th>-->
                                         <th>Actions</th>
                                     </tr>
                                     </thead>
@@ -95,7 +95,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_PERMISSION']?>);"><?=$i;?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_PERMISSION']?>);"><?=$row->fields['PERMISSION_NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_PERMISSION']?>);"><?=$row->fields['PERMISSION_LINK']?></td>
+                                            <!--<td onclick="editpage(<?php /*=$row->fields['PK_PERMISSION']*/?>);"><?php /*=$row->fields['PERMISSION_LINK']*/?></td>-->
                                             <td>
                                                 <a href="add_permission.php?id=<?=$row->fields['PK_PERMISSION']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>

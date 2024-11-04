@@ -86,16 +86,16 @@ if(empty($_GET['id'])){
                                     </div>
                                 </div>
 
-                                <div class="row">
+                                <!--<div class="row">
                                     <div class="col-6">
                                         <div class="form-group">
                                             <label class="col-md-12" for="example-text">Page Link<span class="text-danger">*</span></label>
                                             <div class="col-md-12">
-                                                <input type="text" id="PERMISSION_LINK" name="PERMISSION_LINK" class="form-control" placeholder="Enter Page Link" required value="<?php echo $PERMISSION_LINK?>">
+                                                <input type="text" id="PERMISSION_LINK" name="PERMISSION_LINK" class="form-control" placeholder="Enter Page Link" required value="<?php /*echo $PERMISSION_LINK*/?>">
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div>-->
 
                                 <?php if(!empty($_GET['id'])) { ?>
                                     <div class="row" style="margin-bottom: 15px; margin-top: 10px">
