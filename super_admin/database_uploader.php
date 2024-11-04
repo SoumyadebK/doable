@@ -875,7 +875,7 @@ if(!empty($_POST))
             break;
 
         case "DOA_APPOINTMENT_MASTER":
-            /*$allCustomers = getAllCustomers();
+            $allCustomers = getAllCustomers();
             while (!$allCustomers->EOF) {
                 $customer_id = $allCustomers->fields['customer_id'];
                 $allPrivateAppointments = getAllPrivateAppointmentsByCustomerId($customer_id);
@@ -1062,7 +1062,7 @@ if(!empty($_POST))
                 db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $INSERT_DATA_SERVICE_PROVIDER, 'insert');
 
                 $allDemoAppointments->Movenext();
-            }*/
+            }
 
             $allGroupAppointments = getAllGroupAppointments();
             while (!$allGroupAppointments->EOF) {
