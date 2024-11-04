@@ -55,7 +55,7 @@ if(!empty($_POST)){
         $TEXT_DATA['SID'] = $_POST['SID'];
         $TEXT_DATA['TOKEN'] = $_POST['TOKEN'];
         $TEXT_DATA['FROM_NO'] = $_POST['PHONE_NO'];
-        db_perform('TEXT_SETTINGS', $TEXT_DATA, 'update', "PK_TEXT_SETTINGS = 1");
+        db_perform('DOA_TEXT_SETTINGS', $TEXT_DATA, 'update', "PK_TEXT_SETTINGS = 1");
 
         $PAYMENT_GATEWAY_DATA['PAYMENT_GATEWAY_TYPE'] = $_POST['PAYMENT_GATEWAY_TYPE'];
         $PAYMENT_GATEWAY_DATA['SECRET_KEY'] = $_POST['SECRET_KEY'];
