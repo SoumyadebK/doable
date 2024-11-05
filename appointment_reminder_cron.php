@@ -38,7 +38,7 @@ while (!$all_account->EOF) {
 
         $customer_phone_number = $db->Execute("SELECT DOA_USERS.PHONE FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$APPOINTMENT_DATA->fields['CUSTOMER_ID']);
 
-        $msg = $db->Execute("SELECT CONTENT FROM DOA_TEXT_TEMPLATE WHERE PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'  AND PK_EMAIL_TRIGGER = 1");
+        $msg = $db->Execute("SELECT CONTENT FROM DOA_TEXT_TEMPLATE WHERE PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
         try {
             $client = new Client($sid, $token);
             $response = $client->messages->create(
