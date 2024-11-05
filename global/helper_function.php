@@ -713,8 +713,8 @@ function makeMiscComplete($PK_USER_MASTER): void
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $miscEnrollmentData->fields['PK_ENROLLMENT_MASTER']);
 
         $ENR_SERVICE_UPDATE_DATA['STATUS'] = 'CO';
-        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  $miscEnrollmentData->fields['PK_ENROLLMENT_MASTER']");
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $ENR_SERVICE_UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  $miscEnrollmentData->fields['PK_ENROLLMENT_MASTER']");
+        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER = " . $miscEnrollmentData->fields['PK_ENROLLMENT_MASTER']);
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $ENR_SERVICE_UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER = " . $miscEnrollmentData->fields['PK_ENROLLMENT_MASTER']);
 
         $miscEnrollmentData->MoveNext();
     }

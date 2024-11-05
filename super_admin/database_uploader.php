@@ -552,7 +552,7 @@ if(!empty($_POST))
                 $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = ".$ENROLLMENT_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
                 if ($customer_enrollment_number->RecordCount() > 0){
                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = $customer_enrollment_number->fields['CUSTOMER_ENROLLMENT_NUMBER'] + 1;
-                }else{
+                } else {
                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
                 }
 
