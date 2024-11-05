@@ -239,6 +239,13 @@ function getPackageCode($package_id) {
     }
 }
 
+function getDownPaymentBilledAmount($charge_id)
+{
+    global $db1;
+    $payment_data = $db1->Execute("SELECT SUM(amount_paid) AS TOTAL_PAID FROM `payments` WHERE record_type = 'Payment' AND charge_id = '$charge_id'");
+    return $payment_data->fields['TOTAL_PAID'];
+}
+
 //function getName($customer_id) {
 //    global $db1;
 //    $name_taker = $db1->Execute("SELECT first_name, last_name FROM customer WHERE customer_id = '$customer_id'");
