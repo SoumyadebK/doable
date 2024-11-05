@@ -552,7 +552,7 @@ if(!empty($_POST))
                 $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = ".$ENROLLMENT_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
                 if ($customer_enrollment_number->RecordCount() > 0){
                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = $customer_enrollment_number->fields['CUSTOMER_ENROLLMENT_NUMBER'] + 1;
-                }else{
+                } else {
                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
                 }
 
@@ -723,7 +723,11 @@ if(!empty($_POST))
                 $allEnrollmentCharges = getAllEnrollmentChargesById($enrollment_id);
                 while (!$allEnrollmentCharges->EOF) {
                     $BILLED_AMOUNT = $allEnrollmentCharges->fields['amount_due'];
+                    $IS_DOWN_PAYMENT = (strpos($allEnrollmentCharges->fields['title'], 'down payment')  !== false) ? 1 : 0;
                     $BALANCE += $BILLED_AMOUNT;
+                    if ($BILLED_AMOUNT == 0 && $IS_DOWN_PAYMENT == 1) {
+                        $BILLED_AMOUNT = getDownPaymentBilledAmount($allEnrollmentCharges->fields['id']);
+                    }
                     $BILLING_LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                     $BILLING_LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
                     $BILLING_LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
@@ -734,7 +738,7 @@ if(!empty($_POST))
                     $BILLING_LEDGER_DATA['BALANCE'] = $BALANCE;
                     $BILLING_LEDGER_DATA['IS_PAID'] = $allEnrollmentCharges->fields['status'] == 'Paid';
                     $BILLING_LEDGER_DATA['STATUS'] = 'A';
-                    $BILLING_LEDGER_DATA['IS_DOWN_PAYMENT'] = (strpos($allEnrollmentCharges->fields['title'], 'down payment')  !== false) ? 1 : 0;
+                    $BILLING_LEDGER_DATA['IS_DOWN_PAYMENT'] = $IS_DOWN_PAYMENT;
                     db_perform_account('DOA_ENROLLMENT_LEDGER', $BILLING_LEDGER_DATA, 'insert');
                     $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
 
