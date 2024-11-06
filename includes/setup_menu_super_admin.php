@@ -13,10 +13,10 @@
                                 <a class="dropdown-item" href="../super_admin/all_users.php">Users</a>
                                 <a class="dropdown-item" href="../super_admin/all_departments.php">Departments</a>
                                 <a class="dropdown-item" href="../super_admin/all_roles.php">Roles</a>
-                                <a class="dropdown-item" href="../super_admin/all_permissions.php">Permission</a>
+                                <a class="dropdown-item" href="../super_admin/all_permissions.php">Permissions</a>
                                 <a class="dropdown-item" href="../super_admin/all_countries.php">Countries</a>
                                 <a class="dropdown-item" href="../super_admin/all_states.php">States</a>
-                                <a class="dropdown-item" href="../super_admin/all_currency.php">Currency</a>
+                                <a class="dropdown-item" href="../super_admin/all_currency.php">Currencies</a>
                                 <a class="dropdown-item" href="../super_admin/all_account_types.php">Account Types</a>
                                 <a class="dropdown-item" href="../super_admin/all_business_types.php">Business Types</a>
                             </div>
