@@ -148,6 +148,7 @@ while (!$row->EOF) {
                         }
 
                         $ENR_BALANCE = $serviceCodeData->fields['NUMBER_OF_SESSION'] - $TOTAL_PAID_SESSION;
+                        $SERVICE_CREDIT = $TOTAL_PAID_SESSION - $SESSION_COMPLETED;
 
                         $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
                         $total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
@@ -158,7 +159,7 @@ while (!$row->EOF) {
                             <td style="text-align: right;"><?=$SESSION_COMPLETED?></td>
                             <td style="text-align: right; color:<?=($ENR_BALANCE < 0)?'red':'black'?>;"><?=number_format($ENR_BALANCE, 2)?></td>
                             <td style="text-align: right">$<?=number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'], 2)?></td>
-                            <td style="text-align: right;"><?=($ENR_BALANCE > 0) ? number_format($ENR_BALANCE, 2) : 0?></td>
+                            <td style="text-align: right;"><?=($SERVICE_CREDIT > 0) ? number_format($SERVICE_CREDIT, 2) : 0?></td>
                         </tr>
                     <?php $serviceCodeData->MoveNext();
                     } ?>
