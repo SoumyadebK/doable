@@ -568,18 +568,23 @@ z-index: 500;
                 </div>
 
                 <div class="row" id="add_info_div">
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label class="form-label">Comments (Visual for client)</label>
-                            <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
+                    <?php if ($SERVICE_NAME != 'For records only') { ?>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Comments (Visual for client)</label>
+                                <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
+                            </div>
                         </div>
-                    </div>
+                    <?php } ?>
                     <div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Internal Comment</label>
                             <textarea class="form-control" name="INTERNAL_COMMENT" rows="4"><?=$INTERNAL_COMMENT?></textarea>
                         </div>
                     </div>
+                </div>
+
+                <div class="row">
                     <div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Upload Image</label>
