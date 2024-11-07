@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="ae48719a-9984-4ae4-b861-97d9b5644ae8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,7 +89,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1730741806985</updated>
-      <workItem from="1730988653972" duration="535000" />
+      <workItem from="1730988653972" duration="6128000" />
     </task>
     <servers />
   </component>
