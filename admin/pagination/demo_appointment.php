@@ -32,6 +32,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.START_TIME,
                             DOA_APPOINTMENT_MASTER.END_TIME,
                             DOA_APPOINTMENT_MASTER.COMMENT,
+                            DOA_APPOINTMENT_MASTER.INTERNAL_COMMENT,
                             DOA_APPOINTMENT_MASTER.IMAGE,
                             DOA_APPOINTMENT_MASTER.VIDEO,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
@@ -128,7 +129,7 @@ $page_first_result = ($page-1) * $results_per_page;
             <td style="vertical-align: middle; text-align: center;" colspan="13">
                 <div class="col-12">
                     <div class="form-group">
-                        <textarea class="form-control" name="COMMENT" rows="3"><?=$appointment_data->fields['COMMENT']?></textarea><span><?=$CHANGED_BY?></span>
+                        <textarea class="form-control" name="COMMENT" rows="3"><?=$appointment_data->fields['INTERNAL_COMMENT']?></textarea><span><?=$CHANGED_BY?></span>
                     </div>
                 </div>
                 <div class="row">
