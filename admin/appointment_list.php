@@ -83,6 +83,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.IS_CHARGED,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS,
+                            DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
                             DOA_SCHEDULING_CODE.COLOR_CODE,
@@ -278,7 +279,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
                                             <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
                                             <th>Paid</th>
-                                            <th>Completed</th>
+                                            <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -318,18 +319,23 @@ $page_first_result = ($page-1) * $results_per_page;
 
                                             <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
                                             <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
-                                            <td style="text-align: center;">
+                                            <!--<td style="text-align: center;">
                                                 <?php
-                                                if ($appointment_data->fields['CUSTOMER_NAME'] && $standing == 0) {
-                                                    if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 6 && $appointment_data->fields['IS_CHARGED'] == 1){ ?>
+/*                                                if ($appointment_data->fields['CUSTOMER_NAME'] && $standing == 0) {
+                                                    if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 6 && $appointment_data->fields['IS_CHARGED'] == 1){ */?>
                                                         <i class="fa fa-check-circle" style="font-size:25px;color:red;"></i>
-                                                    <?php } elseif ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
+                                                    <?php /*} elseif ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ */?>
                                                         <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
-                                                    <?php } else { ?>
-                                                        <a href="javascript:" data-id="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='confirmComplete($(this));'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
-                                                    <?php }
-                                                } ?>
-                                            </td>
+                                                    <?php /*} else { */?>
+                                                        <a href="javascript:" data-id="<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>" onclick='confirmComplete($(this));'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
+                                                    <?php /*}
+                                                } */?>
+                                            </td>-->
+                                            <?php if($appointment_data->fields['IS_CHARGED']==0) { ?>
+                                            <td style="color: <?=$appointment_data->fields['APPOINTMENT_COLOR']?>"><?=$appointment_data->fields['APPOINTMENT_STATUS']?></td>
+                                            <?php } else { ?>
+                                            <td style="color: <?=$appointment_data->fields['APPOINTMENT_COLOR']?>"><?=$appointment_data->fields['APPOINTMENT_STATUS']." ($)"?></td>
+                                            <?php } ?>
                                             <td>
                                                 <?php /*if(empty($appointment_data->fields['ENROLLMENT_ID'])) { */?><!--
                                                     <a href="create_appointment.php?type=ad_hoc&id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
