@@ -576,6 +576,7 @@ if(!empty($_POST))
                 $ENROLLMENT_DATA['IS_SALE'] = $allEnrollments->fields['is_sale'];
                 $ENROLLMENT_DATA['STATUS'] = "A";
                 $ENROLLMENT_DATA['ENROLLMENT_DATE'] = $allEnrollments->fields['enrollment_date'];
+                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = $allEnrollments->fields['enroll_pdf_file'];
                 $ENROLLMENT_DATA['EXPIRY_DATE'] = $allEnrollments->fields['expdate'];
                 $ENROLLMENT_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
                 $ENROLLMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
