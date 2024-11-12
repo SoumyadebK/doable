@@ -78,7 +78,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                     ]);
                     $CUSTOMER_PAYMENT_ID = $customer->id;
                 } catch (ApiErrorException $e) {
-                    pre_r($e->getMessage());
+                    $PAYMENT_STATUS = 'Failed';
+                    $PAYMENT_INFO = $e->getMessage();
                 }
 
                 $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
@@ -87,8 +88,11 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
                 db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
             }
-            $card = $stripe->customers->createSource($CUSTOMER_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
-            $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $card->id]);
+
+            if (empty($_POST['PAYMENT_METHOD_ID'])) {
+                $card = $stripe->customers->createSource($CUSTOMER_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
+                $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $card->id]);
+            }
 
             $account = \Stripe\Customer::retrieve($CUSTOMER_PAYMENT_ID);
             try {
@@ -99,21 +103,22 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                     "customer" => $CUSTOMER_PAYMENT_ID,
                     "statement_descriptor" => "Receipt# ".$RECEIPT_NUMBER_ORIGINAL,
                 ));
-
-                $LAST4 = $charge->payment_method_details->card->last4;
-
-                if ($charge->paid == 1) {
-                    $PAYMENT_STATUS = 'Success';
-                    $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $charge->id, 'LAST4' => $LAST4];
-                    $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
-                } else {
-                    $PAYMENT_STATUS = 'Failed';
-                    $PAYMENT_INFO = $charge->failure_message;
-                }
-            } catch (Exception $e) {
+            } catch (ApiErrorException $e) {
                 $PAYMENT_STATUS = 'Failed';
                 $PAYMENT_INFO = $e->getMessage();
             }
+
+            $LAST4 = $charge->payment_method_details->card->last4;
+
+            if ($charge->paid == 1) {
+                $PAYMENT_STATUS = 'Success';
+                $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $charge->id, 'LAST4' => $LAST4];
+                $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+            } else {
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $charge->failure_message;
+            }
+
         }
         elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
 
@@ -426,7 +431,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $LEDGER_UPDATE_DATA['IS_PAID'] = 0;
         } else {
             $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = 0;
-            $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
+            $LEDGER_UPDATE_DATA['IS_PAID'] = ($PAYMENT_STATUS == 'Failed') ? 0 : 1;
         }
         $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT_ARRAY[$i]'");

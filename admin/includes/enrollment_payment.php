@@ -368,6 +368,9 @@
 <script>
     function getPaymentMethodId(param) {
         $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
+        let form = document.getElementById('enrollment_payment_form');
+        form.removeEventListener('submit', listener);
+        $(param).closest('.payment_modal').find('#card-element').remove();
     }
 
     function selectPaymentType(param, type){
