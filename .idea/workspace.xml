@@ -6,12 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="7f1d219f-54a1-4e48-8386-e893cbc07289" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/get_credit_card_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_credit_card_list.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/customer.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/customer.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/includes/enrollment_payment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/enrollment_payment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/includes/process_enrollment_payment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/process_enrollment_payment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/config.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/config.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/super_admin/includes/create_database.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/includes/create_database.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -99,7 +94,7 @@
       <workItem from="1731332888081" duration="1340000" />
       <workItem from="1731334237928" duration="57000" />
       <workItem from="1731419754110" duration="3918000" />
-      <workItem from="1731429789824" duration="6410000" />
+      <workItem from="1731429789824" duration="7234000" />
     </task>
     <servers />
   </component>

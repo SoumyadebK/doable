@@ -658,8 +658,12 @@ function generatePdf($html): string
     $mpdf->keep_table_proportions = true;
     $mpdf->AddPage();
 
+    if (!file_exists('../../uploads/'.$_SESSION['PK_ACCOUNT_MASTER'].'/enrollment_pdf/')) {
+        mkdir('../../uploads/'.$_SESSION['PK_ACCOUNT_MASTER'].'/enrollment_pdf/', 0777, true);
+    }
+
     $file_name = "enrollment_pdf_".time().".pdf";
-    $mpdf->Output("../../uploads/enrollment_pdf/".$file_name, 'F');
+    $mpdf->Output('../../uploads/'.$_SESSION['PK_ACCOUNT_MASTER'].'/enrollment_pdf/'.$file_name, 'F');
 
     return $file_name;
 }
