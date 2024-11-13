@@ -382,7 +382,9 @@ if (isset($_POST['SUBMIT'])){
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['PHONE']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['LOCATION_NAME']?></td>
                                             <td>
+                                                <?php if(in_array('Enrollments Edit', $PERMISSION_ARRAY)){ ?>
                                                 <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php } ?>
 
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -395,7 +397,9 @@ if (isset($_POST['SUBMIT'])){
                                                 $res = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_PAID, SUM(SESSION_COMPLETED) AS COMPLETED FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                                                 if($res->fields['TOTAL_PAID']==0 && $res->fields['COMPLETED']==0){
                                                 ?>
+                                                <?php if(in_array('Enrollments Delete', $PERMISSION_ARRAY)){ ?>
                                                 <a href="all_enrollments.php?type=del&id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>" onclick='javascript:ConfirmDelete(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);return false;' title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php } ?>
                                                 <?php } ?>
                                             </td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);">

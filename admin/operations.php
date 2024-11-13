@@ -259,7 +259,9 @@ function currentWeekRange($date): array
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
+                            <?php if(in_array('Operations Edit', $PERMISSION_ARRAY)){ ?>
                             <div style="margin-left: -12px; margin-bottom: 10px"><button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="markAllComplete()"><i class="ti-check-box"></i> Completed</button></div>
+                            <?php } ?>
                             <div id="list"  class="card-body">
                                 <table id="" class="table table-striped border" data-page-length='50'>
                                     <thead>
@@ -290,9 +292,11 @@ function currentWeekRange($date): array
                                             <td>
                                                 <?php if ($appointment_data->fields['CUSTOMER_NAME']) { ?>
                                                     <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"></label>
-                                                <?php } else { ?>
+                                                <?php } else {
+                                                    if(in_array('Operations Edit', $PERMISSION_ARRAY)) { ?>
                                                     <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <?php } ?>
+                                                <?php }
+                                                            } ?>
                                             </td>
                                             <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
                                             <?php if (!empty($appointment_data->fields['ENROLLMENT_ID']) || !empty($appointment_data->fields['ENROLLMENT_NAME'])) { ?>

@@ -104,8 +104,10 @@ if (!empty($_GET['NAME'])) {
                                         </div>
                                     </div>
                                     <div class="col-2">
+                                        <?php if(in_array('Reports Create', $PERMISSION_ARRAY)){ ?>
                                         <input type="submit" name="view" id="submit"  value="View" style="background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;">
                                         <input type="submit" name="export" id="submit" style="background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;" value="Export">
+                                        <?php } ?>
                                     </div>
                                 </div>
                             </form>

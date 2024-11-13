@@ -187,7 +187,9 @@ $page_first_result = ($page-1) * $results_per_page;
                                                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php endif; ?>
 
+                                                <?php if(in_array('Customers Profile Edit', $PERMISSION_ARRAY)){ ?>
                                                 <a href="customer.php?id=<?=$row->fields['PK_USER']?>&master_id=<?=$row->fields['PK_USER_MASTER']?>" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;
+                                                <?php } ?>
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>

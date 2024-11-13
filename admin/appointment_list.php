@@ -344,10 +344,16 @@ $page_first_result = ($page-1) * $results_per_page;
                                                     <a href="add_schedule.php?id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 --><?php /*} */?>
                                                 <?php if ($standing == 0) { ?>
+                                                    <?php if(in_array('Appointments Move/Copy', $PERMISSION_ARRAY)){ ?>
                                                     <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <?php } ?>
+                                                    <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)){ ?>
                                                     <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>, "normal");'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <?php } ?>
                                                 <?php } else { ?>
+                                                    <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY)){ ?>
                                                     <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['STANDING_ID']?>, "standing");'><i class="fa fa-trash"></i></a>
+                                                    <?php } ?>
                                                 <?php } ?>
                                             </td>
                                         </tr>

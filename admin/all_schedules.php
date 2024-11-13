@@ -387,7 +387,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=appointment'"><i class="fa fa-plus-circle"></i> Appointment</button>
                     <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=standing'"><i class="fa fa-plus-circle"></i> Standing</button>
                     <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=ad_hoc'"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>-->
+                    <?php if(in_array('Calendar Schedule', $PERMISSION_ARRAY)){ ?>
                     <button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="showMessage()"><i class="fa fa-plus-circle"></i> Appointments</button>
+                    <?php } ?>
                     <button type="button" id="operations" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"><i class="ti-layers-alt"></i> <?=$operation_tab_title?></button>
                 </div>
             </div>
@@ -454,6 +456,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                 <div class="col-2" id='external-events' style="display: none;">
                                     <a href="javascript:;" onclick="closeCopyPasteDiv()" style="float: right; font-size: 25px;">&times;</a>
                                     <h5>Copy OR Move Events</h5>
+                                    <?php if(in_array('Calendar Move/Copy', $PERMISSION_ARRAY) || in_array('Appointments Move/Copy', $PERMISSION_ARRAY) || in_array('To-Do Move/Copy', $PERMISSION_ARRAY)){ ?>
                                     <p>
                                         <input type='radio' name="copy_move" id='drop-copy' checked/>
                                         <label for='drop-copy'>Copy</label>
@@ -461,12 +464,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                         <input type='radio' name="copy_move" id='drop-remove'/>
                                         <label for='drop-remove'>Move</label>
                                     </p>
+                                    <?php } ?>
                                 </div>
                             </div>
 
                     </div>
                 </div>
 
+                <?php if(in_array('Calendar Edit', $PERMISSION_ARRAY)){ ?>
                 <div id="edit_appointment_half" class="col-6" style="display: none;">
                     <div class="card">
                         <div class="card-body">
@@ -477,6 +482,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         </div>
                     </div>
                 </div>
+                <?php } ?>
 
                 <div id="myModal" class="modal">
                     <!-- Modal content -->
