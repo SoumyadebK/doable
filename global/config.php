@@ -11,7 +11,7 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
     $http_path = 'http://localhost/doable/';
 } else {
     $conn = $db->connect('localhost','root','b54eawxj5h8ev',$master_database);
-    $http_path = 'http://allonehub.com/';
+    $http_path = 'https://doable.net/';
 }
 
 if (!empty($_SESSION['DB_NAME'])) {
@@ -41,14 +41,13 @@ if ($env === 'dev') {
     define("ami_api_url", "https://reporting.arthurmurray.com");
 }
 
-if ($db->error_number) {
+if ($db->error_number){
     die("Master Database Connection Error");
-} else {
-    if (!empty($_SESSION['PK_ACCOUNT_MASTER'])) {
+}else{
+    if (!empty($_SESSION['PK_ACCOUNT_MASTER'])){
         $account_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.SERVICE_PROVIDER_TITLE, DOA_ACCOUNT_MASTER.OPERATION_TAB_TITLE, DOA_ACCOUNT_MASTER.BUSINESS_NAME, DOA_ACCOUNT_MASTER.BUSINESS_LOGO, DOA_TIMEZONE.TIMEZONE, DOA_CURRENCY.CURRENCY_SYMBOL FROM DOA_TIMEZONE RIGHT JOIN DOA_ACCOUNT_MASTER ON DOA_TIMEZONE.PK_TIMEZONE = DOA_ACCOUNT_MASTER.PK_TIMEZONE LEFT JOIN DOA_CURRENCY ON DOA_CURRENCY.PK_CURRENCY = DOA_ACCOUNT_MASTER.PK_CURRENCY WHERE DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
         $business_logo = $account_data->fields['BUSINESS_LOGO'];
         $business_name = $account_data->fields['BUSINESS_NAME'];
-
         if ($account_data->fields['SERVICE_PROVIDER_TITLE'] == NULL || $account_data->fields['SERVICE_PROVIDER_TITLE'] == '')
             $service_provider_title = 'Service Provider';
         else
@@ -67,7 +66,7 @@ if ($db->error_number) {
         if (!is_null($account_data->fields['TIMEZONE'])) {
             date_default_timezone_set($account_data->fields['TIMEZONE']);
             $time_zone = 1;
-        } else {
+        }else{
             $time_zone = 0;
         }
 

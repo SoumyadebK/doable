@@ -17,7 +17,7 @@ while (!$all_account->EOF) {
         $http_path = 'http://localhost/doable/';
     } else {
         $conn1 = $db1->connect('localhost','root','b54eawxj5h8ev',$DB_NAME);
-        $http_path = 'https://allonehub.com/';
+        $http_path = 'https://doable.net/';
     }
     if ($db1->error_number){
         die("Connection Error");

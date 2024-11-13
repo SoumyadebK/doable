@@ -71,30 +71,34 @@ if ($SECRET_KEY != '') {
     $message = '';
 
     if ($customer_payment_info->RecordCount() > 0) {
-        $customer_id = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-        $stripe_customer = $stripe->customers->retrieve($customer_id);
-        $card_id = $stripe_customer->default_source;
+        try {
+            $customer_id = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+            $stripe_customer = $stripe->customers->retrieve($customer_id);
+            $card_id = $stripe_customer->default_source;
 
-        $url = "https://api.stripe.com/v1/customers/" . $customer_id . "/cards/" . $card_id;
-        $AUTH = "Authorization: Bearer " . $SECRET_KEY;
+            $url = "https://api.stripe.com/v1/customers/" . $customer_id . "/cards/" . $card_id;
+            $AUTH = "Authorization: Bearer " . $SECRET_KEY;
 
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "GET",
-            CURLOPT_HTTPHEADER => array(
-                $AUTH
-            ),
-        ));
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => "",
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => "GET",
+                CURLOPT_HTTPHEADER => array(
+                    $AUTH
+                ),
+            ));
 
-        $response = curl_exec($curl);
-        $card_details = json_decode($response, true);
+            $response = curl_exec($curl);
+            $card_details = json_decode($response, true);
+        } catch (Exception $e) {
+            $error_message = $e->getMessage();
+        }
     }
 }
 
