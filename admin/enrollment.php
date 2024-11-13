@@ -3,6 +3,7 @@ require_once('../global/config.php');
 global $db;
 global $db_account;
 global $master_database;
+global $upload_path;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
@@ -738,7 +739,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                             <?php $row->MoveNext(); } ?>
                                                         </select>
                                                         <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                                                            <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
+                                                            <a href="../<?=$upload_path?>/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
                                                         <?php } ?>
                                                     </div>
                                                 </div>
@@ -804,7 +805,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <?php $enrollment_service_provider_data->MoveNext(); } ?>
+                                                        <?php $enrollment_service_provider_data->MoveNext(); } ?>
                                                     <?php } else { ?>
                                                         <div class="row individual_service_provider_div" style="margin-top: -25px">
                                                             <div class="col-4">
