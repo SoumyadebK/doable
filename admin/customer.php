@@ -64,10 +64,10 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 $card_details = '';
 
 require_once("../global/stripe-php-master/init.php");
+$customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $PK_USER);
 
 if ($SECRET_KEY != '') {
     $stripe = new StripeClient($SECRET_KEY);
-    $customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $PK_USER);
     $message = '';
 
     if ($customer_payment_info->RecordCount() > 0) {
@@ -102,7 +102,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard
     $STRIPE_TOKEN = $_POST['token'];
     $CUSTOMER_PAYMENT_ID = '';
     if ($customer_payment_info->RecordCount() > 0) {
-        $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['ACCOUNT_PAYMENT_ID'];
+        $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
     } else {
         try {
             $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = ".$PK_USER);

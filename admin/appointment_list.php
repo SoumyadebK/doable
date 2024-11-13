@@ -86,6 +86,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
+                            DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             DOA_SCHEDULING_CODE.COLOR_CODE,
                             GROUP_CONCAT(DISTINCT(CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME)) SEPARATOR ', ') AS SERVICE_PROVIDER_NAME,
                             GROUP_CONCAT(DISTINCT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME)) SEPARATOR ', ') AS CUSTOMER_NAME
@@ -279,11 +280,10 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
                                             <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
                                             <th>Paid</th>
-                                            <th>Status</th>
+                                            <th style="width: 8%;">Status</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
-
 
                                     <tbody>
                                     <?php
@@ -319,6 +319,12 @@ $page_first_result = ($page-1) * $results_per_page;
 
                                             <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
                                             <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
+                                            <td style="text-align: left; color: <?=$appointment_data->fields['APPOINTMENT_COLOR']?>">
+                                                <?=$appointment_data->fields['APPOINTMENT_STATUS']?>&nbsp;
+                                                <?php if ($appointment_data->fields['IS_CHARGED'] == 1) { ?>
+                                                    <i class="ti-money"></i>
+                                                <?php } ?>
+                                            </td>
                                             <!--<td style="text-align: center;">
                                                 <?php
 /*                                                if ($appointment_data->fields['CUSTOMER_NAME'] && $standing == 0) {
@@ -331,11 +337,6 @@ $page_first_result = ($page-1) * $results_per_page;
                                                     <?php /*}
                                                 } */?>
                                             </td>-->
-                                            <?php if($appointment_data->fields['IS_CHARGED']==0) { ?>
-                                            <td style="color: <?=$appointment_data->fields['APPOINTMENT_COLOR']?>"><?=$appointment_data->fields['APPOINTMENT_STATUS']?></td>
-                                            <?php } else { ?>
-                                            <td style="color: <?=$appointment_data->fields['APPOINTMENT_COLOR']?>"><?=$appointment_data->fields['APPOINTMENT_STATUS']." ($)"?></td>
-                                            <?php } ?>
                                             <td>
                                                 <?php /*if(empty($appointment_data->fields['ENROLLMENT_ID'])) { */?><!--
                                                     <a href="create_appointment.php?type=ad_hoc&id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
