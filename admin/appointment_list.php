@@ -355,7 +355,6 @@ $page_first_result = ($page-1) * $results_per_page;
                                                     <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)){ ?>
                                                     <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['STANDING_ID']?>, "standing");'><i class="fa fa-trash"></i></a>
                                                     <?php } ?>
-                                                <?php } ?>
                                             </td>
                                         </tr>
                                     <!--<tbody class="standing_list" style="display: none; background-color: #dee2e6;">
