@@ -4,15 +4,6 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5ee3cfc0-a8c9-404b-84fc-6b113c028dba" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/appointment_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/appointment_list.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/settings.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/settings.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/ajax/get_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/ajax/get_appointment_details.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/all_schedules.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/appointment_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/appointment_list.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/pagination/get_enrollment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/pagination/get_enrollment_details.php" afterDir="false" />
-    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
