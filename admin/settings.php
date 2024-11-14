@@ -59,6 +59,7 @@ $HOUR = $res->fields['HOUR'];
 $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
 $TIME_SLOT_INTERVAL = $res->fields['TIME_SLOT_INTERVAL'];
 
+$FRANCHISE = $res->fields['FRANCHISE'];
 $AM_USER_NAME = $res->fields['AM_USER_NAME'];
 $AM_PASSWORD = $res->fields['AM_PASSWORD'];
 $AM_REFRESH_TOKEN = $res->fields['AM_REFRESH_TOKEN'];
@@ -530,6 +531,7 @@ if ($header_data->RecordCount() > 0) {
                                                 </div>
                                             </div>
 
+                                            <?php if($FRANCHISE == 1) { ?>
                                             <div class="row smtp" id="smtp" >
                                                 <div class="form-group">
                                                     <label class="form-label">Arthur Murray API Setup</label>
@@ -553,6 +555,7 @@ if ($header_data->RecordCount() > 0) {
                                                     </div>
                                                 </div>
                                             </div>
+                                            <?php } ?>
 
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>

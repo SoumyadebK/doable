@@ -435,6 +435,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             <div class="col-2" id='external-events' style="display: none;">
                                 <a href="javascript:;" onclick="closeCopyPasteDiv()" style="float: right; font-size: 25px;">&times;</a>
                                 <h5>Copy OR Move Events</h5>
+                                <?php if(in_array('Calendar Move/Copy', $PERMISSION_ARRAY)){ ?>
                                 <p>
                                     <input type='radio' name="copy_move" id='drop-copy' checked/>
                                     <label for='drop-copy'>Copy</label>
@@ -442,6 +443,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                     <input type='radio' name="copy_move" id='drop-remove'/>
                                     <label for='drop-remove'>Move</label>
                                 </p>
+                                <?php } ?>
                             </div>
                         </div>
 
