@@ -4,6 +4,7 @@ global $db;
 global $db_account;
 global $master_database;
 global $results_per_page;
+global $upload_path;
 
 $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
 $PK_USER = !empty($_GET['pk_user']) ? $_GET['pk_user'] : 0;
@@ -102,7 +103,7 @@ while (!$row->EOF) {
                 <p><?=implode(' || ', $serviceMaster)?></p>
                 <p><?=date('m/d/Y', strtotime($row->fields['ENROLLMENT_DATE']))?></p>
                 <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                    <a href="../uploads/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
+                    <a href="../<?=$upload_path?>/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
                 <?php } ?>
                 <button class="btn btn-danger m-l-10 text-white" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'billing_details')" style="background-color: #f44336; margin-top: 20px">View Payment Schedule</button>
             </div>
