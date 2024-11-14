@@ -651,6 +651,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
  */
 function generatePdf($html): string
 {
+    global $upload_path;
     require_once('../../global/vendor/autoload.php');
 
     $mpdf = new Mpdf();
@@ -658,12 +659,12 @@ function generatePdf($html): string
     $mpdf->keep_table_proportions = true;
     $mpdf->AddPage();
 
-    if (!file_exists('../../uploads/'.$_SESSION['PK_ACCOUNT_MASTER'].'/enrollment_pdf/')) {
-        mkdir('../../uploads/'.$_SESSION['PK_ACCOUNT_MASTER'].'/enrollment_pdf/', 0777, true);
+    if (!file_exists('../../'.$upload_path.'/enrollment_pdf/')) {
+        mkdir('../../'.$upload_path.'/enrollment_pdf/', 0777, true);
     }
 
     $file_name = "enrollment_pdf_".time().".pdf";
-    $mpdf->Output('../../uploads/'.$_SESSION['PK_ACCOUNT_MASTER'].'/enrollment_pdf/'.$file_name, 'F');
+    $mpdf->Output('../../'.$upload_path.'/enrollment_pdf/'.$file_name, 'F');
 
     return $file_name;
 }
@@ -721,6 +722,7 @@ function generatePdf($html): string
 function saveProfileData($RESPONSE_DATA){
     global $db;
     global $db_account;
+    global $upload_path;
 
     $USER_DATA['PK_ACCOUNT_MASTER'] = $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
 
@@ -748,6 +750,10 @@ function saveProfileData($RESPONSE_DATA){
     }
 
     if($_FILES['USER_IMAGE']['name'] != ''){
+        if (!file_exists('../../'.$upload_path.'/user_image/')) {
+            mkdir('../../'.$upload_path.'/user_image/', 0777, true);
+        }
+
         $extn 			= explode(".",$_FILES['USER_IMAGE']['name']);
         $iindex			= count($extn) - 1;
         $rand_string 	= time()."-".rand(100000,999999);
@@ -755,9 +761,9 @@ function saveProfileData($RESPONSE_DATA){
         $extension   	= strtolower($extn[$iindex]);
 
         if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
-            $upload_path   = '../../uploads/user_image/'.$file11;
-            $image_path    = '../uploads/user_image/'.$file11;
-            move_uploaded_file($_FILES['USER_IMAGE']['tmp_name'], $upload_path);
+            $upload_dir   = '../../'.$upload_path.'/user_image/'.$file11;
+            $image_path    = '../'.$upload_path.'/user_image/'.$file11;
+            move_uploaded_file($_FILES['USER_IMAGE']['tmp_name'], $upload_dir);
             $USER_DATA['USER_IMAGE'] = $image_path;
         }
     }
@@ -1148,7 +1154,13 @@ function saveDocumentData($RESPONSE_DATA)
 {
     global $db;
     global $db_account;
+    global $upload_path;
+
     if (isset($RESPONSE_DATA['DOCUMENT_NAME'])){
+        if (!file_exists('../../'.$upload_path.'/user_doc/')) {
+            mkdir('../../'.$upload_path.'/user_doc/', 0777, true);
+        }
+
         $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
         for($i = 0; $i < count($RESPONSE_DATA['DOCUMENT_NAME']); $i++){
             $USER_DOCUMENT_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
@@ -1160,9 +1172,9 @@ function saveDocumentData($RESPONSE_DATA)
                 $file11			= 'user_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
                 $extension   	= strtolower($extn[$iindex]);
 
-                $upload_path    = '../../uploads/user_doc/'.$file11;
-                $image_path    = '../uploads/user_doc/'.$file11;
-                move_uploaded_file($_FILES['FILE_PATH']['tmp_name'][$i], $upload_path);
+                $upload_dir    = '../../'.$upload_path.'/user_doc/'.$file11;
+                $image_path    = '../'.$upload_path.'/user_doc/'.$file11;
+                move_uploaded_file($_FILES['FILE_PATH']['tmp_name'][$i], $upload_dir);
                 $USER_DOCUMENT_DATA['FILE_PATH'] = $image_path;
             } else {
                 $USER_DOCUMENT_DATA['FILE_PATH'] = $RESPONSE_DATA['FILE_PATH_URL'][$i];
@@ -1176,7 +1188,13 @@ function saveUserDocumentData($RESPONSE_DATA)
 {
     global $db;
     global $db_account;
+    global $upload_path;
+
     if (isset($RESPONSE_DATA['DOCUMENT_NAME'])){
+        if (!file_exists('../../'.$upload_path.'/user_doc/')) {
+            mkdir('../../'.$upload_path.'/user_doc/', 0777, true);
+        }
+
         $db_account->Execute("DELETE FROM `DOA_USER_DOCUMENT` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
         for($i = 0; $i < count($RESPONSE_DATA['DOCUMENT_NAME']); $i++){
             $USER_DOCUMENT_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
@@ -1188,9 +1206,9 @@ function saveUserDocumentData($RESPONSE_DATA)
                 $file11			= 'user_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
                 $extension   	= strtolower($extn[$iindex]);
 
-                $upload_path    = '../../uploads/user_doc/'.$file11;
-                $image_path    = '../uploads/user_doc/'.$file11;
-                move_uploaded_file($_FILES['FILE_PATH']['tmp_name'][$i], $upload_path);
+                $upload_dir    = '../../'.$upload_path.'/user_doc/'.$file11;
+                $image_path    = '../'.$upload_path.'/user_doc/'.$file11;
+                move_uploaded_file($_FILES['FILE_PATH']['tmp_name'][$i], $upload_dir);
                 $USER_DOCUMENT_DATA['FILE_PATH'] = $image_path;
             } else {
                 $USER_DOCUMENT_DATA['FILE_PATH'] = $RESPONSE_DATA['FILE_PATH_URL'][$i];

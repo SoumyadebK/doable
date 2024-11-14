@@ -3,6 +3,7 @@ require_once('../global/config.php');
 global $db;
 global $db_account;
 global $master_database;
+global $upload_path;
 
 $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 
@@ -41,6 +42,9 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAdhocAppo
         $_POST['CREATED_ON']  = date("Y-m-d H:i");
         db_perform_account('DOA_APPOINTMENT_MASTER', $_POST, 'insert');
     }else{
+        if (!file_exists('../'.$upload_path.'/appointment_image/')) {
+            mkdir('../'.$upload_path.'/appointment_image/', 0777, true);
+        }
         //$_POST['ACTIVE'] = $_POST['ACTIVE'];
         if($_FILES['IMAGE']['name'] != ''){
             $extn 			= explode(".",$_FILES['IMAGE']['name']);
@@ -50,7 +54,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAdhocAppo
             $extension   	= strtolower($extn[$iindex]);
 
             if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
-                $image_path    = '../uploads/appointment_image/'.$file11;
+                $image_path    = '../'.$upload_path.'/appointment_image/'.$file11;
                 move_uploaded_file($_FILES['IMAGE']['tmp_name'], $image_path);
                 $_POST['IMAGE'] = $image_path;
             }
@@ -164,6 +168,10 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     $GROUP_CLASS_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
     $GROUP_CLASS_DATA['COMMENT'] = $_POST['COMMENT'];
     $GROUP_CLASS_DATA['INTERNAL_COMMENT'] = $_POST['INTERNAL_COMMENT'];
+
+    if (!file_exists('../'.$upload_path.'/appointment_image/')) {
+        mkdir('../'.$upload_path.'/appointment_image/', 0777, true);
+    }
     if($_FILES['IMAGE']['name'] != ''){
         $extn 			= explode(".",$_FILES['IMAGE']['name']);
         $iindex			= count($extn) - 1;
@@ -172,10 +180,14 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         $extension   	= strtolower($extn[$iindex]);
 
         if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
-            $image_path    = '../uploads/appointment_image/'.$file11;
+            $image_path    = '../'.$upload_path.'/appointment_image/'.$file11;
             move_uploaded_file($_FILES['IMAGE']['tmp_name'], $image_path);
             $GROUP_CLASS_DATA['IMAGE'] = $image_path;
         }
+    }
+
+    if (!file_exists('../'.$upload_path.'/appointment_video/')) {
+        mkdir('../'.$upload_path.'/appointment_video/', 0777, true);
     }
     if($_FILES['VIDEO']['name'] != ''){
         $extn 			= explode(".",$_FILES['VIDEO']['name']);
@@ -185,7 +197,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         $extension   	= strtolower($extn[$iindex]);
 
         if($extension == "mp4" || $extension == "avi" || $extension == "mov" || $extension == "wmv") {
-            $video_path    = '../uploads/appointment_video/'.$file11;
+            $video_path    = '../'.$upload_path.'/appointment_video/'.$file11;
             move_uploaded_file($_FILES["VIDEO"]["tmp_name"], $video_path);
             $GROUP_CLASS_DATA['VIDEO'] = $video_path;
         }
@@ -278,6 +290,10 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData
             }
         }
 
+        if (!file_exists('../'.$upload_path.'/event_image/')) {
+            mkdir('../'.$upload_path.'/event_image/', 0777, true);
+        }
+
         $db_account->Execute("DELETE FROM `DOA_EVENT_IMAGE` WHERE `PK_EVENT` = '$PK_EVENT'");
         for($i = 0; $i < count($_FILES['IMAGE']['name']); $i++){
             $EVENT_IMAGE_DATA['PK_EVENT'] = $PK_EVENT;
@@ -288,7 +304,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData
                 $file11			= 'event_image_'.$PK_EVENT.'_'.$rand_string.".".$extn[$iindex];
                 $extension   	= strtolower($extn[$iindex]);
 
-                $image_path    = '../uploads/event_image/'.$file11;
+                $image_path    = '../'.$upload_path.'/event_image/'.$file11;
                 move_uploaded_file($_FILES['IMAGE']['tmp_name'][$i], $image_path);
                 $EVENT_IMAGE_DATA['IMAGE'] = $image_path;
             } else {

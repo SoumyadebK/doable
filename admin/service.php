@@ -3,6 +3,7 @@ require_once('../global/config.php');
 global $db;
 global $db_account;
 global $master_database;
+global $upload_path;
 
 if (empty($_GET['id']))
     $title = "Add Service";
@@ -16,6 +17,10 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 
 if(!empty($_POST)){
     if (isset($_POST['PK_LOCATION'])){
+        if (!file_exists('../'.$upload_path.'/service_document/')) {
+            mkdir('../'.$upload_path.'/service_document/', 0777, true);
+        }
+
         $res = $db_account->Execute("DELETE FROM `DOA_SERVICE_DOCUMENTS` WHERE PK_SERVICE_MASTER =  '$_GET[id]'");
         for($i = 0; $i < count($_POST['PK_LOCATION']); $i++){
             $SERVICE_DOCUMENT_DATA['PK_SERVICE_MASTER'] = $_GET['id'];
@@ -27,7 +32,7 @@ if(!empty($_POST)){
                 $file11			= 'service_document_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
                 $extension   	= strtolower($extn[$iindex]);
 
-                $image_path    = '../uploads/service_document/'.$file11;
+                $image_path    = '../'.$upload_path.'/service_document/'.$file11;
                 move_uploaded_file($_FILES['FILE_PATH']['tmp_name'][$i], $image_path);
                 $SERVICE_DOCUMENT_DATA['FILE_PATH'] = $image_path;
             } else {

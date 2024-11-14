@@ -6,6 +6,7 @@ use Stripe\StripeClient;
 require_once('../global/config.php');
 global $db;
 global $db_account;
+global $upload_path;
 
 if (empty($_GET['id']))
     $title = "Add Location";
@@ -155,6 +156,10 @@ if(!empty($_POST)){
         $LOCATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
 
         if ($_FILES['IMAGE_PATH']['name'] != '') {
+            if (!file_exists('../'.$upload_path.'/location_image/')) {
+                mkdir('../'.$upload_path.'/location_image/', 0777, true);
+            }
+
             $extn = explode(".", $_FILES['IMAGE_PATH']['name']);
             $iindex = count($extn) - 1;
             $rand_string = time() . "-" . rand(100000, 999999);
@@ -162,7 +167,7 @@ if(!empty($_POST)){
             $extension = strtolower($extn[$iindex]);
 
             if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-                $image_path = '../uploads/location_image/' . $file11;
+                $image_path = '../'.$upload_path.'/location_image/' . $file11;
                 move_uploaded_file($_FILES['IMAGE_PATH']['tmp_name'], $image_path);
                 $LOCATION_DATA['IMAGE_PATH'] = $image_path;
             }

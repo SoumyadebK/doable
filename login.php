@@ -57,6 +57,10 @@ if ($FUNCTION_NAME == 'loginFunction'){
                 }
                 $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
 
+                if (!file_exists('uploads/'.$_SESSION['PK_ACCOUNT_MASTER'])) {
+                    mkdir('uploads/'.$_SESSION['PK_ACCOUNT_MASTER'], 0777, true);
+                }
+
                 if ($_SESSION['PK_ROLES'] == 1) {
                     header("location: super_admin/all_accounts.php");
                 } elseif ($_SESSION['PK_ROLES'] == 2 || $_SESSION['PK_ROLES'] == 3) {

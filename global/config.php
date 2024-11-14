@@ -30,6 +30,7 @@ if (!empty($_SESSION['DB_NAME'])) {
 }
 
 $env = 'dev';
+$upload_path = '';
 
 if ($env === 'dev') {
     define("client_id", "5c896c023b775026fc5e3352_gcd6pouyir4s8c0cwg04ss0ck8s0gcgkoog4wcw00ko0ssksg");
@@ -69,6 +70,8 @@ if ($db->error_number){
         }else{
             $time_zone = 0;
         }
+
+        $upload_path = 'uploads/'.$_SESSION['PK_ACCOUNT_MASTER'];
 
         $PERMISSION_ARRAY = [];
         $permission_data = $db->Execute("SELECT DOA_PERMISSION.PERMISSION_NAME FROM DOA_PERMISSION LEFT JOIN DOA_ROLES_PERMISSION ON DOA_PERMISSION.PK_PERMISSION = DOA_ROLES_PERMISSION.PK_PERMISSION LEFT JOIN DOA_USER_ROLES ON DOA_ROLES_PERMISSION.PK_ROLES = DOA_USER_ROLES.PK_ROLES WHERE DOA_USER_ROLES.PK_USER = '$_SESSION[PK_USER]'");
