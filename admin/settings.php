@@ -67,10 +67,16 @@ $AM_REFRESH_TOKEN = $res->fields['AM_REFRESH_TOKEN'];
 $TEXTING_FEATURE_ENABLED = $res->fields['TEXTING_FEATURE_ENABLED'];
 $TWILIO_ACCOUNT_TYPE  = $res->fields['TWILIO_ACCOUNT_TYPE'];
 
+$SID = '';
+$TOKEN = '';
+$PHONE_NO = '';
+
 $text = $db->Execute( "SELECT * FROM `DOA_TEXT_SETTINGS` WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-$SID = $text->fields['SID'];
-$TOKEN = $text->fields['TOKEN'];
-$PHONE_NO = $text->fields['FROM_NO'];
+if ($text->RecordCount() > 0) {
+    $SID = $text->fields['SID'];
+    $TOKEN = $text->fields['TOKEN'];
+    $PHONE_NO = $text->fields['FROM_NO'];
+}
 
 $SMTP_HOST = '';
 $SMTP_PORT = '';
