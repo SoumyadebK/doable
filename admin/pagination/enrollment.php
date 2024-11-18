@@ -112,7 +112,7 @@ while (!$row->EOF) {
                 $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
             ?>
             <div class="col-8" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'appointment_details')" style="cursor: pointer;">
-                <table id="myTable" class="table <?=($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT']) ? 'table-success' : 'table-striped'?> border">
+                <table id="myTable" class="table <?=(($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) ? 'table-success' : 'table-striped'?> border">
                     <thead>
                         <tr>
                             <th></th>
@@ -177,7 +177,7 @@ while (!$row->EOF) {
                 </table>
             </div>
             <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
-            <?php if ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT']) { ?>
+            <?php if (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) { ?>
                     <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
             <?php } elseif ($row->fields['STATUS'] == 'C') { ?>
                     <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
