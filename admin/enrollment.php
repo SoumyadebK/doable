@@ -744,7 +744,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         <select class="form-control" required name="PK_DOCUMENT_LIBRARY" id="PK_DOCUMENT_LIBRARY">
                                                             <option value="">Select Agreement Template</option>
                                                             <?php
-                                                            $row = $db_account->Execute("SELECT PK_DOCUMENT_LIBRARY, DOCUMENT_NAME FROM DOA_DOCUMENT_LIBRARY WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY PK_DOCUMENT_LIBRARY");
+                                                            $row = $db_account->Execute("SELECT PK_DOCUMENT_LIBRARY, DOCUMENT_NAME FROM DOA_DOCUMENT_LIBRARY WHERE ACTIVE = 1 ORDER BY PK_DOCUMENT_LIBRARY");
                                                             while (!$row->EOF) { ?>
                                                                 <option value="<?php echo $row->fields['PK_DOCUMENT_LIBRARY'];?>" <?=($PK_DOCUMENT_LIBRARY == $row->fields['PK_DOCUMENT_LIBRARY'])?'selected':''?>><?=$row->fields['DOCUMENT_NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>

@@ -218,7 +218,9 @@ if(!empty($_GET['id'])) {
                                                                         <label class="form-label">Phone<span class="text-danger" id="phone_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
                                                                         <div class="col-md-12">
                                                                             <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
+                                                                            <div id="phone_result"></div>
                                                                         </div>
+                                                                        <span id="lblError" style="color: red"></span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-3">
@@ -226,7 +228,9 @@ if(!empty($_GET['id'])) {
                                                                         <label class="form-label">Email<span class="text-danger" id="email_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
                                                                         <div class="col-md-12">
                                                                             <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?=$EMAIL_ID?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
+                                                                            <div id="email_result"></div>
                                                                         </div>
+                                                                        <span id="lblError" style="color: red"></span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-2">
@@ -1066,33 +1070,71 @@ if(!empty($_GET['id'])) {
 
         $(document).on('submit', '#profile_form', function (event) {
             event.preventDefault();
-            let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: form_data,
-                processData: false,
-                contentType: false,
-                dataType: 'JSON',
-                success:function (data) {
-                    $('.PK_USER').val(data.PK_USER);
-                    $('.PK_CUSTOMER_DETAILS').val(data.PK_CUSTOMER_DETAILS);
-                    if (PK_USER == 0) {
-                        if ($('#CREATE_LOGIN').is(':checked')) {
-                            $('#login_info_tab_link')[0].click();
-                        }else {
-                            if ($('#PK_ROLES').val().indexOf('5') !== -1) {
-                                $('#rates_tab_link')[0].click();
-                            } else {
-                                $('#document_tab_link')[0].click();
+            const PHONE = $('#PHONE').val().trim();
+            const EMAIL_ID = $('#EMAIL_ID').val().trim();
+            if (PHONE != '') {
+                $.ajax({
+                    url: 'ajax/username_checker.php',
+                    type: 'post',
+                    data: { PHONE: PHONE },
+                    success: function (response) {
+                        if(response && PK_USER == 0) {
+                            $('#phone_result').html(response);
+                        } else {
+                            if (EMAIL_ID != '') {
+                                $.ajax({
+                                    url: 'ajax/username_checker.php',
+                                    type: 'post',
+                                    data: {EMAIL_ID: EMAIL_ID},
+                                    success: function (response) {
+                                        if(response && PK_USER == 0) {
+                                            $('#email_result').html(response);
+                                        } else {
+                                            let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
+                                            $.ajax({
+                                                url: "ajax/AjaxFunctions.php",
+                                                type: 'POST',
+                                                data: form_data,
+                                                processData: false,
+                                                contentType: false,
+                                                dataType: 'JSON',
+                                                success: function (data) {
+                                                    $('.PK_USER').val(data.PK_USER);
+                                                    $('.PK_CUSTOMER_DETAILS').val(data.PK_CUSTOMER_DETAILS);
+                                                    if (PK_USER == 0) {
+                                                        if ($('#CREATE_LOGIN').is(':checked')) {
+                                                            $('#login_info_tab_link')[0].click();
+                                                        } else {
+                                                            if ($('#PK_ROLES').val().indexOf('5') !== -1) {
+                                                                $('#rates_tab_link')[0].click();
+                                                            } else {
+                                                                $('#document_tab_link')[0].click();
+                                                            }
+                                                        }
+                                                    } else {
+                                                        window.location.href = 'all_users.php';
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }
+                                });
                             }
                         }
-                    }else{
-                        window.location.href='all_users.php';
                     }
-                }
-            });
+                });
+            }
         });
+
+        const phone = document.getElementById("PHONE");
+        if (phone.value !== "") {
+            phone.setAttribute("readonly", "readonly");
+        }
+
+        const email_id = document.getElementById("EMAIL_ID");
+        if (email_id.value !== "") {
+            email_id.setAttribute("readonly", "readonly");
+        }
 
         function goToLoginTab() {
             let PK_USER = $('.PK_USER').val();
