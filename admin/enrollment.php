@@ -59,7 +59,7 @@ $EXPIRY_DATE = '';
 $CHECK_NUMBER = '';
 $CHECK_DATE = '';
 $NOTE = '';
-$CHARGE_BY_SESSIONS = '';
+$CHARGE_TYPE = '';
 
 $PK_USER_MASTER = '';
 if(!empty($_GET['master_id_customer'])) {
@@ -85,7 +85,7 @@ if(!empty($_GET['id'])) {
     $ENROLLMENT_DATE = date('m/d/Y', strtotime($res->fields['ENROLLMENT_DATE']));
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $PK_PACKAGE = $res->fields['PK_PACKAGE'];
-    $CHARGE_BY_SESSIONS = $res->fields['CHARGE_BY_SESSIONS'];
+    $CHARGE_TYPE = $res->fields['CHARGE_TYPE'];
     $EXPIRY_DATE = new DateTime($res->fields['EXPIRY_DATE']);
     $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
     $PK_DOCUMENT_LIBRARY = $res->fields['PK_DOCUMENT_LIBRARY'];
@@ -474,12 +474,13 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 <?php
                                                 $payment_gateway_type = $db->Execute("SELECT PAYMENT_GATEWAY_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
                                                 if ($payment_gateway_type->RecordCount() > 0) { ?>
-                                                    <div class="col-4">
-                                                        <label class="col-md-12 "><input type="checkbox" id="CHARGE_BY_SESSIONS" name="CHARGE_BY_SESSIONS" class="form-check-inline" value="1" <?=($CHARGE_BY_SESSIONS == 1)?'checked':''?> style="margin-top: 30px; margin-left: 35%" onchange="chargeBySessions(this);"> Charge by sessions</label>
+                                                    <div class="col-4 m-t-15">
+                                                        <label class="m-l-40" for="Session"><input type="checkbox" id="Session" name="CHARGE_TYPE" class="form-check-inline" value="Session" <?=($CHARGE_TYPE == 'Session')?'checked':''?> onchange="chargeBySessions(this);">Charge by sessions</label>
+                                                        <label class="m-l-40" for="Membership"><input type="checkbox" id="Membership" name="CHARGE_TYPE" class="form-check-inline" value="Membership" <?=($CHARGE_TYPE == 'Membership')?'checked':''?> onchange="chargeBySessions(this);">Membership</label>
                                                     </div>
                                                 <?php } ?>
                                                 <div class="col-4">
-                                                    <div class="form-group">
+                                                    <div class="form-group session_base">
                                                         <label class="form-label">Expiration Date</label>
                                                         <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
                                                             <option value="">Select Expiration Date</option>
@@ -488,6 +489,16 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                             <option value="3" <?=($months == 3)?'selected':''?>>90 days</option>
                                                             <option value="6" <?=($months == 6)?'selected':''?>>180 days</option>
                                                             <option value="12" <?=($months == 12)?'selected':''?>>365 days</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="form-group member_base" style="display: none;">
+                                                        <label class="form-label">Auto Renewal</label>
+                                                        <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
+                                                            <option value="">Select Auto Renewal</option>
+                                                            <option value="1" <?=($months == 1)?'selected':''?>>1st of every month</option>
+                                                            <option value="2" <?=($months == 2)?'selected':''?>>15th of every month</option>
+                                                            <option value="3" <?=($months == 3)?'selected':''?>>Same as created date</option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -706,7 +717,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
                                             <div class="row add_more <?=($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : ''?>">
                                                 <div class="col-12">
-                                                    <div class="form-group" style="float: right; display: <?=$CHARGE_BY_SESSIONS==1 ? 'none' : ''?>">
+                                                    <div class="form-group" style="float: right; display: <?=$CHARGE_TYPE==1 ? 'none' : ''?>">
                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServices();">Add More</a>
                                                     </div>
                                                 </div>
@@ -1692,8 +1703,18 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
     }
 
     function chargeBySessions(param) {
-        if ($(param).is(':checked')){
-            $('.add_more').hide();
+        if ($(param).is(':checked') && ($(param).val() === 'Session' || $(param).val() === 'Membership')) {
+            if ($(param).val() === 'Session') {
+                $('#Membership').prop('checked', false);
+                $('.add_more').hide();
+                $('.session_base').show();
+                $('.member_base').hide();
+            } else {
+                $('#Session').prop('checked', false);
+                $('.add_more').show();
+                $('.session_base').hide();
+                $('.member_base').show();
+            }
             $('#BILLING_DATE').prop('readonly', true).css("pointer-events","none");
             $('.one_time').show();
             $('.payment_plans').hide();
@@ -1704,7 +1725,10 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
             $('.partial_payment').hide();
             $('.ENROLLMENT_PAYMENT_TYPE').val(1).css('pointer-events','none').trigger('change');
             $('#save_card_on_file_div').show();
-        }else {
+        } else {
+            $('.session_base').show();
+            $('.member_base').hide();
+
             $('.add_more').show();
             $('#BILLING_DATE').prop('readonly', false).css("pointer-events","auto");
             $('.one_time').show();
