@@ -151,9 +151,9 @@ $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
 $SECRET_KEY = $account_data->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
 
-$ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
-$APP_ID = $account_data->fields['APP_ID'];
-$LOCATION_ID = $account_data->fields['LOCATION_ID'];
+$SQUARE_ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
+$SQUARE_APP_ID = $account_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 ?>
 
 <!DOCTYPE html>
@@ -1238,11 +1238,15 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                             if ($payment_details->fields['TYPE'] == 'Payment' && $payment_details->fields['IS_REFUNDED'] == 0) {
                                                                 $balance -= $payment_details->fields['AMOUNT'];
                                                             }
+
                                                             if ($payment_details->fields['TYPE'] == 'Move') {
                                                                 $payment_type = 'Wallet';
-                                                            } elseif ($payment_details->fields['PK_PAYMENT_TYPE']=='2') {
+                                                            } elseif ($payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
                                                                 $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
                                                                 $payment_type = $payment_details->fields['PAYMENT_TYPE']." : ".((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                                                            } elseif (in_array($payment_details->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
+                                                                $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
+                                                                $payment_type = $payment_details->fields['PAYMENT_TYPE']." # ".((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
                                                             } elseif ($payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
                                                                 $receipt_number_array = explode(',', $payment_details->fields['RECEIPT_NUMBER']);
                                                                 $payment_type_array = [];
@@ -1256,7 +1260,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                                     }
                                                                 }
                                                                 $payment_type = implode(', ', $payment_type_array);
-                                                            } else {
+                                                            } else{
                                                                 $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                                                             } ?>
                                                             <tr style="color: <?=($payment_details->fields['IS_PAID'] == 2) ? 'green' : ''?>">

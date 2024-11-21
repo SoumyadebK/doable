@@ -57,11 +57,9 @@ $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
 $SECRET_KEY = $account_data->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
 
-
-
-$ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
-$APP_ID = $account_data->fields['APP_ID'];
-$LOCATION_ID = $account_data->fields['LOCATION_ID'];
+$SQUARE_ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
+$SQUARE_APP_ID = $account_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
 $card_details = '';
 

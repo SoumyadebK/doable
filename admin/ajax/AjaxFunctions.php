@@ -1766,19 +1766,29 @@ function saveMultiAppointmentData($RESPONSE_DATA){
             }
 
             $APPOINTMENT_DATA['STANDING_ID'] = $standing_id;
-            $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-            $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
+            /*$APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;*/
             $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
             $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
             $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
             $APPOINTMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
             $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
             $APPOINTMENT_DATA['ACTIVE'] = 1;
-            $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+            //$APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
             $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
-            for ($i = 0; $i < $SESSION_WILL_CREATE; $i++) {
+            for ($i = 0; $i < count($APPOINTMENT_DATE_ARRAY); $i++) {
+                if ($i < $SESSION_WILL_CREATE) {
+                    $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                    $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
+                    $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+                } else {
+                    $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+                    $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
+                    $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
+                }
+
                 $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
                 $APPOINTMENT_DATA['DATE'] = $APPOINTMENT_DATE_ARRAY[$i];
                 $APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));

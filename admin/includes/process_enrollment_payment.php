@@ -1,5 +1,9 @@
 <?php
 use Mpdf\Mpdf;
+use Square\Environment;
+use Square\Models\CreatePaymentRequest;
+use Square\Models\Money;
+use Square\SquareClient;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
 use Stripe\StripeClient;
@@ -15,6 +19,10 @@ $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOU
 $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
 $SECRET_KEY = $account_data->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
+
+$SQUARE_ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
+$SQUARE_APP_ID = $account_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
 /*$SQUARE_MODE 			= 2;
 if ($SQUARE_MODE == 1)
@@ -120,22 +128,23 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             }
 
         }
+
         elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
-
-            require_once("../global/vendor/autoload.php");
-
-            $AMOUNT = $_POST['AMOUNT'];
+            $sourceId = $_POST['sourceId'];
+            require_once("../../global/vendor/autoload.php");
 
             $client = new SquareClient([
-                'accessToken' => $ACCESS_TOKEN,
+                'accessToken' => $SQUARE_ACCESS_TOKEN,
                 'environment' => Environment::SANDBOX,
             ]);
 
-            $user_payment_info_data = $db->Execute("SELECT $account_database.DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM $account_database.DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER=$account_database.DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Square' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-            if ($user_payment_info_data->RecordCount() > 0) {
-                $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
+            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = ".$user_master->fields['PK_USER']);
+
+            if ($customer_payment_info->RecordCount() > 0) {
+                $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
             } else {
-                $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+                $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
 
                 $address = new \Square\Models\Address();
                 $address->setAddressLine1('500 Electric Ave');
@@ -169,7 +178,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
             }
 
-            $card = new \Square\Models\Card();
+            /*$card = new \Square\Models\Card();
             $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
             //$card->setBillingAddress($billing_address);
             $card->setCustomerId($CUSTOMER_PAYMENT_ID);
@@ -177,18 +186,39 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
             $body = new \Square\Models\CreateCardRequest(
                 uniqid(),
-                $_POST['sourceId'],
+                $sourceId,
                 $card
             );
 
-            $api_response = $client->getCardsApi()->createCard($body);
+            $api_response = $client->getCardsApi()->createCard($body);*/
 
-            if ($api_response->isSuccess()) {
-                $result = $api_response->getResult();
-            } else {
-                $errors = $api_response->getErrors();
+
+            // Create a money object (amount in cents)
+            $money = new Money();
+            $money->setAmount($AMOUNT_TO_PAY * 100);  // amount in cents
+            $money->setCurrency('USD'); // Currency type (USD, EUR, etc.)
+
+            // Create the payment request
+            $paymentRequest = new CreatePaymentRequest($sourceId, uniqid(), $money);
+
+            // Create payment using the Square API
+            $paymentsApi = $client->getPaymentsApi();
+            try {
+                $response = $paymentsApi->createPayment($paymentRequest);
+                if ($response->isSuccess()) {
+                    $paymentId = $response->getResult()->getPayment()->getId();
+                    $last4Digits = $response->getResult()->getPayment()->getCardDetails()->getCard()->getLast4();
+                    $PAYMENT_STATUS = 'Success';
+                    $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $paymentId, 'LAST4' => $last4Digits];
+                    $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                } else {
+                    $PAYMENT_STATUS = 'Failed';
+                    $PAYMENT_INFO = $response->getErrors()[0]->getDetail();
+                }
+            } catch (\Square\Exceptions\ApiException $e) {
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
             }
-
         }
         elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
 
