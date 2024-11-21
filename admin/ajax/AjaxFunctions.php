@@ -279,9 +279,31 @@ function saveEnrollmentData($RESPONSE_DATA){
     $ENROLLMENT_MASTER_DATA['PK_PACKAGE'] = ($RESPONSE_DATA['PK_PACKAGE'] == '') ? 0 : $RESPONSE_DATA['PK_PACKAGE'];
     $ENROLLMENT_MASTER_DATA['PK_LOCATION'] = $RESPONSE_DATA['PK_LOCATION'];
     $ENROLLMENT_MASTER_DATA['CHARGE_TYPE'] = empty($RESPONSE_DATA['CHARGE_TYPE']) ? 0 : $RESPONSE_DATA['CHARGE_TYPE'];
-    $currentDate = new DateTime();
-    $currentDate->modify('+'.$RESPONSE_DATA['EXPIRY_DATE'].' month');
-    $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $currentDate->format('Y-m-d H:i');
+
+    if($RESPONSE_DATA['CHARGE_TYPE'] == 'Session') {
+        $currentDate = new DateTime();
+        $currentDate->modify('+'.$RESPONSE_DATA['EXPIRY_DATE'].' month');
+        $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $currentDate->format('Y-m-d H:i');
+    } else {
+        $selectedOption = $RESPONSE_DATA['EXPIRY_DATE'];
+        $currentDate = new DateTime();
+        if ($selectedOption == '0') {
+            $renewalDate = clone $currentDate;
+            $renewalDate->modify('+1 month');
+        } elseif ($selectedOption == '1') {
+            $renewalDate = new DateTime($currentDate->format('Y-m-01'));
+            if ($currentDate > $renewalDate) {
+                $renewalDate->modify('+1 month');
+            }
+        } elseif ($selectedOption == '15') {
+            $renewalDate = new DateTime($currentDate->format('Y-m-15'));
+            if ($currentDate > $renewalDate) {
+                $renewalDate->modify('+1 month');
+            }
+        }
+        $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $renewalDate->format('Y-m-d H:i');
+    }
+
     //$ENROLLMENT_MASTER_DATA['PK_AGREEMENT_TYPE'] = $RESPONSE_DATA['PK_AGREEMENT_TYPE'];
     $ENROLLMENT_MASTER_DATA['PK_DOCUMENT_LIBRARY'] = $RESPONSE_DATA['PK_DOCUMENT_LIBRARY'];
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_ID'] = $RESPONSE_DATA['ENROLLMENT_BY_ID'];
@@ -353,8 +375,8 @@ function saveEnrollmentData($RESPONSE_DATA){
             $ENROLLMENT_SERVICE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'][$i];
             $ENROLLMENT_SERVICE_DATA['PK_SERVICE_CODE'] = $RESPONSE_DATA['PK_SERVICE_CODE'][$i];
             $ENROLLMENT_SERVICE_DATA['SERVICE_DETAILS'] = $RESPONSE_DATA['SERVICE_DETAILS'][$i];
-            $ENROLLMENT_SERVICE_DATA['NUMBER_OF_SESSION'] = $RESPONSE_DATA['NUMBER_OF_SESSION'][$i];
-            $ENROLLMENT_SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
+            $ENROLLMENT_SERVICE_DATA['NUMBER_OF_SESSION'] = ($RESPONSE_DATA['CHARGE_TYPE'] == 'Membership') ? 0 : $RESPONSE_DATA['NUMBER_OF_SESSION'][$i];
+            $ENROLLMENT_SERVICE_DATA['PRICE_PER_SESSION'] = ($RESPONSE_DATA['CHARGE_TYPE'] == 'Membership') ? 0 : $PRICE_PER_SESSION;
             $ENROLLMENT_SERVICE_DATA['TOTAL'] = $RESPONSE_DATA['TOTAL'][$i];
             $ENROLLMENT_SERVICE_DATA['DISCOUNT_TYPE'] = empty($RESPONSE_DATA['DISCOUNT_TYPE'][$i]) ? 0 : $RESPONSE_DATA['DISCOUNT_TYPE'][$i];
             $ENROLLMENT_SERVICE_DATA['DISCOUNT'] = empty($RESPONSE_DATA['DISCOUNT'][$i]) ? 0 : $RESPONSE_DATA['DISCOUNT'][$i];

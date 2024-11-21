@@ -59,7 +59,7 @@ $EXPIRY_DATE = '';
 $CHECK_NUMBER = '';
 $CHECK_DATE = '';
 $NOTE = '';
-$CHARGE_TYPE = '';
+$CHARGE_TYPE = 'Session';
 
 $PK_USER_MASTER = '';
 if(!empty($_GET['master_id_customer'])) {
@@ -72,7 +72,8 @@ if(!empty($_GET['master_id_customer'])) {
     }
 }
 
- $months = '';
+$months = '';
+$day = '';
 if(!empty($_GET['id'])) {
     $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
     if($res->RecordCount() == 0){
@@ -94,9 +95,12 @@ if(!empty($_GET['id'])) {
     $ENROLLMENT_BY_PERCENTAGE = $res->fields['ENROLLMENT_BY_PERCENTAGE'];
     $MEMO = $res->fields['MEMO'];
     $ACTIVE = $res->fields['ACTIVE'];
+
     $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
     $interval = $EXPIRY_DATE->diff($CREATED_ON);
     $months = intval($interval->days/30);
+
+    $day = $EXPIRY_DATE->format('d');
 
     $billing_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
     if($billing_data->RecordCount() > 0){
@@ -480,7 +484,7 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                     </div>
                                                 <?php } ?>
                                                 <div class="col-4">
-                                                    <div class="form-group session_base">
+                                                    <div class="form-group session_base" style="display: <?php echo ($CHARGE_TYPE == 'Session') ? ' ' : 'none'?>">
                                                         <label class="form-label">Expiration Date</label>
                                                         <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
                                                             <option value="">Select Expiration Date</option>
@@ -492,13 +496,13 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         </select>
                                                     </div>
 
-                                                    <div class="form-group member_base" style="display: none;">
+                                                    <div class="form-group member_base" style="display: <?php echo ($CHARGE_TYPE == 'Membership') ? ' ' : 'none'?>">
                                                         <label class="form-label">Auto Renewal</label>
                                                         <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
                                                             <option value="">Select Auto Renewal</option>
-                                                            <option value="1" <?=($months == 1)?'selected':''?>>1st of every month</option>
-                                                            <option value="2" <?=($months == 2)?'selected':''?>>15th of every month</option>
-                                                            <option value="3" <?=($months == 3)?'selected':''?>>Same as created date</option>
+                                                            <option value="1" <?=($day == 1)?'selected':''?>>1st of every month</option>
+                                                            <option value="15" <?=($day == 15)?'selected':''?>>15th of every month</option>
+                                                            <option value="0" <?=($day != 1 && $day != 15 )?'selected':''?>>Same as created date</option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -1706,11 +1710,21 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
         if ($(param).is(':checked') && ($(param).val() === 'Session' || $(param).val() === 'Membership')) {
             if ($(param).val() === 'Session') {
                 $('#Membership').prop('checked', false);
+                $('.NUMBER_OF_SESSION').prop('readonly', false);
+                $('.NUMBER_OF_SESSION').val('').css('pointer-events','none').trigger('change');
+                $('.PRICE_PER_SESSION').prop('readonly', false);
+                $('.PRICE_PER_SESSION').val('').css('pointer-events','none').trigger('change');
+                $('.TOTAL').prop('readonly', true);
                 $('.add_more').hide();
                 $('.session_base').show();
                 $('.member_base').hide();
             } else {
                 $('#Session').prop('checked', false);
+                $('.NUMBER_OF_SESSION').prop('readonly', true);
+                $('.NUMBER_OF_SESSION').val('XX').css('pointer-events','none').trigger('change');
+                $('.PRICE_PER_SESSION').prop('readonly', true);
+                $('.PRICE_PER_SESSION').val('XX').css('pointer-events','none').trigger('change');
+                $('.TOTAL').prop('readonly', false);
                 $('.add_more').show();
                 $('.session_base').hide();
                 $('.member_base').show();
