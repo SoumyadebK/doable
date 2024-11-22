@@ -8,13 +8,21 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 $title = "All Products";
 
+$status_check = empty($_GET['status'])?'active':$_GET['status'];
+
+if ($status_check == 'active'){
+    $status = 1;
+} elseif ($status_check == 'inactive') {
+    $status = 0;
+}
+
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
     header("location:../login.php");
     exit;
 }
 
 $header_text = '';
-$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Services page'");
+$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Products Page'");
 if ($header_data->RecordCount() > 0) {
     $header_text = $header_data->fields['HEADER_TEXT'];
 }
@@ -34,10 +42,19 @@ if ($header_data->RecordCount() > 0) {
         <?php require_once('../includes/setup_menu.php') ?>
         <div class="container-fluid body_content m-0">
             <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
+                <div class="col-md-4 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
+                <?php if ($status_check=='inactive') { ?>
+                    <div class="col-md-3 align-self-center">
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_products.php?status=active'"><i class="fa fa-user"></i> Show Active</button>
+                    </div>
+                <?php } elseif ($status_check=='active') { ?>
+                    <div class="col-md-3 align-self-center">
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_products.php?status=inactive'"><i class="fa fa-user-times"></i> Show Not Active</button>
+                    </div>
+                <?php } ?>
+                <div class="col-md-5 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
@@ -58,34 +75,31 @@ if ($header_data->RecordCount() > 0) {
                                 <table id="myTable" class="table table-striped border" data-page-length="50">
                                     <thead>
                                     <tr>
-                                        <th>No</th>
-                                        <th>Service Name</th>
-                                        <th>Description</th>
-                                        <th>Upload Documents</th>
-                                        <th>Actions</th>
+                                        <th>Product ID</th>
+                                        <th>Product Name</th>
+                                        <th>Product Description</th>
+                                        <th>Price</th>
+                                        <th>Shipping Information</th>
+                                        <th>Action</th>
                                     </tr>
                                     </thead>
 
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.") AND IS_DELETED = 0");
+                                    $row = $db_account->Execute("SELECT * FROM DOA_PRODUCT WHERE IS_DELETED = 0 AND ACTIVE = '$status' ORDER BY PRODUCT_NAME ASC");
                                     while (!$row->EOF) { ?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_SERVICE_MASTER']?>);"><?=$i;?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_SERVICE_MASTER']?>);"><?=$row->fields['SERVICE_NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_SERVICE_MASTER']?>);"><?=$row->fields['DESCRIPTION']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_SERVICE_MASTER']?>);">
-                                                <?php
-                                                $doc_row = $db_account->Execute("SELECT PK_SERVICE_DOCUMENTS FROM `DOA_SERVICE_DOCUMENTS` WHERE PK_SERVICE_MASTER = ".$row->fields['PK_SERVICE_MASTER']);
-                                                $doc_count = $doc_row->RecordCount();
-                                                ?>
-                                                <i class="fas fa-upload"></i> (<?=$doc_count;?>)
+                                            <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRODUCT_ID']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRODUCT_NAME']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRODUCT_DESCRIPTION']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRICE']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['SHIPPING_INFORMATION']?></td>
                                             </td>
 
                                             <td>
-                                                <a href="service.php?id=<?=$row->fields['PK_SERVICE_MASTER']?>"><i class="fa fa-edit" title="Edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="all_services.php?type=del&id=<?=$row->fields['PK_SERVICE_MASTER']?>" onclick='ConfirmDelete(<?=$row->fields['PK_SERVICE_MASTER']?>);'><i class="fa fa-trash" title="Delete"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="product.php?id=<?=$row->fields['PK_PRODUCT']?>"><i class="fa fa-edit" title="Edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="all_products.php?type=del&id=<?=$row->fields['PK_PRODUCT']?>" onclick='ConfirmDelete(<?=$row->fields['PK_PRODUCT']?>);'><i class="fa fa-trash" title="Delete"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
@@ -111,22 +125,22 @@ if ($header_data->RecordCount() > 0) {
     $(function () {
         $('#myTable').DataTable();
     });
-    function ConfirmDelete(PK_SERVICE_MASTER)
+    function ConfirmDelete(PK_PRODUCT)
     {
         var conf = confirm("Are you sure you want to delete?");
         if(conf) {
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
-                data: {FUNCTION_NAME: 'deleteServiceData', PK_SERVICE_MASTER: PK_SERVICE_MASTER},
+                data: {FUNCTION_NAME: 'deleteProductData', PK_PRODUCT: PK_PRODUCT},
                 success: function (data) {
-                    window.location.href = `all_services.php`;
+                    window.location.href = `all_products.php`;
                 }
             });
         }
     }
     function editpage(id){
-        window.location.href = "service.php?id="+id;
+        window.location.href = "product.php?id="+id;
     }
 </script>
 </body>
