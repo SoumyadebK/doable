@@ -1907,6 +1907,13 @@ function deletePackageData($RESPONSE_DATA) {
     echo 1;
 }
 
+function deleteProductData($RESPONSE_DATA) {
+    global $db_account;
+    $PK_PRODUCT = $RESPONSE_DATA['PK_PRODUCT'];
+    $product_data = $db_account->Execute("UPDATE `DOA_PRODUCT` SET IS_DELETED=1 WHERE `PK_PRODUCT` = ".$PK_PRODUCT);
+    echo 1;
+}
+
 function deleteLocationData($RESPONSE_DATA) {
     global $db;
     $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
