@@ -59,7 +59,7 @@ $EXPIRY_DATE = '';
 $CHECK_NUMBER = '';
 $CHECK_DATE = '';
 $NOTE = '';
-$CHARGE_TYPE = '';
+$CHARGE_TYPE = 'Session';
 
 $PK_USER_MASTER = '';
 if(!empty($_GET['master_id_customer'])) {
@@ -72,7 +72,8 @@ if(!empty($_GET['master_id_customer'])) {
     }
 }
 
- $months = '';
+$months = '';
+$day = '';
 if(!empty($_GET['id'])) {
     $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
     if($res->RecordCount() == 0){
@@ -94,9 +95,12 @@ if(!empty($_GET['id'])) {
     $ENROLLMENT_BY_PERCENTAGE = $res->fields['ENROLLMENT_BY_PERCENTAGE'];
     $MEMO = $res->fields['MEMO'];
     $ACTIVE = $res->fields['ACTIVE'];
+
     $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
     $interval = $EXPIRY_DATE->diff($CREATED_ON);
     $months = intval($interval->days/30);
+
+    $day = $EXPIRY_DATE->format('d');
 
     $billing_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
     if($billing_data->RecordCount() > 0){
@@ -475,12 +479,12 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 $payment_gateway_type = $db->Execute("SELECT PAYMENT_GATEWAY_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
                                                 if ($payment_gateway_type->RecordCount() > 0) { ?>
                                                     <div class="col-4 m-t-15">
-                                                        <label class="m-l-40" for="Session"><input type="checkbox" id="Session" name="CHARGE_TYPE" class="form-check-inline" value="Session" <?=($CHARGE_TYPE == 'Session')?'checked':''?> onchange="chargeBySessions(this);">Charge by sessions</label>
-                                                        <label class="m-l-40" for="Membership"><input type="checkbox" id="Membership" name="CHARGE_TYPE" class="form-check-inline" value="Membership" <?=($CHARGE_TYPE == 'Membership')?'checked':''?> onchange="chargeBySessions(this);">Membership</label>
+                                                        <label class="m-l-40" for="Session"><input type="checkbox" id="Session" name="CHARGE_TYPE" class="form-check-inline charge_type" value="Session" <?=($CHARGE_TYPE == 'Session')?'checked':''?> onchange="chargeBySessions(this);">Charge by sessions</label>
+                                                        <label class="m-l-40" for="Membership"><input type="checkbox" id="Membership" name="CHARGE_TYPE" class="form-check-inline charge_type" value="Membership" <?=($CHARGE_TYPE == 'Membership')?'checked':''?> onchange="chargeBySessions(this);">Membership</label>
                                                     </div>
                                                 <?php } ?>
                                                 <div class="col-4">
-                                                    <div class="form-group session_base">
+                                                    <div class="form-group session_base" style="display: <?php echo ($CHARGE_TYPE == 'Session') ? ' ' : 'none'?>">
                                                         <label class="form-label">Expiration Date</label>
                                                         <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
                                                             <option value="">Select Expiration Date</option>
@@ -492,13 +496,13 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         </select>
                                                     </div>
 
-                                                    <div class="form-group member_base" style="display: none;">
+                                                    <div class="form-group member_base" style="display: <?php echo ($CHARGE_TYPE == 'Membership') ? ' ' : 'none'?>">
                                                         <label class="form-label">Auto Renewal</label>
                                                         <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
                                                             <option value="">Select Auto Renewal</option>
-                                                            <option value="1" <?=($months == 1)?'selected':''?>>1st of every month</option>
-                                                            <option value="2" <?=($months == 2)?'selected':''?>>15th of every month</option>
-                                                            <option value="3" <?=($months == 3)?'selected':''?>>Same as created date</option>
+                                                            <option value="1" <?=($day == 1)?'selected':''?>>1st of every month</option>
+                                                            <option value="15" <?=($day == 15)?'selected':''?>>15th of every month</option>
+                                                            <option value="0" <?=($day != 1 && $day != 15 )?'selected':''?>>Same as created date</option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -1542,6 +1546,18 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
     }
 
     function addMoreServices() {
+        let charge_type = $('.charge_type:checked').val();
+        if (charge_type === 'Membership') {
+            var value = "XX";
+            var type = "readonly";
+            var total = "";
+        } else {
+            var value = "";
+            var type = "";
+            var total = "readonly";
+        }
+
+
         $('#append_service_div').append(`<div class="row individual_service_div">
                                             <div class="col-2">
                                                 <div class="form-group">
@@ -1569,17 +1585,17 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)">
+                                                    <input type="text" class="form-control NUMBER_OF_SESSION" value="${value}" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" ${type}>
                                                 </div>
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);">
+                                                    <input type="text" class="form-control PRICE_PER_SESSION" value="${value}" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);" ${type}>
                                                 </div>
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control TOTAL" name="TOTAL[]" readonly>
+                                                    <input type="text" class="form-control TOTAL" name="TOTAL[]" ${total}>
                                                 </div>
                                             </div>
                                             <div class="col-1">
@@ -1657,8 +1673,14 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
         let service_details = $(param).find(':selected').data('details');
         let price = $(param).find(':selected').data('price');
 
-        $(param).closest('.row').find('.SERVICE_DETAILS').val(service_details);
-        $(param).closest('.row').find('.PRICE_PER_SESSION').val(price);
+        let charge_type = $('.charge_type:checked').val();
+        if (charge_type === 'Membership') {
+            $(param).closest('.row').find('.SERVICE_DETAILS').val(service_details);
+            $(param).closest('.row').find('.PRICE_PER_SESSION').val("XX");
+        } else {
+            $(param).closest('.row').find('.SERVICE_DETAILS').val(service_details);
+            $(param).closest('.row').find('.PRICE_PER_SESSION').val(price);
+        }
 
         calculateServiceTotal(param);
     }
@@ -1710,11 +1732,21 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
         if ($(param).is(':checked') && ($(param).val() === 'Session' || $(param).val() === 'Membership')) {
             if ($(param).val() === 'Session') {
                 $('#Membership').prop('checked', false);
+                $('.NUMBER_OF_SESSION').prop('readonly', false);
+                $('.NUMBER_OF_SESSION').val('').css('pointer-events','none').trigger('change');
+                $('.PRICE_PER_SESSION').prop('readonly', false);
+                $('.PRICE_PER_SESSION').val('').css('pointer-events','none').trigger('change');
+                $('.TOTAL').prop('readonly', true);
                 $('.add_more').hide();
                 $('.session_base').show();
                 $('.member_base').hide();
             } else {
                 $('#Session').prop('checked', false);
+                $('.NUMBER_OF_SESSION').prop('readonly', true);
+                $('.NUMBER_OF_SESSION').val('XX').css('pointer-events','none').trigger('change');
+                $('.PRICE_PER_SESSION').prop('readonly', true);
+                $('.PRICE_PER_SESSION').val('XX').css('pointer-events','none').trigger('change');
+                $('.TOTAL').prop('readonly', false);
                 $('.add_more').show();
                 $('.session_base').hide();
                 $('.member_base').show();
@@ -1748,8 +1780,15 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
     }
 
     function calculateServiceTotal(param) {
-        let number_of_session = ($(param).closest('.row').find('.NUMBER_OF_SESSION').val() == '') ? 0 : $(param).closest('.row').find('.NUMBER_OF_SESSION').val();
-        let service_price = ($(param).closest('.row').find('.PRICE_PER_SESSION').val()) ?? 0;
+        let charge_type = $('.charge_type:checked').val();
+        if (charge_type === 'Membership') {
+            var number_of_session = 0;
+            var service_price = 0;
+            
+        }else {
+            var number_of_session = ($(param).closest('.row').find('.NUMBER_OF_SESSION').val() == '') ? 0 : $(param).closest('.row').find('.NUMBER_OF_SESSION').val();
+            var service_price = ($(param).closest('.row').find('.PRICE_PER_SESSION').val()) ?? 0;
+        }
         let TOTAL = parseFloat(number_of_session) * parseFloat(service_price);
 
         $(param).closest('.row').find('.TOTAL').val(parseFloat(TOTAL).toFixed(2));
