@@ -479,8 +479,8 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 $payment_gateway_type = $db->Execute("SELECT PAYMENT_GATEWAY_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']);
                                                 if ($payment_gateway_type->RecordCount() > 0) { ?>
                                                     <div class="col-4 m-t-15">
-                                                        <label class="m-l-40" for="Session"><input type="checkbox" id="Session" name="CHARGE_TYPE" class="form-check-inline" value="Session" <?=($CHARGE_TYPE == 'Session')?'checked':''?> onchange="chargeBySessions(this);">Charge by sessions</label>
-                                                        <label class="m-l-40" for="Membership"><input type="checkbox" id="Membership" name="CHARGE_TYPE" class="form-check-inline" value="Membership" <?=($CHARGE_TYPE == 'Membership')?'checked':''?> onchange="chargeBySessions(this);">Membership</label>
+                                                        <label class="m-l-40" for="Session"><input type="checkbox" id="Session" name="CHARGE_TYPE" class="form-check-inline charge_type" value="Session" <?=($CHARGE_TYPE == 'Session')?'checked':''?> onchange="chargeBySessions(this);">Charge by sessions</label>
+                                                        <label class="m-l-40" for="Membership"><input type="checkbox" id="Membership" name="CHARGE_TYPE" class="form-check-inline charge_type" value="Membership" <?=($CHARGE_TYPE == 'Membership')?'checked':''?> onchange="chargeBySessions(this);">Membership</label>
                                                     </div>
                                                 <?php } ?>
                                                 <div class="col-4">
@@ -1542,6 +1542,18 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
     }
 
     function addMoreServices() {
+        let charge_type = $('.charge_type:checked').val();
+        if (charge_type === 'Membership') {
+            var value = "XX";
+            var type = "readonly";
+            var total = "";
+        } else {
+            var value = "";
+            var type = "";
+            var total = "readonly";
+        }
+
+
         $('#append_service_div').append(`<div class="row individual_service_div">
                                             <div class="col-2">
                                                 <div class="form-group">
@@ -1569,17 +1581,17 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)">
+                                                    <input type="text" class="form-control NUMBER_OF_SESSION" value="${value}" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" ${type}>
                                                 </div>
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);">
+                                                    <input type="text" class="form-control PRICE_PER_SESSION" value="${value}" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);" ${type}>
                                                 </div>
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control TOTAL" name="TOTAL[]" readonly>
+                                                    <input type="text" class="form-control TOTAL" name="TOTAL[]" ${total}>
                                                 </div>
                                             </div>
                                             <div class="col-1">
@@ -1657,8 +1669,14 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
         let service_details = $(param).find(':selected').data('details');
         let price = $(param).find(':selected').data('price');
 
-        $(param).closest('.row').find('.SERVICE_DETAILS').val(service_details);
-        $(param).closest('.row').find('.PRICE_PER_SESSION').val(price);
+        let charge_type = $('.charge_type:checked').val();
+        if (charge_type === 'Membership') {
+            $(param).closest('.row').find('.SERVICE_DETAILS').val(service_details);
+            $(param).closest('.row').find('.PRICE_PER_SESSION').val("XX");
+        } else {
+            $(param).closest('.row').find('.SERVICE_DETAILS').val(service_details);
+            $(param).closest('.row').find('.PRICE_PER_SESSION').val(price);
+        }
 
         calculateServiceTotal(param);
     }
@@ -1758,8 +1776,15 @@ $LOCATION_ID = $account_data->fields['LOCATION_ID'];
     }
 
     function calculateServiceTotal(param) {
-        let number_of_session = ($(param).closest('.row').find('.NUMBER_OF_SESSION').val() == '') ? 0 : $(param).closest('.row').find('.NUMBER_OF_SESSION').val();
-        let service_price = ($(param).closest('.row').find('.PRICE_PER_SESSION').val()) ?? 0;
+        let charge_type = $('.charge_type:checked').val();
+        if (charge_type === 'Membership') {
+            var number_of_session = 0;
+            var service_price = 0;
+            
+        }else {
+            var number_of_session = ($(param).closest('.row').find('.NUMBER_OF_SESSION').val() == '') ? 0 : $(param).closest('.row').find('.NUMBER_OF_SESSION').val();
+            var service_price = ($(param).closest('.row').find('.PRICE_PER_SESSION').val()) ?? 0;
+        }
         let TOTAL = parseFloat(number_of_session) * parseFloat(service_price);
 
         $(param).closest('.row').find('.TOTAL').val(parseFloat(TOTAL).toFixed(2));
