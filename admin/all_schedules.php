@@ -386,6 +386,11 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     #add_buttons {
         z-index: 500;
     }
+
+    .fc-more-popover .fc-event-container {
+        max-height: 550px;
+        overflow: scroll;
+    }
 </style>
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 

@@ -19,9 +19,15 @@ function adjustEnrollmentAppointment($PK_APPOINTMENT_MASTER)
     global $db_account;
     $enrollment_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_APPOINTMENT_MASTER.PK_LOCATION FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_APPOINTMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE = DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = $PK_APPOINTMENT_MASTER");
     if ($enrollment_service_data->RecordCount() > 0) {
+        $enrollment_data = $db_account->Execute("SELECT CHARGE_TYPE FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$enrollment_service_data->fields['PK_ENROLLMENT_MASTER']);
+        if ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership') {
+            $NUMBER_OF_SESSION = 99;
+        } else {
+            $NUMBER_OF_SESSION = $enrollment_service_data->fields['NUMBER_OF_SESSION'];
+        }
         $PK_ENROLLMENT_SERVICE = $enrollment_service_data->fields['PK_ENROLLMENT_SERVICE'];
         $SESSION_CREATED_COUNT = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
-        if ($SESSION_CREATED_COUNT > $enrollment_service_data->fields['NUMBER_OF_SESSION']) {
+        if ($SESSION_CREATED_COUNT > $NUMBER_OF_SESSION) {
             $last_appointment_id = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER FROM DOA_APPOINTMENT_MASTER WHERE PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE' AND ((`PK_APPOINTMENT_STATUS` != 6 AND `PK_APPOINTMENT_STATUS` != 4) OR IS_CHARGED = 1) ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC LIMIT 1");
             $PK_APPOINTMENT_MASTER = $last_appointment_id->fields['PK_APPOINTMENT_MASTER'];
 
@@ -34,7 +40,7 @@ function adjustEnrollmentAppointment($PK_APPOINTMENT_MASTER)
 
             $appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER, DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE, DOA_APPOINTMENT_MASTER.PK_LOCATION, DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = " . $PK_APPOINTMENT_MASTER);
             checkAdhocAppointmentStatus($PK_APPOINTMENT_MASTER, $appointment_data->fields['PK_SERVICE_MASTER'], $appointment_data->fields['PK_SERVICE_CODE'], $appointment_data->fields['PK_USER_MASTER'], $appointment_data->fields['PK_LOCATION']);
-        } elseif ($SESSION_CREATED_COUNT < $enrollment_service_data->fields['NUMBER_OF_SESSION']) {
+        } elseif ($SESSION_CREATED_COUNT < $NUMBER_OF_SESSION) {
             $appointment_user = $db_account->Execute("SELECT PK_USER_MASTER FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = $PK_APPOINTMENT_MASTER");
             $PK_USER_MASTER = $appointment_user->fields['PK_USER_MASTER'];
             $PK_SERVICE_MASTER = $enrollment_service_data->fields['PK_SERVICE_MASTER'];
@@ -565,8 +571,8 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
     $ledger_details = $db_account->Execute("SELECT PK_ENROLLMENT_LEDGER FROM `DOA_ENROLLMENT_LEDGER` WHERE (DOA_ENROLLMENT_LEDGER.IS_PAID = 0 OR DOA_ENROLLMENT_LEDGER.IS_PAID = 2) AND PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
     $paid_count = ($ledger_details->RecordCount() > 0) ? 1 : 0;
 
-    $enr_data = $db_account->Execute("SELECT STATUS FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-    if ($enr_data->fields['STATUS'] == 'C' || $enr_data->fields['STATUS'] == 'CA') {
+    $enr_data = $db_account->Execute("SELECT STATUS, CHARGE_TYPE FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+    if (($enr_data->fields['STATUS'] == 'C' || $enr_data->fields['STATUS'] == 'CA') && $enr_data->fields['CHARGE_TYPE'] == 'Session') {
         if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0)) {
             $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
             $ENR_UPDATE_DATA['STATUS'] = 'C';
@@ -577,7 +583,10 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
             $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
             $ENR_UPDATE_DATA['STATUS'] = 'CA';
         }
-    } else {
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+        db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+        db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+    } elseif ($enr_data->fields['CHARGE_TYPE'] == 'Session') {
         if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0)) {
             $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
             $ENR_UPDATE_DATA['STATUS'] = 'CO';
@@ -588,10 +597,11 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
             $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
             $ENR_UPDATE_DATA['STATUS'] = 'A';
         }
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+        db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+        db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
     }
-    db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-    db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-    db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+
 }
 
 function getAppointmentSerialNumber($PK_USER_MASTER){

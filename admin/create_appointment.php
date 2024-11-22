@@ -249,7 +249,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
     $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
 
-    $enrollment_location = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    $enrollment_location = $db_account->Execute("SELECT PK_LOCATION, CHARGE_TYPE FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
     if ($enrollment_location->RecordCount() > 0) {
         $PK_LOCATION = $enrollment_location->fields['PK_LOCATION'];
     } else {
@@ -257,8 +257,13 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     }
 
     $enrollment_service_data = $db_account->Execute("SELECT `NUMBER_OF_SESSION` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
+    if ($enrollment_location->fields['CHARGE_TYPE'] == 'Membership') {
+        $NUMBER_OF_SESSION = 99;
+    } else {
+        $NUMBER_OF_SESSION = $enrollment_service_data->fields['NUMBER_OF_SESSION'];
+    }
     $SESSION_CREATED = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
-    $SESSION_LEFT = $enrollment_service_data->fields['NUMBER_OF_SESSION'] - $SESSION_CREATED;
+    $SESSION_LEFT = $NUMBER_OF_SESSION - $SESSION_CREATED;
 
     $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
     $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;

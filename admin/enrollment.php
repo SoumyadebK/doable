@@ -599,12 +599,12 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         </div>
                                                         <div class="col-1">
                                                             <div class="form-group">
-                                                                <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" value="<?=$enrollment_service_data->fields['PRICE_PER_SESSION']?>" onkeyup="calculateServiceTotal(this);">
+                                                                <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" value="<?=$enrollment_service_data->fields['PRICE_PER_SESSION']?>" onkeyup="calculateServiceTotal(this)">
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
                                                             <div class="form-group">
-                                                                <input type="text" class="form-control TOTAL" name="TOTAL[]" value="<?=$enrollment_service_data->fields['TOTAL']?>" readonly>
+                                                                <input type="text" class="form-control TOTAL" name="TOTAL[]" value="<?=$enrollment_service_data->fields['TOTAL']?>" onkeyup="calculateServiceTotal(this)" readonly>
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
@@ -671,7 +671,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         </div>
                                                         <div class="col-1">
                                                             <div class="form-group">
-                                                                <input type="text" class="form-control TOTAL" name="TOTAL[]" readonly>
+                                                                <input type="text" class="form-control TOTAL" name="TOTAL[]" onkeyup="calculateServiceTotal(this)" readonly>
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
@@ -1595,7 +1595,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control TOTAL" name="TOTAL[]" ${total}>
+                                                    <input type="text" class="form-control TOTAL" name="TOTAL[]" onkeyup="calculateServiceTotal(this)" ${total}>
                                                 </div>
                                             </div>
                                             <div class="col-1">
@@ -1781,17 +1781,16 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
     function calculateServiceTotal(param) {
         let charge_type = $('.charge_type:checked').val();
-        if (charge_type === 'Membership') {
-            var number_of_session = 0;
-            var service_price = 0;
-            
-        }else {
-            var number_of_session = ($(param).closest('.row').find('.NUMBER_OF_SESSION').val() == '') ? 0 : $(param).closest('.row').find('.NUMBER_OF_SESSION').val();
-            var service_price = ($(param).closest('.row').find('.PRICE_PER_SESSION').val()) ?? 0;
-        }
-        let TOTAL = parseFloat(number_of_session) * parseFloat(service_price);
+        let TOTAL = 0;
 
-        $(param).closest('.row').find('.TOTAL').val(parseFloat(TOTAL).toFixed(2));
+        if (charge_type === 'Membership') {
+            TOTAL = ($(param).closest('.row').find('.TOTAL').val() == '') ? 0 : $(param).closest('.row').find('.TOTAL').val();
+        } else {
+            let number_of_session = ($(param).closest('.row').find('.NUMBER_OF_SESSION').val() == '') ? 0 : $(param).closest('.row').find('.NUMBER_OF_SESSION').val();
+            let service_price = ($(param).closest('.row').find('.PRICE_PER_SESSION').val()) ?? 0;
+            TOTAL = parseFloat(number_of_session) * parseFloat(service_price);
+            $(param).closest('.row').find('.TOTAL').val(parseFloat(TOTAL).toFixed(2));
+        }
 
         let DISCOUNT = ($(param).closest('.row').find('.DISCOUNT').val()) ?? 0;
         let DISCOUNT_TYPE = ($(param).closest('.row').find('.DISCOUNT_TYPE').val()) ?? 0;
