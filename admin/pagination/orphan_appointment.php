@@ -1,4 +1,6 @@
 <?php
+$orphan_results_per_page = 1000;
+
 $ORPHAN_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
                             DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
@@ -48,15 +50,15 @@ $ORPHAN_APPOINTMENT_QUERY = "SELECT
 $query = $db_account->Execute($ORPHAN_APPOINTMENT_QUERY);
 
 $number_of_result =  $query->RecordCount();
-$number_of_page = ceil ($number_of_result / $results_per_page);
+$number_of_page = ceil ($number_of_result / $orphan_results_per_page);
 
 if (!isset ($_GET['page']) ) {
     $page = 1;
 } else {
     $page = $_GET['page'];
 }
-$page_first_result = ($page-1) * $results_per_page;
-$orphan_appointment_data = $db_account->Execute($ORPHAN_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
+$page_first_result = ($page-1) * $orphan_results_per_page;
+$orphan_appointment_data = $db_account->Execute($ORPHAN_APPOINTMENT_QUERY, $page_first_result . ',' . $orphan_results_per_page);
 if ($orphan_appointment_data->RecordCount() > 0) {
 ?>
 <h5>List of Orphan Appointments</h5>

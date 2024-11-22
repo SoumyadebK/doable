@@ -654,10 +654,16 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 let START_DATE = moment(info.start).format();
                 let END_DATE = moment(info.end).format();
 
+                let selected_service_provider = [];
+                let selectedOptions = $('#SERVICE_PROVIDER_ID').find('option:selected');
+                selectedOptions.each(function(){
+                    selected_service_provider.push($(this).val());
+                });
+
                 $.ajax({
                     url: "pagination/get_calendar_data.php",
                     type: "POST",
-                    data: {START_DATE: START_DATE, END_DATE: END_DATE, STATUS_CODE: STATUS_CODE, APPOINTMENT_TYPE: APPOINTMENT_TYPE},
+                    data: {START_DATE: START_DATE, END_DATE: END_DATE, STATUS_CODE: STATUS_CODE, APPOINTMENT_TYPE: APPOINTMENT_TYPE, SERVICE_PROVIDER_ID: selected_service_provider},
                     dataType: 'json',
                     success: function (result) {
                         console.log(result);

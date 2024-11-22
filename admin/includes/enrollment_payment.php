@@ -7,7 +7,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="sourceId" id="sourceId">
+                    <input type="hidden" name="sourceId" id="enrollment_sourceId">
                     <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
                     <!--<input type="hidden" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">-->
                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
@@ -84,7 +84,7 @@
                                 <div class="row" style="margin: auto;" id="card_list">
                                 </div>
                                 <div class="col-12">
-                                    <div class="form-group" id="card-container">
+                                    <div class="form-group" id="card_div">
 
                                     </div>
                                 </div>
@@ -289,6 +289,19 @@
     </div>
 </div>
 
+<?php
+$SQUARE_MODE 			= 2;
+if ($SQUARE_MODE == 1)
+    $SQ_URL = "https://connect.squareup.com";
+else if ($SQUARE_MODE == 2)
+    $SQ_URL = "https://connect.squareupsandbox.com";
+
+if ($SQUARE_MODE == 1)
+    $URL = "https://web.squarecdn.com/v1/square.js";
+else if ($SQUARE_MODE == 2)
+    $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
+?>
+
 <script src="https://js.stripe.com/v3/"></script>
 <script type="text/javascript">
     var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
@@ -365,6 +378,66 @@
     }
 </script>
 
+
+
+
+
+<script src="<?=$URL?>"></script>
+<script type="text/javascript">
+    async function squarePaymentFunction(type) {
+        let square_appId = '<?=$SQUARE_APP_ID ?>';
+        let square_locationId = '<?=$SQUARE_LOCATION_ID ?>';
+        const payments = Square.payments(square_appId, square_locationId);
+        const card = await payments.card();
+        $('#'+type+'-card-container').text('');
+        await card.attach('#'+type+'-card-container');
+
+        let form = document.getElementById(type+'_payment_form');
+
+        //const cardButton = document.getElementById('card-button');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const statusContainer = document.getElementById('payment-status-container');
+
+            try {
+                const result = await card.tokenize();
+                if (result.status === 'OK') {
+                    document.getElementById('enrollment_sourceId').value = result.token;
+                    console.log(`Payment token is ${result.token}`);
+                    //statusContainer.innerHTML = "Payment Successful";
+                    form.submit();
+                } else {
+                    let errorMessage = `Tokenization failed with status: ${result.status}`;
+                    if (result.errors) {
+                        errorMessage += ` and errors: ${JSON.stringify(
+                            result.errors
+                        )}`;
+                    }
+                    if ($('#enrollment-card-container').length > 0) {
+                        throw new Error(errorMessage);
+                    } else {
+                        form.submit();
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                statusContainer.innerHTML = "Payment Failed";
+            }
+        });
+    }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
 <script>
     function getPaymentMethodId(param) {
         $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
@@ -380,11 +453,18 @@
         let form = document.getElementById(type+'_payment_form');
         form.removeEventListener('submit', listener);
         $(param).closest('.payment_modal').find('#card-element').remove();
+        $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
         switch (paymentType) {
             case 1:
                 if (PAYMENT_GATEWAY == 'Stripe') {
                     $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
                     stripePaymentFunction(type);
+                }
+
+                if (PAYMENT_GATEWAY == 'Square') {
+                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="enrollment-card-container"></div>`);
+                    $('#'+type+'-card-container').text('Loading......');
+                    squarePaymentFunction(type);
                 }
 
                 getCreditCardList();
