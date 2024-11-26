@@ -79,17 +79,17 @@ if ($_GET['type'] == 'normal') { ?>
 <?php } ?>
 
 <?php
-$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE ".$enr_condition." AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE ".$enr_condition." AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
 $AGREEMENT_PDF_LINK = '';
-while (!$row->EOF) {
-    $name = $row->fields['ENROLLMENT_NAME'];
-    $AGREEMENT_PDF_LINK = $row->fields['AGREEMENT_PDF_LINK'];
+while (!$enrollment_data->EOF) {
+    $name = $enrollment_data->fields['ENROLLMENT_NAME'];
+    $AGREEMENT_PDF_LINK = $enrollment_data->fields['AGREEMENT_PDF_LINK'];
     if(empty($name)){
         $enrollment_name = '';
     }else {
         $enrollment_name = "$name"." - ";
     }
-    $serviceMasterData = $db_account->Execute("SELECT DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+    $serviceMasterData = $db_account->Execute("SELECT DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$enrollment_data->fields['PK_ENROLLMENT_MASTER']);
     $serviceMaster = [];
     while (!$serviceMasterData->EOF) {
         $serviceMaster[] = $serviceMasterData->fields['SERVICE_NAME'];
@@ -98,20 +98,20 @@ while (!$row->EOF) {
     <div class="border" style="margin: 10px;">
         <div class="row enrollment_div" style="font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
             <div class="col-2" style="text-align: center; margin-top: 1.5%;">
-                <p><?=$row->fields['LOCATION_NAME']?></p>
-                <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>"><?=$enrollment_name.$row->fields['ENROLLMENT_ID']?></a>
+                <p><?=$enrollment_data->fields['LOCATION_NAME']?></p>
+                <a href="enrollment.php?id=<?=$enrollment_data->fields['PK_ENROLLMENT_MASTER']?>"><?=$enrollment_name.$enrollment_data->fields['ENROLLMENT_ID']?></a>
                 <p><?=implode(' || ', $serviceMaster)?></p>
-                <p><?=date('m/d/Y', strtotime($row->fields['ENROLLMENT_DATE']))?></p>
+                <p><?=date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE']))?></p>
                 <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
                     <a href="../<?=$upload_path?>/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
                 <?php } ?>
-                <button class="btn btn-danger m-l-10 text-white" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'billing_details')" style="background-color: #f44336; margin-top: 20px">View Payment Schedule</button>
+                <button class="btn btn-danger m-l-10 text-white" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$enrollment_data->fields['PK_ENROLLMENT_MASTER']?>, '<?=$enrollment_data->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'billing_details')" style="background-color: #f44336; margin-top: 20px">View Payment Schedule</button>
             </div>
             <?php
-                $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = ".$enrollment_data->fields['PK_ENROLLMENT_MASTER']);
+                $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER = ".$enrollment_data->fields['PK_ENROLLMENT_MASTER']);
             ?>
-            <div class="col-8" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$row->fields['PK_ENROLLMENT_MASTER']?>, '<?=$row->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'appointment_details')" style="cursor: pointer;">
+            <div class="col-8" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$enrollment_data->fields['PK_ENROLLMENT_MASTER']?>, '<?=$enrollment_data->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'appointment_details')" style="cursor: pointer;">
                 <table id="myTable" class="table <?=(($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) ? 'table-success' : 'table-striped'?> border">
                     <thead>
                         <tr>
@@ -126,30 +126,41 @@ while (!$row->EOF) {
 
                     <tbody>
                     <?php
-                    $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                    $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$enrollment_data->fields['PK_ENROLLMENT_MASTER']);
                     $total_amount = 0;
                     $total_paid_amount = 0;
                     $total_used_amount = 0;
                     $enrollment_service_array = [];
                     while (!$serviceCodeData->EOF) {
+                        if ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership') {
+                            $NUMBER_OF_SESSION = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                        } else {
+                            $NUMBER_OF_SESSION = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                        }
+
                         if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
-                            $SESSION_COMPLETED = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                            $SESSION_COMPLETED = $NUMBER_OF_SESSION;
                         } else {
                             $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
                         }
 
                         $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
-                        $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData->fields['PRICE_PER_SESSION'];
+
+                        if ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership') {
+                            $PRICE_PER_SESSION = ($NUMBER_OF_SESSION > 0) ? number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $NUMBER_OF_SESSION, 2) : 0;
+                        } else {
+                            $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData->fields['PRICE_PER_SESSION'];
+                        }
 
                         if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
                             $TOTAL_PAID_SESSION = $SESSION_COMPLETED;
                             $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['FINAL_AMOUNT'];
                         } else {
-                            $TOTAL_PAID_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? $serviceCodeData->fields['NUMBER_OF_SESSION'] : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $serviceCodeData->fields['PRICE_PER_SESSION'], 2);
+                            $TOTAL_PAID_SESSION = ($PRICE_PER_SESSION <= 0) ? $NUMBER_OF_SESSION : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $PRICE_PER_SESSION, 2);
                             $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
                         }
 
-                        $ENR_BALANCE = $serviceCodeData->fields['NUMBER_OF_SESSION'] - $TOTAL_PAID_SESSION;
+                        $ENR_BALANCE = $NUMBER_OF_SESSION - $TOTAL_PAID_SESSION;
                         $SERVICE_CREDIT = $TOTAL_PAID_SESSION - $SESSION_COMPLETED;
 
                         $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
@@ -157,7 +168,7 @@ while (!$row->EOF) {
                         $total_used_amount +=  ($PRICE_PER_SESSION * $SESSION_COMPLETED); ?>
                         <tr>
                             <td><?=$serviceCodeData->fields['SERVICE_CODE']?></td>
-                            <td style="text-align: right"><?=$serviceCodeData->fields['NUMBER_OF_SESSION']?></td>
+                            <td style="text-align: right"><?=$NUMBER_OF_SESSION?></td>
                             <td style="text-align: right;"><?=$SESSION_COMPLETED?></td>
                             <td style="text-align: right; color:<?=($ENR_BALANCE < 0)?'red':'black'?>;"><?=number_format($ENR_BALANCE, 2)?></td>
                             <td style="text-align: right">$<?=number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'], 2)?></td>
@@ -179,15 +190,15 @@ while (!$row->EOF) {
             <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
             <?php if (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) { ?>
                     <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
-            <?php } elseif ($row->fields['STATUS'] == 'C') { ?>
+            <?php } elseif ($enrollment_data->fields['STATUS'] == 'C') { ?>
                     <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
             <?php } ?>
             <?php
-                if($row->fields['STATUS'] === 'C' || $row->fields['STATUS'] === 'CA') { ?>
+                if($enrollment_data->fields['STATUS'] === 'C' || $enrollment_data->fields['STATUS'] === 'CA') { ?>
                     <p style="color: red; margin-top: 25%;">Cancelled</p>
             <?php } ?>
             <?php
-                if($row->fields['STATUS'] === 'CA') {
+                if($enrollment_data->fields['STATUS'] === 'CA') {
                     if ($total_paid_amount-$total_used_amount > 0) { ?>
                         <p style="color: green; margin-top: 20%;">Refund Credit Available</p>
                     <?php } elseif ($total_paid_amount-$total_used_amount < 0) { ?>
@@ -202,7 +213,7 @@ while (!$row->EOF) {
         </div>
     </div>
     <?php
-        $row->MoveNext();
+        $enrollment_data->MoveNext();
     } ?>
 
 <script>
