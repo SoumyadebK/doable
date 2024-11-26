@@ -595,7 +595,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         calendar = new Calendar(calendarEl, {
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
-            editable: true,
+            editable: false,
             selectable: true,
             eventLimit: true,
             scrollTime: '00:00',
@@ -614,7 +614,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             slotLabelInterval: {minutes: 15},
             minTime: open_time,
             maxTime: close_time,
-            contentHeight: 665,
+            contentHeight: 670,
             windowResize: true,
             droppable: true,
             drop: function(info) {
@@ -645,12 +645,25 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     success: function (result) {
                         console.log(result);
                         successCallback(result);
+                        if (calendar.view.type === 'month') {
+                            calendar.changeView('month');
+                        }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         alert(xhr.status);
                         alert(thrownError);
                     }
                 });
+
+                if ((selected_service_provider.length === 1) && (calendar.view.type !== 'month')) {
+                    calendar.setOption('editable', true);
+                }
+
+                if (selected_service_provider.length > 1) {
+                    calendar.setOption('editable', false);
+                    $('#calendar-container').removeClass('col-10').addClass('col-12');
+                    $('#external-events').hide();
+                }
             },
             events: function (info, successCallback, failureCallback) {
                 let STATUS_CODE = $('#STATUS_CODE').val();
@@ -673,12 +686,22 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     success: function (result) {
                         console.log(result);
                         successCallback(result);
+                        if (calendar.view.type === 'month') {
+                            calendar.setOption('editable', false);
+                            $('#calendar-container').removeClass('col-10').addClass('col-12');
+                            $('#external-events').hide();
+                        } else {
+                            if (selected_service_provider.length === 1) {
+                                calendar.setOption('editable', true);
+                            }
+                        }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         alert(xhr.status);
                         alert(thrownError);
                     }
                 });
+
             },
             eventRender: function(info) {
                 let event_data = info.event.extendedProps;
@@ -715,12 +738,21 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    $('#calendar-container').removeClass('col-12').addClass('col-10');
-                    let event_data = info.event;
-                    let event_data_ext_prop = info.event.extendedProps;
-                    let TYPE = event_data_ext_prop.type;
 
-                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='"+event_data.id+"' data-duration='"+event_data_ext_prop.duration+"' data-color='"+event_data.backgroundColor+"' data-type='"+TYPE+"' style='background-color: "+event_data.backgroundColor+";'>"+event_data.title+"<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                    let selected_service_provider = [];
+                    let selectedOptions = $('#SERVICE_PROVIDER_ID').find('option:selected');
+                    selectedOptions.each(function(){
+                        selected_service_provider.push($(this).val());
+                    });
+
+                    if (selected_service_provider.length === 1) {
+                        $('#calendar-container').removeClass('col-12').addClass('col-10');
+                        let event_data = info.event;
+                        let event_data_ext_prop = info.event.extendedProps;
+                        let TYPE = event_data_ext_prop.type;
+
+                        $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                    }
                 }
             },
             eventDrop: function (info) {
@@ -728,7 +760,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             },
             dateClick: function(data) {
                 let date = data.date;
-                let resource_id = data.resource.id;
+                let resource_id = (data.resource) ? data.resource.id : $('#SERVICE_PROVIDER_ID').val()[0];
+                console.log(resource_id);
                 clickCount++;
                 let singleClickTimer;
                 if (clickCount === 1) {
@@ -738,22 +771,26 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    if (<?=count($LOCATION_ARRAY)?> === 1) {
-                        $.ajax({
-                            url: "ajax/check_service_provider_slot.php",
-                            type: "POST",
-                            data: {PK_USER : resource_id,  DATE_TIME : moment(date).format()},
-                            //dataType: 'json',
-                            success: function (result) {
-                                if (result == 1) {
-                                    window.location.href = "create_appointment.php?date="+moment(date).format()+"&SERVICE_PROVIDER_ID="+resource_id;
-                                } else {
-                                    swal("No slot available!", result, "error");
-                                }
-                            },
-                        });
+                    if (resource_id) {
+                        if (<?=count($LOCATION_ARRAY)?> === 1) {
+                            $.ajax({
+                                url: "ajax/check_service_provider_slot.php",
+                                type: "POST",
+                                data: {PK_USER: resource_id, DATE_TIME: moment(date).format()},
+                                //dataType: 'json',
+                                success: function (result) {
+                                    if (result == 1) {
+                                        window.location.href = "create_appointment.php?date=" + moment(date).format() + "&SERVICE_PROVIDER_ID=" + resource_id;
+                                    } else {
+                                        swal("No slot available!", result, "error");
+                                    }
+                                },
+                            });
+                        } else {
+                            swal("Select One Location!", "Only one location can be selected on top of the page in order to schedule an appointment.", "error");
+                        }
                     } else {
-                        swal("Select One Location!", "Only one location can be selected on top of the page in order to schedule an appointment.", "error");
+                        swal("Select One Service Provider!", "Please select any one Service Provider to continue", "error");
                     }
                 }
             },
@@ -777,6 +814,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         $('.fc-today-button').click(function () {
             getServiceProviderCount();
         });
+
+
+
     });
 
     function showAppointmentEdit(info) {
@@ -893,7 +933,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         let eventEl = info.draggedEl;
         let PK_ID = eventEl.attributes["data-id"].value;
         let TYPE = eventEl.attributes["data-type"].value;
-        let SERVICE_PROVIDER_ID = info.resource.id;
+        let SERVICE_PROVIDER_ID = (info.resource) ? info.resource.id : $('#SERVICE_PROVIDER_ID').val()[0];
         let START_DATE_TIME = info.dateStr;
         //console.log(TYPE,PK_ID,SERVICE_PROVIDER_ID,START_DATE_TIME);
         $.ajax({

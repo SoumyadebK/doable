@@ -6,13 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/get_enrollments.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_enrollments.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_schedules.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/create_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/create_appointment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/enrollment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/pagination/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/enrollment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/pagination/pending_services.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/pending_services.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/helper_function.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/helper_function.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/includes/process_enrollment_payment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/process_enrollment_payment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/pagination/get_calendar_data.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/get_calendar_data.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,6 +103,9 @@
       <workItem from="1732110628442" duration="9219000" />
       <workItem from="1732171557451" duration="21604000" />
       <workItem from="1732289483383" duration="1252000" />
+      <workItem from="1732345303914" duration="7109000" />
+      <workItem from="1732530007234" duration="6434000" />
+      <workItem from="1732631366707" duration="11750000" />
     </task>
     <servers />
   </component>

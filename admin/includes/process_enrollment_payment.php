@@ -88,6 +88,9 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 } catch (ApiErrorException $e) {
                     $PAYMENT_STATUS = 'Failed';
                     $PAYMENT_INFO = $e->getMessage();
+
+                    $error['error'] = $PAYMENT_INFO;
+                    db_perform_account('error_info', $error, 'insert');
                 }
 
                 $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
@@ -114,6 +117,9 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             } catch (ApiErrorException $e) {
                 $PAYMENT_STATUS = 'Failed';
                 $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $PAYMENT_INFO;
+                db_perform_account('error_info', $error, 'insert');
             }
 
             $LAST4 = $charge->payment_method_details->card->last4;
@@ -125,6 +131,9 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             } else {
                 $PAYMENT_STATUS = 'Failed';
                 $PAYMENT_INFO = $charge->failure_message;
+
+                $error['error'] = $PAYMENT_INFO;
+                db_perform_account('error_info', $error, 'insert');
             }
 
         }
