@@ -290,7 +290,13 @@
 </div>
 
 <?php
-$SQUARE_MODE 			= 2;
+$SQUARE_MODE = 0;
+if ($SQUARE_APP_ID != '' && strpos($SQUARE_APP_ID, 'sandbox') !== false) {
+    $SQUARE_MODE = 2;
+} elseif ($SQUARE_APP_ID != '') {
+    $SQUARE_MODE = 1;
+}
+
 if ($SQUARE_MODE == 1)
     $SQ_URL = "https://connect.squareup.com";
 else if ($SQUARE_MODE == 2)
@@ -379,9 +385,6 @@ else if ($SQUARE_MODE == 2)
 </script>
 
 
-
-
-
 <script src="<?=$URL?>"></script>
 <script type="text/javascript">
     async function squarePaymentFunction(type) {
@@ -426,16 +429,6 @@ else if ($SQUARE_MODE == 2)
         });
     }
 </script>
-
-
-
-
-
-
-
-
-
-
 
 
 <script>
