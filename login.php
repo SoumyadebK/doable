@@ -1,4 +1,5 @@
-<?
+<?php
+global $db;
 require_once('global/config.php');
 $msg = '';
 $success_msg = '';
@@ -12,34 +13,26 @@ if ($FUNCTION_NAME == 'loginFunction'){
     if($result->RecordCount() > 0) {
         if (($result->fields['ACCOUNT_ACTIVE'] == 1 || $result->fields['ACCOUNT_ACTIVE'] == '' || $result->fields['ACCOUNT_ACTIVE'] == NULL) && $result->fields['ACTIVE'] == 1 && $result->fields['CREATE_LOGIN'] == 1) {
             if (password_verify($PASSWORD, $result->fields['PASSWORD'])) {
-                $selected_roles = [];
+                $selected_role = '';
                 $PK_USER = $result->fields['PK_USER'];
-                $selected_roles_row = $db->Execute("SELECT PK_ROLES FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
+                $selected_roles_row = $db->Execute("SELECT DOA_USER_ROLES.PK_ROLES, DOA_ROLES.SORT_ORDER FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER' ORDER BY DOA_ROLES.SORT_ORDER ASC LIMIT 1");
                 while (!$selected_roles_row->EOF) {
-                    $selected_roles[] = $selected_roles_row->fields['PK_ROLES'];
+                    $selected_role = $selected_roles_row->fields['PK_ROLES'];
                     $selected_roles_row->MoveNext();
                 }
 
                 $_SESSION['PK_USER'] = $result->fields['PK_USER'];
+                $_SESSION['PK_ROLES'] = $selected_role;
 
-                if (in_array(1, $selected_roles)) {
-                    $_SESSION['PK_ROLES'] = 1;
-                } elseif (in_array(2, $selected_roles)) {
-                    $_SESSION['PK_ROLES'] = 2;
-                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
-                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
-                } /*elseif (in_array(3, $selected_roles)) {
-                    $_SESSION['PK_ROLES'] = 3;
-                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
-                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
-                }*/ elseif (in_array(4, $selected_roles)) {
+                if ($_SESSION['PK_ROLES'] == 4) {
                     $customer_account_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER, DOA_ACCOUNT_MASTER.DB_NAME, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_ACCOUNT_MASTER INNER JOIN DOA_USER_MASTER ON DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  = DOA_USER_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USER_MASTER.PK_USER = '$PK_USER' LIMIT 1");
-                    $_SESSION['PK_ROLES'] = 4;
                     $_SESSION['DB_NAME'] = $customer_account_data->fields['DB_NAME'];
                     $_SESSION['PK_ACCOUNT_MASTER'] = $customer_account_data->fields['PK_ACCOUNT_MASTER'];
                     $_SESSION['PK_USER_MASTER'] = $customer_account_data->fields['PK_USER_MASTER'];
-                } elseif (in_array(5, $selected_roles)) {
-                    $_SESSION['PK_ROLES'] = 5;
+                } elseif ($_SESSION['PK_ROLES'] == 5) {
+                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
+                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
+                } elseif ($_SESSION['PK_ROLES'] != 1) {
                     $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
                     $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
                 }
@@ -63,14 +56,14 @@ if ($FUNCTION_NAME == 'loginFunction'){
 
                 if ($_SESSION['PK_ROLES'] == 1) {
                     header("location: super_admin/all_accounts.php");
-                } elseif ($_SESSION['PK_ROLES'] == 2 || $_SESSION['PK_ROLES'] == 3) {
-                    header("location: admin/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 4) {
                     $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$result->fields['PK_USER']." LIMIT 1");
                     $_SESSION['PK_ACCOUNT_MASTER'] = $account->fields['PK_ACCOUNT_MASTER'];
                     header("location: customer/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 5) {
                     header("location: service_provider/all_schedules.php?view=table");
+                } else {
+                    header("location: admin/all_schedules.php?view=table");
                 }
             } else {
                 $msg = "Invalid Password";

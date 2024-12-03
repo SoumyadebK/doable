@@ -108,7 +108,7 @@ if(empty($_GET['id'])){
                                     </div>
                                     <div class="col-6">
                                         <div class="form-group">
-                                            <label class="col-md-12" for="example-text">Sort Order</label>
+                                            <label class="col-md-12" for="example-text">Priority</label>
                                             <div class="row">
                                                 <div class="col-md-3">
                                                     <input type="text" class="form-control" id="SORT_ORDER" name="SORT_ORDER" value="<?php echo $SORT_ORDER?>">
@@ -141,14 +141,14 @@ if(empty($_GET['id'])){
                                     </div>
                                 </div>
 
-                                <div class="row" style="margin-bottom: 15px; margin-top: 10px">
+                                <!--<div class="row" style="margin-bottom: 15px; margin-top: 10px">
                                     <div class="col-6">
                                         <div class="form-group">
                                             <label class="" for="example-text">Management</label>
-                                            <input type="checkbox" id="IS_MANAGEMENT" name="IS_MANAGEMENT" class="form-check-inline" style="margin-left: 10px;" <?=($IS_MANAGEMENT == 1)?'checked':''?>>
+                                            <input type="checkbox" id="IS_MANAGEMENT" name="IS_MANAGEMENT" class="form-check-inline" style="margin-left: 10px;" <?php /*=($IS_MANAGEMENT == 1)?'checked':''*/?>>
                                         </div>
                                     </div>
-                                </div>
+                                </div>-->
 
                                 <?php if(!empty($_GET['id'])) { ?>
                                     <div class="row" style="margin-bottom: 15px; margin-top: 10px">

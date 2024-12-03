@@ -409,7 +409,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=standing'"><i class="fa fa-plus-circle"></i> Standing</button>
                     <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=ad_hoc'"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>-->
                     <?php if(in_array('Calendar Schedule', $PERMISSION_ARRAY)){ ?>
-                    <button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="showMessage()"><i class="fa fa-plus-circle"></i> Appointments</button>
+                        <button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="showMessage()"><i class="fa fa-plus-circle"></i> Appointments</button>
                     <?php } ?>
                     <button type="button" id="operations" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"><i class="ti-layers-alt"></i> <?=$operation_tab_title?></button>
                 </div>
@@ -563,6 +563,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 </script>
 
 <script>
+    var is_editable = <?= in_array('Calendar Edit', $PERMISSION_ARRAY) ? 1 : 0; ?>;
+    var move_copy = <?= in_array('Calendar Move/Copy', $PERMISSION_ARRAY) ? 1 : 0; ?>;
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
 
     var calendar;
@@ -655,7 +657,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     }
                 });
 
-                if ((selected_service_provider.length === 1) && (calendar.view.type !== 'month')) {
+                if ((selected_service_provider.length === 1) && (calendar.view.type !== 'month') && (is_editable)) {
                     calendar.setOption('editable', true);
                 }
 
@@ -691,7 +693,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             $('#calendar-container').removeClass('col-10').addClass('col-12');
                             $('#external-events').hide();
                         } else {
-                            if (selected_service_provider.length === 1) {
+                            if ((selected_service_provider.length === 1) && (is_editable)) {
                                 calendar.setOption('editable', true);
                             }
                         }
@@ -728,7 +730,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             eventClick: function(info) {
                 clickCount++;
                 let singleClickTimer;
-                if (clickCount === 1) {
+                if (clickCount === 1 && is_editable) {
                     singleClickTimer = setTimeout(function () {
                         if (clickCount === 1) {
                             showAppointmentEdit(info);
@@ -745,7 +747,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         selected_service_provider.push($(this).val());
                     });
 
-                    if (selected_service_provider.length === 1) {
+                    if (selected_service_provider.length === 1 && move_copy) {
                         $('#calendar-container').removeClass('col-12').addClass('col-10');
                         let event_data = info.event;
                         let event_data_ext_prop = info.event.extendedProps;
