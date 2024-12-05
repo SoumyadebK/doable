@@ -4,12 +4,11 @@ use Square\Environment;
 use Square\Models\CreatePaymentRequest;
 use Square\Models\Money;
 use Square\SquareClient;
-use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
 use Stripe\StripeClient;
 
 require_once('../../global/config.php');
-require_once("../../global/stripe-php-master/init.php");
+require_once("../../global/stripe-php/init.php");
 global $db;
 global $db_account;
 
@@ -66,44 +65,90 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $payment_info = '';
     if ($_POST['PK_PAYMENT_TYPE'] == 1) {
         if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
-            $stripe = new StripeClient($SECRET_KEY);
-            Stripe::setApiKey($SECRET_KEY);
 
             $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
             $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = ".$user_master->fields['PK_USER']);
 
             $STRIPE_TOKEN = $_POST['token'];
             $CUSTOMER_PAYMENT_ID = '';
-            if ($customer_payment_info->RecordCount() > 0) {
-                $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-            } else {
-                try {
+
+            $error['error'] = $STRIPE_TOKEN.' - '.$user_master->fields['PHONE'];
+            $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+            db_perform('error_info', $error, 'insert');
+
+            try {
+                $stripe = new StripeClient($SECRET_KEY);
+                Stripe::setApiKey($SECRET_KEY);
+
+                if ($customer_payment_info->RecordCount() > 0) {
+                    $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+                } else {
+
                     $customer = $stripe->customers->create([
                         'email' => $user_master->fields['EMAIL_ID'],
-                        'name' => $user_master->fields['FIRST_NAME']." ".$user_master->fields['LAST_NAME'],
+                        'name' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
                         'phone' => $user_master->fields['PHONE'],
-                        'description' => $user_master->fields['FIRST_NAME']." ".$user_master->fields['LAST_NAME'],
+                        'description' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
                     ]);
                     $CUSTOMER_PAYMENT_ID = $customer->id;
-                } catch (ApiErrorException $e) {
-                    $PAYMENT_STATUS = 'Failed';
-                    $PAYMENT_INFO = $e->getMessage();
+                }
+            } catch (\Stripe\Exception\InvalidRequestException $e) {
+                // Invalid parameters
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $e;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
+            } catch (\Stripe\Exception\AuthenticationException $e) {
+                // Authentication with Stripe's API failed
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $e;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
+            } catch (\Stripe\Exception\ApiConnectionException $e) {
+                // Network communication with Stripe failed
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $e;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                // General API error
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $e;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
+            } catch (Exception $e) {
+                // Other non-Stripe exceptions
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $e;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
+            }
+
+            $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+            $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+            $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Stripe';
+            $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+            db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
+
+
+            $LAST4 = '';
+            try {
+                if (empty($_POST['PAYMENT_METHOD_ID'])) {
+                    $card = $stripe->customers->createSource($CUSTOMER_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
+                    $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $card->id]);
                 }
 
-                $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
-                $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
-                $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Stripe';
-                $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
-            }
-
-            if (empty($_POST['PAYMENT_METHOD_ID'])) {
-                $card = $stripe->customers->createSource($CUSTOMER_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
-                $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $card->id]);
-            }
-
-            $account = \Stripe\Customer::retrieve($CUSTOMER_PAYMENT_ID);
-            try {
+                $account = \Stripe\Customer::retrieve($CUSTOMER_PAYMENT_ID);
                 $charge = \Stripe\Charge::create(array(
                     "amount" => $AMOUNT_TO_PAY * 100,
                     "currency" => "usd",
@@ -111,12 +156,74 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                     "customer" => $CUSTOMER_PAYMENT_ID,
                     "statement_descriptor" => "Receipt# ".$RECEIPT_NUMBER_ORIGINAL,
                 ));
-            } catch (ApiErrorException $e) {
+
+                $LAST4 = $charge->payment_method_details->card->last4;
+            } catch (\Stripe\Exception\CardException $e) {
+                // Card declined or related issue
                 $PAYMENT_STATUS = 'Failed';
                 $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $e;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
+            } catch (\Stripe\Exception\RateLimitException $e) {
+                // Too many requests
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $e;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
+            } catch (\Stripe\Exception\InvalidRequestException $e) {
+                // Invalid parameters
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $e;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
+            } catch (\Stripe\Exception\AuthenticationException $e) {
+                // Authentication error
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $e;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
+            } catch (\Stripe\Exception\ApiConnectionException $e) {
+                // Network communication error
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $e;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                // General API error
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $e;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
+            } catch (Exception $e) {
+                // Non-Stripe exceptions
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $error['error'] = $e;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
             }
 
-            $LAST4 = $charge->payment_method_details->card->last4;
+            register_shutdown_function(function () {
+                $error = error_get_last();
+                if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE)) {
+                    $error['error'] = "Fatal Error: " . $error['message'];
+                    $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                    db_perform('error_info', $error, 'insert');
+                }
+            });
 
             if ($charge->paid == 1) {
                 $PAYMENT_STATUS = 'Success';
@@ -125,6 +232,10 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             } else {
                 $PAYMENT_STATUS = 'Failed';
                 $PAYMENT_INFO = $charge->failure_message;
+
+                $error['error'] = $PAYMENT_INFO;
+                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                db_perform('error_info', $error, 'insert');
             }
 
         }
