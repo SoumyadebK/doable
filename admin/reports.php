@@ -17,6 +17,8 @@ if (!empty($_GET['NAME'])) {
         header('location:summary_of_studio_business_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
     } elseif ($_GET['NAME'] == 'staff_performance_report'){
         header('location:staff_performance_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
+    } elseif ($_GET['NAME'] == 'summary_of_staff_member_report'){
+        header('location:summary_of_staff_member_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
     }
 }
 ?>
@@ -95,6 +97,7 @@ if (!empty($_GET['NAME'])) {
                                                 <option value="royalty_service_report">ROYALTY / SERVICE REPORT</option>
                                                 <option value="summary_of_studio_business_report">SUMMARY OF STUDIO BUSINESS REPORT</option>
                                                 <option value="staff_performance_report">STAFF PERFORMANCE REPORT</option>
+                                                <option value="summary_of_staff_member_report">SUMMARY OF STAFF MEMBER REPORT</option>
                                             </select>
                                         </div>
                                     </div>

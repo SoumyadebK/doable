@@ -43,7 +43,7 @@ $first_day_of_week_previous_year = date('Y-m-d', strtotime($previous_year . 'W' 
 // Find the last day of the selected week in the previous year
 $last_day_of_week_previous_year = date('Y-m-d', strtotime($first_day_of_week_previous_year . ' +6 days'));
 
-$res = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$res = $db->Execute("SELECT BUSINESS_NAME, FRANCHISE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
 
 if ($type === 'export') {
@@ -415,7 +415,11 @@ if ($type === 'export') {
                                 </table>
                             </div>
                             <div class="table-responsive">
+                                <?php if($res->fields['FRANCHISE']==1){?>
                                 <label style="width:100%; text-align: center; font-weight: bold">UNIT SALES TRACKING</label>
+                                <?php }else{ ?>
+                                <label style="width:100%; text-align: center; font-weight: bold">SALES TRACKING</label>
+                                <?php } ?>
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
                                     <thead>
                                     <tr>
@@ -556,7 +560,11 @@ if ($type === 'export') {
                                 </table>
                             </div>
                             <div class="table-responsive">
+                                <?php if($res->fields['FRANCHISE']==1){?>
                                 <label style="width:100%; text-align: center; font-weight: bold">MISCELLANEOUS / FESTIVAL SALES TRACKING</label>
+                                <?php } else { ?>
+                                <label style="width:100%; text-align: center; font-weight: bold">MISCELLANEOUS</label>
+                                <?php } ?>
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
                                     <thead>
                                         <tr>
