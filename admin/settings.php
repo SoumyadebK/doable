@@ -82,7 +82,7 @@ $SMTP_HOST = '';
 $SMTP_PORT = '';
 $SMTP_USERNAME = '';
 $SMTP_PASSWORD = '';
-$email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = 0");
 if ($email->RecordCount() > 0) {
     $SMTP_HOST = $email->fields['HOST'];
     $SMTP_PORT = $email->fields['PORT'];
@@ -193,7 +193,8 @@ if(!empty($_POST)){
             db_perform('DOA_TEXT_SETTINGS', $TWILIO_SETTING_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
         }
 
-        $EMAIL_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        //$EMAIL_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $EMAIL_ACCOUNT_DATA['PK_LOCATION'] = 0;
         $EMAIL_ACCOUNT_DATA['HOST'] = $_POST['SMTP_HOST'];
         $EMAIL_ACCOUNT_DATA['PORT'] = $_POST['SMTP_PORT'];
         $EMAIL_ACCOUNT_DATA['USER_NAME'] = $_POST['SMTP_USERNAME'];
@@ -202,13 +203,13 @@ if(!empty($_POST)){
         $EMAIL_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $EMAIL_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
-        $email_data = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        $email_data = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = 0");
         if ($email_data->RecordCount() == 0) {
             db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'insert');
         } else {
             $EMAIL_ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $EMAIL_ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'update', " PK_ACCOUNT_MASTER =  '$_SESSION[PK_ACCOUNT_MASTER]'");
+            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'update', " PK_LOCATION = 0");
         }
     }
     header("location:settings.php");
@@ -397,87 +398,24 @@ if ($header_data->RecordCount() > 0) {
                                                 </div>
                                             </div>
 
-
-                                            <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
-                                                            <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
-                                                            <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
-                                                            <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'checked':''?> onclick="showPaymentGateway(this);">Authorized.net</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row payment_gateway" id="stripe" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'':'none'?>;">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Secret Key</label>
-                                                            <input type="text" class="form-control" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label class="form-label">Publishable Key</label>
-                                                            <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?=$PUBLISHABLE_KEY?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row payment_gateway" id="square" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Square')?'':'none'?>">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Application ID</label>
-                                                            <input type="text" class="form-control" name="APP_ID" value="<?=$SQUARE_APP_ID?>">
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label class="form-label">Location ID</label>
-                                                            <input type="text" class="form-control" name="LOCATION_ID" value="<?=$SQUARE_LOCATION_ID?>">
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label class="form-label">Access Token</label>
-                                                            <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?=$ACCESS_TOKEN?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row payment_gateway" id="authorized" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'':'none'?>">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Login ID</label>
-                                                            <input type="text" class="form-control" name="LOGIN_ID" value="<?=$LOGIN_ID?>">
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label class="form-label">Transaction Key</label>
-                                                            <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?=$TRANSACTION_KEY?>">
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label class="form-label">Authorize Client Key</label>
-                                                            <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?=$AUTHORIZE_CLIENT_KEY?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <?php } ?>
-
                                             <div class="row">
                                                 <div class="col-6">
                                                     <div class="form-group">
-                                                        <label class="form-label" style="margin-bottom: 5px;">Send an Appointment Reminder Text message.</label><br>
+                                                        <label class="form-label" style="margin-bottom: 20px;">Send an Appointment Reminder Text message.</label><br>
                                                         <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?=($APPOINTMENT_REMINDER=='1')?'checked':''?> onclick="showHourBox(this);">Yes</label>
                                                         <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?=($APPOINTMENT_REMINDER=='0')?'checked':''?> onclick="showHourBox(this);">No</label>
                                                     </div>
                                                 </div>
-                                            </div>
-
-                                            <div class="row hour_box" id="yes" style="display: <?=($APPOINTMENT_REMINDER=='1')?'':'none'?>;">
-                                                <div class="col-6">
+                                                <div class="col-6 hour_box" id="yes" style="display: <?=($APPOINTMENT_REMINDER=='1')?'':'none'?>;">
                                                     <div class="form-group">
                                                         <label class="form-label">How many hours before the appointment ?</label>
                                                         <input type="text" class="form-control" name="HOUR" value="<?=$HOUR?>">
                                                     </div>
                                                 </div>
+                                            </div>
 
-                                                <?php if($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) { ?>
-                                                <div class="row" >
+                                            <?php if($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) { ?>
+                                                <div class="row" style="margin-top: 30px;">
                                                     <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
                                                     <div class="col-4">
                                                         <div class="form-group">
@@ -504,13 +442,72 @@ if ($header_data->RecordCount() > 0) {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <?php } ?>
-                                            </div>
+                                            <?php } ?>
 
-                                            <div class="row smtp" id="smtp" >
-                                                <div class="form-group">
-                                                    <label class="form-label">SMTP Setup</label>
+                                            <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
+                                                <div class="row" style="margin-top: 30px;">
+                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Payment Gateway Setting</b>
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'checked':''?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row payment_gateway" id="stripe" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'':'none'?>;">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Secret Key</label>
+                                                                <input type="text" class="form-control" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Publishable Key</label>
+                                                                <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?=$PUBLISHABLE_KEY?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row payment_gateway" id="square" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Square')?'':'none'?>">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Application ID</label>
+                                                                <input type="text" class="form-control" name="APP_ID" value="<?=$SQUARE_APP_ID?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Location ID</label>
+                                                                <input type="text" class="form-control" name="LOCATION_ID" value="<?=$SQUARE_LOCATION_ID?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Access Token</label>
+                                                                <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?=$ACCESS_TOKEN?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row payment_gateway" id="authorized" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'':'none'?>">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Login ID</label>
+                                                                <input type="text" class="form-control" name="LOGIN_ID" value="<?=$LOGIN_ID?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Transaction Key</label>
+                                                                <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?=$TRANSACTION_KEY?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Authorize Client Key</label>
+                                                                <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?=$AUTHORIZE_CLIENT_KEY?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                            <?php } ?>
+
+                                            <div class="row" style="margin-top: 30px;">
+                                                <b class="btn btn-light" style="margin-bottom: 20px;">SMTP Setup</b>
                                                 <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">SMTP HOST</label>
@@ -538,29 +535,27 @@ if ($header_data->RecordCount() > 0) {
                                             </div>
 
                                             <?php if($FRANCHISE == 1) { ?>
-                                            <div class="row smtp" id="smtp" >
-                                                <div class="form-group">
-                                                    <label class="form-label">Arthur Murray API Setup</label>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">User Name</label>
-                                                        <input type="text" class="form-control" name="AM_USER_NAME" value="<?=$AM_USER_NAME?>">
+                                                <div class="row" style="margin-top: 30px;">
+                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="form-label">User Name</label>
+                                                            <input type="text" class="form-control" name="AM_USER_NAME" value="<?=$AM_USER_NAME?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Password</label>
+                                                            <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Refresh Token</label>
+                                                            <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?=$AM_REFRESH_TOKEN?>">
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Password</label>
-                                                        <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Refresh Token</label>
-                                                        <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?=$AM_REFRESH_TOKEN?>">
-                                                    </div>
-                                                </div>
-                                            </div>
                                             <?php } ?>
 
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>

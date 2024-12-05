@@ -9,6 +9,7 @@
                                 General
                             </a>
                             <div id="dropdown-products" class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <a class="dropdown-item" href="../super_admin/settings.php">Settings</a>
                                 <a class="dropdown-item" href="../super_admin/all_rate_types.php">Rate Types</a>
                                 <a class="dropdown-item" href="../super_admin/all_users.php">Users</a>
                                 <a class="dropdown-item" href="../super_admin/all_departments.php">Departments</a>
