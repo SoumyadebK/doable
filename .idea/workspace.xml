@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/super_admin/settings.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_email_accounts.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_email_accounts.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/email_account.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/email_account.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/location.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/location.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/settings.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/settings.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/includes/setup_menu_super_admin.php" beforeDir="false" afterPath="$PROJECT_DIR$/includes/setup_menu_super_admin.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/super_admin/my_profile.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/my_profile.php" afterDir="false" />
-    </list>
+    <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -126,7 +117,7 @@
       <workItem from="1733322694458" duration="1985000" />
       <workItem from="1733329647442" duration="11000" />
       <workItem from="1733334824898" duration="2680000" />
-      <workItem from="1733388053175" duration="7909000" />
+      <workItem from="1733388053175" duration="8233000" />
     </task>
     <servers />
   </component>
