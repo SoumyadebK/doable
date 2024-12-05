@@ -185,7 +185,11 @@ while (!$executive_data->EOF) {
                                     <tr>
                                         <th style="width:10%; text-align: center">Private</th>
                                         <th style="width:10%; text-align: center">Class</th>
+                                        <?php if($account_data->fields['FRANCHISE']==1){?>
                                         <th style="width:10%; text-align: center">DOR/sanct.<br>Competition</th>
+                                        <?php }else{ ?>
+                                        <th style="width:10%; text-align: center">sanct.<br>Competition</th>
+                                        <?php } ?>
                                         <th style="width:10%; text-align: center">Showcase<br>Medal ball</th>
                                         <th style="width:10%; text-align: center">General Misc.<br>NonUnit</th>
                                         <th style="width:10%; text-align: center">Interview <br>Dept.</th>
