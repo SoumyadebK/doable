@@ -172,7 +172,7 @@ while (!$executive_data->EOF) {
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
                                     <thead>
                                     <tr>
-                                        <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="5">Franchisee: <?=$business_name." (".$concatenatedResults.")"?></th>
+                                        <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="5"><?=($account_data->fields['FRANCHISE']==1)?'Franchisee: ':''?><?=$business_name." (".$concatenatedResults.")"?></th>
                                         <th style="width:50%; text-align: center; font-weight: bold" colspan="4">Week # <?=$week_number?> (<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</th>
                                     </tr>
                                     <tr>
@@ -186,9 +186,9 @@ while (!$executive_data->EOF) {
                                         <th style="width:10%; text-align: center">Private</th>
                                         <th style="width:10%; text-align: center">Class</th>
                                         <?php if($account_data->fields['FRANCHISE']==1){?>
-                                        <th style="width:10%; text-align: center">DOR/sanct.<br>Competition</th>
+                                        <th style="width:10%; text-align: center">DOR/Sanct.<br>Competition</th>
                                         <?php }else{ ?>
-                                        <th style="width:10%; text-align: center">sanct.<br>Competition</th>
+                                        <th style="width:10%; text-align: center">Sanct.<br>Competition</th>
                                         <?php } ?>
                                         <th style="width:10%; text-align: center">Showcase<br>Medal ball</th>
                                         <th style="width:10%; text-align: center">General Misc.<br>NonUnit</th>

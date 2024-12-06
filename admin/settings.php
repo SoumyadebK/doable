@@ -93,7 +93,7 @@ if ($email->RecordCount() > 0) {
 $help_title = '';
 $help_description = '';
 $help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'settings'");
-if($help->RecordCount() > 0){
+if($help->RecordCount() > 0) {
     $help_title = $help->fields['TITLE'];
     $help_description = $help->fields['DESCRIPTION'];
 }
@@ -136,6 +136,7 @@ if ($account_payment_info->RecordCount() > 0) {
     //pre_r($card_details);
 }
 
+$msg = '';
 if(!empty($_POST)){
     if ($_POST['FUNCTION_NAME'] == 'saveSettingsData') {
         $SETTINGS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
@@ -203,6 +204,46 @@ if(!empty($_POST)){
         $EMAIL_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $EMAIL_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
+        $Name = "Test Username";
+        $Body = "Just for test";
+
+        $hostname = $EMAIL_ACCOUNT_DATA['HOST'];
+        $SendingEmail = $EMAIL_ACCOUNT_DATA['USER_NAME'];
+        $SendingPwd = $EMAIL_ACCOUNT_DATA['PASSWORD'];
+        $To = "deb.soumya93@gmail.com";
+        $Subject = "Test SMTP Account";
+        $port = "465";
+
+        require_once('../global/phpmailer/class.phpmailer.php');
+        $mail = new PHPMailer();
+        $mail->IsSMTP(); // set mailer to use SMTP
+        $mail->Host = $hostname; // specify main and backup server
+        $mail->SMTPAuth = true; // turn on SMTP authentication
+        $mail->Username = $SendingEmail; // SMTP username
+        $mail->Password = $SendingPwd; // SMTP password
+        $mail->Port = $port;
+        $mail->SMTPDebug = 2;
+        $mail->From = $SendingEmail;
+        $mail->FromName = "support";
+        $mail->AddAddress($To, $Name);
+        $mail->SMTPSecure = "tls";
+        $mail->AddAddress($To, $Name);
+        $mail->WordWrap = 50; // set word wrap to 50 characters
+        $mail->IsHTML(false); // set email format to HTML
+        $mail->Subject = $Subject;
+        $mail->Body = $Body;
+
+        try {
+            if (!$mail->Send()) {
+                //$msg = "Message could not be sent.";
+                $msg = "Mailer Error: " . $mail->ErrorInfo;
+            } else {
+                $msg = "Message has been sent $To from $SendingEmail \n";
+            }
+        } catch (phpmailerException $e) {
+            $msg = "Mailer Error: " . $e->getMessage();
+        }
+
         $email_data = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = 0");
         if ($email_data->RecordCount() == 0) {
             db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'insert');
@@ -212,7 +253,7 @@ if(!empty($_POST)){
             db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'update', " PK_LOCATION = 0");
         }
     }
-    header("location:settings.php");
+    //header("location:settings.php");
 }
 
 $header_text = '';
@@ -532,6 +573,11 @@ if ($header_data->RecordCount() > 0) {
                                                         <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?=$SMTP_PASSWORD?>">
                                                     </div>
                                                 </div>
+                                                <?php if ($msg) {?>
+                                                    <div class="alert alert-danger">
+                                                        <strong><?=$msg;?></strong>
+                                                    </div>
+                                                <?php } ?>
                                             </div>
 
                                             <?php if($FRANCHISE == 1) { ?>

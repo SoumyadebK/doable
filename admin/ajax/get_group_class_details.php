@@ -138,10 +138,15 @@ while (!$status_data->EOF) {
                         <select class="multi_sumo_select" name="PK_USER_MASTER[]" id="PK_USER_MASTER" multiple>
                             <?php
                             $with_enr_customer = [];
-                            $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = $PK_SERVICE_MASTER AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
+                            $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = $PK_SERVICE_MASTER AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
                             while (!$serviceCodeData->EOF) {
+                                if ($serviceCodeData->fields['CHARGE_TYPE'] == 'Membership') {
+                                    $NUMBER_OF_SESSION = 99;
+                                } else {
+                                    $NUMBER_OF_SESSION = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                                }
                                 $SESSION_CREATED = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE'], 'GROUP');
-                                if ($serviceCodeData->fields['NUMBER_OF_SESSION'] > $SESSION_CREATED) {
+                                if ($NUMBER_OF_SESSION > $SESSION_CREATED) {
                                     $with_enr_customer[] = $serviceCodeData->fields['PK_USER_MASTER'];
                                 }
                                 $serviceCodeData->MoveNext();

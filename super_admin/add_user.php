@@ -298,6 +298,7 @@ else {
                                                                             <option value="">Select Gender</option>
                                                                             <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
                                                                             <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
+                                                                            <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
                                                                         </select>
                                                                     </div>
                                                                 </div>
