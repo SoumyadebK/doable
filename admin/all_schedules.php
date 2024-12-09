@@ -436,7 +436,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-5">
+                                    <div class="col-4">
                                         <div class="input-group">
                                             <input type="hidden" id="IS_SELECTED" value="0">
                                             <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
@@ -459,6 +459,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                                 <option value="TO-DO" <?php if($appointment_type=="TO-DO"){echo "selected";}?>>To Dos</option>
                                                 <option value="EVENT" <?php if($appointment_type=="EVENT"){echo "selected";}?>>Event</option>
                                             </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="input-group" style="margin-left: 70%;">
+                                            <a onclick="zoomInOut('out');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-minus"></i></a>
+                                            <a onclick="zoomInOut('in');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-plus"></i></a>
                                         </div>
                                     </div>
                                 </div>
@@ -604,7 +610,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             header: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'agendaDay,agendaWeek,month'
+                right: 'agendaDay,agendaWeek,month,'
             },
             views: {
                 agendaDay: {
@@ -613,7 +619,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             },
             defaultView: 'agendaDay',
             slotDuration: '<?=$INTERVAL?>',
-            slotLabelInterval: {minutes: 15},
+            slotLabelInterval: {minutes: 5},
             minTime: open_time,
             maxTime: close_time,
             contentHeight: 670,
@@ -820,6 +826,18 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
 
     });
+
+    var interval = 15;
+    function zoomInOut(type) {
+        if (type == 'in' && interval > 10) {
+            interval = interval - 5;
+        } else {
+            if (type == 'out') {
+                interval = interval + 5;
+            }
+        }
+        calendar.setOption('slotDuration', '00:'+interval+':00');
+    }
 
     function showAppointmentEdit(info) {
         $('#calendar-container').removeClass('col-10').addClass('col-12');

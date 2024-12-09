@@ -93,7 +93,7 @@
       related to root in unix systems. Corrected.
     - Add conditional if before constant definition. This will allow users
       to redefine constants without changing the file, and then improve
-      upgrade of pclzip code for new versions.
+      upgrade of pclPostal / Zip Code for new versions.
   
   Version 2.5 :
     - Introduce the ability to add file/folder with individual properties (file descriptor).
