@@ -1,20 +1,23 @@
-<?
+<?php
 require_once('global/config.php');
+global $db;
+global $http_path;
+
 $msg = '';
 $success_msg = '';
 $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 
 if ($FUNCTION_NAME == 'resetPasswordFunction') {
     $email = $_POST['EMAIL'];
-    $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE EMAIL_ID = '$email'");
+    $result = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USER_MASTER.PRIMARY_LOCATION_ID, DOA_USER_MASTER.PK_ACCOUNT_MASTER FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.EMAIL_ID = '$email'");
     if ($result->RecordCount() > 0) {
         $to= $result->fields['EMAIL_ID'];
         $time = base64_encode($result->fields['PK_USER'].'_'.time());
         $link = $http_path.'reset-password.php?cmVzZXQ='.$time;
-        //pre_r($link);
-        $PK_USER = $result->fields['PK_USER'];
-        $details = $db->Execute("SELECT DOA_EMAIL_ACCOUNT.USER_NAME, DOA_EMAIL_ACCOUNT.PASSWORD, DOA_EMAIL_ACCOUNT.HOST, DOA_EMAIL_ACCOUNT.PORT, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME FROM DOA_EMAIL_ACCOUNT LEFT JOIN DOA_USERS ON DOA_USERS.PK_ACCOUNT_MASTER=DOA_EMAIL_ACCOUNT.PK_ACCOUNT_MASTER WHERE DOA_USERS.PK_USER='$PK_USER'");
-        $receiver_name = $details->fields['FIRST_NAME'].' '.$details->fields['LAST_NAME'];
+        $receiver_name = $result->fields['FIRST_NAME'].' '.$result->fields['LAST_NAME'];
+
+        $db1 = connectDatabase($result->fields['PK_ACCOUNT_MASTER']);
+        $email_account_data = getEmailAccountData($db1, $result->fields['PRIMARY_LOCATION_ID']);
 
         require_once('global/phpmailer/class.phpmailer.php');
         $mail = new PHPMailer();
@@ -23,25 +26,26 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
         // enable SMTP authentication
         $mail->SMTPAuth = true;
         // GMAIL username
-        $mail->Username = $details->fields['USER_NAME'];
+        $mail->Username = $email_account_data->fields['USER_NAME'];
         // GMAIL password
-        $mail->Password = $details->fields['PASSWORD'];
+        $mail->Password = $email_account_data->fields['PASSWORD'];
         $mail->SMTPSecure = "ssl";
         // sets GMAIL as the SMTP server
-        $mail->Host = $details->fields['HOST'];
+        $mail->Host = $email_account_data->fields['HOST'];
         // set the SMTP port for the GMAIL server
-        $mail->Port = $details->fields['PORT'];
-        $mail->From= $details->fields['USER_NAME'];
+        $mail->Port = $email_account_data->fields['PORT'];
+        $mail->From= $email_account_data->fields['USER_NAME'];
         $mail->FromName='Doable';
         $mail->AddAddress("$email", "$receiver_name");
         $mail->Subject  =  'Reset Password';
         $mail->IsHTML(true);
         $mail->Body = 'Click On This Link to Reset Password '.$link.'.';
+
         try {
             if ($mail->Send()) {
                 $success_msg = "A password reset link sent to your Mail Id";
             } else {
-                $msg = "Unable to send Mail";
+                $msg = $mail->Send();
             }
         } catch (phpmailerException $e) {
             $msg = "Error : ".$e->getMessage();
