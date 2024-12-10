@@ -603,7 +603,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         calendar = new Calendar(calendarEl, {
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
-            editable: false,
+            editable: true,
             selectable: true,
             eventLimit: true,
             scrollTime: '00:00',
@@ -663,15 +663,19 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     }
                 });
 
-                if ((selected_service_provider.length === 1) && (calendar.view.type !== 'month') && (is_editable)) {
-                    calendar.setOption('editable', true);
+                if ((selected_service_provider.length > 1) && (calendar.view.type === 'agendaWeek')) {
+                    calendar.setOption('editable', false);
+                } else {
+                    if (selected_service_provider.length === 1) {
+                        calendar.setOption('editable', true);
+                    }
                 }
 
-                if (selected_service_provider.length > 1) {
+                /*if (selected_service_provider.length > 1 && calendar.view.type !== 'day') {
                     calendar.setOption('editable', false);
                     $('#calendar-container').removeClass('col-10').addClass('col-12');
                     $('#external-events').hide();
-                }
+                }*/
             },
             events: function (info, successCallback, failureCallback) {
                 let STATUS_CODE = $('#STATUS_CODE').val();
@@ -699,7 +703,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             $('#calendar-container').removeClass('col-10').addClass('col-12');
                             $('#external-events').hide();
                         } else {
-                            if ((selected_service_provider.length === 1) && (is_editable)) {
+                            if (calendar.view.type === 'agendaWeek') {
+                                if (selected_service_provider.length === 1 && (is_editable)) {
+                                    calendar.setOption('editable', true);
+                                } else {
+                                    calendar.setOption('editable', false);
+                                }
+                            } else {
                                 calendar.setOption('editable', true);
                             }
                         }
@@ -753,13 +763,24 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         selected_service_provider.push($(this).val());
                     });
 
-                    if (selected_service_provider.length === 1 && move_copy) {
-                        $('#calendar-container').removeClass('col-12').addClass('col-10');
-                        let event_data = info.event;
-                        let event_data_ext_prop = info.event.extendedProps;
-                        let TYPE = event_data_ext_prop.type;
+                    if (calendar.view.type === 'agendaWeek' && move_copy) {
+                        if (selected_service_provider.length === 1) {
+                            $('#calendar-container').removeClass('col-12').addClass('col-10');
+                            let event_data = info.event;
+                            let event_data_ext_prop = info.event.extendedProps;
+                            let TYPE = event_data_ext_prop.type;
 
-                        $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                            $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                        }
+                    } else {
+                        if (calendar.view.type === 'agendaDay') {
+                            $('#calendar-container').removeClass('col-12').addClass('col-10');
+                            let event_data = info.event;
+                            let event_data_ext_prop = info.event.extendedProps;
+                            let TYPE = event_data_ext_prop.type;
+
+                            $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                        }
                     }
                 }
             },
@@ -822,9 +843,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         $('.fc-today-button').click(function () {
             getServiceProviderCount();
         });
+    });
 
-
-
+    $(document).on('click', '.fc-agendaDay-button', function () {
+        calendar.setOption('editable', true);
     });
 
     var interval = 15;
