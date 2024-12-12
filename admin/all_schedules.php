@@ -436,7 +436,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-5">
+                                    <div class="col-4">
                                         <div class="input-group">
                                             <input type="hidden" id="IS_SELECTED" value="0">
                                             <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
@@ -459,6 +459,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                                 <option value="TO-DO" <?php if($appointment_type=="TO-DO"){echo "selected";}?>>To Dos</option>
                                                 <option value="EVENT" <?php if($appointment_type=="EVENT"){echo "selected";}?>>Event</option>
                                             </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="input-group" style="margin-left: 70%;">
+                                            <a onclick="zoomInOut('out');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-minus"></i></a>
+                                            <a onclick="zoomInOut('in');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-plus"></i></a>
                                         </div>
                                     </div>
                                 </div>
@@ -597,14 +603,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         calendar = new Calendar(calendarEl, {
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
-            editable: false,
+            editable: true,
             selectable: true,
             eventLimit: true,
             scrollTime: '00:00',
             header: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'agendaDay,agendaWeek,month'
+                right: 'agendaDay,agendaWeek,month,'
             },
             views: {
                 agendaDay: {
@@ -613,7 +619,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             },
             defaultView: 'agendaDay',
             slotDuration: '<?=$INTERVAL?>',
-            slotLabelInterval: {minutes: 15},
+            slotLabelInterval: {minutes: 5},
             minTime: open_time,
             maxTime: close_time,
             contentHeight: 670,
@@ -657,15 +663,19 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     }
                 });
 
-                if ((selected_service_provider.length === 1) && (calendar.view.type !== 'month') && (is_editable)) {
-                    calendar.setOption('editable', true);
+                if ((selected_service_provider.length > 1) && (calendar.view.type === 'agendaWeek')) {
+                    calendar.setOption('editable', false);
+                } else {
+                    if (selected_service_provider.length === 1) {
+                        calendar.setOption('editable', true);
+                    }
                 }
 
-                if (selected_service_provider.length > 1) {
+                /*if (selected_service_provider.length > 1 && calendar.view.type !== 'day') {
                     calendar.setOption('editable', false);
                     $('#calendar-container').removeClass('col-10').addClass('col-12');
                     $('#external-events').hide();
-                }
+                }*/
             },
             events: function (info, successCallback, failureCallback) {
                 let STATUS_CODE = $('#STATUS_CODE').val();
@@ -693,7 +703,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             $('#calendar-container').removeClass('col-10').addClass('col-12');
                             $('#external-events').hide();
                         } else {
-                            if ((selected_service_provider.length === 1) && (is_editable)) {
+                            if (calendar.view.type === 'agendaWeek') {
+                                if (selected_service_provider.length === 1 && (is_editable)) {
+                                    calendar.setOption('editable', true);
+                                } else {
+                                    calendar.setOption('editable', false);
+                                }
+                            } else {
                                 calendar.setOption('editable', true);
                             }
                         }
@@ -747,13 +763,24 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         selected_service_provider.push($(this).val());
                     });
 
-                    if (selected_service_provider.length === 1 && move_copy) {
-                        $('#calendar-container').removeClass('col-12').addClass('col-10');
-                        let event_data = info.event;
-                        let event_data_ext_prop = info.event.extendedProps;
-                        let TYPE = event_data_ext_prop.type;
+                    if (calendar.view.type === 'agendaWeek' && move_copy) {
+                        if (selected_service_provider.length === 1) {
+                            $('#calendar-container').removeClass('col-12').addClass('col-10');
+                            let event_data = info.event;
+                            let event_data_ext_prop = info.event.extendedProps;
+                            let TYPE = event_data_ext_prop.type;
 
-                        $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                            $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                        }
+                    } else {
+                        if (calendar.view.type === 'agendaDay') {
+                            $('#calendar-container').removeClass('col-12').addClass('col-10');
+                            let event_data = info.event;
+                            let event_data_ext_prop = info.event.extendedProps;
+                            let TYPE = event_data_ext_prop.type;
+
+                            $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                        }
                     }
                 }
             },
@@ -816,10 +843,23 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         $('.fc-today-button').click(function () {
             getServiceProviderCount();
         });
-
-
-
     });
+
+    $(document).on('click', '.fc-agendaDay-button', function () {
+        calendar.setOption('editable', true);
+    });
+
+    var interval = 15;
+    function zoomInOut(type) {
+        if (type == 'in' && interval > 10) {
+            interval = interval - 5;
+        } else {
+            if (type == 'out') {
+                interval = interval + 5;
+            }
+        }
+        calendar.setOption('slotDuration', '00:'+interval+':00');
+    }
 
     function showAppointmentEdit(info) {
         $('#calendar-container').removeClass('col-10').addClass('col-12');
