@@ -45,6 +45,7 @@ $TWILIO_ACCOUNT_TYPE = '';
 $ACTIVE = '';
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = '';
 $USERNAME_PREFIX = '';
+$FOCUSBIZ_API_KEY = '';
 
 $PK_USER_EDIT = '';
 $USER_NAME = '';
@@ -93,6 +94,7 @@ if(!empty($_GET['id'])) {
     $TEXTING_FEATURE_ENABLED = $account_res->fields['TEXTING_FEATURE_ENABLED'];
     $TWILIO_ACCOUNT_TYPE = $account_res->fields['TWILIO_ACCOUNT_TYPE'];
     $USERNAME_PREFIX = $account_res->fields['USERNAME_PREFIX'];
+    $FOCUSBIZ_API_KEY = $account_res->fields['FOCUSBIZ_API_KEY'];
     $ACTIVE = $account_res->fields['ACTIVE'];
 
     $user_res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$_GET[id]' AND CREATED_BY = '$_SESSION[PK_USER]'");
@@ -520,10 +522,17 @@ while (!$account_payment_info->EOF) {
                                                 <div class="row" style="margin-bottom: 15px; margin-top: 20px;">
                                                     <div class="col-6">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Username Prefix
-                                                            </label>
+                                                            <label class="col-md-12">Username Prefix</label>
                                                             <div class="col-md-12">
                                                                 <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Enter Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Focusbiz API Key</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY?>">
                                                             </div>
                                                         </div>
                                                     </div>

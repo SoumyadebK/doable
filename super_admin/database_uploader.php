@@ -737,7 +737,7 @@ if(!empty($_POST))
                     $BILLING_LEDGER_DATA['BILLED_AMOUNT'] = $BILLED_AMOUNT;
                     $BILLING_LEDGER_DATA['PAID_AMOUNT'] = 0;
                     $BILLING_LEDGER_DATA['BALANCE'] = $BALANCE;
-                    $BILLING_LEDGER_DATA['IS_PAID'] = $allEnrollmentCharges->fields['status'] == 'Paid';
+                    $BILLING_LEDGER_DATA['IS_PAID'] = ($allEnrollmentCharges->fields['status'] == 'Paid') ? 1 : 0;
                     $BILLING_LEDGER_DATA['STATUS'] = 'A';
                     $BILLING_LEDGER_DATA['IS_DOWN_PAYMENT'] = $IS_DOWN_PAYMENT;
                     db_perform_account('DOA_ENROLLMENT_LEDGER', $BILLING_LEDGER_DATA, 'insert');

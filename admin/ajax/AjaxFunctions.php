@@ -956,15 +956,17 @@ function saveProfileData($RESPONSE_DATA){
 function saveLoginData($RESPONSE_DATA)
 {
     global $db;
+    $account_data = $db->Execute("SELECT USERNAME_PREFIX, FOCUSBIZ_API_KEY FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+    $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
+    $FOCUSBIZ_API_KEY = ($account_data->RecordCount() > 0) ? $account_data->fields['FOCUSBIZ_API_KEY'] : '';
+
     if (!empty($RESPONSE_DATA['USER_NAME'])) {
-        $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
-        $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
         if (strpos($RESPONSE_DATA['USER_NAME'], $USERNAME_PREFIX . '.') !== false) {
             $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
         } else {
             $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['USER_NAME'];
         }
-        //$USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $USERNAME_PREFIX.'.'.$RESPONSE_DATA['USER_NAME'];
+        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = ".$RESPONSE_DATA['PK_USER']);
         $USER_DATA['CREATE_LOGIN'] = 1;
     }
 
@@ -977,93 +979,22 @@ function saveLoginData($RESPONSE_DATA)
     $USER_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
     $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
 
-    //$user_info = $db->Execute("SELECT * FROM `DOA_USERS` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
     // focusbiz code
     if(isset($RESPONSE_DATA['TICKET_SYSTEM_ACCESS']) && $RESPONSE_DATA['TICKET_SYSTEM_ACCESS'] == 1) {
-        $USER_DATA['TICKET_SYSTEM_ACCESS'] = $RESPONSE_DATA['TICKET_SYSTEM_ACCESS'];
+        $USER_DATA['TICKET_SYSTEM_ACCESS'] = 1;
 
         $res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$RESPONSE_DATA[PK_USER]' ");
-
-        //$hash      = $res->fields['PASSWORD'];
-        //$PASSWORD  = crypt($res->fields['PASSWORD'], $hash);
-        $PASSWORD  = $RESPONSE_DATA['PASSWORD'];
-
-        $user = array();
-        $user['FIRST_NAME'] = $res->fields['FIRST_NAME'];
-        $user['LAST_NAME']  = $res->fields['LAST_NAME'];
-        $user['EMAIL_ID']   = $res->fields['EMAIL_ID'];
-        $user['ACTIVE']     = $res->fields['ACTIVE'];
-
-        if($res->fields['ACCESS_TOKEN'] == "") {
-            $user['USER_NAME']    = $res->fields['USER_NAME'];
-            $user['PASSWORD']   = $PASSWORD;
-        } else {
-            $user['ACCESS_TOKEN']   = $res->fields['ACCESS_TOKEN'];
-        }
-
-        if($_SERVER['HTTP_HOST'] == 'localhost' ) {
-            /*$URL    = "http://localhost/focusbiz/API/V1/user";
-            $APIKEY = "7QXJtdkZEHcR4bgOxPkona3PnJ02O8";*/
-            $URL    = "https://focusbiz.com/API/V1/user";
-            $APIKEY = "JJmQm6AvehQzjP0nVRgEfWgCarxWYo";
-        } else {
-            $URL    = "https://focusbiz.com/API/V1/user";
-            $APIKEY = "JJmQm6AvehQzjP0nVRgEfWgCarxWYo";
-        }
-
-        $json = json_encode($user);
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_SSL_VERIFYHOST => '0',
-            CURLOPT_SSL_VERIFYPEER => '0',
-            CURLOPT_URL => $URL,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_POST => 1,
-            CURLOPT_POSTFIELDS => $json,
-            CURLOPT_HTTPHEADER => array(
-                "APIKEY: ".$APIKEY
-            ),
-        ));
-
-        $response   = curl_exec($curl);
-        $err        = curl_error($curl);
-
-        curl_close($curl);
-
-        if($err) {
-            echo "cURL Error #:" . $err;exit;
-        } else {
-            $response1 = json_decode($response);
-
-            $USER = array();
-            $USER['ACCESS_TOKEN'] = $response1->ACCESS_TOKEN;
-            db_perform('DOA_USERS', $USER, 'update', " PK_USER = '$RESPONSE_DATA[PK_USER]' ");
-        }
-    } else {
-        $USER_DATA['TICKET_SYSTEM_ACCESS'] = 0;
-
-        $res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$RESPONSE_DATA[PK_USER]' ");
-        if($res->fields['ACCESS_TOKEN'] != "") {
+        if(($res->fields['ACCESS_TOKEN'] == NULL || $res->fields['ACCESS_TOKEN'] == "") && $FOCUSBIZ_API_KEY != NULL) {
             $user = array();
-            $user['FIRST_NAME']     = $res->fields['FIRST_NAME'];
-            $user['LAST_NAME']      = $res->fields['LAST_NAME'];
-            $user['EMAIL_ID']       = $res->fields['EMAIL'];
-            $user['ACTIVE']         = 0;
-            $user['ACCESS_TOKEN']   = $res->fields['ACCESS_TOKEN'];
+            $user['FIRST_NAME'] = $res->fields['FIRST_NAME'];
+            $user['LAST_NAME'] = $res->fields['LAST_NAME'];
+            $user['EMAIL_ID'] = $res->fields['EMAIL_ID'];
+            $user['ACTIVE'] = $res->fields['ACTIVE'];
+            $user['USER_ID'] = $res->fields['USER_NAME'];
 
-            if($_SERVER['HTTP_HOST'] == 'localhost' ) {
-                /*$URL    = "http://localhost/focusbiz/API/V1/user";
-                $APIKEY = "7QXJtdkZEHcR4bgOxPkona3PnJ02O8";*/
-                $URL    = "https://focusbiz.com/API/V1/user";
-                $APIKEY = "JJmQm6AvehQzjP0nVRgEfWgCarxWYo";
-            } else {
-                $URL    = "https://focusbiz.com/API/V1/user";
-                $APIKEY = "JJmQm6AvehQzjP0nVRgEfWgCarxWYo";
-            }
+            $user['PASSWORD'] = $USER_DATA['PASSWORD'] ?? $res->fields['PASSWORD'];
+
+            $URL = "https://focusbiz.com/API/V1/user";
 
             $json = json_encode($user);
             $curl = curl_init();
@@ -1079,26 +1010,36 @@ function saveLoginData($RESPONSE_DATA)
                 CURLOPT_POST => 1,
                 CURLOPT_POSTFIELDS => $json,
                 CURLOPT_HTTPHEADER => array(
-                    "APIKEY: ".$APIKEY
+                    "APIKEY: " . $FOCUSBIZ_API_KEY
                 ),
             ));
 
-            $response   = curl_exec($curl);
-            $err        = curl_error($curl);
+            $response = curl_exec($curl);
+            $err = curl_error($curl);
 
             curl_close($curl);
 
-            if($err) {
+            if ($err) {
                 echo "cURL Error #:" . $err;
+                exit;
             } else {
                 $response1 = json_decode($response);
+                $USER_DATA['ACCESS_TOKEN'] = $response1->ACCESS_TOKEN;
+                $_SESSION['ACCESS_TOKEN'] = $USER_DATA['ACCESS_TOKEN'];
+                $_SESSION['TICKET_SYSTEM_ACCESS'] = 1;
             }
+        } elseif($res->fields['ACCESS_TOKEN']) {
+            $_SESSION['ACCESS_TOKEN'] = $res->fields['ACCESS_TOKEN'];
+            $_SESSION['TICKET_SYSTEM_ACCESS'] = 1;
         }
+    } else {
+        $USER_DATA['TICKET_SYSTEM_ACCESS'] = 0;
+        $_SESSION['ACCESS_TOKEN'] = '';
+        $_SESSION['TICKET_SYSTEM_ACCESS'] = 0;
     }
     // focusbiz code end
 
     db_perform('DOA_USERS', $USER_DATA, 'update'," PK_USER = ".$RESPONSE_DATA['PK_USER']);
-    db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = ".$RESPONSE_DATA['PK_USER']);
     echo $RESPONSE_DATA['PK_USER'];
 }
 
