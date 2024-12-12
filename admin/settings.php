@@ -57,6 +57,7 @@ $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
 $APPOINTMENT_REMINDER = $res->fields['APPOINTMENT_REMINDER'];
 $HOUR = $res->fields['HOUR'];
 $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
+$FOCUSBIZ_API_KEY = $res->fields['FOCUSBIZ_API_KEY'];
 $TIME_SLOT_INTERVAL = $res->fields['TIME_SLOT_INTERVAL'];
 
 $FRANCHISE = $res->fields['FRANCHISE'];
@@ -136,9 +137,9 @@ if ($account_payment_info->RecordCount() > 0) {
     //pre_r($card_details);
 }
 
-$msg = '';
 if(!empty($_POST)){
     if ($_POST['FUNCTION_NAME'] == 'saveSettingsData') {
+        unset($_SESSION['mail_error']);
         $SETTINGS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
         $SETTINGS_DATA['PK_TIMEZONE'] = $_POST['PK_TIMEZONE'];
         $SETTINGS_DATA['USERNAME_PREFIX'] = $_POST['USERNAME_PREFIX'];
@@ -164,6 +165,7 @@ if(!empty($_POST)){
         $SETTINGS_DATA['AM_USER_NAME'] = $_POST['AM_USER_NAME'];
         $SETTINGS_DATA['AM_PASSWORD'] = $_POST['AM_PASSWORD'];
         $SETTINGS_DATA['AM_REFRESH_TOKEN'] = $_POST['AM_REFRESH_TOKEN'];
+        $SETTINGS_DATA['FOCUSBIZ_API_KEY'] = $_POST['FOCUSBIZ_API_KEY'];
         $SETTINGS_DATA['ACTIVE'] = 1;
         $SETTINGS_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $SETTINGS_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -208,40 +210,75 @@ if(!empty($_POST)){
         $Body = "Just for test";
 
         $hostname = $EMAIL_ACCOUNT_DATA['HOST'];
+        $port = $EMAIL_ACCOUNT_DATA['PORT'];
         $SendingEmail = $EMAIL_ACCOUNT_DATA['USER_NAME'];
         $SendingPwd = $EMAIL_ACCOUNT_DATA['PASSWORD'];
+
         $To = "deb.soumya93@gmail.com";
         $Subject = "Test SMTP Account";
-        $port = "465";
 
         require_once('../global/phpmailer/class.phpmailer.php');
+
+        //Create a new PHPMailer instance
         $mail = new PHPMailer();
-        $mail->IsSMTP(); // set mailer to use SMTP
-        $mail->Host = $hostname; // specify main and backup server
-        $mail->SMTPAuth = true; // turn on SMTP authentication
-        $mail->Username = $SendingEmail; // SMTP username
-        $mail->Password = $SendingPwd; // SMTP password
+        //Tell PHPMailer to use SMTP
+        $mail->IsSMTP();
+        //Enable SMTP debugging
+        // 0 = off (for production use)
+        // 1 = client messages
+        // 2 = client and server messages
+        //$mail->SMTPDebug = 2;
+
+        //Ask for HTML-friendly debug output
+        //$mail->Debugoutput = 'html';
+
+        //Set the hostname of the mail server
+        $mail->Host = $hostname;
+
+        //Set the SMTP port number - 587 for authenticated TLS, a.k.a. RFC4409 SMTP submission
         $mail->Port = $port;
-        $mail->SMTPDebug = 2;
-        $mail->From = $SendingEmail;
-        $mail->FromName = "support";
-        $mail->AddAddress($To, $Name);
-        $mail->SMTPSecure = "tls";
-        $mail->AddAddress($To, $Name);
-        $mail->WordWrap = 50; // set word wrap to 50 characters
-        $mail->IsHTML(false); // set email format to HTML
-        $mail->Subject = $Subject;
-        $mail->Body = $Body;
+
+        //Set the encryption system to use - ssl (deprecated) or tls
+        $mail->SMTPSecure = 'ssl';
+
+        //Whether to use SMTP authentication
+        $mail->SMTPAuth = true;
+
+        //Username to use for SMTP authentication - use full email address for gmail
+        $mail->Username = $SendingEmail;
+
+        //Password to use for SMTP authentication
+        $mail->Password = $SendingPwd;
 
         try {
-            if (!$mail->Send()) {
-                //$msg = "Message could not be sent.";
-                $msg = "Mailer Error: " . $mail->ErrorInfo;
+            $mail->setFrom($SendingEmail, 'development');
+        } catch (phpmailerException $e) {
+            $_SESSION['mail_error'] = $e->errorMessage()."<br>";
+        }  //add sender email address.
+
+        $mail->addAddress('deb.soumya93@gmail.com', "development");  //Set who the message is to be sent to.
+        //Set the subject line
+        $mail->Subject = 'SMTP Test Account';
+
+        //Read an HTML message body from an external file, convert referenced images to embedded,
+        //convert HTML into a basic plain-text alternative body
+        $mail->Body     = 'Just for test';
+
+        //Replace the plain text body with one created manually
+        $mail->AltBody = 'This is a plain-text message body';
+
+        //Attach an image file
+        //$mail->addAttachment('images/phpmailer_mini.gif');
+        //$mail->SMTPAuth = true;
+        //send the message, check for errors
+        try {
+            if (!$mail->send()) {
+                $_SESSION['mail_error'] .= "Mailer Error: " . $mail->ErrorInfo;
             } else {
-                $msg = "Message has been sent $To from $SendingEmail \n";
+                $_SESSION['mail_error'] .= "Message sent!";
             }
         } catch (phpmailerException $e) {
-            $msg = "Mailer Error: " . $e->getMessage();
+            $_SESSION['mail_error'] .= "Mailer Error: " . $e->getMessage();
         }
 
         $email_data = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = 0");
@@ -253,7 +290,7 @@ if(!empty($_POST)){
             db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'update', " PK_LOCATION = 0");
         }
     }
-    //header("location:settings.php");
+    header("location:settings.php");
 }
 
 $header_text = '';
@@ -455,6 +492,17 @@ if ($header_data->RecordCount() > 0) {
                                                 </div>
                                             </div>
 
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Focusbiz API Key</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <?php if($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) { ?>
                                                 <div class="row" style="margin-top: 30px;">
                                                     <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
@@ -573,9 +621,9 @@ if ($header_data->RecordCount() > 0) {
                                                         <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?=$SMTP_PASSWORD?>">
                                                     </div>
                                                 </div>
-                                                <?php if ($msg) {?>
+                                                <?php if (isset($_SESSION['mail_error'])) {?>
                                                     <div class="alert alert-danger">
-                                                        <strong><?=$msg;?></strong>
+                                                        <strong><?=$_SESSION['mail_error'];?></strong>
                                                     </div>
                                                 <?php } ?>
                                             </div>
