@@ -178,7 +178,7 @@ if ($type === 'export') {
 $PK_USER = empty($_GET['PK_USER']) ? 0 : $_GET['PK_USER'];
 $selected_service_provider = [];
 $selected_service_provider_name = [];
-$selected_service_provider_row = $db->Execute("SELECT DOA_USERS.`PK_USER`, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM `DOA_USERS` LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USERS.PK_USER IN (".$PK_USER.") AND DOA_USER_ROLES.`PK_ROLES` = 5");
+$selected_service_provider_row = $db->Execute("SELECT DISTINCT DOA_USERS.`PK_USER`, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM `DOA_USERS` LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USERS.PK_USER IN (".$PK_USER.") AND DOA_USER_ROLES.`PK_ROLES` = 5");
 while (!$selected_service_provider_row->EOF) {
     $selected_service_provider[] = $selected_service_provider_row->fields['PK_USER'];
     $selected_service_provider_name[] = $selected_service_provider_row->fields['NAME'];
