@@ -14,7 +14,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || ($_SESSION['PK_ROL
     exit;
 }
 
-$redirect_date = (!empty($_GET['date'])) ? $_GET['date'] : "";
+$redirect_date = (!empty($_GET['date'])) ? date('Y-m-d', strtotime($_GET['date'])) : "";
 
 
 $SERVICE_PROVIDER_ID = ' ';

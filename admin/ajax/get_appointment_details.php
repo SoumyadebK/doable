@@ -346,7 +346,7 @@ z-index: 500;
     <div class="tab-pane active" id="edit_appointment" role="tabpanel">
         <form class="form-material form-horizontal" id="appointment_form" action="includes/update_appointment_details.php" method="post" enctype="multipart/form-data">
 <!--            <input type="hidden" name="FUNCTION_NAME" value="saveAppointmentData">-->
-            <input type="hidden" name="REDIRECT_URL" value="../all_schedules.php?date=<?=$DATE?>">
+            <input type="hidden" name="REDIRECT_URL" value="../all_schedules.php">
             <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=$PK_APPOINTMENT_MASTER?>">
             <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="NORMAL">
             <div style="padding-top: 10px;">
