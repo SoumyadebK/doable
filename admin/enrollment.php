@@ -59,7 +59,7 @@ $EXPIRY_DATE = '';
 $CHECK_NUMBER = '';
 $CHECK_DATE = '';
 $NOTE = '';
-$CHARGE_TYPE = 'Session';
+$CHARGE_TYPE = '';
 
 $PK_USER_MASTER = '';
 if(!empty($_GET['master_id_customer'])) {
@@ -721,7 +721,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
                                             <div class="row add_more <?=($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : ''?>">
                                                 <div class="col-12">
-                                                    <div class="form-group" style="float: right; display: <?=$CHARGE_TYPE==1 ? 'none' : ''?>">
+                                                    <div class="form-group" style="float: right; display: <?=$CHARGE_TYPE=='Session' ? 'none' : ''?>">
                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServices();">Add More</a>
                                                     </div>
                                                 </div>

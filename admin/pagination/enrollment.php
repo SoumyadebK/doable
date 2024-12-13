@@ -171,7 +171,7 @@ while (!$enrollment_data->EOF) {
                             <td style="text-align: right"><?=($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $NUMBER_OF_SESSION <= 0) ? 'XX' : $NUMBER_OF_SESSION?></td>
                             <td style="text-align: right;"><?=($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_COMPLETED <= 0) ? 'XX' : $SESSION_COMPLETED?></td>
                             <td style="text-align: right; color:<?=($ENR_BALANCE < 0)?'red':'black'?>;"><?=number_format($ENR_BALANCE, 2)?></td>
-                            <td style="text-align: right">$<?=number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'], 2)?></td>
+                            <td style="text-align: right"><?=number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/(($PRICE_PER_SESSION == 0)?1:$PRICE_PER_SESSION), 2)?></td>
                             <td style="text-align: right;"><?=($SERVICE_CREDIT > 0) ? number_format($SERVICE_CREDIT, 2) : 0?></td>
                         </tr>
                     <?php $serviceCodeData->MoveNext();
