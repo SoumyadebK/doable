@@ -653,6 +653,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     success: function (result) {
                         console.log(result);
                         successCallback(result);
+                        if ((selected_service_provider.length > 1) && (calendar.view.type === 'agendaWeek')) {
+                            calendar.setOption('editable', false);
+                        } else {
+                            if (selected_service_provider.length === 1) {
+                                calendar.setOption('editable', true);
+                            }
+                        }
+                        getServiceProviderCount();
                         if (calendar.view.type === 'month') {
                             calendar.changeView('month');
                         }
@@ -662,20 +670,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         alert(thrownError);
                     }
                 });
-
-                if ((selected_service_provider.length > 1) && (calendar.view.type === 'agendaWeek')) {
-                    calendar.setOption('editable', false);
-                } else {
-                    if (selected_service_provider.length === 1) {
-                        calendar.setOption('editable', true);
-                    }
-                }
-
-                /*if (selected_service_provider.length > 1 && calendar.view.type !== 'day') {
-                    calendar.setOption('editable', false);
-                    $('#calendar-container').removeClass('col-10').addClass('col-12');
-                    $('#external-events').hide();
-                }*/
             },
             events: function (info, successCallback, failureCallback) {
                 let STATUS_CODE = $('#STATUS_CODE').val();
@@ -698,21 +692,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     success: function (result) {
                         console.log(result);
                         successCallback(result);
-                        if (calendar.view.type === 'month') {
-                            calendar.setOption('editable', false);
-                            $('#calendar-container').removeClass('col-10').addClass('col-12');
-                            $('#external-events').hide();
-                        } else {
-                            if (calendar.view.type === 'agendaWeek') {
-                                if (selected_service_provider.length === 1 && (is_editable)) {
-                                    calendar.setOption('editable', true);
-                                } else {
-                                    calendar.setOption('editable', false);
-                                }
-                            } else {
-                                calendar.setOption('editable', true);
-                            }
-                        }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         alert(xhr.status);
@@ -847,6 +826,15 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
     $(document).on('click', '.fc-agendaDay-button', function () {
         calendar.setOption('editable', true);
+        getServiceProviderCount();
+    });
+
+    $(document).on('click', '.fc-agendaWeek-button', function () {
+        calendar.setOption('editable', false);
+    });
+
+    $(document).on('click', '.fc-month-button', function () {
+        calendar.setOption('editable', false);
     });
 
     var interval = 15;
@@ -859,6 +847,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             }
         }
         calendar.setOption('slotDuration', '00:'+interval+':00');
+        getServiceProviderCount();
     }
 
     function showAppointmentEdit(info) {
