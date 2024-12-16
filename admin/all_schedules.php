@@ -847,6 +847,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             }
         }
         calendar.setOption('slotDuration', '00:'+interval+':00');
+        getServiceProviderCount();
     }
 
     function showAppointmentEdit(info) {
