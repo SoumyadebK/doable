@@ -31,6 +31,7 @@ if(!empty($_POST)){
     }
 
     if (empty($_GET['id'])) {
+        $PRODUCT_DATA['IS_DELETED'] = 0;
         $PRODUCT_DATA['ACTIVE'] = 1;
         $PRODUCT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $PRODUCT_DATA['CREATED_ON'] = date("Y-m-d H:i");

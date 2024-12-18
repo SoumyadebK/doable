@@ -75,12 +75,13 @@ if ($header_data->RecordCount() > 0) {
                                 <table id="myTable" class="table table-striped border" data-page-length="50">
                                     <thead>
                                     <tr>
-                                        <th>Product ID</th>
-                                        <th>Product Name</th>
-                                        <th>Product Description</th>
-                                        <th>Price</th>
-                                        <th>Shipping Information</th>
-                                        <th>Action</th>
+                                        <th width="5%">Product ID</th>
+                                        <th width="15%">Product Image</th>
+                                        <th width="20%">Product Name</th>
+                                        <th width="30%">Product Description</th>
+                                        <th width="10%">Price</th>
+                                        <th width="10%">Shipping Information</th>
+                                        <th width="10%">Action</th>
                                     </tr>
                                     </thead>
 
@@ -91,15 +92,16 @@ if ($header_data->RecordCount() > 0) {
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRODUCT_ID']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><img src="<?=$row->fields['PRODUCT_IMAGES']?>" alt="<?=$row->fields['PRODUCT_NAME']?>" style="width: 150px; height: auto;"></td>
                                             <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRODUCT_NAME']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRODUCT_DESCRIPTION']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRICE']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['SHIPPING_INFORMATION']?></td>
-                                            </td>
 
                                             <td>
+                                                <a href="javascript:" onclick="addToCart(<?=$row->fields['PK_PRODUCT']?>, '<?=$row->fields['PRODUCT_NAME']?>', '<?=$row->fields['PRODUCT_IMAGES']?>', '<?=$row->fields['PRICE']?>');"><i class="fa fa-cart-plus" title="Add to Cart"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <a href="product.php?id=<?=$row->fields['PK_PRODUCT']?>"><i class="fa fa-edit" title="Edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="all_products.php?type=del&id=<?=$row->fields['PK_PRODUCT']?>" onclick='ConfirmDelete(<?=$row->fields['PK_PRODUCT']?>);'><i class="fa fa-trash" title="Delete"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="all_products.php?type=del&id=<?=$row->fields['PK_PRODUCT']?>" onclick="ConfirmDelete(<?=$row->fields['PK_PRODUCT']?>);"><i class="fa fa-trash" title="Delete"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
@@ -120,6 +122,40 @@ if ($header_data->RecordCount() > 0) {
     </div>
 </div>
 
+<!--Add To Cart Model-->
+<div class="modal fade" id="add_to_cart" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" style="width: 400px;">
+        <form id="add_to_cart_form"  method="post">
+            <input type="hidden" name="FUNCTION_NAME" value="addToCart">
+            <input type="hidden" id="PK_PRODUCT" name="PK_PRODUCT">
+            <input type="hidden" id="PRODUCT_NAME" name="PRODUCT_NAME">
+            <input type="hidden" id="PRODUCT_IMAGES" name="PRODUCT_IMAGES">
+            <input type="hidden" id="PRODUCT_PRICE" name="PRODUCT_PRICE">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Add To Cart</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row" id="item_details">
+
+                    </div>
+                    <div class="form-group m-t-15">
+                        <label class="form-label">Enter Quantity</label>
+                        <input inputmode="numeric" oninput="this.value = this.value.replace(/\D+/g, '')" id="PRODUCT_QUANTITY" name="PRODUCT_QUANTITY" class="form-control only-number" placeholder="Quantity" required>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Add</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <?php require_once('../includes/footer.php');?>
 <script>
     $(function () {
@@ -127,7 +163,7 @@ if ($header_data->RecordCount() > 0) {
     });
     function ConfirmDelete(PK_PRODUCT)
     {
-        var conf = confirm("Are you sure you want to delete?");
+        let conf = confirm("Are you sure you want to delete?");
         if(conf) {
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
@@ -142,6 +178,37 @@ if ($header_data->RecordCount() > 0) {
     function editpage(id){
         window.location.href = "product.php?id="+id;
     }
+
+    function addToCart(PK_PRODUCT, PRODUCT_NAME, PRODUCT_IMAGES, PRODUCT_PRICE) {
+        $('#add_to_cart_form')[0].reset();
+        $('#item_details').html(`<div class="col-5">
+                                    <img id="profile-img" src="${PRODUCT_IMAGES}" alt="${PRODUCT_NAME}" style="width: 145px; height: auto;">
+                                </div>
+                                <div class="col-7">
+                                    <b style="font-weight: bold;">${PRODUCT_NAME}</b>
+                                    <p class="m-t-5">$${PRODUCT_PRICE}</p>
+                                </div>`);
+        $('#PK_PRODUCT').val(PK_PRODUCT);
+        $('#PRODUCT_NAME').val(PRODUCT_NAME);
+        $('#PRODUCT_IMAGES').val(PRODUCT_IMAGES);
+        $('#PRODUCT_PRICE').val(PRODUCT_PRICE);
+        $('#add_to_cart').modal('show');
+    }
+
+    $(document).on('submit', '#add_to_cart_form', function (event) {
+        event.preventDefault();
+        let form_data = new FormData($('#add_to_cart_form')[0]); //$('#document_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctionProductPurchase.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success:function (data) {
+                $('#add_to_cart').modal('hide');
+            }
+        });
+    });
 </script>
 </body>
 </html>

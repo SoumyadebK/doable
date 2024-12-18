@@ -622,7 +622,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             slotLabelInterval: {minutes: 5},
             minTime: open_time,
             maxTime: close_time,
-            contentHeight: 670,
+            //contentHeight: 670,
             windowResize: true,
             droppable: true,
             drop: function(info) {

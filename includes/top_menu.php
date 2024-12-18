@@ -126,6 +126,31 @@
                     </li>
                 <?php endif;?>
 
+                <li class="nav-item dropdown" style="margin-top: 4px;">
+                    <a class="nav-link dropdown-toggle waves-effect waves-dark" href="javascript:" onclick="getCartItemList()" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <img src="../assets/images/icon/cart.png" alt="Mail" style="height: 35px; width: 35px;">
+                        <!--<div class="notify"> <span class="heartbit"></span> <span class="point"></span> </div>-->
+                    </a>
+
+                    <div id="cart_items" class="dropdown-menu dropdown-menu-end animated bounceInDown" style="margin-right: 15%; width: 400px;">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row" style="text-align: center;">
+                                    <h5 style="font-weight: bold; color: #39b54a;">Cart Items</h5>
+                                </div>
+                            </div>
+                            <div class="card-body" id="cart_item_list">
+
+                            </div>
+                            <div class="card-footer" style="text-align: center;">
+                                <a href="all_products.php" class="btn btn-info waves-effect waves-light text-white">Add Item to Cart</a>
+                                <?php if (isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0) { ?>
+                                    <a class="btn btn-info waves-effect waves-light text-white">Checkout</a>
+                                <?php } ?>
+                            </div>
+                    </div>
+                </li>
+
                 <li class="nav-item" style="margin-top: 4px;">
                     <a class="nav-link dropdown-toggle waves-effect waves-dark" href="../admin/manage_help.php" aria-haspopup="true" aria-expanded="false">
                         <img src="../assets/images/help.png" alt="Help" style="height: 35px; width: 35px;">

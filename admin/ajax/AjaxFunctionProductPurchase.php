@@ -1,0 +1,21 @@
+<?php
+
+require_once('../../global/config.php');
+$RESPONSE_DATA = $_POST;
+$FUNCTION_NAME = $RESPONSE_DATA['FUNCTION_NAME'];
+unset($RESPONSE_DATA['FUNCTION_NAME']);
+$FUNCTION_NAME($RESPONSE_DATA);
+
+/*Add item on cart*/
+function addToCart($RESPONSE_DATA){
+    $_SESSION['CART_DATA'][$RESPONSE_DATA['PK_PRODUCT']] = [
+        'PRODUCT_NAME' => $RESPONSE_DATA['PRODUCT_NAME'],
+        'PRODUCT_IMAGES' => $RESPONSE_DATA['PRODUCT_IMAGES'],
+        'PRODUCT_PRICE' => $RESPONSE_DATA['PRODUCT_PRICE'],
+        'PRODUCT_QUANTITY' => $RESPONSE_DATA['PRODUCT_QUANTITY'],
+    ];
+}
+
+function removeFromCart($RESPONSE_DATA){
+    unset($_SESSION['CART_DATA'][$RESPONSE_DATA['PK_PRODUCT']]);
+}
