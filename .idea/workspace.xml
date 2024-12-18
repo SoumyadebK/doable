@@ -36,20 +36,20 @@
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/opt/homebrew/Cellar/php/8.3.12_1/bin/php">
     <include_path>
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
-      <path value="$PROJECT_DIR$/global/vendor/composer" />
-      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
-      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
       <path value="$PROJECT_DIR$/global/vendor/paragonie/random_compat" />
       <path value="$PROJECT_DIR$/global/vendor/psr/http-message" />
       <path value="$PROJECT_DIR$/global/vendor/psr/log" />
-      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
-      <path value="$PROJECT_DIR$/global/vendor/square/square" />
-      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
-      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
+      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
       <path value="$PROJECT_DIR$/global/vendor/apimatic/unirest-php" />
       <path value="$PROJECT_DIR$/global/vendor/apimatic/core" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
+      <path value="$PROJECT_DIR$/global/vendor/square/square" />
+      <path value="$PROJECT_DIR$/global/vendor/composer" />
+      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
+      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
+      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
+      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
     </include_path>
   </component>
   <component name="ProblemsViewState">
@@ -69,17 +69,8 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/Applications/XAMPP/xamppfiles/htdocs/doable/assets/images/icon",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "vue.rearranger.settings.migration": "true"
+    "git-widget-placeholder": "roumya",
+    "node.js.selected.package.tslint": "(autodetect)"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -92,8 +83,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-deb605915726-JavaScript-PS-243.22562.164" />
-        <option value="bundled-php-predefined-a98d8de5180a-7980c7aaca61-com.jetbrains.php.sharedIndexes-PS-243.22562.164" />
+        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-PS-241.14494.237" />
+        <option value="bundled-php-predefined-ba97393d7c68-8f0632a2a215-com.jetbrains.php.sharedIndexes-PS-241.14494.237" />
       </set>
     </attachedChunks>
   </component>
@@ -110,39 +101,6 @@
       <workItem from="1731334237928" duration="57000" />
       <workItem from="1731419754110" duration="3918000" />
       <workItem from="1731429789824" duration="7593000" />
-      <workItem from="1731946694177" duration="3524000" />
-      <workItem from="1732034467423" duration="4571000" />
-      <workItem from="1732110628442" duration="9219000" />
-      <workItem from="1732171557451" duration="21604000" />
-      <workItem from="1732289483383" duration="1252000" />
-      <workItem from="1732345303914" duration="7109000" />
-      <workItem from="1732530007234" duration="6434000" />
-      <workItem from="1732631366707" duration="11750000" />
-      <workItem from="1732677666522" duration="11000" />
-      <workItem from="1732724675488" duration="4700000" />
-      <workItem from="1732804783960" duration="920000" />
-      <workItem from="1733155903266" duration="735000" />
-      <workItem from="1733156648312" duration="632000" />
-      <workItem from="1733238974876" duration="7238000" />
-      <workItem from="1733322694458" duration="1985000" />
-      <workItem from="1733329647442" duration="11000" />
-      <workItem from="1733334824898" duration="2680000" />
-      <workItem from="1733388053175" duration="8233000" />
-      <workItem from="1733498815045" duration="11428000" />
-      <workItem from="1733586673915" duration="600000" />
-      <workItem from="1733723688405" duration="10896000" />
-      <workItem from="1733831411121" duration="7151000" />
-      <workItem from="1733985039411" duration="11080000" />
-      <workItem from="1734023831817" duration="536000" />
-      <workItem from="1734029245582" duration="1286000" />
-      <workItem from="1734095658356" duration="11980000" />
-      <workItem from="1734186128080" duration="689000" />
-      <workItem from="1734255975964" duration="1194000" />
-      <workItem from="1734358213448" duration="1714000" />
-      <workItem from="1734362122080" duration="1008000" />
-      <workItem from="1734451825180" duration="147000" />
-      <workItem from="1734451979313" duration="2752000" />
-      <workItem from="1734530745720" duration="11059000" />
     </task>
     <servers />
   </component>
