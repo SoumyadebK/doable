@@ -5,6 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/admin/product_checkout.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,20 +34,20 @@
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/opt/homebrew/Cellar/php/8.3.12_1/bin/php">
     <include_path>
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
-      <path value="$PROJECT_DIR$/global/vendor/composer" />
-      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
-      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
       <path value="$PROJECT_DIR$/global/vendor/paragonie/random_compat" />
       <path value="$PROJECT_DIR$/global/vendor/psr/http-message" />
       <path value="$PROJECT_DIR$/global/vendor/psr/log" />
-      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
-      <path value="$PROJECT_DIR$/global/vendor/square/square" />
-      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
-      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
+      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
       <path value="$PROJECT_DIR$/global/vendor/apimatic/unirest-php" />
       <path value="$PROJECT_DIR$/global/vendor/apimatic/core" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
+      <path value="$PROJECT_DIR$/global/vendor/square/square" />
+      <path value="$PROJECT_DIR$/global/vendor/composer" />
+      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
+      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
+      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
+      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
     </include_path>
   </component>
   <component name="ProblemsViewState">
@@ -67,7 +69,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;roumya&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Applications/XAMPP/xamppfiles/htdocs/doable/global/stripe-php&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -91,8 +93,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-deb605915726-JavaScript-PS-243.22562.164" />
-        <option value="bundled-php-predefined-a98d8de5180a-7980c7aaca61-com.jetbrains.php.sharedIndexes-PS-243.22562.164" />
+        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-PS-241.14494.237" />
+        <option value="bundled-php-predefined-ba97393d7c68-8f0632a2a215-com.jetbrains.php.sharedIndexes-PS-241.14494.237" />
       </set>
     </attachedChunks>
   </component>
@@ -109,6 +111,8 @@
       <workItem from="1731334237928" duration="57000" />
       <workItem from="1731419754110" duration="3918000" />
       <workItem from="1731429789824" duration="7593000" />
+      <workItem from="1734529295973" duration="7851000" />
+      <workItem from="1734542373494" duration="745000" />
     </task>
     <servers />
   </component>
