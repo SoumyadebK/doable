@@ -5,8 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctionProductPurchase.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/admin/ajax/get_cart_item_list.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/images/icon/cart.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/pagination/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/enrollment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_customers.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_customers.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_products.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_products.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/product.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/product.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/includes/footer.php" beforeDir="false" afterPath="$PROJECT_DIR$/includes/footer.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/includes/top_menu.php" beforeDir="false" afterPath="$PROJECT_DIR$/includes/top_menu.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,6 +39,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/admin/all_schedules.php" root0="FORCE_HIGHLIGHTING" root1="FORCE_HIGHLIGHTING" />
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/opt/homebrew/Cellar/php/8.3.12_1/bin/php">
     <include_path>
@@ -65,27 +76,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Applications/XAMPP/xamppfiles/htdocs/doable/global/stripe-php&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/Applications/XAMPP/xamppfiles/htdocs/doable/assets/images/icon",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
-  <component name="QodanaReportsService">
-    <option name="descriptions">
-      <ReportDescription localRun="true" path="/private/var/folders/9d/zxsfgt1d0jzfcjw4nvr5xckm0000gn/T/qodana_output/qodana.sarif.json" reportGuid="a05ce7e7-7eb1-4e72-ac0e-fd3aba2c9bbd" reportId="doable/qodana/2024-12-16" />
-    </option>
-  </component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/assets/images/icon" />
       <recent name="$PROJECT_DIR$/global/stripe-php" />
       <recent name="$PROJECT_DIR$/global" />
     </key>
@@ -141,6 +149,9 @@
       <workItem from="1734255975964" duration="1194000" />
       <workItem from="1734358213448" duration="1714000" />
       <workItem from="1734362122080" duration="1008000" />
+      <workItem from="1734451825180" duration="147000" />
+      <workItem from="1734451979313" duration="2752000" />
+      <workItem from="1734530745720" duration="10470000" />
     </task>
     <servers />
   </component>
