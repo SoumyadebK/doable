@@ -11,73 +11,6 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
-$PRODUCT_DATA = $_POST;
-if(!empty($_POST)){
-    if ($_FILES['PRODUCT_IMAGES']['name'] != '') {
-        if (!file_exists('../'.$upload_path.'/product_image/')) {
-            mkdir('../'.$upload_path.'/product_image/', 0777, true);
-        }
-        $extn = explode(".", $_FILES['PRODUCT_IMAGES']['name']);
-        $iindex = count($extn) - 1;
-        $rand_string = time() . "-" . rand(100000, 999999);
-        $file11 = 'product_image' . $_SESSION['PK_USER'] . $rand_string . "." . $extn[$iindex];
-        $extension = strtolower($extn[$iindex]);
-
-        if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-            $image_path = '../'.$upload_path.'/product_image/' . $file11;
-            move_uploaded_file($_FILES['PRODUCT_IMAGES']['tmp_name'], $image_path);
-            $PRODUCT_DATA['PRODUCT_IMAGES'] = $image_path;
-        }
-    }
-
-    if (empty($_GET['id'])) {
-        $PRODUCT_DATA['ACTIVE'] = 1;
-        $PRODUCT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $PRODUCT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_PRODUCT', $PRODUCT_DATA, 'insert');
-        $PK_PRODUCT = $db_account->insert_ID();
-    } else {
-        $PRODUCT_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        $PRODUCT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $PRODUCT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_PRODUCT', $PRODUCT_DATA, 'update', "PK_PRODUCT = '$_GET[id]'");
-        $PK_PRODUCT = $_GET['id'];
-    }
-    header("location:all_products.php");
-}
-
-if(!empty($_GET['id'])){
-    $PRODUCT_ID = '';
-    $PRODUCT_NAME = '';
-    $PRODUCT_DESCRIPTION = '';
-    $PRICE = '';
-    $SHIPPING_INFORMATION = '';
-    $PRODUCT_IMAGES = '';
-    $BRAND = '';
-    $CATEGORY = '';
-    $SIZE = '';
-    $COLOR = '';
-    $WEIGHT = '';
-    $ACTIVE = '';
-} else {
-    $res = $db_account->Execute("SELECT * FROM `DOA_PRODUCT` WHERE `PK_PRODUCT` = '15'");
-    if($res->RecordCount() == 0){
-        header("location:all_products.php");
-        exit;
-    }
-    $PRODUCT_ID = $res->fields['PRODUCT_ID'];
-    $PRODUCT_NAME = $res->fields['PRODUCT_NAME'];
-    $PRODUCT_DESCRIPTION = $res->fields['PRODUCT_DESCRIPTION'];
-    $PRICE = $res->fields['PRICE'];
-    $SHIPPING_INFORMATION = $res->fields['SHIPPING_INFORMATION'];
-    $PRODUCT_IMAGES = $res->fields['PRODUCT_IMAGES'];
-    $BRAND = $res->fields['BRAND'];
-    $CATEGORY = $res->fields['CATEGORY'];
-    $SIZE = $res->fields['SIZE'];
-    $COLOR = $res->fields['COLOR'];
-    $WEIGHT = $res->fields['WEIGHT'];
-    $ACTIVE = $res->fields['ACTIVE'];
-}
 ?>
 
 <!DOCTYPE html>
@@ -94,83 +27,81 @@ if(!empty($_GET['id'])){
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
-                <div class="col-md-2 align-self-end">
-                    <?php if(empty($_GET['id'])) { ?>
-                        <select required class="form-control" name="NAME" id="NAME" onchange="fetchAddress(this);">
-                            <option value="">Select Customer</option>
-                            <?php
-                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.ADDRESS, DOA_USERS.ADDRESS_1, DOA_USERS.PK_COUNTRY, DOA_USERS.PK_STATES, DOA_USERS.CITY, DOA_USERS.ZIP FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME");
-                            $country = $db->Execute("SELECT COUNTRY_NAME FROM DOA_COUNTRY WHERE PK_COUNTRY = ".$row->fields['PK_COUNTRY']);
-                            $state = $db->Execute("SELECT STATE_NAME FROM DOA_STATES WHERE PK_STATES = ".$row->fields['PK_STATES']);
-                            while (!$row->EOF) {?>
-                                <option value="<?php echo $row->fields['PK_USER'];?>" data-master_id="<?php echo $row->fields['PK_USER_MASTER'];?>" data-address="<?php echo $row->fields['ADDRESS']?>" data-address_1="<?php echo $row->fields['ADDRESS_1']?>" data-country="<?php echo $country->fields['COUNTRY_NAME']?>" data-state="<?php echo $row->fields['STATE_NAME']?>" data-city="<?php echo $row->fields['CITY']?>" data-zip="<?php echo $row->fields['ZIP']?>"><?=$row->fields['NAME'].' ('.$row->fields['USER_NAME'].')'?></option>
-                                <?php $row->MoveNext(); } ?>
-                        </select>
-                    <?php } ?>
-                </div>
-                <!--<div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item"><a href="all_products.php">All Products</a></li>
-                            <li class="breadcrumb-item active"><?php /*=$title*/?></li>
-                        </ol>
-                    </div>
-                </div>-->
             </div>
 
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card">
-                        <div class="card-body">
+                        <div class="card-body" style="width: 80%; margin: auto;">
                             <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                 <div class="row">
-                                    <div class="col-2">
-                                        <div class="form-group">
-                                            <?php if($PRODUCT_IMAGES!=''){?>
-                                                <div style="width: 180px;height: 180px;">
-                                                <a class="fancybox" href="<?php echo $PRODUCT_IMAGES;?>" data-fancybox-group="gallery">
-                                                    <img id="profile-img" src="<?php echo $PRODUCT_IMAGES;?>" style="width:180px; height:180px" /></a>
-                                                </div><?php } ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="form-group">
-                                            <div class="col-md-12" style="font-weight: bold; font-size: 20px">
-                                                <?php echo $PRODUCT_ID." - ".$PRODUCT_NAME.", ".$PRODUCT_DESCRIPTION.", ".$BRAND.", ".$CATEGORY.", ".$SIZE.", ".$COLOR.", ".$WEIGHT?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="form-group">
-                                            <label class="col-md-12" for="example-text" style="font-weight: bold;">Quantity<span class="text-danger">*</span></span>
-                                            </label>
-                                            <div class="col-md-12">
-                                                <input type="text" id="QUANTITY" name="QUANTITY" class="form-control QUANTITY" onkeyup="calculateTotal(this)" required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="form-group">
-                                            <label class="col-md-12" for="example-text" style="font-weight: bold;">Price<span class="text-danger">*</span></span>
-                                            </label>
-                                            <div class="col-md-12">
-                                                <input type="text" id="PRICE" name="PRICE" class="form-control PRICE" placeholder="Enter Price" value="<?php echo $PRICE?>" onkeyup="calculateTotal(this)" required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="form-group">
-                                            <label class="col-md-12" for="example-text" style="font-weight: bold;">Total</span>
-                                            </label>
-                                            <div class="col-md-12">
-                                                <input type="text" id="TOTAL" name="TOTAL" class="form-control TOTAL" onkeyup="calculateTotal(this)" readonly>
-                                            </div>
-                                        </div>
+                                    <div class="col-6">
+                                        <label for="PK_USER_MASTER">Select Customer</label>
+                                        <select required class="form-control" name="PK_USER_MASTER" id="PK_USER_MASTER" onchange="fetchAddress();">
+                                            <option value="">Select Customer</option>
+                                            <?php
+                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.ADDRESS, DOA_USERS.ADDRESS_1, DOA_USERS.PK_COUNTRY, DOA_USERS.PK_STATES, DOA_USERS.CITY, DOA_USERS.ZIP FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME");
+                                            while (!$row->EOF) {?>
+                                                <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" data-address="<?php echo $row->fields['ADDRESS']?>" data-address_1="<?php echo $row->fields['ADDRESS_1']?>" data-country="<?php echo $row->fields['PK_COUNTRY']?>" data-state="<?php echo $row->fields['PK_STATES']?>" data-city="<?php echo $row->fields['CITY']?>" data-zip="<?php echo $row->fields['ZIP']?>"><?=$row->fields['NAME'].' ('.$row->fields['USER_NAME'].')'?></option>
+                                            <?php $row->MoveNext(); } ?>
+                                        </select>
                                     </div>
                                 </div>
 
-                                <div class="row">
+                                <div class="row m-t-30">
+                                    <?php
+                                    if (isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0) {
+                                        $all_item_total = 0;
+                                        foreach ($_SESSION['CART_DATA'] as $key => $cart_data) {
+                                            $item_total = $cart_data['PRODUCT_QUANTITY'] * $cart_data['PRODUCT_PRICE'];
+                                            $all_item_total += $item_total; ?>
+                                            <div class="row m-b-15">
+                                                <div class="col-4">
+                                                    <img id="profile-img" src="<?=$cart_data['PRODUCT_IMAGES']?>" alt="<?=$cart_data['PRODUCT_NAME']?>" style="width: 180px; height: auto;">
+                                                </div>
+                                                <div class="col-6">
+                                                    <b style="font-weight: bold;"><?=$cart_data['PRODUCT_NAME']?></b>
+                                                    <p class="m-t-5"><?=$cart_data['PRODUCT_QUANTITY']?> X $<?=number_format($cart_data['PRODUCT_PRICE'], 2)?></p>
+                                                </div>
+                                                <div class="col-2">
+                                                    <a href="product_checkout.php" onclick="removeFromCart(<?=$key?>)" style="color: red; float: right;"><i class="fa fa-trash" title="Delete"></i></a><br>
+                                                    <p class="m-t-5" style="float: right;">$<?=number_format($item_total, 2)?></p>
+                                                </div>
+                                            </div>
+                                        <?php } ?>
+                                        <div class="row">
+                                            <div class="col-8">
+                                                <b style="font-weight: bold; float: right;"> Subtotal : </b>
+                                            </div>
+                                            <div class="col-4">
+                                                <input type="hidden" name="ALL_ITEM_TOTAL" id="ALL_ITEM_TOTAL" value="<?=$all_item_total?>">
+                                                <b style="font-weight: bold; float: right;"> $<?=number_format($all_item_total, 2)?> </b>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-8">
+                                                <b style="font-weight: bold; float: right; margin-top: 8px;"> Shipping Charge : </b>
+                                            </div>
+                                            <div class="col-4">
+                                                <input type="text" id="SHIPPING_CHARGE" name="SHIPPING_CHARGE" class="form-control" placeholder="Shipping Charge" value="0.00" style="float: right; width: 100px; text-align: right;" onkeyup="calculateOrderTotal()">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-8">
+                                                <b style="font-weight: bold; float: right;"> Order Total : </b>
+                                            </div>
+                                            <div class="col-4">
+                                                <b style="font-weight: bold; float: right;" id="order_total"> $<?=number_format($all_item_total, 2)?> </b>
+                                            </div>
+                                        </div>
+                                    <?php } else { ?>
+                                        <div class="row" style="text-align: center;">
+                                            <b style="font-weight: bold; color: indianred;">Your Cart is Empty</b>
+                                        </div>
+                                    <?php } ?>
+                                </div>
+
+                                <div class="row m-t-30">
                                     <div class="col-6">
                                         <div class="form-group">
                                             <label class="col-md-12" for="example-text" style="font-weight: bold; font-size: 16px">Shipping Information<span class="text-danger">*</span></label>
@@ -189,8 +120,7 @@ if(!empty($_GET['id'])){
                                             <div class="form-group">
                                                 <label class="col-md-12">Apt/Ste</label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Address">
-
+                                                    <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Apt/Ste">
                                                 </div>
                                             </div>
 
@@ -208,8 +138,8 @@ if(!empty($_GET['id'])){
                                                             <?php
                                                             $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
                                                             while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_COUNTRY'];?>" <?=($row->fields['PK_COUNTRY'] == $PK_COUNTRY)?"selected":""?>><?=$row->fields['COUNTRY_NAME']?></option>
-                                                                <?php $row->MoveNext(); } ?>
+                                                                <option value="<?php echo $row->fields['PK_COUNTRY'];?>"><?=$row->fields['COUNTRY_NAME']?></option>
+                                                            <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -220,8 +150,15 @@ if(!empty($_GET['id'])){
                                             <div class="form-group">
                                                 <label class="col-md-12">State<span class="text-danger">*</span></label>
                                                 <div class="col-md-12">
-                                                    <div class="col-sm-12">
-                                                        <div id="State_div"></div>
+                                                    <div class="col-sm-12" id="State_div">
+                                                        <select class="form-control" name="PK_STATES" id="PK_STATES" required>
+                                                            <option value="">Select State</option>
+                                                            <?php
+                                                            $row = $db->Execute("SELECT * FROM DOA_STATES ORDER BY STATE_NAME ASC");
+                                                            while (!$row->EOF) { ?>
+                                                                <option value="<?php echo $row->fields['PK_STATES'];?>"><?=$row->fields['STATE_NAME']?></option>
+                                                            <?php $row->MoveNext(); } ?>
+                                                        </select>
                                                     </div>
                                                 </div>
                                             </div>
@@ -256,29 +193,11 @@ if(!empty($_GET['id'])){
             </div>
         </div>
     </div>
-    <style>
-
-        .progress-bar {
-            border-radius: 5px;
-            height:18px !important;
-        }
-    </style>
     <?php require_once('../includes/footer.php');?>
     <script>
-        function previewFile(input){
-            let file = $("#USER_IMAGE").get(0).files[0];
-            if(file){
-                let reader = new FileReader();
-                reader.onload = function(){
-                    $("#profile-img").attr("src", reader.result);
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function fetch_state(PK_COUNTRY){
+        function fetch_state(PK_COUNTRY, PK_STATES){
             jQuery(document).ready(function() {
-                let data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
+                let data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES="+PK_STATES;
                 let value = $.ajax({
                     url: "ajax/state.php",
                     type: "POST",
@@ -293,23 +212,29 @@ if(!empty($_GET['id'])){
         }
 
         function fetchAddress() {
-            let address = $('#NAME').find(':selected').data('address');
-            let address_1 = $('#NAME').find(':selected').data('address_1');
-            let city = $('#NAME').find(':selected').data('city');
-            let zip = $('#NAME').find(':selected').data('zip');
-            alert(address)
+            let address = $('#PK_USER_MASTER').find(':selected').data('address');
+            let address_1 = $('#PK_USER_MASTER').find(':selected').data('address_1');
+            let PK_COUNTRY = $('#PK_USER_MASTER').find(':selected').data('country');
+            let PK_STATE = $('#PK_USER_MASTER').find(':selected').data('state');
+            let city = $('#PK_USER_MASTER').find(':selected').data('city');
+            let zip = $('#PK_USER_MASTER').find(':selected').data('zip');
             $('#ADDRESS').val(address);
             $('#ADDRESS_1').val(address_1);
+            $('#PK_COUNTRY').val(PK_COUNTRY);
+            $('#PK_STATES').val(PK_STATE);
             $('#CITY').val(city);
             $('#ZIP').val(zip);
         }
 
-        function calculateTotal(param) {
-            let TOTAL = 0;
-            let quantity = ($(param).closest('.row').find('.QUANTITY').val() == '') ? 0 : $(param).closest('.row').find('.QUANTITY').val();
-            let price = ($(param).closest('.row').find('.PRICE').val()) ?? 0;
-            TOTAL = parseFloat(quantity) * parseFloat(price);
-            $(param).closest('.row').find('.TOTAL').val(parseFloat(TOTAL).toFixed(2));
+        function calculateOrderTotal() {
+            let ALL_ITEM_TOTAL = $('#ALL_ITEM_TOTAL').val();
+            let SHIPPING_CHARGE = $('#SHIPPING_CHARGE').val();
+            if (!SHIPPING_CHARGE) {
+                $('#SHIPPING_CHARGE').val(0);
+                SHIPPING_CHARGE = 0;
+            }
+            let ORDER_TOTAL = parseFloat(ALL_ITEM_TOTAL)+parseFloat(SHIPPING_CHARGE);
+            $('#order_total').text('$'+ORDER_TOTAL.toFixed(2));
         }
     </script>
 </body>

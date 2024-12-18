@@ -139,15 +139,10 @@
                                     <h5 style="font-weight: bold; color: #39b54a;">Cart Items</h5>
                                 </div>
                             </div>
-                            <div class="card-body" id="cart_item_list">
+                            <div id="cart_item_list">
 
                             </div>
-                            <div class="card-footer" style="text-align: center;">
-                                <a href="all_products.php" class="btn btn-info waves-effect waves-light text-white">Add Item to Cart</a>
-                                <?php if (isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0) { ?>
-                                    <a class="btn btn-info waves-effect waves-light text-white">Checkout</a>
-                                <?php } ?>
-                            </div>
+
                     </div>
                 </li>
 
