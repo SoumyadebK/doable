@@ -85,7 +85,9 @@ if(!empty($_POST)){
         for ($i = 0; $i < count($_POST['PRODUCT_SIZE']); $i++) {
             $PRODUCT_SIZE['PK_PRODUCT'] = $PK_PRODUCT;
             $PRODUCT_SIZE['SIZE'] = $_POST['PRODUCT_SIZE'][$i];
-            db_perform_account('DOA_PRODUCT_SIZE', $PRODUCT_SIZE, 'insert');
+            if (!empty($_POST['PRODUCT_SIZE'][$i])) {
+                db_perform_account('DOA_PRODUCT_SIZE', $PRODUCT_SIZE, 'insert');
+            }
         }
     }
 
@@ -94,7 +96,9 @@ if(!empty($_POST)){
         for ($i = 0; $i < count($_POST['PRODUCT_COLOR']); $i++) {
             $PRODUCT_COLOR['PK_PRODUCT'] = $PK_PRODUCT;
             $PRODUCT_COLOR['COLOR'] = $_POST['PRODUCT_COLOR'][$i];
-            db_perform_account('DOA_PRODUCT_COLOR', $PRODUCT_COLOR, 'insert');
+            if (!empty($_POST['PRODUCT_COLOR'][$i])) {
+                db_perform_account('DOA_PRODUCT_COLOR', $PRODUCT_COLOR, 'insert');
+            }
         }
     }
 
@@ -226,7 +230,7 @@ if(!empty($_POST)){
                                         <div class="form-group">
                                             <label class="col-md-12" for="example-text">Size/Dimensions</label>
                                             <div class="col-md-12">
-                                                <input type="text" id="SIZE" name="SIZE" class="form-control" placeholder="Enter Size/Dimensions" value="<?php echo $SIZE?>">
+                                                <input type="text" id="PRODUCT_SIZE" name="PRODUCT_SIZE[]" class="form-control" placeholder="Enter Size/Dimensions">
                                             </div>
                                         </div>
                                     </div>
@@ -237,7 +241,7 @@ if(!empty($_POST)){
                                         <div class="form-group">
                                             <label class="col-md-12" for="example-text">Color</label>
                                             <div class="col-md-12">
-                                                <input type="text" id="COLOR" name="COLOR" class="form-control" placeholder="Enter Color" value="<?php echo $COLOR?>">
+                                                <input type="text" id="PRODUCT_COLOR" name="PRODUCT_COLOR[]" class="form-control" placeholder="Enter Color">
                                             </div>
                                         </div>
                                     </div>

@@ -126,7 +126,7 @@ if ($header_data->RecordCount() > 0) {
                                             <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['SHIPPING_INFORMATION']?></td>
 
                                             <td>
-                                                <a href="javascript:" onclick="addToCart(<?=$row->fields['PK_PRODUCT']?>, '<?=$row->fields['PRODUCT_NAME']?>', '<?=$row->fields['PRODUCT_IMAGES']?>', '<?=$row->fields['PRICE']?>');"><i class="fa fa-cart-plus" title="Add to Cart"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="javascript:" onclick="addToCart(<?=$row->fields['PK_PRODUCT']?>);"><i class="fa fa-cart-plus" title="Add to Cart"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <a href="product.php?id=<?=$row->fields['PK_PRODUCT']?>"><i class="fa fa-edit" title="Edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <a href="all_products.php?type=del&id=<?=$row->fields['PK_PRODUCT']?>" onclick="ConfirmDelete(<?=$row->fields['PK_PRODUCT']?>);"><i class="fa fa-trash" title="Delete"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
@@ -151,13 +151,9 @@ if ($header_data->RecordCount() > 0) {
 
 <!--Add To Cart Model-->
 <div class="modal fade" id="add_to_cart" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog" style="width: 400px;">
+    <div class="modal-dialog" style="width: 500px;">
         <form id="add_to_cart_form"  method="post">
             <input type="hidden" name="FUNCTION_NAME" value="addToCart">
-            <input type="hidden" id="PK_PRODUCT" name="PK_PRODUCT">
-            <input type="hidden" id="PRODUCT_NAME" name="PRODUCT_NAME">
-            <input type="hidden" id="PRODUCT_IMAGES" name="PRODUCT_IMAGES">
-            <input type="hidden" id="PRODUCT_PRICE" name="PRODUCT_PRICE">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4><b>Add To Cart</b></h4>
@@ -170,7 +166,7 @@ if ($header_data->RecordCount() > 0) {
                     </div>
                     <div class="number">
                         <span class="minus btn btn-info waves-effect waves-light text-white">-</span>
-                        <input inputmode="numeric" oninput="this.value = this.value.replace(/\D+/g, '')" id="PRODUCT_QUANTITY" name="PRODUCT_QUANTITY" value="1"/>
+                            <input inputmode="numeric" oninput="this.value = this.value.replace(/\D+/g, '')" id="PRODUCT_QUANTITY" name="PRODUCT_QUANTITY" value="1"/>
                         <span class="plus btn btn-info waves-effect waves-light text-white">+</span>
                     </div>
                     <!--<div class="form-group m-t-15">
@@ -211,37 +207,16 @@ if ($header_data->RecordCount() > 0) {
         window.location.href = "product.php?id="+id;
     }
 
-    function addToCart(PK_PRODUCT, PRODUCT_NAME, PRODUCT_IMAGES, PRODUCT_PRICE) {
+    function addToCart(PK_PRODUCT) {
         $('#add_to_cart_form')[0].reset();
-        $('#item_details').html(`<div class="col-5">
-                                    <img id="profile-img" src="${PRODUCT_IMAGES}" alt="${PRODUCT_NAME}" style="width: 145px; height: auto;">
-                                </div>
-                                <div class="col-7">
-                                    <b style="font-weight: bold;">${PRODUCT_NAME}</b>
-                                    <p class="m-t-5 m-b-5">$${PRODUCT_PRICE}</p>
-                                    <div class="row m-t-10">
-                                        <div class="col-6">
-                                            <label class="form-label">Colour
-                                                <select class="form-control" style="min-height: 30px; width: 85px; line-height: 1; margin-top: 3px;">
-                                                    <option>Red</option>
-                                                    <option>Green</option>
-                                                </select>
-                                            </label>
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label">Size
-                                                <select class="form-control" style="min-height: 30px; width: 85px; line-height: 1; margin-top: 3px;">
-                                                    <option>12</option>
-                                                    <option>15</option>
-                                                </select>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>`);
-        $('#PK_PRODUCT').val(PK_PRODUCT);
-        $('#PRODUCT_NAME').val(PRODUCT_NAME);
-        $('#PRODUCT_IMAGES').val(PRODUCT_IMAGES);
-        $('#PRODUCT_PRICE').val(PRODUCT_PRICE);
+        $.ajax({
+            url: "ajax/get_product_details.php",
+            type: 'GET',
+            data: {PK_PRODUCT:PK_PRODUCT},
+            success: function (data) {
+                $('#item_details').html(data);
+            }
+        });
         $('#add_to_cart').modal('show');
     }
 
