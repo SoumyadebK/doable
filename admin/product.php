@@ -11,6 +11,41 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
+if(empty($_GET['id'])){
+    $PK_PRODUCT = '';
+    $PRODUCT_ID = '';
+    $PRODUCT_NAME = '';
+    $PRODUCT_DESCRIPTION = '';
+    $PRICE = '';
+    $SHIPPING_INFORMATION = '';
+    $PRODUCT_IMAGES = '';
+    $BRAND = '';
+    $CATEGORY = '';
+    $SIZE = '';
+    $COLOR = '';
+    $WEIGHT = '';
+    $ACTIVE = '';
+} else {
+    $res = $db_account->Execute("SELECT * FROM `DOA_PRODUCT` WHERE `PK_PRODUCT` = '$_GET[id]'");
+    if($res->RecordCount() == 0){
+        header("location:all_products.php");
+        exit;
+    }
+    $PK_PRODUCT = $res->fields['PK_PRODUCT'];
+    $PRODUCT_ID = $res->fields['PRODUCT_ID'];
+    $PRODUCT_NAME = $res->fields['PRODUCT_NAME'];
+    $PRODUCT_DESCRIPTION = $res->fields['PRODUCT_DESCRIPTION'];
+    $PRICE = $res->fields['PRICE'];
+    $SHIPPING_INFORMATION = $res->fields['SHIPPING_INFORMATION'];
+    $PRODUCT_IMAGES = $res->fields['PRODUCT_IMAGES'];
+    $BRAND = $res->fields['BRAND'];
+    $CATEGORY = $res->fields['CATEGORY'];
+    $SIZE = $res->fields['SIZE'];
+    $COLOR = $res->fields['COLOR'];
+    $WEIGHT = $res->fields['WEIGHT'];
+    $ACTIVE = $res->fields['ACTIVE'];
+}
+
 $PRODUCT_DATA = $_POST;
 if(!empty($_POST)){
     if ($_FILES['PRODUCT_IMAGES']['name'] != '') {
@@ -44,40 +79,26 @@ if(!empty($_POST)){
         db_perform_account('DOA_PRODUCT', $PRODUCT_DATA, 'update', "PK_PRODUCT = '$_GET[id]'");
         $PK_PRODUCT = $_GET['id'];
     }
-    header("location:all_products.php");
-}
 
-if(empty($_GET['id'])){
-    $PRODUCT_ID = '';
-    $PRODUCT_NAME = '';
-    $PRODUCT_DESCRIPTION = '';
-    $PRICE = '';
-    $SHIPPING_INFORMATION = '';
-    $PRODUCT_IMAGES = '';
-    $BRAND = '';
-    $CATEGORY = '';
-    $SIZE = '';
-    $COLOR = '';
-    $WEIGHT = '';
-    $ACTIVE = '';
-} else {
-    $res = $db_account->Execute("SELECT * FROM `DOA_PRODUCT` WHERE `PK_PRODUCT` = '$_GET[id]'");
-    if($res->RecordCount() == 0){
-        header("location:all_products.php");
-        exit;
+    $db_account->Execute("DELETE FROM `DOA_PRODUCT_SIZE` WHERE `PK_PRODUCT` = '$PK_PRODUCT'");
+    if (isset($_POST['PRODUCT_SIZE'])) {
+        for ($i = 0; $i < count($_POST['PRODUCT_SIZE']); $i++) {
+            $PRODUCT_SIZE['PK_PRODUCT'] = $PK_PRODUCT;
+            $PRODUCT_SIZE['SIZE'] = $_POST['PRODUCT_SIZE'][$i];
+            db_perform_account('DOA_PRODUCT_SIZE', $PRODUCT_SIZE, 'insert');
+        }
     }
-    $PRODUCT_ID = $res->fields['PRODUCT_ID'];
-    $PRODUCT_NAME = $res->fields['PRODUCT_NAME'];
-    $PRODUCT_DESCRIPTION = $res->fields['PRODUCT_DESCRIPTION'];
-    $PRICE = $res->fields['PRICE'];
-    $SHIPPING_INFORMATION = $res->fields['SHIPPING_INFORMATION'];
-    $PRODUCT_IMAGES = $res->fields['PRODUCT_IMAGES'];
-    $BRAND = $res->fields['BRAND'];
-    $CATEGORY = $res->fields['CATEGORY'];
-    $SIZE = $res->fields['SIZE'];
-    $COLOR = $res->fields['COLOR'];
-    $WEIGHT = $res->fields['WEIGHT'];
-    $ACTIVE = $res->fields['ACTIVE'];
+
+    $db_account->Execute("DELETE FROM `DOA_PRODUCT_COLOR` WHERE `PK_PRODUCT` = '$PK_PRODUCT'");
+    if (isset($_POST['PRODUCT_COLOR'])) {
+        for ($i = 0; $i < count($_POST['PRODUCT_COLOR']); $i++) {
+            $PRODUCT_COLOR['PK_PRODUCT'] = $PK_PRODUCT;
+            $PRODUCT_COLOR['COLOR'] = $_POST['PRODUCT_COLOR'][$i];
+            db_perform_account('DOA_PRODUCT_COLOR', $PRODUCT_COLOR, 'insert');
+        }
+    }
+
+    header("location:all_products.php");
 }
 ?>
 
@@ -154,7 +175,7 @@ if(empty($_GET['id'])){
                                 <div class="row">
                                     <div class="col-6">
                                         <div class="form-group">
-                                            <label class="col-md-12" for="example-text">Shipping Information<span class="text-danger">*</span></label>
+                                            <label class="col-md-12" for="example-text">Shipping Information</label>
                                             <div class="col-md-12">
                                                 <input type="text" id="SHIPPING_INFORMATION" name="SHIPPING_INFORMATION" class="form-control" placeholder="Enter Shipping Information" value="<?php echo $SHIPPING_INFORMATION?>" required>
                                             </div>
@@ -201,7 +222,7 @@ if(empty($_GET['id'])){
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-6">
+                                    <div class="col-5">
                                         <div class="form-group">
                                             <label class="col-md-12" for="example-text">Size/Dimensions</label>
                                             <div class="col-md-12">
@@ -209,13 +230,63 @@ if(empty($_GET['id'])){
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-6">
+                                    <div class="col-1">
+                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreSize();"><i class="ti-plus"></i> Add</a>
+                                    </div>
+                                    <div class="col-5">
                                         <div class="form-group">
                                             <label class="col-md-12" for="example-text">Color</label>
                                             <div class="col-md-12">
                                                 <input type="text" id="COLOR" name="COLOR" class="form-control" placeholder="Enter Color" value="<?php echo $COLOR?>">
                                             </div>
                                         </div>
+                                    </div>
+                                    <div class="col-1">
+                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreColor();"><i class="ti-plus"></i> Add</a>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6" id="add_more_size">
+                                        <?php
+                                        if(!empty($_GET['id'])) {
+                                            $product_size = $db_account->Execute("SELECT * FROM DOA_PRODUCT_SIZE WHERE PK_PRODUCT = '$PK_PRODUCT'");
+                                            while (!$product_size->EOF) { ?>
+                                                <div class="row">
+                                                    <div class="col-10">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Size/Dimensions<span class="text-danger">*</span></label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="PRODUCT_SIZE[]" class="form-control" placeholder="Enter Size/Dimensions" value="<?=$product_size->fields['SIZE']?>" required>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-2" style="padding-top: 25px;">
+                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                    </div>
+                                                </div>
+                                                <?php $product_size->MoveNext(); } ?>
+                                        <?php } ?>
+                                    </div>
+                                    <div class="col-6" id="add_more_color">
+                                        <?php
+                                        if(!empty($_GET['id'])) {
+                                            $product_color = $db_account->Execute("SELECT * FROM DOA_PRODUCT_COLOR WHERE PK_PRODUCT = '$PK_PRODUCT'");
+                                            while (!$product_color->EOF) { ?>
+                                                <div class="row">
+                                                    <div class="col-10">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Color<span class="text-danger">*</span></label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="PRODUCT_COLOR[]" class="form-control" placeholder="Enter Color" value="<?=$product_color->fields['COLOR']?>" required>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-2" style="padding-top: 25px;">
+                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                    </div>
+                                                </div>
+                                                <?php $product_color->MoveNext(); } ?>
+                                        <?php } ?>
                                     </div>
                                 </div>
 
@@ -270,6 +341,40 @@ if(empty($_GET['id'])){
                 }
                 reader.readAsDataURL(file);
             }
+        }
+    </script>
+    <script>
+        function removeThis(param) {
+            $(param).closest('.row').remove();
+        }
+
+        function addMoreSize(){
+            $('#add_more_size').append(`<div class="row">
+                                            <div class="col-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-12">
+                                                        <input type="text" name="PRODUCT_SIZE[]" class="form-control" placeholder="Enter Size/Dimensions">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-2" style="padding-top: 25px;">
+                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                            </div>
+                                        </div>`);
+        }
+        function addMoreColor(){
+            $('#add_more_color').append(`<div class="row">
+                                            <div class="col-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-12">
+                                                        <input type="text" name="PRODUCT_COLOR[]" class="form-control" placeholder="Enter Color">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-2" style="padding-top: 25px;">
+                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                            </div>
+                                        </div>`);
         }
     </script>
 </body>

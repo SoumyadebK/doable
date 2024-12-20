@@ -6,9 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/get_cart_item_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_cart_item_list.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/product_checkout.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/product_checkout.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/includes/top_menu.php" beforeDir="false" afterPath="$PROJECT_DIR$/includes/top_menu.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/product.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/product.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,7 +70,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "roumya",
     "node.js.selected.package.tslint": "(autodetect)"
   }
 }]]></component>
