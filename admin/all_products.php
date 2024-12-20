@@ -205,6 +205,7 @@ if ($header_data->RecordCount() > 0) {
             processData: false,
             contentType: false,
             success:function (data) {
+                $('#cart_count').text(data);
                 $('#add_to_cart').modal('hide');
             }
         });

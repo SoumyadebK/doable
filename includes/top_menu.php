@@ -127,9 +127,12 @@
                 <?php endif;?>
 
                 <li class="nav-item dropdown" style="margin-top: 4px;">
-                    <a class="nav-link dropdown-toggle waves-effect waves-dark" href="javascript:" onclick="getCartItemList()" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <img src="../assets/images/icon/cart.png" alt="Mail" style="height: 35px; width: 35px;">
-                        <!--<div class="notify"> <span class="heartbit"></span> <span class="point"></span> </div>-->
+                    <a class="nav-link dropdown-toggle waves-effect waves-dark notice_box" href="javascript:" onclick="getCartItemList()" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <!--<div class="notify" id="cart_notify" style="display: <?php /*=(isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0)?'':'none'*/?>;"> <span class="button"></span> </div>-->
+                        <div class="button">
+                            <img src="../assets/images/icon/cart.png" alt="Mail" style="height: 35px; width: 35px;">
+                            <span class="button__badge" id="cart_count"><?=(isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0)?count($_SESSION['CART_DATA']):0?></span>
+                        </div>
                     </a>
 
                     <div id="cart_items" class="dropdown-menu dropdown-menu-end animated bounceInDown" style="margin-right: 15%; width: 400px;">
@@ -142,7 +145,6 @@
                             <div id="cart_item_list">
 
                             </div>
-
                     </div>
                 </li>
 

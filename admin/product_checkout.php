@@ -11,6 +11,20 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
     exit;
 }
 
+$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+
+$PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
+$SECRET_KEY = $account_data->fields['SECRET_KEY'];
+$PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
+
+$SQUARE_ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
+$SQUARE_APP_ID = $account_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
+
+if(!empty($_POST)) {
+    pre_r($_POST);
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -33,7 +47,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body" style="width: 80%; margin: auto;">
-                            <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                            <form id="order_details_form" class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                 <div class="row">
                                     <div class="col-6">
                                         <label for="PK_USER_MASTER">Select Customer</label>
@@ -45,6 +59,13 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                                 <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" data-address="<?php echo $row->fields['ADDRESS']?>" data-address_1="<?php echo $row->fields['ADDRESS_1']?>" data-country="<?php echo $row->fields['PK_COUNTRY']?>" data-state="<?php echo $row->fields['PK_STATES']?>" data-city="<?php echo $row->fields['CITY']?>" data-zip="<?php echo $row->fields['ZIP']?>"><?=$row->fields['NAME'].' ('.$row->fields['USER_NAME'].')'?></option>
                                             <?php $row->MoveNext(); } ?>
                                         </select>
+                                    </div>
+                                </div>
+
+                                <div class="row m-t-20">
+                                    <div class="col-6">
+                                        <label for="PICK_UP"><input type="radio" id="PICK_UP" name="ORDER_TYPE" class="form-check-inline charge_type" value="PICK_UP" onchange="changeOrderType(this);" checked>Pick Up</label>
+                                        <label class="m-l-40" for="SHIPPING"><input type="radio" id="SHIPPING" name="ORDER_TYPE" class="form-check-inline charge_type" value="SHIPPING" onchange="changeOrderType(this);">Shipping</label>
                                     </div>
                                 </div>
 
@@ -101,7 +122,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     <?php } ?>
                                 </div>
 
-                                <div class="row m-t-30">
+                                <div class="row m-t-30" id="shipping_address_div" style="display: none;">
                                     <div class="col-6">
                                         <div class="form-group">
                                             <label class="col-md-12" for="example-text" style="font-weight: bold; font-size: 16px">Shipping Information<span class="text-danger">*</span></label>
@@ -133,7 +154,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                                 <label class="col-md-12">Country<span class="text-danger">*</span></label>
                                                 <div class="col-md-12">
                                                     <div class="col-sm-12">
-                                                        <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
+                                                        <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
                                                             <option>Select Country</option>
                                                             <?php
                                                             $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
@@ -151,7 +172,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                                 <label class="col-md-12">State<span class="text-danger">*</span></label>
                                                 <div class="col-md-12">
                                                     <div class="col-sm-12" id="State_div">
-                                                        <select class="form-control" name="PK_STATES" id="PK_STATES" required>
+                                                        <select class="form-control" name="PK_STATES" id="PK_STATES">
                                                             <option value="">Select State</option>
                                                             <?php
                                                             $row = $db->Execute("SELECT * FROM DOA_STATES ORDER BY STATE_NAME ASC");
@@ -185,7 +206,11 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
                                     </div>
                                 </div>
 
-                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Proceed</button>
+                                <div class="row m-t-20">
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Proceed to Checkout</button>
+                                    </div>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -193,49 +218,402 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
             </div>
         </div>
     </div>
-    <?php require_once('../includes/footer.php');?>
-    <script>
-        function fetch_state(PK_COUNTRY, PK_STATES){
-            jQuery(document).ready(function() {
-                let data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES="+PK_STATES;
-                let value = $.ajax({
-                    url: "ajax/state.php",
-                    type: "POST",
-                    data: data,
-                    async: false,
-                    cache :false,
-                    success: function (result) {
-                        document.getElementById('State_div').innerHTML = result;
+
+
+
+
+<div class="modal fade payment_modal" id="product_payment_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="product_payment_form" action="" method="post" enctype="multipart/form-data">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Payment</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
+                    <div class="p-20">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label">Total Amount</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="ORDER_TOTAL_AMOUNT" id="ORDER_TOTAL_AMOUNT" class="form-control" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label">Payment Type</label>
+                                    <div class="col-md-12">
+                                        <select class="form-control PAYMENT_TYPE ENROLLMENT_PAYMENT_TYPE" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this, 'enrollment')">
+                                            <option value="">Select</option>
+                                            <?php
+                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                            while (!$row->EOF) { ?>
+                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
+                                            <?php $row->MoveNext(); } ?>
+                                        </select>
+                                    </div>
+                                    <div id="wallet_balance_div">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
+                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                                <div class="row" style="margin: auto;" id="card_list">
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group" id="card_div">
+
+                                    </div>
+                                </div>
+                            </div>
+                        <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
+                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                                <div class="row" style="margin: auto;" id="card_list">
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group" id="card_div">
+
+                                    </div>
+                                </div>
+                                <div id="payment-status-container"></div>
+                            </div>
+                        <?php } ?>
+
+
+                        <div class="row payment_type_div" id="check_payment" style="display: none;">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Check Number</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="CHECK_NUMBER" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Check Date</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="CHECK_DATE" class="form-control datepicker-normal">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<?php require_once('../includes/footer.php');?>
+<script>
+    function fetch_state(PK_COUNTRY, PK_STATES){
+        jQuery(document).ready(function() {
+            let data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES="+PK_STATES;
+            let value = $.ajax({
+                url: "ajax/state.php",
+                type: "POST",
+                data: data,
+                async: false,
+                cache :false,
+                success: function (result) {
+                    document.getElementById('State_div').innerHTML = result;
+                }
+            }).responseText;
+        });
+    }
+
+    function changeOrderType(param) {
+        if ($(param).val() === 'SHIPPING') {
+            $('#shipping_address_div').slideDown();
+        } else {
+            $('#shipping_address_div').slideUp();
+        }
+    }
+
+    function fetchAddress() {
+        let address = $('#PK_USER_MASTER').find(':selected').data('address');
+        let address_1 = $('#PK_USER_MASTER').find(':selected').data('address_1');
+        let PK_COUNTRY = $('#PK_USER_MASTER').find(':selected').data('country');
+        let PK_STATE = $('#PK_USER_MASTER').find(':selected').data('state');
+        let city = $('#PK_USER_MASTER').find(':selected').data('city');
+        let zip = $('#PK_USER_MASTER').find(':selected').data('zip');
+        $('#ADDRESS').val(address);
+        $('#ADDRESS_1').val(address_1);
+        $('#PK_COUNTRY').val(PK_COUNTRY);
+        $('#PK_STATES').val(PK_STATE);
+        $('#CITY').val(city);
+        $('#ZIP').val(zip);
+    }
+
+    function calculateOrderTotal() {
+        let ALL_ITEM_TOTAL = $('#ALL_ITEM_TOTAL').val();
+        let SHIPPING_CHARGE = $('#SHIPPING_CHARGE').val();
+        if (!SHIPPING_CHARGE) {
+            $('#SHIPPING_CHARGE').val(0);
+            SHIPPING_CHARGE = 0;
+        }
+        let ORDER_TOTAL = parseFloat(ALL_ITEM_TOTAL)+parseFloat(SHIPPING_CHARGE);
+        $('#order_total').text('$'+ORDER_TOTAL.toFixed(2));
+        $('#ORDER_TOTAL_AMOUNT').val(ORDER_TOTAL.toFixed(2));
+    }
+
+    $(document).on('submit', '#order_details_form', function (event) {
+        event.preventDefault();
+        let ALL_ITEM_TOTAL = parseFloat($('#ALL_ITEM_TOTAL').val());
+        $('#ORDER_TOTAL_AMOUNT').val(ALL_ITEM_TOTAL.toFixed(2));
+        let form_data = new FormData($('#order_details_form')[0]);
+        $('#product_payment_modal').modal('show');
+    });
+
+    function selectPaymentType(param, type){
+        let paymentType = parseInt($(param).val());
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+        $(param).closest('.payment_modal').find('.payment_type_div').slideUp();
+        let form = document.getElementById('product_payment_form');
+        form.removeEventListener('submit', listener);
+        $(param).closest('.payment_modal').find('#card-element').remove();
+        $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
+        switch (paymentType) {
+            case 1:
+                if (PAYMENT_GATEWAY === 'Stripe') {
+                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
+                    stripePaymentFunction(type);
+                }
+
+                if (PAYMENT_GATEWAY === 'Square') {
+                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="enrollment-card-container"></div>`);
+                    $('#'+type+'-card-container').text('Loading......');
+                    squarePaymentFunction(type);
+                }
+
+                getCreditCardList();
+                $(param).closest('.payment_modal').find('#credit_card_payment').slideDown();
+                break;
+
+            case 2:
+                $(param).closest('.payment_modal').find('#check_payment').slideDown();
+                break;
+
+            case 7:
+                let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+                $.ajax({
+                    url: "ajax/wallet_balance.php",
+                    type: 'POST',
+                    data: {PK_USER_MASTER: PK_USER_MASTER},
+                    success: function (data) {
+                        $('#wallet_balance_div').html(data);
+                        $('#wallet_balance_div').slideDown();
+
+                        let ACTUAL_AMOUNT = parseFloat($('#ACTUAL_AMOUNT').val());
+                        let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
+
+                        if (ACTUAL_AMOUNT > WALLET_BALANCE) {
+                            //$('#PARTIAL_PAYMENT').prop('checked', true);
+                            //$('.partial_payment_div').slideDown();
+
+                            $('#AMOUNT_TO_PAY').val(WALLET_BALANCE);
+                            $('#PARTIAL_AMOUNT').val(0);
+                            $('#REMAINING_AMOUNT').val(ACTUAL_AMOUNT - WALLET_BALANCE);
+
+                            //$('#PK_PAYMENT_TYPE_PARTIAL').prop('required', true);
+                        } else {
+                            //$('#PARTIAL_PAYMENT').prop('checked', false);
+                            let ACTUAL_AMOUNT = $('#ACTUAL_AMOUNT').val();
+                            $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
+                            $('#PARTIAL_AMOUNT').val(0);
+                            $('#REMAINING_AMOUNT').val(0);
+                            //$('.partial_payment_div').slideUp();
+                            //$('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
+                        }
                     }
-                }).responseText;
-            });
-        }
+                });
+                break;
 
-        function fetchAddress() {
-            let address = $('#PK_USER_MASTER').find(':selected').data('address');
-            let address_1 = $('#PK_USER_MASTER').find(':selected').data('address_1');
-            let PK_COUNTRY = $('#PK_USER_MASTER').find(':selected').data('country');
-            let PK_STATE = $('#PK_USER_MASTER').find(':selected').data('state');
-            let city = $('#PK_USER_MASTER').find(':selected').data('city');
-            let zip = $('#PK_USER_MASTER').find(':selected').data('zip');
-            $('#ADDRESS').val(address);
-            $('#ADDRESS_1').val(address_1);
-            $('#PK_COUNTRY').val(PK_COUNTRY);
-            $('#PK_STATES').val(PK_STATE);
-            $('#CITY').val(city);
-            $('#ZIP').val(zip);
+            case 3:
+            default:
+                $(param).closest('.payment_modal').find('.payment_type_div').slideUp();
+                $(param).closest('.payment_modal').find('#wallet_balance_div').slideUp();
+                $(param).closest('.payment_modal').find('#partial_payment_div').slideUp();
+                $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
+                break;
         }
+    }
 
-        function calculateOrderTotal() {
-            let ALL_ITEM_TOTAL = $('#ALL_ITEM_TOTAL').val();
-            let SHIPPING_CHARGE = $('#SHIPPING_CHARGE').val();
-            if (!SHIPPING_CHARGE) {
-                $('#SHIPPING_CHARGE').val(0);
-                SHIPPING_CHARGE = 0;
+    $(document).on('submit', '#product_payment_form', function (event) {
+        event.preventDefault();
+        let form = document.getElementById('order_details_form');
+        form.submit();
+    });
+</script>
+
+<?php
+$SQUARE_MODE = 0;
+if ($SQUARE_APP_ID != '' && strpos($SQUARE_APP_ID, 'sandbox') !== false) {
+    $SQUARE_MODE = 2;
+} elseif ($SQUARE_APP_ID != '') {
+    $SQUARE_MODE = 1;
+}
+
+if ($SQUARE_MODE == 1)
+    $SQ_URL = "https://connect.squareup.com";
+else if ($SQUARE_MODE == 2)
+    $SQ_URL = "https://connect.squareupsandbox.com";
+
+if ($SQUARE_MODE == 1)
+    $URL = "https://web.squarecdn.com/v1/square.js";
+else if ($SQUARE_MODE == 2)
+    $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
+?>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script type="text/javascript">
+    var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
+    var elements = stripe.elements();
+
+    var style = {
+        base: {
+            height: '34px',
+            padding: '6px 12px',
+            fontSize: '14px',
+            lineHeight: '1.42857143',
+            color: '#555',
+            backgroundColor: '#fff',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            '::placeholder': {
+                color: '#ddd'
             }
-            let ORDER_TOTAL = parseFloat(ALL_ITEM_TOTAL)+parseFloat(SHIPPING_CHARGE);
-            $('#order_total').text('$'+ORDER_TOTAL.toFixed(2));
+        },
+        invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
         }
-    </script>
+    };
+
+    // Create an instance of the card Element.
+    var card = elements.create('card', {style: style});
+    var pay_type = '';
+
+    function stripePaymentFunction(type) {
+        pay_type = type;
+        // Add an instance of the card Element into the `card-element` <div>.
+        if (($('#card-element')).length > 0) {
+            card.mount('#card-element');
+        }
+        // Handle real-time validation errors from the card Element.
+        card.addEventListener('change', function (event) {
+            var displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+        // Handle form submission.
+        let form = document.getElementById('product_payment_form');
+        form.addEventListener('submit', listener);
+    }
+
+    const listener = async event => {
+        event.preventDefault();
+        stripe.createToken(card).then(function (result) {
+            if (result.error) {
+                // Inform the user if there was an error.
+                let errorElement = document.getElementById('card-errors');
+                errorElement.textContent = result.error.message;
+            } else {
+                // Send the token to your server.
+                stripeTokenHandler(result.token);
+            }
+        });
+    }
+
+    // Submit the form with the token ID.
+    function stripeTokenHandler(token) {
+        // Insert the token ID into the form, so it gets submitted to the server
+        let form = document.getElementById('order_details_form');
+        let hiddenInput = document.createElement('input');
+        hiddenInput.setAttribute('type', 'hidden');
+        hiddenInput.setAttribute('name', 'token');
+        hiddenInput.setAttribute('value', token.id);
+        form.appendChild(hiddenInput);
+        form.submit();
+    }
+</script>
+
+
+<script src="<?=$URL?>"></script>
+<script type="text/javascript">
+    async function squarePaymentFunction(type) {
+        let square_appId = '<?=$SQUARE_APP_ID ?>';
+        let square_locationId = '<?=$SQUARE_LOCATION_ID ?>';
+        const payments = Square.payments(square_appId, square_locationId);
+        const card = await payments.card();
+        $('#'+type+'-card-container').text('');
+        await card.attach('#'+type+'-card-container');
+
+        let form = document.getElementById('product_payment_form');
+
+        //const cardButton = document.getElementById('card-button');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const statusContainer = document.getElementById('payment-status-container');
+
+            try {
+                const result = await card.tokenize();
+                if (result.status === 'OK') {
+                    document.getElementById('enrollment_sourceId').value = result.token;
+                    console.log(`Payment token is ${result.token}`);
+                    //statusContainer.innerHTML = "Payment Successful";
+                    form.submit();
+                } else {
+                    let errorMessage = `Tokenization failed with status: ${result.status}`;
+                    if (result.errors) {
+                        errorMessage += ` and errors: ${JSON.stringify(
+                            result.errors
+                        )}`;
+                    }
+                    if ($('#enrollment-card-container').length > 0) {
+                        throw new Error(errorMessage);
+                    } else {
+                        form.submit();
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                statusContainer.innerHTML = "Payment Failed";
+            }
+        });
+    }
+
+    function getCreditCardList() {
+        let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+        $.ajax({
+            url: "ajax/get_credit_card_list.php",
+            type: 'POST',
+            data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
+            success: function (data) {
+                $('#card_list').html(data);
+            }
+        });
+    }
+</script>
+
 </body>
 </html>
