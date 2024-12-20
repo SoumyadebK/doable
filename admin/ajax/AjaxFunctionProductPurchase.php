@@ -14,8 +14,11 @@ function addToCart($RESPONSE_DATA){
         'PRODUCT_PRICE' => $RESPONSE_DATA['PRODUCT_PRICE'],
         'PRODUCT_QUANTITY' => $RESPONSE_DATA['PRODUCT_QUANTITY'],
     ];
+
+    echo count($_SESSION['CART_DATA']);
 }
 
 function removeFromCart($RESPONSE_DATA){
     unset($_SESSION['CART_DATA'][$RESPONSE_DATA['PK_PRODUCT']]);
+    echo count($_SESSION['CART_DATA']);
 }
