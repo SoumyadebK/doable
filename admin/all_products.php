@@ -33,6 +33,33 @@ if ($header_data->RecordCount() > 0) {
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <html lang="en">
 <?php require_once('../includes/header.php');?>
+<style>
+    span {cursor:pointer; }
+    .number {
+        margin-left:8px;
+    }
+    .minus, .plus {
+        width:30px;
+        height:30px;
+        *background:#f2f2f2;
+        border-radius:4px;
+        padding:4px 8px 8px 8px;
+        border:1px solid #ddd;
+        display: inline-block;
+        vertical-align: middle;
+        text-align: center;
+    }
+    input {
+        height: 30px;
+        width: 60px;
+        text-align: center;
+        font-size: 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        display: inline-block;
+        vertical-align: middle;
+    }
+</style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
 <div id="main-wrapper">
@@ -141,10 +168,15 @@ if ($header_data->RecordCount() > 0) {
                     <div class="row" id="item_details">
 
                     </div>
-                    <div class="form-group m-t-15">
+                    <div class="number">
+                        <span class="minus btn btn-info waves-effect waves-light text-white">-</span>
+                        <input inputmode="numeric" oninput="this.value = this.value.replace(/\D+/g, '')" id="PRODUCT_QUANTITY" name="PRODUCT_QUANTITY" value="1"/>
+                        <span class="plus btn btn-info waves-effect waves-light text-white">+</span>
+                    </div>
+                    <!--<div class="form-group m-t-15">
                         <label class="form-label">Enter Quantity</label>
                         <input inputmode="numeric" oninput="this.value = this.value.replace(/\D+/g, '')" id="PRODUCT_QUANTITY" name="PRODUCT_QUANTITY" class="form-control only-number" placeholder="Quantity" required>
-                    </div>
+                    </div>-->
                 </div>
 
                 <div class="modal-footer">
@@ -186,7 +218,25 @@ if ($header_data->RecordCount() > 0) {
                                 </div>
                                 <div class="col-7">
                                     <b style="font-weight: bold;">${PRODUCT_NAME}</b>
-                                    <p class="m-t-5">$${PRODUCT_PRICE}</p>
+                                    <p class="m-t-5 m-b-5">$${PRODUCT_PRICE}</p>
+                                    <div class="row m-t-10">
+                                        <div class="col-6">
+                                            <label class="form-label">Colour
+                                                <select class="form-control" style="min-height: 30px; width: 85px; line-height: 1; margin-top: 3px;">
+                                                    <option>Red</option>
+                                                    <option>Green</option>
+                                                </select>
+                                            </label>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">Size
+                                                <select class="form-control" style="min-height: 30px; width: 85px; line-height: 1; margin-top: 3px;">
+                                                    <option>12</option>
+                                                    <option>15</option>
+                                                </select>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>`);
         $('#PK_PRODUCT').val(PK_PRODUCT);
         $('#PRODUCT_NAME').val(PRODUCT_NAME);
@@ -194,6 +244,23 @@ if ($header_data->RecordCount() > 0) {
         $('#PRODUCT_PRICE').val(PRODUCT_PRICE);
         $('#add_to_cart').modal('show');
     }
+
+    $(document).ready(function() {
+        $('.minus').click(function () {
+            var $input = $(this).parent().find('input');
+            var count = parseInt($input.val()) - 1;
+            count = count < 1 ? 1 : count;
+            $input.val(count);
+            $input.change();
+            return false;
+        });
+        $('.plus').click(function () {
+            var $input = $(this).parent().find('input');
+            $input.val(parseInt($input.val()) + 1);
+            $input.change();
+            return false;
+        });
+    });
 
     $(document).on('submit', '#add_to_cart_form', function (event) {
         event.preventDefault();
