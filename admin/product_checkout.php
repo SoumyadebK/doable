@@ -60,6 +60,9 @@ if(!empty($_POST)) {
                                             <?php $row->MoveNext(); } ?>
                                         </select>
                                     </div>
+                                    <div class="col-6 m-t-10">
+                                        <a href="javascript:" onclick="addNewCustomer()" class="btn btn-info waves-effect waves-light m-r-10 text-white">Add New Product</a>
+                                    </div>
                                 </div>
 
                                 <div class="row m-t-20">
@@ -76,19 +79,41 @@ if(!empty($_POST)) {
                                         foreach ($_SESSION['CART_DATA'] as $key => $cart_data) {
                                             $item_total = $cart_data['PRODUCT_QUANTITY'] * $cart_data['PRODUCT_PRICE'];
                                             $all_item_total += $item_total; ?>
-                                            <div class="row m-b-15">
+                                            <div class="row">
                                                 <div class="col-4">
                                                     <img id="profile-img" src="<?=$cart_data['PRODUCT_IMAGES']?>" alt="<?=$cart_data['PRODUCT_NAME']?>" style="width: 180px; height: auto;">
                                                 </div>
                                                 <div class="col-6">
                                                     <b style="font-weight: bold;"><?=$cart_data['PRODUCT_NAME']?></b>
                                                     <p class="m-t-5"><?=$cart_data['PRODUCT_QUANTITY']?> X $<?=number_format($cart_data['PRODUCT_PRICE'], 2)?></p>
+                                                    <div class="row m-b-10">
+                                                        <div class="col-8">
+                                                            <div class="row">
+                                                                <?php
+                                                                $product_color = $db_account->Execute("SELECT * FROM DOA_PRODUCT_COLOR WHERE PK_PRODUCT_COLOR = ".$cart_data['PK_PRODUCT_COLOR']);
+                                                                if ($product_color->RecordCount() > 0) { ?>
+                                                                    <div class="col-6">
+                                                                        <p><strong style="font-weight: bold;">Colour :</strong> <?=$product_color->fields['COLOR']?></p>
+                                                                    </div>
+                                                                <?php } ?>
+
+                                                                <?php
+                                                                $product_size = $db_account->Execute("SELECT * FROM DOA_PRODUCT_SIZE WHERE PK_PRODUCT_SIZE = ".$cart_data['PK_PRODUCT_SIZE']);
+                                                                if ($product_size->RecordCount() > 0) { ?>
+                                                                    <div class="col-6">
+                                                                        <p><strong style="font-weight: bold;">Size :</strong> <?=$product_size->fields['SIZE']?></p>
+                                                                    </div>
+                                                                <?php } ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div class="col-2">
                                                     <a href="product_checkout.php" onclick="removeFromCart(<?=$key?>)" style="color: red; float: right;"><i class="fa fa-trash" title="Delete"></i></a><br>
                                                     <p class="m-t-5" style="float: right;">$<?=number_format($item_total, 2)?></p>
                                                 </div>
                                             </div>
+
                                         <?php } ?>
                                         <div class="row">
                                             <div class="col-8">
@@ -221,6 +246,144 @@ if(!empty($_POST)) {
 
 
 
+<div class="modal fade customer_model" id="customer_model" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="add_customer_form" action="" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="FUNCTION_NAME" value="addNewCustomer">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Add New Customer</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form class="form-material form-horizontal" id="profile_form">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">First Name<span class="text-danger">*</span></label>
+                                    <div class="col-md-12">
+                                        <input type="text" id="FIRST_NAME" name="FIRST_NAME" class="form-control" placeholder="Enter First Name" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Last Name</label>
+                                    <div class="col-md-12">
+                                        <input type="text" id="LAST_NAME" name="LAST_NAME" class="form-control" placeholder="Enter Last Name">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Email<span class="text-danger">*</span></label>
+                                    <div class="col-md-12">
+                                        <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Phone<span class="text-danger">*</span></label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="PHONE" class="form-control" placeholder="Enter Phone Number" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="col-md-12">Address</label>
+                                    <div class="col-md-12">
+                                        <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="col-md-12">Apt/Ste</label>
+                                    <div class="col-md-12">
+                                        <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Apt/Ste">
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="col-md-12">Country<span class="text-danger">*</span></label>
+                                    <div class="col-md-12">
+                                        <div class="col-sm-12">
+                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_customer_state(this.value)" required>
+                                                <option>Select Country</option>
+                                                <?php
+                                                $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                                                while (!$row->EOF) { ?>
+                                                    <option value="<?php echo $row->fields['PK_COUNTRY'];?>"><?=$row->fields['COUNTRY_NAME']?></option>
+                                                <?php $row->MoveNext(); } ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="col-md-12">State<span class="text-danger">*</span></label>
+                                    <div class="col-md-12">
+                                        <div class="col-sm-12">
+                                            <div id="customer_state_div">
+                                                <select class="form-control" name="PK_STATE" id="PK_STATE">
+                                                    <option>Select State</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="col-md-12">City</label>
+                                    <div class="col-md-12">
+                                        <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter City">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="col-md-12">Postal / Zip Code</label>
+                                    <div class="col-md-12">
+                                        <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
 
 <div class="modal fade payment_modal" id="product_payment_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -321,6 +484,37 @@ if(!empty($_POST)) {
 
 <?php require_once('../includes/footer.php');?>
 <script>
+    function fetch_customer_state(PK_COUNTRY){
+        jQuery(document).ready(function() {
+            let data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=0";
+            let value = $.ajax({
+                url: "ajax/state.php",
+                type: "POST",
+                data: data,
+                async: false,
+                cache :false,
+                success: function (result) {
+                    document.getElementById('customer_state_div').innerHTML = result;
+                }
+            }).responseText;
+        });
+    }
+
+    $(document).on('submit', '#add_customer_form', function (event) {
+        event.preventDefault();
+        let form_data = new FormData($('#add_customer_form')[0]); //$('#document_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctionProductPurchase.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success:function (data) {
+                window.location.reload();
+            }
+        });
+    });
+
     function fetch_state(PK_COUNTRY, PK_STATES){
         jQuery(document).ready(function() {
             let data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES="+PK_STATES;
@@ -335,6 +529,10 @@ if(!empty($_POST)) {
                 }
             }).responseText;
         });
+    }
+
+    function addNewCustomer() {
+        $('#customer_model').modal('show');
     }
 
     function changeOrderType(param) {

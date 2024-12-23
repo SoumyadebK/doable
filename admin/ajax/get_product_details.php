@@ -26,7 +26,7 @@ $product_details =  $db_account->Execute("SELECT * FROM DOA_PRODUCT WHERE PK_PRO
         if ($product_color->RecordCount() > 0) { ?>
             <div class="col-6">
                 <label class="form-label">Colour
-                    <select class="form-control" name="PK_PRODUCT_COLOR" style="min-height: 30px; *width: 85px; line-height: 1; margin-top: 3px;">
+                    <select class="form-control" name="PK_PRODUCT_COLOR" style="min-height: 30px; *width: 85px; line-height: 1; margin-top: 3px;" required>
                         <option value="">Select Colour</option>
                         <?php while (!$product_color->EOF) { ?>
                             <option value="<?=$product_color->fields['PK_PRODUCT_COLOR']?>"><?=$product_color->fields['COLOR']?></option>
@@ -41,7 +41,7 @@ $product_details =  $db_account->Execute("SELECT * FROM DOA_PRODUCT WHERE PK_PRO
         if ($product_size->RecordCount() > 0) { ?>
             <div class="col-6">
                 <label class="form-label">Size
-                    <select class="form-control" name="PK_PRODUCT_SIZE" style="min-height: 30px; *width: 85px; line-height: 1; margin-top: 3px;">
+                    <select class="form-control" name="PK_PRODUCT_SIZE" style="min-height: 30px; *width: 85px; line-height: 1; margin-top: 3px;" required>
                         <option value="">Select Size</option>
                         <?php while (!$product_size->EOF) { ?>
                             <option value="<?=$product_size->fields['PK_PRODUCT_SIZE']?>"><?=$product_size->fields['SIZE']?></option>
