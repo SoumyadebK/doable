@@ -8,17 +8,102 @@ $FUNCTION_NAME($RESPONSE_DATA);
 
 /*Add item on cart*/
 function addToCart($RESPONSE_DATA){
-    $_SESSION['CART_DATA'][$RESPONSE_DATA['PK_PRODUCT']] = [
+    $PK_PRODUCT_COLOR = $RESPONSE_DATA['PK_PRODUCT_COLOR'] ?? 0;
+    $PK_PRODUCT_SIZE = $RESPONSE_DATA['PK_PRODUCT_SIZE'] ?? 0;
+
+    $_SESSION['CART_DATA'][$RESPONSE_DATA['PK_PRODUCT'].'-'.$PK_PRODUCT_COLOR.'-'.$PK_PRODUCT_SIZE] = [
+        'PK_PRODUCT' => $RESPONSE_DATA['PK_PRODUCT'],
         'PRODUCT_NAME' => $RESPONSE_DATA['PRODUCT_NAME'],
         'PRODUCT_IMAGES' => $RESPONSE_DATA['PRODUCT_IMAGES'],
         'PRODUCT_PRICE' => $RESPONSE_DATA['PRODUCT_PRICE'],
         'PRODUCT_QUANTITY' => $RESPONSE_DATA['PRODUCT_QUANTITY'],
+        'PK_PRODUCT_COLOR' => $PK_PRODUCT_COLOR,
+        'PK_PRODUCT_SIZE' => $PK_PRODUCT_SIZE,
     ];
 
     echo count($_SESSION['CART_DATA']);
 }
 
+/*Remove item from cart*/
 function removeFromCart($RESPONSE_DATA){
     unset($_SESSION['CART_DATA'][$RESPONSE_DATA['PK_PRODUCT']]);
     echo count($_SESSION['CART_DATA']);
+}
+
+function increaseDecreaseCounter($RESPONSE_DATA)
+{
+    $array_index = $RESPONSE_DATA['array_index'];
+    $type = $RESPONSE_DATA['type'];
+
+    if ($type === 'increase') {
+        $_SESSION['CART_DATA'][$array_index]['PRODUCT_QUANTITY'] += 1;
+    } elseif ($type === 'decrease' && $_SESSION['CART_DATA'][$array_index]['PRODUCT_QUANTITY'] > 1) {
+        $_SESSION['CART_DATA'][$array_index]['PRODUCT_QUANTITY'] -= 1;
+    }
+}
+
+/*Add new customer*/
+function addNewCustomer($RESPONSE_DATA){
+    global $db;
+    global $db_account;
+
+    $USER_DATA['PK_ACCOUNT_MASTER'] = $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+
+    $USER_DATA['FIRST_NAME'] = $USER_DATA_ACCOUNT['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
+    $USER_DATA['LAST_NAME'] = $USER_DATA_ACCOUNT['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
+    $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
+    $USER_DATA['PHONE'] = $USER_DATA_ACCOUNT['PHONE'] = $RESPONSE_DATA['PHONE'];
+    $USER_DATA['CREATE_LOGIN'] = 0;
+    $USER_DATA['APPEAR_IN_CALENDAR'] = 0;
+
+    $USER_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'];
+    $USER_DATA['ADDRESS_1'] = $RESPONSE_DATA['ADDRESS_1'];
+    $USER_DATA['PK_COUNTRY'] = ($RESPONSE_DATA['PK_COUNTRY']) ?? 0;
+    $USER_DATA['PK_STATES'] = ($RESPONSE_DATA['PK_STATES']) ?? 0;
+    $USER_DATA['CITY'] = $RESPONSE_DATA['CITY'];
+    $USER_DATA['ZIP'] = $RESPONSE_DATA['ZIP'];
+    $USER_DATA['IS_DELETED'] = 0;
+
+    if(empty($RESPONSE_DATA['UNIQUE_ID'])){
+        $row = $db->Execute("SELECT UNIQUE_ID FROM DOA_USERS ORDER BY UNIQUE_ID DESC LIMIT 1");
+        if ($row->RecordCount()>0 && $row->fields['UNIQUE_ID']>0) {
+            $USER_DATA['UNIQUE_ID']  =  intval($row->fields['UNIQUE_ID']) + 1;
+        }
+    }
+
+    $USER_DATA['JOINING_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['CREATED_ON']));
+    $USER_DATA['ACTIVE'] = $USER_DATA_ACCOUNT['ACCOUNT'] = 1;
+    $USER_DATA['CREATED_BY']  = $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
+    $USER_DATA['CREATED_ON']  = date('Y-m-d H:i:s');
+    db_perform('DOA_USERS', $USER_DATA, 'insert');
+
+    $PK_USER = $db->insert_ID();
+    $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
+    db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
+
+    $USER_MASTER_DATA['PK_USER'] = $PK_USER;
+    $USER_MASTER_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = $_SESSION['DEFAULT_LOCATION_ID'];
+    $USER_MASTER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+    $USER_MASTER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+    db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
+    $PK_USER_MASTER = $db->insert_ID();
+
+    $CUSTOMER_USER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+    $CUSTOMER_USER_DATA['IS_PRIMARY'] = 1;
+    $CUSTOMER_USER_DATA['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
+    $CUSTOMER_USER_DATA['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
+    $CUSTOMER_USER_DATA['PHONE'] = $RESPONSE_DATA['PHONE'];
+    $CUSTOMER_USER_DATA['EMAIL'] = $RESPONSE_DATA['EMAIL_ID'];
+    db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'insert');
+
+    $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+    $USER_ROLE_DATA['PK_ROLES'] = 4;
+    db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
+
+    $CUSTOMER_LOCATION_DATA['PK_USER'] = $PK_USER;
+    $CUSTOMER_LOCATION_DATA['PK_LOCATION'] = $_SESSION['DEFAULT_LOCATION_ID'];
+    db_perform('DOA_USER_LOCATION', $CUSTOMER_LOCATION_DATA, 'insert');
+
+    echo $PK_USER;
 }

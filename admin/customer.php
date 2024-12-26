@@ -964,7 +964,7 @@ if ($PK_USER_MASTER > 0) {
                                                                 </div>
                                                             </div>
                                                             <b id="password_error" style="color: red;"></b>
-                                                            <div class="row">
+                                                            <div class="row" id="password_note">
                                                                 <div class="col-12">
                                                                     <span style="color: orange;">Note  : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
                                                                 </div>
@@ -2350,12 +2350,15 @@ if ($PK_USER_MASTER > 0) {
                 case 1:
                 case 2:
                     strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
+                    $('#password_note').slideDown();
                     break;
                 case 3:
                     strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
+                    $('#password_note').slideDown();
                     break;
                 case 4:
                     strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
+                    $('#password_note').slideUp();
                     break;
 
             }
