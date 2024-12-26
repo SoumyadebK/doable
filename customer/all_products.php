@@ -16,7 +16,7 @@ if ($status_check == 'active'){
     $status = 0;
 }
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4 ){
     header("location:../login.php");
     exit;
 }
@@ -39,29 +39,10 @@ if ($header_data->RecordCount() > 0) {
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <?php require_once('../includes/setup_menu.php') ?>
         <div class="container-fluid body_content m-0">
             <div class="row page-titles">
                 <div class="col-md-4 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
-                </div>
-                <?php if ($status_check=='inactive') { ?>
-                    <div class="col-md-3 align-self-center">
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_products.php?status=active'"><i class="fa fa-user"></i> Show Active</button>
-                    </div>
-                <?php } elseif ($status_check=='active') { ?>
-                    <div class="col-md-3 align-self-center">
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_products.php?status=inactive'"><i class="fa fa-user-times"></i> Show Not Active</button>
-                    </div>
-                <?php } ?>
-                <div class="col-md-5 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='product.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
-                    </div>
                 </div>
             </div>
             <div class="row">
@@ -88,7 +69,7 @@ if ($header_data->RecordCount() > 0) {
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT * FROM DOA_PRODUCT WHERE IS_DELETED = 0 AND ACTIVE = '$status' ORDER BY PRODUCT_NAME ASC");
+                                    $row = $db_account->Execute("SELECT * FROM DOA_PRODUCT WHERE IS_DELETED = 0 AND ACTIVE = 1 ORDER BY PRODUCT_NAME ASC");
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRODUCT_ID']?></td>
@@ -97,16 +78,8 @@ if ($header_data->RecordCount() > 0) {
                                             <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRODUCT_DESCRIPTION']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRICE']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['SHIPPING_INFORMATION']?></td>
-
                                             <td>
                                                 <a href="javascript:" onclick="addToCart(<?=$row->fields['PK_PRODUCT']?>);"><i class="fa fa-cart-plus" title="Add to Cart"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="product.php?id=<?=$row->fields['PK_PRODUCT']?>"><i class="fa fa-edit" title="Edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="all_products.php?type=del&id=<?=$row->fields['PK_PRODUCT']?>" onclick="ConfirmDelete(<?=$row->fields['PK_PRODUCT']?>);"><i class="fa fa-trash" title="Delete"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <?php if($row->fields['ACTIVE']==1){ ?>
-                                                    <span class="active-box-green"></span>
-                                                <?php } else{ ?>
-                                                    <span class="active-box-red"></span>
-                                                <?php } ?>
                                             </td>
                                         </tr>
                                         <?php $row->MoveNext();
@@ -139,7 +112,7 @@ if ($header_data->RecordCount() > 0) {
                     </div>
                     <div class="number">
                         <span class="minus btn btn-info waves-effect waves-light text-white">-</span>
-                            <input class="counter_input" inputmode="numeric" oninput="this.value = this.value.replace(/\D+/g, '')" id="PRODUCT_QUANTITY" name="PRODUCT_QUANTITY" value="1"/>
+                        <input class="counter_input" inputmode="numeric" oninput="this.value = this.value.replace(/\D+/g, '')" id="PRODUCT_QUANTITY" name="PRODUCT_QUANTITY" value="1"/>
                         <span class="plus btn btn-info waves-effect waves-light text-white">+</span>
                     </div>
                     <!--<div class="form-group m-t-15">
@@ -162,28 +135,11 @@ if ($header_data->RecordCount() > 0) {
     $(function () {
         $('#myTable').DataTable();
     });
-    function ConfirmDelete(PK_PRODUCT)
-    {
-        let conf = confirm("Are you sure you want to delete?");
-        if(conf) {
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: {FUNCTION_NAME: 'deleteProductData', PK_PRODUCT: PK_PRODUCT},
-                success: function (data) {
-                    window.location.href = `all_products.php`;
-                }
-            });
-        }
-    }
-    function editpage(id){
-        window.location.href = "product.php?id="+id;
-    }
 
     function addToCart(PK_PRODUCT) {
         $('#add_to_cart_form')[0].reset();
         $.ajax({
-            url: "ajax/get_product_details.php",
+            url: "../admin/ajax/get_product_details.php",
             type: 'GET',
             data: {PK_PRODUCT:PK_PRODUCT},
             success: function (data) {
@@ -197,7 +153,7 @@ if ($header_data->RecordCount() > 0) {
         event.preventDefault();
         let form_data = new FormData($('#add_to_cart_form')[0]); //$('#document_form').serialize();
         $.ajax({
-            url: "ajax/AjaxFunctionProductPurchase.php",
+            url: "../admin/ajax/AjaxFunctionProductPurchase.php",
             type: 'POST',
             data: form_data,
             processData: false,

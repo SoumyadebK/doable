@@ -1,5 +1,5 @@
 <?php
-require_once('../../global/config.php');
+require_once('../global/config.php');
 global $db;
 global $db_account;
 ?>

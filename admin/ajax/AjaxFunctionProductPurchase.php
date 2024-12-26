@@ -12,6 +12,7 @@ function addToCart($RESPONSE_DATA){
     $PK_PRODUCT_SIZE = $RESPONSE_DATA['PK_PRODUCT_SIZE'] ?? 0;
 
     $_SESSION['CART_DATA'][$RESPONSE_DATA['PK_PRODUCT'].'-'.$PK_PRODUCT_COLOR.'-'.$PK_PRODUCT_SIZE] = [
+        'PK_PRODUCT' => $RESPONSE_DATA['PK_PRODUCT'],
         'PRODUCT_NAME' => $RESPONSE_DATA['PRODUCT_NAME'],
         'PRODUCT_IMAGES' => $RESPONSE_DATA['PRODUCT_IMAGES'],
         'PRODUCT_PRICE' => $RESPONSE_DATA['PRODUCT_PRICE'],
@@ -27,6 +28,18 @@ function addToCart($RESPONSE_DATA){
 function removeFromCart($RESPONSE_DATA){
     unset($_SESSION['CART_DATA'][$RESPONSE_DATA['PK_PRODUCT']]);
     echo count($_SESSION['CART_DATA']);
+}
+
+function increaseDecreaseCounter($RESPONSE_DATA)
+{
+    $array_index = $RESPONSE_DATA['array_index'];
+    $type = $RESPONSE_DATA['type'];
+
+    if ($type === 'increase') {
+        $_SESSION['CART_DATA'][$array_index]['PRODUCT_QUANTITY'] += 1;
+    } elseif ($type === 'decrease' && $_SESSION['CART_DATA'][$array_index]['PRODUCT_QUANTITY'] > 1) {
+        $_SESSION['CART_DATA'][$array_index]['PRODUCT_QUANTITY'] -= 1;
+    }
 }
 
 /*Add new customer*/

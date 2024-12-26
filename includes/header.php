@@ -346,4 +346,32 @@
         }
 
     </style>
+
+    <style>
+        span {cursor:pointer; }
+        .number {
+            margin-left:8px;
+        }
+        .minus, .plus {
+            width:30px;
+            height:30px;
+            *background:#f2f2f2;
+            border-radius:4px;
+            padding:4px 8px 8px 8px;
+            border:1px solid #ddd;
+            display: inline-block;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .counter_input {
+            height: 30px;
+            width: 60px;
+            text-align: center;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    </style>
 </head>

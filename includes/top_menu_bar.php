@@ -200,6 +200,12 @@ if (!empty($_GET['view'])) {
                             </a>
                         </li>
                         <li>
+                            <a class="waves-effect waves-dark" href="../customer/all_products.php" aria-expanded="false">
+                                <b class="icons-Add-Cart"></b>
+                                <span class="hide-menu">Shop</span>
+                            </a>
+                        </li>
+                        <li>
                             <a class="waves-effect waves-dark" href="../customer/all_gift_certificates.php" aria-expanded="false">
                                 <i class="icons-Gift-Box"></i>
                                 <span class="hide-menu">Gift Cards</span>

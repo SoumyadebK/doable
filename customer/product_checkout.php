@@ -6,7 +6,7 @@ global $upload_path;
 
 $title = "Product Checkout";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4 ){
     header("location:../login.php");
     exit;
 }
@@ -21,9 +21,14 @@ $SQUARE_ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
 $SQUARE_APP_ID = $account_data->fields['APP_ID'];
 $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
-if(!empty($_POST)) {
-    pre_r($_POST);
-}
+$customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.ADDRESS, DOA_USERS.ADDRESS_1, DOA_USERS.PK_COUNTRY, DOA_USERS.PK_STATES, DOA_USERS.CITY, DOA_USERS.ZIP FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_USER_MASTER = ".$_SESSION['PK_USER_MASTER']);
+
+$ADDRESS = $customer_data->fields['ADDRESS'];
+$ADDRESS_1 = $customer_data->fields['ADDRESS_1'];
+$PK_COUNTRY = $customer_data->fields['PK_COUNTRY'];
+$PK_STATES = $customer_data->fields['PK_STATES'];
+$CITY = $customer_data->fields['CITY'];
+$ZIP = $customer_data->fields['ZIP'];
 
 ?>
 
@@ -48,23 +53,6 @@ if(!empty($_POST)) {
                     <div class="card">
                         <div class="card-body" style="width: 80%; margin: auto;">
                             <form id="order_details_form" class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
-                                <div class="row">
-                                    <div class="col-6">
-                                        <label for="PK_USER_MASTER">Select Customer</label>
-                                        <select required class="form-control" name="PK_USER_MASTER" id="PK_USER_MASTER" onchange="fetchAddress();">
-                                            <option value="">Select Customer</option>
-                                            <?php
-                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.ADDRESS, DOA_USERS.ADDRESS_1, DOA_USERS.PK_COUNTRY, DOA_USERS.PK_STATES, DOA_USERS.CITY, DOA_USERS.ZIP FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME");
-                                            while (!$row->EOF) {?>
-                                                <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" data-address="<?php echo $row->fields['ADDRESS']?>" data-address_1="<?php echo $row->fields['ADDRESS_1']?>" data-country="<?php echo $row->fields['PK_COUNTRY']?>" data-state="<?php echo $row->fields['PK_STATES']?>" data-city="<?php echo $row->fields['CITY']?>" data-zip="<?php echo $row->fields['ZIP']?>"><?=$row->fields['NAME'].' ('.$row->fields['USER_NAME'].')'?></option>
-                                            <?php $row->MoveNext(); } ?>
-                                        </select>
-                                    </div>
-                                    <div class="col-6 m-t-10">
-                                        <a href="javascript:" onclick="addNewCustomer()" class="btn btn-info waves-effect waves-light m-r-10 text-white">Add New Customer</a>
-                                    </div>
-                                </div>
-
                                 <div class="row m-t-20">
                                     <div class="col-6">
                                         <label for="PICK_UP"><input type="radio" id="PICK_UP" name="ORDER_TYPE" class="form-check-inline charge_type" value="PICK_UP" onchange="changeOrderType(this);" checked>Pick Up</label>
@@ -164,7 +152,7 @@ if(!empty($_POST)) {
                                             <div class="form-group">
                                                 <label class="col-md-12">Address</label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address">
+                                                    <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?=$ADDRESS?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -172,7 +160,7 @@ if(!empty($_POST)) {
                                             <div class="form-group">
                                                 <label class="col-md-12">Apt/Ste</label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Apt/Ste">
+                                                    <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Apt/Ste" value="<?=$ADDRESS_1?>">
                                                 </div>
                                             </div>
 
@@ -190,7 +178,7 @@ if(!empty($_POST)) {
                                                             <?php
                                                             $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
                                                             while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_COUNTRY'];?>"><?=$row->fields['COUNTRY_NAME']?></option>
+                                                                <option value="<?php echo $row->fields['PK_COUNTRY'];?>" <?=($row->fields['PK_COUNTRY']==$PK_COUNTRY)?'selected':''?>><?=$row->fields['COUNTRY_NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
@@ -208,7 +196,7 @@ if(!empty($_POST)) {
                                                             <?php
                                                             $row = $db->Execute("SELECT * FROM DOA_STATES ORDER BY STATE_NAME ASC");
                                                             while (!$row->EOF) { ?>
-                                                                <option value="<?php echo $row->fields['PK_STATES'];?>"><?=$row->fields['STATE_NAME']?></option>
+                                                                <option value="<?php echo $row->fields['PK_STATES'];?>" <?=($row->fields['PK_STATES']==$PK_STATES)?'selected':''?>><?=$row->fields['STATE_NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>
                                                         </select>
                                                     </div>
@@ -222,7 +210,7 @@ if(!empty($_POST)) {
                                             <div class="form-group">
                                                 <label class="col-md-12">City</label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter your city">
+                                                    <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter your city" value="<?=$CITY?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -230,7 +218,7 @@ if(!empty($_POST)) {
                                             <div class="form-group">
                                                 <label class="col-md-12">Postal / Zip Code</label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code">
+                                                    <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?=$ZIP?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -249,147 +237,6 @@ if(!empty($_POST)) {
             </div>
         </div>
     </div>
-
-
-
-<div class="modal fade customer_model" id="customer_model" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <form id="add_customer_form" action="" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="FUNCTION_NAME" value="addNewCustomer">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4><b>Add New Customer</b></h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body">
-                    <form class="form-material form-horizontal" id="profile_form">
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">First Name<span class="text-danger">*</span></label>
-                                    <div class="col-md-12">
-                                        <input type="text" id="FIRST_NAME" name="FIRST_NAME" class="form-control" placeholder="Enter First Name" required>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Last Name</label>
-                                    <div class="col-md-12">
-                                        <input type="text" id="LAST_NAME" name="LAST_NAME" class="form-control" placeholder="Enter Last Name">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Email<span class="text-danger">*</span></label>
-                                    <div class="col-md-12">
-                                        <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" required>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Phone<span class="text-danger">*</span></label>
-                                    <div class="col-md-12">
-                                        <input type="text" name="PHONE" class="form-control" placeholder="Enter Phone Number" required>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="col-md-12">Address</label>
-                                    <div class="col-md-12">
-                                        <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="col-md-12">Apt/Ste</label>
-                                    <div class="col-md-12">
-                                        <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Apt/Ste">
-
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="col-md-12">Country<span class="text-danger">*</span></label>
-                                    <div class="col-md-12">
-                                        <div class="col-sm-12">
-                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_customer_state(this.value)" required>
-                                                <option>Select Country</option>
-                                                <?php
-                                                $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
-                                                while (!$row->EOF) { ?>
-                                                    <option value="<?php echo $row->fields['PK_COUNTRY'];?>"><?=$row->fields['COUNTRY_NAME']?></option>
-                                                <?php $row->MoveNext(); } ?>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="col-md-12">State<span class="text-danger">*</span></label>
-                                    <div class="col-md-12">
-                                        <div class="col-sm-12">
-                                            <div id="customer_state_div">
-                                                <select class="form-control" name="PK_STATE" id="PK_STATE">
-                                                    <option>Select State</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="col-md-12">City</label>
-                                    <div class="col-md-12">
-                                        <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter City">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="col-md-12">Postal / Zip Code</label>
-                                    <div class="col-md-12">
-                                        <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </form>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-
 
 <div class="modal fade payment_modal" id="product_payment_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -506,21 +353,6 @@ if(!empty($_POST)) {
         });
     }
 
-    $(document).on('submit', '#add_customer_form', function (event) {
-        event.preventDefault();
-        let form_data = new FormData($('#add_customer_form')[0]); //$('#document_form').serialize();
-        $.ajax({
-            url: "ajax/AjaxFunctionProductPurchase.php",
-            type: 'POST',
-            data: form_data,
-            processData: false,
-            contentType: false,
-            success:function (data) {
-                window.location.reload();
-            }
-        });
-    });
-
     function fetch_state(PK_COUNTRY, PK_STATES){
         jQuery(document).ready(function() {
             let data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES="+PK_STATES;
@@ -566,7 +398,7 @@ if(!empty($_POST)) {
 
     function increaseDecreaseCounter(array_index, type) {
         $.ajax({
-            url: "ajax/AjaxFunctionProductPurchase.php",
+            url: "../admin/ajax/AjaxFunctionProductPurchase.php",
             type: 'POST',
             data: {FUNCTION_NAME: 'increaseDecreaseCounter', array_index: array_index, type: type},
             success: function (data) {

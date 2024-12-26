@@ -28,7 +28,7 @@ while (!$all_account->EOF) {
         require_once("global/vendor/twilio/sdk/src/Twilio/autoload.php");
 
         if($all_account->fields['TWILIO_ACCOUNT_TYPE'] == 1) {
-            $text_setting = $db->Execute("SELECT * FROM `DOA_TEXT_SETTINGS` WHERE PK_ACCOUNT_MASTER =" .$PK_ACCOUNT_MASTER);
+            $text_setting = $db->Execute("SELECT * FROM `DOA_TEXT_SETTINGS` WHERE PK_ACCOUNT_MASTER = " .$PK_ACCOUNT_MASTER);
         } else {
             $text_setting = $db->Execute("SELECT * FROM `DOA_TEXT_SETTINGS` WHERE PK_ACCOUNT_MASTER = 0");
         }
