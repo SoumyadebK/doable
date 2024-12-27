@@ -46,8 +46,12 @@ if(empty($_GET['id'])){
     $ACTIVE = $res->fields['ACTIVE'];
 }
 
-$PRODUCT_DATA = $_POST;
 if(!empty($_POST)){
+    $PRODUCT_SIZE = $_POST['PRODUCT_SIZE'];
+    unset($_POST['PRODUCT_SIZE']);
+    $PRODUCT_COLOR = $_POST['PRODUCT_COLOR'];
+    unset($_POST['PRODUCT_COLOR']);
+    $PRODUCT_DATA = $_POST;
     if ($_FILES['PRODUCT_IMAGES']['name'] != '') {
         if (!file_exists('../'.$upload_path.'/product_image/')) {
             mkdir('../'.$upload_path.'/product_image/', 0777, true);
@@ -81,24 +85,20 @@ if(!empty($_POST)){
     }
 
     $db_account->Execute("DELETE FROM `DOA_PRODUCT_SIZE` WHERE `PK_PRODUCT` = '$PK_PRODUCT'");
-    if (isset($_POST['PRODUCT_SIZE'])) {
-        for ($i = 0; $i < count($_POST['PRODUCT_SIZE']); $i++) {
-            $PRODUCT_SIZE['PK_PRODUCT'] = $PK_PRODUCT;
-            $PRODUCT_SIZE['SIZE'] = $_POST['PRODUCT_SIZE'][$i];
-            if (!empty($_POST['PRODUCT_SIZE'][$i])) {
-                db_perform_account('DOA_PRODUCT_SIZE', $PRODUCT_SIZE, 'insert');
-            }
+    if (count($PRODUCT_SIZE) > 0) {
+        for ($i = 0; $i < count($PRODUCT_SIZE); $i++) {
+            $PRODUCT_SIZE_DATA['PK_PRODUCT'] = $PK_PRODUCT;
+            $PRODUCT_SIZE_DATA['SIZE'] = $PRODUCT_SIZE[$i];
+            db_perform_account('DOA_PRODUCT_SIZE', $PRODUCT_SIZE_DATA, 'insert');
         }
     }
 
     $db_account->Execute("DELETE FROM `DOA_PRODUCT_COLOR` WHERE `PK_PRODUCT` = '$PK_PRODUCT'");
-    if (isset($_POST['PRODUCT_COLOR'])) {
-        for ($i = 0; $i < count($_POST['PRODUCT_COLOR']); $i++) {
-            $PRODUCT_COLOR['PK_PRODUCT'] = $PK_PRODUCT;
-            $PRODUCT_COLOR['COLOR'] = $_POST['PRODUCT_COLOR'][$i];
-            if (!empty($_POST['PRODUCT_COLOR'][$i])) {
-                db_perform_account('DOA_PRODUCT_COLOR', $PRODUCT_COLOR, 'insert');
-            }
+    if (isset($PRODUCT_COLOR)) {
+        for ($i = 0; $i < count($PRODUCT_COLOR); $i++) {
+            $PRODUCT_COLOR_DATA['PK_PRODUCT'] = $PK_PRODUCT;
+            $PRODUCT_COLOR_DATA['COLOR'] = $PRODUCT_COLOR[$i];
+            db_perform_account('DOA_PRODUCT_COLOR', $PRODUCT_COLOR_DATA, 'insert');
         }
     }
 

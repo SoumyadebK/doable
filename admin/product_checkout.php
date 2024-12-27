@@ -21,6 +21,8 @@ $SQUARE_ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
 $SQUARE_APP_ID = $account_data->fields['APP_ID'];
 $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
+$SALES_TAX = getSalesTax($_SESSION['DEFAULT_LOCATION_ID']);
+
 if(!empty($_POST)) {
     pre_r($_POST);
 }
@@ -87,7 +89,7 @@ if(!empty($_POST)) {
                                                     <b style="font-weight: bold;"><?=$cart_data['PRODUCT_NAME']?></b>
                                                     <div class="number" style="margin: 5px 0 5px 0">
                                                         <span class="minus btn btn-info waves-effect waves-light text-white" onclick="increaseDecreaseCounter('<?=$key?>', 'decrease')">-</span>
-                                                        <input class="counter_input" inputmode="numeric" oninput="this.value = this.value.replace(/\D+/g, '')" id="product_quantity_<?=$key?>" name="PRODUCT_QUANTITY" value="<?=$cart_data['PRODUCT_QUANTITY']?>"/>
+                                                        <input class="counter_input" inputmode="numeric" oninput="this.value = this.value.replace(/\D+/g, '')" id="product_quantity_<?=$key?>" name="PRODUCT_QUANTITY[]" value="<?=$cart_data['PRODUCT_QUANTITY']?>"/>
                                                         <span class="plus btn btn-info waves-effect waves-light text-white" onclick="increaseDecreaseCounter('<?=$key?>', 'increase')">+</span>
                                                         <span> X $<?=number_format($cart_data['PRODUCT_PRICE'], 2)?></span>
                                                     </div>
@@ -114,7 +116,10 @@ if(!empty($_POST)) {
                                                     </div>
                                                 </div>
                                                 <input type="hidden" id="product_price_<?=$key?>" value="<?=$cart_data['PRODUCT_PRICE']?>">
-                                                <input class="item_total_price" type="hidden" id="item_total_price_value_<?=$key?>" value="<?=$item_total?>">
+                                                <input type="hidden" name="PK_PRODUCT[]">
+                                                <input type="hidden" name="PK_PRODUCT_COLOR[]">
+                                                <input type="hidden" name="PK_PRODUCT_SIZE[]">
+                                                <input class="item_total_price" type="hidden" name="TOTAL_PRODUCT_PRICE[]" id="item_total_price_value_<?=$key?>" value="<?=$item_total?>">
                                                 <div class="col-2">
                                                     <a href="product_checkout.php" onclick="removeFromCart(<?=$key?>)" style="color: red; float: right;"><i class="fa fa-trash" title="Delete"></i></a><br>
                                                     <p class="m-t-5" style="float: right;" id="item_total_price_text_<?=$key?>">$<?=number_format($item_total, 2)?></p>
@@ -130,6 +135,15 @@ if(!empty($_POST)) {
                                                 <b style="font-weight: bold; float: right;" id="all_item_total_text"> $<?=number_format($all_item_total, 2)?> </b>
                                             </div>
                                         </div>
+                                        <div class="row m-t-5">
+                                            <div class="col-8">
+                                                <b style="font-weight: bold; float: right;"> Sales Tax : </b>
+                                            </div>
+                                            <div class="col-4">
+                                                <input type="hidden" name="SALES_TAX" id="SALES_TAX" value="<?=$SALES_TAX?>">
+                                                <b style="font-weight: bold; float: right;" id="all_item_total_text"> <?=number_format($SALES_TAX, 2)?>% </b>
+                                            </div>
+                                        </div>
                                         <div class="row m-t-5 shipping_div" style="display: none;">
                                             <div class="col-8">
                                                 <b style="font-weight: bold; float: right; margin-top: 8px;"> Shipping Charge : </b>
@@ -143,7 +157,8 @@ if(!empty($_POST)) {
                                                 <b style="font-weight: bold; float: right;"> Order Total : </b>
                                             </div>
                                             <div class="col-4">
-                                                <b style="font-weight: bold; float: right;" id="order_total"> $<?=number_format($all_item_total, 2)?> </b>
+                                                <?php $order_total = ($all_item_total + ($all_item_total*($SALES_TAX/100))); ?>
+                                                <b style="font-weight: bold; float: right;" id="order_total"> $<?=number_format($order_total, 2)?> </b>
                                             </div>
                                         </div>
                                     <?php } else { ?>
@@ -587,22 +602,23 @@ if(!empty($_POST)) {
     }
 
     function calculateOrderTotal() {
-        let ALL_ITEM_TOTAL = $('#ALL_ITEM_TOTAL').val();
-        let SHIPPING_CHARGE = $('#SHIPPING_CHARGE').val();
+        let ALL_ITEM_TOTAL = parseFloat($('#ALL_ITEM_TOTAL').val());
+        let SHIPPING_CHARGE = parseFloat($('#SHIPPING_CHARGE').val());
+        let SALES_TAX = parseFloat($('#SALES_TAX').val());
         if (!SHIPPING_CHARGE) {
             $('#SHIPPING_CHARGE').val(0);
             SHIPPING_CHARGE = 0;
         }
-        let ORDER_TOTAL = parseFloat(ALL_ITEM_TOTAL)+parseFloat(SHIPPING_CHARGE);
+
+        let ORDER_TOTAL = ALL_ITEM_TOTAL+(ALL_ITEM_TOTAL*(SALES_TAX/100))+SHIPPING_CHARGE;
+
         $('#order_total').text('$'+numberWithCommas(ORDER_TOTAL.toFixed(2)));
         $('#ORDER_TOTAL_AMOUNT').val(ORDER_TOTAL.toFixed(2));
     }
 
     $(document).on('submit', '#order_details_form', function (event) {
         event.preventDefault();
-        let ALL_ITEM_TOTAL = parseFloat($('#ALL_ITEM_TOTAL').val());
-        $('#ORDER_TOTAL_AMOUNT').val(ALL_ITEM_TOTAL.toFixed(2));
-        let form_data = new FormData($('#order_details_form')[0]);
+        calculateOrderTotal();
         $('#product_payment_modal').modal('show');
     });
 
