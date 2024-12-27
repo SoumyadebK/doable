@@ -144,6 +144,7 @@ if(!empty($_POST))
 
             $ENROLLMENT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
             $ENROLLMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
+            $ENROLLMENT_DATA['CHARGE_TYPE'] = 'Session';
             $ENROLLMENT_DATA['ENROLLMENT_BY_ID'] = $PK_ACCOUNT_MASTER;
             $ENROLLMENT_DATA['ACTIVE'] = 1;
             $ENROLLMENT_DATA['STATUS'] = "CO";
@@ -163,14 +164,15 @@ if(!empty($_POST))
                 $SERVICE_DATA['PK_SERVICE_MASTER'] = 12;
                 $SERVICE_DATA['PK_SERVICE_CODE'] =  12;
                 //$SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
-                $SERVICE_DATA['FREQUENCY'] =  0;
                 $service_details = $db_account->Execute("SELECT DESCRIPTION FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = 12");
                 $SERVICE_DATA['SERVICE_DETAILS'] = $service_details->fields['DESCRIPTION'];
                 $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[4];
                 $SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
-                $SERVICE_DATA['TOTAL'] = $TOTAL_COST/$getData[4];
+                $SERVICE_DATA['TOTAL'] = $getData[4] * $PRICE_PER_SESSION;
+                $SERVICE_DATA['TOTAL_AMOUNT_PAID'] = $getData[4] * $PRICE_PER_SESSION;
                 $SERVICE_DATA['DISCOUNT'] = 0;
-                $SERVICE_DATA['FINAL_AMOUNT'] = $TOTAL_COST/$getData[4];
+                $SERVICE_DATA['FINAL_AMOUNT'] = $getData[4] * $PRICE_PER_SESSION;
+                $SERVICE_DATA['STATUS'] = 'CO';
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
             }
 
@@ -179,14 +181,15 @@ if(!empty($_POST))
                 $SERVICE_DATA['PK_SERVICE_MASTER'] = 4;
                 $SERVICE_DATA['PK_SERVICE_CODE'] =  4;
                 //$SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
-                $SERVICE_DATA['FREQUENCY'] =  0;
                 $service_details = $db_account->Execute("SELECT DESCRIPTION FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = 4");
                 $SERVICE_DATA['SERVICE_DETAILS'] = $service_details->fields['DESCRIPTION'];
                 $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[5];
                 $SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
-                $SERVICE_DATA['TOTAL'] = $TOTAL_COST/$getData[5];
+                $SERVICE_DATA['TOTAL'] = $getData[5] * $PRICE_PER_SESSION;
+                $SERVICE_DATA['TOTAL_AMOUNT_PAID'] = $getData[5] * $PRICE_PER_SESSION;
                 $SERVICE_DATA['DISCOUNT'] = 0;
-                $SERVICE_DATA['FINAL_AMOUNT'] = $TOTAL_COST/$getData[5];
+                $SERVICE_DATA['FINAL_AMOUNT'] = $getData[5] * $PRICE_PER_SESSION;
+                $SERVICE_DATA['STATUS'] = 'CO';
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
             }
 
@@ -195,14 +198,15 @@ if(!empty($_POST))
                 $SERVICE_DATA['PK_SERVICE_MASTER'] = 16;
                 $SERVICE_DATA['PK_SERVICE_CODE'] =  16;
                 //$SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
-                $SERVICE_DATA['FREQUENCY'] =  0;
                 $service_details = $db_account->Execute("SELECT DESCRIPTION FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = 16");
                 $SERVICE_DATA['SERVICE_DETAILS'] = $service_details->fields['DESCRIPTION'];
                 $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[6];
                 $SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
-                $SERVICE_DATA['TOTAL'] = $TOTAL_COST/$getData[6];
+                $SERVICE_DATA['TOTAL'] = $getData[6] * $PRICE_PER_SESSION;
+                $SERVICE_DATA['TOTAL_AMOUNT_PAID'] = $getData[6] * $PRICE_PER_SESSION;
                 $SERVICE_DATA['DISCOUNT'] = 0;
-                $SERVICE_DATA['FINAL_AMOUNT'] = $TOTAL_COST/$getData[6];
+                $SERVICE_DATA['FINAL_AMOUNT'] = $getData[6] * $PRICE_PER_SESSION;
+                $SERVICE_DATA['STATUS'] = 'CO';
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
             }
 
@@ -278,6 +282,7 @@ if(!empty($_POST))
 
             $ENROLLMENT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
             $ENROLLMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
+            $ENROLLMENT_DATA['CHARGE_TYPE'] = 'Session';
             $ENROLLMENT_DATA['ENROLLMENT_BY_ID'] = $PK_ACCOUNT_MASTER;
             $ENROLLMENT_DATA['ACTIVE'] = 1;
             $ENROLLMENT_DATA['STATUS'] = "A";
@@ -296,14 +301,15 @@ if(!empty($_POST))
                 $SERVICE_DATA['PK_SERVICE_MASTER'] = 12;
                 $SERVICE_DATA['PK_SERVICE_CODE'] =  12;
                 //$SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
-                $SERVICE_DATA['FREQUENCY'] =  0;
                 $service_details = $db_account->Execute("SELECT DESCRIPTION FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = 12");
                 $SERVICE_DATA['SERVICE_DETAILS'] = $service_details->fields['DESCRIPTION'];
                 $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[9];
                 $SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
-                $SERVICE_DATA['TOTAL'] = $TOTAL_COST/$getData[9];
+                $SERVICE_DATA['TOTAL'] = $getData[9] * $PRICE_PER_SESSION;
+                $SERVICE_DATA['TOTAL_AMOUNT_PAID'] = 0;
                 $SERVICE_DATA['DISCOUNT'] = 0;
-                $SERVICE_DATA['FINAL_AMOUNT'] = $TOTAL_COST/$getData[9];
+                $SERVICE_DATA['FINAL_AMOUNT'] = $getData[9] * $PRICE_PER_SESSION;
+                $SERVICE_DATA['STATUS'] = 'A';
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
             }
 
@@ -312,14 +318,15 @@ if(!empty($_POST))
                 $SERVICE_DATA['PK_SERVICE_MASTER'] = 4;
                 $SERVICE_DATA['PK_SERVICE_CODE'] =  4;
                 //$SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
-                $SERVICE_DATA['FREQUENCY'] =  0;
                 $service_details = $db_account->Execute("SELECT DESCRIPTION FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = 4");
                 $SERVICE_DATA['SERVICE_DETAILS'] = $service_details->fields['DESCRIPTION'];
                 $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[10];
                 $SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
-                $SERVICE_DATA['TOTAL'] = $TOTAL_COST/$getData[10];
+                $SERVICE_DATA['TOTAL'] = $getData[10] * $PRICE_PER_SESSION;
+                $SERVICE_DATA['TOTAL_AMOUNT_PAID'] = 0;
                 $SERVICE_DATA['DISCOUNT'] = 0;
-                $SERVICE_DATA['FINAL_AMOUNT'] = $TOTAL_COST/$getData[10];
+                $SERVICE_DATA['FINAL_AMOUNT'] = $getData[10] * $PRICE_PER_SESSION;
+                $SERVICE_DATA['STATUS'] = 'A';
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
             }
 
@@ -328,18 +335,19 @@ if(!empty($_POST))
                 $SERVICE_DATA['PK_SERVICE_MASTER'] = 16;
                 $SERVICE_DATA['PK_SERVICE_CODE'] =  16;
                 //$SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
-                $SERVICE_DATA['FREQUENCY'] =  0;
                 $service_details = $db_account->Execute("SELECT DESCRIPTION FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = 16");
                 $SERVICE_DATA['SERVICE_DETAILS'] = $service_details->fields['DESCRIPTION'];
                 $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[11];
                 $SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
-                $SERVICE_DATA['TOTAL'] = $TOTAL_COST/$getData[11];
+                $SERVICE_DATA['TOTAL'] = $getData[11] * $PRICE_PER_SESSION;
+                $SERVICE_DATA['TOTAL_AMOUNT_PAID'] = 0;
                 $SERVICE_DATA['DISCOUNT'] = 0;
-                $SERVICE_DATA['FINAL_AMOUNT'] = $TOTAL_COST/$getData[11];
+                $SERVICE_DATA['FINAL_AMOUNT'] = $getData[11] * $PRICE_PER_SESSION;
+                $SERVICE_DATA['STATUS'] = 'A';
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
             }
 
-            //ENROLLMENT BILLING SECTION
+            //ACTIVE ENROLLMENT BILLING SECTION
             $BILLING_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
             $BILLING_DATA['BILLING_REF'] = '';
             $BILLING_DATA['BILLING_DATE'] = date('Y-m-d');
@@ -356,7 +364,7 @@ if(!empty($_POST))
             db_perform_account('DOA_ENROLLMENT_BILLING', $BILLING_DATA, 'insert');
             $PK_ENROLLMENT_BILLING = $db_account->insert_ID();
 
-            //COMPLETED ENROLLMENT LEDGER
+            //ACTIVE ENROLLMENT LEDGER
             $BILLING_LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
             $BILLING_LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
             $BILLING_LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
