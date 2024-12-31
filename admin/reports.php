@@ -10,15 +10,16 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 if (!empty($_GET['NAME'])) {
     $type = isset($_GET['view']) ? 'view' : 'export';
     $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
+    $START_DATE = $_GET['start_date'];
 
     if ($_GET['NAME'] == 'royalty_service_report') {
-        header('location:royalty_service_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
+        header('location:royalty_service_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
     } elseif ($_GET['NAME'] == 'summary_of_studio_business_report'){
-        header('location:summary_of_studio_business_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
+        header('location:summary_of_studio_business_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
     } elseif ($_GET['NAME'] == 'staff_performance_report'){
-        header('location:staff_performance_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
+        header('location:staff_performance_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
     } elseif ($_GET['NAME'] == 'summary_of_staff_member_report'){
-        header('location:summary_of_staff_member_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
+        header('location:summary_of_staff_member_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
     }
 }
 ?>
@@ -89,6 +90,7 @@ if (!empty($_GET['NAME'])) {
                                 <h4 class="card-title">Electronic Weekly Reports</h4>
                             </div>
                             <form class="form-material form-horizontal" action="" method="get">
+                                <input type="hidden" name="start_date" id="start_date">
                                 <div class="row">
                                     <div class="col-4">
                                         <div class="form-group">
@@ -140,6 +142,7 @@ if (!empty($_GET['NAME'])) {
         },
         onSelect: function(dateText, inst) {
             let d = new Date(dateText);
+            $('#start_date').val((d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear());
             d.setDate(d.getDate() -363);
             $(this).val("Week Number " + $.datepicker.iso8601Week(d));
         }

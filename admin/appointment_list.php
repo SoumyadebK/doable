@@ -60,7 +60,7 @@ if ($standing == 1) {
     $title = "All Standing Appointment";
     $appointment_time = ' ';
 } else {
-    $title = "All Appointment";
+    $title = "Today's Appointment";
 }
 
 $ALL_APPOINTMENT_QUERY = "SELECT
@@ -325,41 +325,17 @@ $page_first_result = ($page-1) * $results_per_page;
                                                     <i class="ti-money"></i>
                                                 <?php } ?>
                                             </td>
-                                            <!--<td style="text-align: center;">
-                                                <?php
-/*                                                if ($appointment_data->fields['CUSTOMER_NAME'] && $standing == 0) {
-                                                    if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 6 && $appointment_data->fields['IS_CHARGED'] == 1){ */?>
-                                                        <i class="fa fa-check-circle" style="font-size:25px;color:red;"></i>
-                                                    <?php /*} elseif ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ */?>
-                                                        <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
-                                                    <?php /*} else { */?>
-                                                        <a href="javascript:" data-id="<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>" onclick='confirmComplete($(this));'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
-                                                    <?php /*}
-                                                } */?>
-                                            </td>-->
                                             <td>
-                                                <?php /*if(empty($appointment_data->fields['ENROLLMENT_ID'])) { */?><!--
-                                                    <a href="create_appointment.php?type=ad_hoc&id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <?php /*} else { */?>
-                                                    <a href="add_schedule.php?id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                --><?php /*} */?>
                                                 <?php if ($standing == 0) { ?>
-                                                    <?php if(in_array('Appointments Move/Copy', $PERMISSION_ARRAY)){ ?>
-                                                    <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <?php if(in_array('Appointments Move/Copy', $PERMISSION_ARRAY)) { ?>
+                                                        <a href="create_appointment.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                     <?php } ?>
-                                                    <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)){ ?>
-                                                    <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>, "normal");'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) { ?>
+                                                        <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>, "normal");'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                     <?php } ?>
-                                                <?php } else { ?>
                                                 <?php } ?>
-                                                    <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)){ ?>
-                                                    <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['STANDING_ID']?>, "standing");'><i class="fa fa-trash"></i></a>
-                                                    <?php } ?>
                                             </td>
                                         </tr>
-                                    <!--<tbody class="standing_list" style="display: none; background-color: #dee2e6;">
-
-                                    </tbody>-->
                                     <?php $appointment_data->MoveNext();
                                     $i++; } ?>
                                     </tbody>

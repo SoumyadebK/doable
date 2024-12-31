@@ -32,7 +32,7 @@ function getSalesTax($PK_LOCATION)
 {
     global $db;
     $sales_tax_data = $db->Execute("SELECT SALES_TAX FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$PK_LOCATION);
-    if ($sales_tax_data->RecordCount() == 0) {
+    if ($sales_tax_data->fields['SALES_TAX'] <= 0) {
         $sales_tax_data = $db->Execute("SELECT SALES_TAX FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = ".$_SESSION['PK_ACCOUNT_MASTER']);
     }
     return $sales_tax_data->fields['SALES_TAX'];

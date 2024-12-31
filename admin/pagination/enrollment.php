@@ -128,7 +128,7 @@ while (!$enrollment_data->EOF) {
                             $NUMBER_OF_SESSION = $serviceCodeData->fields['NUMBER_OF_SESSION'];
                         }
 
-                        if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
+                        if ($type == 'completed') {
                             $SESSION_COMPLETED = $NUMBER_OF_SESSION;
                         } else {
                             $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);

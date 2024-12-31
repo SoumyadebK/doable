@@ -17,12 +17,9 @@ $type = $_GET['type'];
 
 $week_number = $_GET['week_number'];
 $YEAR = date('Y');
-$dto = new DateTime();
-$dto->setISODate($YEAR, $week_number);
-$from_date = $dto->modify('-1 day')->format('Y-m-d');
-$dto->modify('+6 days');
-$to_date = $dto->format('Y-m-d');
 
+$from_date = date('Y-m-d', strtotime($_GET['start_date']));
+$to_date = date('Y-m-d', strtotime($from_date. ' +6 day'));
 
 $PAYMENT_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.AMOUNT,
