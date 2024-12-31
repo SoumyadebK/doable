@@ -467,10 +467,14 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                         <div class="form-group">
                             <label class="form-label">Select CSV</label>
                             <input type="file" class="form-control" name="file">
+                            <a href="../uploads/Demo Sheet.csv" target="_blank">Download Demo Sheet</a>
                         </div>
                     </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="margin-top: 30px">Submit</button>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
+
             </form>
         </div>
     </div>

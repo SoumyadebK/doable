@@ -79,7 +79,36 @@ if ($FUNCTION_NAME == 'loginFunction'){
 ?>
 <!DOCTYPE html>
 <html lang="en">
+<style>
+    /* Style the input wrapper */
+    .password-wrapper {
+        position: relative;
+        display: inline-block;
+    }
 
+    /* Style the password input box */
+    .password-wrapper input {
+        padding-right: 40px; /* Space for the eye icon */
+        width: 360px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    /* Style the eye icon */
+    .password-wrapper .eye-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    /* Optional: Icon hover effect */
+    .password-wrapper .eye-icon:hover {
+        color: #007bff;
+    }
+</style>
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -132,8 +161,8 @@ if ($FUNCTION_NAME == 'loginFunction'){
                         </div>
                     </div>
                     <div class="form-group">
-                        <div class="col-xs-12">
-                            <input class="form-control" type="password" required="" placeholder="Password" id="PASSWORD" name="PASSWORD">
+                        <div class="col-xs-12 password-wrapper">
+                            <input class="form-control" type="password" required="" placeholder="Password" id="PASSWORD" name="PASSWORD"><span class="eye-icon" onclick="togglePasswordVisibility()">👁</span>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -185,6 +214,22 @@ if ($FUNCTION_NAME == 'loginFunction'){
         $("#loginform").fadeIn();
         $("#recoverform").slideUp();
     });
+
+    function togglePasswordVisibility() {
+
+        var passwordInput = document.getElementById("PASSWORD");
+
+        if (passwordInput.type === "password") {
+
+            passwordInput.type = "text"; // Show password
+
+        } else {
+
+            passwordInput.type = "password"; // Hide password
+
+        }
+
+    }
 </script>
 
 </body>
