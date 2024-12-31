@@ -6,16 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/add_ad_hoc_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/add_ad_hoc_appointment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/appointment_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/appointment_list.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/create_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/create_appointment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/pagination/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/enrollment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/reports.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/reports.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/royalty_service_report.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/royalty_service_report.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/staff_performance_report.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/staff_performance_report.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/summary_of_staff_member_report.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/summary_of_staff_member_report.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/summary_of_studio_business_report.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/summary_of_studio_business_report.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/helper_function.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/helper_function.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -129,7 +119,7 @@
       <workItem from="1735306886052" duration="6993000" />
       <workItem from="1735397556138" duration="8000" />
       <workItem from="1735577408756" duration="828000" />
-      <workItem from="1735619457462" duration="5445000" />
+      <workItem from="1735619457462" duration="6343000" />
     </task>
     <servers />
   </component>
