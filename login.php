@@ -162,7 +162,10 @@ if ($FUNCTION_NAME == 'loginFunction'){
                     </div>
                     <div class="form-group">
                         <div class="col-xs-12 password-wrapper">
-                            <input class="form-control" type="password" required="" placeholder="Password" id="PASSWORD" name="PASSWORD"><span class="eye-icon" onclick="togglePasswordVisibility()">👁</span>
+                            <div class="input-group">
+                                <input class="form-control" type="password" required="" placeholder="Password" id="PASSWORD" name="PASSWORD">
+                                <span class="eye-icon" onclick="togglePasswordVisibility()"><i class="icon-eye"></i></span>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group row">

@@ -450,7 +450,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
             </div>
             <form action="" method="post" enctype="multipart/form-data">
                 <div class="row">
-                    <div class="col-md-2">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label class="form-label">Select Location</label>
                             <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
@@ -463,7 +463,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label class="form-label">Select CSV</label>
                             <input type="file" class="form-control" name="file">
