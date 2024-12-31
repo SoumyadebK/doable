@@ -8,10 +8,7 @@ $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 use Twilio\Exceptions\ConfigurationException;
 use Twilio\Rest\Client;
 
-if (empty($_GET['id']))
-    $title = "Create Appointment";
-else
-    $title = "Edit Appointment";
+$title = "Create Appointment";
 
 if (!empty($_GET['date'])) {
     $date_array = explode('T', $_GET['date']);

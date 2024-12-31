@@ -54,6 +54,7 @@ if(empty($_GET['id'])){
     $AM_USER_NAME = '';
     $AM_PASSWORD = '';
     $AM_REFRESH_TOKEN = '';
+    $SALES_TAX = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
 
@@ -89,6 +90,7 @@ if(empty($_GET['id'])){
     $AM_USER_NAME           = $res->fields['AM_USER_NAME'];
     $AM_PASSWORD            = $res->fields['AM_PASSWORD'];
     $AM_REFRESH_TOKEN       = $res->fields['AM_REFRESH_TOKEN'];
+    $SALES_TAX              = $res->fields['SALES_TAX'];
 }
 
 $SMTP_HOST = '';
@@ -488,6 +490,15 @@ if(!empty($_POST)){
                                                         <label class="col-md-12" for="example-text">Royalty Percentage</label>
                                                         <div class="input-group">
                                                             <input type="text" name="ROYALTY_PERCENTAGE" id="ROYALTY_PERCENTAGE" class="form-control" value="<?php echo $ROYALTY_PERCENTAGE?>">
+                                                            <span class="form-control input-group-text">%</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Sales Tax</label>
+                                                        <div class="input-group">
+                                                            <input type="text" name="SALES_TAX" id="SALES_TAX" class="form-control" value="<?php echo $SALES_TAX?>">
                                                             <span class="form-control input-group-text">%</span>
                                                         </div>
                                                     </div>

@@ -58,6 +58,7 @@ $APPOINTMENT_REMINDER = $res->fields['APPOINTMENT_REMINDER'];
 $HOUR = $res->fields['HOUR'];
 $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
 $FOCUSBIZ_API_KEY = $res->fields['FOCUSBIZ_API_KEY'];
+$SALES_TAX = $res->fields['SALES_TAX'];
 $TIME_SLOT_INTERVAL = $res->fields['TIME_SLOT_INTERVAL'];
 
 $FRANCHISE = $res->fields['FRANCHISE'];
@@ -166,6 +167,7 @@ if(!empty($_POST)){
         $SETTINGS_DATA['AM_PASSWORD'] = $_POST['AM_PASSWORD'];
         $SETTINGS_DATA['AM_REFRESH_TOKEN'] = $_POST['AM_REFRESH_TOKEN'];
         $SETTINGS_DATA['FOCUSBIZ_API_KEY'] = $_POST['FOCUSBIZ_API_KEY'];
+        $SETTINGS_DATA['SALES_TAX'] = $_POST['SALES_TAX'];
         $SETTINGS_DATA['ACTIVE'] = 1;
         $SETTINGS_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $SETTINGS_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -498,6 +500,15 @@ if ($header_data->RecordCount() > 0) {
                                                         <label class="col-md-12">Focusbiz API Key</label>
                                                         <div class="col-md-12">
                                                             <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Sales Tax</label>
+                                                        <div class="input-group">
+                                                            <input type="text" id="SALES_TAX" name="SALES_TAX" class="form-control" placeholder="Enter Sales Tax" value="<?=$SALES_TAX?>">
+                                                            <span class="form-control input-group-text">%</span>
                                                         </div>
                                                     </div>
                                                 </div>
