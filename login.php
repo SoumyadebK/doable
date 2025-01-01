@@ -162,9 +162,13 @@ if ($FUNCTION_NAME == 'loginFunction'){
                     </div>
                     <div class="form-group">
                         <div class="col-xs-12 password-wrapper">
-                            <div class="input-group">
-                                <input class="form-control" type="password" required="" placeholder="Password" id="PASSWORD" name="PASSWORD">
-                                <span class="eye-icon" onclick="togglePasswordVisibility()"><i class="icon-eye"></i></span>
+                            <div class="row">
+                                <div class="col-md-10">
+                                    <input class="form-control" type="password" required="" placeholder="Password" id="PASSWORD" name="PASSWORD">
+                                </div>
+                                <div class="col-md-2" style="padding: 5px 20px 0 30px;">
+                                    <a href="javascript:" onclick="togglePasswordVisibility()"><i class="icon-eye"></i></a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -219,19 +223,12 @@ if ($FUNCTION_NAME == 'loginFunction'){
     });
 
     function togglePasswordVisibility() {
-
-        var passwordInput = document.getElementById("PASSWORD");
-
+        let passwordInput = document.getElementById("PASSWORD");
         if (passwordInput.type === "password") {
-
             passwordInput.type = "text"; // Show password
-
         } else {
-
             passwordInput.type = "password"; // Hide password
-
         }
-
     }
 </script>
 
