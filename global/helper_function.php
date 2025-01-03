@@ -38,7 +38,7 @@ function getSalesTax($PK_LOCATION)
     return $sales_tax_data->fields['SALES_TAX'];
 }
 
-function markAppointmentPaid($PK_ENROLLMENT_SERVICE)
+function markAppointmentPaid($PK_ENROLLMENT_SERVICE): void
 {
     global $db_account;
     $serviceCodeData = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE, NUMBER_OF_SESSION, TOTAL_AMOUNT_PAID, PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);

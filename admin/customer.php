@@ -3073,7 +3073,7 @@ if ($PK_USER_MASTER > 0) {
         let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
 
         function getSum(total, num) {
-            return total + Math.round(num);
+            return total + num;
         }
 
         $('#enrollment_number').text(ENROLLMENT_ID);
