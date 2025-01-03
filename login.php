@@ -16,10 +16,7 @@ if ($FUNCTION_NAME == 'loginFunction'){
                 $selected_role = '';
                 $PK_USER = $result->fields['PK_USER'];
                 $selected_roles_row = $db->Execute("SELECT DOA_USER_ROLES.PK_ROLES, DOA_ROLES.SORT_ORDER FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER' ORDER BY DOA_ROLES.SORT_ORDER ASC LIMIT 1");
-                while (!$selected_roles_row->EOF) {
-                    $selected_role = $selected_roles_row->fields['PK_ROLES'];
-                    $selected_roles_row->MoveNext();
-                }
+                $selected_role = $selected_roles_row->fields['PK_ROLES'];
 
                 $_SESSION['PK_USER'] = $result->fields['PK_USER'];
                 $_SESSION['PK_ROLES'] = $selected_role;
