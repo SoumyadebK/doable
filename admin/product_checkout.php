@@ -24,7 +24,44 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 $SALES_TAX = getSalesTax($_SESSION['DEFAULT_LOCATION_ID']);
 
 if(!empty($_POST)) {
-    pre_r($_POST);
+    $ORDER_DATA['ORDER_ID'] = time();
+    $ORDER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
+    $ORDER_DATA['ORDER_TYPE'] = $_POST['ORDER_TYPE'];
+    $ORDER_DATA['ITEM_TOTAL'] = $_POST['ALL_ITEM_TOTAL'];
+    $ORDER_DATA['SALES_TAX'] = $_POST['SALES_TAX'];
+    $ORDER_DATA['SHIPPING_CHARGE'] = $_POST['SHIPPING_CHARGE'];
+    $ORDER_DATA['ORDER_TOTAL'] = ($_POST['ALL_ITEM_TOTAL']*($_POST['SALES_TAX']/100))+$_POST['SHIPPING_CHARGE']+$_POST['ALL_ITEM_TOTAL'];
+    $ORDER_DATA['ADDRESS'] = $_POST['ADDRESS'];
+    $ORDER_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
+    $ORDER_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
+    $ORDER_DATA['PK_STATES'] = $_POST['PK_STATES'];
+    $ORDER_DATA['CITY'] = $_POST['CITY'];
+    $ORDER_DATA['ZIP'] = $_POST['ZIP'];
+    $ORDER_DATA['PK_PAYMENT_TYPE'] = 2;
+    $ORDER_DATA['PAYMENT_DETAILS'] = 'Cash';
+    $ORDER_DATA['PAYMENT_STATUS'] = 'Success';
+    $ORDER_DATA['ORDER_STATUS'] = 'Ordered';
+    $ORDER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+    $ORDER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+
+    db_perform_account('DOA_ORDER', $ORDER_DATA, 'insert');
+    $PK_ORDER = $db_account->insert_ID();
+
+    $PK_PRODUCT = $_POST['PK_PRODUCT'];
+    $PK_PRODUCT_COLOR = $_POST['PK_PRODUCT_COLOR'];
+    $PK_PRODUCT_SIZE = $_POST['PK_PRODUCT_SIZE'];
+    $PRODUCT_QUANTITY = $_POST['PRODUCT_QUANTITY'];
+    $PRODUCT_PRICE = $_POST['PRODUCT_PRICE'];
+
+    for ($i = 0; $i < count($PK_PRODUCT); $i++) {
+        $ORDER_ITEM_DATA['PK_ORDER'] = $PK_ORDER;
+        $ORDER_ITEM_DATA['PK_PRODUCT'] = $PK_PRODUCT[$i];
+        $ORDER_ITEM_DATA['PK_PRODUCT_COLOR'] = $PK_PRODUCT_COLOR[$i];
+        $ORDER_ITEM_DATA['PK_PRODUCT_SIZE'] = $PK_PRODUCT_SIZE[$i];
+        $ORDER_ITEM_DATA['PRODUCT_QUANTITY'] = $PRODUCT_QUANTITY[$i];
+        $ORDER_ITEM_DATA['PRODUCT_PRICE'] = $PRODUCT_PRICE[$i];
+        db_perform_account('DOA_ORDER_ITEM', $ORDER_ITEM_DATA, 'insert');
+    }
 }
 
 ?>
@@ -116,9 +153,10 @@ if(!empty($_POST)) {
                                                     </div>
                                                 </div>
                                                 <input type="hidden" id="product_price_<?=$key?>" value="<?=$cart_data['PRODUCT_PRICE']?>">
-                                                <input type="hidden" name="PK_PRODUCT[]">
-                                                <input type="hidden" name="PK_PRODUCT_COLOR[]">
-                                                <input type="hidden" name="PK_PRODUCT_SIZE[]">
+                                                <input type="hidden" name="PK_PRODUCT[]" value="<?=$cart_data['PK_PRODUCT']?>">
+                                                <input type="hidden" name="PK_PRODUCT_COLOR[]" value="<?=$cart_data['PK_PRODUCT_COLOR']?>">
+                                                <input type="hidden" name="PK_PRODUCT_SIZE[]" value="<?=$cart_data['PK_PRODUCT_SIZE']?>">
+                                                <input type="hidden" name="PRODUCT_PRICE[]" value="<?=$cart_data['PRODUCT_PRICE']?>">
                                                 <input class="item_total_price" type="hidden" name="TOTAL_PRODUCT_PRICE[]" id="item_total_price_value_<?=$key?>" value="<?=$item_total?>">
                                                 <div class="col-2">
                                                     <a href="product_checkout.php" onclick="removeFromCart(<?=$key?>)" style="color: red; float: right;"><i class="fa fa-trash" title="Delete"></i></a><br>
