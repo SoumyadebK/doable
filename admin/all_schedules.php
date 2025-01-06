@@ -462,7 +462,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                         </div>
                                     </div>
                                     <div class="col-2">
-                                        <div class="input-group" style="margin-left: 70%;">
+                                        <div class="input-group" style="width: 100px; float: right;">
                                             <a onclick="zoomInOut('out');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-minus"></i></a>
                                             <a onclick="zoomInOut('in');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-plus"></i></a>
                                         </div>
