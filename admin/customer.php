@@ -210,6 +210,8 @@ $DATE_NAME_2 = '';
 $ATTENDING_WITH = '';
 $PARTNER_FIRST_NAME = '';
 $PARTNER_LAST_NAME = '';
+$PARTNER_PHONE = '';
+$PARTNER_EMAIL = '';
 $PARTNER_GENDER = '';
 $PARTNER_DOB = '';
 $INACTIVE_BY_ADMIN = '';
@@ -261,6 +263,8 @@ if(!empty($_GET['id'])) {
         $ATTENDING_WITH = $customer_data->fields['ATTENDING_WITH'];
         $PARTNER_FIRST_NAME = $customer_data->fields['PARTNER_FIRST_NAME'];
         $PARTNER_LAST_NAME = $customer_data->fields['PARTNER_LAST_NAME'];
+        $PARTNER_PHONE = $customer_data->fields['PARTNER_PHONE'];
+        $PARTNER_EMAIL = $customer_data->fields['PARTNER_EMAIL'];
         $PARTNER_GENDER = $customer_data->fields['PARTNER_GENDER'];
         $PARTNER_DOB = $customer_data->fields['PARTNER_DOB'];
     }
@@ -866,6 +870,24 @@ if ($PK_USER_MASTER > 0) {
                                                                         <label class="form-label">Partner's Last Name</label>
                                                                         <div class="col-md-12">
                                                                             <input type="text" class="form-control" placeholder="Enter Partner's Last Name" name="PARTNER_LAST_NAME" value="<?=$PARTNER_LAST_NAME?>">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-6">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Partner's Phone</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" placeholder="Enter Partner's Phone" name="PARTNER_PHONE" value="<?=$PARTNER_PHONE?>">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Partner's Email</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" placeholder="Enter Partner's Email" name="PARTNER_EMAIL" value="<?=$PARTNER_EMAIL?>">
                                                                         </div>
                                                                     </div>
                                                                 </div>
