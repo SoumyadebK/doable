@@ -38,6 +38,11 @@ function getAllCustomers() {
     return $db1->Execute("SELECT * FROM customer");
 }
 
+function getAllCustomersID() {
+    global $db1;
+    return $db1->Execute("SELECT customer_id FROM customer");
+}
+
 function getAllServices() {
     global $db1;
     return $db1->Execute("SELECT * FROM service_codes");

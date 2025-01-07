@@ -9,7 +9,7 @@ $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 
 $title = "All Appointments";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || ($_SESSION['PK_ROLES'] != 2 && $_SESSION['PK_ROLES'] != 3)){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || (in_array($_SESSION['PK_ROLES'], [1, 4, 5]) && $_SESSION['PK_ROLES'] != 3)){
     header("location:../login.php");
     exit;
 }
@@ -462,7 +462,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                         </div>
                                     </div>
                                     <div class="col-2">
-                                        <div class="input-group" style="margin-left: 70%;">
+                                        <div class="input-group" style="width: 100px; float: right;">
                                             <a onclick="zoomInOut('out');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-minus"></i></a>
                                             <a onclick="zoomInOut('in');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-plus"></i></a>
                                         </div>

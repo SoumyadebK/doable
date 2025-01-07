@@ -7,7 +7,7 @@ global $master_database;
 $userType = "Customers";
 $user_role_condition = " AND PK_ROLES = 4";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -293,6 +293,12 @@ if($customer_data->RecordCount() > 0){
 
 $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = '$CUSTOMER_ID'");
 $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
+
+if ($PK_USER_MASTER > 0) {
+    makeMiscComplete($PK_USER_MASTER);
+    makeExpiryEnrollmentComplete($PK_USER_MASTER);
+    checkAllEnrollmentStatus($PK_USER_MASTER);
+}
 
 ?>
 

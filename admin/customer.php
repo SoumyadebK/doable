@@ -26,7 +26,7 @@ if ($status_check == 'active'){
 }
 
 $user_role_condition = " AND PK_ROLES = 4";
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -3095,7 +3095,7 @@ if ($PK_USER_MASTER > 0) {
         let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
 
         function getSum(total, num) {
-            return total + Math.round(num);
+            return total + num;
         }
 
         $('#enrollment_number').text(ENROLLMENT_ID);

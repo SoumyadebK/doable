@@ -108,20 +108,7 @@ if (!empty($_GET['view'])) {
                         </li>
                     <?php } ?>
 
-                    <?php if($_SESSION['PK_ROLES'] == 2) { ?>
-                        <!--<li>
-                            <?php /*if ($view=='list') { */?>
-                            <a class="waves-effect waves-dark" href="../admin/all_schedules.php?view=table" aria-expanded="false">
-                                <i class="icon-calender"></i>
-                                <span class="hide-menu">Calendar</span>
-                            </a>
-                            <?php /*} elseif ($view=='table') { */?>
-                            <a class="waves-effect waves-dark" href="../admin/all_schedules.php?view=list" aria-expanded="false">
-                                <i class="icon-list"></i>
-                                <span class="hide-menu">List</span>
-                            </a>
-                            <?php /*} */?>
-                        </li>-->
+                    <?php if(!in_array($_SESSION['PK_ROLES'], [1, 4, 5])) { ?>
                         <li>
                             <a class="waves-effect waves-dark" href="../admin/all_schedules.php" aria-expanded="false">
                                 <i class="icon-calender"></i>
@@ -179,11 +166,11 @@ if (!empty($_GET['view'])) {
                     <?php } ?>
 
                     <?php if($_SESSION['PK_ROLES'] == 3) { ?>
-                        <li> <a class="has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="ti-layout-grid2"></i><span class="hide-menu">Setup</span></a>
+                        <!--<li> <a class="has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="ti-layout-grid2"></i><span class="hide-menu">Setup</span></a>
                             <ul aria-expanded="false" class="collapse">
                                 <li><a href="../super_admin/all_users.php">Users</a></li>
                             </ul>
-                        </li>
+                        </li>-->
                     <?php } ?>
 
                     <?php if($_SESSION['PK_ROLES'] == 4) { ?>
