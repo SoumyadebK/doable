@@ -2220,12 +2220,6 @@ if ($PK_USER_MASTER > 0) {
     }
 </style>
 <?php require_once('../includes/footer.php');?>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
-    import Swal from 'sweetalert2';
-    const Swal = require('sweetalert2');
-</script>
-
     <script>
         let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
         let PK_USER_MASTER = parseInt(<?=empty($_GET['master_id'])?0:$_GET['master_id']?>);

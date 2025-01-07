@@ -913,30 +913,13 @@ if(!empty($_GET['id'])) {
         }
 
         $(document).on('focus', '.time-picker', function () {
-            let day_min = $(this).data('min_time');
-            let day_max = $(this).data('max_time');
-            console.log(day_min, day_max);
-            if (day_min && day_max) {
-                $(this).timepicker({
-                    timeFormat: 'hh:mm p',
-                    interval: 30,
-                    minTime: day_min,
-                    maxTime: day_max,
-                    defaultTime: day_min,
-                    startTime: day_min,
-                    dynamic: false,
-                    dropdown: true,
-                    scrollbar: true
-                });
-            }else {
-                $(this).timepicker({
-                    timeFormat: 'hh:mm p',
-                    interval: 30,
-                    dynamic: false,
-                    dropdown: true,
-                    scrollbar: true
-                });
-            }
+            $(this).timepicker({
+                timeFormat: 'hh:mm p',
+                interval: 30,
+                dynamic: false,
+                dropdown: true,
+                scrollbar: true
+            });
         });
 
         function closeThisDay(param){

@@ -1882,7 +1882,8 @@ function deleteEnrollmentData($RESPONSE_DATA) {
     echo 1;
 }
 
-function deleteAppointment($RESPONSE_DATA) {
+function deleteAppointment($RESPONSE_DATA): void
+{
     global $db_account;
     if ($RESPONSE_DATA['type'] == 'normal') {
         $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];

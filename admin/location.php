@@ -838,6 +838,10 @@ if(!empty($_POST)){
 <script>
     $('.time-picker').timepicker({
         timeFormat: 'hh:mm p',
+        interval: 30,
+        dynamic: false,
+        dropdown: true,
+        scrollbar: true
     });
 
     function closeThisDay(param){

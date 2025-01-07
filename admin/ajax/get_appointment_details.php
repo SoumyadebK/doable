@@ -364,9 +364,10 @@ z-index: 500;
                                 <label class="form-label">Name: </label>
                                 <p><a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank"><?=$selected_customer?></a></p>
                                 <?php if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner') { ?>
-                                    <p><?=$partner_data->fields['PARTNER_FIRST_NAME']?> <?=$partner_data->fields['PARTNER_LAST_NAME']?> (<?=$partner_data->fields['PARTNER_PHONE']?>) (<?=$partner_data->fields['PARTNER_EMAIL']?>) </p>
+                                    <p style="margin-top: -10px;"><?=$partner_data->fields['PARTNER_FIRST_NAME']?> <?=$partner_data->fields['PARTNER_LAST_NAME']?></p>
+                                    <p style="margin-top: -15px;"><?=$partner_data->fields['PARTNER_PHONE']?></p>
+                                    <p style="margin-top: -15px;"><?=$partner_data->fields['PARTNER_EMAIL']?></p>
                                 <?php } ?>
-                                <p></p>
                             </div>
                         </div>
                         <div class="col-4">
@@ -633,6 +634,7 @@ z-index: 500;
                     <a href="enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
                     <!--<a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
                     <a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>-->
+                    <a onclick="deleteThisAppointment(<?=$PK_APPOINTMENT_MASTER?>)" class="btn btn-danger waves-effect waves-light"><i class="ti-trash"></i> Delete</a>
                 </div>
             </div>
         </form>
@@ -2998,6 +3000,35 @@ z-index: 500;
         } else {
             $('#IS_CHARGED').val(0);
         }
+    }
+
+    function deleteThisAppointment(PK_APPOINTMENT_MASTER) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this Appointment will not revert back.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {FUNCTION_NAME: 'deleteAppointment', type:'normal', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                    success: function (data) {
+                        window.location.href = 'all_schedules.php';
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: "Cancelled",
+                    text: "Your appointment safe :)",
+                    icon: "error"
+                });
+            }
+        });
     }
 
     function cancelAppointment() {
