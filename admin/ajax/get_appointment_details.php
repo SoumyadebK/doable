@@ -243,6 +243,8 @@ $customer_email = $customer_data->fields['EMAIL_ID'];
 $selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
 $selected_user_id = $customer_data->fields['PK_USER'];
 
+$partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$selected_customer_id'");
+
 $res = $db->Execute("SELECT * FROM DOA_USERS JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
 
 if($res->RecordCount() == 0){
@@ -361,6 +363,10 @@ z-index: 500;
                             <div class="form-group">
                                 <label class="form-label">Name: </label>
                                 <p><a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank"><?=$selected_customer?></a></p>
+                                <?php if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner') { ?>
+                                    <p><?=$partner_data->fields['PARTNER_FIRST_NAME']?> <?=$partner_data->fields['PARTNER_LAST_NAME']?> (<?=$partner_data->fields['PARTNER_PHONE']?>) (<?=$partner_data->fields['PARTNER_EMAIL']?>) </p>
+                                <?php } ?>
+                                <p></p>
                             </div>
                         </div>
                         <div class="col-4">
