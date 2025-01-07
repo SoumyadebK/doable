@@ -967,11 +967,12 @@ if(!empty($_POST))
 
                     $APPOINTMENT_MASTER_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($PK_USER_MASTER);
                     $APPOINTMENT_MASTER_DATA['ACTIVE'] = 1;
-                    if ($allPrivateAppointments->fields['payment_status'] == "V") {
+                    $APPOINTMENT_MASTER_DATA['IS_PAID'] = 0;
+                    /*if ($allPrivateAppointments->fields['payment_status'] == "V") {
                         $APPOINTMENT_MASTER_DATA['IS_PAID'] = 1;
                     } elseif ($allPrivateAppointments->fields['payment_status'] == "U") {
                         $APPOINTMENT_MASTER_DATA['IS_PAID'] = 0;
-                    }
+                    }*/
                     $APPOINTMENT_MASTER_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
                     $APPOINTMENT_MASTER_DATA['CREATED_ON'] = date("Y-m-d H:i");
                     db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_MASTER_DATA, 'insert');
@@ -1300,6 +1301,13 @@ if(!empty($_POST))
             }
             break;
 
+        case 'MARK_APPOINTMENT_PAID' :
+            $allEnrollmentService = $db_account->Execute("SELECT `PK_ENROLLMENT_SERVICE` FROM `DOA_ENROLLMENT_SERVICE`");
+            while (!$allEnrollmentService->EOF) {
+                markAppointmentPaid($allEnrollmentService->fields['PK_ENROLLMENT_SERVICE']);
+                $allEnrollmentService->MoveNext();
+            }
+            break;
 
         default:
             break;
@@ -1408,18 +1416,22 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <option value="DOA_ENROLLMENT_TYPE">DOA_ENROLLMENT_TYPE</option>
                                 <option value="DOA_PACKAGE">DOA_PACKAGE</option>
                                 <option value="DOA_ENROLLMENT">DOA_ENROLLMENT</option>
+                                <option value="OTHER_PAYMENT">OTHER_PAYMENT</option>
                                 <!--<option value="DOA_ENROLLMENT_SERVICE">DOA_ENROLLMENT_SERVICE</option>
                                 <option value="DOA_ENROLLMENT_PAYMENT">DOA_ENROLLMENT_PAYMENT</option>-->
-                                <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
                                 <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
+                                <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
 
-                                <option value="OTHER_PAYMENT">OTHER_PAYMENT</option>
 
-                                <option value="SP_TIME">Service Provider Time</option>
+
+
+                                <!--<option value="SP_TIME">Service Provider Time</option>
 
                                 <option value="USER_JOINING_DATE">USER_JOINING_DATE</option>
 
-                                <option value="ENR_IS_SALE">ENR_IS_SALE</option>
+                                <option value="ENR_IS_SALE">ENR_IS_SALE</option>-->
+
+                                <option value="MARK_APPOINTMENT_PAID">MARK_APPOINTMENT_PAID</option>
                             </select>
                             <div id="view_download_div" class="m-10"></div>
                         </div>

@@ -294,6 +294,12 @@ if($customer_data->RecordCount() > 0){
 $selected_primary_location = $db->Execute( "SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = '$CUSTOMER_ID'");
 $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
 
+if ($PK_USER_MASTER > 0) {
+    makeMiscComplete($PK_USER_MASTER);
+    makeExpiryEnrollmentComplete($PK_USER_MASTER);
+    checkAllEnrollmentStatus($PK_USER_MASTER);
+}
+
 ?>
 
 <!DOCTYPE html>
