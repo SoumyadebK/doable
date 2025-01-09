@@ -363,15 +363,6 @@ z-index: 500;
                             <div class="form-group">
                                 <label class="form-label">Name: </label>
                                 <p><a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank"><?=$selected_customer?></a></p>
-                                <?php if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner') { ?>
-                                    <p style="margin-top: -10px;">Partner Name: <?=$partner_data->fields['PARTNER_FIRST_NAME']?> <?=$partner_data->fields['PARTNER_LAST_NAME']?></p>
-                                    <?php if ($partner_data->fields['PARTNER_PHONE'] != null) { ?>
-                                        <p style="margin-top: -15px;">Phone: <?=$partner_data->fields['PARTNER_PHONE']?></p>
-                                    <?php } ?>
-                                    <?php if ($partner_data->fields['PARTNER_EMAIL'] != null) { ?>
-                                        <p style="margin-top: -15px;">Email: <?=$partner_data->fields['PARTNER_EMAIL']?></p>
-                                    <?php } ?>
-                                <?php } ?>
                             </div>
                         </div>
                         <div class="col-4">
@@ -387,6 +378,28 @@ z-index: 500;
                             </div>
                         </div>
                     </div>
+                    <?php if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner') { ?>
+                        <div class="row" style="margin-top: -25px;">
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label class="form-label">Partner Name: </label>
+                                    <p><?=$partner_data->fields['PARTNER_FIRST_NAME']?> <?=$partner_data->fields['PARTNER_LAST_NAME']?></p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label class="form-label">Phone: </label>
+                                    <p><?=$partner_data->fields['PARTNER_PHONE']?></p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label class="form-label">Email: </label>
+                                    <p><?=$partner_data->fields['PARTNER_EMAIL']?></p>
+                                </div>
+                            </div>
+                        </div>
+                    <?php } ?>
                     <div class="row">
                         <?php if ($SERVICE_NAME != 'For records only') { ?>
                             <div class="col-4" id="enrollment_div">
@@ -575,18 +588,18 @@ z-index: 500;
                     <input type="hidden" name="PK_APPOINTMENT_STATUS_OLD" value="<?=$PK_APPOINTMENT_STATUS?>">
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="form-label">Status : <?php if($PK_APPOINTMENT_STATUS!=2) {?><span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span><?php }?>
-                                <span id="cancel_change_status" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeStatus()">Cancel</a></span></label><br>
-                            <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" style="display: none;" onchange="changeAppointmentStatus(this)">
+                            <label class="form-label">Status : <?php /*if($PK_APPOINTMENT_STATUS!=2) {*/?><!--<span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span><?php /*}*/?>
+                                <span id="cancel_change_status" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeStatus()">Cancel</a></span>--></label><br>
+                            <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" onchange="changeAppointmentStatus(this)" <?=($PK_APPOINTMENT_STATUS == 2)?'disabled':''?>>
                                 <option value="">Select Status</option>
                                 <?php
                                 $selected_status = '';
                                 $row = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_STATUS` WHERE `ACTIVE` = 1");
                                 while (!$row->EOF) { if($PK_APPOINTMENT_STATUS==$row->fields['PK_APPOINTMENT_STATUS']){$selected_status=$row->fields['APPOINTMENT_STATUS'];}?>
                                     <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($PK_APPOINTMENT_STATUS==$row->fields['PK_APPOINTMENT_STATUS'])?'selected':''?>><?=$row->fields['APPOINTMENT_STATUS']?></option>
-                                    <?php $row->MoveNext(); } ?>
+                                <?php $row->MoveNext(); } ?>
                             </select>
-                            <p id="appointment_status"><?=$selected_status?></p>
+                            <!--<p id="appointment_status"><?php /*=$selected_status*/?></p>-->
                         </div>
                     </div>
 
@@ -2968,7 +2981,7 @@ z-index: 500;
     function changeStatus(){
         $('#cancel_change_status').show();
         $('#change_status').hide();
-        $('#PK_APPOINTMENT_STATUS').slideDown();
+        $('#PK_APPOINTMENT_STATUS').slideDown().show();
         $('#appointment_status').slideUp();
     }
 
