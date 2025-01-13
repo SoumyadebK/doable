@@ -214,14 +214,22 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
 
     $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
     if (isset($_POST['PK_USER_MASTER'])) {
-        for ($j = 0; $j < count($_POST['PK_USER_MASTER']); $j++) {
+        $CUSTOMERS = $_POST['PK_USER_MASTER'];
+        $SELECTED_PARTNERS = $_POST['PARTNER'];
+        for ($j = 0; $j < count($CUSTOMERS); $j++) {
             $GROUP_CLASS_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-            $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$j];
-            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
-            if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
-                updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $_POST['PK_USER_MASTER'][$j]);
+            $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $CUSTOMERS[$j];
+            if (in_array($CUSTOMERS[$j], $SELECTED_PARTNERS)) {
+                $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'] = 1;
             } else {
-                updateSessionCreatedCountGroupClass($PK_APPOINTMENT_MASTER, $_POST['PK_USER_MASTER'][$j]);
+                $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'] = 0;
+            }
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
+
+            if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
+                updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $CUSTOMERS[$j]);
+            } else {
+                updateSessionCreatedCountGroupClass($PK_APPOINTMENT_MASTER, $CUSTOMERS[$j]);
             }
         }
     }
@@ -392,6 +400,22 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         overflow: scroll;
     }
 </style>
+<style>
+    .list-select {
+        height: 30px;
+        width: 100%;
+        line-height: 2em;
+        border: 1px solid #ccc;
+        margin: 0;
+        list-style: none;
+        padding-left: 0;
+    }
+    .list-select li { padding: 1px 10px; z-index: 2; }
+    .list-select li:not(.init) { float: left; width: 100%; display: none; *background: #ddd; border-top: 1px solid #eeecec;}
+    .list-select li:not(.init):hover, .list-select li.selected:not(.init) { background: #09f; border-top: 1px solid #eeecec;}
+    li.init { cursor: pointer; }
+</style>
+
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 
 <body class="skin-default-dark fixed-layout">
@@ -536,7 +560,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
 <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-
 <script>
     $(window).on('load', function () {
        let redirect_date = '<?=$redirect_date?>';
