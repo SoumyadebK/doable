@@ -14,8 +14,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || (in_array($_SESSIO
     exit;
 }
 
-$redirect_date = (!empty($_GET['date'])) ? date('Y-m-d', strtotime($_GET['date'])) : "";
-
+$redirect_date = (!empty($_GET['date'])) ? date('Y-m-d', strtotime($_GET['date'].' +1 day')) : "";
 
 $SERVICE_PROVIDER_ID = ' ';
 if(isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != ''){

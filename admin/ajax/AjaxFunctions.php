@@ -2376,4 +2376,20 @@ function updateBillingDueDate($RESPONSE_DATA)
     }
 }
 
+function getReportDetails($RESPONSE_DATA): void
+{
+    global $db_account;
+
+    $REPORT_TYPE = $RESPONSE_DATA['REPORT_TYPE'];
+    $YEAR = $RESPONSE_DATA['YEAR'];
+    $WEEK_NUMBER = $RESPONSE_DATA['WEEK_NUMBER'];
+
+    $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = '$REPORT_TYPE' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = ".$WEEK_NUMBER);
+    if ($report_details->RecordCount() > 0) {
+        echo 'Last exported on '.date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
+    } else {
+        echo '';
+    }
+}
+
 

@@ -166,11 +166,12 @@ while (!$status_data->EOF) {
                                 $selected_customer_row->MoveNext();
                             } ?>
                             <li class="init"><?=(count($selected_customer) > 0) ? count($selected_customer).' Selected' : 'Select Customer'?></li>
+                            <li> <input type="text" id="customer_search" placeholder="Search..." onkeyup="searchCustomerList()" style="width: 100%; border: none;"></li>
                             <?php
                             if (count($selected_customer) > 0) {
-                                $orderBy = " ORDER BY FIELD(PK_USER_MASTER, ".implode(',', $selected_customer).") DESC";
+                                $orderBy = " ORDER BY FIELD(PK_USER_MASTER, ".implode(',', $selected_customer).") DESC, DOA_USERS.FIRST_NAME ASC";
                             } else {
-                                $orderBy = "";
+                                $orderBy = " DOA_USERS.FIRST_NAME ASC";
                             }
 
                             $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_MASTER.PK_USER_MASTER IN (".$user_master_id.") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'".$orderBy);
@@ -181,12 +182,12 @@ while (!$status_data->EOF) {
                                 $selected_customer_id = $row->fields['PK_USER_MASTER'];
                                 $selected_user_id = $row->fields['PK_USER'];
                                 $partner_name = '';
-                                if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner') {
+                                if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner' && in_array($row->fields['PK_USER_MASTER'], $selected_partner)) {
                                     $partner_name .= '<span class="m-l-30"><i class="fa fa-check-square" style="font-size:15px; color: green"></i>&nbsp;&nbsp;'.$partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'].'</span>';
                                 }
                                 $customer_name.= '<p><i class="fa fa-check-square" style="font-size:15px; color: green"></i>&nbsp;&nbsp;<a href="customer.php?id='.$selected_user_id.'&master_id='.$selected_customer_id.'&tab=profile" target="_blank" style="color: blue;">'.$row->fields['NAME'].'</a>'.$partner_name.'</p>';
                             } ?>
-                            <li data-value="value 2">
+                            <li class="customer-li">
                                 <label style="width: 50%;"> <input type="checkbox" name="PK_USER_MASTER[]" value="<?=$row->fields['PK_USER_MASTER']?>" class="customer-checkbox" <?=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"checked":""?>> <?=$row->fields['NAME']?> </label>
                                 <?php if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner') { ?>
                                     <label style="width: 48%;"> <input type="checkbox" name="PARTNER[]" value="<?=$row->fields['PK_USER_MASTER']?>" class="partner-checkbox" <?=in_array($row->fields['PK_USER_MASTER'], $selected_partner)?"checked":""?>> <?=$partner_data->fields['PARTNER_FIRST_NAME']?> <?=$partner_data->fields['PARTNER_LAST_NAME']?></label>
@@ -325,14 +326,18 @@ while (!$status_data->EOF) {
         allOptions.slideUp();
     }
 
+    function searchCustomerList() {
+        let searchQuery = document.getElementById('customer_search').value.toLowerCase();
+        let listItems = document.querySelectorAll('.customer-li');
 
-    /*$(".list-select").on("click", "li:not(.init)", function() {
-        allOptions.removeClass('selected');
-        $(this).addClass('selected');
-        $(".list-select").children('.init').html($(this).html());
-        $(".list-select").css({"height":"30px", "overflow":"none", "overflow-x":"none"});
-        allOptions.toggle();
-    });*/
+        listItems.forEach(function(item) {
+            if (item.textContent.toLowerCase().includes(searchQuery)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
 </script>
 
 <script>
