@@ -6,7 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/get_slots.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_slots.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_enrollments.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_enrollments.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/location.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/location.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/pagination/get_calendar_data.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/get_calendar_data.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/settings.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/settings.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -140,7 +146,7 @@
       <workItem from="1736489057671" duration="6938000" />
       <workItem from="1736779532557" duration="10888000" />
       <workItem from="1736838193900" duration="11092000" />
-      <workItem from="1736955312821" duration="3000" />
+      <workItem from="1736955312821" duration="9819000" />
     </task>
     <servers />
   </component>

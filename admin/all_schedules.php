@@ -644,7 +644,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             slotLabelInterval: {minutes: 5},
             minTime: open_time,
             maxTime: close_time,
-            //contentHeight: 670,
+            contentHeight: 1000,
             windowResize: true,
             droppable: true,
             drop: function(info) {
@@ -735,7 +735,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         title: info.event.title,
                         placement: 'top',
                         trigger: 'hover',
-                        content: 'Comment : '+event_data.comment+'<br>Internal Comment : '+event_data.internal_comment,
+                        content: ((event_data.comment)?'Comment : '+event_data.comment+'<br>':'')+((event_data.internal_comment)?'Internal Comment : '+event_data.internal_comment:''),
                         container: 'body',
                         html: true,
                     });

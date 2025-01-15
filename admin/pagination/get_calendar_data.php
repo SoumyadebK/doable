@@ -203,7 +203,7 @@ if ($appointment_type == 'TO-DO' || $appointment_type == '') {
             'type' => 'special_appointment',
             /*'status' => $special_appointment_data->fields['STATUS_CODE'],
             'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
-            'comment' => '',
+            'comment' => $special_appointment_data->fields['DESCRIPTION'],
             'internal_comment' => '',
             'statusCode' => '',
             'duration' => $special_appointment_data->fields['DURATION'],

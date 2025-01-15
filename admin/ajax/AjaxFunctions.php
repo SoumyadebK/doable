@@ -322,17 +322,17 @@ function saveEnrollmentData($RESPONSE_DATA){
                 $misc_id = explode("-", $id_data->fields['MISC_ID']);
                 $last_misc_id = $misc_id[1];
                 $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".(intval($last_misc_id)+1);
-            }else{
+            } else {
                 $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".$account_data->fields['MISCELLANEOUS_ID_NUM'];
             }
-            $ENROLLMENT_MASTER_DATA['MISC_TYPE'] = $misc_service_data->fields['MISC_TYPE'];
+            $ENROLLMENT_MASTER_DATA['MISC_TYPE'] = ($misc_service_data->fields['MISC_TYPE']) ?: 'GENERAL';
         } else {
             $id_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE MISC_ID IS NULL AND PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
             if ($id_data->fields['ENROLLMENT_ID'] != ' '){
                 $enrollment_id = explode("-", $id_data->fields['ENROLLMENT_ID']);
                 $last_enrollment_id = $enrollment_id[1];
                 $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR']."-".(intval($last_enrollment_id)+1);
-            }else{
+            } else {
                 $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR']."-".$account_data->fields['ENROLLMENT_ID_NUM'];
             }
         }

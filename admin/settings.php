@@ -165,7 +165,7 @@ if(!empty($_POST)){
         $SETTINGS_DATA['HOUR'] = empty($_POST['HOUR']) ? 0 : $_POST['HOUR'];
         $SETTINGS_DATA['AM_USER_NAME'] = $_POST['AM_USER_NAME'];
         $SETTINGS_DATA['AM_PASSWORD'] = $_POST['AM_PASSWORD'];
-        $SETTINGS_DATA['AM_REFRESH_TOKEN'] = $_POST['AM_REFRESH_TOKEN'];
+        //$SETTINGS_DATA['AM_REFRESH_TOKEN'] = $_POST['AM_REFRESH_TOKEN'];
         $SETTINGS_DATA['FOCUSBIZ_API_KEY'] = $_POST['FOCUSBIZ_API_KEY'];
         $SETTINGS_DATA['SALES_TAX'] = $_POST['SALES_TAX'];
         $SETTINGS_DATA['ACTIVE'] = 1;
@@ -654,12 +654,12 @@ if ($header_data->RecordCount() > 0) {
                                                             <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
                                                         </div>
                                                     </div>
-                                                    <div class="col-4">
+                                                    <!--<div class="col-4">
                                                         <div class="form-group">
                                                             <label class="form-label">Refresh Token</label>
-                                                            <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?=$AM_REFRESH_TOKEN?>">
+                                                            <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/?>">
                                                         </div>
-                                                    </div>
+                                                    </div>-->
                                                 </div>
                                             <?php } ?>
 
