@@ -2102,7 +2102,7 @@ function copyAppointment($RESPONSE_DATA) {
 /**
  * @throws ApiErrorException
  */
-function moveToWallet($RESPONSE_DATA)
+function moveToWallet($RESPONSE_DATA): void
 {
     require_once("../../global/stripe-php-master/init.php");
     global $db;

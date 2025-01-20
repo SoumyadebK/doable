@@ -125,12 +125,16 @@ while (!$serviceCodeData->EOF) {
         if ($payment_details->RecordCount() > 0) {
             $p++;
             $balance = $billed_amount;
+            $refund_balance = 0;
             while (!$payment_details->EOF) {
                 $PK_ENROLLMENT_MASTER = $payment_details->fields['PK_ENROLLMENT_MASTER'];
                 $PK_ENROLLMENT_LEDGER = $payment_details->fields['PK_ENROLLMENT_LEDGER'];
 
-                if ($payment_details->fields['TYPE'] == 'Payment' && $payment_details->fields['IS_REFUNDED'] == 0) {
+                if ($payment_details->fields['TYPE'] == 'Payment') {
                     $balance -= $payment_details->fields['AMOUNT'];
+                    $refund_balance = $payment_details->fields['AMOUNT'];;
+                } elseif ($payment_details->fields['TYPE'] == 'Refund') {
+                    $refund_balance -= $payment_details->fields['AMOUNT'];
                 }
 
                 if ($payment_details->fields['TYPE'] == 'Move') {
@@ -167,11 +171,14 @@ while (!$serviceCodeData->EOF) {
                     <td></td>
                     <td style="text-align: right;"><?=$payment_details->fields['AMOUNT']?></td>
                     <td style="text-align: center;"><?=$payment_type?></td>
-                    <td style="text-align: right;"><?=($payment_details->fields['TYPE'] == 'Payment' || $payment_details->fields['TYPE'] == 'Adjustment') ? number_format((float)$balance, 2, '.', '') : ''?></td>
+                    <td style="text-align: right;"><?=($payment_details->fields['TYPE'] == 'Payment' || $payment_details->fields['TYPE'] == 'Adjustment') ? number_format((float)$balance, 2, '.', '') : number_format((float)$refund_balance, 2, '.', '')?></td>
                     <td style="text-align: right;">
                         <?php if (($payment_details->fields['IS_REFUNDED'] == 0) && ($billing_details->fields['STATUS'] == 'A') && ($payment_details->fields['TYPE'] == 'Payment')) { ?>
                             <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['AMOUNT']?>, 'active', 'Move', <?=$p?>)">Move</a>
                             <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['AMOUNT']?>, 'active', 'Refund', <?=$p?>)">Refund</a>
+                        <?php } elseif (($payment_details->fields['IS_REFUNDED'] == 1 && $billing_details->fields['AMOUNT_REMAIN'] > 0) && ($billing_details->fields['STATUS'] == 'A') && ($payment_details->fields['TYPE'] == 'Payment')) { ?>
+                            <a class="btn btn-info waves-effect waves-light text-white" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=($billed_amount-$billing_details->fields['AMOUNT_REMAIN'])?>, 'active', 'Move', <?=$p?>)">Move</a>
+                            <a class="btn btn-info waves-effect waves-light text-white" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=($billed_amount-$billing_details->fields['AMOUNT_REMAIN'])?>, 'active', 'Refund', <?=$p?>)">Refund</a>
                         <?php } ?>
                         <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?=$PK_ENROLLMENT_MASTER?>, '<?=$payment_details->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
                     </td>

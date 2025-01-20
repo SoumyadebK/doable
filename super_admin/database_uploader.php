@@ -746,6 +746,7 @@ if(!empty($_POST))
 
                     $enrollment_payment = getAllEnrollmentPaymentByChargeId($allEnrollmentCharges->fields['id']);
                     if ($enrollment_payment->RecordCount() > 0) {
+                        $TOTAL_PAID_AMOUNT = 0;
                         while (!$enrollment_payment->EOF) {
                             $orgDate = $enrollment_payment->fields['date_paid'];
                             $newDate = date("Y-m-d", strtotime($orgDate));
@@ -806,6 +807,18 @@ if(!empty($_POST))
                                 $enrollmentServiceData->MoveNext();
                             }
                             db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
+
+                            if ($ENROLLMENT_PAYMENT_DATA['TYPE'] == 'Payment' || $ENROLLMENT_PAYMENT_DATA['TYPE'] == 'Adjustment') {
+                                $TOTAL_PAID_AMOUNT += $ENROLLMENT_PAYMENT_DATA['AMOUNT'];
+                                if ($TOTAL_PAID_AMOUNT < $BILLED_AMOUNT) {
+                                    $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = $BILLED_AMOUNT - $TOTAL_PAID_AMOUNT;
+                                    $LEDGER_UPDATE_DATA['IS_PAID'] = 0;
+                                } elseif ($TOTAL_PAID_AMOUNT == $BILLED_AMOUNT) {
+                                    $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = 0;
+                                    $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
+                                }
+                                db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', ' PK_ENROLLMENT_LEDGER = '.$PK_ENROLLMENT_LEDGER);
+                            }
                             $enrollment_payment->MoveNext();
                         }
                     }
