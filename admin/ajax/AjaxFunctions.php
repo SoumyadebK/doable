@@ -322,17 +322,17 @@ function saveEnrollmentData($RESPONSE_DATA){
                 $misc_id = explode("-", $id_data->fields['MISC_ID']);
                 $last_misc_id = $misc_id[1];
                 $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".(intval($last_misc_id)+1);
-            }else{
+            } else {
                 $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".$account_data->fields['MISCELLANEOUS_ID_NUM'];
             }
-            $ENROLLMENT_MASTER_DATA['MISC_TYPE'] = $misc_service_data->fields['MISC_TYPE'];
+            $ENROLLMENT_MASTER_DATA['MISC_TYPE'] = ($misc_service_data->fields['MISC_TYPE']) ?: 'GENERAL';
         } else {
             $id_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE MISC_ID IS NULL AND PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
             if ($id_data->fields['ENROLLMENT_ID'] != ' '){
                 $enrollment_id = explode("-", $id_data->fields['ENROLLMENT_ID']);
                 $last_enrollment_id = $enrollment_id[1];
                 $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR']."-".(intval($last_enrollment_id)+1);
-            }else{
+            } else {
                 $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR']."-".$account_data->fields['ENROLLMENT_ID_NUM'];
             }
         }
@@ -1882,7 +1882,8 @@ function deleteEnrollmentData($RESPONSE_DATA) {
     echo 1;
 }
 
-function deleteAppointment($RESPONSE_DATA) {
+function deleteAppointment($RESPONSE_DATA): void
+{
     global $db_account;
     if ($RESPONSE_DATA['type'] == 'normal') {
         $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
@@ -2101,7 +2102,7 @@ function copyAppointment($RESPONSE_DATA) {
 /**
  * @throws ApiErrorException
  */
-function moveToWallet($RESPONSE_DATA)
+function moveToWallet($RESPONSE_DATA): void
 {
     require_once("../../global/stripe-php-master/init.php");
     global $db;
@@ -2372,6 +2373,22 @@ function updateBillingDueDate($RESPONSE_DATA)
         echo 1;
     } else {
         echo 0;
+    }
+}
+
+function getReportDetails($RESPONSE_DATA): void
+{
+    global $db_account;
+
+    $REPORT_TYPE = $RESPONSE_DATA['REPORT_TYPE'];
+    $YEAR = $RESPONSE_DATA['YEAR'];
+    $WEEK_NUMBER = $RESPONSE_DATA['WEEK_NUMBER'];
+
+    $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = '$REPORT_TYPE' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = ".$WEEK_NUMBER);
+    if ($report_details->RecordCount() > 0) {
+        echo 'Last exported on '.date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
+    } else {
+        echo '';
     }
 }
 

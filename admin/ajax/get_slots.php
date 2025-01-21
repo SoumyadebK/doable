@@ -57,24 +57,40 @@ while (!$booked_special_appt_data->EOF) {
 }
 
 if ($SERVICE_PROVIDER_ID > 0 && $PK_LOCATION > 0) {
-    $location_hour_data = $db_account->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_LOCATION_HOURS` WHERE PK_USER = '$SERVICE_PROVIDER_ID' AND PK_LOCATION = ".$PK_LOCATION);
-    if ($location_hour_data->RecordCount() > 0) {
-        $SLOT_START = ($location_hour_data->fields[$day.'_START_TIME'] != '00:00:00') ? $location_hour_data->fields[$day.'_START_TIME'] : '00:00:00';
-        $SLOT_END = ($location_hour_data->fields[$day.'_END_TIME'] != '00:00:00') ? $location_hour_data->fields[$day.'_END_TIME'] : '23:00:00';
-    } else {
-        $SLOT_START = '00:00:00';
-        $SLOT_END = '23:00:00';
-    }
-} else {
     $dayNumber = date('N', strtotime($date));
     $location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber' AND CLOSED = 0 AND PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")");
-    if ($location_operational_hour->RecordCount() > 0) {
+    $user_operational_hours = $db_account->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_LOCATION_HOURS` WHERE PK_USER = '$SERVICE_PROVIDER_ID' AND PK_LOCATION = ".$PK_LOCATION);
+    if ($location_operational_hour->RecordCount() > 0 && $user_operational_hours->RecordCount() > 0) {
+        $LOCATION_SLOT_START = $location_operational_hour->fields['OPEN_TIME'] ?? '00:00:00';
+        $LOCATION_SLOT_END = $location_operational_hour->fields['CLOSE_TIME'] ?? '23:00:00';
+
+        $USER_SLOT_START = ($user_operational_hours->fields[$day.'_START_TIME'] != '00:00:00') ? $user_operational_hours->fields[$day.'_START_TIME'] : '00:00:00';
+        $USER_SLOT_END = ($user_operational_hours->fields[$day.'_END_TIME'] != '00:00:00') ? $user_operational_hours->fields[$day.'_END_TIME'] : '23:00:00';
+
+        if ($LOCATION_SLOT_START > $USER_SLOT_START) {
+            $SLOT_START = $LOCATION_SLOT_START;
+        } else {
+            $SLOT_START = $USER_SLOT_START;
+        }
+
+        if ($LOCATION_SLOT_END > $USER_SLOT_END) {
+            $SLOT_END = $USER_SLOT_END;
+        } else {
+            $SLOT_END = $LOCATION_SLOT_END;
+        }
+    } elseif ($user_operational_hours->RecordCount() > 0) {
+        $SLOT_START = ($user_operational_hours->fields[$day.'_START_TIME'] != '00:00:00') ? $user_operational_hours->fields[$day.'_START_TIME'] : '00:00:00';
+        $SLOT_END = ($user_operational_hours->fields[$day.'_END_TIME'] != '00:00:00') ? $user_operational_hours->fields[$day.'_END_TIME'] : '23:00:00';
+    } elseif ($location_operational_hour->RecordCount() > 0) {
         $SLOT_START = $location_operational_hour->fields['OPEN_TIME'] ?? '00:00:00';
         $SLOT_END = $location_operational_hour->fields['CLOSE_TIME'] ?? '23:00:00';
     } else {
         $SLOT_START = '00:00:00';
         $SLOT_END = '23:00:00';
     }
+} else {
+    $SLOT_START = '00:00:00';
+    $SLOT_END = '23:00:00';
 }
 
 $holiday_data = $db_account->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND HOLIDAY_DATE = "."'".$date."'");

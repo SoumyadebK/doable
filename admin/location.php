@@ -615,12 +615,12 @@ if(!empty($_POST)){
                                                             <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
                                                         </div>
                                                     </div>
-                                                    <div class="col-4">
+                                                    <!--<div class="col-4">
                                                         <div class="form-group">
                                                             <label class="form-label">Refresh Token</label>
-                                                            <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?=$AM_REFRESH_TOKEN?>">
+                                                            <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/?>">
                                                         </div>
-                                                    </div>
+                                                    </div>-->
                                                 </div>
                                             <?php } ?>
 
@@ -838,6 +838,10 @@ if(!empty($_POST)){
 <script>
     $('.time-picker').timepicker({
         timeFormat: 'hh:mm p',
+        interval: 30,
+        dynamic: false,
+        dropdown: true,
+        scrollbar: true
     });
 
     function closeThisDay(param){

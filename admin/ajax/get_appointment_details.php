@@ -243,6 +243,8 @@ $customer_email = $customer_data->fields['EMAIL_ID'];
 $selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
 $selected_user_id = $customer_data->fields['PK_USER'];
 
+$partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$selected_customer_id'");
+
 $res = $db->Execute("SELECT * FROM DOA_USERS JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
 
 if($res->RecordCount() == 0){
@@ -360,7 +362,7 @@ z-index: 500;
                         <div class="col-4">
                             <div class="form-group">
                                 <label class="form-label">Name: </label>
-                                <p><a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank"><?=$selected_customer?></a></p>
+                                <p><a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank" style="color: blue;"><?=$selected_customer?></a></p>
                             </div>
                         </div>
                         <div class="col-4">
@@ -375,32 +377,85 @@ z-index: 500;
                                 <p><?=$customer_email?></p>
                             </div>
                         </div>
-
-                        <?php if ($SERVICE_NAME != 'For records only') { ?>
+                    </div>
+                    <?php if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner') { ?>
+                        <div class="row" style="margin-top: -25px;">
                             <div class="col-4">
                                 <div class="form-group">
-                                    <label class="form-label">Enrollment ID : </label>
-                                    <select class="form-control" required name="PK_SERVICE_MASTER" id="PK_SERVICE_MASTER" style="display: none;" onchange="selectThisEnrollment(this);" disabled>
+                                    <label class="form-label">Partner Name: </label>
+                                    <p><?=$partner_data->fields['PARTNER_FIRST_NAME']?> <?=$partner_data->fields['PARTNER_LAST_NAME']?></p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label class="form-label">Phone: </label>
+                                    <p><?=$partner_data->fields['PARTNER_PHONE']?></p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label class="form-label">Email: </label>
+                                    <p><?=$partner_data->fields['PARTNER_EMAIL']?></p>
+                                </div>
+                            </div>
+                        </div>
+                    <?php } ?>
+                    <div class="row">
+                        <?php if ($SERVICE_NAME != 'For records only') { ?>
+                            <div class="col-4" id="enrollment_div">
+                                <div class="form-group">
+                                    <label class="form-label">Enrollment ID : <span id="change_enrollment" style="margin-left: 30px;"><a href="javascript:" onclick="changeEnrollment()">Change</a></span>
+                                        <span id="cancel_change_enrollment" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeEnrollment()">Cancel</a></span></label>
+                                    <select  id="enrollment_select" class="form-control" required name="PK_ENROLLMENT_MASTER" style="display: none;">
                                         <option value="">Select Enrollment ID</option>
                                         <?php
                                         $selected_enrollment = '';
-                                        $row = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER, ENROLLMENT_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
-                                        while (!$row->EOF) { if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
-                                            <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'];?>" <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$row->fields['ENROLLMENT_ID']?></option>
-                                            <?php $row->MoveNext(); } ?>
+                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_PACKAGE.PACKAGE_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.PK_LOCATION, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_PACKAGE ON DOA_ENROLLMENT_MASTER.PK_PACKAGE = DOA_PACKAGE.PK_PACKAGE WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 AND DOA_SERVICE_CODE.IS_GROUP != 1 AND DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
+                                        while (!$row->EOF) {
+                                            $name = $row->fields['ENROLLMENT_NAME'];
+                                            if(empty($name)){
+                                                $enrollment_name = ' ';
+                                            }else {
+                                                $enrollment_name = "$name"." - ";
+                                            }
+
+                                            $PACKAGE_NAME = $row->fields['PACKAGE_NAME'];
+                                            if(empty($PACKAGE_NAME)){
+                                                $PACKAGE = ' ';
+                                            }else {
+                                                $PACKAGE = "$PACKAGE_NAME"." || ";
+                                            }
+
+                                            if ($row->fields['CHARGE_TYPE'] == 'Membership') {
+                                                $NUMBER_OF_SESSION = 99;//getAllSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE'], 'NORMAL');
+                                            } else {
+                                                $NUMBER_OF_SESSION = $row->fields['NUMBER_OF_SESSION'];
+                                            }
+
+                                            $PRICE_PER_SESSION = $row->fields['PRICE_PER_SESSION'];
+                                            $TOTAL_AMOUNT_PAID = ($row->fields['TOTAL_AMOUNT_PAID'] != null) ? $row->fields['TOTAL_AMOUNT_PAID'] : 0;
+                                            $USED_SESSION_COUNT = getAllSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE'], 'NORMAL');
+                                            $paid_session = ($PRICE_PER_SESSION > 0) ? number_format(($TOTAL_AMOUNT_PAID/$PRICE_PER_SESSION), 2) : $NUMBER_OF_SESSION;
+
+                                            if ((($NUMBER_OF_SESSION - $USED_SESSION_COUNT) > 0) || ($row->fields['CHARGE_TYPE'] == 'Membership')) {
+                                                if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
+                                                <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-location_id="<?=$row->fields['PK_LOCATION']?>" data-no_of_session="<?=$NUMBER_OF_SESSION?>" data-used_session="<?=$USED_SESSION_COUNT?>" <?=(($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled':''?> <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$enrollment_name.$row->fields['ENROLLMENT_ID'].' || '.$PACKAGE.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$USED_SESSION_COUNT.'/'.$NUMBER_OF_SESSION.' || Paid : '.$paid_session;?></option>
+                                            <?php }
+                                            $row->MoveNext();
+                                        } ?>
                                     </select>
-                                    <p><?=$selected_enrollment?></p>
+                                    <p class="enrollment_info"><?=$selected_enrollment?></p>
                                 </div>
                             </div>
                         <?php } ?>
 
-                        <div class="col-4">
+                        <div class="col-4 enrollment_info">
                             <div class="form-group">
                                 <label class="form-label">Apt #: </label>
                                 <p><?=$SERIAL_NUMBER?></p>
                             </div>
                         </div>
-                        <div class="col-4">
+                        <div class="col-4 enrollment_info">
                             <div class="form-group">
                                 <label class="form-label">Service : </label>
                                 <select class="form-control" required name="PK_SERVICE_MASTER" id="PK_SERVICE_MASTER" style="display: none;" onchange="selectThisService(this);" disabled>
@@ -415,6 +470,8 @@ z-index: 500;
                                 <p><?=$selected_service?></p>
                             </div>
                         </div>
+                    </div>
+                    <div class="row">
                         <div class="col-4">
                             <div class="form-group">
                                 <label class="form-label">Service Code : </label>
@@ -449,7 +506,7 @@ z-index: 500;
                                         $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=".$PK_SERVICE_MASTER);
                                         while (!$row->EOF) { if($PK_SCHEDULING_CODE==$row->fields['PK_SCHEDULING_CODE']){$selected_scheduling_code = $row->fields['SCHEDULING_CODE'];} ?>
                                             <option value="<?php echo $row->fields['PK_SCHEDULING_CODE'];?>" <?=($PK_SCHEDULING_CODE==$row->fields['PK_SCHEDULING_CODE'])?'selected':''?>><?=$row->fields['SCHEDULING_CODE']?></option>
-                                            <?php $row->MoveNext(); } ?>
+                                        <?php $row->MoveNext(); } ?>
                                     </select>
                                 </div>
                                 <p id="scheduling_code_name"><?=$selected_scheduling_code?></p>
@@ -531,18 +588,18 @@ z-index: 500;
                     <input type="hidden" name="PK_APPOINTMENT_STATUS_OLD" value="<?=$PK_APPOINTMENT_STATUS?>">
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="form-label">Status : <?php if($PK_APPOINTMENT_STATUS!=2) {?><span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span><?php }?>
-                                <span id="cancel_change_status" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeStatus()">Cancel</a></span></label><br>
-                            <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" style="display: none;" onchange="changeAppointmentStatus(this)">
+                            <label class="form-label">Status : <?php /*if($PK_APPOINTMENT_STATUS!=2) {*/?><!--<span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span><?php /*}*/?>
+                                <span id="cancel_change_status" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeStatus()">Cancel</a></span>--></label><br>
+                            <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" onchange="changeAppointmentStatus(this)" <?=($PK_APPOINTMENT_STATUS == 2)?'disabled':''?>>
                                 <option value="">Select Status</option>
                                 <?php
                                 $selected_status = '';
                                 $row = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_STATUS` WHERE `ACTIVE` = 1");
                                 while (!$row->EOF) { if($PK_APPOINTMENT_STATUS==$row->fields['PK_APPOINTMENT_STATUS']){$selected_status=$row->fields['APPOINTMENT_STATUS'];}?>
                                     <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($PK_APPOINTMENT_STATUS==$row->fields['PK_APPOINTMENT_STATUS'])?'selected':''?>><?=$row->fields['APPOINTMENT_STATUS']?></option>
-                                    <?php $row->MoveNext(); } ?>
+                                <?php $row->MoveNext(); } ?>
                             </select>
-                            <p id="appointment_status"><?=$selected_status?></p>
+                            <!--<p id="appointment_status"><?php /*=$selected_status*/?></p>-->
                         </div>
                     </div>
 
@@ -627,6 +684,7 @@ z-index: 500;
                     <a href="enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
                     <!--<a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
                     <a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>-->
+                    <a onclick="deleteThisAppointment(<?=$PK_APPOINTMENT_MASTER?>)" class="btn btn-danger waves-effect waves-light"><i class="ti-trash"></i> Delete</a>
                 </div>
             </div>
         </form>
@@ -2873,6 +2931,23 @@ z-index: 500;
         $('#schedule_div').slideUp();
     }
 
+    function changeEnrollment(){
+        $('#change_enrollment').hide();
+        $('#cancel_change_enrollment').show();
+        $('#enrollment_select').show();
+        $('.enrollment_info').hide();
+        $('#enrollment_div').removeClass('col-4').addClass('col-12');
+        changeSchedulingCode();
+    }
+
+    function cancelChangeEnrollment() {
+        $('#change_enrollment').show();
+        $('#cancel_change_enrollment').hide();
+        $('#enrollment_select').hide();
+        $('.enrollment_info').show();
+        $('#enrollment_div').removeClass('col-12').addClass('col-4');
+    }
+
     function changeSchedulingCode(){
         $('#change_scheduling_code').hide();
         $('#cancel_change_scheduling_code').show();
@@ -2906,7 +2981,7 @@ z-index: 500;
     function changeStatus(){
         $('#cancel_change_status').show();
         $('#change_status').hide();
-        $('#PK_APPOINTMENT_STATUS').slideDown();
+        $('#PK_APPOINTMENT_STATUS').slideDown().show();
         $('#appointment_status').slideUp();
     }
 
@@ -2992,6 +3067,35 @@ z-index: 500;
         } else {
             $('#IS_CHARGED').val(0);
         }
+    }
+
+    function deleteThisAppointment(PK_APPOINTMENT_MASTER) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this Appointment will not revert back.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {FUNCTION_NAME: 'deleteAppointment', type:'normal', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                    success: function (data) {
+                        window.location.href = 'all_schedules.php';
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: "Cancelled",
+                    text: "Your appointment is safe :)",
+                    icon: "error"
+                });
+            }
+        });
     }
 
     function cancelAppointment() {
