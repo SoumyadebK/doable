@@ -26,7 +26,6 @@
                                 <a class="dropdown-item" href="../admin/all_scheduling_codes.php">Scheduling Codes</a>
                                 <a class="dropdown-item" href="../admin/all_service_codes.php">Services</a>
                                 <a class="dropdown-item" href="../admin/all_packages.php">Packages</a>
-                                <a class="dropdown-item" href="../admin/all_products.php">Products</a>
                                 <a class="dropdown-item" href="../admin/all_document_library.php">Document Library</a>
                                 <!--<a class="dropdown-item" href="../admin/all_interests.php">Interests</a>
                                 <a class="dropdown-item" href="../admin/all_skill_levels.php">Skill Levels</a>-->
@@ -62,6 +61,15 @@
                                 <a class="dropdown-item" href="../admin/data_uploader.php">Data Uploader</a>
                             </div>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                eCommerce
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <a class="dropdown-item" href="../admin/all_products.php">Products</a>
+                                <a class="dropdown-item" href="../admin/all_orders.php">Orders</a>
+                            </div>
+                        </li>
                     </ul>
                     <div style="margin-left: 15%;">
                         <?php
@@ -80,12 +88,11 @@
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_users.php') ? 'active' : ''?>" href="../admin/all_users.php">Users</a></li>
                                 <li class="nav-item"><a class="nav-link <?=($address == 'deleted_customer.php') ? 'active' : ''?>" href="../admin/deleted_customer.php">Deleted Customer</a></li>
                             </ul>
-                        <?php } elseif ($address == "all_service_codes.php" || $address == "all_packages.php" || $address == "all_products.php" || $address == "all_scheduling_codes.php" || $address == "all_document_library.php" || $address == "all_interests.php" || $address == "all_skill_levels.php") { ?>
+                        <?php } elseif ($address == "all_service_codes.php" || $address == "all_packages.php" || $address == "all_scheduling_codes.php" || $address == "all_document_library.php" || $address == "all_interests.php" || $address == "all_skill_levels.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_scheduling_codes.php') ? 'active' : ''?>" href="../admin/all_scheduling_codes.php">Scheduling Codes</a></li>
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_service_codes.php') ? 'active' : ''?>" href="../admin/all_service_codes.php">Services</a></li>
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_packages.php') ? 'active' : ''?>" href="../admin/all_packages.php">Packages</a></li>
-                                <li class="nav-item"><a class="nav-link <?=($address == 'all_products.php') ? 'active' : ''?>" href="../admin/all_products.php">Products</a></li>
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_document_library.php') ? 'active' : ''?>" href="../admin/all_document_library.php">Document Library</a></li>
                                 <!--<li class="nav-item"><a class="nav-link <?=($address == 'all_interests.php') ? 'active' : ''?>" href="../admin/all_interests.php">Interests</a></li>
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_skill_levels.php') ? 'active' : ''?>" href="../admin/all_skill_levels.php">Skill Levels</a></li>-->
@@ -107,6 +114,11 @@
                         <?php } elseif ($address == "data_uploader.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
                                 <li class="nav-item"><a class="nav-link <?=($address == 'data_uploader.php') ? 'active' : ''?>" href="../admin/data_uploader.php">Data Uploader</a></li>
+                            </ul>
+                        <?php } elseif ($address == "all_products.php" || $address == "all_orders.php") { ?>
+                            <ul class="nav nav-tabs justify-content-center">
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_products.php') ? 'active' : ''?>" href="../admin/all_products.php">Products</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_orders.php') ? 'active' : ''?>" href="../admin/all_orders.php">Orders</a></li>
                             </ul>
                         <?php } ?>
                     </div>

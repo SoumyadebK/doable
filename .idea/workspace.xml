@@ -5,9 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/admin/all_orders.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/pagination/get_enrollment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/get_enrollment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/compose.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/compose.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/includes/setup_menu.php" beforeDir="false" afterPath="$PROJECT_DIR$/includes/setup_menu.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/super_admin/database_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/database_uploader.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -37,7 +38,7 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/admin/all_schedules.php" root0="FORCE_HIGHLIGHTING" root1="FORCE_HIGHLIGHTING" />
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/opt/homebrew/Cellar/php/8.3.12_1/bin/php">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="php">
     <include_path>
       <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
       <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
@@ -145,6 +146,8 @@
       <workItem from="1736955312821" duration="10821000" />
       <workItem from="1737036265074" duration="10442000" />
       <workItem from="1737311374165" duration="218000" />
+      <workItem from="1737380610071" duration="9561000" />
+      <workItem from="1737440167518" duration="2057000" />
     </task>
     <servers />
   </component>
