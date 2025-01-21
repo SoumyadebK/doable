@@ -37,6 +37,7 @@
                                 <a class="dropdown-item" href="../super_admin/all_relationship.php">Relationship</a>
                                 <a class="dropdown-item" href="../super_admin/all_service_class.php">Service Class</a>
                                 <a class="dropdown-item" href="../super_admin/all_frequency.php">Frequency</a>
+                                <a class="dropdown-item" href="../super_admin/all_status.php">Status</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">
@@ -88,7 +89,7 @@
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_account_types.php">Account Types</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_business_types.php">Business Types</a></li>
                             </ul>
-                        <?php } elseif ($address == "all_enrollment_types.php" || $address == "all_agreement_types.php" || $address == "all_payment_types.php" || $address == "all_appointment_status.php" || $address == "all_interests.php" || $address == "all_document_types.php" || $address == "all_skill_levels.php" || $address == "all_relationship.php" || $address == "all_service_class.php" || $address == "all_frequency.php") { ?>
+                        <?php } elseif ($address == "all_enrollment_types.php" || $address == "all_agreement_types.php" || $address == "all_payment_types.php" || $address == "all_appointment_status.php" || $address == "all_interests.php" || $address == "all_document_types.php" || $address == "all_skill_levels.php" || $address == "all_relationship.php" || $address == "all_service_class.php" || $address == "all_frequency.php" || $address == "all_status.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_enrollment_types.php">Enrollment Types</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_agreement_types.php">Agreement Types</a></li>
@@ -100,6 +101,7 @@
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_relationship.php">Relationship</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_service_class.php">Service Class</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_frequency.php">Frequency</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../super_admin/all_status.php">Status</a></li>
                             </ul>
                         <?php } elseif ($address == "all_alert_messages.php" || $address == "all_email_triggers.php" || $address == "all_template_categories.php" || $address == "all_header_texts.php" || $address == "manage_help_page.php" || $address == "manage_help_category.php" || $address == "manage_help_sub_category.php" || $address == "manage_help.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
