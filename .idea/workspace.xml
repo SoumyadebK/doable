@@ -5,10 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/admin/all_orders.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/compose.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/compose.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/includes/setup_menu.php" beforeDir="false" afterPath="$PROJECT_DIR$/includes/setup_menu.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service_provider/ajax/get_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/ajax/get_appointment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service_provider/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/all_schedules.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/super_admin/database_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/database_uploader.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -101,8 +100,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-deb605915726-JavaScript-PS-243.22562.233" />
-        <option value="bundled-php-predefined-a98d8de5180a-7980c7aaca61-com.jetbrains.php.sharedIndexes-PS-243.22562.233" />
+        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-PS-243.23654.115" />
+        <option value="bundled-php-predefined-a98d8de5180a-4c3855d0ab16-com.jetbrains.php.sharedIndexes-PS-243.23654.115" />
       </set>
     </attachedChunks>
   </component>
@@ -148,6 +147,7 @@
       <workItem from="1737311374165" duration="218000" />
       <workItem from="1737380610071" duration="9561000" />
       <workItem from="1737440167518" duration="2057000" />
+      <workItem from="1737469137211" duration="6869000" />
     </task>
     <servers />
   </component>
