@@ -33,7 +33,7 @@ if(empty($_GET['id'])){
     $COLOR_CODE = '';
     $ACTIVE = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_ORDER_STATUS` WHERE PK_STATUS = '$_GET[id]'");
+    $res = $db->Execute("SELECT * FROM `DOA_ORDER_STATUS` WHERE PK_ORDER_STATUS = '$_GET[id]'");
     if($res->RecordCount() == 0){
         header("location:all_status.php");
         exit;

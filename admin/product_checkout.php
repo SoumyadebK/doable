@@ -62,6 +62,9 @@ if(!empty($_POST)) {
         $ORDER_ITEM_DATA['PRODUCT_PRICE'] = $PRODUCT_PRICE[$i];
         db_perform_account('DOA_ORDER_ITEM', $ORDER_ITEM_DATA, 'insert');
     }
+
+    unset($_SESSION['CART_DATA']);
+    header("location:all_orders.php");
 }
 
 ?>
