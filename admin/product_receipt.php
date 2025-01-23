@@ -133,7 +133,7 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                         <table width="220" border="0" cellpadding="0" cellspacing="0" align="left" class="col">
                                             <tbody>
                                             <tr>
-                                                <td align="left"> <img src="http://www.supah.it/dribbble/017/logo.png" width="32" height="32" alt="logo" border="0" /></td>
+                                                <td align="left"> <img src="../assets/images/doable_logo.png" width="60" height="32" alt="logo" border="0" /></td>
                                             </tr>
                                             <tr class="hiddenMobile">
                                                 <td height="40"></td>
