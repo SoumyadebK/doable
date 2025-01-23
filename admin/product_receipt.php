@@ -199,7 +199,7 @@ $customer_details = $db->Execute("SELECT DOA_USERS.*, DOA_COUNTRY.COUNTRY_NAME, 
                                     </th>
                                 </tr>
                                 <tr>
-                                    <td height="1" style="background: #bebebe;" colspan="6"></td>
+                                    <td height="1" colspan="6" style="border-bottom:1px solid #bebebe"></td>
                                 </tr>
                                 <tr>
                                     <td height="10" colspan="6"></td>
