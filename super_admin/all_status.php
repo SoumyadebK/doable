@@ -1,6 +1,6 @@
 <?php
 require_once('../global/config.php');
-$title = "All Status";
+$title = "All Order Status";
 
 $status_check = empty($_GET['status'])?'active':$_GET['status'];
 
@@ -19,13 +19,13 @@ $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_STATUS.STATUS LIKE '%".$search_text."%' OR DOA_STATUS.STATUS_CODE LIKE '%".$search_text."%')";
+    $search = " AND (DOA_ORDER_STATUS.STATUS LIKE '%".$search_text."%' OR DOA_ORDER_STATUS.STATUS_CODE LIKE '%".$search_text."%')";
 } else {
     $search_text = '';
     $search = ' ';
 }
 
-$query = $db->Execute("SELECT count(DOA_STATUS.PK_STATUS) AS TOTAL_RECORDS FROM DOA_STATUS");
+$query = $db->Execute("SELECT count(DOA_ORDER_STATUS.PK_ORDER_STATUS) AS TOTAL_RECORDS FROM DOA_ORDER_STATUS");
 $number_of_result =  $query->fields['TOTAL_RECORDS'];
 $number_of_page = ceil ($number_of_result / $results_per_page);
 
@@ -91,15 +91,15 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT * FROM `DOA_STATUS` WHERE ACTIVE=1".$search." LIMIT " . $page_first_result . ',' . $results_per_page);
+                                    $row = $db->Execute("SELECT * FROM `DOA_ORDER_STATUS` WHERE ACTIVE=1".$search." LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$row->EOF) { ?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_STATUS']?>);"><?=$i;?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_STATUS']?>);"><?=$row->fields['STATUS']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_STATUS']?>);"><?=$row->fields['STATUS_CODE']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_STATUS']?>);"><span style="display: block; width: 44px; height: 22px; background-color: <?=$row->fields['COLOR_CODE']?>"></span></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_ORDER_STATUS']?>);"><?=$i;?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_ORDER_STATUS']?>);"><?=$row->fields['STATUS']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_ORDER_STATUS']?>);"><?=$row->fields['STATUS_CODE']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_ORDER_STATUS']?>);"><span style="display: block; width: 44px; height: 22px; background-color: <?=$row->fields['COLOR_CODE']?>"></span></td>
                                             <td>
-                                                <a href="add_status.php?id=<?=$row->fields['PK_STATUS']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="add_status.php?id=<?=$row->fields['PK_ORDER_STATUS']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
