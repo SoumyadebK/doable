@@ -115,7 +115,7 @@
                             <ul class="nav nav-tabs justify-content-center">
                                 <li class="nav-item"><a class="nav-link <?=($address == 'data_uploader.php') ? 'active' : ''?>" href="../admin/data_uploader.php">Data Uploader</a></li>
                             </ul>
-                        <?php } elseif ($address == "all_products.php" || $address == "all_orders.php") { ?>
+                        <?php } elseif ($address == "all_products.php" || $address == "all_orders.php" || $address == "order_details.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_products.php') ? 'active' : ''?>" href="../admin/all_products.php">Products</a></li>
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_orders.php') ? 'active' : ''?>" href="../admin/all_orders.php">Orders</a></li>

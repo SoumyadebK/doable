@@ -40,7 +40,7 @@ if(!empty($_POST)) {
     $ORDER_DATA['PK_PAYMENT_TYPE'] = 2;
     $ORDER_DATA['PAYMENT_DETAILS'] = 'Cash';
     $ORDER_DATA['PAYMENT_STATUS'] = 'Success';
-    $ORDER_DATA['ORDER_STATUS'] = 'Ordered';
+    $ORDER_DATA['PK_ORDER_STATUS'] = 1;
     $ORDER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
     $ORDER_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
