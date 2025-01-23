@@ -806,11 +806,11 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             $.ajax({
                                 url: "ajax/check_service_provider_slot.php",
                                 type: "POST",
-                                data: {PK_USER: resource_id, DATE_TIME: moment(date).format()},
+                                data: {PK_USER: resource_id, DATE_TIME: moment.utc(date).format()},
                                 //dataType: 'json',
                                 success: function (result) {
                                     if (result == 1) {
-                                        window.location.href = "create_appointment.php?date=" + moment(date).format() + "&SERVICE_PROVIDER_ID=" + resource_id;
+                                        window.location.href = "create_appointment.php?date=" + moment.utc(date).format() + "&SERVICE_PROVIDER_ID=" + resource_id;
                                     } else {
                                         swal("No slot available!", result, "error");
                                     }

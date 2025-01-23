@@ -1,4 +1,4 @@
-<?error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+<?php error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 require_once("../global/config.php");
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' ){
 	header("location:../index.php");
@@ -95,7 +95,7 @@ if(!empty($_POST)){
 		<script type="text/javascript" >
 			window.opener.close_mail_window(this);
 		</script>
-	<? } else {
+    <?php } else {
 		if($_POST['DRAFT'] == 0)
 			header("location:email.php");
 		else
@@ -196,7 +196,7 @@ if($default_selected_cus)
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid body_content">
 
-	<? if($_GET['mail_type'] == ''){
+            <?php if($_GET['mail_type'] == ''){
 		require_once("menu.php");
 	} else {
 		echo "<br />";
@@ -211,15 +211,15 @@ if($default_selected_cus)
 								<div class="widget">
 									<div class="widget-content">
 										<form method="post" action="email.php" enctype="multipart/form-data" id="form1">
-											<? if($_GET['mail_type'] != '' ) { ?>
+                                            <?php if($_GET['mail_type'] != '' ) { ?>
 												<input type="hidden" name="EMAIL_FOR" value="<?=7?>" />
 												<input type="hidden" name="ID" value="<?=1?>" />
-											<? } ?>
+                                            <?php } ?>
 											<div class="container">
 												<div class="row">
 													<div class="span12">
 														<h3>
-															<? if($_GET['id'] == '') echo "Compose Email";
+                                                            <?php if($_GET['id'] == '') echo "Compose Email";
 															else if($_GET['type'] == 'reply') echo "Reply ";
 															else if($_GET['type'] == 'forward') echo "Forward ";
 															else echo "Draft Email"; ?>
@@ -228,7 +228,7 @@ if($default_selected_cus)
 												</div>
 											</div>
 											<div class="container">
-												<? if($_GET['type'] == 'reply') { ?>
+                                                <?php if($_GET['type'] == 'reply') { ?>
 													<div class="row">
 														<div class="span2">
 															<label>Subject</label>
@@ -238,9 +238,9 @@ if($default_selected_cus)
 														</div>
 													</div>
 
-												<? } ?>
+                                                <?php } ?>
 
-												<div <? if($_GET['type'] == 'reply' ) { ?> style="display: none;" <? } ?> >
+												<div <?php if($_GET['type'] == 'reply' ) { ?> style="display: none;" <?php } ?> >
 													<div class="row pt-2">
 														<div class="span2 col-md-2">
 															<label>Subject</label>
@@ -258,7 +258,7 @@ if($default_selected_cus)
 													<div class="span9 col-md-10">
 														<select name="RECEPTION[]" id="RECEPTION" class="form-control required-entry select2" style="width:95%" multiple required>
 															<option value="">Select</option>
-															<? $res_type = $res_type = $db->Execute("select PK_USER,USER_NAME,FIRST_NAME,LAST_NAME from DOA_USERS WHERE ACTIVE = '1' AND PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER AND PK_USER != $_SESSION[PK_USER] OR PK_USER IN (".implode(',', $replay_user_array).")");
+                                                            <?php $res_type = $res_type = $db->Execute("select PK_USER,USER_NAME,FIRST_NAME,LAST_NAME from DOA_USERS WHERE ACTIVE = '1' AND PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER AND PK_USER != $_SESSION[PK_USER] OR PK_USER IN (".implode(',', $replay_user_array).")");
 															while (!$res_type->EOF) {
 																$PK_USER = $res_type->fields['PK_USER'];
 																$selected = '';
@@ -271,7 +271,7 @@ if($default_selected_cus)
 																	$selected = 'selected';
 																?>
 																<option value="<?=$PK_USER?>" <?=$selected?> ><?=$res_type->fields['FIRST_NAME']?> <?=$res_type->fields['LAST_NAME']?></option>
-															<?	$res_type->MoveNext();
+                                                                <?php $res_type->MoveNext();
 															} ?>
 														</select>
 													</div>
@@ -289,7 +289,7 @@ if($default_selected_cus)
 													<div class="span2">&nbsp;</div>
 													<div class="col-md-2"></div>
 													<div class="span9 col-md-10" id="attachment_files">
-														<? $i = 0;
+                                                        <?php $i = 0;
 														if($_GET['id'] != '' && $_GET['type'] != 'reply'){
 															$res_type = $db->Execute("select * from DOA_EMAIL_ATTACHMENT WHERE PK_EMAIL = '$_GET[id]' ");
 															while (!$res_type->EOF) { ?>
@@ -299,7 +299,7 @@ if($default_selected_cus)
 																	<input type="hidden" name="FILE_LOCATION[]" value="<?=$res_type->fields['LOCATION']?>" >
 																	<a href="<?=$res_type->fields['LOCATION']?>" target="blank" ><?=$res_type->fields['FILE_NAME']?></a>
 																</div>
-															<?	$i++;
+                                                                <?php $i++;
 																$res_type->MoveNext();
 															}
 														}
@@ -323,7 +323,7 @@ if($default_selected_cus)
 
 														<button type="submit" onclick="save_frm(1)" class="btn-danger">Save as Draft</button>
 
-														<? if($_GET['mail_type'] != '' )
+                                                        <?php if($_GET['mail_type'] != '' )
 															$URL = 'javascript:window.close()';
 														else
 															$URL = 'email.php?type='.$_GET['type']; ?>

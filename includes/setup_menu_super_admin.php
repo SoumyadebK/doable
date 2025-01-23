@@ -37,7 +37,7 @@
                                 <a class="dropdown-item" href="../super_admin/all_relationship.php">Relationship</a>
                                 <a class="dropdown-item" href="../super_admin/all_service_class.php">Service Class</a>
                                 <a class="dropdown-item" href="../super_admin/all_frequency.php">Frequency</a>
-                                <a class="dropdown-item" href="../super_admin/all_status.php">Status</a>
+                                <a class="dropdown-item" href="../super_admin/all_status.php">Order Status</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">

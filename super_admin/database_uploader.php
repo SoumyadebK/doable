@@ -576,7 +576,7 @@ if(!empty($_POST))
                 $ENROLLMENT_DATA['IS_SALE'] = $allEnrollments->fields['is_sale'];
                 $ENROLLMENT_DATA['STATUS'] = "A";
                 $ENROLLMENT_DATA['ENROLLMENT_DATE'] = $allEnrollments->fields['enrollment_date'];
-                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = $allEnrollments->fields['enroll_pdf_file'].'pdf';
+                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = $allEnrollments->fields['enroll_pdf_file'].'.pdf';
                 $ENROLLMENT_DATA['CHARGE_TYPE'] = 0;
                 $ENROLLMENT_DATA['EXPIRY_DATE'] = $allEnrollments->fields['expdate'];
                 $ENROLLMENT_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
@@ -1322,6 +1322,16 @@ if(!empty($_POST))
             }
             break;
 
+        case 'ENR_PDF':
+            $allEnrollments = getAllEnrollments();
+            while (!$allEnrollments->EOF) {
+                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = ($allEnrollments->fields['enroll_pdf_file'])?$allEnrollments->fields['enroll_pdf_file'].'.pdf':NULL;
+                $enrollment_id = $allEnrollments->fields['enrollment_id'];
+                db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'update', " ENROLLMENT_ID = '$enrollment_id'");
+                $allEnrollments->MoveNext();
+            }
+            break;
+
         default:
             break;
     }
@@ -1434,6 +1444,8 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <option value="DOA_ENROLLMENT_PAYMENT">DOA_ENROLLMENT_PAYMENT</option>-->
                                 <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
                                 <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
+
+                                <option value="ENR_PDF">ENR_PDF</option>
 
 
 

@@ -2,9 +2,9 @@
 require_once('../global/config.php');
 
 if (empty($_GET['id']))
-    $title = "Add Status";
+    $title = "Add Order Status";
 else
-    $title = "Edit Status";
+    $title = "Edit Order Status";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 1 ){
     header("location:../login.php");
@@ -17,12 +17,12 @@ if(!empty($_POST)){
         $STATUS_DATA['ACTIVE'] = 1;
         $STATUS_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $STATUS_DATA['CREATED_ON']  = date("Y-m-d H:i");
-        db_perform('DOA_STATUS', $STATUS_DATA, 'insert');
+        db_perform('DOA_ORDER_STATUS', $STATUS_DATA, 'insert');
     }else{
         $STATUS_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $STATUS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $STATUS_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_STATUS', $STATUS_DATA, 'update'," pk_STATUS =  '$_GET[id]'");
+        db_perform('DOA_ORDER_STATUS', $STATUS_DATA, 'update'," PK_ORDER_STATUS =  '$_GET[id]'");
     }
     header("location:all_status.php");
 }
@@ -33,7 +33,7 @@ if(empty($_GET['id'])){
     $COLOR_CODE = '';
     $ACTIVE = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_STATUS` WHERE PK_STATUS = '$_GET[id]'");
+    $res = $db->Execute("SELECT * FROM `DOA_ORDER_STATUS` WHERE PK_STATUS = '$_GET[id]'");
     if($res->RecordCount() == 0){
         header("location:all_status.php");
         exit;
@@ -63,7 +63,7 @@ if(empty($_GET['id'])){
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item"><a href="all_status.php">All Departments</a></li>
+                            <li class="breadcrumb-item"><a href="all_status.php">All Order Status</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
 
