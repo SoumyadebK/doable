@@ -2,15 +2,27 @@
 require_once('../global/config.php');
 global $db;
 global $db_account;
+global $upload_path;
 global $master_database;
-global $account_database;
 
-$PK_ENROLLMENT_MASTER = $_GET['master_id'] ?: 0;
-$RECEIPT_NUMBER = $_GET['receipt'] ?: 0;
-$BILLING_REF = '';
+$title = "Invoice";
 
-//$RECEIPT_NUMBER_ARRAY = explode(',', $RECEIPT_NUMBER);
-$business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER']); ?>
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
+    header("location:../login.php");
+    exit;
+}
+
+if(!empty($_POST)) {
+    $ORDER_DATA['ORDER_TYPE'] = $_POST['ORDER_TYPE'];
+    $ORDER_DATA['PK_ORDER_STATUS'] = $_POST['PK_ORDER_STATUS'];
+    db_perform_account('DOA_ORDER', $ORDER_DATA, 'update', ' PK_ORDER = ' . $_POST['PK_ORDER']);
+}
+
+$PK_ORDER = $_GET['id'];
+$order_data = $db_account->Execute("SELECT DOA_ORDER.*, CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, DOA_COUNTRY.COUNTRY_NAME, DOA_STATES.STATE_NAME, CUSTOMER.PK_USER FROM `DOA_ORDER` LEFT JOIN $master_database.DOA_COUNTRY AS DOA_COUNTRY ON DOA_ORDER.PK_COUNTRY = DOA_COUNTRY.PK_COUNTRY LEFT JOIN $master_database.DOA_STATES AS DOA_STATES ON DOA_ORDER.PK_STATES = DOA_STATES.PK_STATES LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ORDER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER WHERE DOA_ORDER.PK_ORDER = '$PK_ORDER'");
+$customer_details = $db->Execute("SELECT DOA_USERS.*, DOA_COUNTRY.COUNTRY_NAME, DOA_STATES.STATE_NAME FROM DOA_USERS LEFT JOIN DOA_COUNTRY AS DOA_COUNTRY ON DOA_USERS.PK_COUNTRY = DOA_COUNTRY.PK_COUNTRY LEFT JOIN DOA_STATES AS DOA_STATES ON DOA_USERS.PK_STATES = DOA_STATES.PK_STATES WHERE PK_USER = ".$order_data->fields['PK_USER']);
+
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -49,6 +61,21 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
             .visibleMobile { display: block !important; }
             .hiddenMobile { display: none !important; }
         }
+
+        /* Optional: You can style your button */
+        .print-button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 12px;
+            margin: 4px 2px;
+            cursor: pointer;
+            float: right;
+        }
     </style>
 </head>
 <body>
@@ -56,58 +83,6 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
     <button class="print-button" onclick="printPage()">Print</button>
 </div>
 <div id="printContent">
-    <?php
-    if ($PK_ENROLLMENT_MASTER == 0) {
-        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE RECEIPT_NUMBER = '$RECEIPT_NUMBER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-        $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.LOCATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER=DOA_USERS.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION=DOA_USER_LOCATION.PK_LOCATION WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$wallet_data->fields['PK_USER_MASTER']);
-    } else {
-        $enrollment_billing_data = $db_account->Execute("SELECT DOA_ENROLLMENT_BILLING.BILLING_REF, DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_BILLING LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_BILLING = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_BILLING WHERE DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$RECEIPT_NUMBER' LIMIT 1");
-        $BILLING_REF = $enrollment_billing_data->fields['BILLING_REF'];
-
-        $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.LOCATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER=DOA_USERS.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION=DOA_USER_LOCATION.PK_LOCATION LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-    }
-
-    $enrollment_payment = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND RECEIPT_NUMBER = '$RECEIPT_NUMBER'");
-
-    $DETAILS_AMOUNT = '';
-    $PAYMENT_DETAILS = '';
-    $TOTAL_AMOUNT = 0;
-    $PAYMENT_METHOD = '';
-    $TYPE = '';
-    while (!$enrollment_payment->EOF) {
-        $TYPE = $enrollment_payment->fields['TYPE'];
-        if ($enrollment_payment->fields['TYPE'] == 'Payment' || $enrollment_payment->fields['TYPE'] == 'Wallet') {
-            if ($enrollment_payment->fields['PK_PAYMENT_TYPE'] == 2) {
-                $PAYMENT_INFO = json_decode($enrollment_payment->fields['PAYMENT_INFO']);
-                $PAYMENT_DETAILS = "<tr>
-                                <td>" . $enrollment_payment->fields['PAYMENT_TYPE'] . "# : </td>
-                                <td style='text-align:right'>" . $PAYMENT_INFO->CHECK_NUMBER . "</td>
-                            </tr>";
-            } elseif (in_array($enrollment_payment->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
-                $PAYMENT_INFO = json_decode($enrollment_payment->fields['PAYMENT_INFO']);
-                $PAYMENT_DETAILS = "<tr>
-                                <td>" . $enrollment_payment->fields['PAYMENT_TYPE'] . "# : </td>
-                                <td style='text-align:right'>**** " . $PAYMENT_INFO->LAST4 . "</td>
-                            </tr>";
-            }
-        }
-
-        $PAYMENT_METHOD = $enrollment_payment->fields['PAYMENT_TYPE'];
-        $DETAILS_AMOUNT .= '$'.number_format($enrollment_payment->fields['AMOUNT'], 2).'<br>';
-        $TOTAL_AMOUNT += $enrollment_payment->fields['AMOUNT'];
-        $enrollment_payment->MoveNext();
-    }
-
-    $BUSINESS_NAME = $business_details->fields['BUSINESS_NAME'];
-    $FULL_NAME = $user_data->fields['FIRST_NAME'] . " " . $user_data->fields['LAST_NAME'];
-    $LOCATION_NAME = $user_data->fields['LOCATION_NAME'];
-    $STATE_NAME = $user_data->fields['STATE_NAME'];
-    $ZIP = $user_data->fields['ZIP'];
-    $PHONE = $user_data->fields['PHONE'];
-    $AMOUNT = '$' . number_format($TOTAL_AMOUNT, 2);
-    $TOTAL = '$' . number_format($TOTAL_AMOUNT, 2);
-    $PAYMENT_DATE = date('m-d-Y', strtotime($enrollment_payment->fields['PAYMENT_DATE']));
-    ?>
 
     <!-- Header -->
     <table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="fullTable" bgcolor="#e1e1e1">
@@ -133,7 +108,7 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                         <table width="220" border="0" cellpadding="0" cellspacing="0" align="left" class="col">
                                             <tbody>
                                             <tr>
-                                                <td align="left"> <img src="../assets/images/doable_logo.png" width="60" height="32" alt="logo" border="0" /></td>
+                                                <td align="left"> <img src="../assets/images/doable_logo.png" width="70" height="35" alt="logo" border="0" /></td>
                                             </tr>
                                             <tr class="hiddenMobile">
                                                 <td height="40"></td>
@@ -143,7 +118,7 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 12px; color: #5b5b5b; font-family: 'Open Sans', sans-serif; line-height: 18px; vertical-align: top; text-align: left;">
-                                                    Hello, Philip Brooks.
+                                                    Hello, <?=$order_data->fields['CUSTOMER_NAME']?>.
                                                     <br> Thank you for shopping from our store and for your order.
                                                 </td>
                                             </tr>
@@ -158,7 +133,7 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                                 <td height="5"></td>
                                             </tr>
                                             <tr>
-                                                <td style="font-size: 21px; color: #ff0000; letter-spacing: -1px; font-family: 'Open Sans', sans-serif; line-height: 1; vertical-align: top; text-align: right;">
+                                                <td style="font-size: 21px; color: #39B54A; letter-spacing: -1px; font-family: 'Open Sans', sans-serif;  line-height: 1; vertical-align: top; text-align: right;">
                                                     Invoice
                                                 </td>
                                             </tr>
@@ -171,8 +146,8 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 12px; color: #5b5b5b; font-family: 'Open Sans', sans-serif; line-height: 18px; vertical-align: top; text-align: right;">
-                                                    <small>ORDER</small> #800000025<br />
-                                                    <small>MARCH 4TH 2016</small>
+                                                    <small>ORDER</small> #<?=$order_data->fields['ORDER_ID']?><br />
+                                                    <small><?=$order_data->fields['CREATED_ON']?></small>
                                                 </td>
                                             </tr>
                                             </tbody>
@@ -211,7 +186,10 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                         Item
                                     </th>
                                     <th style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #5b5b5b; font-weight: normal; line-height: 1; vertical-align: top; padding: 0 0 7px;" align="left">
-                                        <small>SKU</small>
+                                        <small>Size</small>
+                                    </th>
+                                    <th style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #5b5b5b; font-weight: normal; line-height: 1; vertical-align: top; padding: 0 0 7px;" align="left">
+                                        <small>Color</small>
                                     </th>
                                     <th style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #5b5b5b; font-weight: normal; line-height: 1; vertical-align: top; padding: 0 0 7px;" align="center">
                                         Quantity
@@ -221,30 +199,28 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                     </th>
                                 </tr>
                                 <tr>
-                                    <td height="1" style="background: #bebebe;" colspan="4"></td>
+                                    <td height="1" style="background: #bebebe;" colspan="6"></td>
                                 </tr>
                                 <tr>
-                                    <td height="10" colspan="4"></td>
+                                    <td height="10" colspan="6"></td>
                                 </tr>
+                                <?php
+                                $all_item_total = 0;
+                                $product_details = $db_account->Execute("SELECT DOA_ORDER_ITEM.*, DOA_PRODUCT.PRODUCT_NAME, DOA_PRODUCT.PRODUCT_IMAGES, DOA_PRODUCT_SIZE.SIZE, DOA_PRODUCT_COLOR.COLOR FROM `DOA_ORDER_ITEM` LEFT JOIN DOA_PRODUCT ON DOA_ORDER_ITEM.PK_PRODUCT = DOA_PRODUCT.PK_PRODUCT LEFT JOIN DOA_PRODUCT_SIZE ON DOA_ORDER_ITEM.PK_PRODUCT_SIZE = DOA_PRODUCT_SIZE.PK_PRODUCT_SIZE LEFT JOIN DOA_PRODUCT_COLOR ON DOA_ORDER_ITEM.PK_PRODUCT_COLOR = DOA_PRODUCT_COLOR.PK_PRODUCT_COLOR WHERE DOA_ORDER_ITEM.PK_ORDER = ".$PK_ORDER);
+                                while (!$product_details->EOF) {
+                                $item_total = $product_details->fields['PRODUCT_QUANTITY'] * $product_details->fields['PRODUCT_PRICE'];
+                                $all_item_total += $item_total; ?>
                                 <tr>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #ff0000;  line-height: 18px;  vertical-align: top; padding:10px 0;" class="article">
-                                        Beats Studio Over-Ear Headphones
-                                    </td>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e;  line-height: 18px;  vertical-align: top; padding:10px 0;"><small>MH792AM/A</small></td>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e;  line-height: 18px;  vertical-align: top; padding:10px 0;" align="center">1</td>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #1e2b33;  line-height: 18px;  vertical-align: top; padding:10px 0;" align="right">$299.95</td>
+                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #39B54A;  line-height: 18px;  vertical-align: top; padding:10px 0;" class="article"><?=$product_details->fields['PRODUCT_NAME']?></td>
+                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e;  line-height: 18px;  vertical-align: top; padding:10px 0;"><small><?=$product_details->fields['SIZE']?></small></td>
+                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e;  line-height: 18px;  vertical-align: top; padding:10px 0;"><small><?=$product_details->fields['COLOR']?></small></td>
+                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e;  line-height: 18px;  vertical-align: top; padding:10px 0;" align="center"><?=$product_details->fields['PRODUCT_QUANTITY']?> X $<?=number_format($product_details->fields['PRODUCT_PRICE'], 2)?></td>
+                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #1e2b33;  line-height: 18px;  vertical-align: top; padding:10px 0;" align="right">$<?=number_format($item_total,2)?></td>
                                 </tr>
+                                    <?php $product_details->MoveNext();
+                                } ?>
                                 <tr>
-                                    <td height="1" colspan="4" style="border-bottom:1px solid #e4e4e4"></td>
-                                </tr>
-                                <tr>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #ff0000;  line-height: 18px;  vertical-align: top; padding:10px 0;" class="article">Beats RemoteTalk Cable</td>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e;  line-height: 18px;  vertical-align: top; padding:10px 0;"><small>MHDV2G/A</small></td>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e;  line-height: 18px;  vertical-align: top; padding:10px 0;" align="center">1</td>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #1e2b33;  line-height: 18px;  vertical-align: top; padding:10px 0;" align="right">$29.95</td>
-                                </tr>
-                                <tr>
-                                    <td height="1" colspan="4" style="border-bottom:1px solid #e4e4e4"></td>
+                                    <td height="1" colspan="6" style="border-bottom:1px solid #e4e4e4"></td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -278,7 +254,7 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                         Subtotal
                                     </td>
                                     <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; white-space:nowrap;" width="80">
-                                        $329.90
+                                        $<?=number_format($order_data->fields['ITEM_TOTAL'], 2)?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -286,7 +262,7 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                         Shipping &amp; Handling
                                     </td>
                                     <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; ">
-                                        $15.00
+                                        <?=number_format($order_data->fields['SHIPPING_CHARGE'], 2)?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -294,13 +270,13 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                         <strong>Grand Total (Incl.Tax)</strong>
                                     </td>
                                     <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #000; line-height: 22px; vertical-align: top; text-align:right; ">
-                                        <strong>$344.90</strong>
+                                        <strong> $<?=number_format($order_data->fields['ORDER_TOTAL'], 2)?> </strong>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #b0b0b0; line-height: 22px; vertical-align: top; text-align:right; "><small>TAX</small></td>
                                     <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #b0b0b0; line-height: 22px; vertical-align: top; text-align:right; ">
-                                        <small>$72.40</small>
+                                        <small><?=number_format($order_data->fields['SALES_TAX'], 2)?>% </small>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -349,7 +325,12 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #5b5b5b; line-height: 20px; vertical-align: top; ">
-                                                    Philip Brooks<br> Public Wales, Somewhere<br> New York NY<br> 4468, United States<br> T: 202-555-0133
+                                                    <?=$customer_details->fields['ADDRESS']?><br>
+                                                    <?php if(!empty($customer_details->fields['ADDRESS_1'])){
+                                                        echo $customer_details->fields['ADDRESS_1']; ?>
+                                                    <br>
+                                                    <?php }?>
+                                                    <?=$customer_details->fields['COUNTRY_NAME']?><br> <?=$customer_details->fields['STATE_NAME']?><br><?=$customer_details->fields['CITY']?><br> <?=$customer_details->fields['ZIP']?>
                                                 </td>
                                             </tr>
                                             </tbody>
@@ -371,8 +352,8 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #5b5b5b; line-height: 20px; vertical-align: top; ">
-                                                    Credit Card<br> Credit Card Type: Visa<br> Worldpay Transaction ID: <a href="#" style="color: #ff0000; text-decoration:underline;">4185939336</a><br>
-                                                    <a href="#" style="color:#b0b0b0;">Right of Withdrawal</a>
+                                                    <?=$order_data->fields['PAYMENT_DETAILS']?><!--<br> Credit Card Type: Visa<br> Worldpay Transaction ID: <a href="#" style="color: #ff0000; text-decoration:underline;">4185939336</a><br>
+                                                    <a href="#" style="color:#b0b0b0;">Right of Withdrawal</a>-->
                                                 </td>
                                             </tr>
                                             </tbody>
@@ -399,7 +380,7 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 11px; font-family: 'Open Sans', sans-serif; color: #5b5b5b; line-height: 1; vertical-align: top; ">
-                                                    <strong>SHIPPING INFORMATION</strong>
+                                                    <strong>ORDER TYPE</strong>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -407,12 +388,11 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #5b5b5b; line-height: 20px; vertical-align: top; ">
-                                                    Sup Inc<br> Another Place, Somewhere<br> New York NY<br> 4468, United States<br> T: 202-555-0171
+                                                    <?=$order_data->fields['ORDER_TYPE']?>
                                                 </td>
                                             </tr>
                                             </tbody>
                                         </table>
-
 
                                         <table width="220" border="0" cellpadding="0" cellspacing="0" align="right" class="col">
                                             <tbody>
@@ -422,9 +402,10 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                             <tr class="visibleMobile">
                                                 <td height="20"></td>
                                             </tr>
+                                            <?php if($order_data->fields['ORDER_TYPE']!='PICK_UP'){?>
                                             <tr>
                                                 <td style="font-size: 11px; font-family: 'Open Sans', sans-serif; color: #5b5b5b; line-height: 1; vertical-align: top; ">
-                                                    <strong>SHIPPING METHOD</strong>
+                                                    <strong>SHIPPING INFORMATION</strong>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -432,9 +413,15 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #5b5b5b; line-height: 20px; vertical-align: top; ">
-                                                    UPS: U.S. Shipping Services
+                                                    <?=$order_data->fields['ADDRESS']?><br>
+                                                    <?php if(!empty($customer_details->fields['ADDRESS_1'])){
+                                                        echo $customer_details->fields['ADDRESS_1']; ?>
+                                                        <br>
+                                                    <?php }?>
+                                                    <?=$order_data->fields['COUNTRY_NAME']?><br> <?=$order_data->fields['STATE_NAME']?><br>  <?=$order_data->fields['CITY']?><br> <?=$order_data->fields['ZIP']?>
                                                 </td>
                                             </tr>
+                                            <?php } ?>
                                             </tbody>
                                         </table>
                                     </td>

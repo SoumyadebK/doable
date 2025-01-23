@@ -102,7 +102,8 @@ if ($header_data->RecordCount() > 0) {
                                             </td>
                                             <td><p class="btn" style="background-color: <?=$row->fields['COLOR_CODE']?>; font-weight: bold;"><?=$row->fields['STATUS']?></p></td>
                                             <td>
-                                                <a href="order_details.php?id=<?=$row->fields['PK_ORDER']?>" style="font-size: 25px;"><i class="fa fa-info-circle" title="Get Detains"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="order_details.php?id=<?=$row->fields['PK_ORDER']?>" style="font-size: 25px;"><i class="fa fa-info-circle" title="Get Details"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="product_receipt.php?id=<?=$row->fields['PK_ORDER']?>" style="font-size: 25px;"><i class="fa fa-file-alt" title="Get Receipt"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
                                         <?php $row->MoveNext();
