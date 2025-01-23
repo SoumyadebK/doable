@@ -249,36 +249,36 @@ $customer_details = $db->Execute("SELECT DOA_USERS.*, DOA_COUNTRY.COUNTRY_NAME, 
                             <!-- Table Total -->
                             <table width="480" border="0" cellpadding="0" cellspacing="0" align="center" class="fullPadding">
                                 <tbody>
-                                <tr>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; ">
-                                        Subtotal
-                                    </td>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; white-space:nowrap;" width="80">
-                                        $<?=number_format($order_data->fields['ITEM_TOTAL'], 2)?>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; ">
-                                        Shipping &amp; Handling
-                                    </td>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; ">
-                                        <?=number_format($order_data->fields['SHIPPING_CHARGE'], 2)?>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #000; line-height: 22px; vertical-align: top; text-align:right; ">
-                                        <strong>Grand Total (Incl.Tax)</strong>
-                                    </td>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #000; line-height: 22px; vertical-align: top; text-align:right; ">
-                                        <strong> $<?=number_format($order_data->fields['ORDER_TOTAL'], 2)?> </strong>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #b0b0b0; line-height: 22px; vertical-align: top; text-align:right; "><small>TAX</small></td>
-                                    <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #b0b0b0; line-height: 22px; vertical-align: top; text-align:right; ">
-                                        <small><?=number_format($order_data->fields['SALES_TAX'], 2)?>% </small>
-                                    </td>
-                                </tr>
+                                    <tr>
+                                        <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; ">
+                                            Subtotal
+                                        </td>
+                                        <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; white-space:nowrap;" width="80">
+                                            $<?=number_format($order_data->fields['ITEM_TOTAL'], 2)?>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; ">
+                                            Shipping &amp; Handling
+                                        </td>
+                                        <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; ">
+                                            <?=number_format($order_data->fields['SHIPPING_CHARGE'], 2)?>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #b0b0b0; line-height: 22px; vertical-align: top; text-align:right; "><small>TAX</small></td>
+                                        <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #b0b0b0; line-height: 22px; vertical-align: top; text-align:right; ">
+                                            <small><?=number_format($order_data->fields['SALES_TAX'], 2)?>% </small>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #000; line-height: 22px; vertical-align: top; text-align:right; ">
+                                            <strong>Grand Total (Incl.Tax)</strong>
+                                        </td>
+                                        <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #000; line-height: 22px; vertical-align: top; text-align:right; ">
+                                            <strong> $<?=number_format($order_data->fields['ORDER_TOTAL'], 2)?> </strong>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                             <!-- /Table Total -->
