@@ -138,7 +138,7 @@ if ($header_data->RecordCount() > 0) {
         }
     }
     function editpage(id){
-        window.location.href = "product.php?id="+id;
+        window.location.href = "order_details.php?id="+id;
     }
 </script>
 </body>

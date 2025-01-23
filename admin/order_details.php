@@ -16,6 +16,7 @@ if(!empty($_POST)) {
     $ORDER_DATA['ORDER_TYPE'] = $_POST['ORDER_TYPE'];
     $ORDER_DATA['PK_ORDER_STATUS'] = $_POST['PK_ORDER_STATUS'];
     db_perform_account('DOA_ORDER', $ORDER_DATA, 'update', ' PK_ORDER = ' . $_POST['PK_ORDER']);
+    header("location:all_orders.php");
 }
 
 $PK_ORDER = $_GET['id'];
@@ -56,7 +57,7 @@ $order_data = $db_account->Execute("SELECT DOA_ORDER.*, CONCAT(CUSTOMER.FIRST_NA
                         <div class="card-body" style="width: 80%; margin: auto;">
                             <div class="row">
                                 <div class="col-6">
-                                    <p>Customer : <?=$order_data->fields['CUSTOMER_NAME']?></p>
+                                    <h4>Customer : <?=$order_data->fields['CUSTOMER_NAME']?></h4>
                                 </div>
                             </div>
                             <form id="order_details_form" class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
