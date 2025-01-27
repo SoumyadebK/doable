@@ -268,7 +268,7 @@ $customer_details = $db->Execute("SELECT DOA_USERS.*, DOA_COUNTRY.COUNTRY_NAME, 
                                     <tr>
                                         <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #b0b0b0; line-height: 22px; vertical-align: top; text-align:right; "><small>TAX</small></td>
                                         <td style="font-size: 12px; font-family: 'Open Sans', sans-serif; color: #b0b0b0; line-height: 22px; vertical-align: top; text-align:right; ">
-                                            <small><?=number_format($order_data->fields['SALES_TAX'], 2)?>% </small>
+                                            <small><?=number_format($order_data->fields['SALES_TAX'], 2)?> </small>
                                         </td>
                                     </tr>
                                     <tr>
