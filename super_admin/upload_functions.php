@@ -110,12 +110,12 @@ function getAllPrivateAppointments() {
 
 function getAllPrivateAppointmentsByCustomerId($customer_id) {
     global $db1;
-    return $db1->Execute("SELECT * FROM service_appt WHERE student_id = '$customer_id' AND `service_id` LIKE '%PRI%' ORDER BY appt_date ASC, appt_time ASC");
+    return $db1->Execute("SELECT * FROM service_appt WHERE student_id = '$customer_id' AND (`service_id` LIKE '%PRI%' OR `service_id` LIKE '%PCMP%') ORDER BY appt_date ASC, appt_time ASC");
 }
 
 function getAllGroupAppointments() {
     global $db1;
-    return $db1->Execute("SELECT * FROM service_appt WHERE `service_id` NOT LIKE '%PRI%' AND `service_id` NOT LIKE '%COMM%' ORDER BY appt_date ASC, appt_time ASC");
+    return $db1->Execute("SELECT * FROM service_appt WHERE `service_id` NOT LIKE '%PRI%' AND `service_id` NOT LIKE '%COMM%' AND `service_id` NOT LIKE '%PCMP%' ORDER BY appt_date ASC, appt_time ASC");
 }
 
 function getDemoAppointments() {

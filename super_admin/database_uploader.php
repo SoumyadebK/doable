@@ -1070,9 +1070,9 @@ if(!empty($_POST))
                 db_perform_account('DOA_APPOINTMENT_MASTER', $DEMO_CLASS_DATA, 'insert');
                 $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
-                $INSERT_DATA_CUSTOMER['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-                $INSERT_DATA_CUSTOMER['PK_USER_MASTER'] = $PK_USER_MASTER;
-                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $INSERT_DATA_CUSTOMER, 'insert');
+                $INSERT_DATA_CUSTOMER_DEMO['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                $INSERT_DATA_CUSTOMER_DEMO['PK_USER_MASTER'] = $PK_USER_MASTER;
+                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $INSERT_DATA_CUSTOMER_DEMO, 'insert');
 
                 $user_id = $allDemoAppointments->fields['user_id'];
                 $doableServiceProviderId = $db->Execute("SELECT DOA_USERS.PK_USER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$user_id' AND DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
@@ -1445,7 +1445,7 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
                                 <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
 
-                                <option value="ENR_PDF">ENR_PDF</option>
+                                <!--<option value="ENR_PDF">ENR_PDF</option>-->
 
 
 

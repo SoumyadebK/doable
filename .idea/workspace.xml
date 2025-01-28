@@ -6,7 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/super_admin/includes/create_database.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/includes/create_database.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/compose.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/compose.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/email.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/email.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/menu_left_menu.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/menu_left_menu.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/view_email.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/view_email.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/menu_left_menu.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/menu_left_menu.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/database_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/database_uploader.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/upload_functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/upload_functions.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -153,6 +159,7 @@
       <workItem from="1737787241205" duration="211000" />
       <workItem from="1737964332975" duration="9764000" />
       <workItem from="1737998389329" duration="226000" />
+      <workItem from="1738073576282" duration="11099000" />
     </task>
     <servers />
   </component>
