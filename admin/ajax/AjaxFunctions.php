@@ -1610,7 +1610,7 @@ function viewSamplePdf($RESPONSE_DATA) {
         $file_name = "sample_pdf_".time().".pdf";
         $mpdf->Output("../../uploads/sample_enrollment_pdf/".$file_name, 'F');
     } catch (Exception $e) {
-        echo $e->getMessage(); die;
+        echo $e->getMessage();
     }
 
     echo $http_path."uploads/sample_enrollment_pdf/".$file_name;
@@ -1652,7 +1652,7 @@ function viewGiftCertificatePdf($RESPONSE_DATA) {
             $file_name = "gift_certificate_" . $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER'] . ".pdf";
             $mpdf->Output('../../uploads/gift_certificate_pdf/'.$file_name, 'F');
         } catch (Exception $e) {
-            echo $e->getMessage(); die;
+            echo $e->getMessage();
         }
         echo $http_path."uploads/gift_certificate_pdf/".$file_name;
     } catch (Exception $exception) {
@@ -2208,7 +2208,7 @@ function moveToWallet($RESPONSE_DATA): void
                     'amount' => $BALANCE * 100
                 ]);
             } catch (Exception $e) {
-                echo $e->getMessage(); die();
+                echo $e->getMessage();
             }
             $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $refund->id, 'LAST4' => $payment_info->LAST4];
             $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
