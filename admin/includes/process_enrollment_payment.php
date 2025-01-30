@@ -7,6 +7,11 @@ use Square\SquareClient;
 use Stripe\Stripe;
 use Stripe\StripeClient;
 
+require_once('../../global/authorizenet/autoload.php');
+use net\authorize\api\contract\v1 as AnetAPI;
+use net\authorize\api\controller as AnetController;
+
+
 require_once('../../global/config.php');
 require_once("../../global/stripe-php/init.php");
 global $db;
@@ -65,7 +70,6 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $payment_info = '';
     if ($_POST['PK_PAYMENT_TYPE'] == 1) {
         if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
-
             $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
             $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = ".$user_master->fields['PK_USER']);
 
@@ -331,17 +335,15 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 $PAYMENT_INFO = $e->getMessage();
             }
         }
+
         elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-
-            require_once('../global/authorizenet/vendor/autoload.php');
-
-            $LOGIN_ID = $account_data->fields['LOGIN_ID'];
-            $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
+            $LOGIN_ID = '4Y5pCy8Qr'; //$account_data->fields['LOGIN_ID'];
+            $TRANSACTION_KEY = '8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay'; // $account_data->fields['TRANSACTION_KEY'];
 
             // Product Details
             $itemName = $_POST['PK_ENROLLMENT_MASTER'];
             $itemNumber = $_POST['PK_ENROLLMENT_BILLING'];
-            $itemPrice = $_POST['AMOUNT'];
+            $itemPrice = $AMOUNT_TO_PAY;
             $currency = "USD";
 
             // Retrieve card and user info from the submitted form data
@@ -402,6 +404,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             }
             pre_r($response);
         }
+
     }
 
     elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {

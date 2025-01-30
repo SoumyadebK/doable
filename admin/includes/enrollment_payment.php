@@ -90,7 +90,9 @@
                                 </div>
                                 <div id="payment-status-container"></div>
                             </div>
-                        <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net'){?>
+                        <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
+                            $customer_data = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.EMAIL_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
+                            ?>
                             <div class="payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="row" style="margin: auto;" id="card_list">
                                 </div>
@@ -99,7 +101,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Name (As it appears on your card)</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$NAME?>">
+                                                <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$customer_data->fields['NAME']?>">
                                             </div>
                                         </div>
                                     </div>
@@ -109,7 +111,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Email (For receiving payment confirmation mail)</label>
                                             <div class="col-md-12">
-                                                <input type="email" name="EMAIL" id="EMAIL" class="form-control">
+                                                <input type="email" name="EMAIL" id="EMAIL" class="form-control" value="<?=$customer_data->fields['EMAIL_ID']?>">
                                             </div>
                                         </div>
                                     </div>
@@ -119,7 +121,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Card Number</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?=$CARD_NUMBER?>">
+                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" placeholder="Card Number" class="form-control">
                                             </div>
                                         </div>
                                     </div>
@@ -129,7 +131,12 @@
                                         <div class="form-group">
                                             <label class="form-label">Expiration Month</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control" >
+                                                <select name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control">
+                                                    <?php
+                                                    for ($i = 1; $i <= 12; $i++) { ?>
+                                                        <option value="<?=$i?>"><?=$i?></option>
+                                                    <?php } ?>
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
@@ -137,7 +144,13 @@
                                         <div class="form-group">
                                             <label class="form-label">Expiration Year</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control" >
+                                                <select name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control">
+                                                    <?php
+                                                    $year = (int)date('Y');
+                                                    for ($i = $year; $i <= $year+25; $i++) { ?>
+                                                        <option value="<?=$i?>"><?=$i?></option>
+                                                    <?php } ?>
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
@@ -145,7 +158,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Security Code</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?=$SECURITY_CODE?>">
+                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control">
                                             </div>
                                         </div>
                                     </div>
@@ -462,6 +475,10 @@ else if ($SQUARE_MODE == 2)
 
                 getCreditCardList();
                 $(param).closest('.payment_modal').find('#credit_card_payment').slideDown();
+                $("#CARD_NUMBER").inputmask({
+                    mask: "9999 9999 9999 9999",
+                    placeholder: ""
+                });
                 break;
 
             case 2:
