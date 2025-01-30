@@ -399,10 +399,10 @@ if ($header_data->RecordCount() > 0) {
                                             <div class="row" style="margin-bottom: 15px;">
                                                 <div class="col-6">
                                                     <div class="form-group">
-                                                        <label class="col-md-12">Business Logo<span class="text-danger">*</span>
+                                                        <label class="col-md-12">Business Logo
                                                         </label>
                                                         <div class="col-md-12">
-                                                            <input type="file" name="BUSINESS_LOGO" id="BUSINESS_LOGO" class="form-control" required>
+                                                            <input type="file" name="BUSINESS_LOGO" id="BUSINESS_LOGO" class="form-control">
                                                         </div>
                                                     </div>
                                                     <?php if($BUSINESS_LOGO!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $BUSINESS_LOGO;?>" data-fancybox-group="gallery"><img src = "<?php echo $BUSINESS_LOGO;?>" style="width:auto; height:120px" /></a></div><?php } ?>
