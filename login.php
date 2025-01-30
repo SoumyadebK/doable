@@ -9,7 +9,7 @@ if ($FUNCTION_NAME == 'loginFunction'){
     $USER_NAME = trim($_POST['USER_NAME']);
     $PASSWORD = trim($_POST['PASSWORD']);
 
-    $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.DB_NAME, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USERS.USER_NAME = '$USER_NAME'");
+    $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.DB_NAME, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE, DOA_ACCOUNT_MASTER.IS_NEW FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USERS.USER_NAME = '$USER_NAME'");
     if($result->RecordCount() > 0) {
         if (($result->fields['ACCOUNT_ACTIVE'] == 1 || $result->fields['ACCOUNT_ACTIVE'] == '' || $result->fields['ACCOUNT_ACTIVE'] == NULL) && $result->fields['ACTIVE'] == 1 && $result->fields['CREATE_LOGIN'] == 1) {
             if (password_verify($PASSWORD, $result->fields['PASSWORD'])) {
@@ -20,6 +20,7 @@ if ($FUNCTION_NAME == 'loginFunction'){
 
                 $_SESSION['PK_USER'] = $result->fields['PK_USER'];
                 $_SESSION['PK_ROLES'] = $selected_role;
+                $_SESSION['IS_NEW'] = $result->fields['IS_NEW'];
 
                 if ($_SESSION['PK_ROLES'] == 4) {
                     $customer_account_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER, DOA_ACCOUNT_MASTER.DB_NAME, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_ACCOUNT_MASTER INNER JOIN DOA_USER_MASTER ON DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  = DOA_USER_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USER_MASTER.PK_USER = '$PK_USER' LIMIT 1");
@@ -59,6 +60,8 @@ if ($FUNCTION_NAME == 'loginFunction'){
                     header("location: customer/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 5) {
                     header("location: service_provider/all_schedules.php?view=table");
+                } elseif ($_SESSION['IS_NEW'] == 1) {
+                    header("location: admin/wizard_business_profile.php");
                 } else {
                     header("location: admin/all_schedules.php?view=table");
                 }
