@@ -13,7 +13,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION
 }
 
 if(!empty($_POST)) {
-    $ORDER_DATA['ORDER_TYPE'] = $_POST['ORDER_TYPE'];
+    //$ORDER_DATA['ORDER_TYPE'] = $_POST['ORDER_TYPE'];
     $ORDER_DATA['PK_ORDER_STATUS'] = $_POST['PK_ORDER_STATUS'];
     db_perform_account('DOA_ORDER', $ORDER_DATA, 'update', ' PK_ORDER = ' . $_POST['PK_ORDER']);
     header("location:all_orders.php");
@@ -59,19 +59,22 @@ $order_data = $db_account->Execute("SELECT DOA_ORDER.*, CONCAT(CUSTOMER.FIRST_NA
                                 <div class="col-6">
                                     <h4>Customer : <?=$order_data->fields['CUSTOMER_NAME']?></h4>
                                 </div>
+                                <div class="col-6">
+                                    <h4>Order Type : <?=ucwords((strtolower((str_replace('_', ' ', $order_data->fields['ORDER_TYPE'])))), ' ')?></h4>
+                                </div>
                             </div>
                             <form id="order_details_form" class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                 <input type="hidden" name="PK_ORDER" value="<?=$PK_ORDER?>">
                                 <div class="row m-t-20">
-                                    <div class="col-4">
+                                    <!--<div class="col-4">
                                         <div class="form-group">
                                             <label class="col-md-12">Order Type</label>
                                             <div class="col-md-12">
-                                                <label for="PICK_UP"><input type="radio" id="PICK_UP" name="ORDER_TYPE" class="form-check-inline charge_type" value="PICK_UP" <?=($order_data->fields['ORDER_TYPE']=='PICK_UP')?'checked':''?> onchange="changeOrderType(this);" checked>Pick Up</label>
-                                                <label class="m-l-40" for="SHIPPING"><input type="radio" id="SHIPPING" name="ORDER_TYPE" class="form-check-inline charge_type" value="SHIPPING" <?=($order_data->fields['ORDER_TYPE']=='SHIPPING')?'checked':''?> onchange="changeOrderType(this);">Shipping</label>
+                                                <label for="PICK_UP"><input type="radio" id="PICK_UP" name="ORDER_TYPE" class="form-check-inline charge_type" value="PICK_UP" <?php /*=($order_data->fields['ORDER_TYPE']=='PICK_UP')?'checked':''*/?> onchange="changeOrderType(this);" checked>Pick Up</label>
+                                                <label class="m-l-40" for="SHIPPING"><input type="radio" id="SHIPPING" name="ORDER_TYPE" class="form-check-inline charge_type" value="SHIPPING" <?php /*=($order_data->fields['ORDER_TYPE']=='SHIPPING')?'checked':''*/?> onchange="changeOrderType(this);">Shipping</label>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div>-->
                                     <div class="col-4">
                                         <div class="form-group">
                                             <label class="col-md-12">Order Status</label>
@@ -88,7 +91,7 @@ $order_data = $db_account->Execute("SELECT DOA_ORDER.*, CONCAT(CUSTOMER.FIRST_NA
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-2">
                                         <div class="form-group">
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Update</button>
                                         </div>
@@ -177,17 +180,19 @@ $order_data = $db_account->Execute("SELECT DOA_ORDER.*, CONCAT(CUSTOMER.FIRST_NA
                                             <b style="font-weight: bold; float: right;"> Sales Tax : </b>
                                         </div>
                                         <div class="col-4">
-                                            <b style="font-weight: bold; float: right;" id="all_item_total_text"> <?=number_format($order_data->fields['SALES_TAX'], 2)?>% </b>
+                                            <b style="font-weight: bold; float: right;" id="all_item_total_text"> <?=number_format($order_data->fields['SALES_TAX'], 2)?> </b>
                                         </div>
                                     </div>
-                                    <div class="row m-t-5 shipping_div" style="display: none;">
-                                        <div class="col-8">
-                                            <b style="font-weight: bold; float: right; margin-top: 8px;"> Shipping Charge : </b>
+                                    <?php if ($order_data->fields['ORDER_TYPE'] == 'SHIPPING') { ?>
+                                        <div class="row m-t-5 shipping_div">
+                                            <div class="col-8">
+                                                <b style="font-weight: bold; float: right; margin-top: 8px;"> Shipping Charge : </b>
+                                            </div>
+                                            <div class="col-4">
+                                                <b style="font-weight: bold; float: right;" id="all_item_total_text"> <?=number_format($order_data->fields['SHIPPING_CHARGE'], 2)?> </b>
+                                            </div>
                                         </div>
-                                        <div class="col-4">
-                                            <b style="font-weight: bold; float: right;" id="all_item_total_text"> <?=number_format($order_data->fields['SHIPPING_CHARGE'], 2)?> % </b>
-                                        </div>
-                                    </div>
+                                    <?php } ?>
                                     <div class="row m-t-5">
                                         <div class="col-8">
                                             <b style="font-weight: bold; float: right;"> Order Total : </b>

@@ -20,7 +20,7 @@ global $db_account;
                     <p class="m-t-5"><?=$cart_data['PRODUCT_QUANTITY']?> X $<?=number_format($cart_data['PRODUCT_PRICE'], 2)?></p>
                 </div>
                 <div class="col-2">
-                    <a href="javascript:" onclick="removeFromCart(<?=$key?>)" style="color: red; float: right;"><i class="fa fa-trash" title="Delete"></i></a>
+                    <a href="javascript:" onclick="removeFromCart('<?=$key?>')" style="color: red; float: right;"><i class="fa fa-trash" title="Delete"></i></a>
                     <p class="m-t-5" style="float: right;">$<?=number_format($item_total, 2)?></p>
                 </div>
             </div>

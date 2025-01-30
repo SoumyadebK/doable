@@ -36,20 +36,20 @@ if(!empty($_POST)){
         $EMAIL['CREATED_BY']  		= $_SESSION['PK_USER'];
         $EMAIL['CREATED_ON']  		= date("Y-m-d H:i");
         $EMAIL['INTERNAL_ID']  		= 0;
-        db_perform_account('DOA_EMAIL', $EMAIL, 'insert');
-        $PK_EMAIL = $db_account->insert_ID();
+        db_perform('DOA_EMAIL', $EMAIL, 'insert');
+        $PK_EMAIL = $db->insert_ID();
 
         $EMAIL1['INTERNAL_ID'] 	= $PK_EMAIL;
         $INTERNAL_ID			= $PK_EMAIL;
-        db_perform_account('DOA_EMAIL', $EMAIL1, 'update'," PK_EMAIL = '$PK_EMAIL' ");
+        db_perform('DOA_EMAIL', $EMAIL1, 'update'," PK_EMAIL = '$PK_EMAIL' ");
     } else {
         if($type == 'draft') {
             $PK_EMAIL = $id;
-            db_perform_account('DOA_EMAIL', $EMAIL, 'update'," PK_EMAIL = '1' AND CREATED_BY = '$_SESSION[PK_USER]' ");
+            db_perform('DOA_EMAIL', $EMAIL, 'update'," PK_EMAIL = '1' AND CREATED_BY = '$_SESSION[PK_USER]' ");
         } else {
             $PK_EMAIL = $_GET['pk'];
 
-            $res = $db_account->Execute("SELECT INTERNAL_ID from DOA_EMAIL WHERE PK_EMAIL = '$PK_EMAIL' ");
+            $res = $db->Execute("SELECT INTERNAL_ID from DOA_EMAIL WHERE PK_EMAIL = '$PK_EMAIL' ");
             $INTERNAL_ID = $res->fields['INTERNAL_ID'];
 
             $EMAIL['INTERNAL_ID'] 		= $INTERNAL_ID;
@@ -57,14 +57,14 @@ if(!empty($_POST)){
             $EMAIL['CREATED_BY']  		= $_SESSION['PK_USER'];
             $EMAIL['CREATED_ON']  		= date("Y-m-d H:i");
 
-            db_perform_account('DOA_EMAIL', $EMAIL, 'insert');
-            $PK_EMAIL = $db_account->insert_ID();
+            db_perform('DOA_EMAIL', $EMAIL, 'insert');
+            $PK_EMAIL = $db->insert_ID();
         }
 
     }
     if(!empty($RECEPTIONS)){
         foreach($RECEPTIONS as $RECEPTION){
-            $res = $db_account->Execute("select PK_EMAIL_RECEPTION from DOA_EMAIL_RECEPTION WHERE PK_EMAIL = '$PK_EMAIL' AND PK_USER = '$RECEPTION' ");
+            $res = $db->Execute("select PK_EMAIL_RECEPTION from DOA_EMAIL_RECEPTION WHERE PK_EMAIL = '$PK_EMAIL' AND PK_USER = '$RECEPTION' ");
 
             if($res->RecordCount() == 0){
                 $EMAIL_RECEPTION['INTERNAL_ID'] = $INTERNAL_ID;
@@ -74,8 +74,8 @@ if(!empty($_POST)){
                 $EMAIL_RECEPTION['REPLY'] 		= 0;
                 $EMAIL_RECEPTION['DELETED'] 	= 0;
                 $EMAIL_RECEPTION['CREATED_ON']  = date("Y-m-d H:i");
-                db_perform_account('DOA_EMAIL_RECEPTION', $EMAIL_RECEPTION, 'insert');
-                $PK_EMAIL_RECEPTION_IDS[] =  $db_account->insert_ID();
+                db_perform('DOA_EMAIL_RECEPTION', $EMAIL_RECEPTION, 'insert');
+                $PK_EMAIL_RECEPTION_IDS[] =  $db->insert_ID();
             } else {
                 $PK_EMAIL_RECEPTION_IDS[] = $res->fields['PK_EMAIL_RECEPTION'];
             }
@@ -86,7 +86,7 @@ if(!empty($_POST)){
     if(!empty($PK_EMAIL_RECEPTION_IDS)){
         $cond = " AND PK_EMAIL_RECEPTION NOT IN (".implode(",",$PK_EMAIL_RECEPTION_IDS).") ";
     }
-    $db_account->Execute("DELETE from DOA_EMAIL_RECEPTION WHERE PK_EMAIL = '$PK_EMAIL' $cond ");
+    $db->Execute("DELETE from DOA_EMAIL_RECEPTION WHERE PK_EMAIL = '$PK_EMAIL' $cond ");
 
     $i = 0;
     if(!empty($FILE_NAMES)){
@@ -96,7 +96,7 @@ if(!empty($_POST)){
             $EMAIL_ATTACHMENT['LOCATION'] 	 = $FILE_LOCATIONS[$i];
             $EMAIL_ATTACHMENT['UPLOADED_ON'] = date("Y-m-d H:i");
             //if($PK_EMAIL_ATTACHMENT[$i] == '' || $type == 'reply'){
-            db_perform_account('DOA_EMAIL_ATTACHMENT', $EMAIL_ATTACHMENT, 'insert');
+            db_perform('DOA_EMAIL_ATTACHMENT', $EMAIL_ATTACHMENT, 'insert');
             //}
             $i++;
         }
@@ -128,7 +128,7 @@ if($id == ''){
     } else
         $cond = " AND DOA_EMAIL.PK_EMAIL = '$_GET[id]' AND CREATED_BY = '$_SESSION[PK_USER]' ";
 
-    $res = $db_account->Execute("select DOA_EMAIL.* from DOA_EMAIL $table WHERE 1=1 $cond");
+    $res = $db->Execute("select DOA_EMAIL.* from DOA_EMAIL $table WHERE 1=1 $cond");
     if($res->RecordCount() == 0 ){
         header("location:email.php?type=draft");
         exit;
@@ -158,15 +158,15 @@ if($mail_type != ''){
 	if($mail_type == 'quote') {
 
 		$PK_EMAIL_TYPE 	= '2';
-		$res = $db_account->Execute("select QUOTE_NO from QUOTE_MASTER WHERE PK_QUOTE_MASTER = '$_GET[e_id]' ");
+		$res = $db->Execute("select QUOTE_NO from QUOTE_MASTER WHERE PK_QUOTE_MASTER = '$_GET[e_id]' ");
 		$SUBJECT = 'Quote # '.$res->fields['QUOTE_NO'].' ';
 	} else if($mail_type == 'order') {
 		$PK_EMAIL_TYPE = '3';
-		$res = $db_account->Execute("select ORDER_NO from ORDER_MASTER WHERE PK_ORDER_MASTER = '$_GET[e_id]' ");
+		$res = $db->Execute("select ORDER_NO from ORDER_MASTER WHERE PK_ORDER_MASTER = '$_GET[e_id]' ");
 		$SUBJECT = 'Order # '.$res->fields['ORDER_NO'].' ';
 	} else if($mail_type == 'shipping') {
 		$PK_EMAIL_TYPE = '5';
-		$res_sm = $db_account->Execute("SELECT SHIPPING_MASTER.*,ORDER_NO, ORDER_MASTER.PK_ORDER_MASTER from ORDER_MASTER,SHIPPING_MASTER WHERE SHIPPING_MASTER.PK_SHIPPING_MASTER = '$_GET[e_id]' AND ORDER_MASTER.PK_ORDER_MASTER = SHIPPING_MASTER.PK_ORDER_MASTER ");
+		$res_sm = $db->Execute("SELECT SHIPPING_MASTER.*,ORDER_NO, ORDER_MASTER.PK_ORDER_MASTER from ORDER_MASTER,SHIPPING_MASTER WHERE SHIPPING_MASTER.PK_SHIPPING_MASTER = '$_GET[e_id]' AND ORDER_MASTER.PK_ORDER_MASTER = SHIPPING_MASTER.PK_ORDER_MASTER ");
 		$PK_ORDER_MASTER = $res_sm->fields['PK_ORDER_MASTER'];
 		$SHIPPING_NO	 = $res_sm->fields['SHIPPING_NO'];
 		$ORDER_NO	 	 = $res_sm->fields['ORDER_NO'];
@@ -224,24 +224,22 @@ $user_id =  $_SESSION['PK_USER'];
 
                                                     <?php
                                                     if($email_show_type == ''){
-                                                        $res_type = $db_account->Execute("
-																SELECT DOA_EMAIL.*, DOA_EMAIL_RECEPTION.VIWED FROM DOA_EMAIL_RECEPTION INNER JOIN DOA_EMAIL 
-																ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_RECEPTION.PK_EMAIL WHERE PK_USER = $user_id AND DRAFT = 0 AND DOA_EMAIL.ACTIVE = 1 AND DOA_EMAIL_RECEPTION.DELETED=0
-															");
+                                                        $res_type = $db->Execute("SELECT DOA_EMAIL.*, DOA_EMAIL_RECEPTION.VIWED FROM DOA_EMAIL_RECEPTION INNER JOIN DOA_EMAIL 
+																ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_RECEPTION.PK_EMAIL WHERE PK_USER = $user_id AND DRAFT = 0 AND DOA_EMAIL.ACTIVE = 1 AND DOA_EMAIL_RECEPTION.DELETED=0");
                                                     }elseif($email_show_type == 'sent'){
-                                                        $res_type = $db_account->Execute("SELECT * FROM DOA_EMAIL WHERE CREATED_BY = $user_id AND DRAFT = 0 AND ACTIVE = 1");
+                                                        $res_type = $db->Execute("SELECT * FROM DOA_EMAIL WHERE CREATED_BY = $user_id AND DRAFT = 0 AND ACTIVE = 1");
                                                     }
                                                     elseif($email_show_type == 'draft'){
-                                                        $res_type = $db_account->Execute("SELECT * FROM DOA_EMAIL WHERE CREATED_BY = $user_id AND DRAFT = 1 AND ACTIVE = 1");
+                                                        $res_type = $db->Execute("SELECT * FROM DOA_EMAIL WHERE CREATED_BY = $user_id AND DRAFT = 1 AND ACTIVE = 1");
                                                     }
                                                     elseif($email_show_type == 'starred'){
-                                                        $res_type = $db_account->Execute("
+                                                        $res_type = $db->Execute("
 																SELECT DOA_EMAIL.* FROM DOA_EMAIL_STARRED INNER JOIN DOA_EMAIL 
 																ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_STARRED.INTERNAL_ID WHERE PK_USER = $user_id AND DOA_EMAIL_STARRED.STARRED = 1 AND DOA_EMAIL.ACTIVE = 1
 															");
                                                     }
                                                     elseif($email_show_type == 'trash'){
-                                                        $res_type = $db_account->Execute("SELECT * FROM DOA_EMAIL WHERE CREATED_BY = $user_id AND DRAFT = 1 AND ACTIVE = 0");
+                                                        $res_type = $db->Execute("SELECT * FROM DOA_EMAIL WHERE CREATED_BY = $user_id AND DRAFT = 1 AND ACTIVE = 0");
                                                     }
                                                     ?>
 

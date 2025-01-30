@@ -83,14 +83,14 @@ if ($header_data->RecordCount() > 0) {
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT DOA_ORDER.*, DOA_ORDER_STATUS.STATUS, DOA_ORDER_STATUS.COLOR_CODE, CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS CUSTOMER_NAME FROM `DOA_ORDER` LEFT JOIN $master_database.DOA_ORDER_STATUS AS DOA_ORDER_STATUS ON DOA_ORDER.PK_ORDER_STATUS = DOA_ORDER_STATUS.PK_ORDER_STATUS LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ORDER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER");
+                                    $row = $db_account->Execute("SELECT DOA_ORDER.*, DOA_ORDER_STATUS.STATUS, DOA_ORDER_STATUS.COLOR_CODE, CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS CUSTOMER_NAME FROM `DOA_ORDER` LEFT JOIN $master_database.DOA_ORDER_STATUS AS DOA_ORDER_STATUS ON DOA_ORDER.PK_ORDER_STATUS = DOA_ORDER_STATUS.PK_ORDER_STATUS LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ORDER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER ORDER BY DOA_ORDER.CREATED_ON DESC");
                                     while (!$row->EOF) {
                                         $product_details = $db_account->Execute("SELECT DOA_ORDER_ITEM.*, DOA_PRODUCT.PRODUCT_NAME, DOA_PRODUCT_SIZE.SIZE, DOA_PRODUCT_COLOR.COLOR FROM `DOA_ORDER_ITEM` LEFT JOIN DOA_PRODUCT ON DOA_ORDER_ITEM.PK_PRODUCT = DOA_PRODUCT.PK_PRODUCT LEFT JOIN DOA_PRODUCT_SIZE ON DOA_ORDER_ITEM.PK_PRODUCT_SIZE = DOA_PRODUCT_SIZE.PK_PRODUCT_SIZE LEFT JOIN DOA_PRODUCT_COLOR ON DOA_ORDER_ITEM.PK_PRODUCT_COLOR = DOA_PRODUCT_COLOR.PK_PRODUCT_COLOR WHERE DOA_ORDER_ITEM.PK_ORDER = ".$row->fields['PK_ORDER']); ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_ORDER']?>);"><?=$row->fields['ORDER_ID']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ORDER']?>);"><?=date('m/d/Y h:i A', strtotime($row->fields['CREATED_ON']))?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ORDER']?>);"><?=$row->fields['CUSTOMER_NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_ORDER']?>);"><?=$row->fields['ORDER_TYPE']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_ORDER']?>);"><?=ucwords((strtolower((str_replace('_', ' ', $row->fields['ORDER_TYPE'])))), ' ')?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ORDER']?>);"><?=$row->fields['ADDRESS']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ORDER']?>);"><?=$row->fields['PAYMENT_DETAILS']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ORDER']?>);">
@@ -103,7 +103,7 @@ if ($header_data->RecordCount() > 0) {
                                             <td><p class="btn" style="background-color: <?=$row->fields['COLOR_CODE']?>; font-weight: bold;"><?=$row->fields['STATUS']?></p></td>
                                             <td>
                                                 <a href="order_details.php?id=<?=$row->fields['PK_ORDER']?>" style="font-size: 25px;"><i class="fa fa-info-circle" title="Get Details"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <a href="product_receipt.php?id=<?=$row->fields['PK_ORDER']?>" style="font-size: 25px;"><i class="fa fa-file-alt" title="Get Receipt"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="product_receipt.php?id=<?=$row->fields['PK_ORDER']?>" target="_blank" style="font-size: 25px;"><i class="fa fa-file-alt" title="Get Receipt"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
                                         <?php $row->MoveNext();
@@ -122,7 +122,9 @@ if ($header_data->RecordCount() > 0) {
 <?php require_once('../includes/footer.php');?>
 <script>
     $(function () {
-        $('#myTable').DataTable();
+        $('#myTable').DataTable({
+            "order": []
+        });
     });
     function ConfirmDelete(PK_ORDER)
     {

@@ -105,13 +105,10 @@
 
 
                 <li class="nav-item" style="margin-top: 4px;">
-                    <?php //if ($_SESSION["PK_ROLES"] == 1) { ?>
-                    <!-- <a href="email.php" style="margin-left: 40px;color:white;">Email List</a> -->
-                    <a class="nav-link dropdown-toggle waves-effect waves-dark" href="email.php" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle waves-effect waves-dark" href="../email/email.php" aria-haspopup="true" aria-expanded="false">
                         <img src="../assets/images/mail_icon.png" alt="Mail" style="height: 35px; width: 35px; background-color: white;">
                         <div class="notify"> <span class="heartbit"></span> <span class="point"></span> </div>
                     </a>
-                    <?php //} ?>
                 </li>
 
                 <?php if($_SESSION['ACCESS_TOKEN'] && $_SESSION['TICKET_SYSTEM_ACCESS']==1):?>

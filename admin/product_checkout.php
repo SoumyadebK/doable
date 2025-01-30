@@ -28,15 +28,17 @@ if(!empty($_POST)) {
     $ORDER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
     $ORDER_DATA['ORDER_TYPE'] = $_POST['ORDER_TYPE'];
     $ORDER_DATA['ITEM_TOTAL'] = $_POST['ALL_ITEM_TOTAL'];
-    $ORDER_DATA['SALES_TAX'] = $_POST['SALES_TAX'];
+    $ORDER_DATA['SALES_TAX'] = $_POST['SALES_TAX_AMOUNT'];
     $ORDER_DATA['SHIPPING_CHARGE'] = $_POST['SHIPPING_CHARGE'];
-    $ORDER_DATA['ORDER_TOTAL'] = ($_POST['ALL_ITEM_TOTAL']*($_POST['SALES_TAX']/100))+$_POST['SHIPPING_CHARGE']+$_POST['ALL_ITEM_TOTAL'];
-    $ORDER_DATA['ADDRESS'] = $_POST['ADDRESS'];
-    $ORDER_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
-    $ORDER_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
-    $ORDER_DATA['PK_STATES'] = $_POST['PK_STATES'];
-    $ORDER_DATA['CITY'] = $_POST['CITY'];
-    $ORDER_DATA['ZIP'] = $_POST['ZIP'];
+    $ORDER_DATA['ORDER_TOTAL'] = $_POST['SALES_TAX_AMOUNT']+$_POST['SHIPPING_CHARGE']+$_POST['ALL_ITEM_TOTAL'];
+    if ($ORDER_DATA['ORDER_TYPE'] == 'SHIPPING') {
+        $ORDER_DATA['ADDRESS'] = $_POST['ADDRESS'];
+        $ORDER_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
+        $ORDER_DATA['PK_COUNTRY'] = $_POST['PK_COUNTRY'];
+        $ORDER_DATA['PK_STATES'] = $_POST['PK_STATES'];
+        $ORDER_DATA['CITY'] = $_POST['CITY'];
+        $ORDER_DATA['ZIP'] = $_POST['ZIP'];
+    }
     $ORDER_DATA['PK_PAYMENT_TYPE'] = 2;
     $ORDER_DATA['PAYMENT_DETAILS'] = 'Cash';
     $ORDER_DATA['PAYMENT_STATUS'] = 'Success';
@@ -62,6 +64,9 @@ if(!empty($_POST)) {
         $ORDER_ITEM_DATA['PRODUCT_PRICE'] = $PRODUCT_PRICE[$i];
         db_perform_account('DOA_ORDER_ITEM', $ORDER_ITEM_DATA, 'insert');
     }
+
+    unset($_SESSION['CART_DATA']);
+    header("location:all_orders.php");
 }
 
 ?>
@@ -159,11 +164,12 @@ if(!empty($_POST)) {
                                                 <input type="hidden" name="PRODUCT_PRICE[]" value="<?=$cart_data['PRODUCT_PRICE']?>">
                                                 <input class="item_total_price" type="hidden" name="TOTAL_PRODUCT_PRICE[]" id="item_total_price_value_<?=$key?>" value="<?=$item_total?>">
                                                 <div class="col-2">
-                                                    <a href="product_checkout.php" onclick="removeFromCart(<?=$key?>)" style="color: red; float: right;"><i class="fa fa-trash" title="Delete"></i></a><br>
+                                                    <a href="product_checkout.php" onclick="removeFromCart('<?=$key?>')" style="color: red; float: right;"><i class="fa fa-trash" title="Delete"></i></a><br>
                                                     <p class="m-t-5" style="float: right;" id="item_total_price_text_<?=$key?>">$<?=number_format($item_total, 2)?></p>
                                                 </div>
                                             </div>
-                                        <?php } ?>
+                                        <?php }
+                                        $SALES_TAX_AMOUNT = ($all_item_total*($SALES_TAX/100)); ?>
                                         <div class="row m-t-5">
                                             <div class="col-8">
                                                 <b style="font-weight: bold; float: right;"> Subtotal : </b>
@@ -175,11 +181,12 @@ if(!empty($_POST)) {
                                         </div>
                                         <div class="row m-t-5">
                                             <div class="col-8">
-                                                <b style="font-weight: bold; float: right;"> Sales Tax : </b>
+                                                <b style="font-weight: bold; float: right;"> Sales Tax : (<?=number_format($SALES_TAX, 2)?>%)</b>
                                             </div>
                                             <div class="col-4">
                                                 <input type="hidden" name="SALES_TAX" id="SALES_TAX" value="<?=$SALES_TAX?>">
-                                                <b style="font-weight: bold; float: right;" id="all_item_total_text"> <?=number_format($SALES_TAX, 2)?>% </b>
+                                                <input type="hidden" name="SALES_TAX_AMOUNT" id="SALES_TAX_AMOUNT" value="<?=$SALES_TAX_AMOUNT?>">
+                                                <b style="font-weight: bold; float: right;" id="sales_tax_amount_text"> $<?=number_format($SALES_TAX_AMOUNT, 2)?> </b>
                                             </div>
                                         </div>
                                         <div class="row m-t-5 shipping_div" style="display: none;">
@@ -195,7 +202,7 @@ if(!empty($_POST)) {
                                                 <b style="font-weight: bold; float: right;"> Order Total : </b>
                                             </div>
                                             <div class="col-4">
-                                                <?php $order_total = ($all_item_total + ($all_item_total*($SALES_TAX/100))); ?>
+                                                <?php $order_total = ($all_item_total + $SALES_TAX_AMOUNT); ?>
                                                 <b style="font-weight: bold; float: right;" id="order_total"> $<?=number_format($order_total, 2)?> </b>
                                             </div>
                                         </div>
@@ -643,12 +650,16 @@ if(!empty($_POST)) {
         let ALL_ITEM_TOTAL = parseFloat($('#ALL_ITEM_TOTAL').val());
         let SHIPPING_CHARGE = parseFloat($('#SHIPPING_CHARGE').val());
         let SALES_TAX = parseFloat($('#SALES_TAX').val());
+        let SALES_TAX_AMOUNT = ALL_ITEM_TOTAL*(SALES_TAX/100);
+        $('#SALES_TAX_AMOUNT').val(SALES_TAX_AMOUNT);
+        $('#sales_tax_amount_text').text('$'+SALES_TAX_AMOUNT.toFixed(2));
+
         if (!SHIPPING_CHARGE) {
             $('#SHIPPING_CHARGE').val(0);
             SHIPPING_CHARGE = 0;
         }
 
-        let ORDER_TOTAL = ALL_ITEM_TOTAL+(ALL_ITEM_TOTAL*(SALES_TAX/100))+SHIPPING_CHARGE;
+        let ORDER_TOTAL = ALL_ITEM_TOTAL+SALES_TAX_AMOUNT+SHIPPING_CHARGE;
 
         $('#order_total').text('$'+numberWithCommas(ORDER_TOTAL.toFixed(2)));
         $('#ORDER_TOTAL_AMOUNT').val(ORDER_TOTAL.toFixed(2));

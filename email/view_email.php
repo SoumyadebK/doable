@@ -18,18 +18,18 @@ $mail_type = empty($_GET['mail_type']) ? '' : $_GET['mail_type'];
 // require_once("email_variables.php");
 
 if(!empty($_GET['act']) && $_GET['act'] == 'i'){
-    $db_account->Execute("UPDATE DOA_EMAIL_RECEPTION SET DELETED = 0 WHERE INTERNAL_ID = '$_GET[id]' AND PK_USER = '$_SESSION[PK_USER]' ");
+    $db->Execute("UPDATE DOA_EMAIL_RECEPTION SET DELETED = 0 WHERE INTERNAL_ID = '$_GET[id]' AND PK_USER = '$_SESSION[PK_USER]' ");
     header("location:email.php");
 }
 
-$res_pk   = $db_account->Execute("select PK_EMAIL from DOA_EMAIL WHERE INTERNAL_ID = '$_GET[id]' ORDER BY PK_EMAIL DESC");
+$res_pk   = $db->Execute("select PK_EMAIL from DOA_EMAIL WHERE INTERNAL_ID = '$_GET[id]' ORDER BY PK_EMAIL DESC");
 $PK_EMAIL = $res_pk->fields['PK_EMAIL'];
 
-$res = $db_account->Execute("select SUBJECT from DOA_EMAIL WHERE PK_EMAIL = '$_GET[id]' ");
-$db_account->Execute("UPDATE DOA_EMAIL_RECEPTION SET VIWED = 1 WHERE INTERNAL_ID = '$_GET[id]' AND PK_USER = '$_SESSION[PK_USER]' ");
+$res = $db->Execute("select SUBJECT from DOA_EMAIL WHERE PK_EMAIL = '$_GET[id]' ");
+$db->Execute("UPDATE DOA_EMAIL_RECEPTION SET VIWED = 1 WHERE INTERNAL_ID = '$_GET[id]' AND PK_USER = '$_SESSION[PK_USER]' ");
 $em_subject = $res->fields['SUBJECT'];
 
-$res_att = $db_account->Execute("SELECT * FROM DOA_EMAIL_STARRED WHERE INTERNAL_ID = '$_GET[id]' AND STARRED = 1 AND PK_USER = '$_SESSION[PK_USER]' ")or die(mysql_error());
+$res_att = $db->Execute("SELECT * FROM DOA_EMAIL_STARRED WHERE INTERNAL_ID = '$_GET[id]' AND STARRED = 1 AND PK_USER = '$_SESSION[PK_USER]' ")or die(mysql_error());
 if($res_att->RecordCount() > 0)
     $color = 'gold';
 else
@@ -91,10 +91,10 @@ else
 
 
                                                     <?php if($_GET['type'] == 'sent' || $_GET['type'] == 'draft' || $_GET['type'] == 'starred'){
-                                                        $res = $db_account->Execute("select DOA_EMAIL.PK_EMAIL, CONTENT,IF(REMINDER_DATE != '0000-00-00', DATE_FORMAT(REMINDER_DATE, '%m/%d/%Y'),'' ) AS REMINDER_DATE ,IF(DUE_DATE != '0000-00-00', DATE_FORMAT(DUE_DATE, '%m/%d/%Y'),'' ) AS DUE_DATE, IF(DOA_EMAIL.CREATED_ON != '0000-00-00', DATE_FORMAT(DOA_EMAIL.CREATED_ON, '%m/%d/%Y %r'),'' ) AS CREATED_ON,DOA_USERS.FIRST_NAME from DOA_EMAIL, DOA_USERS WHERE DOA_EMAIL.INTERNAL_ID = '$_GET[id]' AND DOA_EMAIL.CREATED_BY = '$_SESSION[PK_USER]' AND DOA_USERS.PK_USER = DOA_EMAIL.CREATED_BY ORDER BY DOA_EMAIL.CREATED_ON DESC");
+                                                        $res = $db->Execute("select DOA_EMAIL.PK_EMAIL, CONTENT,IF(REMINDER_DATE != '0000-00-00', DATE_FORMAT(REMINDER_DATE, '%m/%d/%Y'),'' ) AS REMINDER_DATE ,IF(DUE_DATE != '0000-00-00', DATE_FORMAT(DUE_DATE, '%m/%d/%Y'),'' ) AS DUE_DATE, IF(DOA_EMAIL.CREATED_ON != '0000-00-00', DATE_FORMAT(DOA_EMAIL.CREATED_ON, '%m/%d/%Y %r'),'' ) AS CREATED_ON,DOA_USERS.FIRST_NAME from DOA_EMAIL, DOA_USERS WHERE DOA_EMAIL.INTERNAL_ID = '$_GET[id]' AND DOA_EMAIL.CREATED_BY = '$_SESSION[PK_USER]' AND DOA_USERS.PK_USER = DOA_EMAIL.CREATED_BY ORDER BY DOA_EMAIL.CREATED_ON DESC");
 
                                                     } else if($_GET['type'] == '') {
-                                                        $res = $db_account->Execute("select PK_EMAIL_RECEPTION,DOA_EMAIL.PK_EMAIL, CONTENT,IF(REMINDER_DATE != '0000-00-00', DATE_FORMAT(REMINDER_DATE, '%m/%d/%Y'),'' ) AS REMINDER_DATE ,IF(DUE_DATE != '0000-00-00', DATE_FORMAT(DUE_DATE, '%m/%d/%Y'),'' ) AS DUE_DATE, IF(DOA_EMAIL_RECEPTION.CREATED_ON != '0000-00-00', DATE_FORMAT(DOA_EMAIL_RECEPTION.CREATED_ON, '%m/%d/%Y %r'),'' ) AS CREATED_ON,DOA_USERS.FIRST_NAME from DOA_EMAIL,DOA_EMAIL_RECEPTION, DOA_USERS WHERE DOA_EMAIL.INTERNAL_ID = '$_GET[id]' AND DOA_EMAIL_RECEPTION.PK_EMAIL = DOA_EMAIL.PK_EMAIL AND DOA_EMAIL_RECEPTION.PK_USER = '$_SESSION[PK_USER]' AND DOA_USERS.PK_USER = DOA_EMAIL.CREATED_BY ORDER BY PK_EMAIL_RECEPTION DESC");
+                                                        $res = $db->Execute("select PK_EMAIL_RECEPTION,DOA_EMAIL.PK_EMAIL, CONTENT,IF(REMINDER_DATE != '0000-00-00', DATE_FORMAT(REMINDER_DATE, '%m/%d/%Y'),'' ) AS REMINDER_DATE ,IF(DUE_DATE != '0000-00-00', DATE_FORMAT(DUE_DATE, '%m/%d/%Y'),'' ) AS DUE_DATE, IF(DOA_EMAIL_RECEPTION.CREATED_ON != '0000-00-00', DATE_FORMAT(DOA_EMAIL_RECEPTION.CREATED_ON, '%m/%d/%Y %r'),'' ) AS CREATED_ON,DOA_USERS.FIRST_NAME from DOA_EMAIL,DOA_EMAIL_RECEPTION, DOA_USERS WHERE DOA_EMAIL.INTERNAL_ID = '$_GET[id]' AND DOA_EMAIL_RECEPTION.PK_EMAIL = DOA_EMAIL.PK_EMAIL AND DOA_EMAIL_RECEPTION.PK_USER = '$_SESSION[PK_USER]' AND DOA_USERS.PK_USER = DOA_EMAIL.CREATED_BY ORDER BY PK_EMAIL_RECEPTION DESC");
 
                                                     }
                                                     $i = 0;
@@ -120,7 +120,7 @@ else
                                                                 <div class="span">
                                                                     <b>To:
                                                                         <?php $k = 0;
-                                                                        $res_rep = $db_account->Execute("SELECT DOA_USERS.FIRST_NAME FROM DOA_EMAIL_RECEPTION,DOA_USERS WHERE DOA_EMAIL_RECEPTION.PK_USER = DOA_USERS.PK_USER AND PK_EMAIL = '$PK_EMAIL' ");
+                                                                        $res_rep = $db->Execute("SELECT DOA_USERS.FIRST_NAME FROM DOA_EMAIL_RECEPTION,DOA_USERS WHERE DOA_EMAIL_RECEPTION.PK_USER = DOA_USERS.PK_USER AND PK_EMAIL = '$PK_EMAIL' ");
                                                                         while (!$res_rep->EOF) {
                                                                             if($k > 0)
                                                                                 echo ", ";
@@ -139,7 +139,7 @@ else
                                                                     <?=$res->fields['CONTENT']?>
                                                                 </div>
                                                             </div>
-                                                            <?php $res_att = $db_account->Execute("SELECT * FROM DOA_EMAIL_ATTACHMENT WHERE PK_EMAIL = '$PK_EMAIL' AND ACTIVE = 1");
+                                                            <?php $res_att = $db->Execute("SELECT * FROM DOA_EMAIL_ATTACHMENT WHERE PK_EMAIL = '$PK_EMAIL' AND ACTIVE = 1");
                                                             if($res_att->RecordCount() > 0){ ?>
                                                                 <u>Attachments</u><br />
                                                                 <?php while (!$res_att->EOF) {  ?>
