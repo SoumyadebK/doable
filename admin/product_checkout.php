@@ -39,7 +39,7 @@ if(!empty($_POST)) {
         $ORDER_DATA['CITY'] = $_POST['CITY'];
         $ORDER_DATA['ZIP'] = $_POST['ZIP'];
     }
-    $ORDER_DATA['PK_PAYMENT_TYPE'] = 2;
+    $ORDER_DATA['PK_PAYMENT_TYPE'] = 3;
     $ORDER_DATA['PAYMENT_DETAILS'] = 'Cash';
     $ORDER_DATA['PAYMENT_STATUS'] = 'Success';
     $ORDER_DATA['PK_ORDER_STATUS'] = 1;
@@ -64,6 +64,35 @@ if(!empty($_POST)) {
         $ORDER_ITEM_DATA['PRODUCT_PRICE'] = $PRODUCT_PRICE[$i];
         db_perform_account('DOA_ORDER_ITEM', $ORDER_ITEM_DATA, 'insert');
     }
+
+    $PAYMENT_INFO = 'Cash';
+    $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+    $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = 0;
+    $PAYMENT_DATA['PK_PAYMENT_TYPE'] = 3;
+    $PAYMENT_DATA['AMOUNT'] = $ORDER_DATA['ORDER_TOTAL'];
+    $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = 0;
+    $PAYMENT_DATA['PK_ORDER'] = $PK_ORDER;
+    $TYPE = 'Payment';
+    if ($_POST['PK_PAYMENT_TYPE'] == 2) {
+        $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE']))];
+        $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+    }
+    $PAYMENT_DATA['TYPE'] = $TYPE;
+    $PAYMENT_DATA['NOTE'] = 'Product Purchase';
+    $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+    $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+    $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+
+    $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY CONVERT(RECEIPT_NUMBER, DECIMAL) DESC LIMIT 1");
+    if ($receipt->RecordCount() > 0) {
+        $RECEIPT_NUMBER_ORIGINAL = $receipt->fields['RECEIPT_NUMBER'] + 1;
+    } else {
+        $RECEIPT_NUMBER_ORIGINAL = 1;
+    }
+
+    $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER_ORIGINAL;
+    $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
+    db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 
     unset($_SESSION['CART_DATA']);
     header("location:all_orders.php");

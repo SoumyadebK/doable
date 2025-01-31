@@ -6,26 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/includes/enrollment_payment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/enrollment_payment.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/includes/process_enrollment_payment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/process_enrollment_payment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/includes/footer.php" beforeDir="false" afterPath="$PROJECT_DIR$/includes/footer.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1731512062.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1731512194.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1731945442.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1731950905.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1731951011.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1732119587.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1732219368.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1732299702.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1732300755.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1732732564.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1733512608.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1733516103.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1733760934.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1733832493.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1734099174.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/uploads/1010/enrollment_pdf/enrollment_pdf_1735226475.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/product_checkout.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/product_checkout.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -174,7 +156,9 @@
       <workItem from="1737998389329" duration="226000" />
       <workItem from="1738073576282" duration="12746000" />
       <workItem from="1738161982327" duration="6229000" />
-      <workItem from="1738250126725" duration="6296000" />
+      <workItem from="1738250126725" duration="8505000" />
+      <workItem from="1738331774765" duration="4522000" />
+      <workItem from="1738338080385" duration="2421000" />
     </task>
     <servers />
   </component>

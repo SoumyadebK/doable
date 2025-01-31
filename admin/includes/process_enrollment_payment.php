@@ -337,8 +337,14 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         }
 
         elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-            $LOGIN_ID = '4Y5pCy8Qr'; //$account_data->fields['LOGIN_ID'];
-            $TRANSACTION_KEY = '8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay'; // $account_data->fields['TRANSACTION_KEY'];
+            $AUTHORIZE_MODE 			= 2;
+            $AUTHORIZE_LOGIN_ID 		= $account_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+            $AUTHORIZE_TRANSACTION_KEY 	= $account_data->fields['TRANSACTION_KEY'];//"4ke43FW8z3287HV5";
+            $AUTHORIZE_CLIENT_KEY 		= $account_data->fields['AUTHORIZE_CLIENT_KEY'];//"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+
+
+            //$LOGIN_ID = '4Y5pCy8Qr'; //$account_data->fields['LOGIN_ID'];
+            //$TRANSACTION_KEY = '8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay'; // $account_data->fields['TRANSACTION_KEY'];
 
             // Product Details
             $itemName = $_POST['PK_ENROLLMENT_MASTER'];
@@ -358,8 +364,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $refID = 'ref' . time();
 
             $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-            $merchantAuthentication->setName($LOGIN_ID);
-            $merchantAuthentication->setTransactionKey($TRANSACTION_KEY);
+            $merchantAuthentication->setName($AUTHORIZE_LOGIN_ID);
+            $merchantAuthentication->setTransactionKey($AUTHORIZE_TRANSACTION_KEY);
 
             // Create the payment data for a credit card
             $creditCard = new AnetAPI\CreditCardType();
@@ -380,8 +386,6 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $customerData->setType("individual");
             $customerData->setEmail($email);
 
-            $ANET_ENV = 'SANDBOX';
-
             // Create a transaction
             $transactionRequestType = new AnetAPI\TransactionRequestType();
             $transactionRequestType->setTransactionType("authCaptureTransaction");
@@ -394,15 +398,32 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $request->setRefId($refID);
             $request->setTransactionRequest($transactionRequestType);
             $controller = new AnetController\CreateTransactionController($request);
-            $response = $controller->executeWithApiResponse(constant("\\net\authorize\api\constants\ANetEnvironment::$ANET_ENV"));
 
-            if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
-                $tresponse = $response->getTransactionResponse();
-                $PAYMENT_INFO = $tresponse->getTransId();
-            } else {
-                $PAYMENT_INFO = 'Payment Unsuccessful.';
+            try {
+                if($AUTHORIZE_MODE == 1)
+                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+                else
+                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+
+                if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+                    $tresponse = $response->getTransactionResponse();
+
+                    if ($tresponse != null && $tresponse->getMessages() != null) {
+                        $PAYMENT_STATUS = 'Success';
+                        $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $tresponse->getTransId(), 'LAST4' => $tresponse->getaccountNumber()];
+                        $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                    } else {
+                        $PAYMENT_STATUS = 'Failed';
+                        $PAYMENT_INFO = $tresponse->getErrors()[0]->getErrorCode();
+                    }
+                } else {
+                    $PAYMENT_STATUS = 'Failed';
+                    $PAYMENT_INFO = "Transaction Failed";
+                }
+            } catch (\Square\Exceptions\ApiException $e) {
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
             }
-            pre_r($response);
         }
 
     }

@@ -21,7 +21,52 @@ $YEAR = date('Y', strtotime($_GET['start_date']));
 $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($from_date. ' +6 day'));
 
-$PAYMENT_QUERY = "SELECT
+$PAYMENT_QUERY = "SELECT 
+                        DOA_ENROLLMENT_PAYMENT.AMOUNT, 
+                        DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, 
+                        DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE, 
+                        DOA_PAYMENT_TYPE.PAYMENT_TYPE, 
+                        CASE 
+                            WHEN DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NULL 
+                            THEN CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) 
+                            ELSE CONCAT(ORDER_CUSTOMER.FIRST_NAME, ' ', ORDER_CUSTOMER.LAST_NAME) 
+                        END AS STUDENT_NAME, 
+                        CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME, 
+                        CLOSER.LAST_NAME AS CLOSER_LAST_NAME, 
+                        DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER, 
+                        DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER, 
+                        DOA_ENROLLMENT_MASTER.PK_LOCATION 
+                    FROM 
+                        DOA_ENROLLMENT_PAYMENT 
+                    LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE 
+                        ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE 
+                    LEFT JOIN DOA_ENROLLMENT_MASTER 
+                        ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                    LEFT JOIN $master_database.DOA_USERS AS CLOSER 
+                        ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER 
+                    LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER 
+                        ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER 
+                    LEFT JOIN $master_database.DOA_USERS AS CUSTOMER 
+                        ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER 
+                        AND DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NULL 
+                    LEFT JOIN DOA_ORDER 
+                        ON DOA_ENROLLMENT_PAYMENT.PK_ORDER = DOA_ORDER.PK_ORDER 
+                    LEFT JOIN $master_database.DOA_USER_MASTER AS ORDER_USER_MASTER 
+                        ON DOA_ORDER.PK_USER_MASTER = ORDER_USER_MASTER.PK_USER_MASTER 
+                    LEFT JOIN $master_database.DOA_USERS AS ORDER_CUSTOMER 
+                        ON ORDER_CUSTOMER.PK_USER = ORDER_USER_MASTER.PK_USER 
+                        AND DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NOT NULL 
+                    WHERE 
+                        CUSTOMER.IS_DELETED = 0 
+                        AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' 
+                        AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5,7) 
+                        AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.")
+                        AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'
+                    ORDER BY 
+                        PAYMENT_DATE ASC, 
+                        RECEIPT_NUMBER ASC";
+
+/*$PAYMENT_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.AMOUNT,
                         DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                         DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
@@ -44,7 +89,7 @@ $PAYMENT_QUERY = "SELECT
                     
                     WHERE CUSTOMER.IS_DELETED = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5,7) AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.")
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'
-                    ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
+                    ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";*/
 
 $REFUND_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.AMOUNT,
