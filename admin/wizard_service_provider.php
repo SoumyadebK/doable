@@ -2,6 +2,8 @@
 require_once('../global/config.php');
 global $db;
 
+$title = "Add Service Provider";
+
 $userType = "Users";
 $user_role_condition = " AND PK_ROLES IN(5)";
 
@@ -12,10 +14,6 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION
 
 $CREATE_LOGIN = 0;
 
-if (empty($_GET['id']))
-    $title = "Add ".$userType;
-else
-    $title = "Edit ".$userType;
 
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
@@ -111,38 +109,7 @@ if(!empty($_GET['id'])) {
         <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor">
-                        <div class="card-title">
-                            <?php
-                            if(!empty($_GET['id'])) {
-                                echo "Edit ".$FIRST_NAME." ".$LAST_NAME;
-                            }
-                            ?>
-                        </div>
-                    </h4>
-                </div>
-                <div class="col-md-3 align-self-center" style="position: sticky; z-index: 1;">
-                    <?php if(!empty($_GET['id'])) { ?>
-                        <select required name="NAME" id="NAME" onchange="editpage(this);">
-                            <option value="">Select User</option>
-                            <?php
-                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7,8) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                            while (!$row->EOF) {?>
-                                <option value="<?php echo $row->fields['PK_USER'];?>" data-id="<?php echo $row->fields['PK_USER'];?>" <?=($row->fields['PK_USER']==$_GET['id'])?'selected':''?>><?=$row->fields['NAME']?></option>
-                                <?php $row->MoveNext(); } ?>
-                        </select>
-                    <?php } ?>
-                </div>
-
-                <div class="col-md-4 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item"><a href="all_users.php">All Users</a></li>
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
-
-                    </div>
+                    <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
             </div>
 
@@ -293,10 +260,10 @@ if(!empty($_GET['id'])) {
                                                             <div class="row">
                                                                 <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <label class="col-md-12">Country</label>
+                                                                        <label class="col-md-12">Country<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
                                                                             <div class="col-sm-12">
-                                                                                <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
+                                                                                <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
                                                                                     <option>Select Country</option>
                                                                                     <?php
                                                                                     $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
@@ -311,7 +278,7 @@ if(!empty($_GET['id'])) {
 
                                                                 <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <label class="col-md-12">State</label>
+                                                                        <label class="col-md-12">State<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
                                                                             <div class="col-sm-12">
                                                                                 <div id="State_div"></div>
