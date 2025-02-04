@@ -6,13 +6,14 @@ use Stripe\StripeClient;
 require_once('../global/config.php');
 global $db;
 global $db_account;
+global $upload_path;
 
 if (empty($_GET['id']))
     $title = "Add Location";
 else
     $title = "Edit Location";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -53,6 +54,7 @@ if(empty($_GET['id'])){
     $AM_USER_NAME = '';
     $AM_PASSWORD = '';
     $AM_REFRESH_TOKEN = '';
+    $SALES_TAX = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
 
@@ -88,6 +90,7 @@ if(empty($_GET['id'])){
     $AM_USER_NAME           = $res->fields['AM_USER_NAME'];
     $AM_PASSWORD            = $res->fields['AM_PASSWORD'];
     $AM_REFRESH_TOKEN       = $res->fields['AM_REFRESH_TOKEN'];
+    $SALES_TAX              = $res->fields['SALES_TAX'];
 }
 
 $SMTP_HOST = '';
@@ -155,6 +158,10 @@ if(!empty($_POST)){
         $LOCATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
 
         if ($_FILES['IMAGE_PATH']['name'] != '') {
+            if (!file_exists('../'.$upload_path.'/location_image/')) {
+                mkdir('../'.$upload_path.'/location_image/', 0777, true);
+            }
+
             $extn = explode(".", $_FILES['IMAGE_PATH']['name']);
             $iindex = count($extn) - 1;
             $rand_string = time() . "-" . rand(100000, 999999);
@@ -162,7 +169,7 @@ if(!empty($_POST)){
             $extension = strtolower($extn[$iindex]);
 
             if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-                $image_path = '../uploads/location_image/' . $file11;
+                $image_path = '../'.$upload_path.'/location_image/' . $file11;
                 move_uploaded_file($_FILES['IMAGE_PATH']['tmp_name'], $image_path);
                 $LOCATION_DATA['IMAGE_PATH'] = $image_path;
             }
@@ -425,10 +432,10 @@ if(!empty($_POST)){
                                                 </div>
                                                 <div class="col-6">
                                                     <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Zip Code</span>
+                                                        <label class="col-md-12" for="example-text">Postal / Zip Code</span>
                                                         </label>
                                                         <div class="col-md-12">
-                                                            <input type="text" id="ZIP_CODE" name="ZIP_CODE" class="form-control" placeholder="Enter Zip Code" value="<?php echo $ZIP_CODE?>">
+                                                            <input type="text" id="ZIP_CODE" name="ZIP_CODE" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP_CODE?>">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -487,17 +494,86 @@ if(!empty($_POST)){
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Sales Tax</label>
+                                                        <div class="input-group">
+                                                            <input type="text" name="SALES_TAX" id="SALES_TAX" class="form-control" value="<?php echo $SALES_TAX?>">
+                                                            <span class="form-control input-group-text">%</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <div class="form-group">
                                                 <?php if($IMAGE_PATH!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $IMAGE_PATH;?>" data-fancybox-group="gallery"><img src = "<?php echo $IMAGE_PATH;?>" style="width:120px; height:120px" /></a></div><?php } ?>
                                             </div>
 
+                                            <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
+                                                <div class="row" style="margin-top: 30px;">
+                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Payment Gateway Setting</b>
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'checked':''?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                            <div class="row smtp" id="smtp" >
-                                                <div class="form-group">
-                                                    <label class="form-label">SMTP Setup</label>
+                                                    <div class="row payment_gateway" id="stripe" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'':'none'?>;">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Secret Key</label>
+                                                                <input type="text" class="form-control" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Publishable Key</label>
+                                                                <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?=$PUBLISHABLE_KEY?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row payment_gateway" id="square" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Square')?'':'none'?>">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Application ID</label>
+                                                                <input type="text" class="form-control" name="APP_ID" value="<?=$SQUARE_APP_ID?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Location ID</label>
+                                                                <input type="text" class="form-control" name="LOCATION_ID" value="<?=$SQUARE_LOCATION_ID?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Access Token</label>
+                                                                <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?=$ACCESS_TOKEN?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row payment_gateway" id="authorized" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'':'none'?>">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Login ID</label>
+                                                                <input type="text" class="form-control" name="LOGIN_ID" value="<?=$LOGIN_ID?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Transaction Key</label>
+                                                                <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?=$TRANSACTION_KEY?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Authorize Client Key</label>
+                                                                <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?=$AUTHORIZE_CLIENT_KEY?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                            <?php } ?>
+
+                                            <div class="row" style="margin-top: 30px;">
+                                                <b class="btn btn-light" style="margin-bottom: 20px;">SMTP Setup</b>
                                                 <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">SMTP HOST</label>
@@ -525,10 +601,8 @@ if(!empty($_POST)){
                                             </div>
 
                                             <?php if ($FRANCHISE == 1) { ?>
-                                                <div class="row smtp" id="smtp" >
-                                                    <div class="form-group">
-                                                        <label class="form-label">Arthur Murray API Setup</label>
-                                                    </div>
+                                                <div class="row" style="margin-top: 30px;">
+                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
                                                     <div class="col-4">
                                                         <div class="form-group">
                                                             <label class="form-label">User Name</label>
@@ -541,12 +615,12 @@ if(!empty($_POST)){
                                                             <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
                                                         </div>
                                                     </div>
-                                                    <div class="col-4">
+                                                    <!--<div class="col-4">
                                                         <div class="form-group">
                                                             <label class="form-label">Refresh Token</label>
-                                                            <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?=$AM_REFRESH_TOKEN?>">
+                                                            <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/?>">
                                                         </div>
-                                                    </div>
+                                                    </div>-->
                                                 </div>
                                             <?php } ?>
 
@@ -562,66 +636,6 @@ if(!empty($_POST)){
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <?php } ?>
-
-                                            <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
-                                            <div class="col-6" style="margin-top:50px">
-                                                <div class="row">
-                                                    <div class="form-group">
-                                                        <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
-                                                        <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
-                                                        <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
-                                                        <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'checked':''?> onclick="showPaymentGateway(this);">Authorized.net</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row payment_gateway" id="stripe" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'':'none'?>;">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Secret Key</label>
-                                                        <input type="text" class="form-control" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label class="form-label">Publishable Key</label>
-                                                        <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?=$PUBLISHABLE_KEY?>">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row payment_gateway" id="square" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Square')?'':'none'?>">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Application ID</label>
-                                                        <input type="text" class="form-control" name="APP_ID" value="<?=$SQUARE_APP_ID?>">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label class="form-label">Location ID</label>
-                                                        <input type="text" class="form-control" name="LOCATION_ID" value="<?=$SQUARE_LOCATION_ID?>">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label class="form-label">Access Token</label>
-                                                        <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?=$ACCESS_TOKEN?>">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row payment_gateway" id="authorized" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'':'none'?>">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Login ID</label>
-                                                        <input type="text" class="form-control" name="LOGIN_ID" value="<?=$LOGIN_ID?>">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label class="form-label">Transaction Key</label>
-                                                        <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?=$TRANSACTION_KEY?>">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label class="form-label">Authorize Client Key</label>
-                                                        <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?=$AUTHORIZE_CLIENT_KEY?>">
-                                                    </div>
-                                                </div>
-                                            </div>
                                             <?php } ?>
 
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
@@ -824,6 +838,10 @@ if(!empty($_POST)){
 <script>
     $('.time-picker').timepicker({
         timeFormat: 'hh:mm p',
+        interval: 30,
+        dynamic: false,
+        dropdown: true,
+        scrollbar: true
     });
 
     function closeThisDay(param){

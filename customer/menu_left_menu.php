@@ -1,6 +1,10 @@
 
 <style>
 	.mail_active{color:red}
+
+    .mail_left_menu {
+        padding: 10px;
+    }
 </style>
 <?php
 	$count_inbox = $db->Execute("
@@ -19,19 +23,19 @@
 				<button class="btn btn-info" onclick="window.location.href='compose.php'" >Compose</button>
 			</div>
 			<div class="mail_left_menu">
-				<a href="email.php" <? if($_GET['type'] == '') { ?> class="mail_active" <? } ?>  >Inbox (<?=$count_inbox->fields['totalrows'];?>)</a>
+				<a href="email.php" <?php if($_GET['type'] == '') { ?> class="mail_active" <?php } ?>  >Inbox (<?=$count_inbox->fields['totalrows'];?>)</a>
 			</div>
 			<div class="mail_left_menu">
-				<a href="email.php?type=starred" <? if($_GET['type'] == 'starred') { ?> class="mail_active" <? } ?> >Starred</a>
+				<a href="email.php?type=starred" <?php if($_GET['type'] == 'starred') { ?> class="mail_active" <?php } ?> >Starred</a>
 			</div>
 			<div class="mail_left_menu">
-				<a href="email.php?type=sent" <? if($_GET['type'] == 'sent') { ?> class="mail_active" <? } ?> >Sent</a>
+				<a href="email.php?type=sent" <?php if($_GET['type'] == 'sent') { ?> class="mail_active" <?php } ?> >Sent</a>
 			</div>
 			<div class="mail_left_menu">
-				<a href="email.php?type=draft" <? if($_GET['type'] == 'draft') { ?> class="mail_active" <? } ?> >Drafts</a>
+				<a href="email.php?type=draft" <?php if($_GET['type'] == 'draft') { ?> class="mail_active" <?php } ?> >Drafts</a>
 			</div>
 			<div class="mail_left_menu">
-				<a href="email.php?type=trash" <? if($_GET['type'] == 'trash') { ?> class="mail_active" <? } ?> >Trash</a>
+				<a href="email.php?type=trash" <?php if($_GET['type'] == 'trash') { ?> class="mail_active" <?php } ?> >Trash</a>
 			</div>
 		</div>
 	</div>

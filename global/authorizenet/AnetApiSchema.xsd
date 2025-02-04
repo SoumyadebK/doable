@@ -1547,7 +1547,7 @@
       </xs:enumeration>
       <xs:enumeration value="hostedProfileBillingAddressRequired">
         <xs:annotation>
-          <xs:documentation>true/false. If true, sets First Name, Last Name, Address, City, State, and Zip Code as required fields in order for a payment profile to be created or updated within a hosted CIM form.</xs:documentation>
+          <xs:documentation>true/false. If true, sets First Name, Last Name, Address, City, State, and Postal / Zip Code as required fields in order for a payment profile to be created or updated within a hosted CIM form.</xs:documentation>
         </xs:annotation>
       </xs:enumeration>
       <xs:enumeration value="hostedProfileCardCodeRequired">

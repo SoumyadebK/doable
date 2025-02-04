@@ -1,4 +1,5 @@
-<?
+<?php
+global $db;
 require_once('global/config.php');
 $msg = '';
 $success_msg = '';
@@ -8,38 +9,28 @@ if ($FUNCTION_NAME == 'loginFunction'){
     $USER_NAME = trim($_POST['USER_NAME']);
     $PASSWORD = trim($_POST['PASSWORD']);
 
-    $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.DB_NAME, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USERS.USER_NAME = '$USER_NAME'");
+    $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.DB_NAME, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE, DOA_ACCOUNT_MASTER.IS_NEW FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USERS.USER_NAME = '$USER_NAME'");
     if($result->RecordCount() > 0) {
         if (($result->fields['ACCOUNT_ACTIVE'] == 1 || $result->fields['ACCOUNT_ACTIVE'] == '' || $result->fields['ACCOUNT_ACTIVE'] == NULL) && $result->fields['ACTIVE'] == 1 && $result->fields['CREATE_LOGIN'] == 1) {
             if (password_verify($PASSWORD, $result->fields['PASSWORD'])) {
-                $selected_roles = [];
+                $selected_role = '';
                 $PK_USER = $result->fields['PK_USER'];
-                $selected_roles_row = $db->Execute("SELECT PK_ROLES FROM `DOA_USER_ROLES` WHERE `PK_USER` = '$PK_USER'");
-                while (!$selected_roles_row->EOF) {
-                    $selected_roles[] = $selected_roles_row->fields['PK_ROLES'];
-                    $selected_roles_row->MoveNext();
-                }
+                $selected_roles_row = $db->Execute("SELECT DOA_USER_ROLES.PK_ROLES, DOA_ROLES.SORT_ORDER FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER' ORDER BY DOA_ROLES.SORT_ORDER ASC LIMIT 1");
+                $selected_role = $selected_roles_row->fields['PK_ROLES'];
 
                 $_SESSION['PK_USER'] = $result->fields['PK_USER'];
+                $_SESSION['PK_ROLES'] = $selected_role;
+                $_SESSION['IS_NEW'] = $result->fields['IS_NEW'];
 
-                if (in_array(1, $selected_roles)) {
-                    $_SESSION['PK_ROLES'] = 1;
-                } elseif (in_array(2, $selected_roles)) {
-                    $_SESSION['PK_ROLES'] = 2;
-                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
-                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
-                } /*elseif (in_array(3, $selected_roles)) {
-                    $_SESSION['PK_ROLES'] = 3;
-                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
-                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
-                }*/ elseif (in_array(4, $selected_roles)) {
+                if ($_SESSION['PK_ROLES'] == 4) {
                     $customer_account_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER, DOA_ACCOUNT_MASTER.DB_NAME, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_ACCOUNT_MASTER INNER JOIN DOA_USER_MASTER ON DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  = DOA_USER_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USER_MASTER.PK_USER = '$PK_USER' LIMIT 1");
-                    $_SESSION['PK_ROLES'] = 4;
                     $_SESSION['DB_NAME'] = $customer_account_data->fields['DB_NAME'];
                     $_SESSION['PK_ACCOUNT_MASTER'] = $customer_account_data->fields['PK_ACCOUNT_MASTER'];
                     $_SESSION['PK_USER_MASTER'] = $customer_account_data->fields['PK_USER_MASTER'];
-                } elseif (in_array(5, $selected_roles)) {
-                    $_SESSION['PK_ROLES'] = 5;
+                } elseif ($_SESSION['PK_ROLES'] == 5) {
+                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
+                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
+                } elseif ($_SESSION['PK_ROLES'] != 1) {
                     $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
                     $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
                 }
@@ -57,16 +48,22 @@ if ($FUNCTION_NAME == 'loginFunction'){
                 }
                 $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
 
+                if (!file_exists('uploads/'.$_SESSION['PK_ACCOUNT_MASTER'])) {
+                    mkdir('uploads/'.$_SESSION['PK_ACCOUNT_MASTER'], 0777, true);
+                }
+
                 if ($_SESSION['PK_ROLES'] == 1) {
                     header("location: super_admin/all_accounts.php");
-                } elseif ($_SESSION['PK_ROLES'] == 2 || $_SESSION['PK_ROLES'] == 3) {
-                    header("location: admin/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 4) {
                     $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$result->fields['PK_USER']." LIMIT 1");
                     $_SESSION['PK_ACCOUNT_MASTER'] = $account->fields['PK_ACCOUNT_MASTER'];
                     header("location: customer/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 5) {
                     header("location: service_provider/all_schedules.php?view=table");
+                } elseif ($_SESSION['IS_NEW'] == 1) {
+                    header("location: admin/wizard_business_profile.php");
+                } else {
+                    header("location: admin/all_schedules.php?view=table");
                 }
             } else {
                 $msg = "Invalid Password";
@@ -82,7 +79,36 @@ if ($FUNCTION_NAME == 'loginFunction'){
 ?>
 <!DOCTYPE html>
 <html lang="en">
+<style>
+    /* Style the input wrapper */
+    .password-wrapper {
+        position: relative;
+        display: inline-block;
+    }
 
+    /* Style the password input box */
+    .password-wrapper input {
+        padding-right: 40px; /* Space for the eye icon */
+        width: 360px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    /* Style the eye icon */
+    .password-wrapper .eye-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    /* Optional: Icon hover effect */
+    .password-wrapper .eye-icon:hover {
+        color: #007bff;
+    }
+</style>
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -135,8 +161,15 @@ if ($FUNCTION_NAME == 'loginFunction'){
                         </div>
                     </div>
                     <div class="form-group">
-                        <div class="col-xs-12">
-                            <input class="form-control" type="password" required="" placeholder="Password" id="PASSWORD" name="PASSWORD">
+                        <div class="col-xs-12 password-wrapper">
+                            <div class="row">
+                                <div class="col-md-10">
+                                    <input class="form-control" type="password" required="" placeholder="Password" id="PASSWORD" name="PASSWORD">
+                                </div>
+                                <div class="col-md-2" style="padding: 5px 20px 0 30px;">
+                                    <a href="javascript:" onclick="togglePasswordVisibility()"><i class="icon-eye"></i></a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -147,7 +180,7 @@ if ($FUNCTION_NAME == 'loginFunction'){
                                     <label class="form-check-label" for="customCheck1">Remember me</label>
                                 </div>
                                 <div class="ms-auto">
-                                    <a href=" " id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot password?</a>
+                                    <a href="forgot-password.php" id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot password?</a>
                                 </div>
                             </div>
                         </div>
@@ -188,6 +221,15 @@ if ($FUNCTION_NAME == 'loginFunction'){
         $("#loginform").fadeIn();
         $("#recoverform").slideUp();
     });
+
+    function togglePasswordVisibility() {
+        let passwordInput = document.getElementById("PASSWORD");
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text"; // Show password
+        } else {
+            passwordInput.type = "password"; // Hide password
+        }
+    }
 </script>
 
 </body>

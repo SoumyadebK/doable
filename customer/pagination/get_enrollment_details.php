@@ -110,14 +110,16 @@ while (!$serviceCodeData->EOF) {
             <td style="text-align: center;"></td>
             <td style="text-align: right;"><?php /*=($billing_details->fields['AMOUNT_REMAIN'] > 0) ? $billing_details->fields['AMOUNT_REMAIN'] : ''*/?><?php /*=number_format((float)$balance, 2, '.', '')*/?></td>
             <td style="text-align: right;">
-                <?php if($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS'] == 'A') {
+                <?php if(in_array('Customers Active Enrollments Edit', $PERMISSION_ARRAY)) {
+                if($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS'] == 'A') {
                     if ($billing_details->fields['AMOUNT_REMAIN'] > 0) { ?>
                         <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$PK_ENROLLMENT_MASTER?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['AMOUNT_REMAIN']?>, '<?=$ENROLLMENT_ID?>');">Pay Now</button>
                     <?php } else { ?>
                         <label><input type="checkbox" name="PK_ENROLLMENT_LEDGER[]" class="pay_now_check PK_ENROLLMENT_LEDGER PAYMENT_CHECKBOX_<?=$PK_ENROLLMENT_MASTER?>" data-billed_amount="<?=$billing_details->fields['BILLED_AMOUNT']?>" value="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>"></label>
                         <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$PK_ENROLLMENT_MASTER?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$ENROLLMENT_ID?>');">Pay Now</button>
                     <?php }
-                } ?>
+                    }
+                }?>
             </td>
         </tr>
         <?php

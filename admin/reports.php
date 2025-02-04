@@ -2,7 +2,7 @@
 require_once('../global/config.php');
 $title = "Reports";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -10,13 +10,16 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 if (!empty($_GET['NAME'])) {
     $type = isset($_GET['view']) ? 'view' : 'export';
     $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
+    $START_DATE = $_GET['start_date'];
 
-    if ($_GET['NAME'] == 'royalty_service_report') {
-        header('location:royalty_service_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
+    if ($_GET['NAME'] == 'royalty') {
+        header('location:royalty_service_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
     } elseif ($_GET['NAME'] == 'summary_of_studio_business_report'){
-        header('location:summary_of_studio_business_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
+        header('location:summary_of_studio_business_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
     } elseif ($_GET['NAME'] == 'staff_performance_report'){
-        header('location:staff_performance_report.php?week_number='.$WEEK_NUMBER.'&type='.$type);
+        header('location:staff_performance_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
+    } elseif ($_GET['NAME'] == 'summary_of_staff_member_report'){
+        header('location:summary_of_staff_member_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
     }
 }
 ?>
@@ -68,7 +71,7 @@ if (!empty($_GET['NAME'])) {
                                         <li><a href="customer_summary_report.php">Customer Reports</a></li>
                                         <li><a href="student_mailing_list.php">Student Mailing List</a></li>
                                         <li><a href="total_open_liability.php">Total Open Liability Since Last Activity</a></li>
-                                        <!--<li><a href="royalty_service_report.php">Royalty / Service Report</a></li>
+                                        <!--<li><a href="royalty.php">Royalty / Service Report</a></li>
                                         <li><a href="summary_of_studio_business_report.php">Summary of Studio Business Report</a></li>
                                         <li><a href="staff_performance_report.php">Staff Performance Report</a></li>-->
                                     </ul>
@@ -87,14 +90,16 @@ if (!empty($_GET['NAME'])) {
                                 <h4 class="card-title">Electronic Weekly Reports</h4>
                             </div>
                             <form class="form-material form-horizontal" action="" method="get">
+                                <input type="hidden" name="start_date" id="start_date">
                                 <div class="row">
                                     <div class="col-4">
                                         <div class="form-group">
                                             <select class="form-control" required name="NAME" id="NAME">
                                                 <option value="">Select Report</option>
-                                                <option value="royalty_service_report">ROYALTY / SERVICE REPORT</option>
+                                                <option value="royalty">ROYALTY / SERVICE REPORT</option>
                                                 <option value="summary_of_studio_business_report">SUMMARY OF STUDIO BUSINESS REPORT</option>
                                                 <option value="staff_performance_report">STAFF PERFORMANCE REPORT</option>
+                                                <option value="summary_of_staff_member_report">SUMMARY OF STAFF MEMBER REPORT</option>
                                             </select>
                                         </div>
                                     </div>
@@ -104,8 +109,13 @@ if (!empty($_GET['NAME'])) {
                                         </div>
                                     </div>
                                     <div class="col-2">
+                                        <?php if(in_array('Reports Create', $PERMISSION_ARRAY)){ ?>
                                         <input type="submit" name="view" id="submit"  value="View" style="background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;">
                                         <input type="submit" name="export" id="submit" style="background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;" value="Export">
+                                        <?php } ?>
+                                    </div>
+                                    <div class="col-3">
+                                        <p id="last_export_message" style="color: red; margin-top: 9px;"></p>
                                     </div>
                                 </div>
                             </form>
@@ -135,8 +145,22 @@ if (!empty($_GET['NAME'])) {
         },
         onSelect: function(dateText, inst) {
             let d = new Date(dateText);
+            let start_date = (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+            $('#start_date').val(start_date);
             d.setDate(d.getDate() -363);
-            $(this).val("Week Number " + $.datepicker.iso8601Week(d));
+            let week_number = $.datepicker.iso8601Week(d);
+            let report_type = $('#NAME').val();
+            $(this).val("Week Number " + week_number);
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: "POST",
+                data: {FUNCTION_NAME:'getReportDetails', REPORT_TYPE:report_type, WEEK_NUMBER:week_number, YEAR:(d.getFullYear()+1)},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#last_export_message').text(result);
+                }
+            });
         }
     });
 

@@ -38,6 +38,11 @@ function getAllCustomers() {
     return $db1->Execute("SELECT * FROM customer");
 }
 
+function getAllCustomersID() {
+    global $db1;
+    return $db1->Execute("SELECT customer_id FROM customer");
+}
+
 function getAllServices() {
     global $db1;
     return $db1->Execute("SELECT * FROM service_codes");
@@ -105,12 +110,12 @@ function getAllPrivateAppointments() {
 
 function getAllPrivateAppointmentsByCustomerId($customer_id) {
     global $db1;
-    return $db1->Execute("SELECT * FROM service_appt WHERE student_id = '$customer_id' AND `service_id` LIKE '%PRI%' ORDER BY appt_date ASC, appt_time ASC");
+    return $db1->Execute("SELECT * FROM service_appt WHERE student_id = '$customer_id' AND (`service_id` LIKE '%PRI%' OR `service_id` LIKE '%PCMP%') ORDER BY appt_date ASC, appt_time ASC");
 }
 
 function getAllGroupAppointments() {
     global $db1;
-    return $db1->Execute("SELECT * FROM service_appt WHERE `service_id` NOT LIKE '%PRI%' AND `service_id` NOT LIKE '%COMM%' ORDER BY appt_date ASC, appt_time ASC");
+    return $db1->Execute("SELECT * FROM service_appt WHERE `service_id` NOT LIKE '%PRI%' AND `service_id` NOT LIKE '%COMM%' AND `service_id` NOT LIKE '%PCMP%' ORDER BY appt_date ASC, appt_time ASC");
 }
 
 function getDemoAppointments() {
@@ -237,6 +242,13 @@ function getPackageCode($package_id) {
     } else {
         return 0;
     }
+}
+
+function getDownPaymentBilledAmount($charge_id)
+{
+    global $db1;
+    $payment_data = $db1->Execute("SELECT SUM(amount_paid) AS TOTAL_PAID FROM `payments` WHERE record_type = 'Payment' AND charge_id = '$charge_id'");
+    return $payment_data->fields['TOTAL_PAID'];
 }
 
 //function getName($customer_id) {

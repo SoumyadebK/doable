@@ -8,10 +8,7 @@ $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 use Twilio\Exceptions\ConfigurationException;
 use Twilio\Rest\Client;
 
-if (empty($_GET['id']))
-    $title = "Create Appointment";
-else
-    $title = "Edit Appointment";
+$title = "Create Appointment";
 
 if (!empty($_GET['date'])) {
     $date_array = explode('T', $_GET['date']);
@@ -45,7 +42,7 @@ if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
     $id_customer = '';
 }
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -249,7 +246,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
     $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
 
-    $enrollment_location = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    $enrollment_location = $db_account->Execute("SELECT PK_LOCATION, CHARGE_TYPE FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
     if ($enrollment_location->RecordCount() > 0) {
         $PK_LOCATION = $enrollment_location->fields['PK_LOCATION'];
     } else {
@@ -257,8 +254,13 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     }
 
     $enrollment_service_data = $db_account->Execute("SELECT `NUMBER_OF_SESSION` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
+    if ($enrollment_location->fields['CHARGE_TYPE'] == 'Membership') {
+        $NUMBER_OF_SESSION = 99;
+    } else {
+        $NUMBER_OF_SESSION = $enrollment_service_data->fields['NUMBER_OF_SESSION'];
+    }
     $SESSION_CREATED = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
-    $SESSION_LEFT = $enrollment_service_data->fields['NUMBER_OF_SESSION'] - $SESSION_CREATED;
+    $SESSION_LEFT = $NUMBER_OF_SESSION - $SESSION_CREATED;
 
     $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
     $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
@@ -284,22 +286,26 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
         $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
         $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
-        db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
-        $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
-        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
-        for ($j = 0; $j < count($_POST['SERVICE_PROVIDER_ID']); $j++) {
-            $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-            $APPOINTMENT_SP_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID'][$j];
-            db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+        if ($APPOINTMENT_DATA['START_TIME'] != $APPOINTMENT_DATA['END_TIME']) {
+            db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+            $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
+
+            $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+            for ($j = 0; $j < count($_POST['SERVICE_PROVIDER_ID']); $j++) {
+                $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                $APPOINTMENT_SP_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID'][$j];
+                db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+            }
+
+            $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+            for ($k = 0; $k < count($_POST['CUSTOMER_ID']); $k++) {
+                $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
+                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
+            }
         }
 
-        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
-        for ($k = 0; $k < count($_POST['CUSTOMER_ID']); $k++) {
-            $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-            $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
-            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
-        }
         //updateSessionCreatedCount($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
     }
     markAppointmentPaid($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
@@ -353,24 +359,27 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     for ($i=0; $i<count($START_TIME_ARRAY); $i++) {
         $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
         $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
-        $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
-        db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
-        $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
-        checkAdhocAppointmentStatus($PK_APPOINTMENT_MASTER, $PK_SERVICE_MASTER, $PK_SERVICE_CODE, $_POST['CUSTOMER_ID'][0], $PK_LOCATION);
+        if ($APPOINTMENT_DATA['START_TIME'] != $APPOINTMENT_DATA['END_TIME']) {
+            $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
+            db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+            $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
-        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
-        for ($j = 0; $j < count($_POST['SERVICE_PROVIDER_ID']); $j++) {
-            $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-            $APPOINTMENT_SP_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID'][$j];
-            db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
-        }
+            checkAdhocAppointmentStatus($PK_APPOINTMENT_MASTER, $PK_SERVICE_MASTER, $PK_SERVICE_CODE, $_POST['CUSTOMER_ID'][0], $PK_LOCATION);
 
-        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
-        for ($k = 0; $k < count($_POST['CUSTOMER_ID']); $k++) {
-            $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-            $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
-            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
+            $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+            for ($j = 0; $j < count($_POST['SERVICE_PROVIDER_ID']); $j++) {
+                $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                $APPOINTMENT_SP_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID'][$j];
+                db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+            }
+
+            $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+            for ($k = 0; $k < count($_POST['CUSTOMER_ID']); $k++) {
+                $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
+                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
+            }
         }
     }
 

@@ -10,7 +10,7 @@ global $master_database;
 
 $title = "Business Profile";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])){
     header("location:../login.php");
     exit;
 }
@@ -463,10 +463,10 @@ if ($header_data->RecordCount() > 0) {
                                                 </div>
                                                 <div class="col-6">
                                                     <div class="form-group">
-                                                        <label class="col-md-12">Zip Code</span>
+                                                        <label class="col-md-12">Postal / Zip Code</span>
                                                         </label>
                                                         <div class="col-md-12">
-                                                            <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Zip Code" value="<?php echo $ZIP?>">
+                                                            <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP?>">
                                                         </div>
                                                     </div>
                                                 </div>

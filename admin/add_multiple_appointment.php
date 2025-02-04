@@ -2,13 +2,14 @@
 require_once('../global/config.php');
 global $db;
 global $db_account;
+global $upload_path;
 
 if (empty($_GET['id']))
     $title = "Add Appointment";
 else
     $title = "Edit Appointment";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -97,6 +98,9 @@ if (isset($_POST['FUNCTION_NAME'])){
             }
         }
     }else{
+        if (!file_exists('../'.$upload_path.'/appointment_image/')) {
+            mkdir('../'.$upload_path.'/appointment_image/', 0777, true);
+        }
         //$_POST['ACTIVE'] = $_POST['ACTIVE'];
         if($_FILES['IMAGE']['name'] != ''){
             $extn 			= explode(".",$_FILES['IMAGE']['name']);
@@ -106,7 +110,7 @@ if (isset($_POST['FUNCTION_NAME'])){
             $extension   	= strtolower($extn[$iindex]);
 
             if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
-                $image_path    = '../uploads/appointment_image/'.$file11;
+                $image_path    = '../'.$upload_path.'/appointment_image/'.$file11;
                 move_uploaded_file($_FILES['IMAGE']['tmp_name'], $image_path);
                 $_POST['IMAGE'] = $image_path;
             }

@@ -26,7 +26,7 @@ if ($status_check == 'active'){
 }
 
 $user_role_condition = " AND PK_ROLES = 4";
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -57,44 +57,48 @@ $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
 $SECRET_KEY = $account_data->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
 
-$ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
-$APP_ID = $account_data->fields['APP_ID'];
-$LOCATION_ID = $account_data->fields['LOCATION_ID'];
+$SQUARE_ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
+$SQUARE_APP_ID = $account_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
 $card_details = '';
 
 require_once("../global/stripe-php-master/init.php");
+$customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $PK_USER);
 
 if ($SECRET_KEY != '') {
     $stripe = new StripeClient($SECRET_KEY);
-    $customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $PK_USER);
     $message = '';
 
     if ($customer_payment_info->RecordCount() > 0) {
-        $customer_id = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-        $stripe_customer = $stripe->customers->retrieve($customer_id);
-        $card_id = $stripe_customer->default_source;
+        try {
+            $customer_id = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+            $stripe_customer = $stripe->customers->retrieve($customer_id);
+            $card_id = $stripe_customer->default_source;
 
-        $url = "https://api.stripe.com/v1/customers/" . $customer_id . "/cards/" . $card_id;
-        $AUTH = "Authorization: Bearer " . $SECRET_KEY;
+            $url = "https://api.stripe.com/v1/customers/" . $customer_id . "/cards/" . $card_id;
+            $AUTH = "Authorization: Bearer " . $SECRET_KEY;
 
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "GET",
-            CURLOPT_HTTPHEADER => array(
-                $AUTH
-            ),
-        ));
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => "",
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => "GET",
+                CURLOPT_HTTPHEADER => array(
+                    $AUTH
+                ),
+            ));
 
-        $response = curl_exec($curl);
-        $card_details = json_decode($response, true);
+            $response = curl_exec($curl);
+            $card_details = json_decode($response, true);
+        } catch (Exception $e) {
+            $error_message = $e->getMessage();
+        }
     }
 }
 
@@ -102,7 +106,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard
     $STRIPE_TOKEN = $_POST['token'];
     $CUSTOMER_PAYMENT_ID = '';
     if ($customer_payment_info->RecordCount() > 0) {
-        $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['ACCOUNT_PAYMENT_ID'];
+        $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
     } else {
         try {
             $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = ".$PK_USER);
@@ -206,6 +210,8 @@ $DATE_NAME_2 = '';
 $ATTENDING_WITH = '';
 $PARTNER_FIRST_NAME = '';
 $PARTNER_LAST_NAME = '';
+$PARTNER_PHONE = '';
+$PARTNER_EMAIL = '';
 $PARTNER_GENDER = '';
 $PARTNER_DOB = '';
 $INACTIVE_BY_ADMIN = '';
@@ -257,6 +263,8 @@ if(!empty($_GET['id'])) {
         $ATTENDING_WITH = $customer_data->fields['ATTENDING_WITH'];
         $PARTNER_FIRST_NAME = $customer_data->fields['PARTNER_FIRST_NAME'];
         $PARTNER_LAST_NAME = $customer_data->fields['PARTNER_LAST_NAME'];
+        $PARTNER_PHONE = $customer_data->fields['PARTNER_PHONE'];
+        $PARTNER_EMAIL = $customer_data->fields['PARTNER_EMAIL'];
         $PARTNER_GENDER = $customer_data->fields['PARTNER_GENDER'];
         $PARTNER_DOB = $customer_data->fields['PARTNER_DOB'];
     }
@@ -385,12 +393,15 @@ if ($PK_USER_MASTER > 0) {
                 </div>
                 <div class="col-md-8 align-self-center">
                     <ul class="nav nav-tabs" role="tablist" style="width: 80%">
+                        <?php if(in_array('Customers Profile Edit', $PERMISSION_ARRAY)){ ?>
                         <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                         <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
                         <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
+                        <?php } ?>
                         <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>-->
 
                         <?php if(!empty($_GET['id'])) { ?>
+                            <?php if(in_array('Customers Profile Edit', $PERMISSION_ARRAY)){ ?>
                             <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
                             <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
                             <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
@@ -401,7 +412,10 @@ if ($PK_USER_MASTER > 0) {
                             <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                             <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#credit_card" role="tab"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
                             <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab"><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
+                            <?php } ?>
+                            <?php if(in_array('Customers Delete', $PERMISSION_ARRAY)){ ?>
                             <li> <a class="nav-link" id="delete_tab_link" data-bs-toggle="tab" href="#delete_customer" role="tab"><span class="hidden-sm-up"><i class="ti-trash"></i></span> <span class="hidden-xs-down">Delete</span></a> </li>
+                            <?php } ?>
                         <?php } ?>
                     </ul>
                 </div>
@@ -703,9 +717,9 @@ if ($PK_USER_MASTER > 0) {
                                                             </div>
                                                             <div class="col-6">
                                                                 <div class="form-group">
-                                                                    <label class="col-md-12">Zip Code</label>
+                                                                    <label class="col-md-12">Postal / Zip Code</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Zip Code" value="<?php echo $ZIP?>">
+                                                                        <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP?>">
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -861,6 +875,24 @@ if ($PK_USER_MASTER > 0) {
                                                                 </div>
                                                             </div>
                                                             <div class="row">
+                                                                <div class="col-6">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Partner's Phone</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" placeholder="Enter Partner's Phone" name="PARTNER_PHONE" value="<?=$PARTNER_PHONE?>">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Partner's Email</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" placeholder="Enter Partner's Email" name="PARTNER_EMAIL" value="<?=$PARTNER_EMAIL?>">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
                                                                         <label class="form-label">Partner's Gender</label>
@@ -954,7 +986,7 @@ if ($PK_USER_MASTER > 0) {
                                                                 </div>
                                                             </div>
                                                             <b id="password_error" style="color: red;"></b>
-                                                            <div class="row">
+                                                            <div class="row" id="password_note">
                                                                 <div class="col-12">
                                                                     <span style="color: orange;">Note  : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
                                                                 </div>
@@ -2188,12 +2220,6 @@ if ($PK_USER_MASTER > 0) {
     }
 </style>
 <?php require_once('../includes/footer.php');?>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
-    import Swal from 'sweetalert2';
-    const Swal = require('sweetalert2');
-</script>
-
     <script>
         let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
         let PK_USER_MASTER = parseInt(<?=empty($_GET['master_id'])?0:$_GET['master_id']?>);
@@ -2340,12 +2366,15 @@ if ($PK_USER_MASTER > 0) {
                 case 1:
                 case 2:
                     strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
+                    $('#password_note').slideDown();
                     break;
                 case 3:
                     strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
+                    $('#password_note').slideDown();
                     break;
                 case 4:
                     strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
+                    $('#password_note').slideUp();
                     break;
 
             }
@@ -3060,7 +3089,7 @@ if ($PK_USER_MASTER > 0) {
         let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
 
         function getSum(total, num) {
-            return total + Math.round(num);
+            return total + num;
         }
 
         $('#enrollment_number').text(ENROLLMENT_ID);

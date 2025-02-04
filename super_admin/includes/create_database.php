@@ -7,7 +7,8 @@ $create_database = "
 CREATE TABLE `DOA_APPOINTMENT_CUSTOMER` (
   `PK_APPOINTMENT_CUSTOMER` int(11) NOT NULL,
   `PK_APPOINTMENT_MASTER` int(11) NOT NULL DEFAULT 0,
-  `PK_USER_MASTER` int(11) NOT NULL DEFAULT 0
+  `PK_USER_MASTER` int(11) NOT NULL DEFAULT 0,
+  `WITH_PARTNER` tinyint(4) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -134,6 +135,8 @@ CREATE TABLE `DOA_CUSTOMER_DETAILS` (
   `ATTENDING_WITH` varchar(50) DEFAULT NULL,
   `PARTNER_FIRST_NAME` varchar(150) DEFAULT NULL,
   `PARTNER_LAST_NAME` varchar(150) DEFAULT NULL,
+  `PARTNER_PHONE` varchar(20) DEFAULT NULL,
+  `PARTNER_EMAIL` varchar(100) DEFAULT NULL,
   `PARTNER_GENDER` varchar(20) DEFAULT NULL,
   `PARTNER_DOB` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -292,20 +295,20 @@ CREATE TABLE `DOA_DOCUMENT_LOCATION` (
 
 CREATE TABLE `DOA_EMAIL` (
   `PK_EMAIL` int(11) NOT NULL,
-  `INTERNAL_ID` int(11) NOT NULL,
-  `CREATED_BY` int(11) NOT NULL,
-  `PK_EMAIL_TYPE` int(11) NOT NULL,
+  `INTERNAL_ID` int(11) DEFAULT NULL,
+  `CREATED_BY` int(11) DEFAULT NULL,
+  `PK_EMAIL_TYPE` int(11) DEFAULT NULL,
   `DRAFT` int(11) NOT NULL DEFAULT 0,
-  `SUBJECT` varchar(300) NOT NULL,
-  `CONTENT` longtext NOT NULL,
+  `SUBJECT` varchar(300) DEFAULT NULL,
+  `CONTENT` longtext DEFAULT NULL,
   `REMINDER_DATE` date DEFAULT NULL,
   `DUE_DATE` date DEFAULT NULL,
-  `EMAIL_FOR` varchar(100) NOT NULL,
+  `EMAIL_FOR` varchar(100) DEFAULT NULL,
   `ID` int(11) NOT NULL DEFAULT 0,
   `PARENT_ID` int(11) NOT NULL DEFAULT 0,
-  `PK_EMAIL_STATUS` int(11) NOT NULL,
+  `PK_EMAIL_STATUS` int(11) DEFAULT NULL,
   `ACTIVE` int(11) NOT NULL DEFAULT 1,
-  `CREATED_ON` datetime NOT NULL
+  `CREATED_ON` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -337,10 +340,10 @@ CREATE TABLE `DOA_EMAIL_ACCOUNT` (
 
 CREATE TABLE `DOA_EMAIL_ATTACHMENT` (
   `PK_EMAIL_ATTACHMENT` int(11) NOT NULL,
-  `PK_EMAIL` int(11) NOT NULL,
-  `FILE_NAME` varchar(250) NOT NULL,
-  `LOCATION` varchar(500) NOT NULL,
-  `UPLOADED_ON` datetime NOT NULL,
+  `PK_EMAIL` int(11) DEFAULT NULL,
+  `FILE_NAME` varchar(250) DEFAULT NULL,
+  `LOCATION` varchar(500) DEFAULT NULL,
+  `UPLOADED_ON` datetime DEFAULT NULL,
   `ACTIVE` int(11) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -352,13 +355,13 @@ CREATE TABLE `DOA_EMAIL_ATTACHMENT` (
 
 CREATE TABLE `DOA_EMAIL_RECEPTION` (
   `PK_EMAIL_RECEPTION` int(11) NOT NULL,
-  `PK_EMAIL` int(11) NOT NULL,
-  `INTERNAL_ID` int(11) NOT NULL,
-  `PK_USER` int(11) NOT NULL,
-  `VIWED` int(11) NOT NULL,
-  `REPLY` int(11) NOT NULL,
-  `DELETED` int(11) NOT NULL,
-  `CREATED_ON` datetime NOT NULL
+  `PK_EMAIL` int(11) DEFAULT NULL,
+  `INTERNAL_ID` int(11) DEFAULT NULL,
+  `PK_USER` int(11) DEFAULT NULL,
+  `VIWED` int(11) DEFAULT NULL,
+  `REPLY` int(11) DEFAULT NULL,
+  `DELETED` int(11) DEFAULT NULL,
+  `CREATED_ON` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -369,12 +372,12 @@ CREATE TABLE `DOA_EMAIL_RECEPTION` (
 
 CREATE TABLE `DOA_EMAIL_STARRED` (
   `PK_EMAIL_STARRED` int(11) NOT NULL,
-  `INTERNAL_ID` int(11) NOT NULL,
-  `PK_USER` int(11) NOT NULL,
-  `PK_EMAIL` int(11) NOT NULL,
-  `STARRED` int(11) NOT NULL,
-  `CREATED_ON` datetime NOT NULL,
-  `EDITED_ON` datetime NOT NULL
+  `INTERNAL_ID` int(11) DEFAULT NULL,
+  `PK_USER` int(11) DEFAULT NULL,
+  `PK_EMAIL` int(11) DEFAULT NULL,
+  `STARRED` int(11) DEFAULT NULL,
+  `CREATED_ON` datetime DEFAULT NULL,
+  `EDITED_ON` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -385,8 +388,8 @@ CREATE TABLE `DOA_EMAIL_STARRED` (
 
 CREATE TABLE `DOA_EMAIL_STATUS` (
   `PK_EMAIL_STATUS` int(11) NOT NULL,
-  `EMAIL_STATUS` varchar(250) NOT NULL,
-  `ACTIVE` int(11) NOT NULL
+  `EMAIL_STATUS` varchar(250) DEFAULT NULL,
+  `ACTIVE` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -419,12 +422,12 @@ CREATE TABLE `DOA_EMAIL_TEMPLATE` (
 
 CREATE TABLE `DOA_EMAIL_TYPE` (
   `PK_EMAIL_TYPE` int(11) NOT NULL,
-  `EMAIL_TYPE` varchar(250) NOT NULL,
+  `EMAIL_TYPE` varchar(250) DEFAULT NULL,
   `ACTIVE` int(11) NOT NULL DEFAULT 1,
-  `CREATED_ON` datetime NOT NULL,
-  `CREATED_BY` int(11) NOT NULL,
-  `EDITED_ON` datetime NOT NULL,
-  `EDITED_BY` int(11) NOT NULL
+  `CREATED_ON` datetime DEFAULT NULL,
+  `CREATED_BY` int(11) DEFAULT NULL,
+  `EDITED_ON` datetime DEFAULT NULL,
+  `EDITED_BY` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -499,6 +502,7 @@ CREATE TABLE `DOA_ENROLLMENT_LEDGER` (
 CREATE TABLE `DOA_ENROLLMENT_MASTER` (
   `PK_ENROLLMENT_MASTER` int(11) NOT NULL,
   `PK_ENROLLMENT_TYPE` int(11) NOT NULL DEFAULT 0,
+  `MISC_TYPE` varchar(50) DEFAULT NULL,
   `ENROLLMENT_NAME` varchar(100) DEFAULT NULL,
   `ENROLLMENT_ID` varchar(100) DEFAULT NULL,
   `MISC_ID` varchar(100) DEFAULT NULL,
@@ -506,7 +510,7 @@ CREATE TABLE `DOA_ENROLLMENT_MASTER` (
   `CUSTOMER_ENROLLMENT_NUMBER` int(11) DEFAULT NULL,
   `PK_LOCATION` int(11) DEFAULT NULL,
   `PK_PACKAGE` int(11) DEFAULT NULL,
-  `CHARGE_BY_SESSIONS` tinyint(4) NOT NULL DEFAULT 0,
+  `CHARGE_TYPE` varchar(20) DEFAULT NULL,
   `PK_AGREEMENT_TYPE` int(11) DEFAULT NULL,
   `PK_DOCUMENT_LIBRARY` int(11) DEFAULT NULL,
   `AGREEMENT_PDF_LINK` varchar(255) DEFAULT NULL,
@@ -518,6 +522,7 @@ CREATE TABLE `DOA_ENROLLMENT_MASTER` (
   `ENROLLMENT_DATE` date DEFAULT NULL,
   `EXPIRY_DATE` date DEFAULT NULL,
   `ALL_APPOINTMENT_DONE` tinyint(4) NOT NULL DEFAULT 0,
+  `IS_SALE` varchar(20) DEFAULT NULL,
   `CREATED_BY` int(11) DEFAULT NULL,
   `CREATED_ON` datetime DEFAULT NULL,
   `EDITED_BY` int(11) DEFAULT NULL,
@@ -536,6 +541,7 @@ CREATE TABLE `DOA_ENROLLMENT_PAYMENT` (
   `PK_ENROLLMENT_BILLING` int(11) NOT NULL,
   `PK_PAYMENT_TYPE` int(11) NOT NULL,
   `PK_ENROLLMENT_LEDGER` int(11) NOT NULL,
+  `PK_ORDER` int(11) DEFAULT NULL,
   `TYPE` varchar(25) DEFAULT NULL,
   `IS_REFUNDED` tinyint(4) NOT NULL DEFAULT 0,
   `AMOUNT` float(9,2) NOT NULL,
@@ -772,6 +778,53 @@ CREATE TABLE `DOA_OPERATIONAL_HOUR` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `DOA_ORDER`
+--
+
+CREATE TABLE `DOA_ORDER` (
+  `PK_ORDER` int(11) NOT NULL,
+  `ORDER_ID` varchar(255) DEFAULT NULL,
+  `PK_USER_MASTER` int(11) DEFAULT NULL,
+  `ORDER_TYPE` varchar(100) DEFAULT NULL,
+  `ITEM_TOTAL` float(9,2) DEFAULT NULL,
+  `SALES_TAX` float(7,2) DEFAULT NULL,
+  `SHIPPING_CHARGE` float(7,2) DEFAULT NULL,
+  `ORDER_TOTAL` float(7,2) DEFAULT NULL,
+  `ADDRESS` varchar(255) DEFAULT NULL,
+  `ADDRESS_1` varchar(255) DEFAULT NULL,
+  `PK_COUNTRY` int(11) DEFAULT NULL,
+  `PK_STATES` int(11) DEFAULT NULL,
+  `CITY` varchar(255) DEFAULT NULL,
+  `ZIP` varchar(100) DEFAULT NULL,
+  `PK_PAYMENT_TYPE` int(11) DEFAULT NULL,
+  `PAYMENT_DETAILS` text DEFAULT NULL,
+  `PAYMENT_STATUS` varchar(100) DEFAULT NULL,
+  `PK_ORDER_STATUS` int(11) DEFAULT NULL,
+  `CREATED_BY` int(11) DEFAULT NULL,
+  `CREATED_ON` datetime DEFAULT NULL,
+  `EDITED_BY` int(11) DEFAULT NULL,
+  `EDITED_ON` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_ORDER_ITEM`
+--
+
+CREATE TABLE `DOA_ORDER_ITEM` (
+  `PK_ORDER_ITEM` int(11) NOT NULL,
+  `PK_ORDER` int(11) NOT NULL,
+  `PK_PRODUCT` int(11) NOT NULL,
+  `PK_PRODUCT_COLOR` int(11) DEFAULT NULL,
+  `PK_PRODUCT_SIZE` int(11) DEFAULT NULL,
+  `PRODUCT_QUANTITY` int(11) NOT NULL,
+  `PRODUCT_PRICE` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `DOA_PACKAGE`
 --
 
@@ -824,6 +877,71 @@ CREATE TABLE `DOA_PACKAGE_SERVICE` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `DOA_PRODUCT`
+--
+
+CREATE TABLE `DOA_PRODUCT` (
+  `PK_PRODUCT` int(11) NOT NULL,
+  `PRODUCT_ID` varchar(155) DEFAULT NULL,
+  `PRODUCT_NAME` varchar(100) DEFAULT NULL,
+  `PRODUCT_DESCRIPTION` text DEFAULT NULL,
+  `PRICE` float(9,2) DEFAULT NULL,
+  `SHIPPING_INFORMATION` text DEFAULT NULL,
+  `PRODUCT_IMAGES` varchar(255) DEFAULT NULL,
+  `BRAND` varchar(255) DEFAULT NULL,
+  `CATEGORY` varchar(255) DEFAULT NULL,
+  `SIZE` varchar(55) DEFAULT NULL,
+  `COLOR` varchar(155) DEFAULT NULL,
+  `WEIGHT` varchar(255) DEFAULT NULL,
+  `ACTIVE` int(11) NOT NULL,
+  `IS_DELETED` int(11) NOT NULL,
+  `CREATED_BY` int(11) NOT NULL,
+  `CREATED_ON` datetime NOT NULL,
+  `EDITED_BY` int(11) NOT NULL,
+  `EDITED_ON` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_PRODUCT_COLOR`
+--
+
+CREATE TABLE `DOA_PRODUCT_COLOR` (
+  `PK_PRODUCT_COLOR` int(11) NOT NULL,
+  `PK_PRODUCT` int(11) NOT NULL,
+  `COLOR` varchar(55) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_PRODUCT_SIZE`
+--
+
+CREATE TABLE `DOA_PRODUCT_SIZE` (
+  `PK_PRODUCT_SIZE` int(11) NOT NULL,
+  `PK_PRODUCT` int(11) NOT NULL,
+  `SIZE` varchar(55) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_REPORT_EXPORT_DETAILS`
+--
+
+CREATE TABLE `DOA_REPORT_EXPORT_DETAILS` (
+  `PK_REPORT_EXPORT_DETAILS` int(11) NOT NULL,
+  `REPORT_TYPE` varchar(100) DEFAULT NULL,
+  `WEEK_NUMBER` int(11) DEFAULT NULL,
+  `YEAR` int(11) DEFAULT NULL,
+  `SUBMISSION_DATE` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `DOA_SCHEDULING_CODE`
 --
 
@@ -839,6 +957,7 @@ CREATE TABLE `DOA_SCHEDULING_CODE` (
   `IS_DEFAULT` int(11) DEFAULT NULL,
   `COLOR_CODE` varchar(100) CHARACTER SET latin1 DEFAULT NULL,
   `DURATION` int(11) DEFAULT NULL,
+  `UNIT` float NOT NULL DEFAULT 1,
   `SORT_ORDER` int(11) DEFAULT NULL,
   `ACTIVE` int(1) DEFAULT NULL,
   `CREATED_ON` datetime DEFAULT NULL,
@@ -856,7 +975,8 @@ CREATE TABLE `DOA_SCHEDULING_CODE` (
 CREATE TABLE `DOA_SCHEDULING_SERVICE` (
   `PK_SCHEDULING_SERVICE` int(11) NOT NULL,
   `PK_SCHEDULING_CODE` int(11) NOT NULL,
-  `PK_SERVICE_MASTER` int(11) NOT NULL
+  `PK_SERVICE_MASTER` int(11) NOT NULL,
+  `PK_SERVICE_CODE` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -937,6 +1057,7 @@ CREATE TABLE `DOA_SERVICE_MASTER` (
   `PK_SERVICE_MASTER` int(11) NOT NULL,
   `SERVICE_NAME` varchar(250) DEFAULT NULL,
   `PK_SERVICE_CLASS` int(11) DEFAULT NULL,
+  `MISC_TYPE` varchar(50) DEFAULT NULL,
   `IS_SCHEDULE` tinyint(4) DEFAULT NULL,
   `IS_SUNDRY` tinyint(4) NOT NULL DEFAULT 0,
   `DESCRIPTION` varchar(250) DEFAULT NULL,
@@ -1417,7 +1538,8 @@ ALTER TABLE `DOA_ENROLLMENT_PAYMENT`
   ADD KEY `PK_ENROLLMENT_MASTER` (`PK_ENROLLMENT_MASTER`),
   ADD KEY `PK_ENROLLMENT_BILLING` (`PK_ENROLLMENT_BILLING`),
   ADD KEY `PK_PAYMENT_TYPE` (`PK_PAYMENT_TYPE`),
-  ADD KEY `PK_ENROLLMENT_LEDGER` (`PK_ENROLLMENT_LEDGER`);
+  ADD KEY `PK_ENROLLMENT_LEDGER` (`PK_ENROLLMENT_LEDGER`),
+  ADD KEY `PK_ORDER` (`PK_ORDER`);
 
 --
 -- Indexes for table `DOA_ENROLLMENT_SERVICE`
@@ -1505,6 +1627,26 @@ ALTER TABLE `DOA_OPERATIONAL_HOUR`
   ADD KEY `PK_LOCATION` (`PK_LOCATION`);
 
 --
+-- Indexes for table `DOA_ORDER`
+--
+ALTER TABLE `DOA_ORDER`
+  ADD PRIMARY KEY (`PK_ORDER`),
+  ADD KEY `PK_USER_MASTER` (`PK_USER_MASTER`),
+  ADD KEY `PK_COUNTRY` (`PK_COUNTRY`),
+  ADD KEY `PK_STATES` (`PK_STATES`),
+  ADD KEY `PK_PAYMENT_TYPE` (`PK_PAYMENT_TYPE`);
+
+--
+-- Indexes for table `DOA_ORDER_ITEM`
+--
+ALTER TABLE `DOA_ORDER_ITEM`
+  ADD PRIMARY KEY (`PK_ORDER_ITEM`),
+  ADD KEY `PK_ORDER` (`PK_ORDER`),
+  ADD KEY `PK_PRODUCT` (`PK_PRODUCT`),
+  ADD KEY `PK_PRODUCT_COLOR` (`PK_PRODUCT_COLOR`),
+  ADD KEY `PK_PRODUCT_SIZE` (`PK_PRODUCT_SIZE`);
+
+--
 -- Indexes for table `DOA_PACKAGE`
 --
 ALTER TABLE `DOA_PACKAGE`
@@ -1524,6 +1666,30 @@ ALTER TABLE `DOA_PACKAGE_SERVICE`
   ADD KEY `PK_PACKAGE` (`PK_PACKAGE`),
   ADD KEY `PK_SERVICE_MASTER` (`PK_SERVICE_MASTER`),
   ADD KEY `PK_SERVICE_CODE` (`PK_SERVICE_CODE`);
+
+--
+-- Indexes for table `DOA_PRODUCT`
+--
+ALTER TABLE `DOA_PRODUCT`
+  ADD PRIMARY KEY (`PK_PRODUCT`);
+
+--
+-- Indexes for table `DOA_PRODUCT_COLOR`
+--
+ALTER TABLE `DOA_PRODUCT_COLOR`
+  ADD PRIMARY KEY (`PK_PRODUCT_COLOR`);
+
+--
+-- Indexes for table `DOA_PRODUCT_SIZE`
+--
+ALTER TABLE `DOA_PRODUCT_SIZE`
+  ADD PRIMARY KEY (`PK_PRODUCT_SIZE`);
+
+--
+-- Indexes for table `DOA_REPORT_EXPORT_DETAILS`
+--
+ALTER TABLE `DOA_REPORT_EXPORT_DETAILS`
+  ADD PRIMARY KEY (`PK_REPORT_EXPORT_DETAILS`);
 
 --
 -- Indexes for table `DOA_SCHEDULING_CODE`
@@ -1914,6 +2080,18 @@ ALTER TABLE `DOA_OPERATIONAL_HOUR`
   MODIFY `PK_OPERATIONAL_HOUR` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `DOA_ORDER`
+--
+ALTER TABLE `DOA_ORDER`
+  MODIFY `PK_ORDER` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `DOA_ORDER_ITEM`
+--
+ALTER TABLE `DOA_ORDER_ITEM`
+  MODIFY `PK_ORDER_ITEM` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `DOA_PACKAGE`
 --
 ALTER TABLE `DOA_PACKAGE`
@@ -1930,6 +2108,30 @@ ALTER TABLE `DOA_PACKAGE_LOCATION`
 --
 ALTER TABLE `DOA_PACKAGE_SERVICE`
   MODIFY `PK_PACKAGE_SERVICE` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `DOA_PRODUCT`
+--
+ALTER TABLE `DOA_PRODUCT`
+  MODIFY `PK_PRODUCT` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `DOA_PRODUCT_COLOR`
+--
+ALTER TABLE `DOA_PRODUCT_COLOR`
+  MODIFY `PK_PRODUCT_COLOR` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `DOA_PRODUCT_SIZE`
+--
+ALTER TABLE `DOA_PRODUCT_SIZE`
+  MODIFY `PK_PRODUCT_SIZE` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `DOA_REPORT_EXPORT_DETAILS`
+--
+ALTER TABLE `DOA_REPORT_EXPORT_DETAILS`
+  MODIFY `PK_REPORT_EXPORT_DETAILS` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `DOA_SCHEDULING_CODE`
@@ -2050,4 +2252,9 @@ ALTER TABLE `DOA_Z_HELP`
 --
 ALTER TABLE `DOA_Z_HELP_FILES`
   MODIFY `PK_HELP_FILES` int(11) NOT NULL AUTO_INCREMENT;
-COMMIT;";
+COMMIT;
+
+
+INSERT INTO `DOA_DOCUMENT_LIBRARY` (`PK_DOCUMENT_LIBRARY`, `PK_DOCUMENT_TYPE`, `DOCUMENT_NAME`, `DOCUMENT_TEMPLATE`, `ACTIVE`, `CREATED_ON`, `CREATED_BY`, `EDITED_ON`, `EDITED_BY`) VALUES (NULL, '1', 'Enrollment Template', '<table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td>CLIENT ENROLLMENT AGREEMENT</td>\r\n </tr>\r\n </tbody>\r\n</table>\r\n\r\n<table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td>Please Print</td>\r\n </tr>\r\n <tr>\r\n <td>\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <th style=\"text-align:left; width:auto\">Client</th>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:left; width:5cm\">Full Name</th>\r\n <td style=\"border-bottom:1px solid #cccccc; text-align:center\"><strong>{FULL_NAME}</strong></td>\r\n <th>Street Address</th>\r\n <td style=\"border-bottom:1px solid #cccccc; text-align:center\"><strong>{STREET_ADD}</strong></td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <th style=\"text-align:left\">City</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">{CITY}</td>\r\n <th>State</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">{STATE}</td>\r\n <th>Zip</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">{ZIP}</td>\r\n <th>Res. Phone</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">&nbsp;</td>\r\n <th>Cell Phone</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">{CELL_PHONE}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"text-align:left; width:91%\">The Client agrees to purchase and the owner of {BUSINESS_NAME} agrees to provide the following course of dance instruction and/or services on the following terms and conditions including the terms and conditions on the reverse side of this agreement.</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">NAME/TYPE OF ENROLLMENT</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">SERVICES</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">PRIVATE LESSON(S)</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">TUITION</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">DISCOUNT</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">BALANCE DUE</td>\r\n </tr>\r\n <tr>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{TYPE_OF_ENROLLMENT}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{SERVICE_DETAILS}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{PVT_LESSONS}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{TUITION}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{DISCOUNT}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{BAL_DUE}</td>\r\n </tr>\r\n <tr>\r\n </tr>\r\n <tr>\r\n <td colspan=\"5\" style=\"border-style:solid; border-width:0px\">&nbsp;</td>\r\n </tr>\r\n <tr>\r\n <td colspan=\"5\" style=\"border-style:solid; border-width:0px; text-align:center; vertical-align:middle\">Lessons are 45 minutes which includes transition time between lessons</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"height:auto; text-align:left; width:91%\">The Client acknowledges the above of {CASH_PRICE}&nbsp;for the instruction and/or services(s) described above and agrees to pay {DOWN_PAYMENTS} on {FIRST_DATE} and the remaining cash balance of {REMAINING_BALANCE}, which includes any applicable previous balance and service charge as shown below, in {NO_AMT_PAYMENT} Installments of {INSTALLMENT_AMOUNT} starting on .</td>\r\n <td>&nbsp;</td>\r\n </tr>\r\n <tr>\r\n <td style=\"height:auto; text-align:left; width:91%\">The lesson rates in this agreement are: Private Instruction $189.00 per lesson, Class Instruction $0.00 per lesson, and there is no charge for Party Practice units when included.</td>\r\n <td>&nbsp;</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"width:50%\">\r\n <table>\r\n <tbody>\r\n <tr>\r\n <th style=\"width:9cm\">1. Cash Price of This Course</th>\r\n <td style=\"border-bottom:1px solid #cccccc; vertical-align:bottom\">{CASH_PRICE}</td>\r\n </tr>\r\n <tr>\r\n <th style=\"width:9cm\">2. Down Payment(s)</th>\r\n <td style=\"border-bottom:1px solid #cccccc; vertical-align:bottom\">{DOWN_PAYMENTS}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n <td style=\"width:50%\">\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"text-align:left; width:99%\">You have the right at this time to receive an itemization of the amount financed, which is shown in the left column of this document</td>\r\n <td>&nbsp;</td>\r\n </tr>\r\n <tr>\r\n <td style=\"width:auto\">\r\n <p>Your payment schedule will be</p>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">Date of Payment</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">Amount of Payment</td>\r\n </tr>\r\n <tr>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{DUE_DATE}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{BILLED_AMOUNT}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <p>and on the same date each month thereafter until paid in full</p>\r\n\r\n <p>Notice to Buyer: Do not sign this agreement before you read it or if it contains any blank spaces. You are entitled to a copy of the agreement you sign. Keep this agreement to protect your legal rights.</p>\r\n </td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n </tr>\r\n <tr>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"width:50%\">\r\n <table>\r\n <tbody>\r\n <tr>\r\n <th style=\"width:9cm\">Amount to be Scheduled\r\n <p>The amount of tuition to be scheduled as installments:</p>\r\n </th>\r\n <td style=\"border-bottom:0px solid #cccccc; height:auto; text-align:center; vertical-align:bottom; width:93px\">{SCHEDULE_AMOUNT}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n <td style=\"vertical-align:top; width:50%\">\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td>\r\n <p>If you pay off early, you:</p>\r\n\r\n <p><strong>Will not</strong> have to pay a penalty</p>\r\n\r\n <p><strong>May</strong> be entitled to a refund of part of the service Charge, under rule of 78, prorata or a method whichever is applicable in your state.</p>\r\n </td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n </tr>\r\n <tr>\r\n <td colspan=\"2\" style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center\">CLIENT ACKNOWLEDGES RECEIPT OF AN EXACT COPY OF THIS RETAIL INSTALLMENT AGREEMENT.</td>\r\n </tr>\r\n <tr>\r\n <td colspan=\"2\" style=\"border-bottom:0px solid #cccccc; height:auto\">It is agreed that the Studio&#39;s obligation for furnishing instructions under this agreement shall expire on 12/07/2024 or three years from the date of this agreement whichever occurs first.</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n </tr>\r\n <tr>\r\n <td>\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <th rowspan=\"8\" style=\"text-align:center; width:8cm\"><strong>{BUSINESS_NAME}</strong><br />\r\n {BUSINESS_ADD}<br />\r\n {BUSINESS_CITY}<br />\r\n {BUSINESS_STATE},&nbsp;{BUSINESS_ZIP}&nbsp; {BUSINESS_COUNTRY} &nbsp;{BUSINESS_PHONE}</th>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:center\">&nbsp;</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th style=\"text-align:center\">&nbsp;</th>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:center\">__________________________</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th style=\"text-align:center\">__________________________</th>\r\n </tr>\r\n <tr>\r\n <th>Client&#39;s Signature</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th>Studio Representative</th>\r\n </tr>\r\n <tr>\r\n <td style=\"height:50px\">&nbsp;</td>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:center\">&nbsp;</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th style=\"text-align:center\">&nbsp;</th>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:center\">__________________________</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th style=\"text-align:center\">__________________________</th>\r\n </tr>\r\n <tr>\r\n <th>Co-Client or Guardian</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th>Verified by</th>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n </tr>\r\n </tbody>\r\n</table>\r\n', '1', '2023-09-05 14:56:00', '14551', '2024-11-19 08:19:00', '5')
+";
+

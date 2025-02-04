@@ -53,6 +53,23 @@
                                 <a class="dropdown-item" href="../admin/test_chat_gpt.php">Assistant</a>
                             </div>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Operations
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <a class="dropdown-item" href="../admin/data_uploader.php">Data Uploader</a>
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                eCommerce
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <a class="dropdown-item" href="../admin/all_products.php">Products</a>
+                                <a class="dropdown-item" href="../admin/all_orders.php">Orders</a>
+                            </div>
+                        </li>
                     </ul>
                     <div style="margin-left: 15%;">
                         <?php
@@ -92,7 +109,17 @@
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_email_accounts.php') ? 'active' : ''?>" href="../admin/all_email_accounts.php">Email Accounts</a></li>
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_email_templates.php') ? 'active' : ''?>" href="../admin/all_email_templates.php">Email Templates</a></li>
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_text_templates.php') ? 'active' : ''?>" href="../admin/all_text_templates.php">Text Templates</a></li>
-                                <li class="nav-item"><a class="nav-link <?=($address == 'test_chat_gpt.php') ? 'active' : ''?>" href="../admin/test_chat_gpt.php">Assistant</a></li>                            </ul>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'test_chat_gpt.php') ? 'active' : ''?>" href="../admin/test_chat_gpt.php">Assistant</a></li>
+                            </ul>
+                        <?php } elseif ($address == "data_uploader.php") { ?>
+                            <ul class="nav nav-tabs justify-content-center">
+                                <li class="nav-item"><a class="nav-link <?=($address == 'data_uploader.php') ? 'active' : ''?>" href="../admin/data_uploader.php">Data Uploader</a></li>
+                            </ul>
+                        <?php } elseif ($address == "all_products.php" || $address == "all_orders.php" || $address == "order_details.php") { ?>
+                            <ul class="nav nav-tabs justify-content-center">
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_products.php') ? 'active' : ''?>" href="../admin/all_products.php">Products</a></li>
+                                <li class="nav-item"><a class="nav-link <?=($address == 'all_orders.php') ? 'active' : ''?>" href="../admin/all_orders.php">Orders</a></li>
+                            </ul>
                         <?php } ?>
                     </div>
                 </div>

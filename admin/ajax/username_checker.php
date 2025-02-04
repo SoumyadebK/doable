@@ -23,4 +23,26 @@ if(isset($_POST['CUSTOMER_ID'])) {
     }
 }
 
+if(isset($_POST['PHONE'])) {
+    $PHONE = $_POST['PHONE'];
+    $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE PHONE = '".$PHONE."'");
+
+    if($result->RecordCount() == 0){
+        echo '';
+    } else {
+        echo '<span class="text-danger"> <b>'.$PHONE.'</b> is already taken!</span>';
+    }
+}
+
+if(isset($_POST['EMAIL_ID'])) {
+    $EMAIL_ID = $_POST['EMAIL_ID'];
+    $result = $db->Execute("SELECT * FROM `DOA_USERS` WHERE EMAIL_ID = '".$EMAIL_ID."'");
+
+    if($result->RecordCount() == 0){
+        echo '';
+    } else {
+        echo '<span class="text-danger"> <b>'.$EMAIL_ID.'</b> is already taken!</span>';
+    }
+}
+
 ?>

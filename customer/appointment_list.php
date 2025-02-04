@@ -83,6 +83,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.IS_CHARGED,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS,
+                            DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
                             DOA_SCHEDULING_CODE.COLOR_CODE,
@@ -279,7 +280,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
                                             <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
                                             <th>Paid</th>
-                                            <th>Completed</th>
+                                            <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -319,17 +320,23 @@ $page_first_result = ($page-1) * $results_per_page;
 
                                             <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
                                             <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
-                                            <td style="text-align: center;">
+                                            <td style="text-align: left; color: <?=$appointment_data->fields['APPOINTMENT_COLOR']?>">
+                                                <?=$appointment_data->fields['APPOINTMENT_STATUS']?>&nbsp;
+                                                <?php if ($appointment_data->fields['IS_CHARGED'] == 1) { ?>
+                                                    <i class="ti-money"></i>
+                                                <?php } ?>
+                                            </td>
+                                            <!--<td style="text-align: center;">
                                                 <?php
-                                                if ($appointment_data->fields['CUSTOMER_NAME'] && $standing == 0) {
-                                                    if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 6 && $appointment_data->fields['IS_CHARGED'] == 1){ ?>
+/*                                                if ($appointment_data->fields['CUSTOMER_NAME'] && $standing == 0) {
+                                                    if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 6 && $appointment_data->fields['IS_CHARGED'] == 1){ */?>
                                                         <i class="fa fa-check-circle" style="font-size:25px;color:red;"></i>
-                                                    <?php } elseif ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
+                                                    <?php /*} elseif ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ */?>
                                                         <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
-                                                    <?php } else { ?>
-                                                        <a href="javascript:" data-id="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='confirmComplete($(this));'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
-                                                    <?php }
-                                                } ?>
+                                                    <?php /*} else { */?>
+                                                        <a href="javascript:" data-id="<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>" onclick='confirmComplete($(this));'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
+                                                    --><?php /*}
+                                                } */?>
                                             </td>
                                             <td>
                                                 <?php /*if(empty($appointment_data->fields['ENROLLMENT_ID'])) { */?><!--
@@ -338,10 +345,16 @@ $page_first_result = ($page-1) * $results_per_page;
                                                     <a href="add_schedule.php?id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 --><?php /*} */?>
                                                 <?php if ($standing == 0) { ?>
+                                                    <?php if(in_array('Appointments Move/Copy', $PERMISSION_ARRAY)){ ?>
                                                     <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <?php } ?>
+                                                    <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)){ ?>
                                                     <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>, "normal");'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <?php } ?>
                                                 <?php } else { ?>
+                                                    <?php if(in_array('Appointments Move/Copy', $PERMISSION_ARRAY)){ ?>
                                                     <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['STANDING_ID']?>, "standing");'><i class="fa fa-trash"></i></a>
+                                                    <?php } ?>
                                                 <?php } ?>
                                             </td>
                                         </tr>

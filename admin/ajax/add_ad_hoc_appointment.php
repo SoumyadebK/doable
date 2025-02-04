@@ -5,19 +5,6 @@ global $db_account;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
-if (empty($_GET['id'])) {
-    $PK_APPOINTMENT_MASTER = 0;
-} else {
-    $PK_APPOINTMENT_MASTER = $_GET['id'];
-}
-
-$appointment_details = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER=".$PK_APPOINTMENT_MASTER);
-if ($appointment_details->RecordCount()==0) {
-    $PK_USER_MASTER = 0;
-} else {
-    $PK_USER_MASTER = $appointment_details->fields['CUSTOMER_ID'];
-}
-
 if (empty($_GET['PK_USER_MASTER'])) {
     $PK_USER_MASTER = 0;
 } else {

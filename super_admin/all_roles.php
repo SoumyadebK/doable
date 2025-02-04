@@ -24,18 +24,6 @@ if (isset($_GET['search_text'])) {
     $search_text = '';
     $search = ' ';
 }
-
-$query = $db->Execute("SELECT count(DOA_ROLES.PK_ROLES) AS TOTAL_RECORDS FROM DOA_ROLES");
-$number_of_result =  $query->fields['TOTAL_RECORDS'];
-$number_of_page = ceil ($number_of_result / $results_per_page);
-
-if (!isset ($_GET['page']) ) {
-    $page = 1;
-} else {
-    $page = $_GET['page'];
-}
-
-$page_first_result = ($page-1) * $results_per_page;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -83,6 +71,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <th>No</th>
                                             <th>Roles</th>
                                             <th>Permission</th>
+                                            <th>Priority</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -90,7 +79,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT * FROM `DOA_ROLES` WHERE PK_ROLES > 0 ".$search." LIMIT " . $page_first_result . ',' . $results_per_page);
+                                    $row = $db->Execute("SELECT * FROM `DOA_ROLES` WHERE PK_ROLES > 0 ".$search);
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_ROLES']?>);"><?=$i;?></td>
@@ -104,6 +93,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                                 }
                                                 ?>
                                             </td>
+                                            <td onclick="editpage(<?=$row->fields['PK_ROLES']?>);"><?=$row->fields['SORT_ORDER']?></td>
                                             <td>
                                                 <a href="add_roles.php?id=<?=$row->fields['PK_ROLES']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
@@ -117,29 +107,6 @@ $page_first_result = ($page-1) * $results_per_page;
                                         $i++; } ?>
                                     </tbody>
                                 </table>
-                                <div class="center">
-                                    <div class="pagination outer">
-                                        <ul>
-                                            <?php if ($page > 1) { ?>
-                                                <li><a href="all_roles.php?status=<?=$status_check?>&page=1">&laquo;</a></li>
-                                                <li><a href="all_roles.php?status=<?=$status_check?>&page=<?=($page-1)?>">&lsaquo;</a></li>
-                                            <?php }
-                                            for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
-                                                if ($page_count == $page || $page_count == ($page+1) || $page_count == ($page-1) || $page_count == $number_of_page) {
-                                                    echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_roles.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
-                                                } elseif ($page_count == ($number_of_page-1)){
-                                                    echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
-                                                } else {
-                                                    echo '<li><a class="hidden" href="all_roles.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
-                                                }
-                                            }
-                                            if ($page < $number_of_page) { ?>
-                                                <li><a href="all_roles.php?status=<?=$status_check?>&page=<?=($page+1)?>">&rsaquo;</a></li>
-                                                <li><a href="all_roles.php?status=<?=$status_check?>&page=<?=$number_of_page?>">&raquo;</a></li>
-                                            <?php } ?>
-                                        </ul>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>

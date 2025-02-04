@@ -40,9 +40,12 @@ $ACCOUNT_PHONE = '';
 $ACCOUNT_FAX = '';
 $ACCOUNT_EMAIL = '';
 $ACCOUNT_WEBSITE = '';
+$TEXTING_FEATURE_ENABLED = '';
+$TWILIO_ACCOUNT_TYPE = '';
 $ACTIVE = '';
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = '';
 $USERNAME_PREFIX = '';
+$FOCUSBIZ_API_KEY = '';
 
 $PK_USER_EDIT = '';
 $USER_NAME = '';
@@ -88,8 +91,11 @@ if(!empty($_GET['id'])) {
     $ACCOUNT_FAX = $account_res->fields['FAX'];
     $ACCOUNT_EMAIL = $account_res->fields['EMAIL'];
     $ACCOUNT_WEBSITE = $account_res->fields['WEBSITE'];
-    $ACTIVE = $account_res->fields['ACTIVE'];
+    $TEXTING_FEATURE_ENABLED = $account_res->fields['TEXTING_FEATURE_ENABLED'];
+    $TWILIO_ACCOUNT_TYPE = $account_res->fields['TWILIO_ACCOUNT_TYPE'];
     $USERNAME_PREFIX = $account_res->fields['USERNAME_PREFIX'];
+    $FOCUSBIZ_API_KEY = $account_res->fields['FOCUSBIZ_API_KEY'];
+    $ACTIVE = $account_res->fields['ACTIVE'];
 
     $user_res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$_GET[id]' AND CREATED_BY = '$_SESSION[PK_USER]'");
     if($user_res->RecordCount() > 0) {
@@ -448,10 +454,10 @@ while (!$account_payment_info->EOF) {
                                                     </div>
                                                     <div class="col-6">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Zip Code</span>
+                                                            <label class="col-md-12">Postal / Zip Code</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="ACCOUNT_ZIP" name="ACCOUNT_ZIP" class="form-control" placeholder="Enter Zip Code" value="<?php echo $ACCOUNT_ZIP?>">
+                                                                <input type="text" id="ACCOUNT_ZIP" name="ACCOUNT_ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ACCOUNT_ZIP?>">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -496,6 +502,42 @@ while (!$account_payment_info->EOF) {
                                                     </div>
                                                 </div>
 
+                                                <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
+                                                    <div class="col-md-2">
+                                                        <label class="form-label">Texting Feature Enabled?</label>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="1" <? if($TEXTING_FEATURE_ENABLED == 1) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="0" <? if($TEXTING_FEATURE_ENABLED == 0) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);"/>&nbsp;No</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row twilio_account_type" id="twilio_account_type" style="display: <?=($TEXTING_FEATURE_ENABLED=='1')?'':'none'?>;">
+                                                    <div class="col-md-6">
+                                                        <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE" value="0" <? if($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE" value="1" <? if($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> />&nbsp;Using Their own Twilio Account</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row" style="margin-bottom: 15px; margin-top: 20px;">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Username Prefix</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Enter Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Focusbiz API Key</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <?php if(!empty($_GET['id'])) { ?>
                                                     <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
                                                         <div class="col-md-1">
@@ -507,18 +549,6 @@ while (!$account_payment_info->EOF) {
                                                         </div>
                                                     </div>
                                                 <? } ?>
-
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Username Prefix
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Enter Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
 
                                             </div>
                                             <div class="form-group">
@@ -672,10 +702,10 @@ while (!$account_payment_info->EOF) {
                                                     </div>
                                                     <div class="col-6">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Zip Code</span>
+                                                            <label class="col-md-12">Postal / Zip Code</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Zip Code" value="<?php echo $ZIP?>">
+                                                                <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP?>">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1162,6 +1192,14 @@ while (!$account_payment_info->EOF) {
             $('#TOTAL_AMOUNT').val(AMOUNT*LOCATION_COUNT);
             $('.per_account').hide();
             $('.per_location').show();
+        }
+    }
+
+    function showTwilioAccountSetting(param) {
+        if($(param).val() === '1'){
+            $('#twilio_account_type').slideDown();
+        }else {
+            $('#twilio_account_type').slideUp();
         }
     }
 </script>

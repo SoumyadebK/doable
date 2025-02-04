@@ -6,7 +6,7 @@ global $master_database;
 
 $title = "STAFF PERFORMANCE REPORT";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -15,11 +15,9 @@ $type = $_GET['type'];
 
 $week_number = $_GET['week_number'];
 $YEAR = date('Y');
-$dto = new DateTime();
-$dto->setISODate($YEAR, $week_number);
-$from_date = $dto->modify('-1 day')->format('Y-m-d');
-$dto->modify('+6 days');
-$to_date = $dto->format('Y-m-d');
+
+$from_date = date('Y-m-d', strtotime($_GET['start_date']));
+$to_date = date('Y-m-d', strtotime($from_date. ' +6 day'));
 
 $enrollment_date = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
 $appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
@@ -172,7 +170,7 @@ while (!$executive_data->EOF) {
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
                                     <thead>
                                     <tr>
-                                        <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="5">Franchisee: <?=$business_name." (".$concatenatedResults.")"?></th>
+                                        <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="5"><?=($account_data->fields['FRANCHISE']==1)?'Franchisee: ':''?><?=$business_name." (".$concatenatedResults.")"?></th>
                                         <th style="width:50%; text-align: center; font-weight: bold" colspan="4">Week # <?=$week_number?> (<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</th>
                                     </tr>
                                     <tr>
@@ -185,7 +183,11 @@ while (!$executive_data->EOF) {
                                     <tr>
                                         <th style="width:10%; text-align: center">Private</th>
                                         <th style="width:10%; text-align: center">Class</th>
-                                        <th style="width:10%; text-align: center">DOR/sanct.<br>Competition</th>
+                                        <?php if($account_data->fields['FRANCHISE']==1){?>
+                                        <th style="width:10%; text-align: center">DOR/Sanct.<br>Competition</th>
+                                        <?php }else{ ?>
+                                        <th style="width:10%; text-align: center">Sanct.<br>Competition</th>
+                                        <?php } ?>
                                         <th style="width:10%; text-align: center">Showcase<br>Medal ball</th>
                                         <th style="width:10%; text-align: center">General Misc.<br>NonUnit</th>
                                         <th style="width:10%; text-align: center">Interview <br>Dept.</th>

@@ -14,7 +14,7 @@ if (empty($_GET['id']))
 else
     $title = "Edit ".$userType;
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -477,10 +477,10 @@ else {
                     <div class="col-6">
 								
                                     <div class="form-group">
-                                        <label class="col-md-12" for="example-text">Zip Code</span>
+                                        <label class="col-md-12" for="example-text">Postal / Zip Code</span>
                                         </label>
                                         <div class="col-md-12">
-                                            <input type="text" id="zip_code" name="zip_code" class="form-control" placeholder="enter Zip Code" value="<?php echo $ZIP?>">
+                                            <input type="text" id="zip_code" name="zip_code" class="form-control" placeholder="enter Postal / Zip Code" value="<?php echo $ZIP?>">
                                         </div>
                                     </div>
 									

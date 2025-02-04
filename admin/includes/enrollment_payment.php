@@ -7,7 +7,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="sourceId" id="sourceId">
+                    <input type="hidden" name="sourceId" id="enrollment_sourceId">
                     <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
                     <!--<input type="hidden" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">-->
                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
@@ -84,13 +84,15 @@
                                 <div class="row" style="margin: auto;" id="card_list">
                                 </div>
                                 <div class="col-12">
-                                    <div class="form-group" id="card-container">
+                                    <div class="form-group" id="card_div">
 
                                     </div>
                                 </div>
                                 <div id="payment-status-container"></div>
                             </div>
-                        <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net'){?>
+                        <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
+                            $customer_data = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.EMAIL_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
+                            ?>
                             <div class="payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="row" style="margin: auto;" id="card_list">
                                 </div>
@@ -99,7 +101,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Name (As it appears on your card)</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$NAME?>">
+                                                <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$customer_data->fields['NAME']?>">
                                             </div>
                                         </div>
                                     </div>
@@ -109,7 +111,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Email (For receiving payment confirmation mail)</label>
                                             <div class="col-md-12">
-                                                <input type="email" name="EMAIL" id="EMAIL" class="form-control">
+                                                <input type="email" name="EMAIL" id="EMAIL" class="form-control" value="<?=$customer_data->fields['EMAIL_ID']?>">
                                             </div>
                                         </div>
                                     </div>
@@ -119,7 +121,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Card Number</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?=$CARD_NUMBER?>">
+                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" placeholder="Card Number" class="form-control">
                                             </div>
                                         </div>
                                     </div>
@@ -129,7 +131,12 @@
                                         <div class="form-group">
                                             <label class="form-label">Expiration Month</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control" >
+                                                <select name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control">
+                                                    <?php
+                                                    for ($i = 1; $i <= 12; $i++) { ?>
+                                                        <option value="<?=$i?>"><?=$i?></option>
+                                                    <?php } ?>
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
@@ -137,7 +144,13 @@
                                         <div class="form-group">
                                             <label class="form-label">Expiration Year</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control" >
+                                                <select name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control">
+                                                    <?php
+                                                    $year = (int)date('Y');
+                                                    for ($i = $year; $i <= $year+25; $i++) { ?>
+                                                        <option value="<?=$i?>"><?=$i?></option>
+                                                    <?php } ?>
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
@@ -145,7 +158,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Security Code</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?=$SECURITY_CODE?>">
+                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control">
                                             </div>
                                         </div>
                                     </div>
@@ -289,6 +302,25 @@
     </div>
 </div>
 
+<?php
+$SQUARE_MODE = 0;
+if ($SQUARE_APP_ID != '' && strpos($SQUARE_APP_ID, 'sandbox') !== false) {
+    $SQUARE_MODE = 2;
+} elseif ($SQUARE_APP_ID != '') {
+    $SQUARE_MODE = 1;
+}
+
+if ($SQUARE_MODE == 1)
+    $SQ_URL = "https://connect.squareup.com";
+else if ($SQUARE_MODE == 2)
+    $SQ_URL = "https://connect.squareupsandbox.com";
+
+if ($SQUARE_MODE == 1)
+    $URL = "https://web.squarecdn.com/v1/square.js";
+else if ($SQUARE_MODE == 2)
+    $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
+?>
+
 <script src="https://js.stripe.com/v3/"></script>
 <script type="text/javascript">
     var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
@@ -365,9 +397,59 @@
     }
 </script>
 
+
+<script src="<?=$URL?>"></script>
+<script type="text/javascript">
+    async function squarePaymentFunction(type) {
+        let square_appId = '<?=$SQUARE_APP_ID ?>';
+        let square_locationId = '<?=$SQUARE_LOCATION_ID ?>';
+        const payments = Square.payments(square_appId, square_locationId);
+        const card = await payments.card();
+        $('#'+type+'-card-container').text('');
+        await card.attach('#'+type+'-card-container');
+
+        let form = document.getElementById(type+'_payment_form');
+
+        //const cardButton = document.getElementById('card-button');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const statusContainer = document.getElementById('payment-status-container');
+
+            try {
+                const result = await card.tokenize();
+                if (result.status === 'OK') {
+                    document.getElementById('enrollment_sourceId').value = result.token;
+                    console.log(`Payment token is ${result.token}`);
+                    //statusContainer.innerHTML = "Payment Successful";
+                    form.submit();
+                } else {
+                    let errorMessage = `Tokenization failed with status: ${result.status}`;
+                    if (result.errors) {
+                        errorMessage += ` and errors: ${JSON.stringify(
+                            result.errors
+                        )}`;
+                    }
+                    if ($('#enrollment-card-container').length > 0) {
+                        throw new Error(errorMessage);
+                    } else {
+                        form.submit();
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                statusContainer.innerHTML = "Payment Failed";
+            }
+        });
+    }
+</script>
+
+
 <script>
     function getPaymentMethodId(param) {
         $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
+        let form = document.getElementById('enrollment_payment_form');
+        form.removeEventListener('submit', listener);
+        $(param).closest('.payment_modal').find('#card-element').remove();
     }
 
     function selectPaymentType(param, type){
@@ -377,6 +459,7 @@
         let form = document.getElementById(type+'_payment_form');
         form.removeEventListener('submit', listener);
         $(param).closest('.payment_modal').find('#card-element').remove();
+        $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
         switch (paymentType) {
             case 1:
                 if (PAYMENT_GATEWAY == 'Stripe') {
@@ -384,8 +467,18 @@
                     stripePaymentFunction(type);
                 }
 
+                if (PAYMENT_GATEWAY == 'Square') {
+                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="enrollment-card-container"></div>`);
+                    $('#'+type+'-card-container').text('Loading......');
+                    squarePaymentFunction(type);
+                }
+
                 getCreditCardList();
                 $(param).closest('.payment_modal').find('#credit_card_payment').slideDown();
+                $("#CARD_NUMBER").inputmask({
+                    mask: "9999 9999 9999 9999",
+                    placeholder: ""
+                });
                 break;
 
             case 2:

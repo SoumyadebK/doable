@@ -105,13 +105,10 @@
 
 
                 <li class="nav-item" style="margin-top: 4px;">
-                    <?php //if ($_SESSION["PK_ROLES"] == 1) { ?>
-                    <!-- <a href="email.php" style="margin-left: 40px;color:white;">Email List</a> -->
-                    <a class="nav-link dropdown-toggle waves-effect waves-dark" href="email.php" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle waves-effect waves-dark" href="../email/email.php" aria-haspopup="true" aria-expanded="false">
                         <img src="../assets/images/mail_icon.png" alt="Mail" style="height: 35px; width: 35px; background-color: white;">
                         <div class="notify"> <span class="heartbit"></span> <span class="point"></span> </div>
                     </a>
-                    <?php //} ?>
                 </li>
 
                 <?php if($_SESSION['ACCESS_TOKEN'] && $_SESSION['TICKET_SYSTEM_ACCESS']==1):?>
@@ -125,6 +122,30 @@
                         <?php //} ?>
                     </li>
                 <?php endif;?>
+
+                <?php if ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 4) { ?>
+                    <li class="nav-item dropdown" style="margin-top: 4px;">
+                        <a class="nav-link dropdown-toggle waves-effect waves-dark notice_box" href="javascript:" onclick="getCartItemList()" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <!--<div class="notify" id="cart_notify" style="display: <?php /*=(isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0)?'':'none'*/?>;"> <span class="button"></span> </div>-->
+                            <div class="button">
+                                <img src="../assets/images/icon/cart.png" alt="Mail" style="height: 35px; width: 35px;">
+                                <span class="button__badge" id="cart_count"><?=(isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0)?count($_SESSION['CART_DATA']):0?></span>
+                            </div>
+                        </a>
+
+                        <div id="cart_items" class="dropdown-menu dropdown-menu-end animated bounceInDown" style="margin-right: 15%; width: 400px;">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="row" style="text-align: center;">
+                                        <h5 style="font-weight: bold; color: #39b54a;">Cart Items</h5>
+                                    </div>
+                                </div>
+                                <div id="cart_item_list">
+
+                                </div>
+                        </div>
+                    </li>
+                <?php } ?>
 
                 <li class="nav-item" style="margin-top: 4px;">
                     <a class="nav-link dropdown-toggle waves-effect waves-dark" href="../admin/manage_help.php" aria-haspopup="true" aria-expanded="false">

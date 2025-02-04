@@ -6,7 +6,7 @@ global $master_database;
 
 $title = "SUMMARY OF STUDIO BUSINESS REPORT";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -16,11 +16,9 @@ $type = $_GET['type'];
 if (!empty($_GET['week_number'])){
     $week_number = $_GET['week_number'];
     $YEAR = date('Y');
-    $dto = new DateTime();
-    $dto->setISODate($YEAR, $week_number);
-    $from_date = $dto->modify('-1 day')->format('Y-m-d');
-    $dto->modify('+6 days');
-    $to_date = $dto->format('Y-m-d');
+
+    $from_date = date('Y-m-d', strtotime($_GET['start_date']));
+    $to_date = date('Y-m-d', strtotime($from_date. ' +6 day'));
 
     $weekly_date_condition = "'".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
     $net_year_date_condition = "'".date('Y', strtotime($to_date))."-01-01' AND '".date('Y-m-d', strtotime($to_date))."'";
@@ -43,7 +41,7 @@ $first_day_of_week_previous_year = date('Y-m-d', strtotime($previous_year . 'W' 
 // Find the last day of the selected week in the previous year
 $last_day_of_week_previous_year = date('Y-m-d', strtotime($first_day_of_week_previous_year . ' +6 days'));
 
-$res = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$res = $db->Execute("SELECT BUSINESS_NAME, FRANCHISE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
 
 if ($type === 'export') {
@@ -415,7 +413,11 @@ if ($type === 'export') {
                                 </table>
                             </div>
                             <div class="table-responsive">
+                                <?php if($res->fields['FRANCHISE']==1){?>
                                 <label style="width:100%; text-align: center; font-weight: bold">UNIT SALES TRACKING</label>
+                                <?php }else{ ?>
+                                <label style="width:100%; text-align: center; font-weight: bold">SALES TRACKING</label>
+                                <?php } ?>
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
                                     <thead>
                                     <tr>
@@ -556,7 +558,11 @@ if ($type === 'export') {
                                 </table>
                             </div>
                             <div class="table-responsive">
+                                <?php if($res->fields['FRANCHISE']==1){?>
                                 <label style="width:100%; text-align: center; font-weight: bold">MISCELLANEOUS / FESTIVAL SALES TRACKING</label>
+                                <?php } else { ?>
+                                <label style="width:100%; text-align: center; font-weight: bold">MISCELLANEOUS</label>
+                                <?php } ?>
                                 <table id="myTable" class="table table-bordered" data-page-length='50'>
                                     <thead>
                                         <tr>

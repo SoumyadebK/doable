@@ -604,7 +604,9 @@ z-index: 500;
                 <?php } ?>
 
                 <div class="form-group" style="margin-top: 25px;">
+                    <?php if(in_array('Customer Profile Edit', $PERMISSION_ARRAY)){ ?>
                     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
+                    <?php } ?>
                     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
                     <a href="enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
                     <!--<a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
@@ -839,9 +841,9 @@ z-index: 500;
                     </div>
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="col-md-12">Zip Code</label>
+                            <label class="col-md-12">Postal / Zip Code</label>
                             <div class="col-md-12">
-                                <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Zip Code" value="<?php echo $ZIP?>">
+                                <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP?>">
                             </div>
                         </div>
                     </div>
@@ -1041,7 +1043,9 @@ z-index: 500;
                 <? } ?>
             </div>
             <div class="form-group">
+                <?php if(in_array('Customer Profile Edit', $PERMISSION_ARRAY)){ ?>
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                <?php } ?>
                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
             </div>
         </form>
@@ -1140,7 +1144,9 @@ z-index: 500;
                 <? } ?>
             </div>
             <div class="form-group">
+                <?php if(in_array('Customer Profile Edit', $PERMISSION_ARRAY)){ ?>
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                <?php } ?>
                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
             </div>
         </form>
@@ -1450,7 +1456,9 @@ z-index: 500;
 
             <div id="add_more_family_member"></div>
             <div class="form-group">
+                <?php if(in_array('Customer Profile Edit', $PERMISSION_ARRAY)){ ?>
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                <?php } ?>
                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
             </div>
         </form>
@@ -1551,7 +1559,9 @@ z-index: 500;
             </div>
 
             <div class="form-group">
+                <?php if(in_array('Customer Profile Edit', $PERMISSION_ARRAY)){ ?>
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                <?php } ?>
                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
             </div>
         </form>
@@ -1634,7 +1644,9 @@ z-index: 500;
                 </div>
             </div>
             <div class="form-group">
+                <?php if(in_array('Customer Profile Edit', $PERMISSION_ARRAY) || in_array('Customers Documents Edit', $PERMISSION_ARRAY)){ ?>
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
+                <?php } ?>
                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
             </div>
         </form>

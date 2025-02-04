@@ -37,11 +37,15 @@ if (isset($_POST['APPOINTMENT_TYPE']) && $_POST['APPOINTMENT_TYPE'] != '') {
 
 $SERVICE_PROVIDER_ID = ' ';
 $APPOINTMENT_SERVICE_PROVIDER_ID = ' ';
+$SPECIAL_APPOINTMENT_SERVICE_PROVIDER_ID = ' ';
 if(isset($_POST['SERVICE_PROVIDER_ID']) && $_POST['SERVICE_PROVIDER_ID'] != ''){
     $service_providers = implode(',', $_POST['SERVICE_PROVIDER_ID']);
     $SERVICE_PROVIDER_ID = " AND DOA_USERS.PK_USER IN (".$service_providers.") ";
+    $SPECIAL_APPOINTMENT_SERVICE_PROVIDER_ID = " AND SERVICE_PROVIDER.PK_USER IN (".$service_providers.") ";
     $APPOINTMENT_SERVICE_PROVIDER_ID = " AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (".$service_providers.") ";
 }
+
+//pre_r($APPOINTMENT_SERVICE_PROVIDER_ID);
 
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
@@ -60,6 +64,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.SERVICE_CODE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
+                            DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
@@ -112,6 +117,7 @@ $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                 WHERE DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
                                 AND DOA_SPECIAL_APPOINTMENT.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
                                 ".$SPL_APPOINTMENT_DATE_CONDITION."
+                                ".$SPECIAL_APPOINTMENT_SERVICE_PROVIDER_ID."
                                 GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT";
 
 $EVENT_QUERY = "SELECT DISTINCT
@@ -197,7 +203,7 @@ if ($appointment_type == 'TO-DO' || $appointment_type == '') {
             'type' => 'special_appointment',
             /*'status' => $special_appointment_data->fields['STATUS_CODE'],
             'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
-            'comment' => '',
+            'comment' => $special_appointment_data->fields['DESCRIPTION'],
             'internal_comment' => '',
             'statusCode' => '',
             'duration' => $special_appointment_data->fields['DURATION'],

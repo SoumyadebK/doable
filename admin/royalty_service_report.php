@@ -8,7 +8,7 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 $title = "WEEKLY ROYALTY / SERVICE REPORT";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])){
     header("location:../login.php");
     exit;
 }
@@ -16,15 +16,48 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLE
 $type = $_GET['type'];
 
 $week_number = $_GET['week_number'];
-$YEAR = date('Y');
-$dto = new DateTime();
-$dto->setISODate($YEAR, $week_number);
-$from_date = $dto->modify('-1 day')->format('Y-m-d');
-$dto->modify('+6 days');
-$to_date = $dto->format('Y-m-d');
+$YEAR = date('Y', strtotime($_GET['start_date']));
 
+$from_date = date('Y-m-d', strtotime($_GET['start_date']));
+$to_date = date('Y-m-d', strtotime($from_date. ' +6 day'));
 
-$PAYMENT_QUERY = "SELECT
+$PAYMENT_QUERY = "SELECT 
+                    DOA_ENROLLMENT_PAYMENT.AMOUNT, 
+                    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, 
+                    DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                    DOA_ENROLLMENT_PAYMENT.PK_ORDER,
+                    DOA_PAYMENT_TYPE.PAYMENT_TYPE, 
+                    CONCAT(CUSTOMER.FIRST_NAME, ' ' ,CUSTOMER.LAST_NAME) AS STUDENT_NAME, 
+                    CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME, 
+                    CLOSER.LAST_NAME AS CLOSER_LAST_NAME, 
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER, 
+                    DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER, 
+                    DOA_ENROLLMENT_MASTER.PK_LOCATION 
+                FROM DOA_ENROLLMENT_PAYMENT 
+                LEFT JOIN DOA_MASTER.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE 
+                    ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE 
+                LEFT JOIN DOA_ENROLLMENT_MASTER 
+                    ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                LEFT JOIN DOA_MASTER.DOA_USERS AS CLOSER 
+                    ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER 
+                LEFT JOIN DOA_ORDER 
+                    ON DOA_ENROLLMENT_PAYMENT.PK_ORDER = DOA_ORDER.PK_ORDER 
+                LEFT JOIN DOA_MASTER.DOA_USER_MASTER AS DOA_USER_MASTER 
+                    ON (CASE 
+                            WHEN DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NULL 
+                                THEN DOA_ENROLLMENT_MASTER.PK_USER_MASTER 
+                            ELSE DOA_ORDER.PK_USER_MASTER 
+                        END) = DOA_USER_MASTER.PK_USER_MASTER 
+                LEFT JOIN DOA_MASTER.DOA_USERS AS CUSTOMER 
+                    ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER 
+                WHERE CUSTOMER.IS_DELETED = 0 
+                    AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' 
+                    AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5,7) 
+                    AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'
+                    AND (DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NOT NULL OR DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.")) 
+                ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
+
+/*$PAYMENT_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.AMOUNT,
                         DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                         DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
@@ -47,7 +80,7 @@ $PAYMENT_QUERY = "SELECT
                     
                     WHERE CUSTOMER.IS_DELETED = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5,7) AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$DEFAULT_LOCATION_ID.")
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'
-                    ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
+                    ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";*/
 
 $REFUND_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.AMOUNT,
@@ -80,7 +113,7 @@ $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSIN
 
 if ($type === 'export') {
     $access_token = getAccessToken();
-    $authorization = "Authorization: Bearer ".$access_token;
+    $authorization = "Authorization: Bearer " . $access_token;
     $line_item = [];
 
     $payment_data = $db_account->Execute($PAYMENT_QUERY);
@@ -90,11 +123,11 @@ if ($type === 'export') {
         $SUNDRY_AMOUNT = 0;
         $MISC_AMOUNT = 0;
 
-        $teacher_data = $db_account->Execute("SELECT TEACHER.FIRST_NAME, TEACHER.LAST_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
+        $teacher_data = $db_account->Execute("SELECT TEACHER.FIRST_NAME, TEACHER.LAST_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $payment_data->fields['PK_ENROLLMENT_MASTER']);
 
-        $enrollment_service_data = $db_account->Execute("SELECT SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
-        $TOTAL_AMOUNT = $enrollment_service_data->fields['TOTAL_AMOUNT'];
-        $SERVICE_CLASS = $enrollment_service_data->fields['PK_SERVICE_CLASS'];
+        $enrollment_service_data = $db_account->Execute("SELECT SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $payment_data->fields['PK_ENROLLMENT_MASTER'] . " GROUP BY PK_ENROLLMENT_MASTER");
+        $TOTAL_AMOUNT = ($enrollment_service_data->RecordCount() > 0) ? $enrollment_service_data->fields['TOTAL_AMOUNT'] : 0;
+        $SERVICE_CLASS = ($enrollment_service_data->RecordCount() > 0) ? $enrollment_service_data->fields['PK_SERVICE_CLASS'] : '';
 
         $AMOUNT_PAID = $payment_data->fields['AMOUNT'];
 
@@ -104,17 +137,21 @@ if ($type === 'export') {
             $REGULAR_AMOUNT = $AMOUNT_PAID;
         }
 
-        $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
-        while (!$enrollment_service_code_data->EOF) {
-            if ($enrollment_service_code_data->fields['IS_GROUP'] == 0) {
-                $TOTAL_UNIT += $enrollment_service_code_data->fields['NUMBER_OF_SESSION'];
+        if ($payment_data->fields['PK_ENROLLMENT_MASTER'] == 0 && $payment_data->fields['PK_ORDER'] != null) {
+            $SUNDRY_AMOUNT += $AMOUNT_PAID;
+        } else {
+            $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $payment_data->fields['PK_ENROLLMENT_MASTER']);
+            while (!$enrollment_service_code_data->EOF) {
+                if ($enrollment_service_code_data->fields['IS_GROUP'] == 0 && $enrollment_service_code_data->fields['PRICE_PER_SESSION'] > 0) {
+                    $TOTAL_UNIT += $enrollment_service_code_data->fields['NUMBER_OF_SESSION'];
+                }
+                if ($SERVICE_CLASS == 5 && $enrollment_service_code_data->fields['IS_SUNDRY'] == 1) {
+                    $servicePercent = ($enrollment_service_code_data->fields['FINAL_AMOUNT'] * 100) / $TOTAL_AMOUNT;
+                    $serviceAmount = ($AMOUNT_PAID * $servicePercent) / 100;
+                    $SUNDRY_AMOUNT += $serviceAmount;
+                }
+                $enrollment_service_code_data->MoveNext();
             }
-            if ($SERVICE_CLASS == 5 && $enrollment_service_code_data->fields['IS_SUNDRY'] == 1) {
-                $servicePercent = ($enrollment_service_code_data->fields['FINAL_AMOUNT']*100)/$TOTAL_AMOUNT;
-                $serviceAmount = ($AMOUNT_PAID*$servicePercent)/100;
-                $SUNDRY_AMOUNT += $serviceAmount;
-            }
-            $enrollment_service_code_data->MoveNext();
         }
 
         if ($SUNDRY_AMOUNT > 0) {
@@ -139,8 +176,8 @@ if ($type === 'export') {
 
         $executive = getStaffCode($authorization, $payment_data->fields['CLOSER_FIRST_NAME'], $payment_data->fields['CLOSER_LAST_NAME']);
         $staff_members = [];
-        while(!$teacher_data->EOF) {
-            $staff_members[] =  getStaffCode($authorization, $teacher_data->fields['FIRST_NAME'], $teacher_data->fields['LAST_NAME']);
+        while (!$teacher_data->EOF) {
+            $staff_members[] = getStaffCode($authorization, $teacher_data->fields['FIRST_NAME'], $teacher_data->fields['LAST_NAME']);
             $teacher_data->MoveNext();
         }
 
@@ -157,6 +194,7 @@ if ($type === 'export') {
             "miscellaneous_services" => $MISC_AMOUNT,
             "sundry" => $SUNDRY_AMOUNT,
         );
+
         $payment_data->MoveNext();
     }
 
@@ -177,16 +215,29 @@ if ($type === 'export') {
 
     $data = [
         'type' => 'royalty',
-        'prepared_by' => $user_data->fields['FIRST_NAME'].' '.$user_data->fields['LAST_NAME'],
+        'prepared_by' => $user_data->fields['FIRST_NAME'] . ' ' . $user_data->fields['LAST_NAME'],
         'week_number' => $week_number,
         'week_year' => $YEAR,
         'line_items' => $line_item,
         'refunds' => $refunds
     ];
 
-    $url = constant('ami_api_url').'/api/v1/reports';
+    $url = constant('ami_api_url') . '/api/v1/reports';
     $post_data = callArturMurrayApi($url, $data, $authorization);
 
+    $data = json_decode($post_data);
+    if (isset($data->error) || isset($data->errors)) {
+        $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'royalty' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = ".$week_number);
+        if ($report_details->RecordCount() > 0) {
+            $error_message = 'This report has already been exported on '.date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
+        }
+    } else {
+        $REPORT_DATA['REPORT_TYPE'] = 'royalty';
+        $REPORT_DATA['WEEK_NUMBER'] = $week_number;
+        $REPORT_DATA['YEAR'] = $YEAR;
+        $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
+        db_perform_account('DOA_REPORT_EXPORT_DETAILS', $REPORT_DATA);
+    }
     //pre_r(json_decode($post_data));
 }
 
@@ -241,17 +292,21 @@ foreach ($resultsArray as $key => $result) {
 
             <?php
             if ($type === 'export') {
-                $data = json_decode($post_data);
-                if (isset($data->error)) {
-                    echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->error_description.'</div>';
-                } elseif (isset($data->errors)) {
-                    if (isset($data->errors->errors[0])) {
-                        echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $data->errors->errors[0] . '</div>';
-                    } else {
-                        echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->message.'</div>';
-                    }
+                if (isset($error_message)) {
+                    echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $error_message . '</div>';
                 } else {
-                    echo "<h3>Data export to Arthur Murray API Successfully</h3>";
+                    $data = json_decode($post_data);
+                    if (isset($data->error)) {
+                        echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $data->error_description . '</div>';
+                    } elseif (isset($data->errors)) {
+                        if (isset($data->errors->errors[0])) {
+                            echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $data->errors->errors[0] . '</div>';
+                        } else {
+                            echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $data->message . '</div>';
+                        }
+                    } else {
+                        echo "<h3 style='color: green;'>Data export to Arthur Murray API Successfully</h3>";
+                    }
                 }
             } else { ?>
             <div class="row">
@@ -336,8 +391,8 @@ foreach ($resultsArray as $key => $result) {
                                         $MISC_AMOUNT = 0;
                                         $teacher_data = $db_account->Execute("SELECT GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
                                         $enrollment_service_data = $db_account->Execute("SELECT SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']." GROUP BY PK_ENROLLMENT_MASTER");
-                                        $TOTAL_AMOUNT = $enrollment_service_data->fields['TOTAL_AMOUNT'];
-                                        $SERVICE_CLASS = $enrollment_service_data->fields['PK_SERVICE_CLASS'];
+                                        $TOTAL_AMOUNT = ($enrollment_service_data->RecordCount() > 0) ? $enrollment_service_data->fields['TOTAL_AMOUNT'] : 0;
+                                        $SERVICE_CLASS = ($enrollment_service_data->RecordCount() > 0) ? $enrollment_service_data->fields['PK_SERVICE_CLASS'] : '';
 
                                         $AMOUNT_PAID = $payment_data->fields['AMOUNT'];
                                         $TOTAL_AMOUNT_PAID += $AMOUNT_PAID;
@@ -349,17 +404,21 @@ foreach ($resultsArray as $key => $result) {
                                             $REGULAR_AMOUNT = $AMOUNT_PAID;
                                         }
 
-                                        $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$payment_data->fields['PK_ENROLLMENT_MASTER']);
-                                        while (!$enrollment_service_code_data->EOF) {
-                                            if ($enrollment_service_code_data->fields['IS_GROUP'] == 0 && $enrollment_service_code_data->fields['PRICE_PER_SESSION'] > 0) {
-                                                $TOTAL_UNIT += $enrollment_service_code_data->fields['NUMBER_OF_SESSION'];
+                                        if ($payment_data->fields['PK_ENROLLMENT_MASTER'] == 0 && $payment_data->fields['PK_ORDER'] != null) {
+                                            $SUNDRY_AMOUNT += $AMOUNT_PAID;
+                                        } else {
+                                            $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $payment_data->fields['PK_ENROLLMENT_MASTER']);
+                                            while (!$enrollment_service_code_data->EOF) {
+                                                if ($enrollment_service_code_data->fields['IS_GROUP'] == 0 && $enrollment_service_code_data->fields['PRICE_PER_SESSION'] > 0) {
+                                                    $TOTAL_UNIT += $enrollment_service_code_data->fields['NUMBER_OF_SESSION'];
+                                                }
+                                                if ($SERVICE_CLASS == 5 && $enrollment_service_code_data->fields['IS_SUNDRY'] == 1) {
+                                                    $servicePercent = ($enrollment_service_code_data->fields['FINAL_AMOUNT'] * 100) / $TOTAL_AMOUNT;
+                                                    $serviceAmount = ($AMOUNT_PAID * $servicePercent) / 100;
+                                                    $SUNDRY_AMOUNT += $serviceAmount;
+                                                }
+                                                $enrollment_service_code_data->MoveNext();
                                             }
-                                            if ($SERVICE_CLASS == 5 && $enrollment_service_code_data->fields['IS_SUNDRY'] == 1) {
-                                                $servicePercent = ($enrollment_service_code_data->fields['FINAL_AMOUNT']*100)/$TOTAL_AMOUNT;
-                                                $serviceAmount = ($AMOUNT_PAID*$servicePercent)/100;
-                                                $SUNDRY_AMOUNT += $serviceAmount;
-                                            }
-                                            $enrollment_service_code_data->MoveNext();
                                         }
 
                                         if ($SUNDRY_AMOUNT > 0) {
@@ -582,12 +641,14 @@ foreach ($resultsArray as $key => $result) {
                                                     $location_total = '';
                                                     $royalty_percent_array = [];
                                                     foreach ($LOCATION_TOTAL AS $key => $value) {
-                                                        $location_name = $db->Execute("SELECT LOCATION_NAME, ROYALTY_PERCENTAGE FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$key);
-                                                        echo $location_name->fields['LOCATION_NAME']." - "."<br>";
-                                                        $royalty_percent .= "X ".$location_name->fields['ROYALTY_PERCENTAGE']." %"."<br>";
-                                                        $location_total .= "$".number_format($value - $TOTAL_AMOUNT_REFUND, 2)."<br>";
-                                                        $royalty_percent_array[$key]['ROYALTY_PERCENTAGE'] = $location_name->fields['ROYALTY_PERCENTAGE'];
-                                                        $royalty_percent_array[$key]['LOCATION_TOTAL'] = $value - $TOTAL_AMOUNT_REFUND;
+                                                        if ($key != null) {
+                                                            $location_name = $db->Execute("SELECT LOCATION_NAME, ROYALTY_PERCENTAGE FROM `DOA_LOCATION` WHERE `PK_LOCATION` = " . $key);
+                                                            echo $location_name->fields['LOCATION_NAME'] . " - " . "<br>";
+                                                            $royalty_percent .= "X " . $location_name->fields['ROYALTY_PERCENTAGE'] . " %" . "<br>";
+                                                            $location_total .= "$" . number_format($value - $TOTAL_AMOUNT_REFUND, 2) . "<br>";
+                                                            $royalty_percent_array[$key]['ROYALTY_PERCENTAGE'] = $location_name->fields['ROYALTY_PERCENTAGE'];
+                                                            $royalty_percent_array[$key]['LOCATION_TOTAL'] = $value - $TOTAL_AMOUNT_REFUND;
+                                                        }
                                                     }
                                                     ?>
                                                 </span>

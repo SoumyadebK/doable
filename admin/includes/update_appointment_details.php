@@ -3,6 +3,7 @@ require_once('../../global/config.php');
 
 global $db;
 global $db_account;
+global $upload_path;
 
 $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
 $PK_APPOINTMENT_MASTER = $_POST['PK_APPOINTMENT_MASTER'];
@@ -12,10 +13,24 @@ if ($APPOINTMENT_TYPE == 'GROUP') {
     $APPOINTMENT_ENROLLMENT_DATA['IS_CHARGED'] = $_POST['IS_CHARGED'];
     db_perform_account('DOA_APPOINTMENT_ENROLLMENT', $APPOINTMENT_ENROLLMENT_DATA, 'update', ' PK_APPOINTMENT_MASTER = '.$PK_APPOINTMENT_MASTER.' AND PK_USER_MASTER = '.$PK_USER_MASTER);
 } else {
+
+    if (isset($_POST['PK_ENROLLMENT_MASTER'])) {
+        $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $_POST['PK_ENROLLMENT_MASTER']);
+        $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[0];
+        $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_MASTER_ARRAY[1];
+        $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_ENROLLMENT_MASTER_ARRAY[2];
+        $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_ENROLLMENT_MASTER_ARRAY[3];
+    }
+
+
     $PK_APPOINTMENT_STATUS = $_POST['PK_APPOINTMENT_STATUS_NEW'];
     $START_TIME = $_POST['START_TIME'];
 
     if (isset($_FILES['IMAGE']['name']) && $_FILES['IMAGE']['name'] != '') {
+        if (!file_exists('../../'.$upload_path.'/appointment_image/')) {
+            mkdir('../../'.$upload_path.'/appointment_image/', 0777, true);
+        }
+
         $extn = explode(".", $_FILES['IMAGE']['name']);
         $iindex = count($extn) - 1;
         $rand_string = time() . "-" . rand(100000, 999999);
@@ -23,13 +38,18 @@ if ($APPOINTMENT_TYPE == 'GROUP') {
         $extension = strtolower($extn[$iindex]);
 
         if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-            $image_path = '../uploads/appointment_image/' . $file11;
-            move_uploaded_file($_FILES['IMAGE']['tmp_name'], $image_path);
+            $upload_dir   = '../../'.$upload_path.'/appointment_image/'.$file11;
+            $image_path    = '../'.$upload_path.'/appointment_image/'.$file11;
+            move_uploaded_file($_FILES['IMAGE']['tmp_name'], $upload_dir);
             $APPOINTMENT_DATA['IMAGE'] = $image_path;
         }
     }
 
     if (isset($_FILES['VIDEO']['name']) && $_FILES['VIDEO']['name'] != '') {
+        if (!file_exists('../../'.$upload_path.'/appointment_video/')) {
+            mkdir('../../'.$upload_path.'/appointment_video/', 0777, true);
+        }
+
         $extn = explode(".", $_FILES['VIDEO']['name']);
         $iindex = count($extn) - 1;
         $rand_string = time() . "-" . rand(100000, 999999);
@@ -37,8 +57,9 @@ if ($APPOINTMENT_TYPE == 'GROUP') {
         $extension = strtolower($extn[$iindex]);
 
         if ($extension == "mp4" || $extension == "avi" || $extension == "mov" || $extension == "wmv") {
-            $video_path = '../uploads/appointment_video/' . $file11;
-            move_uploaded_file($_FILES["VIDEO"]["tmp_name"], $video_path);
+            $upload_dir   = '../../'.$upload_path.'/appointment_video/'.$file11;
+            $video_path    = '../'.$upload_path.'/appointment_video/'.$file11;
+            move_uploaded_file($_FILES['VIDEO']['tmp_name'], $upload_dir);
             $APPOINTMENT_DATA['VIDEO'] = $video_path;
         }
     }

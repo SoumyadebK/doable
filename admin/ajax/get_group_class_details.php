@@ -135,13 +135,81 @@ while (!$status_data->EOF) {
                 <div class="col-8">
                     <label class="form-label">Customer</label>
                     <div style="margin-bottom: 15px; margin-top: 10px; width: 480px;">
-                        <select class="multi_sumo_select" name="PK_USER_MASTER[]" id="PK_USER_MASTER" multiple>
+
+                        <ul class="list-select">
                             <?php
                             $with_enr_customer = [];
-                            $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = $PK_SERVICE_MASTER AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
+                            $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = $PK_SERVICE_MASTER AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
                             while (!$serviceCodeData->EOF) {
+                                if ($serviceCodeData->fields['CHARGE_TYPE'] == 'Membership') {
+                                    $NUMBER_OF_SESSION = 99;
+                                } else {
+                                    $NUMBER_OF_SESSION = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                                }
+                                $with_enr_customer[] = $serviceCodeData->fields['PK_USER_MASTER'];
+                                /*$SESSION_CREATED = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE'], 'GROUP');
+                                if ($NUMBER_OF_SESSION > $SESSION_CREATED) {
+                                    $with_enr_customer[] = $serviceCodeData->fields['PK_USER_MASTER'];
+                                }*/
+                                $serviceCodeData->MoveNext();
+                            }
+                            $user_master_id = implode(',', $with_enr_customer);
+
+                            $selected_customer = [];
+                            $selected_partner = [];
+                            $selected_customer_row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
+                            while (!$selected_customer_row->EOF) {
+                                $selected_customer[] = $selected_customer_row->fields['PK_USER_MASTER'];
+                                if ($selected_customer_row->fields['WITH_PARTNER'] == 1) {
+                                    $selected_partner[] = $selected_customer_row->fields['PK_USER_MASTER'];
+                                }
+                                $selected_customer_row->MoveNext();
+                            } ?>
+                            <li class="init"><?=(count($selected_customer) > 0) ? count($selected_customer).' Selected' : 'Select Customer'?></li>
+                            <li> <input type="text" id="customer_search" placeholder="Search..." onkeyup="searchCustomerList()" style="width: 100%; border: none;"></li>
+                            <?php
+                            /*if (count($selected_customer) > 0) {
+                                $orderBy = " ORDER BY FIELD(PK_USER_MASTER, ".implode(',', $selected_customer).") DESC, DOA_USERS.FIRST_NAME ASC";
+                            } else {
+                                $orderBy = " DOA_USERS.FIRST_NAME ASC";
+                            }*/
+                            $orderBy = " ORDER BY DOA_USERS.FIRST_NAME ASC";
+
+                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_MASTER.PK_USER_MASTER IN (".$user_master_id.") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'".$orderBy);
+                            $customer_name = '';
+                            while (!$row->EOF) {
+                            $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = ".$row->fields['PK_USER_MASTER']);
+                            if (in_array($row->fields['PK_USER_MASTER'], $selected_customer)) {
+                                $selected_customer_id = $row->fields['PK_USER_MASTER'];
+                                $selected_user_id = $row->fields['PK_USER'];
+                                $partner_name = '';
+                                if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner' && in_array($row->fields['PK_USER_MASTER'], $selected_partner)) {
+                                    $partner_name .= '<span class="m-l-30"><i class="fa fa-check-square" style="font-size:15px; color: green"></i>&nbsp;&nbsp;'.$partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'].'</span>';
+                                }
+                                $customer_name.= '<p><i class="fa fa-check-square" style="font-size:15px; color: green"></i>&nbsp;&nbsp;<a href="customer.php?id='.$selected_user_id.'&master_id='.$selected_customer_id.'&tab=profile" target="_blank" style="color: blue;">'.$row->fields['NAME'].'</a>'.$partner_name.'</p>';
+                            } ?>
+                            <li class="customer-li">
+                                <label style="width: 50%;"> <input type="checkbox" name="PK_USER_MASTER[]" value="<?=$row->fields['PK_USER_MASTER']?>" class="customer-checkbox" <?=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"checked":""?>> <?=$row->fields['NAME']?> </label>
+                                <?php if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner') { ?>
+                                    <label style="width: 48%;"> <input type="checkbox" name="PARTNER[]" value="<?=$row->fields['PK_USER_MASTER']?>" class="partner-checkbox" <?=in_array($row->fields['PK_USER_MASTER'], $selected_partner)?"checked":""?>> <?=$partner_data->fields['PARTNER_FIRST_NAME']?> <?=$partner_data->fields['PARTNER_LAST_NAME']?></label>
+                                <?php } ?>
+                            </li>
+                            <?php $row->MoveNext(); } ?>
+                        </ul>
+
+
+                        <!--<select class="multi_sumo_select" name="PK_USER_MASTER[]" id="PK_USER_MASTER" multiple>
+                            <?php
+/*                            $with_enr_customer = [];
+                            $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = $PK_SERVICE_MASTER AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
+                            while (!$serviceCodeData->EOF) {
+                                if ($serviceCodeData->fields['CHARGE_TYPE'] == 'Membership') {
+                                    $NUMBER_OF_SESSION = 99;
+                                } else {
+                                    $NUMBER_OF_SESSION = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                                }
                                 $SESSION_CREATED = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE'], 'GROUP');
-                                if ($serviceCodeData->fields['NUMBER_OF_SESSION'] > $SESSION_CREATED) {
+                                if ($NUMBER_OF_SESSION > $SESSION_CREATED) {
                                     $with_enr_customer[] = $serviceCodeData->fields['PK_USER_MASTER'];
                                 }
                                 $serviceCodeData->MoveNext();
@@ -167,10 +235,11 @@ while (!$status_data->EOF) {
                                     $selected_customer_id = $row->fields['PK_USER_MASTER'];
                                     $selected_user_id = $row->fields['PK_USER'];
                                     $customer_name.= '<p><i class="fa fa-check-square" style="font-size:15px; color: #069419"></i>&nbsp;&nbsp;<a href="customer.php?id='.$selected_user_id.'&master_id='.$selected_customer_id.'&tab=profile" target="_blank">'.$row->fields['NAME'].'<br></a></p>';
-                                }?>
-                                <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" <?=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""?>><?=$row->fields['NAME']?></option>
-                            <?php $row->MoveNext(); } ?>
-                        </select>
+                                }*/?>
+                                <option value="<?php /*echo $row->fields['PK_USER_MASTER'];*/?>" <?php /*=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""*/?>><?php /*=$row->fields['NAME']*/?></option>
+                            <?php /*$row->MoveNext(); } */?>
+                        </select>-->
+
                     </div>
                     <p><?=$customer_name;?></p>
                 </div>
@@ -235,6 +304,42 @@ while (!$status_data->EOF) {
     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
 </form>
+
+<script>
+    $(document).mouseup(function (e) {
+        if ($(e.target).closest(".list-select").length=== 0) {
+            closeListSelect();
+        }
+    });
+
+    $(".list-select").on("click", ".init", function() {
+        $(this).closest("ul").children('li:not(.init)').slideDown();
+        $(this).closest("ul").css({"height":"20em", "overflow":"scroll", "overflow-x":"hidden"});
+    });
+
+    var allOptions = $(".list-select").children('li:not(.init)');
+
+    function closeListSelect() {
+        allOptions.removeClass('selected');
+        let checked_customer = $("input[name='PK_USER_MASTER[]']:checked").length;
+        $(".list-select").children('.init').html(checked_customer+' Selected');
+        $(".list-select").css({"height":"30px", "overflow":"none", "overflow-x":"none"});
+        allOptions.slideUp();
+    }
+
+    function searchCustomerList() {
+        let searchQuery = document.getElementById('customer_search').value.toLowerCase();
+        let listItems = document.querySelectorAll('.customer-li');
+
+        listItems.forEach(function(item) {
+            if (item.textContent.toLowerCase().includes(searchQuery)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+</script>
 
 <script>
     $('.SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', selectAll: true, search: true, searchText: 'Search...'});

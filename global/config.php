@@ -11,7 +11,7 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
     $http_path = 'http://localhost/doable/';
 } else {
     $conn = $db->connect('localhost','root','b54eawxj5h8ev',$master_database);
-    $http_path = 'http://allonehub.com/';
+    $http_path = 'https://doable.net/';
 }
 
 if (!empty($_SESSION['DB_NAME'])) {
@@ -30,6 +30,7 @@ if (!empty($_SESSION['DB_NAME'])) {
 }
 
 $env = 'dev';
+$upload_path = '';
 
 if ($env === 'dev') {
     define("client_id", "5c896c023b775026fc5e3352_gcd6pouyir4s8c0cwg04ss0ck8s0gcgkoog4wcw00ko0ssksg");
@@ -68,6 +69,15 @@ if ($db->error_number){
             $time_zone = 1;
         }else{
             $time_zone = 0;
+        }
+
+        $upload_path = 'uploads/'.$_SESSION['PK_ACCOUNT_MASTER'];
+
+        $PERMISSION_ARRAY = [];
+        $permission_data = $db->Execute("SELECT DOA_PERMISSION.PERMISSION_NAME FROM DOA_PERMISSION LEFT JOIN DOA_ROLES_PERMISSION ON DOA_PERMISSION.PK_PERMISSION = DOA_ROLES_PERMISSION.PK_PERMISSION WHERE DOA_ROLES_PERMISSION.PK_ROLES = '$_SESSION[PK_ROLES]'");
+        while (!$permission_data->EOF) {
+            $PERMISSION_ARRAY[] = $permission_data->fields['PERMISSION_NAME'];
+            $permission_data->MoveNext();
         }
     }
 }

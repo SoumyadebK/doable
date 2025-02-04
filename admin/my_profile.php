@@ -1,8 +1,12 @@
 <?php
 require_once('../global/config.php');
+global $db;
+global $db_account;
+global $upload_path;
+
 $title = "My Profile";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -28,6 +32,10 @@ if(!empty($_POST)){
         }
     }else {
         if ($_FILES['USER_IMAGE']['name'] != '') {
+            if (!file_exists('../'.$upload_path.'/user_image/')) {
+                mkdir('../'.$upload_path.'/user_image/', 0777, true);
+            }
+
             $USER_DATA = [];
             $extn = explode(".", $_FILES['USER_IMAGE']['name']);
             $iindex = count($extn) - 1;
@@ -36,7 +44,7 @@ if(!empty($_POST)){
             $extension = strtolower($extn[$iindex]);
 
             if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-                $image_path = '../uploads/user_image/' . $file11;
+                $image_path = '../'.$upload_path.'/user_image/' . $file11;
                 move_uploaded_file($_FILES['USER_IMAGE']['tmp_name'], $image_path);
                 $USER_DATA['USER_IMAGE'] = $image_path;
             }
@@ -203,6 +211,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                     <option>Select Gender</option>
                                                     <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
                                                     <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
+                                                    <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -280,10 +289,10 @@ $ACTIVE = $res->fields['ACTIVE'];
                                         </div>
                                         <div class="col-6">
                                             <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Zip Code</span>
+                                                <label class="col-md-12" for="example-text">Postal / Zip Code</span>
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Zip Code" value="<?php echo $ZIP?>">
+                                                    <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP?>">
                                                 </div>
                                             </div>
                                         </div>

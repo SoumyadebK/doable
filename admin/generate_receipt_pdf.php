@@ -89,7 +89,7 @@ $ZIP = $user_data->fields['ZIP'];
 $PHONE = $user_data->fields['PHONE'];
 $AMOUNT = '$' . number_format($TOTAL_AMOUNT, 2);
 $TOTAL = '$' . number_format($TOTAL_AMOUNT, 2);
-$PAYMENT_DATE = $enrollment_payment->fields['PAYMENT_DATE'];
+$PAYMENT_DATE = date('m-d-Y', strtotime($enrollment_payment->fields['PAYMENT_DATE']));
 ?>
 
 <table style="margin-left: auto; margin-right: auto; width:70%;">

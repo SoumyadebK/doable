@@ -7,7 +7,7 @@ global $results_per_page;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -261,11 +261,19 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <?php } ?>
                                             <td>
                                                 <?php if ($standing == 0) { ?>
+                                                    <?php if(in_array("To-Do Edit", $PERMISSION_ARRAY)){ ?>
                                                     <a href="edit_to_do.php?id=<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;
+                                                    <?php } ?>
+                                                    <?php if(in_array("To-Do Delete", $PERMISSION_ARRAY)){ ?>
                                                     <a href="javascript:" onclick='ConfirmDelete(<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>);' title="Delete"><i class="fa fa-trash" style="font-size: 16px;"></i></a>&nbsp;&nbsp;&nbsp;
+                                                    <?php } ?>
                                                 <?php } else { ?>
+                                                    <?php if(in_array("To-Do Edit", $PERMISSION_ARRAY)){ ?>
                                                     <a href="edit_to_do.php?id=<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>&standing=1" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;
+                                                    <?php } ?>
+                                                    <?php if(in_array("To-Do Delete", $PERMISSION_ARRAY)){ ?>
                                                     <a href="javascript:" onclick='ConfirmDeleteStanding(<?=$special_appointment_data->fields['STANDING_ID']?>);' title="Delete All Standing"><i class="fa fa-trash-alt" style="font-size: 16px;"></i></a>&nbsp;&nbsp;&nbsp;
+                                                    <?php } ?>
                                                 <?php } ?>
                                             </td>
                                         </tr>

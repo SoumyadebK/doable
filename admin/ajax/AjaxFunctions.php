@@ -278,10 +278,32 @@ function saveEnrollmentData($RESPONSE_DATA){
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_NAME'] = $RESPONSE_DATA['ENROLLMENT_NAME'];
     $ENROLLMENT_MASTER_DATA['PK_PACKAGE'] = ($RESPONSE_DATA['PK_PACKAGE'] == '') ? 0 : $RESPONSE_DATA['PK_PACKAGE'];
     $ENROLLMENT_MASTER_DATA['PK_LOCATION'] = $RESPONSE_DATA['PK_LOCATION'];
-    $ENROLLMENT_MASTER_DATA['CHARGE_BY_SESSIONS'] = empty($RESPONSE_DATA['CHARGE_BY_SESSIONS']) ? 0 : $RESPONSE_DATA['CHARGE_BY_SESSIONS'];
-    $currentDate = new DateTime();
-    $currentDate->modify('+'.$RESPONSE_DATA['EXPIRY_DATE'].' month');
-    $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $currentDate->format('Y-m-d H:i');
+    $ENROLLMENT_MASTER_DATA['CHARGE_TYPE'] = empty($RESPONSE_DATA['CHARGE_TYPE']) ? 0 : $RESPONSE_DATA['CHARGE_TYPE'];
+
+    if($RESPONSE_DATA['CHARGE_TYPE'] == 'Session') {
+        $currentDate = new DateTime();
+        $currentDate->modify('+'.$RESPONSE_DATA['EXPIRY_DATE'].' month');
+        $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $currentDate->format('Y-m-d H:i');
+    } else {
+        $selectedOption = $RESPONSE_DATA['EXPIRY_DATE'];
+        $currentDate = new DateTime();
+        if ($selectedOption == '0') {
+            $renewalDate = clone $currentDate;
+            $renewalDate->modify('+1 month');
+        } elseif ($selectedOption == '1') {
+            $renewalDate = new DateTime($currentDate->format('Y-m-01'));
+            if ($currentDate > $renewalDate) {
+                $renewalDate->modify('+1 month');
+            }
+        } elseif ($selectedOption == '15') {
+            $renewalDate = new DateTime($currentDate->format('Y-m-15'));
+            if ($currentDate > $renewalDate) {
+                $renewalDate->modify('+1 month');
+            }
+        }
+        $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $renewalDate->format('Y-m-d H:i');
+    }
+
     //$ENROLLMENT_MASTER_DATA['PK_AGREEMENT_TYPE'] = $RESPONSE_DATA['PK_AGREEMENT_TYPE'];
     $ENROLLMENT_MASTER_DATA['PK_DOCUMENT_LIBRARY'] = $RESPONSE_DATA['PK_DOCUMENT_LIBRARY'];
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_BY_ID'] = $RESPONSE_DATA['ENROLLMENT_BY_ID'];
@@ -300,17 +322,17 @@ function saveEnrollmentData($RESPONSE_DATA){
                 $misc_id = explode("-", $id_data->fields['MISC_ID']);
                 $last_misc_id = $misc_id[1];
                 $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".(intval($last_misc_id)+1);
-            }else{
+            } else {
                 $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".$account_data->fields['MISCELLANEOUS_ID_NUM'];
             }
-            $ENROLLMENT_MASTER_DATA['MISC_TYPE'] = $misc_service_data->fields['MISC_TYPE'];
+            $ENROLLMENT_MASTER_DATA['MISC_TYPE'] = ($misc_service_data->fields['MISC_TYPE']) ?: 'GENERAL';
         } else {
             $id_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE MISC_ID IS NULL AND PK_USER_MASTER = ".$RESPONSE_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
             if ($id_data->fields['ENROLLMENT_ID'] != ' '){
                 $enrollment_id = explode("-", $id_data->fields['ENROLLMENT_ID']);
                 $last_enrollment_id = $enrollment_id[1];
                 $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR']."-".(intval($last_enrollment_id)+1);
-            }else{
+            } else {
                 $ENROLLMENT_MASTER_DATA['ENROLLMENT_ID'] = $account_data->fields['ENROLLMENT_ID_CHAR']."-".$account_data->fields['ENROLLMENT_ID_NUM'];
             }
         }
@@ -353,8 +375,8 @@ function saveEnrollmentData($RESPONSE_DATA){
             $ENROLLMENT_SERVICE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'][$i];
             $ENROLLMENT_SERVICE_DATA['PK_SERVICE_CODE'] = $RESPONSE_DATA['PK_SERVICE_CODE'][$i];
             $ENROLLMENT_SERVICE_DATA['SERVICE_DETAILS'] = $RESPONSE_DATA['SERVICE_DETAILS'][$i];
-            $ENROLLMENT_SERVICE_DATA['NUMBER_OF_SESSION'] = $RESPONSE_DATA['NUMBER_OF_SESSION'][$i];
-            $ENROLLMENT_SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
+            $ENROLLMENT_SERVICE_DATA['NUMBER_OF_SESSION'] = ($RESPONSE_DATA['CHARGE_TYPE'] == 'Membership') ? 0 : $RESPONSE_DATA['NUMBER_OF_SESSION'][$i];
+            $ENROLLMENT_SERVICE_DATA['PRICE_PER_SESSION'] = ($RESPONSE_DATA['CHARGE_TYPE'] == 'Membership') ? 0 : $PRICE_PER_SESSION;
             $ENROLLMENT_SERVICE_DATA['TOTAL'] = $RESPONSE_DATA['TOTAL'][$i];
             $ENROLLMENT_SERVICE_DATA['DISCOUNT_TYPE'] = empty($RESPONSE_DATA['DISCOUNT_TYPE'][$i]) ? 0 : $RESPONSE_DATA['DISCOUNT_TYPE'][$i];
             $ENROLLMENT_SERVICE_DATA['DISCOUNT'] = empty($RESPONSE_DATA['DISCOUNT'][$i]) ? 0 : $RESPONSE_DATA['DISCOUNT'][$i];
@@ -651,6 +673,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
  */
 function generatePdf($html): string
 {
+    global $upload_path;
     require_once('../../global/vendor/autoload.php');
 
     $mpdf = new Mpdf();
@@ -658,8 +681,12 @@ function generatePdf($html): string
     $mpdf->keep_table_proportions = true;
     $mpdf->AddPage();
 
+    if (!file_exists('../../'.$upload_path.'/enrollment_pdf/')) {
+        mkdir('../../'.$upload_path.'/enrollment_pdf/', 0777, true);
+    }
+
     $file_name = "enrollment_pdf_".time().".pdf";
-    $mpdf->Output("../../uploads/enrollment_pdf/".$file_name, 'F');
+    $mpdf->Output('../../'.$upload_path.'/enrollment_pdf/'.$file_name, 'F');
 
     return $file_name;
 }
@@ -717,6 +744,7 @@ function generatePdf($html): string
 function saveProfileData($RESPONSE_DATA){
     global $db;
     global $db_account;
+    global $upload_path;
 
     $USER_DATA['PK_ACCOUNT_MASTER'] = $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
 
@@ -744,6 +772,10 @@ function saveProfileData($RESPONSE_DATA){
     }
 
     if($_FILES['USER_IMAGE']['name'] != ''){
+        if (!file_exists('../../'.$upload_path.'/user_image/')) {
+            mkdir('../../'.$upload_path.'/user_image/', 0777, true);
+        }
+
         $extn 			= explode(".",$_FILES['USER_IMAGE']['name']);
         $iindex			= count($extn) - 1;
         $rand_string 	= time()."-".rand(100000,999999);
@@ -751,9 +783,9 @@ function saveProfileData($RESPONSE_DATA){
         $extension   	= strtolower($extn[$iindex]);
 
         if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
-            $upload_path   = '../../uploads/user_image/'.$file11;
-            $image_path    = '../uploads/user_image/'.$file11;
-            move_uploaded_file($_FILES['USER_IMAGE']['tmp_name'], $upload_path);
+            $upload_dir   = '../../'.$upload_path.'/user_image/'.$file11;
+            $image_path    = '../'.$upload_path.'/user_image/'.$file11;
+            move_uploaded_file($_FILES['USER_IMAGE']['tmp_name'], $upload_dir);
             $USER_DATA['USER_IMAGE'] = $image_path;
         }
     }
@@ -830,6 +862,8 @@ function saveProfileData($RESPONSE_DATA){
         $CUSTOMER_USER_DATA['ATTENDING_WITH'] = $RESPONSE_DATA['ATTENDING_WITH'];
         $CUSTOMER_USER_DATA['PARTNER_FIRST_NAME'] = $RESPONSE_DATA['PARTNER_FIRST_NAME'];
         $CUSTOMER_USER_DATA['PARTNER_LAST_NAME'] = $RESPONSE_DATA['PARTNER_LAST_NAME'];
+        $CUSTOMER_USER_DATA['PARTNER_PHONE'] = $RESPONSE_DATA['PARTNER_PHONE'];
+        $CUSTOMER_USER_DATA['PARTNER_EMAIL'] = $RESPONSE_DATA['PARTNER_EMAIL'];
         $CUSTOMER_USER_DATA['PARTNER_GENDER'] = $RESPONSE_DATA['PARTNER_GENDER'];
         $CUSTOMER_USER_DATA['PARTNER_DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['PARTNER_DOB']));
 
@@ -891,6 +925,8 @@ function saveProfileData($RESPONSE_DATA){
         }
     }
 
+    $db->Execute("UPDATE `DOA_ACCOUNT_MASTER` SET IS_NEW=0 WHERE `PK_ACCOUNT_MASTER` = ".$_SESSION['PK_ACCOUNT_MASTER']);
+
     $return_data['PK_USER'] = $PK_USER;
     $return_data['PK_USER_MASTER'] = $PK_USER_MASTER;
     $return_data['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
@@ -924,15 +960,17 @@ function saveProfileData($RESPONSE_DATA){
 function saveLoginData($RESPONSE_DATA)
 {
     global $db;
+    $account_data = $db->Execute("SELECT USERNAME_PREFIX, FOCUSBIZ_API_KEY FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+    $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
+    $FOCUSBIZ_API_KEY = ($account_data->RecordCount() > 0) ? $account_data->fields['FOCUSBIZ_API_KEY'] : '';
+
     if (!empty($RESPONSE_DATA['USER_NAME'])) {
-        $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
-        $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
         if (strpos($RESPONSE_DATA['USER_NAME'], $USERNAME_PREFIX . '.') !== false) {
             $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
         } else {
             $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['USER_NAME'];
         }
-        //$USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $USERNAME_PREFIX.'.'.$RESPONSE_DATA['USER_NAME'];
+        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = ".$RESPONSE_DATA['PK_USER']);
         $USER_DATA['CREATE_LOGIN'] = 1;
     }
 
@@ -945,93 +983,22 @@ function saveLoginData($RESPONSE_DATA)
     $USER_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
     $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
 
-    //$user_info = $db->Execute("SELECT * FROM `DOA_USERS` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
     // focusbiz code
     if(isset($RESPONSE_DATA['TICKET_SYSTEM_ACCESS']) && $RESPONSE_DATA['TICKET_SYSTEM_ACCESS'] == 1) {
-        $USER_DATA['TICKET_SYSTEM_ACCESS'] = $RESPONSE_DATA['TICKET_SYSTEM_ACCESS'];
+        $USER_DATA['TICKET_SYSTEM_ACCESS'] = 1;
 
         $res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$RESPONSE_DATA[PK_USER]' ");
-
-        //$hash      = $res->fields['PASSWORD'];
-        //$PASSWORD  = crypt($res->fields['PASSWORD'], $hash);
-        $PASSWORD  = $RESPONSE_DATA['PASSWORD'];
-
-        $user = array();
-        $user['FIRST_NAME'] = $res->fields['FIRST_NAME'];
-        $user['LAST_NAME']  = $res->fields['LAST_NAME'];
-        $user['EMAIL_ID']   = $res->fields['EMAIL_ID'];
-        $user['ACTIVE']     = $res->fields['ACTIVE'];
-
-        if($res->fields['ACCESS_TOKEN'] == "") {
-            $user['USER_NAME']    = $res->fields['USER_NAME'];
-            $user['PASSWORD']   = $PASSWORD;
-        } else {
-            $user['ACCESS_TOKEN']   = $res->fields['ACCESS_TOKEN'];
-        }
-
-        if($_SERVER['HTTP_HOST'] == 'localhost' ) {
-            /*$URL    = "http://localhost/focusbiz/API/V1/user";
-            $APIKEY = "7QXJtdkZEHcR4bgOxPkona3PnJ02O8";*/
-            $URL    = "https://focusbiz.com/API/V1/user";
-            $APIKEY = "JJmQm6AvehQzjP0nVRgEfWgCarxWYo";
-        } else {
-            $URL    = "https://focusbiz.com/API/V1/user";
-            $APIKEY = "JJmQm6AvehQzjP0nVRgEfWgCarxWYo";
-        }
-
-        $json = json_encode($user);
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_SSL_VERIFYHOST => '0',
-            CURLOPT_SSL_VERIFYPEER => '0',
-            CURLOPT_URL => $URL,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_POST => 1,
-            CURLOPT_POSTFIELDS => $json,
-            CURLOPT_HTTPHEADER => array(
-                "APIKEY: ".$APIKEY
-            ),
-        ));
-
-        $response   = curl_exec($curl);
-        $err        = curl_error($curl);
-
-        curl_close($curl);
-
-        if($err) {
-            echo "cURL Error #:" . $err;exit;
-        } else {
-            $response1 = json_decode($response);
-
-            $USER = array();
-            $USER['ACCESS_TOKEN'] = $response1->ACCESS_TOKEN;
-            db_perform('DOA_USERS', $USER, 'update', " PK_USER = '$RESPONSE_DATA[PK_USER]' ");
-        }
-    } else {
-        $USER_DATA['TICKET_SYSTEM_ACCESS'] = 0;
-
-        $res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$RESPONSE_DATA[PK_USER]' ");
-        if($res->fields['ACCESS_TOKEN'] != "") {
+        if(($res->fields['ACCESS_TOKEN'] == NULL || $res->fields['ACCESS_TOKEN'] == "") && $FOCUSBIZ_API_KEY != NULL) {
             $user = array();
-            $user['FIRST_NAME']     = $res->fields['FIRST_NAME'];
-            $user['LAST_NAME']      = $res->fields['LAST_NAME'];
-            $user['EMAIL_ID']       = $res->fields['EMAIL'];
-            $user['ACTIVE']         = 0;
-            $user['ACCESS_TOKEN']   = $res->fields['ACCESS_TOKEN'];
+            $user['FIRST_NAME'] = $res->fields['FIRST_NAME'];
+            $user['LAST_NAME'] = $res->fields['LAST_NAME'];
+            $user['EMAIL_ID'] = $res->fields['EMAIL_ID'];
+            $user['ACTIVE'] = $res->fields['ACTIVE'];
+            $user['USER_ID'] = $res->fields['USER_NAME'];
 
-            if($_SERVER['HTTP_HOST'] == 'localhost' ) {
-                /*$URL    = "http://localhost/focusbiz/API/V1/user";
-                $APIKEY = "7QXJtdkZEHcR4bgOxPkona3PnJ02O8";*/
-                $URL    = "https://focusbiz.com/API/V1/user";
-                $APIKEY = "JJmQm6AvehQzjP0nVRgEfWgCarxWYo";
-            } else {
-                $URL    = "https://focusbiz.com/API/V1/user";
-                $APIKEY = "JJmQm6AvehQzjP0nVRgEfWgCarxWYo";
-            }
+            $user['PASSWORD'] = $USER_DATA['PASSWORD'] ?? $res->fields['PASSWORD'];
+
+            $URL = "https://focusbiz.com/API/V1/user";
 
             $json = json_encode($user);
             $curl = curl_init();
@@ -1047,26 +1014,36 @@ function saveLoginData($RESPONSE_DATA)
                 CURLOPT_POST => 1,
                 CURLOPT_POSTFIELDS => $json,
                 CURLOPT_HTTPHEADER => array(
-                    "APIKEY: ".$APIKEY
+                    "APIKEY: " . $FOCUSBIZ_API_KEY
                 ),
             ));
 
-            $response   = curl_exec($curl);
-            $err        = curl_error($curl);
+            $response = curl_exec($curl);
+            $err = curl_error($curl);
 
             curl_close($curl);
 
-            if($err) {
+            if ($err) {
                 echo "cURL Error #:" . $err;
+                exit;
             } else {
                 $response1 = json_decode($response);
+                $USER_DATA['ACCESS_TOKEN'] = $response1->ACCESS_TOKEN;
+                $_SESSION['ACCESS_TOKEN'] = $USER_DATA['ACCESS_TOKEN'];
+                $_SESSION['TICKET_SYSTEM_ACCESS'] = 1;
             }
+        } elseif($res->fields['ACCESS_TOKEN']) {
+            $_SESSION['ACCESS_TOKEN'] = $res->fields['ACCESS_TOKEN'];
+            $_SESSION['TICKET_SYSTEM_ACCESS'] = 1;
         }
+    } else {
+        $USER_DATA['TICKET_SYSTEM_ACCESS'] = 0;
+        $_SESSION['ACCESS_TOKEN'] = '';
+        $_SESSION['TICKET_SYSTEM_ACCESS'] = 0;
     }
     // focusbiz code end
 
     db_perform('DOA_USERS', $USER_DATA, 'update'," PK_USER = ".$RESPONSE_DATA['PK_USER']);
-    db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = ".$RESPONSE_DATA['PK_USER']);
     echo $RESPONSE_DATA['PK_USER'];
 }
 
@@ -1144,7 +1121,13 @@ function saveDocumentData($RESPONSE_DATA)
 {
     global $db;
     global $db_account;
+    global $upload_path;
+
     if (isset($RESPONSE_DATA['DOCUMENT_NAME'])){
+        if (!file_exists('../../'.$upload_path.'/user_doc/')) {
+            mkdir('../../'.$upload_path.'/user_doc/', 0777, true);
+        }
+
         $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
         for($i = 0; $i < count($RESPONSE_DATA['DOCUMENT_NAME']); $i++){
             $USER_DOCUMENT_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
@@ -1156,9 +1139,9 @@ function saveDocumentData($RESPONSE_DATA)
                 $file11			= 'user_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
                 $extension   	= strtolower($extn[$iindex]);
 
-                $upload_path    = '../../uploads/user_doc/'.$file11;
-                $image_path    = '../uploads/user_doc/'.$file11;
-                move_uploaded_file($_FILES['FILE_PATH']['tmp_name'][$i], $upload_path);
+                $upload_dir    = '../../'.$upload_path.'/user_doc/'.$file11;
+                $image_path    = '../'.$upload_path.'/user_doc/'.$file11;
+                move_uploaded_file($_FILES['FILE_PATH']['tmp_name'][$i], $upload_dir);
                 $USER_DOCUMENT_DATA['FILE_PATH'] = $image_path;
             } else {
                 $USER_DOCUMENT_DATA['FILE_PATH'] = $RESPONSE_DATA['FILE_PATH_URL'][$i];
@@ -1172,7 +1155,13 @@ function saveUserDocumentData($RESPONSE_DATA)
 {
     global $db;
     global $db_account;
+    global $upload_path;
+
     if (isset($RESPONSE_DATA['DOCUMENT_NAME'])){
+        if (!file_exists('../../'.$upload_path.'/user_doc/')) {
+            mkdir('../../'.$upload_path.'/user_doc/', 0777, true);
+        }
+
         $db_account->Execute("DELETE FROM `DOA_USER_DOCUMENT` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");
         for($i = 0; $i < count($RESPONSE_DATA['DOCUMENT_NAME']); $i++){
             $USER_DOCUMENT_DATA['PK_USER'] = $RESPONSE_DATA['PK_USER'];
@@ -1184,9 +1173,9 @@ function saveUserDocumentData($RESPONSE_DATA)
                 $file11			= 'user_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
                 $extension   	= strtolower($extn[$iindex]);
 
-                $upload_path    = '../../uploads/user_doc/'.$file11;
-                $image_path    = '../uploads/user_doc/'.$file11;
-                move_uploaded_file($_FILES['FILE_PATH']['tmp_name'][$i], $upload_path);
+                $upload_dir    = '../../'.$upload_path.'/user_doc/'.$file11;
+                $image_path    = '../'.$upload_path.'/user_doc/'.$file11;
+                move_uploaded_file($_FILES['FILE_PATH']['tmp_name'][$i], $upload_dir);
                 $USER_DOCUMENT_DATA['FILE_PATH'] = $image_path;
             } else {
                 $USER_DOCUMENT_DATA['FILE_PATH'] = $RESPONSE_DATA['FILE_PATH_URL'][$i];
@@ -1623,7 +1612,7 @@ function viewSamplePdf($RESPONSE_DATA) {
         $file_name = "sample_pdf_".time().".pdf";
         $mpdf->Output("../../uploads/sample_enrollment_pdf/".$file_name, 'F');
     } catch (Exception $e) {
-        echo $e->getMessage(); die;
+        echo $e->getMessage();
     }
 
     echo $http_path."uploads/sample_enrollment_pdf/".$file_name;
@@ -1665,7 +1654,7 @@ function viewGiftCertificatePdf($RESPONSE_DATA) {
             $file_name = "gift_certificate_" . $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER'] . ".pdf";
             $mpdf->Output('../../uploads/gift_certificate_pdf/'.$file_name, 'F');
         } catch (Exception $e) {
-            echo $e->getMessage(); die;
+            echo $e->getMessage();
         }
         echo $http_path."uploads/gift_certificate_pdf/".$file_name;
     } catch (Exception $exception) {
@@ -1744,19 +1733,29 @@ function saveMultiAppointmentData($RESPONSE_DATA){
             }
 
             $APPOINTMENT_DATA['STANDING_ID'] = $standing_id;
-            $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-            $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
+            /*$APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;*/
             $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
             $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
             $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
             $APPOINTMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
             $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
             $APPOINTMENT_DATA['ACTIVE'] = 1;
-            $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+            //$APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
             $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
-            for ($i = 0; $i < $SESSION_WILL_CREATE; $i++) {
+            for ($i = 0; $i < count($APPOINTMENT_DATE_ARRAY); $i++) {
+                if ($i < $SESSION_WILL_CREATE) {
+                    $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                    $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
+                    $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+                } else {
+                    $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+                    $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
+                    $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
+                }
+
                 $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
                 $APPOINTMENT_DATA['DATE'] = $APPOINTMENT_DATE_ARRAY[$i];
                 $APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
@@ -1853,6 +1852,13 @@ function deletePackageData($RESPONSE_DATA) {
     echo 1;
 }
 
+function deleteProductData($RESPONSE_DATA) {
+    global $db_account;
+    $PK_PRODUCT = $RESPONSE_DATA['PK_PRODUCT'];
+    $product_data = $db_account->Execute("UPDATE `DOA_PRODUCT` SET IS_DELETED=1 WHERE `PK_PRODUCT` = ".$PK_PRODUCT);
+    echo 1;
+}
+
 function deleteLocationData($RESPONSE_DATA) {
     global $db;
     $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
@@ -1878,7 +1884,8 @@ function deleteEnrollmentData($RESPONSE_DATA) {
     echo 1;
 }
 
-function deleteAppointment($RESPONSE_DATA) {
+function deleteAppointment($RESPONSE_DATA): void
+{
     global $db_account;
     if ($RESPONSE_DATA['type'] == 'normal') {
         $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
@@ -2097,7 +2104,7 @@ function copyAppointment($RESPONSE_DATA) {
 /**
  * @throws ApiErrorException
  */
-function moveToWallet($RESPONSE_DATA)
+function moveToWallet($RESPONSE_DATA): void
 {
     require_once("../../global/stripe-php-master/init.php");
     global $db;
@@ -2203,7 +2210,7 @@ function moveToWallet($RESPONSE_DATA)
                     'amount' => $BALANCE * 100
                 ]);
             } catch (Exception $e) {
-                echo $e->getMessage(); die();
+                echo $e->getMessage();
             }
             $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $refund->id, 'LAST4' => $payment_info->LAST4];
             $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
@@ -2368,6 +2375,22 @@ function updateBillingDueDate($RESPONSE_DATA)
         echo 1;
     } else {
         echo 0;
+    }
+}
+
+function getReportDetails($RESPONSE_DATA): void
+{
+    global $db_account;
+
+    $REPORT_TYPE = $RESPONSE_DATA['REPORT_TYPE'];
+    $YEAR = $RESPONSE_DATA['YEAR'];
+    $WEEK_NUMBER = $RESPONSE_DATA['WEEK_NUMBER'];
+
+    $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = '$REPORT_TYPE' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = ".$WEEK_NUMBER);
+    if ($report_details->RecordCount() > 0) {
+        echo 'Last exported on '.date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
+    } else {
+        echo '';
     }
 }
 

@@ -241,7 +241,7 @@ $AND_PK_USER = '';
             data: form_data,
             success:function (data) {
                 if (data > 0) {
-                    let conf = confirm(`According to the number of classes in the enrollment, ${data} appointments were generated.`);
+                    let conf = confirm(`According to the number of classes in the enrollment, ${data} appointments will generate as appointment.`);
                     if(conf) {
                         submitAppointmentForm();
                     }

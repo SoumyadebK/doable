@@ -3,18 +3,18 @@ require_once('../global/config.php');
 global $db;
 global $db_account;
 global $master_database;
+global $upload_path;
 
 $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 
 $title = "All Appointments";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || ($_SESSION['PK_ROLES'] != 2 && $_SESSION['PK_ROLES'] != 3)){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || (in_array($_SESSION['PK_ROLES'], [1, 4, 5]) && $_SESSION['PK_ROLES'] != 3)){
     header("location:../login.php");
     exit;
 }
 
-$redirect_date = (!empty($_GET['date'])) ? $_GET['date'] : "";
-
+$redirect_date = (!empty($_GET['date'])) ? date('Y-m-d', strtotime($_GET['date'].' +1 day')) : "";
 
 $SERVICE_PROVIDER_ID = ' ';
 if(isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != ''){
@@ -41,6 +41,9 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAdhocAppo
         $_POST['CREATED_ON']  = date("Y-m-d H:i");
         db_perform_account('DOA_APPOINTMENT_MASTER', $_POST, 'insert');
     }else{
+        if (!file_exists('../'.$upload_path.'/appointment_image/')) {
+            mkdir('../'.$upload_path.'/appointment_image/', 0777, true);
+        }
         //$_POST['ACTIVE'] = $_POST['ACTIVE'];
         if($_FILES['IMAGE']['name'] != ''){
             $extn 			= explode(".",$_FILES['IMAGE']['name']);
@@ -50,7 +53,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAdhocAppo
             $extension   	= strtolower($extn[$iindex]);
 
             if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
-                $image_path    = '../uploads/appointment_image/'.$file11;
+                $image_path    = '../'.$upload_path.'/appointment_image/'.$file11;
                 move_uploaded_file($_FILES['IMAGE']['tmp_name'], $image_path);
                 $_POST['IMAGE'] = $image_path;
             }
@@ -164,6 +167,10 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     $GROUP_CLASS_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
     $GROUP_CLASS_DATA['COMMENT'] = $_POST['COMMENT'];
     $GROUP_CLASS_DATA['INTERNAL_COMMENT'] = $_POST['INTERNAL_COMMENT'];
+
+    if (!file_exists('../'.$upload_path.'/appointment_image/')) {
+        mkdir('../'.$upload_path.'/appointment_image/', 0777, true);
+    }
     if($_FILES['IMAGE']['name'] != ''){
         $extn 			= explode(".",$_FILES['IMAGE']['name']);
         $iindex			= count($extn) - 1;
@@ -172,10 +179,14 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         $extension   	= strtolower($extn[$iindex]);
 
         if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
-            $image_path    = '../uploads/appointment_image/'.$file11;
+            $image_path    = '../'.$upload_path.'/appointment_image/'.$file11;
             move_uploaded_file($_FILES['IMAGE']['tmp_name'], $image_path);
             $GROUP_CLASS_DATA['IMAGE'] = $image_path;
         }
+    }
+
+    if (!file_exists('../'.$upload_path.'/appointment_video/')) {
+        mkdir('../'.$upload_path.'/appointment_video/', 0777, true);
     }
     if($_FILES['VIDEO']['name'] != ''){
         $extn 			= explode(".",$_FILES['VIDEO']['name']);
@@ -185,7 +196,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         $extension   	= strtolower($extn[$iindex]);
 
         if($extension == "mp4" || $extension == "avi" || $extension == "mov" || $extension == "wmv") {
-            $video_path    = '../uploads/appointment_video/'.$file11;
+            $video_path    = '../'.$upload_path.'/appointment_video/'.$file11;
             move_uploaded_file($_FILES["VIDEO"]["tmp_name"], $video_path);
             $GROUP_CLASS_DATA['VIDEO'] = $video_path;
         }
@@ -202,14 +213,22 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
 
     $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
     if (isset($_POST['PK_USER_MASTER'])) {
-        for ($j = 0; $j < count($_POST['PK_USER_MASTER']); $j++) {
+        $CUSTOMERS = $_POST['PK_USER_MASTER'];
+        $SELECTED_PARTNERS = $_POST['PARTNER'];
+        for ($j = 0; $j < count($CUSTOMERS); $j++) {
             $GROUP_CLASS_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-            $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'][$j];
-            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
-            if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
-                updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $_POST['PK_USER_MASTER'][$j]);
+            $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $CUSTOMERS[$j];
+            if (in_array($CUSTOMERS[$j], $SELECTED_PARTNERS)) {
+                $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'] = 1;
             } else {
-                updateSessionCreatedCountGroupClass($PK_APPOINTMENT_MASTER, $_POST['PK_USER_MASTER'][$j]);
+                $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'] = 0;
+            }
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
+
+            if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
+                updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $CUSTOMERS[$j]);
+            } else {
+                updateSessionCreatedCountGroupClass($PK_APPOINTMENT_MASTER, $CUSTOMERS[$j]);
             }
         }
     }
@@ -278,6 +297,10 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData
             }
         }
 
+        if (!file_exists('../'.$upload_path.'/event_image/')) {
+            mkdir('../'.$upload_path.'/event_image/', 0777, true);
+        }
+
         $db_account->Execute("DELETE FROM `DOA_EVENT_IMAGE` WHERE `PK_EVENT` = '$PK_EVENT'");
         for($i = 0; $i < count($_FILES['IMAGE']['name']); $i++){
             $EVENT_IMAGE_DATA['PK_EVENT'] = $PK_EVENT;
@@ -288,7 +311,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData
                 $file11			= 'event_image_'.$PK_EVENT.'_'.$rand_string.".".$extn[$iindex];
                 $extension   	= strtolower($extn[$iindex]);
 
-                $image_path    = '../uploads/event_image/'.$file11;
+                $image_path    = '../'.$upload_path.'/event_image/'.$file11;
                 move_uploaded_file($_FILES['IMAGE']['tmp_name'][$i], $image_path);
                 $EVENT_IMAGE_DATA['IMAGE'] = $image_path;
             } else {
@@ -370,7 +393,28 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     #add_buttons {
         z-index: 500;
     }
+
+    .fc-more-popover .fc-event-container {
+        max-height: 550px;
+        overflow: scroll;
+    }
 </style>
+<style>
+    .list-select {
+        height: 30px;
+        width: 100%;
+        line-height: 2em;
+        border: 1px solid #ccc;
+        margin: 0;
+        list-style: none;
+        padding-left: 0;
+    }
+    .list-select li { padding: 1px 10px; z-index: 2; }
+    .list-select li:not(.init) { float: left; width: 100%; display: none; *background: #ddd; border-top: 1px solid #eeecec;}
+    .list-select li:not(.init):hover, .list-select li.selected:not(.init) { background: #09f; border-top: 1px solid #eeecec;}
+    li.init { cursor: pointer; }
+</style>
+
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 
 <body class="skin-default-dark fixed-layout">
@@ -387,7 +431,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=appointment'"><i class="fa fa-plus-circle"></i> Appointment</button>
                     <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=standing'"><i class="fa fa-plus-circle"></i> Standing</button>
                     <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=ad_hoc'"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>-->
-                    <button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="showMessage()"><i class="fa fa-plus-circle"></i> Appointments</button>
+                    <?php if(in_array('Calendar Schedule', $PERMISSION_ARRAY)){ ?>
+                        <button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="showMessage()"><i class="fa fa-plus-circle"></i> Appointments</button>
+                    <?php } ?>
                     <button type="button" id="operations" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"><i class="ti-layers-alt"></i> <?=$operation_tab_title?></button>
                 </div>
             </div>
@@ -413,7 +459,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-5">
+                                    <div class="col-4">
                                         <div class="input-group">
                                             <input type="hidden" id="IS_SELECTED" value="0">
                                             <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
@@ -438,6 +484,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="col-2">
+                                        <div class="input-group" style="width: 100px; float: right;">
+                                            <a onclick="zoomInOut('out');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-minus"></i></a>
+                                            <a onclick="zoomInOut('in');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-plus"></i></a>
+                                        </div>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -454,6 +506,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                 <div class="col-2" id='external-events' style="display: none;">
                                     <a href="javascript:;" onclick="closeCopyPasteDiv()" style="float: right; font-size: 25px;">&times;</a>
                                     <h5>Copy OR Move Events</h5>
+                                    <?php if(in_array('Calendar Move/Copy', $PERMISSION_ARRAY) || in_array('Appointments Move/Copy', $PERMISSION_ARRAY) || in_array('To-Do Move/Copy', $PERMISSION_ARRAY)){ ?>
                                     <p>
                                         <input type='radio' name="copy_move" id='drop-copy' checked/>
                                         <label for='drop-copy'>Copy</label>
@@ -461,12 +514,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                         <input type='radio' name="copy_move" id='drop-remove'/>
                                         <label for='drop-remove'>Move</label>
                                     </p>
+                                    <?php } ?>
                                 </div>
                             </div>
 
                     </div>
                 </div>
 
+                <?php if(in_array('Calendar Edit', $PERMISSION_ARRAY)){ ?>
                 <div id="edit_appointment_half" class="col-6" style="display: none;">
                     <div class="card">
                         <div class="card-body">
@@ -477,6 +532,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         </div>
                     </div>
                 </div>
+                <?php } ?>
 
                 <div id="myModal" class="modal">
                     <!-- Modal content -->
@@ -503,7 +559,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
 <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-
 <script>
     $(window).on('load', function () {
        let redirect_date = '<?=$redirect_date?>';
@@ -536,6 +591,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 </script>
 
 <script>
+    var is_editable = <?= in_array('Calendar Edit', $PERMISSION_ARRAY) ? 1 : 0; ?>;
+    var move_copy = <?= in_array('Calendar Move/Copy', $PERMISSION_ARRAY) ? 1 : 0; ?>;
     $('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
 
     var calendar;
@@ -575,7 +632,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             header: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'agendaDay,agendaWeek,month'
+                right: 'agendaDay,agendaWeek,month,'
             },
             views: {
                 agendaDay: {
@@ -584,10 +641,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             },
             defaultView: 'agendaDay',
             slotDuration: '<?=$INTERVAL?>',
-            slotLabelInterval: {minutes: 15},
+            slotLabelInterval: {minutes: 5},
             minTime: open_time,
             maxTime: close_time,
-            contentHeight: 665,
+            contentHeight: 1000,
             windowResize: true,
             droppable: true,
             drop: function(info) {
@@ -618,6 +675,17 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     success: function (result) {
                         console.log(result);
                         successCallback(result);
+                        if ((selected_service_provider.length > 1) && (calendar.view.type === 'agendaWeek')) {
+                            calendar.setOption('editable', false);
+                        } else {
+                            if (selected_service_provider.length === 1) {
+                                calendar.setOption('editable', true);
+                            }
+                        }
+                        getServiceProviderCount();
+                        if (calendar.view.type === 'month') {
+                            calendar.changeView('month');
+                        }
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         alert(xhr.status);
@@ -632,10 +700,16 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 let START_DATE = moment(info.start).format();
                 let END_DATE = moment(info.end).format();
 
+                let selected_service_provider = [];
+                let selectedOptions = $('#SERVICE_PROVIDER_ID').find('option:selected');
+                selectedOptions.each(function(){
+                    selected_service_provider.push($(this).val());
+                });
+
                 $.ajax({
                     url: "pagination/get_calendar_data.php",
                     type: "POST",
-                    data: {START_DATE: START_DATE, END_DATE: END_DATE, STATUS_CODE: STATUS_CODE, APPOINTMENT_TYPE: APPOINTMENT_TYPE},
+                    data: {START_DATE: START_DATE, END_DATE: END_DATE, STATUS_CODE: STATUS_CODE, APPOINTMENT_TYPE: APPOINTMENT_TYPE, SERVICE_PROVIDER_ID: selected_service_provider},
                     dataType: 'json',
                     success: function (result) {
                         console.log(result);
@@ -646,6 +720,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         alert(thrownError);
                     }
                 });
+
             },
             eventRender: function(info) {
                 let event_data = info.event.extendedProps;
@@ -660,7 +735,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         title: info.event.title,
                         placement: 'top',
                         trigger: 'hover',
-                        content: 'Comment : '+event_data.comment+'<br>Internal Comment : '+event_data.internal_comment,
+                        content: ((event_data.comment)?'Comment : '+event_data.comment+'<br>':'')+((event_data.internal_comment)?'Internal Comment : '+event_data.internal_comment:''),
                         container: 'body',
                         html: true,
                     });
@@ -672,7 +747,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             eventClick: function(info) {
                 clickCount++;
                 let singleClickTimer;
-                if (clickCount === 1) {
+                if (clickCount === 1 && is_editable) {
                     singleClickTimer = setTimeout(function () {
                         if (clickCount === 1) {
                             showAppointmentEdit(info);
@@ -682,12 +757,32 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    $('#calendar-container').removeClass('col-12').addClass('col-10');
-                    let event_data = info.event;
-                    let event_data_ext_prop = info.event.extendedProps;
-                    let TYPE = event_data_ext_prop.type;
 
-                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='"+event_data.id+"' data-duration='"+event_data_ext_prop.duration+"' data-color='"+event_data.backgroundColor+"' data-type='"+TYPE+"' style='background-color: "+event_data.backgroundColor+";'>"+event_data.title+"<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                    let selected_service_provider = [];
+                    let selectedOptions = $('#SERVICE_PROVIDER_ID').find('option:selected');
+                    selectedOptions.each(function(){
+                        selected_service_provider.push($(this).val());
+                    });
+
+                    if (calendar.view.type === 'agendaWeek' && move_copy) {
+                        if (selected_service_provider.length === 1) {
+                            $('#calendar-container').removeClass('col-12').addClass('col-10');
+                            let event_data = info.event;
+                            let event_data_ext_prop = info.event.extendedProps;
+                            let TYPE = event_data_ext_prop.type;
+
+                            $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                        }
+                    } else {
+                        if (calendar.view.type === 'agendaDay') {
+                            $('#calendar-container').removeClass('col-12').addClass('col-10');
+                            let event_data = info.event;
+                            let event_data_ext_prop = info.event.extendedProps;
+                            let TYPE = event_data_ext_prop.type;
+
+                            $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                        }
+                    }
                 }
             },
             eventDrop: function (info) {
@@ -695,7 +790,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             },
             dateClick: function(data) {
                 let date = data.date;
-                let resource_id = data.resource.id;
+                let resource_id = (data.resource) ? data.resource.id : $('#SERVICE_PROVIDER_ID').val()[0];
+                console.log(resource_id);
                 clickCount++;
                 let singleClickTimer;
                 if (clickCount === 1) {
@@ -705,22 +801,26 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 } else if (clickCount === 2) {
                     clearTimeout(singleClickTimer);
                     clickCount = 0;
-                    if (<?=count($LOCATION_ARRAY)?> === 1) {
-                        $.ajax({
-                            url: "ajax/check_service_provider_slot.php",
-                            type: "POST",
-                            data: {PK_USER : resource_id,  DATE_TIME : moment(date).format()},
-                            //dataType: 'json',
-                            success: function (result) {
-                                if (result == 1) {
-                                    window.location.href = "create_appointment.php?date="+moment(date).format()+"&SERVICE_PROVIDER_ID="+resource_id;
-                                } else {
-                                    swal("No slot available!", result, "error");
-                                }
-                            },
-                        });
+                    if (resource_id) {
+                        if (<?=count($LOCATION_ARRAY)?> === 1) {
+                            $.ajax({
+                                url: "ajax/check_service_provider_slot.php",
+                                type: "POST",
+                                data: {PK_USER: resource_id, DATE_TIME: moment.utc(date).format()},
+                                //dataType: 'json',
+                                success: function (result) {
+                                    if (result == 1) {
+                                        window.location.href = "create_appointment.php?date=" + moment.utc(date).format() + "&SERVICE_PROVIDER_ID=" + resource_id;
+                                    } else {
+                                        swal("No slot available!", result, "error");
+                                    }
+                                },
+                            });
+                        } else {
+                            swal("Select One Location!", "Only one location can be selected on top of the page in order to schedule an appointment.", "error");
+                        }
                     } else {
-                        swal("Select One Location!", "Only one location can be selected on top of the page in order to schedule an appointment.", "error");
+                        swal("Select One Service Provider!", "Please select any one Service Provider to continue", "error");
                     }
                 }
             },
@@ -745,6 +845,32 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             getServiceProviderCount();
         });
     });
+
+    $(document).on('click', '.fc-agendaDay-button', function () {
+        calendar.setOption('editable', true);
+        getServiceProviderCount();
+    });
+
+    $(document).on('click', '.fc-agendaWeek-button', function () {
+        calendar.setOption('editable', false);
+    });
+
+    $(document).on('click', '.fc-month-button', function () {
+        calendar.setOption('editable', false);
+    });
+
+    var interval = 15;
+    function zoomInOut(type) {
+        if (type == 'in' && interval > 10) {
+            interval = interval - 5;
+        } else {
+            if (type == 'out') {
+                interval = interval + 5;
+            }
+        }
+        calendar.setOption('slotDuration', '00:'+interval+':00');
+        getServiceProviderCount();
+    }
 
     function showAppointmentEdit(info) {
         $('#calendar-container').removeClass('col-10').addClass('col-12');
@@ -860,7 +986,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         let eventEl = info.draggedEl;
         let PK_ID = eventEl.attributes["data-id"].value;
         let TYPE = eventEl.attributes["data-type"].value;
-        let SERVICE_PROVIDER_ID = info.resource.id;
+        let SERVICE_PROVIDER_ID = (info.resource) ? info.resource.id : $('#SERVICE_PROVIDER_ID').val()[0];
         let START_DATE_TIME = info.dateStr;
         //console.log(TYPE,PK_ID,SERVICE_PROVIDER_ID,START_DATE_TIME);
         $.ajax({

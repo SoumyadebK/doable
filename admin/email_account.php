@@ -1,56 +1,44 @@
 <?php
 require_once('../global/config.php');
+global $db;
+global $db_account;
 
 if (empty($_GET['id']))
     $title = "Add Email Accounts";
 else
     $title = "Edit Email Accounts";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
 
 $msg = '';
 if (!empty($_POST)) {
-    $EMAIL_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    //$EMAIL_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    $EMAIL_ACCOUNT_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
+    $EMAIL_ACCOUNT_DATA['HOST'] = $_POST['HOST'];
+    $EMAIL_ACCOUNT_DATA['PORT'] = $_POST['PORT'];
+    $EMAIL_ACCOUNT_DATA['USER_NAME'] = $_POST['USER_NAME'];
+    $EMAIL_ACCOUNT_DATA['PASSWORD'] = $_POST['PASSWORD'];
     if (empty($_GET['id'])) {
-        $EMAIL_ACCOUNT_DATA['HOST'] = $_POST['HOST'];
-        $EMAIL_ACCOUNT_DATA['PORT'] = $_POST['PORT'];
-        $EMAIL_ACCOUNT_DATA['USER_NAME'] = $_POST['USER_NAME'];
-        $EMAIL_ACCOUNT_DATA['PASSWORD'] = $_POST['PASSWORD'];
         $EMAIL_ACCOUNT_DATA['ACTIVE'] = 1;
         $EMAIL_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $EMAIL_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'insert');
         $PK_EMAIL_ACCOUNT = $db_account->insert_ID();
-        header("location:all_email_accounts.php");
     } else {
-        $EMAIL_ACCOUNT_DATA['HOST'] = $_POST['HOST'];
-        $EMAIL_ACCOUNT_DATA['PORT'] = $_POST['PORT'];
-        $EMAIL_ACCOUNT_DATA['USER_NAME'] = $_POST['USER_NAME'];
-        $EMAIL_ACCOUNT_DATA['PASSWORD'] = $_POST['PASSWORD'];
         $EMAIL_ACCOUNT_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $EMAIL_ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $EMAIL_ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'update', " PK_EMAIL_ACCOUNT = '$_GET[id]'");
         $PK_EMAIL_ACCOUNT = $_GET['id'];
-        header("location:all_email_accounts.php");
     }
-
-    $db_account->Execute("DELETE FROM `DOA_EMAIL_LOCATION` WHERE `PK_EMAIL_ACCOUNT` = '$PK_EMAIL_ACCOUNT'");
-    if(isset($_POST['PK_LOCATION'])){
-        $PK_LOCATION = $_POST['PK_LOCATION'];
-        for($i = 0; $i < count($PK_LOCATION); $i++){
-            $EMAIL_LOCATION_DATA['PK_EMAIL_ACCOUNT'] = $PK_EMAIL_ACCOUNT;
-            $EMAIL_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION[$i];
-            db_perform_account('DOA_EMAIL_LOCATION', $EMAIL_LOCATION_DATA, 'insert');
-        }
-    }
-    
+    header("location:all_email_accounts.php");
 }
 $pageHeaderTitle = "";
 if (empty($_GET['id'])) {
+    $PK_LOCATION    = '';
     $HOST           = '';
     $PORT           = '';
     $USER_NAME      = '';
@@ -62,6 +50,7 @@ if (empty($_GET['id'])) {
         header("location:all_email_accounts.php");
         exit;
     }
+    $PK_LOCATION     = $res->fields['PK_LOCATION'];
     $HOST            = $res->fields['HOST'];
     $PORT            = $res->fields['PORT'];
     $USER_NAME       = $res->fields['USER_NAME'];
@@ -107,18 +96,10 @@ if (empty($_GET['id'])) {
                                         <div class="col-md-12 multiselect-box">
                                             <select class="multi_sumo_select_location" name="PK_LOCATION[]" id="PK_LOCATION" multiple>
                                                 <?php
-                                                $selected_location = [];
-                                                if(!empty($_GET['id'])) {
-                                                    $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_EMAIL_LOCATION` WHERE `PK_EMAIL_ACCOUNT` = '$_GET[id]'");
-                                                    while (!$selected_location_row->EOF) {
-                                                        $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
-                                                        $selected_location_row->MoveNext();
-                                                    }
-                                                }
                                                 $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                 while (!$row->EOF) { ?>
-                                                    <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
-                                                    <?php $row->MoveNext(); } ?>
+                                                    <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($row->fields['PK_LOCATION'] == $PK_LOCATION)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                <?php $row->MoveNext(); } ?>
                                             </select>
                                         </div>
                                     </div>
@@ -140,7 +121,7 @@ if (empty($_GET['id'])) {
 
                                     <div class="col-md-12 mb-3">
                                         <label for="PASSWORD">Password</label>
-                                        <input type="password" class="form-control" id="PASSWORD" name="PASSWORD" value="<?php echo $PASSWORD ?>">
+                                        <input type="text" class="form-control" id="PASSWORD" name="PASSWORD" value="<?php echo $PASSWORD ?>">
                                     </div>
 
                                     <?php if(!empty($_GET['id'])){?>

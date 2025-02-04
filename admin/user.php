@@ -5,7 +5,7 @@ global $db;
 $userType = "Users";
 $user_role_condition = " AND PK_ROLES IN(2,3,5,6,7,8,9,10)";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 2 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
     exit;
 }
@@ -215,18 +215,22 @@ if(!empty($_GET['id'])) {
                                                             <div class="row">
                                                                 <div class="col-3">
                                                                     <div class="form-group">
-                                                                        <label class="form-label">Phone<span class="text-danger" id="phone_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
+                                                                        <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
+                                                                            <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE?>" required>
+                                                                            <div id="phone_result"></div>
                                                                         </div>
+                                                                        <span id="lblError" style="color: red"></span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-3">
                                                                     <div class="form-group">
-                                                                        <label class="form-label">Email<span class="text-danger" id="email_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
+                                                                        <label class="form-label">Email<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
-                                                                            <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?=$EMAIL_ID?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
+                                                                            <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?=$EMAIL_ID?>" required>
+                                                                            <div id="email_result"></div>
                                                                         </div>
+                                                                        <span id="lblError" style="color: red"></span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-2">
@@ -253,6 +257,7 @@ if(!empty($_GET['id'])) {
                                                                             <option>Select Gender</option>
                                                                             <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
                                                                             <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
+                                                                            <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
                                                                         </select>
                                                                     </div>
                                                                 </div>
@@ -327,9 +332,9 @@ if(!empty($_GET['id'])) {
                                                                 </div>
                                                                 <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <label class="col-md-12">Zip Code</label>
+                                                                        <label class="col-md-12">Postal / Zip Code</label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Zip Code" value="<?php echo $ZIP?>">
+                                                                            <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP?>">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -908,30 +913,13 @@ if(!empty($_GET['id'])) {
         }
 
         $(document).on('focus', '.time-picker', function () {
-            let day_min = $(this).data('min_time');
-            let day_max = $(this).data('max_time');
-            console.log(day_min, day_max);
-            if (day_min && day_max) {
-                $(this).timepicker({
-                    timeFormat: 'hh:mm p',
-                    interval: 30,
-                    minTime: day_min,
-                    maxTime: day_max,
-                    defaultTime: day_min,
-                    startTime: day_min,
-                    dynamic: false,
-                    dropdown: true,
-                    scrollbar: true
-                });
-            }else {
-                $(this).timepicker({
-                    timeFormat: 'hh:mm p',
-                    interval: 30,
-                    dynamic: false,
-                    dropdown: true,
-                    scrollbar: true
-                });
-            }
+            $(this).timepicker({
+                timeFormat: 'hh:mm p',
+                interval: 30,
+                dynamic: false,
+                dropdown: true,
+                scrollbar: true
+            });
         });
 
         function closeThisDay(param){
@@ -1066,33 +1054,71 @@ if(!empty($_GET['id'])) {
 
         $(document).on('submit', '#profile_form', function (event) {
             event.preventDefault();
-            let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: form_data,
-                processData: false,
-                contentType: false,
-                dataType: 'JSON',
-                success:function (data) {
-                    $('.PK_USER').val(data.PK_USER);
-                    $('.PK_CUSTOMER_DETAILS').val(data.PK_CUSTOMER_DETAILS);
-                    if (PK_USER == 0) {
-                        if ($('#CREATE_LOGIN').is(':checked')) {
-                            $('#login_info_tab_link')[0].click();
-                        }else {
-                            if ($('#PK_ROLES').val().indexOf('5') !== -1) {
-                                $('#rates_tab_link')[0].click();
-                            } else {
-                                $('#document_tab_link')[0].click();
+            const PHONE = $('#PHONE').val().trim();
+            const EMAIL_ID = $('#EMAIL_ID').val().trim();
+            if (PHONE != '') {
+                $.ajax({
+                    url: 'ajax/username_checker.php',
+                    type: 'post',
+                    data: { PHONE: PHONE },
+                    success: function (response) {
+                        if(response && PK_USER == 0) {
+                            $('#phone_result').html(response);
+                        } else {
+                            if (EMAIL_ID != '') {
+                                $.ajax({
+                                    url: 'ajax/username_checker.php',
+                                    type: 'post',
+                                    data: {EMAIL_ID: EMAIL_ID},
+                                    success: function (response) {
+                                        if(response && PK_USER == 0) {
+                                            $('#email_result').html(response);
+                                        } else {
+                                            let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
+                                            $.ajax({
+                                                url: "ajax/AjaxFunctions.php",
+                                                type: 'POST',
+                                                data: form_data,
+                                                processData: false,
+                                                contentType: false,
+                                                dataType: 'JSON',
+                                                success: function (data) {
+                                                    $('.PK_USER').val(data.PK_USER);
+                                                    $('.PK_CUSTOMER_DETAILS').val(data.PK_CUSTOMER_DETAILS);
+                                                    if (PK_USER == 0) {
+                                                        if ($('#CREATE_LOGIN').is(':checked')) {
+                                                            $('#login_info_tab_link')[0].click();
+                                                        } else {
+                                                            if ($('#PK_ROLES').val().indexOf('5') !== -1) {
+                                                                $('#rates_tab_link')[0].click();
+                                                            } else {
+                                                                $('#document_tab_link')[0].click();
+                                                            }
+                                                        }
+                                                    } else {
+                                                        window.location.href = 'all_users.php';
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }
+                                });
                             }
                         }
-                    }else{
-                        window.location.href='all_users.php';
                     }
-                }
-            });
+                });
+            }
         });
+
+        const phone = document.getElementById("PHONE");
+        if (phone.value !== "") {
+            phone.setAttribute("readonly", "readonly");
+        }
+
+        const email_id = document.getElementById("EMAIL_ID");
+        if (email_id.value !== "") {
+            email_id.setAttribute("readonly", "readonly");
+        }
 
         function goToLoginTab() {
             let PK_USER = $('.PK_USER').val();
