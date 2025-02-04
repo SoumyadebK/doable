@@ -49,8 +49,12 @@ $page_first_result = ($page-1) * $results_per_page;
                 <?php require_once('../includes/setup_menu_super_admin.php') ?>
                 <div class="container-fluid body_content m-0">
                     <div class="row page-titles">
-                        <div class="col-md-5 align-self-center">
-                            <h4 class="text-themecolor"><?=$title?></h4>
+                        <div class="col-md-4 align-self-center">
+                            <?php if ($status_check=='inactive') { ?>
+                                <h4 class="text-themecolor">Not Active Accounts</h4>
+                            <?php } elseif ($status_check=='active') { ?>
+                                <h4 class="text-themecolor">Active Accounts</h4>
+                            <?php } ?>
                         </div>
                         <div class="col-md-3 align-self-center text-end">
                             <form class="form-material form-horizontal" action="" method="get">
@@ -61,7 +65,16 @@ $page_first_result = ($page-1) * $results_per_page;
                                 </div>
                             </form>
                         </div>
-                        <div class="col-md-4 align-self-center text-end">
+                        <?php if ($status_check=='inactive') { ?>
+                            <div class="col-md-3 align-self-center">
+                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_accounts.php?status=active'"><i class="fa fa-user"></i> Show Active</button>
+                            </div>
+                        <?php } elseif ($status_check=='active') { ?>
+                            <div class="col-md-3 align-self-center">
+                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_accounts.php?status=inactive'"><i class="fa fa-user-times"></i> Show Not Active</button>
+                            </div>
+                        <?php } ?>
+                        <div class="col-md-2 align-self-center text-end">
                             <div class="d-flex justify-content-end align-items-center">
                                 <ol class="breadcrumb justify-content-end">
                                     <li class="breadcrumb-item active"><?=$title?></li>
@@ -92,7 +105,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <tbody>
                                                 <?php
                                                     $i=1;
-                                                    $row = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_BUSINESS_TYPE.BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_BUSINESS_TYPE ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE = DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE WHERE DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER > 1  ".$search." ORDER BY CREATED_ON DESC LIMIT " . $page_first_result . ',' . $results_per_page);
+                                                    $row = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_BUSINESS_TYPE.BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_BUSINESS_TYPE ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE = DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE WHERE DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER > 1  ".$search." AND DOA_ACCOUNT_MASTER.ACTIVE = '$status' ORDER BY CREATED_ON DESC LIMIT " . $page_first_result . ',' . $results_per_page);
                                                     while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?=$row->fields['PK_ACCOUNT_MASTER'];?>);"><?=$i;?></td>
