@@ -215,9 +215,9 @@ if(!empty($_GET['id'])) {
                                                             <div class="row">
                                                                 <div class="col-3">
                                                                     <div class="form-group">
-                                                                        <label class="form-label">Phone<span class="text-danger" id="phone_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
+                                                                        <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
+                                                                            <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE?>" required>
                                                                             <div id="phone_result"></div>
                                                                         </div>
                                                                         <span id="lblError" style="color: red"></span>
@@ -225,9 +225,9 @@ if(!empty($_GET['id'])) {
                                                                 </div>
                                                                 <div class="col-3">
                                                                     <div class="form-group">
-                                                                        <label class="form-label">Email<span class="text-danger" id="email_label"><?=($CREATE_LOGIN == 1)?'*':''?></span></label>
+                                                                        <label class="form-label">Email<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
-                                                                            <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?=$EMAIL_ID?>" <?=($CREATE_LOGIN == 1)?'required':''?>>
+                                                                            <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?=$EMAIL_ID?>" required>
                                                                             <div id="email_result"></div>
                                                                         </div>
                                                                         <span id="lblError" style="color: red"></span>
