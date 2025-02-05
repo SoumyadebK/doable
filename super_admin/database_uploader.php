@@ -452,7 +452,7 @@ if(!empty($_POST))
             $allEnrollmentTypes = getAllEnrollmentTypes();
             while (!$allEnrollmentTypes->EOF) {
                 $enrollment_type = $allEnrollmentTypes->fields['enrollment_type'];
-                $table_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_TYPE WHERE ENROLLMENT_TYPE='$enrollment_type' AND PK_ACCOUNT_MASTER='$PK_ACCOUNT_MASTER'");
+                $table_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_TYPE WHERE ENROLLMENT_TYPE='$enrollment_type'");
                 if ($table_data->RecordCount() == 0) {
                     $INSERT_DATA['ENROLLMENT_TYPE'] = $enrollment_type;
                     $INSERT_DATA['CODE'] = $allEnrollmentTypes->fields['code'];
@@ -1417,6 +1417,7 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                             <label class="form-label">Select Database Name</label>
                             <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
                                 <option value="">Select Database Name</option>
+                                <option value="AMSJ">AMSJ</option>
                                 <option value="AMTO">AMTO</option>
                                 <option value="AMWH">AMWH</option>
                                 <option value="AMTO_NEW">AMTO_NEW</option>
