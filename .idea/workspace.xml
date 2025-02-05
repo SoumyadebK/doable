@@ -6,11 +6,25 @@
   <component name="ChangeListManager">
     <list default="true" id="ae48719a-9984-4ae4-b861-97d9b5644ae8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/database_uploader.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/database_uploader.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerConfigs">
+    <option name="configs">
+      <option value="$PROJECT_DIR$/global/square_old/phpoption/phpoption/composer.json" />
+      <option value="$PROJECT_DIR$/global/authorizenet/composer.json" />
+      <option value="$PROJECT_DIR$/global/PHPMailer-master/composer.json" />
+      <option value="$PROJECT_DIR$/global/tcpdf/composer.json" />
+      <option value="$PROJECT_DIR$/global/stripe-php-master/composer.json" />
+      <option value="$PROJECT_DIR$/global/square_old/square/connect/composer.json" />
+      <option value="$PROJECT_DIR$/global/square_old/vlucas/phpdotenv/composer.json" />
+      <option value="$PROJECT_DIR$/global/stripe-php/composer.json" />
+      <option value="$PROJECT_DIR$/global/square_old/symfony/polyfill-ctype/composer.json" />
+    </option>
   </component>
   <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
     <pharConfigPath>$PROJECT_DIR$/global/composer.json</pharConfigPath>
@@ -37,27 +51,27 @@
       <path value="$PROJECT_DIR$/global/vendor/square/square" />
     </include_path>
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 1
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 1
+}</component>
   <component name="ProjectId" id="2oOXs0lwGCJzBRqLTeJa9QKAWeN" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "soumyadeb",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;soumyadeb&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -75,6 +89,7 @@
       <option name="presentableId" value="Default" />
       <updated>1730741806985</updated>
       <workItem from="1730741810193" duration="2541000" />
+      <workItem from="1738777352039" duration="706000" />
     </task>
     <servers />
   </component>
