@@ -7,6 +7,9 @@
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/ajax/check_service_provider_slot.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/check_service_provider_slot.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_users.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_users.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/create_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/create_appointment.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -161,6 +164,9 @@
       <workItem from="1738388839112" duration="21000" />
       <workItem from="1738567245136" duration="4435000" />
       <workItem from="1738761998718" duration="2052000" />
+      <workItem from="1738822971314" duration="2793000" />
+      <workItem from="1738909028273" duration="941000" />
+      <workItem from="1739293251642" duration="5000" />
     </task>
     <servers />
   </component>
