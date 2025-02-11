@@ -141,9 +141,19 @@ if ($account_payment_info->RecordCount() > 0) {
 if(!empty($_POST)){
     if ($_POST['FUNCTION_NAME'] == 'saveSettingsData') {
         unset($_SESSION['mail_error']);
+        unset($_SESSION['error']);
+        $OLD_USERNAME_PREFIX = $_POST['OLD_USERNAME_PREFIX'];
+        $USERNAME_PREFIX = $_POST['USERNAME_PREFIX'];
+        if ($OLD_USERNAME_PREFIX != $USERNAME_PREFIX) {
+            $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE USERNAME_PREFIX = '$USERNAME_PREFIX'");
+            if ($account_data->RecordCount() > 0 && $account_data->fields['USERNAME_PREFIX'] != null) {
+                $_SESSION['error'] .= $USERNAME_PREFIX." Username Prefix already exists. Please use a different Username Prefix.";
+                header("location:settings.php"); exit();
+            }
+        }
         $SETTINGS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
         $SETTINGS_DATA['PK_TIMEZONE'] = $_POST['PK_TIMEZONE'];
-        $SETTINGS_DATA['USERNAME_PREFIX'] = $_POST['USERNAME_PREFIX'];
+        $SETTINGS_DATA['USERNAME_PREFIX'] = $USERNAME_PREFIX;
         $SETTINGS_DATA['TIME_SLOT_INTERVAL'] = $_POST['TIME_SLOT_INTERVAL'];
         $SETTINGS_DATA['SERVICE_PROVIDER_TITLE'] = $_POST['SERVICE_PROVIDER_TITLE'];
         $SETTINGS_DATA['OPERATION_TAB_TITLE'] = $_POST['OPERATION_TAB_TITLE'];
@@ -255,7 +265,7 @@ if(!empty($_POST)){
         try {
             $mail->setFrom($SendingEmail, 'development');
         } catch (phpmailerException $e) {
-            $_SESSION['mail_error'] = $e->errorMessage()."<br>";
+            $_SESSION['mail_error'] = $e->errorMessage() . "<br>";
         }  //add sender email address.
 
         $mail->addAddress('deb.soumya93@gmail.com', "development");  //Set who the message is to be sent to.
@@ -264,7 +274,7 @@ if(!empty($_POST)){
 
         //Read an HTML message body from an external file, convert referenced images to embedded,
         //convert HTML into a basic plain-text alternative body
-        $mail->Body     = 'Just for test';
+        $mail->Body = 'Just for test';
 
         //Replace the plain text body with one created manually
         $mail->AltBody = 'This is a plain-text message body';
@@ -407,6 +417,7 @@ if ($header_data->RecordCount() > 0) {
                                                     <div class="form-group">
                                                         <label class="col-md-12">Username Prefix</label>
                                                         <div class="col-md-12">
+                                                            <input type="hidden" name="OLD_USERNAME_PREFIX" id="OLD_USERNAME_PREFIX" value="<?php echo $USERNAME_PREFIX?>">
                                                             <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
                                                         </div>
                                                     </div>
@@ -419,6 +430,11 @@ if ($header_data->RecordCount() > 0) {
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <?php if (isset($_SESSION['error'])) {?>
+                                                    <div class="alert alert-danger">
+                                                        <strong><?=$_SESSION['error'];?></strong>
+                                                    </div>
+                                                <?php } ?>
                                             </div>
 
                                             <div class="row">

@@ -6,10 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/check_service_provider_slot.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/check_service_provider_slot.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_schedules.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_users.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_users.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/create_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/create_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/settings.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/settings.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/user.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/user.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/wizard_holiday_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/wizard_holiday_list.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/email/compose.php" beforeDir="false" afterPath="$PROJECT_DIR$/email/compose.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -166,7 +166,8 @@
       <workItem from="1738761998718" duration="2052000" />
       <workItem from="1738822971314" duration="2793000" />
       <workItem from="1738909028273" duration="941000" />
-      <workItem from="1739293251642" duration="5000" />
+      <workItem from="1739293251642" duration="68000" />
+      <workItem from="1739293324882" duration="3311000" />
     </task>
     <servers />
   </component>

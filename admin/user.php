@@ -158,10 +158,10 @@ if(!empty($_GET['id'])) {
                                             <ul class="nav nav-tabs" role="tablist">
                                                 <li> <a class="nav-link active" data-bs-toggle="tab" id="profile_tab_link" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                                                 <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" onclick="goToLoginTab()" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-                                                <li id="rates_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="rates_tab_link" data-bs-toggle="tab" href="#rates" role="tab" ><span class="hidden-sm-up"><i class="ti-money"></i></span> <span class="hidden-xs-down">Rates</span></a> </li>
-                                                <li id="service_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="service_tab_link" onclick="getLocationHours()" data-bs-toggle="tab" href="#service" role="tab" ><span class="hidden-sm-up"><i class="ti-server"></i></span> <span class="hidden-xs-down">Service</span></a> </li>
+                                                <li id="rates_tab"> <a class="nav-link" id="rates_tab_link" data-bs-toggle="tab" href="#rates" role="tab" ><span class="hidden-sm-up"><i class="ti-money"></i></span> <span class="hidden-xs-down">Rates</span></a> </li>
+                                                <li id="service_tab"> <a class="nav-link" id="service_tab_link" onclick="getLocationHours()" data-bs-toggle="tab" href="#service" role="tab" ><span class="hidden-sm-up"><i class="ti-server"></i></span> <span class="hidden-xs-down">Service</span></a> </li>
                                                 <li> <a class="nav-link" data-bs-toggle="tab" href="#documents" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                                                <li id="comment_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                                                <li id="comment_tab"> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                                             </ul>
                                             <!-- Tab panes -->
                                             <div class="tab-content tabcontent-border">
@@ -393,11 +393,11 @@ if(!empty($_GET['id'])) {
                                                                         <label class="form-label">Active : </label>
                                                                     </div>
                                                                     <div class="col-md-4">
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                     </div>
                                                                 </div>
-                                                            <? } ?>
+                                                            <?php } ?>
                                                         </div>
                                                         <div class="form-group">
                                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -430,15 +430,15 @@ if(!empty($_GET['id'])) {
                                                                     <label class="form-label">Can Edit Enrollment : </label>
                                                                 </div>
                                                                 <div class="col-md-4">
-                                                                    <label><input type="radio" name="CAN_EDIT_ENROLLMENT" id="CAN_EDIT_ENROLLMENT" value="1" <? if($CAN_EDIT_ENROLLMENT == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                    <label><input type="radio" name="CAN_EDIT_ENROLLMENT" id="CAN_EDIT_ENROLLMENT" value="0" <? if($CAN_EDIT_ENROLLMENT == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                    <label><input type="radio" name="CAN_EDIT_ENROLLMENT" id="CAN_EDIT_ENROLLMENT" value="1" <?php if($CAN_EDIT_ENROLLMENT == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="CAN_EDIT_ENROLLMENT" id="CAN_EDIT_ENROLLMENT" value="0" <?php if($CAN_EDIT_ENROLLMENT == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                 </div>
                                                             </div>
 
                                                             <div class="row" style="margin-top: 10px;">
                                                                 <div class="col-md-3">
                                                                     <div class="col-md-12 form-group m-b-40 custom-control custom-checkbox form-group">
-                                                                        <input type="checkbox" class="custom-control-input" id="TICKET_SYSTEM_ACCESS" name="TICKET_SYSTEM_ACCESS" value="1" <? if($TICKET_SYSTEM_ACCESS == 1) echo "checked"; ?> >
+                                                                        <input type="checkbox" class="custom-control-input" id="TICKET_SYSTEM_ACCESS" name="TICKET_SYSTEM_ACCESS" value="1" <?php if($TICKET_SYSTEM_ACCESS == 1) echo "checked"; ?> >
                                                                         <label class="custom-control-label" for="TICKET_SYSTEM_ACCESS">Can Create Support Tickets</label>
                                                                     </div>
                                                                 </div>
@@ -1008,7 +1008,7 @@ if(!empty($_GET['id'])) {
             }
         }
 
-        function showServiceProviderTabs(param) {
+        /*function showServiceProviderTabs(param) {
             let pk_role = $(param).val();
             if (pk_role.indexOf('5') !== -1){
                 $('#rates_tab').show();
@@ -1021,7 +1021,7 @@ if(!empty($_GET['id'])) {
                 $('#comment_tab').hide();
                 $('#display_order').hide();
             }
-        }
+        }*/
 
         let counter = parseInt(<?=$user_doc_count?>);
         function addMoreUserDocument() {
