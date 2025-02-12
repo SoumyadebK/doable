@@ -8,11 +8,16 @@ $PK_USER = $_POST['PK_USER'];
 $DATE_TIME = $_POST['DATE_TIME'];
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
-$utc_tz =  new DateTimeZone('UTC');
+$dateTime = DateTime::createFromFormat('D M d Y H:i:s e+', $DATE_TIME);
+
+$DATE = $dateTime->format('Y-m-d H:i');
+$START_TIME = $dateTime->format('H:i');
+
+/*$utc_tz =  new DateTimeZone('UTC');
 $start_dt = new DateTime($DATE_TIME, $utc_tz);
 
 $DATE = $start_dt->format('Y-m-d');
-$START_TIME = $start_dt->format('H:i');
+$START_TIME = $start_dt->format('H:i');*/
 
 $day = strtoupper(date('D', strtotime($DATE)));
 $time = date('H:i:s', strtotime($START_TIME));

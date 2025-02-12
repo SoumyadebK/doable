@@ -11,10 +11,15 @@ use Twilio\Rest\Client;
 $title = "Create Appointment";
 
 if (!empty($_GET['date'])) {
-    $date_array = explode('T', $_GET['date']);
+    $dateTime = DateTime::createFromFormat('D M d Y H:i:s e+', $_GET['date']);
+
+    $date = $dateTime->format('m/d/Y');
+    $time = $dateTime->format('h:i A');
+
+    /*$date_array = explode('T', $_GET['date']);
     $date = date("m/d/Y", strtotime($date_array[0]));
     $time_array = explode(' ', $date_array[1]);
-    $time = date("h:i A", strtotime($time_array[0]));
+    $time = date("h:i A", strtotime($time_array[0]));*/
 } else {
     $date = '';
     $time = '';
