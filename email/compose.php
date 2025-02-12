@@ -289,7 +289,7 @@ if($default_selected_cus)
                                                                         elseif($default_selected_cus && $default_selected_cus == $PK_USER)
                                                                             $selected = 'selected';
                                                                         ?>
-                                                                        <option value="<?=$PK_USER?>" <?=$selected?> ><?=$res_type->fields['FIRST_NAME']?> <?=$res_type->fields['LAST_NAME']?></option>
+                                                                        <option value="<?=$PK_USER?>" <?=$selected?> ><?=$res_type->fields['FIRST_NAME']?> <?=$res_type->fields['LAST_NAME']?> (<?=$res_type->fields['USER_NAME']?>)</option>
                                                                         <?php $res_type->MoveNext();
                                                                     } ?>
                                                                 </select>
