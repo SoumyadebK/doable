@@ -1420,7 +1420,6 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <option value="AMSJ">AMSJ</option>
                                 <option value="AMTO">AMTO</option>
                                 <option value="AMWH">AMWH</option>
-                                <option value="AMTO_NEW">AMTO_NEW</option>
                             </select>
                         </div>
                     </div>

@@ -96,7 +96,7 @@ if (!empty($_GET['NAME'])) {
                                 <div class="row">
                                     <div class="col-4">
                                         <div class="form-group">
-                                            <select class="form-control" required name="NAME" id="NAME">
+                                            <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog();">
                                                 <option value="">Select Report</option>
                                                 <option value="payments_made_report">PAYMENTS MADE REPORT</option>
                                                 <option value="royalty">ROYALTY / SERVICE REPORT</option>
@@ -119,6 +119,10 @@ if (!empty($_GET['NAME'])) {
                                     </div>
                                     <div class="col-3">
                                         <p id="last_export_message" style="color: red; margin-top: 9px;"></p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4" id="export_log">
                                     </div>
                                 </div>
                             </form>
@@ -166,6 +170,20 @@ if (!empty($_GET['NAME'])) {
             });
         }
     });
+
+    function showReportLog() {
+        let report_type = $('#NAME').val();
+        $.ajax({
+            url: "includes/get_report_details.php",
+            type: "POST",
+            data: {REPORT_TYPE:report_type},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#export_log').html(result);
+            }
+        });
+    }
 
     function wk(d) {
         var d = new Date(d);
