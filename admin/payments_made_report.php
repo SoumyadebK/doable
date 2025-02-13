@@ -208,7 +208,11 @@ while (!$executive_data->EOF) {
                                                 <td style="text-align: right">$<?=$row->fields['AMOUNT']?></td>
                                                 <td style="text-align: left"><?=$row->fields['PAYMENT_INFO']?></td>
                                                 <td style="text-align: center"><?=$row->fields['PAYMENT_TYPE']?></td>
+                                                <?php if($row->fields['PAYMENT_TYPE'] == 'Credit Card' || $row->fields['PAYMENT_TYPE'] == 'Visa' || $row->fields['PAYMENT_TYPE'] == 'Master Card' || $row->fields['PAYMENT_TYPE'] == 'American Express' || $row->fields['PAYMENT_TYPE'] == 'Card' || $row->fields['PAYMENT_TYPE'] == 'Card On File') {?>
                                                 <td style="text-align: center"><?=$row->fields['PAYMENT_TYPE']?></td>
+                                                <?php } else { ?>
+                                                <td style="text-align: center"></td>
+                                                <?php } ?>
                                                 <td style="text-align: right"><?=$row->fields['RECEIPT_NUMBER']?></td>
                                                 <td style="text-align: left"><?=$row->fields['MEMO']?></td>
                                                 <td style="text-align: left"><?=$row->fields['CLIENT']?></td>
