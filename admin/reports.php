@@ -12,7 +12,9 @@ if (!empty($_GET['NAME'])) {
     $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
     $START_DATE = $_GET['start_date'];
 
-    if ($_GET['NAME'] == 'royalty') {
+    if ($_GET['NAME'] == 'payments_made_report') {
+        header('location:payments_made_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
+    } elseif ($_GET['NAME'] == 'royalty') {
         header('location:royalty_service_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
     } elseif ($_GET['NAME'] == 'summary_of_studio_business_report'){
         header('location:summary_of_studio_business_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
@@ -96,6 +98,7 @@ if (!empty($_GET['NAME'])) {
                                         <div class="form-group">
                                             <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog();">
                                                 <option value="">Select Report</option>
+                                                <option value="payments_made_report">PAYMENTS MADE REPORT</option>
                                                 <option value="royalty">ROYALTY / SERVICE REPORT</option>
                                                 <option value="summary_of_studio_business_report">SUMMARY OF STUDIO BUSINESS REPORT</option>
                                                 <option value="staff_performance_report">STAFF PERFORMANCE REPORT</option>

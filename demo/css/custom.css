@@ -33,6 +33,8 @@
 }
 .theme_doable_btn {
 background-color: #65bb46 !important;
+color: #fff !important;
+padding: 10px 36px !important;
 }
 .theme_doable_btn:hover {
 	background-color: #3a6d28 !important;
@@ -65,4 +67,26 @@ color: #65bb46 !important;
 		background: rgba(152, 194, 64, .4);
 		padding: 20px 20px !important;
 		margin-bottom: 50px;
+	}
+	.big-fonts {
+		font-size: 65px;
+		line-height: 75px;
+	}
+	.font-18 {
+		font-size: 18px;
+	}
+	.image-over-text {
+		position: absolute;
+		top: 30%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		font-size: 50px;
+	}
+	.theme-title-line {
+		background-color: #65bb46 !important;
+	}
+	.form-demo {
+		background-color: #f4f4f4;
+		padding: 20px;
+		box-shadow: 0px 0px 15px 5px rgba(0, 0, 0, 0.09);
 	}

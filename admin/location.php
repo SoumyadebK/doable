@@ -112,6 +112,14 @@ $payment_gateway_setting = $db->Execute( "SELECT * FROM `DOA_PAYMENT_GATEWAY_SET
 $STRIPE_SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
 $STRIPE_PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
 
+$help_title = '';
+$help_description = '';
+$help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'location'");
+if($help->RecordCount() > 0) {
+    $help_title = $help->fields['TITLE'];
+    $help_description = $help->fields['DESCRIPTION'];
+}
+
 require_once("../global/stripe-php-master/init.php");
 $stripe = new StripeClient($STRIPE_SECRET_KEY);
 $account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PK_LOCATION = ".$PK_LOCATION." AND PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
@@ -323,7 +331,7 @@ if(!empty($_POST)){
             </div>
 
             <div class="row">
-                <div class="col-12">
+                <div class="col-8">
                     <div class="card">
                         <div class="card-title" style="margin-top: 15px; margin-left: 15px;">
                             <?php
@@ -823,6 +831,20 @@ if(!empty($_POST)){
                                             </div>
                                         </div>
                                     <?php } ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <h4 class="col-md-12" STYLE="text-align: center">
+                                    <?=$help_title?>
+                                </h4>
+                                <div class="col-md-12">
+                                    <text class="required-entry rich" id="DESCRIPTION"><?=$help_description?></text>
                                 </div>
                             </div>
                         </div>
