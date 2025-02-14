@@ -5,7 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/admin/generate_report_pdf.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/admin/pdf_payments_made_report.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/admin/pdf_royalty_service_report.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/admin/pdf_staff_performance_report.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/admin/pdf_summary_of_staff_member_report.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/admin/pdf_summary_of_studio_business_report.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/reports.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/reports.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,6 +98,7 @@
       <recent name="$PROJECT_DIR$/global/stripe-php" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/admin" />
       <recent name="$PROJECT_DIR$/assets/dist/css" />
       <recent name="$PROJECT_DIR$/includes" />
     </key>
@@ -166,6 +175,7 @@
       <workItem from="1739293324882" duration="3924000" />
       <workItem from="1739369978825" duration="600000" />
       <workItem from="1739434818775" duration="650000" />
+      <workItem from="1739539048477" duration="10550000" />
     </task>
     <servers />
   </component>
