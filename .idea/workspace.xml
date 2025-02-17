@@ -5,15 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/admin/generate_report_pdf.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin/pdf_payments_made_report.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin/pdf_royalty_service_report.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin/pdf_staff_performance_report.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin/pdf_summary_of_staff_member_report.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin/pdf_summary_of_studio_business_report.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/reports.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/reports.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -106,8 +98,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-PS-243.23654.168" />
-        <option value="bundled-php-predefined-a98d8de5180a-4c3855d0ab16-com.jetbrains.php.sharedIndexes-PS-243.23654.168" />
+        <option value="bundled-js-predefined-d6986cc7102b-76f8388c3a79-JavaScript-PS-243.24978.50" />
+        <option value="bundled-php-predefined-a98d8de5180a-fbeb0b58ac0f-com.jetbrains.php.sharedIndexes-PS-243.24978.50" />
       </set>
     </attachedChunks>
   </component>
@@ -175,7 +167,10 @@
       <workItem from="1739293324882" duration="3924000" />
       <workItem from="1739369978825" duration="600000" />
       <workItem from="1739434818775" duration="650000" />
-      <workItem from="1739539048477" duration="10550000" />
+      <workItem from="1739539048477" duration="11797000" />
+      <workItem from="1739709907176" duration="615000" />
+      <workItem from="1739806818728" duration="35000" />
+      <workItem from="1739806874033" duration="33000" />
     </task>
     <servers />
   </component>
