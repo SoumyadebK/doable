@@ -5,6 +5,46 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/admin/excel_summary_of_studio_business_report.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/CalcEngine/CyclicReferenceStack.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/CalcEngine/Logger.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Chart/Axis.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Chart/GridLines.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Chart/Properties.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Helper/HTML.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Reader/Abstract.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Reader/Excel5/Color.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Reader/Excel5/Color/BIFF5.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Reader/Excel5/Color/BIFF8.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Reader/Excel5/Color/BuiltIn.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Reader/Excel5/ErrorCode.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Reader/Excel5/MD5.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Reader/Excel5/RC4.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Reader/Excel5/Style/Border.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Reader/Excel5/Style/FillPattern.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Reader/Exception.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Shared/TimeZone.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Style/Supervisor.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Worksheet/Column.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Worksheet/ColumnCellIterator.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Worksheet/ColumnIterator.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Worksheet/Dimension.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Worksheet/RowCellIterator.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/Abstract.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/Excel2007/RelsRibbon.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/Excel2007/RelsVBA.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/Exception.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/OpenDocument.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/OpenDocument/Cell/Comment.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/OpenDocument/Content.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/OpenDocument/Meta.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/OpenDocument/MetaInf.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/OpenDocument/Mimetype.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/OpenDocument/Settings.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/OpenDocument/Styles.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/OpenDocument/Thumbnails.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/Writer/OpenDocument/WriterPart.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/global/excel/Classes/PHPExcel/locale/bg/config" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -36,20 +76,20 @@
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="php">
     <include_path>
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
+      <path value="$PROJECT_DIR$/global/vendor/composer" />
+      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
+      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
       <path value="$PROJECT_DIR$/global/vendor/paragonie/random_compat" />
       <path value="$PROJECT_DIR$/global/vendor/psr/http-message" />
       <path value="$PROJECT_DIR$/global/vendor/psr/log" />
-      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
+      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
+      <path value="$PROJECT_DIR$/global/vendor/square/square" />
+      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
+      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
       <path value="$PROJECT_DIR$/global/vendor/apimatic/unirest-php" />
       <path value="$PROJECT_DIR$/global/vendor/apimatic/core" />
-      <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
-      <path value="$PROJECT_DIR$/global/vendor/square/square" />
-      <path value="$PROJECT_DIR$/global/vendor/composer" />
-      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
-      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
-      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
-      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
     </include_path>
   </component>
   <component name="ProblemsViewState">
@@ -71,8 +111,8 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;roumya&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Applications/XAMPP/xamppfiles/htdocs/doable/email&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Applications/XAMPP/xamppfiles/htdocs/doable/global/excel&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
@@ -83,13 +123,14 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/global/excel" />
+      <recent name="$PROJECT_DIR$/global" />
       <recent name="$PROJECT_DIR$/email" />
       <recent name="$PROJECT_DIR$/assets/dist/js" />
       <recent name="$PROJECT_DIR$/customer" />
-      <recent name="$PROJECT_DIR$/assets/images/icon" />
-      <recent name="$PROJECT_DIR$/global/stripe-php" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/admin" />
       <recent name="$PROJECT_DIR$/assets/dist/css" />
       <recent name="$PROJECT_DIR$/includes" />
     </key>
@@ -97,8 +138,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-PS-241.14494.237" />
-        <option value="bundled-php-predefined-ba97393d7c68-8f0632a2a215-com.jetbrains.php.sharedIndexes-PS-241.14494.237" />
+        <option value="bundled-js-predefined-d6986cc7102b-76f8388c3a79-JavaScript-PS-243.24978.50" />
+        <option value="bundled-php-predefined-a98d8de5180a-fbeb0b58ac0f-com.jetbrains.php.sharedIndexes-PS-243.24978.50" />
       </set>
     </attachedChunks>
   </component>
@@ -163,10 +204,6 @@
       <workItem from="1738822971314" duration="2793000" />
       <workItem from="1738909028273" duration="941000" />
       <workItem from="1739293251642" duration="68000" />
-      <workItem from="1739446569143" duration="3014000" />
-      <workItem from="1739451655660" duration="1873000" />
-      <workItem from="1739550041798" duration="140000" />
-      <workItem from="1739886759784" duration="586000" />
     </task>
     <servers />
   </component>

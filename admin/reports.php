@@ -9,19 +9,28 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION
 
 if (!empty($_GET['NAME'])) {
     $type = isset($_GET['view']) ? 'view' : 'export';
+    $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
+    $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+    $report_name = $_GET['NAME'];
     $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
     $START_DATE = $_GET['start_date'];
 
-    if ($_GET['NAME'] == 'payments_made_report') {
-        header('location:payments_made_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
-    } elseif ($_GET['NAME'] == 'royalty') {
-        header('location:royalty_service_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
-    } elseif ($_GET['NAME'] == 'summary_of_studio_business_report'){
-        header('location:summary_of_studio_business_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
-    } elseif ($_GET['NAME'] == 'staff_performance_report'){
-        header('location:staff_performance_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
-    } elseif ($_GET['NAME'] == 'summary_of_staff_member_report'){
-        header('location:summary_of_staff_member_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
+    if ($generate_pdf === 1) {
+        header('location:generate_report_pdf.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&report_type='.$report_name);
+    } elseif ($generate_excel === 1) {
+        header('location:excel_'.$report_name.'.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&report_type='.$report_name);
+    } else {
+        if ($_GET['NAME'] == 'payments_made_report') {
+            header('location:payments_made_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+        } elseif ($_GET['NAME'] == 'royalty_service_report') {
+            header('location:royalty_service_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+        } elseif ($_GET['NAME'] == 'summary_of_studio_business_report') {
+            header('location:summary_of_studio_business_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+        } elseif ($_GET['NAME'] == 'staff_performance_report') {
+            header('location:staff_performance_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+        } elseif ($_GET['NAME'] == 'summary_of_staff_member_report') {
+            header('location:summary_of_staff_member_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+        }
     }
 }
 ?>
@@ -94,30 +103,33 @@ if (!empty($_GET['NAME'])) {
                             <form class="form-material form-horizontal" action="" method="get">
                                 <input type="hidden" name="start_date" id="start_date">
                                 <div class="row">
-                                    <div class="col-4">
+                                    <div class="col-3">
                                         <div class="form-group">
                                             <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog();">
                                                 <option value="">Select Report</option>
                                                 <option value="payments_made_report">PAYMENTS MADE REPORT</option>
-                                                <option value="royalty">ROYALTY / SERVICE REPORT</option>
+                                                <option value="royalty_service_report">ROYALTY / SERVICE REPORT</option>
                                                 <option value="summary_of_studio_business_report">SUMMARY OF STUDIO BUSINESS REPORT</option>
                                                 <option value="staff_performance_report">STAFF PERFORMANCE REPORT</option>
                                                 <option value="summary_of_staff_member_report">SUMMARY OF STAFF MEMBER REPORT</option>
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-2">
                                         <div class="form-group">
                                             <input type="text" id="WEEK_NUMBER" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''?>" required>
                                         </div>
                                     </div>
-                                    <div class="col-2">
+                                    <div class="col-3">
                                         <?php if(in_array('Reports Create', $PERMISSION_ARRAY)){ ?>
-                                        <input type="submit" name="view" id="submit"  value="View" style="background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;">
-                                        <input type="submit" name="export" id="submit" style="background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;" value="Export">
+                                            <input type="submit" name="view" value="View" class="btn btn-info">
+                                            <input type="submit" name="export" value="Export" class="btn btn-info">
+                                            <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info">
+                                            <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info">
+                                            <!--<a href="javascript:" class="btn btn-info" onclick="generateReportPdf()">Generate PDF</a>-->
                                         <?php } ?>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-4">
                                         <p id="last_export_message" style="color: red; margin-top: 9px;"></p>
                                     </div>
                                 </div>
@@ -201,6 +213,35 @@ if (!empty($_GET['NAME'])) {
             cache: false,
             success: function (result) {
                 console.log(result);
+            }
+        });
+    }
+
+    function generateReportPdf() {
+        let week_number = $('#WEEK_NUMBER').val();
+        let start_date = $('#start_date').val();
+        let report_type = $('#NAME').val();
+        $.ajax({
+            url: "pdf_royalty_service_report.php",
+            type: "GET",
+            data: {week_number:week_number, start_date:start_date, report_type:report_type},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $.ajax({
+                    url: "generate_royalty_report.php",
+                    type: "POST",
+                    data: {FUNCTION_NAME:'generateReportPdf', html:result},
+                    async: false,
+                    cache: false,
+                    success: function (result) {
+                        console.log(data);
+                        window.open(
+                            data,
+                            '_blank' // <- This is what makes it open in a new window.
+                        );
+                    }
+                });
             }
         });
     }

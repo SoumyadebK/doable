@@ -2393,5 +2393,3 @@ function getReportDetails($RESPONSE_DATA): void
         echo '';
     }
 }
-
-
