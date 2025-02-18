@@ -90,3 +90,21 @@ color: #65bb46 !important;
 		padding: 20px;
 		box-shadow: 0px 0px 15px 5px rgba(0, 0, 0, 0.09);
 	}
+	.technology-section .iconbox-small {
+		width: 110px;
+		height: 110px;
+		line-height: 140px;
+	}
+	.technology-section .iconbox-small span {
+		font-size: 62px;
+	}
+	.technology-section .ce-feature-box-15 .icon span {
+		color: #65bb64 !important;
+	}
+	.technology-section .icon {
+		border: 0px solid #65bb64 !important;
+	}
+	.technology-section .ce-feature-box-15:hover, .technology-section .ce-feature-box-15.active {
+		border: 1px solid #65bb46;
+		background-color: #65bb46;
+	}
