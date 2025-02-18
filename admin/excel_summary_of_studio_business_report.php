@@ -198,7 +198,7 @@ $TOTAL[] = "$".number_format($regular_data_yearly->fields['REGULAR_TOTAL']+$othe
 $TOTAL[] = "$".number_format($regular_data_prev_year->fields['REGULAR_TOTAL']+$other_payment_data_prev_year->fields['OTHER_TOTAL']+$misc_data_prev_year->fields['MISC_TOTAL'], 2);
 
 $line = 5;
-foreach($PERIOD as $key => $val){
+foreach($PERIOD as $key => $val) {
     $line++;
 
     $objPHPExcel->getActiveSheet()->getRowDimension($line)->setRowHeight(20);
