@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/admin/excel_payments_made_report.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/excel_summary_of_studio_business_report.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/excel_summary_of_studio_business_report.php" afterDir="false" />
-    </list>
+    <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -173,7 +169,7 @@
       <workItem from="1739709907176" duration="615000" />
       <workItem from="1739806818728" duration="35000" />
       <workItem from="1739806874033" duration="5323000" />
-      <workItem from="1739873185481" duration="8165000" />
+      <workItem from="1739873185481" duration="8482000" />
     </task>
     <servers />
   </component>
