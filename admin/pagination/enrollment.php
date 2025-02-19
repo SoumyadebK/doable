@@ -43,7 +43,7 @@ if ($_GET['type'] == 'normal') { ?>
             }
             ?>
             <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:" onclick="$('#export_model').modal('show');" style="width: 120px; "><i class="fa fa-file-export"></i> Export</a>
-            <h5 id="wallet_balance_span">Credit Balance : $<?=number_format((float)$credit_balance, 2)?></h5>
+            <h5 id="wallet_balance_span">Balance : $<?=number_format((float)$credit_balance, 2)?></h5>
             <h5 id="wallet_balance_span">Miscellaneous Balance : $<?=number_format((float)$misc_balance, 2)?></h5>
             <h5 id="wallet_balance_span">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></h5>
         </div>
