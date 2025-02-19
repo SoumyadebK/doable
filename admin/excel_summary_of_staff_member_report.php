@@ -108,7 +108,7 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $cell_no = "G2";
 $objPHPExcel->getActiveSheet()->mergeCells('G2:I2');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m/d/Y', strtotime($from_date)) ." - ". date('m/d/Y', strtotime($to_date)));
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('('.date('m/d/Y', strtotime($from_date)) ." - ". date('m/d/Y', strtotime($to_date)).')');
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
