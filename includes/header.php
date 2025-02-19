@@ -19,6 +19,9 @@
     <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 
     <style>
+        strong {
+            font-weight: bold;
+        }
         .multiselect-box {
             margin-bottom: 15px;
             margin-top: 6px;
