@@ -7,7 +7,7 @@ error_reporting(0);
 
 include ('../global/excel/Classes/PHPExcel/IOFactory.php');
 
-$title = "SUMMARY OF STUDIO BUSINESS REPORT";
+$title = "SUMMARY OF STAFF MEMBER REPORT";
 
 $week_number = '';
 $from_date = '';

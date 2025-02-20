@@ -103,7 +103,7 @@ if (!empty($_GET['NAME'])) {
                             <form class="form-material form-horizontal" action="" method="get">
                                 <input type="hidden" name="start_date" id="start_date">
                                 <div class="row">
-                                    <div class="col-3">
+                                    <div class="col-2">
                                         <div class="form-group">
                                             <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog();">
                                                 <option value="">Select Report</option>
@@ -120,7 +120,7 @@ if (!empty($_GET['NAME'])) {
                                             <input type="text" id="WEEK_NUMBER" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''?>" required>
                                         </div>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-4">
                                         <?php if(in_array('Reports Create', $PERMISSION_ARRAY)){ ?>
                                             <input type="submit" name="view" value="View" class="btn btn-info">
                                             <input type="submit" name="export" value="Export" class="btn btn-info">
