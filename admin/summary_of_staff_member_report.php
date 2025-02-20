@@ -182,6 +182,7 @@ while (!$selected_service_provider_row->EOF) {
     $selected_service_provider_name[] = $selected_service_provider_row->fields['NAME'];
     $selected_service_provider_row->MoveNext();
 }
+
 $row = $db->Execute("SELECT PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS WHERE ACTIVE = 1 AND PK_USER IN (".implode(',', $selected_service_provider).")");
 $totalResults = count($selected_service_provider_name);
 $concatenatedResults = "";
@@ -679,7 +680,8 @@ foreach ($selected_service_provider_name as $key => $result) {
         let PK_USER = $(param).val();
         let type = "<?php echo $_GET['type']; ?>"
         let week_number = "<?php echo $_GET['week_number']; ?>"
-        window.location.href = "summary_of_staff_member_report.php?week_number="+week_number+"&type="+type+"&PK_USER="+PK_USER;
+        let start_date = "<?php echo $_GET['start_date']; ?>"
+        window.location.href = "summary_of_staff_member_report.php?week_number="+week_number+"&start_date="+start_date+"&type="+type+"&PK_USER="+PK_USER;
     }
 </script>
 
