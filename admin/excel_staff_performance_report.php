@@ -8,7 +8,7 @@ error_reporting(0);
 
 include ('../global/excel/Classes/PHPExcel/IOFactory.php');
 
-$title = "PAYMENT MADE REPORT";
+$title = "STAFF PERFORMANCE REPORT";
 
 $week_number = '';
 $from_date = '';
@@ -72,7 +72,7 @@ for($i = 0 ; $i <= $total_fields ; $i++){
 }
 
 $inputFileType  = 'Excel2007';
-$outputFileName = 'PAYMENT_MADE_REPORT.xlsx';
+$outputFileName = 'STAFF_PERFORMANCE_REPORT.xlsx';
 
 $objReader      = PHPExcel_IOFactory::createReader($inputFileType);
 $objReader->setIncludeCharts(TRUE);
