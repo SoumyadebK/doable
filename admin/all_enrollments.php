@@ -224,6 +224,21 @@ if (isset($_POST['SUBMIT'])){
                     $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $refund->id, 'LAST4' => $payment_info->LAST4];
                     $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
                 }
+            } elseif ($PK_PAYMENT_TYPE_REFUND == 7) {
+                $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+                if ($wallet_data->RecordCount() > 0) {
+                    $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
+                } else {
+                    $INSERT_DATA['CURRENT_BALANCE'] = $BALANCE;
+                }
+                $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                $INSERT_DATA['CREDIT'] = $BALANCE;
+                $INSERT_DATA['BALANCE_LEFT'] = $BALANCE;
+                $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+                $INSERT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+                $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
             }
 
             $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;

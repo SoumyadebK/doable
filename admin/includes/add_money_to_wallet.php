@@ -42,7 +42,7 @@
 
                         <?php if ($PAYMENT_GATEWAY == 'Stripe') { ?>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" style="margin: auto;" id="card_list">
+                                <div class="row" style="margin: auto;" id="card_list_wallet">
                                 </div>
                                 <div class="col-12">
                                     <div class="form-group" id="card_div">
@@ -52,7 +52,7 @@
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" style="margin: auto;" id="card_list">
+                                <div class="row" style="margin: auto;" id="card_list_wallet">
                                 </div>
                                 <div class="col-12">
                                     <div class="form-group" id="card-container">
@@ -63,7 +63,7 @@
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net') { ?>
                             <div class="payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" style="margin: auto;" id="card_list">
+                                <div class="row" style="margin: auto;" id="card_list_wallet">
                                 </div>
                                 <div class="row">
                                     <div class="col-12">
