@@ -263,7 +263,7 @@ if(!empty($_POST)){
         $card = $stripe->customers->createSource($ACCOUNT_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
         $stripe->customers->update($ACCOUNT_PAYMENT_ID, ['default_source' => $card->id]);
     }
-    header("location:wizard_service.php");
+    header("location:wizard_scheduling_code.php");
 }
 
 ?>
@@ -309,16 +309,6 @@ if(!empty($_POST)){
             <div class="row page-titles">
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
-                </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item"><a href="all_locations.php">All Locations</a></li>
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
-
-                    </div>
                 </div>
             </div>
 
