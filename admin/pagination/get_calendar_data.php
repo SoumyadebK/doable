@@ -73,7 +73,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_SCHEDULING_CODE.DURATION,
                             DOA_SCHEDULING_CODE.UNIT,
                             GROUP_CONCAT(DISTINCT(DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER) SEPARATOR ',') AS SERVICE_PROVIDER_ID,
-                            GROUP_CONCAT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) SEPARATOR ',') AS CUSTOMER_NAME,
+                            GROUP_CONCAT(DISTINCT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME)) SEPARATOR ', ') AS CUSTOMER_NAME,
                             DOA_PACKAGE.PACKAGE_NAME
                         FROM
                             DOA_APPOINTMENT_MASTER
@@ -146,13 +146,13 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             }else {
                 $PACKAGE = " || "."$PACKAGE_NAME";
             }
-            $title = $appointment_data->fields['CUSTOMER_NAME'].$PACKAGE . ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['ENROLLMENT_ID'] === 0) ? '(Ad-Hoc)' : $appointment_data->fields['ENROLLMENT_ID']) . ' - ' . $appointment_data->fields['SERIAL_NUMBER'] . (($appointment_data->fields['IS_PAID'] == 1) ? ' (Paid)' : ' (Unpaid)');
+            $title = $PACKAGE . ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['ENROLLMENT_ID'] === 0) ? '(Ad-Hoc)' : $appointment_data->fields['ENROLLMENT_ID']) . ' - ' . $appointment_data->fields['SERIAL_NUMBER'] . (($appointment_data->fields['IS_PAID'] == 1) ? ' (Paid)' : ' (Unpaid)');
             $type = "appointment";
         } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'DEMO') {
-            $title = $appointment_data->fields['CUSTOMER_NAME'].' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . ' - ' . $appointment_data->fields['SERIAL_NUMBER'];
+            $title = ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . ' - ' . $appointment_data->fields['SERIAL_NUMBER'];
             $type = "appointment";
         } else {
-            $title = (($appointment_data->fields['CUSTOMER_NAME'] !== null) ? (count(explode(',', $appointment_data->fields['CUSTOMER_NAME']))) : '0') . ' - ' . $appointment_data->fields['GROUP_NAME'] . ' - ' . $appointment_data->fields['SERVICE_NAME'] . ' - ' . $appointment_data->fields['SERVICE_CODE'];
+            $title = ' - ' . $appointment_data->fields['GROUP_NAME'] . ' - ' . $appointment_data->fields['SERVICE_NAME'] . ' - ' . $appointment_data->fields['SERVICE_CODE'];
             $type = "group_class";
         }
         if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
@@ -174,6 +174,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
         $appointment_array[] = [
             'id' => $appointment_data->fields['PK_APPOINTMENT_MASTER'],
             'resourceIds' => explode(',', $appointment_data->fields['SERVICE_PROVIDER_ID']),
+            'customerName' => $appointment_data->fields['CUSTOMER_NAME'],
             'title' => $title,
             'start' => date("Y-m-d", strtotime($appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($appointment_data->fields['START_TIME'])),
             'end' => date("Y-m-d", strtotime($appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($appointment_data->fields['END_TIME'])),
@@ -193,10 +194,11 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
 if ($appointment_type == 'TO-DO' || $appointment_type == '') {
     $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
     while (!$special_appointment_data->EOF) {
+        preg_match_all("/\\((.*?)\\)/", $special_appointment_data->fields['TITLE'], $statusCode);
         $appointment_array[] = [
             'id' => $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'],
             'resourceIds' => explode(',', $special_appointment_data->fields['SERVICE_PROVIDER_ID']),
-            'title' => $special_appointment_data->fields['TITLE'],
+            'title' => preg_replace("/\([^)]+\)/","", $special_appointment_data->fields['TITLE']),
             'start' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['START_TIME'])),
             'end' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['END_TIME'])),
             'color' => $special_appointment_data->fields['COLOR_CODE'],
@@ -205,7 +207,7 @@ if ($appointment_type == 'TO-DO' || $appointment_type == '') {
             'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
             'comment' => $special_appointment_data->fields['DESCRIPTION'],
             'internal_comment' => '',
-            'statusCode' => '',
+            'statusCode' => $statusCode[1][0],
             'duration' => $special_appointment_data->fields['DURATION'],
         ];
         $special_appointment_data->MoveNext();
