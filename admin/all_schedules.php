@@ -726,6 +726,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 let event_data = info.event.extendedProps;
                 let element = info.el;
 
+                if (event_data.customerName) {
+                    $(element).find(".fc-title").prepend(' <strong style="font-size: 13px">' + event_data.customerName + '</strong> ');
+                }
                 if (event_data.status) {
                     $(element).find(".fc-title").prepend(' <strong style="color: ' + event_data.statusColor + '">(' + event_data.status + ')</strong> ');
                 }

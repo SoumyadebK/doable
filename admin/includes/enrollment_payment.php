@@ -70,9 +70,9 @@
                         </div>
 
                         <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
+                            <div class="row" style="margin: auto;" id="card_list">
+                            </div>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" style="margin: auto;" id="card_list">
-                                </div>
                                 <div class="col-12">
                                     <div class="form-group" id="card_div">
 
@@ -479,6 +479,10 @@ else if ($SQUARE_MODE == 2)
                     mask: "9999 9999 9999 9999",
                     placeholder: ""
                 });
+                break;
+
+            case 14:
+                getCreditCardList();
                 break;
 
             case 2:
