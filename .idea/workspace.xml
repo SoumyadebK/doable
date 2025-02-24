@@ -5,10 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/admin/wizard_scheduling_code.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/wizard_location.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/wizard_location.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/wizard_service.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/wizard_service.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
