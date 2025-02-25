@@ -15,6 +15,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || (in_array($_SESSIO
 }
 
 $redirect_date = (!empty($_GET['date'])) ? date('Y-m-d', strtotime($_GET['date'].' +1 day')) : "";
+$header = 'all_schedules.php';
 
 $SERVICE_PROVIDER_ID = ' ';
 if(isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != ''){
@@ -347,6 +348,17 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 }else {
     $INTERVAL = $interval->fields['TIME_SLOT_INTERVAL'];
 }
+
+
+$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+
+$PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
+$SECRET_KEY = $account_data->fields['SECRET_KEY'];
+$PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
+
+$SQUARE_ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
+$SQUARE_APP_ID = $account_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 ?>
 
 <!DOCTYPE html>
@@ -553,12 +565,16 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     </div>
 </div>
 
+<!--Payment Model-->
+<?php include('includes/enrollment_payment.php'); ?>
+
 
 <?php require_once('../includes/footer.php');?>
 
 <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
 <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
 <script>
     $(window).on('load', function () {
        let redirect_date = '<?=$redirect_date?>';
@@ -587,6 +603,58 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         } else {
             swal("Select One Location!", "Only one location can be selected on top of the page in order to schedule an appointment.", "error");
         }
+    }
+
+    function payNow(PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, BILLED_AMOUNT, ENROLLMENT_ID) {
+        $('.partial_payment').show();
+        $('#PARTIAL_PAYMENT').prop('checked', false);
+        $('.partial_payment_div').slideUp();
+
+        $('.PAYMENT_TYPE').val('');
+        $('#remaining_amount_div').slideUp();
+
+        $('#enrollment_number').text(ENROLLMENT_ID);
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#ACTUAL_AMOUNT').val(BILLED_AMOUNT);
+        $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        $('.CUSTOMER_ID').val(PK_USER_MASTER);
+        //$('#payment_confirmation_form_div_customer').slideDown();
+        //openPaymentModel();
+        $('#enrollment_payment_modal').modal('show');
+    }
+
+    function paySelected(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
+        $('.partial_payment').hide();
+        $('#PARTIAL_PAYMENT').prop('checked', false);
+        $('.partial_payment_div').slideUp();
+
+        $('.PAYMENT_TYPE').val('');
+        $('#remaining_amount_div').slideUp();
+
+        let BILLED_AMOUNT = [];
+        let PK_ENROLLMENT_LEDGER = [];
+
+        $(".PAYMENT_CHECKBOX_"+PK_ENROLLMENT_MASTER+":checked").each(function() {
+            BILLED_AMOUNT.push($(this).data('billed_amount'));
+            PK_ENROLLMENT_LEDGER.push($(this).val());
+        });
+
+        let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
+
+        function getSum(total, num) {
+            return total + num;
+        }
+
+        $('#enrollment_number').text(ENROLLMENT_ID);
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#ACTUAL_AMOUNT').val(parseFloat(TOTAL).toFixed(2));
+        $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
+        //$('#payment_confirmation_form_div_customer').slideDown();
+        //openPaymentModel();
+        $('#enrollment_payment_modal').modal('show');
     }
 </script>
 
