@@ -1634,16 +1634,8 @@ z-index: 500;
     </div>
 
     <div class="tab-pane" id="document" role="tabpanel">
-        <div class="card-body" style="margin-top: 10PX">
-            <a style="font-weight: bold">Client Enrollment Agreements :-</a><br>
-            <?php
-            $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
-            while (!$res->EOF) {?>
-                <div style="margin-top: 5px">
-                    <?=$res->fields['ENROLLMENT_ID']?> - <a href="../uploads/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
-                </div>
-                <?php $res->MoveNext();
-            } ?>
+        <div class="card-body m-t-10" id="agreement_document">
+
         </div>
         <form id="document_form">
             <input type="hidden" name="FUNCTION_NAME" value="saveDocumentData">
