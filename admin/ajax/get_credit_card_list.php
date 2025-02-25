@@ -115,8 +115,8 @@ if($PAYMENT_GATEWAY == "Stripe") {
             break;
 
     } ?>
+    <h5>Saved Card Details</h5>
     <div class="p-20" id="<?=$card_details['id']?>" onclick="getPaymentMethodId(this)">
-        <h5>Saved Card Details</h5>
         <div class="credit-card <?=$card_type?> selectable" style="margin-right: 80%;">
             <div class="credit-card-last4">
                 <?=$card_details['last4']?>

@@ -1875,11 +1875,6 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
         $('#enrollment_payment_modal').modal('show');
     }
 
-    $(document).on('click', '.credit-card', function () {
-        $('.credit-card').css("opacity", "1");
-        $(this).css("opacity", "0.6");
-    });
-
     function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
         let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
         for (let i=0; i<RECEIPT_NUMBER_ARRAY.length; i++) {

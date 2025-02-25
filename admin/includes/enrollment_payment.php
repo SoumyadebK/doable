@@ -447,15 +447,22 @@ else if ($SQUARE_MODE == 2)
 <script>
     function getPaymentMethodId(param) {
         $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
+        $(param).css("opacity", "0.6");
         let form = document.getElementById('enrollment_payment_form');
         form.removeEventListener('submit', listener);
         $(param).closest('.payment_modal').find('#card-element').remove();
     }
 
+    $(document).on('click', '.credit-card', function () {
+        $('.credit-card').css("opacity", "1");
+        $(this).css("opacity", "0.6");
+    });
+
     function selectPaymentType(param, type){
         let paymentType = parseInt($(param).val());
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         $(param).closest('.payment_modal').find('.payment_type_div').slideUp();
+        $('#card_list').slideUp();
         let form = document.getElementById(type+'_payment_form');
         form.removeEventListener('submit', listener);
         $(param).closest('.payment_modal').find('#card-element').remove();
@@ -542,7 +549,7 @@ else if ($SQUARE_MODE == 2)
             type: 'POST',
             data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
             success: function (data) {
-                $('#card_list').html(data);
+                $('#card_list').slideDown().html(data);
             }
         });
     }
