@@ -76,9 +76,10 @@ if (!empty($_GET['NAME'])) {
                                 <h4 class="card-title">Reports</h4>
                                 <div>
                                     <ul class="menu-list">
-                                        <li><a href="#">Business Reports</a></li>
+                                        <li><a href="business_reports.php">Business Reports</a></li>
+                                        <li><a href="electronic_weekly_reports.php">Electronic Weekly Reports</a></li>
+                                        <li><a href="service_provider_reports.php">Service Provider Reports</a></li>
                                         <li><a href="#">Enrollment Reports</a></li>
-                                        <li><a href="#">Service Provider Reports</a></li>
                                         <li><a href="customer_summary_report.php">Customer Reports</a></li>
                                         <li><a href="student_mailing_list.php">Student Mailing List</a></li>
                                         <li><a href="total_open_liability.php">Total Open Liability Since Last Activity</a></li>
@@ -93,7 +94,7 @@ if (!empty($_GET['NAME'])) {
                 </div>
             </div>
 
-            <div class="row">
+            <!--<div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="row" style="padding: 15px 35px 35px 35px;">
@@ -115,16 +116,16 @@ if (!empty($_GET['NAME'])) {
                                     </div>
                                     <div class="col-2">
                                         <div class="form-group">
-                                            <input type="text" id="WEEK_NUMBER1" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''?>" required>
+                                            <input type="text" id="WEEK_NUMBER1" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?php /*=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''*/?>" required>
                                         </div>
                                     </div>
                                     <div class="col-4">
-                                        <?php if(in_array('Reports Create', $PERMISSION_ARRAY)){ ?>
+                                        <?php /*if(in_array('Reports Create', $PERMISSION_ARRAY)){ */?>
                                             <input type="submit" name="view" value="View" class="btn btn-info">
                                             <input type="submit" name="export" value="Export" class="btn btn-info">
                                             <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info">
                                             <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info">
-                                        <?php } ?>
+                                        <?php /*} */?>
                                     </div>
                                     <div class="col-4">
                                         <p id="last_export_message" style="color: red; margin-top: 9px;"></p>
@@ -156,16 +157,16 @@ if (!empty($_GET['NAME'])) {
                                     </div>
                                     <div class="col-2">
                                         <div class="form-group">
-                                            <input type="text" id="WEEK_NUMBER2" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''?>" required>
+                                            <input type="text" id="WEEK_NUMBER2" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?php /*=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''*/?>" required>
                                         </div>
                                     </div>
                                     <div class="col-4">
-                                        <?php if(in_array('Reports Create', $PERMISSION_ARRAY)){ ?>
+                                        <?php /*if(in_array('Reports Create', $PERMISSION_ARRAY)){ */?>
                                             <input type="submit" name="view" value="View" class="btn btn-info">
                                             <input type="submit" name="export" value="Export" class="btn btn-info">
                                             <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info">
                                             <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info">
-                                        <?php } ?>
+                                        <?php /*} */?>
                                     </div>
                                     <div class="col-4">
                                         <p id="last_export_message" style="color: red; margin-top: 9px;"></p>
@@ -197,16 +198,16 @@ if (!empty($_GET['NAME'])) {
                                     </div>
                                     <div class="col-2">
                                         <div class="form-group">
-                                            <input type="text" id="WEEK_NUMBER3" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''?>" required>
+                                            <input type="text" id="WEEK_NUMBER3" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?php /*=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''*/?>" required>
                                         </div>
                                     </div>
                                     <div class="col-4">
-                                        <?php if(in_array('Reports Create', $PERMISSION_ARRAY)){ ?>
+                                        <?php /*if(in_array('Reports Create', $PERMISSION_ARRAY)){ */?>
                                             <input type="submit" name="view" value="View" class="btn btn-info">
                                             <input type="submit" name="export" value="Export" class="btn btn-info">
                                             <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info">
                                             <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info">
-                                        <?php } ?>
+                                        <?php /*} */?>
                                     </div>
                                     <div class="col-4">
                                         <p id="last_export_message" style="color: red; margin-top: 9px;"></p>
@@ -221,7 +222,7 @@ if (!empty($_GET['NAME'])) {
                     </div>
 
                 </div>
-            </div>
+            </div>-->
         </div>
     </div>
 </div>
