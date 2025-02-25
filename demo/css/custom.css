@@ -29,7 +29,7 @@
 	float: left;
 } */
 .header-section ul li:hover > a, .header-section ul li.active > a {
-	color: #65bb46;
+	color: #65bb46 !important;
 }
 .theme_doable_btn {
 background-color: #65bb46 !important;
@@ -54,9 +54,9 @@ color: #65bb46 !important;
 	.fluid-container-big .iconlist-2 .icon.dark {
 		color: #65bb46;
 	}
-	.uranus.tparrows {
+	/* .uranus.tparrows {
 		display: none !important;
-	}
+	} */
 	.theme-grn-color-text {
 		color: #65bb46 !important;
 	}
