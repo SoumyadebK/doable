@@ -6,8 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/includes/update_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/update_appointment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/pagination/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/enrollment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/pagination/get_enrollment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/get_enrollment_details.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -179,6 +182,8 @@
       <workItem from="1740406826678" duration="4986000" />
       <workItem from="1740493714058" duration="309000" />
       <workItem from="1740494036141" duration="10861000" />
+      <workItem from="1740550733292" duration="2242000" />
+      <workItem from="1740581751787" duration="3953000" />
     </task>
     <servers />
   </component>

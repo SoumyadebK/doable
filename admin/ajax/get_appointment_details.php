@@ -439,10 +439,9 @@ z-index: 500;
                                             $USED_SESSION_COUNT = getAllSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE'], 'NORMAL');
                                             $paid_session = ($PRICE_PER_SESSION > 0) ? number_format(($TOTAL_AMOUNT_PAID/$PRICE_PER_SESSION), 2) : $NUMBER_OF_SESSION;
 
-                                            if ((($NUMBER_OF_SESSION - $USED_SESSION_COUNT) > 0) || ($row->fields['CHARGE_TYPE'] == 'Membership')) {
-                                                if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
-                                                <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-location_id="<?=$row->fields['PK_LOCATION']?>" data-no_of_session="<?=$NUMBER_OF_SESSION?>" data-used_session="<?=$USED_SESSION_COUNT?>" <?=(($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled':''?> <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$enrollment_name.$row->fields['ENROLLMENT_ID'].' || '.$PACKAGE.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$USED_SESSION_COUNT.'/'.$NUMBER_OF_SESSION.' || Paid : '.$paid_session;?></option>
-                                            <?php }
+                                            if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
+                                            <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-location_id="<?=$row->fields['PK_LOCATION']?>" data-no_of_session="<?=$NUMBER_OF_SESSION?>" data-used_session="<?=$USED_SESSION_COUNT?>" <?=(($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled':''?> <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$enrollment_name.$row->fields['ENROLLMENT_ID'].' || '.$PACKAGE.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$USED_SESSION_COUNT.'/'.$NUMBER_OF_SESSION.' || Paid : '.$paid_session;?></option>
+                                            <?php
                                             $row->MoveNext();
                                         } ?>
                                     </select>

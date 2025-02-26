@@ -167,7 +167,7 @@ while (!$serviceCodeData->EOF) {
                         <?=date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE']))?>&nbsp;&nbsp;
                         <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, '<?=date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE']))?>', 'payment')"><i class="ti-pencil-alt"></i></a>
                         <?php if ($payment_details->fields['PK_PAYMENT_TYPE'] == 12) { ?>
-                            <!--<a href="javascript:" title="Delete" onclick="deletePayment(<?php /*=$payment_details->fields['PK_ENROLLMENT_PAYMENT']*/?>)" style="color: red;"><i class="ti-trash"></i></a>-->
+                            <a href="javascript:" title="Delete" onclick="deletePayment(<?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['AMOUNT']?>)" style="color: red;"><i class="ti-trash"></i></a>
                         <?php } ?>
                     </td>
                     <td style="text-align: center;"><?=$payment_details->fields['TYPE']?></td>
