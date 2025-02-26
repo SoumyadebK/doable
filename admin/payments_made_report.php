@@ -204,7 +204,7 @@ while (!$executive_data->EOF) {
                                             $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                                             ?>
                                             <tr>
-                                                <td><?=$row->fields['PAYMENT_DATE']?></td>
+                                                <td style="text-align: center"><?=date('m-d-Y', strtotime($row->fields['PAYMENT_DATE']))?></td>
                                                 <td style="text-align: right">$<?=$row->fields['AMOUNT']?></td>
                                                 <td style="text-align: left"><?=$row->fields['PAYMENT_INFO']?></td>
                                                 <td style="text-align: center"><?=$row->fields['PAYMENT_TYPE']?></td>
@@ -217,7 +217,7 @@ while (!$executive_data->EOF) {
                                                 <td style="text-align: left"><?=$row->fields['MEMO']?></td>
                                                 <td style="text-align: left"><?=$row->fields['CLIENT']?></td>
                                                 <td style="text-align: left"><?=$row->fields['ENROLLMENT_NAME']?></td>
-                                                <td style="text-align: right"><?=$row->fields['ENROLLMENT_DATE']?></td>
+                                                <td style="text-align: center"><?=date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE']))?></td>
                                                 <td style="text-align: right"><?=$row->fields['ENROLLMENT_TYPE']?></td>
                                                 <td style="text-align: right">$<?=$row->fields['FINAL_AMOUNT']?></td>
                                                 <td style="text-align: right">$<?=number_format($row->fields['FINAL_AMOUNT'] - $row->fields['TOTAL_AMOUNT_PAID'], 2)?></td>
