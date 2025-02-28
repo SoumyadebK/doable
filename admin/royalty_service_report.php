@@ -232,7 +232,7 @@ if ($type === 'export') {
             $error_message = 'This report has already been exported on '.date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
         }
     } else {
-        $REPORT_DATA['REPORT_TYPE'] = 'royalty';
+        $REPORT_DATA['REPORT_TYPE'] = 'royalty_service_report';
         $REPORT_DATA['WEEK_NUMBER'] = $week_number;
         $REPORT_DATA['YEAR'] = $YEAR;
         $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
