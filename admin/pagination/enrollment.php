@@ -363,4 +363,36 @@ while (!$enrollment_data->EOF) {
             }
         });
     }
+
+    function deletePayment(PK_ENROLLMENT_PAYMENT, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, BALANCE) {
+        Swal.fire({
+            title: "Are you sure you want to delete this payment?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'deletePayment',
+                        PK_ENROLLMENT_PAYMENT: PK_ENROLLMENT_PAYMENT,
+                        PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                        PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                        BALANCE: BALANCE
+                    },
+                    success: function (data) {
+                        if (data == 1) {
+                            window.location.reload();
+                        } else {
+                            alert(data);
+                        }
+                    }
+                });
+            }
+        });
+    }
 </script>

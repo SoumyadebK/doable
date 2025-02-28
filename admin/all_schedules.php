@@ -474,7 +474,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                     <div class="col-4">
                                         <div class="input-group">
                                             <input type="hidden" id="IS_SELECTED" value="0">
-                                            <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Choose Date" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
+                                            <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
                                             <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" multiple>
                                                 <?php
                                                 $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
@@ -590,6 +590,10 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
     });
 
     $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+    });
+
+    $('.datepicker-normal-calendar').datepicker({
         onSelect: function () {
             $('#IS_SELECTED').val(1);
             $("#search_form").submit();
@@ -977,7 +981,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                         //$('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
                         //$('.PK_SCHEDULING_CODE').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
 
-                        $('.datepicker-normal').datepicker({
+                        $('.datepicker-normal-calendar').datepicker({
                             format: 'mm/dd/yyyy',
                         });
 
@@ -1001,7 +1005,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                             $('#edit_appointment_half').show();
                             $('.multi_sumo_select').SumoSelect({placeholder: 'Select Customer', selectAll: true, search:true, searchText:"Search Customer"});
 
-                            $('.datepicker-normal').datepicker({
+                            $('.datepicker-normal-calendar').datepicker({
                                 format: 'mm/dd/yyyy',
                             });
 
@@ -1024,7 +1028,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                 $('#appointment_details_div').html(result);
                                 $('#edit_appointment_half').show();
 
-                                /*$('.datepicker-normal').datepicker({
+                                /*$('.datepicker-normal-calendar').datepicker({
                                     format: 'mm/dd/yyyy',
                                 });
 

@@ -404,9 +404,11 @@ z-index: 500;
                         <?php if ($SERVICE_NAME != 'For records only') { ?>
                             <div class="col-4" id="enrollment_div">
                                 <div class="form-group">
-                                    <label class="form-label">Enrollment ID : <span id="change_enrollment" style="margin-left: 30px;"><a href="javascript:" onclick="changeEnrollment()">Change</a></span>
-                                        <span id="cancel_change_enrollment" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeEnrollment()">Cancel</a></span></label>
-                                    <select  id="enrollment_select" class="form-control" name="PK_ENROLLMENT_MASTER" style="display: none;">
+                                    <label class="form-label">Enrollment ID :
+                                        <span id="change_enrollment" style="margin-left: 30px;"><a href="javascript:" onclick="changeEnrollment()">Change</a></span>
+                                        <span id="cancel_change_enrollment" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeEnrollment()">Cancel</a></span>
+                                    </label>
+                                    <select  id="enrollment_select" class="form-control" required name="PK_ENROLLMENT_MASTER" style="display: none;">
                                         <option value="">Select Enrollment ID</option>
                                         <?php
                                         $selected_enrollment = '';
@@ -437,10 +439,9 @@ z-index: 500;
                                             $USED_SESSION_COUNT = getAllSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE'], 'NORMAL');
                                             $paid_session = ($PRICE_PER_SESSION > 0) ? number_format(($TOTAL_AMOUNT_PAID/$PRICE_PER_SESSION), 2) : $NUMBER_OF_SESSION;
 
-                                            if ((($NUMBER_OF_SESSION - $USED_SESSION_COUNT) > 0) || ($row->fields['CHARGE_TYPE'] == 'Membership')) {
-                                                if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
-                                                <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-location_id="<?=$row->fields['PK_LOCATION']?>" data-no_of_session="<?=$NUMBER_OF_SESSION?>" data-used_session="<?=$USED_SESSION_COUNT?>" <?=(($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled':''?> <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$enrollment_name.$row->fields['ENROLLMENT_ID'].' || '.$PACKAGE.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$USED_SESSION_COUNT.'/'.$NUMBER_OF_SESSION.' || Paid : '.$paid_session;?></option>
-                                            <?php }
+                                            if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
+                                            <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-location_id="<?=$row->fields['PK_LOCATION']?>" data-no_of_session="<?=$NUMBER_OF_SESSION?>" data-used_session="<?=$USED_SESSION_COUNT?>" <?=(($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled':''?> <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$enrollment_name.$row->fields['ENROLLMENT_ID'].' || '.$PACKAGE.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$USED_SESSION_COUNT.'/'.$NUMBER_OF_SESSION.' || Paid : '.$paid_session;?></option>
+                                            <?php
                                             $row->MoveNext();
                                         } ?>
                                     </select>
@@ -1634,16 +1635,8 @@ z-index: 500;
     </div>
 
     <div class="tab-pane" id="document" role="tabpanel">
-        <div class="card-body" style="margin-top: 10PX">
-            <a style="font-weight: bold">Client Enrollment Agreements :-</a><br>
-            <?php
-            $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
-            while (!$res->EOF) {?>
-                <div style="margin-top: 5px">
-                    <?=$res->fields['ENROLLMENT_ID']?> - <a href="../uploads/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
-                </div>
-                <?php $res->MoveNext();
-            } ?>
+        <div class="card-body m-t-10" id="agreement_document">
+
         </div>
         <form id="document_form">
             <input type="hidden" name="FUNCTION_NAME" value="saveDocumentData">

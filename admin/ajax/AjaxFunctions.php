@@ -2269,6 +2269,45 @@ function moveToWallet($RESPONSE_DATA): void
     echo 1;
 }
 
+function deletePayment($RESPONSE_DATA): void
+{
+    global $db;
+    global $db_account;
+    global $account_database;
+
+    $PK_ENROLLMENT_PAYMENT = $RESPONSE_DATA['PK_ENROLLMENT_PAYMENT'];
+    $PK_ENROLLMENT_MASTER = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
+    $PK_ENROLLMENT_LEDGER = $RESPONSE_DATA['PK_ENROLLMENT_LEDGER'];
+    $BALANCE = $RESPONSE_DATA['BALANCE'];
+
+    $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    $ACTUAL_AMOUNT = $enrollmentBillingData->fields['TOTAL_AMOUNT'];
+    while (!$enrollmentServiceData->EOF) {
+        $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT']*100)/$ACTUAL_AMOUNT;
+        $serviceAmount = ($BALANCE*$servicePercent)/100;
+        $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] - $serviceAmount;
+        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update'," PK_ENROLLMENT_SERVICE = ".$enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+        markAppointmentPaid($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+        $enrollmentServiceData->MoveNext();
+    }
+
+    $enrollment_billing_data = $db_account->Execute("SELECT `BILLED_AMOUNT`, `AMOUNT_REMAIN` FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_LEDGER` = '$PK_ENROLLMENT_LEDGER'");
+    $AMOUNT_REMAIN = $enrollment_billing_data->fields['AMOUNT_REMAIN'] + $BALANCE;
+    if ($AMOUNT_REMAIN >= $enrollment_billing_data->fields['BILLED_AMOUNT']) {
+        $PARENT_DATA['AMOUNT_REMAIN'] = 0;
+        $PARENT_DATA['IS_PAID'] = 0;
+    } else {
+        $PARENT_DATA['IS_PAID'] = 0;
+        $PARENT_DATA['AMOUNT_REMAIN'] = $AMOUNT_REMAIN;
+    }
+    db_perform_account('DOA_ENROLLMENT_LEDGER', $PARENT_DATA, 'update'," PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+
+    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_PAYMENT` WHERE `PK_ENROLLMENT_PAYMENT` = '$PK_ENROLLMENT_PAYMENT'");
+
+    echo 1;
+}
+
 function generateReceiptPdf($html){
     require_once('../../global/vendor/autoload.php');
 
