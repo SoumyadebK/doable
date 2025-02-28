@@ -60,7 +60,7 @@ if ($type === 'export') {
         $renewal_department = $renewal_data->fields['RENEWAL_TOTAL'] ?? 0;
 
         $line_item[] = array(
-            "staff_member" => $staff_member,
+            "staff_member" => ($staff_member == '') ? '628c15c18f29984a7d5f30e7' : $staff_member,
             "staff_type" => $staff_type,
             "number_guests" => $number_guests,
             "private_lessons" => $private_lessons,
@@ -74,6 +74,7 @@ if ($type === 'export') {
 
         $staff_data->MoveNext();
     }
+    //pre_r($line_item);
 
     $data = [
         'type' => 'staff_performance',
@@ -85,6 +86,21 @@ if ($type === 'export') {
 
     $url = constant('ami_api_url').'/api/v1/reports';
     $post_data = callArturMurrayApi($url, $data, $authorization);
+
+    $data = json_decode($post_data);
+
+    if (isset($data->error) || isset($data->errors)) {
+        $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'summary_of_staff_performance_report' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = ".$week_number);
+        if ($report_details->RecordCount() > 0) {
+            $error_message = 'This report has already been exported on '.date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
+        }
+    } else {
+        $REPORT_DATA['REPORT_TYPE'] = 'summary_of_staff_performance_report';
+        $REPORT_DATA['WEEK_NUMBER'] = $week_number;
+        $REPORT_DATA['YEAR'] = $YEAR;
+        $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
+        db_perform_account('DOA_REPORT_EXPORT_DETAILS', $REPORT_DATA);
+    }
 
     //pre_r(json_decode($post_data));
 }
