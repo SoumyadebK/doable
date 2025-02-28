@@ -227,7 +227,7 @@ if ($type === 'export') {
 
     $data = json_decode($post_data);
     if (isset($data->error) || isset($data->errors)) {
-        $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'royalty' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = ".$week_number);
+        $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'royalty_service_report' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = ".$week_number);
         if ($report_details->RecordCount() > 0) {
             $error_message = 'This report has already been exported on '.date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
         }

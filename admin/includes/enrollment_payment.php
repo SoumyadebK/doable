@@ -70,7 +70,7 @@
                         </div>
 
                         <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
-                            <div class="row" style="margin: auto;" id="card_list">
+                            <div class="row" id="card_list">
                             </div>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="col-12">
@@ -81,7 +81,7 @@
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" style="margin: auto;" id="card_list">
+                                <div class="row" id="card_list">
                                 </div>
                                 <div class="col-12">
                                     <div class="form-group" id="card_div">
@@ -94,7 +94,7 @@
                             $customer_data = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.EMAIL_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
                             ?>
                             <div class="payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" style="margin: auto;" id="card_list">
+                                <div class="row" id="card_list">
                                 </div>
                                 <div class="row">
                                     <div class="col-12">
