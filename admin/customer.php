@@ -2123,6 +2123,8 @@ if ($PK_USER_MASTER > 0) {
     </div>
 </div>
 
+<?php require_once('../includes/footer.php');?>
+
 <!--Wallet Payment Model-->
 <?php include('includes/add_money_to_wallet.php'); ?>
 
@@ -2219,7 +2221,7 @@ if ($PK_USER_MASTER > 0) {
         height:18px !important;
     }
 </style>
-<?php require_once('../includes/footer.php');?>
+
     <script>
         let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
         let PK_USER_MASTER = parseInt(<?=empty($_GET['master_id'])?0:$_GET['master_id']?>);

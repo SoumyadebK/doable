@@ -1116,10 +1116,11 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
     </div>
 </div>
 
+<?php require_once('../includes/footer.php');?>
+
 <!--Payment Model-->
 <?php include('includes/enrollment_payment.php'); ?>
 
-<?php require_once('../includes/footer.php');?>
 
 <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
 <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
