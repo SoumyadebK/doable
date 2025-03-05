@@ -159,13 +159,15 @@ while (!$status_data->EOF) {
                             $selected_partner = [];
                             $selected_customer_row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
                             while (!$selected_customer_row->EOF) {
-                                $selected_customer[] = $selected_customer_row->fields['PK_USER_MASTER'];
-                                if ($selected_customer_row->fields['WITH_PARTNER'] == 1) {
+                                if ($selected_customer_row->fields['WITH_PARTNER'] == 0 || $selected_customer_row->fields['WITH_PARTNER'] == 1) {
+                                    $selected_customer[] = $selected_customer_row->fields['PK_USER_MASTER'];
+                                }
+                                if ($selected_customer_row->fields['WITH_PARTNER'] == 1 || $selected_customer_row->fields['WITH_PARTNER'] == 2) {
                                     $selected_partner[] = $selected_customer_row->fields['PK_USER_MASTER'];
                                 }
                                 $selected_customer_row->MoveNext();
                             } ?>
-                            <li class="init"><?=(count($selected_customer) > 0) ? count($selected_customer).' Selected' : 'Select Customer'?></li>
+                            <li class="init"><?=((count($selected_customer) + count($selected_partner)) > 0) ? (count($selected_customer) + count($selected_partner)).' Selected' : 'Select Customer'?></li>
                             <li> <input type="text" id="customer_search" placeholder="Search..." onkeyup="searchCustomerList()" style="width: 100%; border: none;"></li>
                             <?php
                             /*if (count($selected_customer) > 0) {
@@ -179,14 +181,19 @@ while (!$status_data->EOF) {
                             $customer_name = '';
                             while (!$row->EOF) {
                             $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = ".$row->fields['PK_USER_MASTER']);
-                            if (in_array($row->fields['PK_USER_MASTER'], $selected_customer)) {
+                            if (in_array($row->fields['PK_USER_MASTER'], $selected_customer) || in_array($row->fields['PK_USER_MASTER'], $selected_partner)) {
                                 $selected_customer_id = $row->fields['PK_USER_MASTER'];
                                 $selected_user_id = $row->fields['PK_USER'];
                                 $partner_name = '';
                                 if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner' && in_array($row->fields['PK_USER_MASTER'], $selected_partner)) {
-                                    $partner_name .= '<span class="m-l-30"><i class="fa fa-check-square" style="font-size:15px; color: green"></i>&nbsp;&nbsp;'.$partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'].'</span>';
+                                    $partner_name .= '<span class="m-l-30"><i class="fa fa-check-square" style="font-size:15px; color: #1d1;"></i>&nbsp;&nbsp;'.$partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'].'</span>';
                                 }
-                                $customer_name.= '<p><i class="fa fa-check-square" style="font-size:15px; color: green"></i>&nbsp;&nbsp;<a href="customer.php?id='.$selected_user_id.'&master_id='.$selected_customer_id.'&tab=profile" target="_blank" style="color: blue;">'.$row->fields['NAME'].'</a>'.$partner_name.'</p>';
+                                if (!in_array($row->fields['PK_USER_MASTER'], $selected_customer) && in_array($row->fields['PK_USER_MASTER'], $selected_partner)) {
+                                    $customer_check = '#80808082';
+                                } else {
+                                    $customer_check = '#1d1';
+                                }
+                                $customer_name .= '<p><i class="fa fa-check-square" style="font-size:15px; color: '.$customer_check.';"></i>&nbsp;&nbsp;<a href="customer.php?id='.$selected_user_id.'&master_id='.$selected_customer_id.'&tab=profile" target="_blank" style="color: blue;">'.$row->fields['NAME'].'</a>'.$partner_name.'</p>';
                             } ?>
                             <li class="customer-li">
                                 <label style="width: 50%;"> <input type="checkbox" name="PK_USER_MASTER[]" value="<?=$row->fields['PK_USER_MASTER']?>" class="customer-checkbox" <?=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"checked":""?>> <?=$row->fields['NAME']?> </label>
@@ -322,7 +329,8 @@ while (!$status_data->EOF) {
     function closeListSelect() {
         allOptions.removeClass('selected');
         let checked_customer = $("input[name='PK_USER_MASTER[]']:checked").length;
-        $(".list-select").children('.init').html(checked_customer+' Selected');
+        let checked_partner = $("input[name='PARTNER[]']:checked").length;
+        $(".list-select").children('.init').html((checked_partner+checked_customer)+' Selected');
         $(".list-select").css({"height":"30px", "overflow":"none", "overflow-x":"none"});
         allOptions.slideUp();
     }
