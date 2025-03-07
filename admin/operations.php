@@ -197,7 +197,7 @@ function currentWeekRange($date): array
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
             </div>
-            <form class="form-horizontal" action="" method="get">
+            <form id="search_form" class="form-horizontal" action="" method="get">
             <div class="row">
                 <div class="col-2">
                     <div class="form-group">
@@ -226,8 +226,8 @@ function currentWeekRange($date): array
                     <div class="form-group">
                         <select class="form-control" name="DATE_SELECTION" id="DATE_SELECTION" onchange="selectDate(this)">
                             <option value="">Select Date</option>
-                            <option value="1">Today</option>
-                            <option value="2">Yesterday</option>
+                            <!--<option value="1">Today</option>
+                            <option value="2">Yesterday</option>-->
                             <option value="3">This week</option>
                             <option value="4">Specific Date</option>
                             <option value="5">Date Range</option>
@@ -241,7 +241,7 @@ function currentWeekRange($date): array
                 </div>
                 <div class="col-1 from_date" style="display: none">
                     <div class="form-group">
-                        <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-past" value="<?=($FROM_DATE == '' || $FROM_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($FROM_DATE))?>">
+                        <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-normal" value="<?=($FROM_DATE == '' || $FROM_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($FROM_DATE))?>">
                     </div>
                 </div>
                 <div class="col-1 end_date" style="display: none">
@@ -380,6 +380,14 @@ function currentWeekRange($date): array
             $('.specific_date').hide();
         }
     }
+
+    $('.datepicker-past').datepicker({
+        onSelect: function () {
+            $('#IS_SELECTED').val(1);
+            $("#search_form").submit();
+        },
+        format: 'mm/dd/yyyy',
+    });
 
     $(document).ready(function(){
         $("#SPECIFIC_DATE").datepicker({
