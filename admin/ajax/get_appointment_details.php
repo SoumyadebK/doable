@@ -362,7 +362,7 @@ z-index: 500;
                         <div class="col-4">
                             <div class="form-group">
                                 <label class="form-label">Name: </label>
-                                <p><a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank" style="color: blue;"><?=$selected_customer?></a></p>
+                                <p><a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank" style="color: blue; font-weight: bold"><?=$selected_customer?></a></p>
                             </div>
                         </div>
                         <div class="col-4">
