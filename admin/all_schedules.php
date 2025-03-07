@@ -213,9 +213,9 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     }
 
     $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
-    if (isset($_POST['PK_USER_MASTER'])) {
-        $CUSTOMERS = $_POST['PK_USER_MASTER'];
-        $SELECTED_PARTNERS = $_POST['PARTNER'];
+    if (isset($_POST['PK_USER_MASTER']) || isset($_POST['PARTNER'])) {
+        $CUSTOMERS = $_POST['PK_USER_MASTER'] ?? [];
+        $SELECTED_PARTNERS = $_POST['PARTNER'] ?? [];
         for ($j = 0; $j < count($CUSTOMERS); $j++) {
             $GROUP_CLASS_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
             $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $CUSTOMERS[$j];
