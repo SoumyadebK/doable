@@ -57,6 +57,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $RECEIPT_NUMBER_ARRAY = [];
 
     $PAYMENT_INFO = '';
+    $PAYMENT_INFO_JSON = '';
     $PAYMENT_STATUS = 'Success';
     $IS_ORIGINAL_RECEIPT = 1;
 
@@ -67,7 +68,6 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         $RECEIPT_NUMBER_ORIGINAL = 1;
     }
 
-    $payment_info = '';
     if ($_POST['PK_PAYMENT_TYPE'] == 1 || $_POST['PK_PAYMENT_TYPE'] == 14) {
         if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
             $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
@@ -229,19 +229,21 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 }
             });
 
-            if ($charge->paid == 1) {
+            if (isset($charge) && $charge->paid == 1) {
                 $PAYMENT_STATUS = 'Success';
                 $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $charge->id, 'LAST4' => $LAST4];
-                $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
             } else {
                 $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $charge->failure_message;
 
-                $error['error'] = $PAYMENT_INFO;
+                $error['error'] = $PAYMENT_INFO_JSON = $PAYMENT_INFO;
                 $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
                 db_perform('error_info', $error, 'insert');
-            }
 
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA); die();
+            }
         }
 
         elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
@@ -473,8 +475,11 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
         $RECEIPT_NUMBER = implode(',', $RECEIPT_NUMBER_ARRAY);
+
+        $PAYMENT_INFO_ARRAY = ['RECEIPT_NUMBER' => $RECEIPT_NUMBER];
+        $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
     } else {
-        $PAYMENT_INFO = 'Payment Done.';
+        $PAYMENT_INFO_JSON = 'Payment Done.';
     }
 
     $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = ".$_POST['PK_ENROLLMENT_MASTER']);
@@ -532,12 +537,12 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $TYPE = 'Payment';
             if ($_POST['PK_PAYMENT_TYPE'] == 2) {
                 $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE']))];
-                $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
             }
             $PAYMENT_DATA['TYPE'] = $TYPE;
             $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
             $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-            $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+            $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO_JSON;
             $PAYMENT_DATA['PAYMENT_STATUS'] = $PAYMENT_STATUS;
             $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
             $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = $IS_ORIGINAL_RECEIPT;
@@ -558,7 +563,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_PAYMENT, 'insert');
             $PK_ENROLLMENT_LEDGER2 = $db_account->insert_ID();*/
 
-            $PAYMENT_INFO = '';
+            $PAYMENT_INFO_JSON = '';
             $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
             $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_billing_data->fields['PK_ENROLLMENT_BILLING'];
             $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE_PARTIAL'];
@@ -567,12 +572,12 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $TYPE = 'Payment';
             if ($_POST['PK_PAYMENT_TYPE_PARTIAL'] == 2) {
                 $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER_PARTIAL'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE_PARTIAL']))];
-                $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
             }
             $PAYMENT_DATA['TYPE'] = $TYPE;
             $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
             $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-            $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+            $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO_JSON;
             $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
             $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER_ORIGINAL;
             $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
@@ -604,7 +609,11 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
     markEnrollmentComplete($_POST['PK_ENROLLMENT_MASTER']);
 
-    header('location:'.$header);
+    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+    echo json_encode($RETURN_DATA);
+
+    //header('location:'.$header);
 }
 function savePercentageData($PK_ENROLLMENT_MASTER, $AMOUNT){
     global $db_account;

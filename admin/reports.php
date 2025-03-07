@@ -77,7 +77,7 @@ if (!empty($_GET['NAME'])) {
                                 <div>
                                     <ul class="menu-list">
                                         <li><a href="business_reports.php">Business Reports</a></li>
-                                        <li><a href="electronic_weekly_reports.php">Electronic Weekly Reports</a></li>
+                                        <!--<li><a href="electronic_weekly_reports.php">Electronic Weekly Reports</a></li>-->
                                         <li><a href="service_provider_reports.php">Service Provider Reports</a></li>
                                         <li><a href="#">Enrollment Reports</a></li>
                                         <li><a href="customer_summary_report.php">Customer Reports</a></li>
@@ -94,7 +94,7 @@ if (!empty($_GET['NAME'])) {
                 </div>
             </div>
 
-            <!--<div class="row">
+            <div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="row" style="padding: 15px 35px 35px 35px;">
@@ -139,7 +139,7 @@ if (!empty($_GET['NAME'])) {
                         </div>
                     </div>
 
-                    <div class="card">
+                    <!--<div class="card">
                         <div class="row" style="padding: 15px 35px 35px 35px;">
                             <div class="col-md-3 col-sm-3 mt-3">
                                 <h4 class="card-title">Business Reports</h4>
@@ -219,10 +219,10 @@ if (!empty($_GET['NAME'])) {
                                 </div>
                             </form>
                         </div>
-                    </div>
+                    </div>-->
 
                 </div>
-            </div>-->
+            </div>
         </div>
     </div>
 </div>
