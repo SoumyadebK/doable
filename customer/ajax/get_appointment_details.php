@@ -676,9 +676,9 @@ z-index: 500;
                     <div class="col-2">
                         <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreEmail();"><i class="ti-plus"></i> New</a>
                     </div>
-                    <div class="col-2">
-                        <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?=($CREATE_LOGIN == 1)?'checked':''?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
-                    </div>
+                    <!--<div class="col-2">
+                        <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?php /*=($CREATE_LOGIN == 1)?'checked':''*/?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
+                    </div>-->
                 </div>
                 <div class="row">
                     <div class="col-5" id="add_more_phone">
@@ -1062,7 +1062,7 @@ z-index: 500;
                         <div class="form-group">
                             <label class="col-md-12">User Name</label>
                             <div class="col-md-12">
-                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>">
+                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>" readonly>
                                 <a class="btn-link" onclick="$('#change_password_div').slideToggle();">Change Password</a>
                             </div>
                         </div>

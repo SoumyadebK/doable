@@ -497,9 +497,9 @@ z-index: 500;
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Scheduling Code : <span id="change_scheduling_code" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>
-                                    <span id="cancel_change_scheduling_code" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeSchedulingCode()">Cancel</a></span></label>
-                                <div id="scheduling_code_select" style="display: none;">
+                                <label class="form-label">Scheduling Code : <!--<span id="change_scheduling_code" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>
+                                    <span id="cancel_change_scheduling_code" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeSchedulingCode()">Cancel</a></span></label>-->
+                                <div id="scheduling_code_select">
                                     <select class="form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE">
                                         <option value="">Select Scheduling Code</option>
                                         <?php
@@ -510,14 +510,14 @@ z-index: 500;
                                         <?php $row->MoveNext(); } ?>
                                     </select>
                                 </div>
-                                <p id="scheduling_code_name"><?=$selected_scheduling_code?></p>
+                                <!--<p id="scheduling_code_name"><?php /*=$selected_scheduling_code*/?></p>-->
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label"><?=$service_provider_title?> : <span id="change_service_provider" style="margin-left: 30px;"><a href="javascript:;" onclick="changeServiceProvider()">Change</a></span>
-                                    <span id="cancel_change_service_provider" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeServiceProvider()">Cancel</a></span></label>
-                                <div id="service_provider_select" style="display: none;">
+                                <label class="form-label"><?=$service_provider_title?> : <!--<span id="change_service_provider" style="margin-left: 30px;"><a href="javascript:;" onclick="changeServiceProvider()">Change</a></span>
+                                    <span id="cancel_change_service_provider" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeServiceProvider()">Cancel</a></span></label>-->
+                                <div id="service_provider_select">
                                     <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
                                         <option value="">Select <?=$service_provider_title?></option>
                                         <?php
@@ -528,7 +528,7 @@ z-index: 500;
                                         <?php $row->MoveNext(); } ?>
                                     </select>
                                 </div>
-                                <p id="service_provider_name"><?=$selected_service_provider?></p>
+                                <!--<p id="service_provider_name"><?php /*=$selected_service_provider*/?></p>-->
                             </div>
                         </div>
                     </div>
@@ -682,7 +682,7 @@ z-index: 500;
                 <div class="form-group" style="margin-top: 25px;">
                     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
                     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
-                    <a href="enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
+                    <a href="enrollment.php?master_id_customer=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
                     <!--<a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
                     <a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>-->
                     <a onclick="deleteThisAppointment(<?=$PK_APPOINTMENT_MASTER?>)" class="btn btn-danger waves-effect waves-light"><i class="ti-trash"></i> Delete</a>
