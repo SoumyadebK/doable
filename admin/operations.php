@@ -14,7 +14,11 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
 $title = "Appointments";
 
-$appointment_time = " AND DOA_APPOINTMENT_MASTER.DATE <= '".date('Y-m-d')."'";
+if (empty($_GET)) {
+    $appointment_time = " AND DOA_APPOINTMENT_MASTER.DATE <= '" . date('Y-m-d') . "'";
+} else {
+    $appointment_time = "";
+}
 
 if (isset($_GET['SERVICE_PROVIDER_ID']) && $_GET['SERVICE_PROVIDER_ID'] != '') {
     $SERVICE_PROVIDER_ID = $_GET['SERVICE_PROVIDER_ID'];
@@ -70,6 +74,16 @@ if (!empty($_GET['DATE_SELECTION'])) {
         } else {
             $search_text = '';
             $search = " AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
+        }
+    }
+    else if ($_GET['DATE_SELECTION'] == 6) {
+        $START_DATE = date('Y-m-d', strtotime('-1 year'));
+        $END_DATE = date('Y-m-d');
+        if ($SERVICE_PROVIDER_ID > 0) {
+            $search_text = $SERVICE_PROVIDER_ID;
+            $search = " DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = " . $SERVICE_PROVIDER_ID . " AND DOA_APPOINTMENT_MASTER.DATE >= '$START_DATE' AND DOA_APPOINTMENT_MASTER.DATE <= '$END_DATE'";
+        } else {
+            $search = " AND DOA_APPOINTMENT_MASTER.DATE >= '$START_DATE' AND DOA_APPOINTMENT_MASTER.DATE <= '$END_DATE'";
         }
     }
 } elseif ($SERVICE_PROVIDER_ID > 0) {
@@ -218,8 +232,10 @@ function currentWeekRange($date): array
                         <a type="button" id="today" style="color: <?php echo $_GET['date']=='today' ? 'black' : 'white'; ?>" class="btn btn-info" href="operations.php?date=today"> Today (<?=($today_count->RecordCount() > 0) ? $today_count->fields['TODAY_COUNT'] : 0?>)</a>
                     <?php $yesterday_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS YESTERDAY_COUNT FROM DOA_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND DOA_APPOINTMENT_MASTER.DATE = '".date('Y-m-d', strtotime('-1 day'))."'"); ?>
                         <a type="button" id="yesterday" style="color: <?php echo $_GET['date']=='yesterday' ? 'black' : 'white'; ?>" class="btn btn-info d-none d-lg-block m-l-10" href="operations.php?date=yesterday"> Yesterday (<?=($yesterday_count->RecordCount() > 0) ? $yesterday_count->fields['YESTERDAY_COUNT'] : 0?>)</a>
-                    <?php $earlier_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS EARLIER_COUNT FROM DOA_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS != 2 AND DOA_APPOINTMENT_MASTER.DATE < '".date('Y-m-d')."' AND DOA_APPOINTMENT_MASTER.IS_PAID = 0"); ?>
-                        <a type="button" id="earlier" style="color: <?php echo $_GET['date']=='earlier' ? 'black' : 'white'; ?>" class="btn btn-info d-none d-lg-block m-l-10" href="operations.php?date=earlier"> Earlier (<?=($earlier_count->RecordCount() > 0) ? $earlier_count->fields['EARLIER_COUNT'] : 0?>)</a>
+                    <?php
+                    [$START_DATE, $END_DATE] = currentWeekRange(date('Y-m-d'));
+                    $earlier_count = $db_account->Execute("SELECT COUNT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER) AS EARLIER_COUNT FROM DOA_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN (1, 3, 4, 5, 7, 8) AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('GROUP', 'NORMAL', 'AD-HOC') AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.DATE >= '$START_DATE' AND DOA_APPOINTMENT_MASTER.DATE <= '$END_DATE'"); ?>
+                        <a type="button" id="earlier" style="color: <?php echo $_GET['date']=='earlier' ? 'black' : 'white'; ?>" class="btn btn-info d-none d-lg-block m-l-10" href="operations.php?DATE_SELECTION=3"> Week (<?=($earlier_count->RecordCount() > 0) ? $earlier_count->fields['EARLIER_COUNT'] : 0?>)</a>
                     </div>
                 </div>
                 <div class="col-2">
@@ -231,6 +247,7 @@ function currentWeekRange($date): array
                             <option value="3">This week</option>
                             <option value="4">Specific Date</option>
                             <option value="5">Date Range</option>
+                            <option value="6">Earlier</option>
                         </select>
                     </div>
                 </div>
