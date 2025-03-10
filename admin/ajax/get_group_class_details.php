@@ -186,14 +186,14 @@ while (!$status_data->EOF) {
                                 $selected_user_id = $row->fields['PK_USER'];
                                 $partner_name = '';
                                 if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner' && in_array($row->fields['PK_USER_MASTER'], $selected_partner)) {
-                                    $partner_name .= '<span class="m-l-30"><i class="fa fa-check-square" style="font-size:15px; color: #1d1;"></i>&nbsp;&nbsp;'.$partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'].'</span>';
+                                    $partner_name .= '<span"><i class="fa fa-check-square" style="font-size:15px; color: #1d1;"></i>&nbsp;&nbsp;'.$partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'].'</span>';
                                 }
                                 if (!in_array($row->fields['PK_USER_MASTER'], $selected_customer) && in_array($row->fields['PK_USER_MASTER'], $selected_partner)) {
-                                    $customer_check = '#80808082';
+                                    $display = 'none';
                                 } else {
-                                    $customer_check = '#1d1';
+                                    $display = '';
                                 }
-                                $customer_name .= '<p><i class="fa fa-check-square" style="font-size:15px; color: '.$customer_check.';"></i>&nbsp;&nbsp;<a href="customer.php?id='.$selected_user_id.'&master_id='.$selected_customer_id.'&tab=profile" target="_blank" style="color: blue;">'.$row->fields['NAME'].'</a>'.$partner_name.'</p>';
+                                $customer_name .= '<p><span class="m-r-30" style="display: '.$display.'"><i class="fa fa-check-square" style="font-size:15px; color: #1d1;"></i>&nbsp;&nbsp;<a href="customer.php?id='.$selected_user_id.'&master_id='.$selected_customer_id.'&tab=profile" target="_blank" style="color: blue;">'.$row->fields['NAME'].'</a></span>'.$partner_name.'</p>';
                             } ?>
                             <li class="customer-li">
                                 <label style="width: 50%;"> <input type="checkbox" name="PK_USER_MASTER[]" value="<?=$row->fields['PK_USER_MASTER']?>" class="customer-checkbox" <?=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"checked":""?>> <?=$row->fields['NAME']?> </label>
