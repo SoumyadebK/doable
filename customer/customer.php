@@ -489,9 +489,9 @@ if ($PK_USER_MASTER > 0) {
                                                                 <div class="col-1">
                                                                     <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreEmail();"><i class="ti-plus"></i> New</a>
                                                                 </div>
-                                                                <div class="col-2">
-                                                                    <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?=($CREATE_LOGIN == 1)?'checked':''?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
-                                                                </div>
+                                                                <!--<div class="col-2">
+                                                                    <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?php /*=($CREATE_LOGIN == 1)?'checked':''*/?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
+                                                                </div>-->
                                                                 <div class="col-md-2">
                                                                     <div class="form-group">
                                                                         <label class="form-label">Created On</label>
