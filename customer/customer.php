@@ -383,7 +383,7 @@ if ($PK_USER_MASTER > 0) {
         <div class="container-fluid body_content" style="position: sticky; z-index: 1;">
             <div class="row page-titles" style="width: 90%;">
                 <div class="col-md-9 align-self-center">
-                    <ul class="nav nav-tabs navbar-expand-lg navbar-light bg-light px-2 py-1 d-non" role="tablist" style="width: 121%; margin-left: 13%">
+                    <ul class="nav nav-pills navbar-expand-lg navbar-light bg-light px-2 py-1 d-non" role="tablist" style="width: 121%; margin-left: 13%">
                         <?php if(in_array('Customers Profile View Only', $PERMISSION_ARRAY)){ ?>
                             <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" style="font-weight: bold"><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                             <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab" style="font-weight: bold"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
