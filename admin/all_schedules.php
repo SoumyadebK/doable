@@ -219,6 +219,8 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         for ($j = 0; $j < count($CUSTOMERS); $j++) {
             $GROUP_CLASS_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
             $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $CUSTOMERS[$j];
+            $GROUP_CLASS_CUSTOMER_DATA['CHANGED_BY_USER_ID'] = $_SESSION['PK_USER'];
+            $GROUP_CLASS_CUSTOMER_DATA['TIME_STAMP'] = date("Y-m-d H:i");
             if (in_array($CUSTOMERS[$j], $SELECTED_PARTNERS)) {
                 $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'] = 1;
             } else {
@@ -237,6 +239,8 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
                 $GROUP_CLASS_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
                 $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $SELECTED_PARTNERS[$j];
                 $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'] = 2;
+                $GROUP_CLASS_CUSTOMER_DATA['CHANGED_BY_USER_ID'] = $_SESSION['PK_USER'];
+                $GROUP_CLASS_CUSTOMER_DATA['TIME_STAMP'] = date("Y-m-d H:i");
                 db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
 
                 if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {

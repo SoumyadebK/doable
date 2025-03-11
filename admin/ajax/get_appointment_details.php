@@ -336,7 +336,7 @@ z-index: 500;
         <?php } ?>
     </ul>
 <?php } else { ?>
-    <ul class="nav nav-tabs" role="tablist">
+    <ul class="nav nav-pills" role="tablist">
         <li> <a class="nav-link active" data-bs-toggle="tab" href="#edit_appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Edit Appointment</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
         <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
@@ -406,10 +406,10 @@ z-index: 500;
                             <div class="col-4" id="enrollment_div">
                                 <div class="form-group">
                                     <label class="form-label">Enrollment ID :
-                                        <span id="change_enrollment" style="margin-left: 30px;"><a href="javascript:" onclick="changeEnrollment()">Change</a></span>
-                                        <span id="cancel_change_enrollment" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeEnrollment()">Cancel</a></span>
+                                        <!--<span id="change_enrollment" style="margin-left: 30px;"><a href="javascript:" onclick="changeEnrollment()">Change</a></span>
+                                        <span id="cancel_change_enrollment" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeEnrollment()">Cancel</a></span>-->
                                     </label>
-                                    <select  id="enrollment_select" class="form-control" required name="PK_ENROLLMENT_MASTER" style="display: none;">
+                                    <select  id="enrollment_select" class="form-control" required name="PK_ENROLLMENT_MASTER">
                                         <option value="">Select Enrollment ID</option>
                                         <?php
                                         $selected_enrollment = '';
@@ -446,7 +446,7 @@ z-index: 500;
                                             $row->MoveNext();
                                         } ?>
                                     </select>
-                                    <p class="enrollment_info"><?=$selected_enrollment?></p>
+                                    <!--<p class="enrollment_info"><?php /*=$selected_enrollment*/?></p>-->
                                 </div>
                             </div>
                         <?php } ?>
