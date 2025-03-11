@@ -36,7 +36,21 @@ while (!$status_data->EOF) {
     $status_data->MoveNext();
 }
 ?>
+<style>
+    .truncate {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
 
+    .truncate.expanded {
+        -webkit-line-clamp: unset;
+        overflow: visible;
+    }
+</style>
 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
     <input type="hidden" name="FUNCTION_NAME" value="saveGroupClassData">
     <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=$PK_APPOINTMENT_MASTER?>">
@@ -271,7 +285,7 @@ while (!$status_data->EOF) {
                     <div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Comment</label>
-                            <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
+                            <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea>
                         </div>
                     </div>
                     <div class="col-6">
@@ -280,6 +294,12 @@ while (!$status_data->EOF) {
                             <textarea class="form-control" name="INTERNAL_COMMENT" rows="4"><?=$INTERNAL_COMMENT?></textarea>
                         </div>
                     </div>
+                    <div class="col-12" style="margin-bottom: 10px">
+                        <div class="truncate" id="text">
+                            <span><?=$CHANGED_BY?></span>
+                        </div>
+                    </div>
+
                     <div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Upload Image</label>
@@ -391,4 +411,9 @@ while (!$status_data->EOF) {
 
         return D(mins%(24*60)/60 | 0) + ':' + D(mins%60);
     }
+</script>
+<script>
+    document.getElementById('text').addEventListener('click', function() {
+        this.classList.toggle('expanded');
+    });
 </script>
