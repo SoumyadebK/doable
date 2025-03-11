@@ -96,6 +96,7 @@ function adjustEnrollmentAppointment($PK_APPOINTMENT_MASTER): void
                     markEnrollmentComplete($last_enrollment_appointment->fields['PK_ENROLLMENT_MASTER']);
                     $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $enrollment_service_data->fields['PK_ENROLLMENT_MASTER'];
                     $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $enrollment_service_data->fields['PK_ENROLLMENT_SERVICE'];
+                    $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
                     db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update', " PK_APPOINTMENT_MASTER = " . $last_enrollment_appointment->fields['PK_APPOINTMENT_MASTER']);
                     markEnrollmentComplete($enrollment_service_data->fields['PK_ENROLLMENT_MASTER']);
                 }
@@ -180,9 +181,7 @@ function markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER): void
             }
             $appointments->MoveNext();
         }
-
         markEnrollmentComplete($PK_ENROLLMENT_MASTER);
-
         $enrollmentServiceData->MoveNext();
     }
 
