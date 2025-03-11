@@ -30,6 +30,12 @@
     </style>
 
     <style>
+        input, textarea, select {
+            background-color: #f5f5f5 !important;
+        }
+    </style>
+
+    <style>
         body {font-family: Arial, Helvetica, sans-serif;}
     </style>
 

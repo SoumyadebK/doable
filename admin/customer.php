@@ -392,41 +392,41 @@ if ($PK_USER_MASTER > 0) {
                 <?php } ?>
                 </div>
                 <div class="col-md-8 align-self-center">
-                    <ul class="nav nav-tabs" role="tablist" style="width: 80%">
+                    <ul class="nav nav-tabs navbar-expand-lg navbar-light bg-light px-2 py-1 d-non" role="tablist" style="width: 127%">
                         <?php if(in_array('Customers Profile Edit', $PERMISSION_ARRAY)){ ?>
-                        <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
-                        <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-                        <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
+                        <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+                        <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
+                        <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
                         <?php } ?>
                         <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>-->
 
                         <?php if(!empty($_GET['id'])) { ?>
                             <?php if(in_array('Customers Profile Edit', $PERMISSION_ARRAY)){ ?>
-                            <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                            <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
-                            <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
-                            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'posted')" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
-                            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#demo_appointment" onclick="showDemoAppointment(1)" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">For Record Only</span></a> </li>
+                            <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
+                            <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
+                            <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
+                            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'posted')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
+                            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#demo_appointment" onclick="showDemoAppointment(1)" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">For Record Only</span></a> </li>
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
-                            <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
-                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#credit_card" role="tab"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
-                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab"><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
+                            <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#credit_card" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
+                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
                             <?php } ?>
                             <?php if(in_array('Customers Delete', $PERMISSION_ARRAY)){ ?>
-                            <li> <a class="nav-link" id="delete_tab_link" data-bs-toggle="tab" href="#delete_customer" role="tab"><span class="hidden-sm-up"><i class="ti-trash"></i></span> <span class="hidden-xs-down">Delete</span></a> </li>
+                            <li> <a class="nav-link" id="delete_tab_link" data-bs-toggle="tab" href="#delete_customer" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-trash"></i></span> <span class="hidden-xs-down">Delete</span></a> </li>
                             <?php } ?>
                         <?php } ?>
                     </ul>
                 </div>
-                <div class="col-md-1 align-self-center text-end">
+                <!--<div class="col-md-1 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center" style="width: 240px;">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item active"><a href="all_customers.php">All Customers</a></li>
-                            <li class="breadcrumb-item active"><a href="customer.php"><?=$title?></a></li>
+                            <li class="breadcrumb-item active"><a href="customer.php"><?php /*=$title*/?></a></li>
                         </ol>
                     </div>
-                </div>
+                </div>-->
         </div>
 
         <div class="row">
@@ -476,7 +476,7 @@ if ($PK_USER_MASTER > 0) {
                                             <?php /*}*/?>
                                         </div>
                                     </div>-->
-                                    <div class="card-body" style="margin-top: 50px;">
+                                    <div class="card-body" style="margin-top: 25px;">
                                         <div class="tab-content tabcontent-border">
                                             <div class="tab-pane active" id="profile" role="tabpanel">
                                                 <form class="form-material form-horizontal" id="profile_form">
@@ -606,7 +606,7 @@ if ($PK_USER_MASTER > 0) {
                                                             <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Call Preference</label>
-                                                                    <div class="col-md-12">
+                                                                    <div class="col-md-12 custom-select">
                                                                         <select class="form-control" name="CALL_PREFERENCE">
                                                                             <option >Select</option>
                                                                             <option value="email" <?php if($CALL_PREFERENCE == "email") echo 'selected = "selected"';?>>Email</option>
@@ -638,12 +638,14 @@ if ($PK_USER_MASTER > 0) {
                                                             <div class="col-md-6">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Gender</label>
-                                                                    <select class="form-control" id="GENDER" name="GENDER">
-                                                                        <option value="">Select Gender</option>
-                                                                        <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
-                                                                        <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
-                                                                        <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
-                                                                    </select>
+                                                                    <div class="custom-select">
+                                                                        <select class="form-control" id="GENDER" name="GENDER">
+                                                                            <option value="">Select Gender</option>
+                                                                            <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
+                                                                            <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
+                                                                            <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
+                                                                        </select>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-6">
@@ -680,7 +682,7 @@ if ($PK_USER_MASTER > 0) {
                                                                 <div class="form-group">
                                                                     <label class="col-md-12">Country<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
-                                                                        <div class="col-sm-12">
+                                                                        <div class="col-sm-12 custom-select">
                                                                             <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
                                                                                 <option>Select Country</option>
                                                                                 <?php
@@ -698,7 +700,7 @@ if ($PK_USER_MASTER > 0) {
                                                                 <div class="form-group">
                                                                     <label class="col-md-12">State<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
-                                                                        <div class="col-sm-12">
+                                                                        <div class="col-sm-12 custom-select">
                                                                             <div id="State_div"></div>
                                                                         </div>
                                                                     </div>
@@ -728,7 +730,7 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="row">
                                                             <div class="col-6">
                                                                 <label class="col-md-12">Primary Location<span class="text-danger">*</span></label>
-                                                                <div class="form-group" style="margin-bottom: 15px;">
+                                                                <div class="custom-select" style="margin-bottom: 15px;">
                                                                     <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" onchange="selectThisPrimaryLocation(this)" required>
                                                                         <option value="">Select Primary Location</option>
                                                                         <?php
@@ -896,12 +898,14 @@ if ($PK_USER_MASTER > 0) {
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
                                                                         <label class="form-label">Partner's Gender</label>
-                                                                        <select class="form-control" id="PARTNER_GENDER" name="PARTNER_GENDER">
-                                                                            <option value="">Select Gender</option>
-                                                                            <option value="Male" <?=(($PARTNER_GENDER=='Male')?'selected':'')?>>Male</option>
-                                                                            <option value="Female" <?=(($PARTNER_GENDER=='Female')?'selected':'')?>>Female</option>
-                                                                            <option value="Other" <?=(($PARTNER_GENDER=='Other')?'selected':'')?>>Other</option>
-                                                                        </select>
+                                                                        <div class="custom-select">
+                                                                            <select class="form-control" id="PARTNER_GENDER" name="PARTNER_GENDER">
+                                                                                <option value="">Select Gender</option>
+                                                                                <option value="Male" <?=(($PARTNER_GENDER=='Male')?'selected':'')?>>Male</option>
+                                                                                <option value="Female" <?=(($PARTNER_GENDER=='Female')?'selected':'')?>>Female</option>
+                                                                                <option value="Other" <?=(($PARTNER_GENDER=='Other')?'selected':'')?>>Other</option>
+                                                                            </select>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-md-6">
@@ -1047,7 +1051,7 @@ if ($PK_USER_MASTER > 0) {
 
                                             <?php $family_member_count = 0;?>
                                             <div class="tab-pane" id="family" role="tabpanel">
-                                                <form id="family_form">
+                                                <form id="family_form" class="form-material form-horizontal">
                                                     <input type="hidden" name="FUNCTION_NAME" value="saveFamilyData">
                                                     <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
                                                     <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
@@ -1081,7 +1085,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     <div class="col-3">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Relationship</label>
-                                                                            <div class="col-md-12">
+                                                                            <div class="col-md-12 custom-select">
                                                                                 <select class="form-control" name="PK_RELATIONSHIP[]">
                                                                                     <option>Select Relationship</option>
                                                                                     <?php
@@ -1125,12 +1129,14 @@ if ($PK_USER_MASTER > 0) {
                                                                         <div class="col-md-6">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Gender</label>
-                                                                                <select class="form-control" name="FAMILY_GENDER[]">
-                                                                                    <option>Select Gender</option>
-                                                                                    <option value="Male" <?php if($family_member_details->fields['GENDER'] == "Male") echo 'selected = "selected"';?>>Male</option>
-                                                                                    <option value="Female" <?php if($family_member_details->fields['GENDER'] == "Female") echo 'selected = "selected"';?>>Female</option>
-                                                                                    <option value="Other" <?php if($family_member_details->fields['GENDER'] == "Other") echo 'selected = "selected"';?>>Other</option>
-                                                                                </select>
+                                                                                <div class="custom-select">
+                                                                                    <select class="form-control" name="FAMILY_GENDER[]">
+                                                                                        <option>Select Gender</option>
+                                                                                        <option value="Male" <?php if($family_member_details->fields['GENDER'] == "Male") echo 'selected = "selected"';?>>Male</option>
+                                                                                        <option value="Female" <?php if($family_member_details->fields['GENDER'] == "Female") echo 'selected = "selected"';?>>Female</option>
+                                                                                        <option value="Other" <?php if($family_member_details->fields['GENDER'] == "Other") echo 'selected = "selected"';?>>Other</option>
+                                                                                    </select>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-md-6">
@@ -2573,7 +2579,7 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="col-3">
                                                             <div class="form-group">
                                                                 <label class="form-label">Relationship</label>
-                                                                <div class="col-md-12">
+                                                                <div class="col-md-12 customer-select">
                                                                     <select class="form-control" name="PK_RELATIONSHIP[]">
                                                                         <option>Select Relationship</option>
                                                                         <?php
@@ -2617,12 +2623,15 @@ if ($PK_USER_MASTER > 0) {
                                                             <div class="col-md-6">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Gender</label>
+                                                                    <div class="customer-select">
                                                                     <select class="form-control" name="FAMILY_GENDER[]">
                                                                         <option>Select Gender</option>
                                                                         <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
                                                                         <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
                                                                         <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
                                                                     </select>
+                                                                    </div>
+
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-6">
