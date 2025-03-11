@@ -20,7 +20,7 @@ else
 if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
     $header = 'customer.php?id='.$_GET['id_customer'].'&master_id='.$_GET['master_id_customer'].'&tab=enrollment';
 } else {
-    $header = 'all_enrollments.php';
+    $header = '';
 }
 
 $PK_ENROLLMENT_MASTER = 0;
@@ -1841,7 +1841,15 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                 }
                                 $('#enrollment_payment_modal').modal('show');
                             } else {
-                                window.location.href = '<?=$header?>';
+                                let header = '<?=$header?>';
+                                if (header) {
+                                    window.location.href = header;
+                                } else {
+                                    let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
+                                    let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+                                    let header = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER+'&tab=enrollment';
+                                    window.location.href = header;
+                                }
                             }
                         }
                     });
