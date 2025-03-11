@@ -2216,6 +2216,10 @@ function moveToWallet($RESPONSE_DATA): void
             $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
         }
     }
+    if ($PK_PAYMENT_TYPE == 2) {
+        $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['REFUND_CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['REFUND_CHECK_DATE']))];
+        $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+    }
 
     $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
     $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollmentBillingData->fields['PK_ENROLLMENT_BILLING'];

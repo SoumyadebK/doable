@@ -99,7 +99,7 @@ while (!$enrollment_data->EOF) {
             </div>
             <?php
                 $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = ".$enrollment_data->fields['PK_ENROLLMENT_MASTER']);
-                $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER = ".$enrollment_data->fields['PK_ENROLLMENT_MASTER']);
+                $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE TYPE = 'Payment' AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = ".$enrollment_data->fields['PK_ENROLLMENT_MASTER']);
             ?>
             <div class="col-8" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$enrollment_data->fields['PK_ENROLLMENT_MASTER']?>, '<?=$enrollment_data->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'appointment_details')" style="cursor: pointer;">
                 <table id="myTable" class="table <?=(($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) ? 'table-success' : 'table-striped'?> border">
@@ -284,6 +284,8 @@ while (!$enrollment_data->EOF) {
                     alert("Refund amount can't be grater then balance");
                     $('#REFUND_AMOUNT').val(BALANCE);
                 } else {
+                    let REFUND_CHECK_NUMBER = $('#REFUND_CHECK_NUMBER').val();
+                    let REFUND_CHECK_DATE = $('#REFUND_CHECK_DATE').val();
                     $.ajax({
                         url: "ajax/AjaxFunctions.php",
                         type: 'POST',
@@ -297,7 +299,9 @@ while (!$enrollment_data->EOF) {
                             REFUND_AMOUNT: REFUND_AMOUNT,
                             ENROLLMENT_TYPE: ENROLLMENT_TYPE,
                             TRANSACTION_TYPE: TRANSACTION_TYPE,
-                            PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
+                            PK_PAYMENT_TYPE: PK_PAYMENT_TYPE,
+                            REFUND_CHECK_NUMBER: REFUND_CHECK_NUMBER,
+                            REFUND_CHECK_DATE: REFUND_CHECK_DATE
                         },
                         success: function (data) {
                             if (data == 1) {
