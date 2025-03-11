@@ -1847,8 +1847,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                 } else {
                                     let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
                                     let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
-                                    let header = 'customer.php?id='+PK_USER+'&master_id='+PK_USER_MASTER+'&tab=enrollment';
-                                    window.location.href = header;
+                                    window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
                                 }
                             }
                         }
