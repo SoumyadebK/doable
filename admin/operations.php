@@ -243,8 +243,8 @@ function currentWeekRange($date): array
                         <select class="form-control" name="DATE_SELECTION" id="DATE_SELECTION" onchange="selectDate(this)">
                             <option value="">Select Date</option>
                             <!--<option value="1">Today</option>
-                            <option value="2">Yesterday</option>-->
-                            <option value="3">This week</option>
+                            <option value="2">Yesterday</option>
+                            <option value="3">This week</option>-->
                             <option value="4">Specific Date</option>
                             <option value="5">Date Range</option>
                             <option value="6">Earlier</option>
