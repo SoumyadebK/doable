@@ -44,10 +44,8 @@ $search_text = '';
 $search = $START_DATE.$END_DATE. ' ';
 if (!empty($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = $START_DATE.$END_DATE." AND (DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%".$search_text."%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%".$search_text."%' OR DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%'OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%') ";
+    $search = $START_DATE.$END_DATE." AND (DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LIKE '%".$search_text."%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%".$search_text."%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%".$search_text."%' OR DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%'OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%') ";
 }
-
-
 
 /*if (isset($_GET['search_text']) || isset($_GET['FROM_DATE']) || isset($_GET['END_DATE'])) {
     $FROM_DATE = date('Y-m-d', strtotime($_GET['FROM_DATE']));
@@ -353,8 +351,9 @@ if (isset($_POST['SUBMIT'])){
                                     <tr>
                                         <th data-type="number" class="sortable" style="cursor: pointer">No</th>
                                         <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
-                                        <th data-type="string" class="sortable" style="cursor: pointer">Enrollment Name</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer">Unique Id</th>
                                         <th data-type="string" class="sortable" style="cursor: pointer">Enrollment Id</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer">Enrollment Name</th>
                                         <th data-type="number" class="sortable" style="cursor: pointer">Total Amount</th>
                                         <th data-type="number" class="sortable" style="cursor: pointer">Date</th>
                                         <th data-type="string" class="sortable" style="cursor: pointer">Email ID</th>
@@ -380,7 +379,7 @@ if (isset($_POST['SUBMIT'])){
                                         if(empty($name)){
                                             $enrollment_name = ' ';
                                         }else {
-                                            $enrollment_name = "$name"." || ";
+                                            $enrollment_name = "$name"." - ";
                                         }
                                         $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.SESSION_CREATED, DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                                         $serviceCode = [];
@@ -391,8 +390,9 @@ if (isset($_POST['SUBMIT'])){
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$i;?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['FIRST_NAME']." ".$row->fields['LAST_NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$enrollment_name.implode(', ', $serviceCode)?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['PK_ENROLLMENT_MASTER']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$id?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$enrollment_name.implode(', ', $serviceCode)?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['TOTAL_AMOUNT']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE']))?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['EMAIL_ID']?></td>

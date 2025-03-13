@@ -405,7 +405,7 @@ z-index: 500;
                         <?php if ($SERVICE_NAME != 'For records only' && $APPOINTMENT_TYPE == 'NORMAL') { ?>
                             <div class="col-4" id="enrollment_div">
                                 <div class="form-group">
-                                    <label class="form-label">Enrollment ID :
+                                    <label class="form-label">Enrollment :
                                         <!--<span id="change_enrollment" style="margin-left: 30px;"><a href="javascript:" onclick="changeEnrollment()">Change</a></span>
                                         <span id="cancel_change_enrollment" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeEnrollment()">Cancel</a></span>-->
                                     </label>
@@ -441,7 +441,7 @@ z-index: 500;
                                             $paid_session = ($PRICE_PER_SESSION > 0) ? number_format(($TOTAL_AMOUNT_PAID/$PRICE_PER_SESSION), 2) : $NUMBER_OF_SESSION;
 
                                             if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
-                                            <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-location_id="<?=$row->fields['PK_LOCATION']?>" data-no_of_session="<?=$NUMBER_OF_SESSION?>" data-used_session="<?=$USED_SESSION_COUNT?>" <?=(($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled':''?> <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$enrollment_name.$row->fields['ENROLLMENT_ID'].' || '.$PACKAGE.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$USED_SESSION_COUNT.'/'.$NUMBER_OF_SESSION.' || Paid : '.$paid_session;?></option>
+                                            <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-location_id="<?=$row->fields['PK_LOCATION']?>" data-no_of_session="<?=$NUMBER_OF_SESSION?>" data-used_session="<?=$USED_SESSION_COUNT?>" <?=(($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled':''?> <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$enrollment_name.$row->fields['PK_ENROLLMENT_MASTER'].' || '.$PACKAGE.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$USED_SESSION_COUNT.'/'.$NUMBER_OF_SESSION.' || Paid : '.$paid_session;?></option>
                                             <?php
                                             $row->MoveNext();
                                         } ?>
@@ -449,15 +449,22 @@ z-index: 500;
                                     <!--<p class="enrollment_info"><?php /*=$selected_enrollment*/?></p>-->
                                 </div>
                             </div>
+                            <div class="col-4 enrollment_info">
+                                <div class="form-group">
+                                    <label class="form-label">Enrollment ID: </label>
+                                    <p style="margin-top: 8px;"><?=$selected_enrollment?></p>
+                                </div>
+                            </div>
                         <?php } ?>
-
                         <div class="col-4 enrollment_info">
                             <div class="form-group">
                                 <label class="form-label">Apt #: </label>
-                                <p><?=$SERIAL_NUMBER?></p>
+                                <p style="margin-top: 8px;"><?=$SERIAL_NUMBER?></p>
                             </div>
                         </div>
-                        <div class="col-4 enrollment_info">
+                    </div>
+                    <div class="row">
+                        <div class="col-2 enrollment_info">
                             <div class="form-group">
                                 <label class="form-label">Service : </label>
                                 <select class="form-control" required name="PK_SERVICE_MASTER" id="PK_SERVICE_MASTER" style="display: none;" onchange="selectThisService(this);" disabled>
@@ -467,14 +474,12 @@ z-index: 500;
                                     $row = $db_account->Execute("SELECT DISTINCT(DOA_SERVICE_MASTER.PK_SERVICE_MASTER), DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER");
                                     while (!$row->EOF) { if($PK_SERVICE_MASTER==$row->fields['PK_SERVICE_MASTER']){$selected_service = $row->fields['SERVICE_NAME'];} ?>
                                         <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($PK_SERVICE_MASTER==$row->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
-                                    <?php $row->MoveNext(); } ?>
+                                        <?php $row->MoveNext(); } ?>
                                 </select>
-                                <p><?=$selected_service?></p>
+                                <p style="margin-top: 8px;"><?=$selected_service?></p>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
+                        <div class="col-2">
                             <div class="form-group">
                                 <label class="form-label">Service Code : </label>
                                 <?php if ($PK_SERVICE_CODE==0) {
@@ -492,8 +497,7 @@ z-index: 500;
                                 <?php $row->MoveNext(); } ?>
                                 </select>
                                 <?php } ?>
-
-                                <p><?=$selected_service_code?></p>
+                                <p style="margin-top: 8px;"><?=$selected_service_code?></p>
                             </div>
                         </div>
                         <div class="col-4">
