@@ -33,6 +33,10 @@
         input, textarea, select {
             background-color: #f5f5f5 !important;
         }
+
+        input[readonly] {
+            background-color: #FFFFFF !important;
+        }
     </style>
 
     <style>
