@@ -34,11 +34,21 @@ if (!empty($_GET['view'])) {
         text-decoration: none;
         background-color: #f4f4f4;
     }
+    nav a:active {
+        text-decoration: none;
+        border-bottom: none;
+        outline: none;
+    }
+    nav .active {
+        border-bottom: none;
+        box-shadow: none;
+        text-decoration: none;
+    }
 </style>
 
 <div id="top_bar" class="container-fluid p-0 nav-top-new topbar">
     <div class="row">
-        <div class="d-flex flex-column flex-md-row align-items-center py-2 px-4 bg-white border-bottomm box-shadow justify-content-end">
+        <div class="d-flex flex-column flex-md-row align-items-center py-0 px-4 bg-white border-bottom box-shadow justify-content-end">
             <?php /*if($_SESSION['PK_ROLES'] == 2) { */?><!--
             <div class="col-md-4 new-top-menu">
                 <nav class="navbar navbar-expand-lg px-2 py-1">
@@ -92,16 +102,16 @@ if (!empty($_GET['view'])) {
             </div>
             --><?php /*} */?>
             <nav class="my-2 my-md-0 mr-md-3 new-top-nav col-md-12">
-                <ul id="sidebarnav" style="float: right;">
+                <ul id="sidebarnav" class="nav nav-pills" style="float: right;">
                     <?php if($_SESSION['PK_ROLES'] == 1) { ?>
                         <li>
-                            <a class="waves-effect waves-dark" href="../super_admin/all_accounts.php" aria-expanded="false">
+                            <a class="nav-link" href="../super_admin/all_accounts.php" aria-expanded="false">
                                 <i class="ti-user"></i>
                                 <span class="hide-menu">Accounts</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../super_admin/setup.php" aria-expanded="false">
+                            <a class="nav-link" href="../super_admin/setup.php" aria-expanded="false">
                                 <i class="ti-settings"></i>
                                 <span class="hide-menu">Setup</span>
                             </a>
@@ -110,55 +120,55 @@ if (!empty($_GET['view'])) {
 
                     <?php if(!in_array($_SESSION['PK_ROLES'], [1, 4, 5])) { ?>
                         <li>
-                            <a class="waves-effect waves-dark" href="../admin/all_schedules.php" aria-expanded="false">
+                            <a class="nav-link" href="../admin/all_schedules.php" aria-expanded="false">
                                 <i class="icon-calender"></i>
                                 <span class="hide-menu">Calendar</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../admin/appointment_list.php" aria-expanded="false">
+                            <a class="nav-link" href="../admin/appointment_list.php" aria-expanded="false">
                                 <i class="icon-list"></i>
                                 <span class="hide-menu">Appointments</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../admin/to_do_list.php" aria-expanded="false">
+                            <a class="nav-link" href="../admin/to_do_list.php" aria-expanded="false">
                                 <i class="icon-notebook"></i>
                                 <span class="hide-menu">To-Do</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../admin/all_customers.php" aria-expanded="false">
+                            <a class="nav-link" href="../admin/all_customers.php" aria-expanded="false">
                                 <i class="icons-User"></i>
                                 <span class="hide-menu">Customers</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../admin/all_enrollments.php" aria-expanded="false">
+                            <a class="nav-link" href="../admin/all_enrollments.php" aria-expanded="false">
                                 <i class="icon-note"></i>
                                 <span class="hide-menu">Enrollments</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../admin/all_events.php" aria-expanded="false">
+                            <a class="nav-link" href="../admin/all_events.php" aria-expanded="false">
                                 <i class="ti-calendar"></i>
                                 <span class="hide-menu">Events</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../admin/operations.php" aria-expanded="false">
+                            <a class="nav-link" href="../admin/operations.php" aria-expanded="false">
                                 <i class="ti-layers-alt"></i>
                                 <span class="hide-menu"><?=$operation_tab_title?></span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../admin/reports.php" aria-expanded="false">
+                            <a class="nav-link" href="../admin/reports.php" aria-expanded="false">
                                 <i class="ti-bar-chart"></i>
                                 <span class="hide-menu">Reports</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../admin/setup.php" aria-expanded="false">
+                            <a class="nav-link" href="../admin/setup.php" aria-expanded="false">
                                 <i class="ti-settings"></i>
                                 <span class="hide-menu">Setup</span>
                             </a>
