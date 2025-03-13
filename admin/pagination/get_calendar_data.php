@@ -61,6 +61,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.COMMENT,
                             DOA_APPOINTMENT_MASTER.INTERNAL_COMMENT,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                            DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.SERVICE_CODE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
@@ -146,7 +147,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             }else {
                 $PACKAGE = " || "."$PACKAGE_NAME";
             }
-            $title = $PACKAGE . ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['ENROLLMENT_ID'] === 0) ? '(Ad-Hoc)' : $appointment_data->fields['ENROLLMENT_ID']) . ' - ' . $appointment_data->fields['SERIAL_NUMBER'] . (($appointment_data->fields['IS_PAID'] == 1) ? ' (Paid)' : ' (Unpaid)');
+            $title = $PACKAGE . ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['PK_ENROLLMENT_MASTER'] == 0) ? '(Ad-Hoc)' : $appointment_data->fields['PK_ENROLLMENT_MASTER']) . ' - ' . $appointment_data->fields['SERIAL_NUMBER'] . (($appointment_data->fields['IS_PAID'] == 1) ? ' (Paid)' : ' (Unpaid)');
             $type = "appointment";
         } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'DEMO') {
             $title = ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . ' - ' . $appointment_data->fields['SERIAL_NUMBER'];
