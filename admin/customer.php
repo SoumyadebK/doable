@@ -2056,7 +2056,7 @@ if ($PK_USER_MASTER > 0) {
                         <div class="form-group">
                             <label class="form-label">How you want your money back?</label>
                             <div class="col-md-12">
-                                <select class="form-control" required name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND">
+                                <select class="form-control" required name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND" onchange="selectRefundType(this)">
                                     <option value="">Select</option>
                                     <?php
                                     $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
@@ -2064,6 +2064,25 @@ if ($PK_USER_MASTER > 0) {
                                         <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
                                     <?php $row->MoveNext(); } ?>
                                 </select>
+                            </div>
+                        </div>
+
+                        <div class="row" id="check_payment" style="display: none;">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Check Number</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="REFUND_CHECK_NUMBER" id="REFUND_CHECK_NUMBER" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Check Date</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="REFUND_CHECK_DATE" id="REFUND_CHECK_DATE" class="form-control datepicker-normal">
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -2347,6 +2366,15 @@ if ($PK_USER_MASTER > 0) {
                     }
                 }).responseText;
             });
+        }
+
+        function selectRefundType(param) {
+            let paymentType = parseInt($(param).val());
+            if (paymentType === 2) {
+                $(param).closest('.modal-body').find('#check_payment').slideDown();
+            } else {
+                $(param).closest('.modal-body').find('#check_payment').slideUp();
+            }
         }
     </script>
     <script>

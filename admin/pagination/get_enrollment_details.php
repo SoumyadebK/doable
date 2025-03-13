@@ -130,10 +130,12 @@ while (!$serviceCodeData->EOF) {
                 $PK_ENROLLMENT_MASTER = $payment_details->fields['PK_ENROLLMENT_MASTER'];
                 $PK_ENROLLMENT_LEDGER = $payment_details->fields['PK_ENROLLMENT_LEDGER'];
 
-                if ($payment_details->fields['TYPE'] == 'Payment') {
+                if ($payment_details->fields['TYPE'] == 'Payment' && $payment_details->fields['IS_REFUNDED'] == 0) {
                     $balance -= $payment_details->fields['AMOUNT'];
                     $refund_balance = $payment_details->fields['AMOUNT'];;
-                } elseif ($payment_details->fields['TYPE'] == 'Refund') {
+                } elseif ($payment_details->fields['TYPE'] == 'Payment' && $payment_details->fields['IS_REFUNDED'] == 1) {
+                    $refund_balance = $payment_details->fields['AMOUNT'];;
+                }  elseif ($payment_details->fields['TYPE'] == 'Refund') {
                     $refund_balance -= $payment_details->fields['AMOUNT'];
                 }
 
