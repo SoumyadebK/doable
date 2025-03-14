@@ -34,6 +34,7 @@ $END_DATE='';
 
 if (!empty($_GET['DATE_SELECTION'])) {
     if ($_GET['DATE_SELECTION'] == 1) {
+        $date_selection = 1;
         $SPECIFIC_DATE = date('Y-m-d');
         if ($SERVICE_PROVIDER_ID > 0) {
             $search_text = $_GET['SERVICE_PROVIDER_ID'];
@@ -42,6 +43,7 @@ if (!empty($_GET['DATE_SELECTION'])) {
             $search = " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         }
     } else if ($_GET['DATE_SELECTION'] == 2) {
+        $date_selection = 1;
         $SPECIFIC_DATE = date('Y-m-d', strtotime("-1 days"));
         if ($SERVICE_PROVIDER_ID > 0) {
             $search_text = $SERVICE_PROVIDER_ID;
@@ -50,6 +52,7 @@ if (!empty($_GET['DATE_SELECTION'])) {
             $search = " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         }
     } else if ($_GET['DATE_SELECTION'] == 3) {
+        $date_selection = 3;
         [$START_DATE, $END_DATE] = currentWeekRange(date('Y-m-d'));
         if ($SERVICE_PROVIDER_ID > 0) {
             $search_text = $SERVICE_PROVIDER_ID;
@@ -58,6 +61,7 @@ if (!empty($_GET['DATE_SELECTION'])) {
             $search = " AND DOA_APPOINTMENT_MASTER.DATE >= '$START_DATE' AND DOA_APPOINTMENT_MASTER.DATE <= '$END_DATE'";
         }
     } else if ($_GET['DATE_SELECTION'] == 4) {
+        $date_selection = 4;
         $SPECIFIC_DATE = date('Y-m-d', strtotime($_GET['SPECIFIC_DATE']));
         if ($SERVICE_PROVIDER_ID > 0) {
             $search_text = $SERVICE_PROVIDER_ID;
@@ -66,6 +70,7 @@ if (!empty($_GET['DATE_SELECTION'])) {
             $search = " AND DOA_APPOINTMENT_MASTER.DATE = '$SPECIFIC_DATE'";
         }
     } else if ($_GET['DATE_SELECTION'] == 5) {
+        $date_selection = 5;
         $FROM_DATE = date('Y-m-d', strtotime($_GET['FROM_DATE']));
         $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
         if ($SERVICE_PROVIDER_ID > 0) {
@@ -77,6 +82,7 @@ if (!empty($_GET['DATE_SELECTION'])) {
         }
     }
     else if ($_GET['DATE_SELECTION'] == 6) {
+        $date_selection = 6;
         $START_DATE = date('Y-m-d', strtotime('-1 year'));
         $END_DATE = date('Y-m-d');
         if ($SERVICE_PROVIDER_ID > 0) {
@@ -98,6 +104,18 @@ if (!empty($_GET['date'])) {
     } else if ($_GET['date'] == 'earlier') {
         $search = " AND DOA_APPOINTMENT_MASTER.DATE < '".date('Y-m-d')."' AND DOA_APPOINTMENT_MASTER.IS_PAID = 0";
     }
+}
+
+$date_start = '';
+$date_end = '';
+
+$appointment_status = empty($_GET['appointment_status']) ? '1, 2, 3, 5, 7, 8' : $_GET['appointment_status'];
+
+if (!empty($_GET['FROM_DATE'])) {
+    $date_start = date('Y-m-d', strtotime($_GET['FROM_DATE']));
+}
+if (!empty($_GET['END_DATE'])) {
+    $date_end = date('Y-m-d', strtotime($_GET['END_DATE']));
 }
 
 $ALL_APPOINTMENT_QUERY = "SELECT
@@ -245,23 +263,23 @@ function currentWeekRange($date): array
                             <!--<option value="1">Today</option>
                             <option value="2">Yesterday</option>
                             <option value="3">This week</option>-->
-                            <option value="4">Specific Date</option>
-                            <option value="5">Date Range</option>
-                            <option value="6">Earlier</option>
+                            <option value="4" <?php if (isset($_GET['DATE_SELECTION']) && $_GET['DATE_SELECTION'] == 4) {echo 'selected = "selected"';}?>>Specific Date</option>
+                            <option value="5" <?php if (isset($_GET['DATE_SELECTION']) && $_GET['DATE_SELECTION'] == 5) {echo 'selected = "selected"';}?>>Date Range</option>
+                            <option value="6" <?php if (isset($_GET['DATE_SELECTION']) && $_GET['DATE_SELECTION'] == 6) {echo 'selected = "selected"';}?>>Earlier</option>
                         </select>
                     </div>
                 </div>
-                <div class="col-2 specific_date" style="display: none">
+                <div class="col-2 specific_date" style="display: <?php echo (isset($_GET['DATE_SELECTION']) && $_GET['DATE_SELECTION'] == 4) ? 'block' : 'none'?>">
                     <div class="form-group">
                         <input type="text" id="SPECIFIC_DATE" name="SPECIFIC_DATE" placeholder="Specific Date" class="form-control datepicker-past" value="<?=($SPECIFIC_DATE == '' || $SPECIFIC_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($SPECIFIC_DATE))?>">
                     </div>
                 </div>
-                <div class="col-1 from_date" style="display: none">
+                <div class="col-1 from_date" style="display: <?php echo (isset($_GET['DATE_SELECTION']) && $_GET['DATE_SELECTION'] == 5) ? 'block' : 'none'?>">
                     <div class="form-group">
                         <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-normal" value="<?=($FROM_DATE == '' || $FROM_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($FROM_DATE))?>">
                     </div>
                 </div>
-                <div class="col-1 end_date" style="display: none">
+                <div class="col-1 end_date" style="display: <?php echo (isset($_GET['DATE_SELECTION']) && $_GET['DATE_SELECTION'] == 5) ? 'block' : 'none'?>">
                     <div class="form-group">
                         <input type="text" id="END_DATE" name="END_DATE" placeholder="To Date" class="form-control datepicker-normal" value="<?=($END_DATE == '' || $END_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($END_DATE))?>">
                     </div>
@@ -338,21 +356,21 @@ function currentWeekRange($date): array
                                     <div class="pagination outer">
                                         <ul>
                                             <?php if ($page > 1) { ?>
-                                                <li><a href="operations.php?page=1">&laquo;</a></li>
-                                                <li><a href="operations.php?page=<?=($page-1)?>">&lsaquo;</a></li>
+                                                <li><a href="operations.php?DATE_SELECTION=<?=$date_selection?>&FROM_DATE=<?=$date_start?>&END_DATE=<?=$date_end?>&appointment_status=<?=$appointment_status?>&page=1">&laquo;</a></li>
+                                                <li><a href="operations.php?DATE_SELECTION=<?=$date_selection?>&FROM_DATE=<?=$date_start?>&END_DATE=<?=$date_end?>&appointment_status=<?=$appointment_status?>&page=<?=($page-1)?>">&lsaquo;</a></li>
                                             <?php }
                                             for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
                                                 if ($page_count == $page || $page_count == ($page+1) || $page_count == ($page-1) || $page_count == $number_of_page) {
-                                                    echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="operations.php?page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                    echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="operations.php?DATE_SELECTION='.$date_selection.'&FROM_DATE='.$date_start.'&END_DATE='.$date_end.'&appointment_status=' . $appointment_status . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
                                                 } elseif ($page_count == ($number_of_page-1)){
                                                     echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
                                                 } else {
-                                                    echo '<li><a class="hidden" href="operations.php?page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                    echo '<li><a class="hidden" href="operations.php?DATE_SELECTION='.$date_selection.'&FROM_DATE='.$date_start.'&END_DATE='.$date_end.'&appointment_status=' . $appointment_status . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
                                                 }
                                             }
                                             if ($page < $number_of_page) { ?>
-                                                <li><a href="operations.php?page=<?=($page+1)."&".$search?>">&rsaquo;</a></li>
-                                                <li><a href="operations.php?page=<?=$number_of_page?>">&raquo;</a></li>
+                                                <li><a href="operations.php?DATE_SELECTION=<?=$date_selection?>&FROM_DATE=<?=$date_start?>&END_DATE=<?=$date_end?>&appointment_status=<?=$appointment_status?>&page=<?=($page+1)."&".$search?>">&rsaquo;</a></li>
+                                                <li><a href="operations.php?DATE_SELECTION=<?=$date_selection?>&FROM_DATE=<?=$date_start?>&END_DATE=<?=$date_end?>&appointment_status=<?=$appointment_status?>&page=<?=$number_of_page?>">&raquo;</a></li>
                                             <?php } ?>
                                         </ul>
                                     </div>
