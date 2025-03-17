@@ -301,14 +301,14 @@ function currentWeekRange($date): array
                                 <table id="" class="table table-striped border" data-page-length='50'>
                                     <thead>
                                     <tr>
-                                        <th><input type="checkbox" onClick="toggle(this)" /></th>
-                                        <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
-                                        <th data-type="string" class="sortable" style="cursor: pointer">Enrollment ID</th>
-                                        <th data-type="string" class="sortable" style="cursor: pointer"><?=$service_provider_title?></th>
-                                        <th data-type="string" class="sortable" style="cursor: pointer">Day</th>
-                                        <th data-type="datetime" class="sortable" style="cursor: pointer">Date</th>
-                                        <th data-type="time" class="sortable" style="cursor: pointer">Time</th>
-                                        <th>Paid</th>
+                                        <th style="width: 3%"><input type="checkbox" onClick="toggle(this)" /></th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer; width: 20%">Customer</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer; width: 20%">Enrollment ID</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer; width: 20%"><?=$service_provider_title?></th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer; width: 10%">Day</th>
+                                        <th data-type="datetime" class="sortable" style="cursor: pointer; width: 10%">Date</th>
+                                        <th data-type="time" class="sortable" style="cursor: pointer; width: 10%">Time</th>
+                                        <th style="width: 7%">Paid</th>
                                     </tr>
                                     </thead>
 
