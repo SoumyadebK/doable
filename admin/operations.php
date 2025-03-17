@@ -276,12 +276,12 @@ function currentWeekRange($date): array
                 </div>
                 <div class="col-1 from_date" style="display: <?php echo (isset($_GET['DATE_SELECTION']) && $_GET['DATE_SELECTION'] == 5) ? 'block' : 'none'?>">
                     <div class="form-group">
-                        <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-normal" value="<?=($FROM_DATE == '' || $FROM_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($FROM_DATE))?>">
+                        <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-normal" value="<?=($date_start == '' || $date_start == '0000-00-00')?'':date('m/d/Y', strtotime($date_start))?>">
                     </div>
                 </div>
                 <div class="col-1 end_date" style="display: <?php echo (isset($_GET['DATE_SELECTION']) && $_GET['DATE_SELECTION'] == 5) ? 'block' : 'none'?>">
                     <div class="form-group">
-                        <input type="text" id="END_DATE" name="END_DATE" placeholder="To Date" class="form-control datepicker-normal" value="<?=($END_DATE == '' || $END_DATE == '0000-00-00')?'':date('m/d/Y', strtotime($END_DATE))?>">
+                        <input type="text" id="END_DATE" name="END_DATE" placeholder="To Date" class="form-control datepicker-normal" value="<?=($date_end == '' || $date_end == '0000-00-00')?'':date('m/d/Y', strtotime($date_end))?>">
                     </div>
                 </div>
                 <div class="col-1">
