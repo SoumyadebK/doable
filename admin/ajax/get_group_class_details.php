@@ -172,7 +172,7 @@ while (!$status_data->EOF) {
 
                             $selected_customer = [];
                             $selected_partner = [];
-                            $selected_customer_row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
+                            $selected_customer_row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE `IS_ACTIVE` = 1 AND PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
                             while (!$selected_customer_row->EOF) {
                                 if ($selected_customer_row->fields['WITH_PARTNER'] == 0 || $selected_customer_row->fields['WITH_PARTNER'] == 1) {
                                     $selected_customer[] = $selected_customer_row->fields['PK_USER_MASTER'];
