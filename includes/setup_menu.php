@@ -73,8 +73,8 @@
                     </ul>
                     <div style="margin-left: 15%;">
                         <?php
-                        $currentURL = $_SERVER['REQUEST_URI'];
-                        $url = explode("/", $currentURL);
+                        $currentURL = parse_url($_SERVER['REQUEST_URI']);
+                        $url = explode("/", $currentURL['path']);
                         if($_SERVER['HTTP_HOST'] == 'localhost' ) {
                             $address = $url[3];
                         } else {

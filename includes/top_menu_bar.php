@@ -7,6 +7,15 @@ if (!empty($_GET['view'])) {
 }
 ?>
 
+<?php
+$mail_url = parse_url($_SERVER['REQUEST_URI']);
+$url_array = explode("/", $mail_url['path']);
+if($_SERVER['HTTP_HOST'] == 'localhost' ) {
+    $current_address = $url_array[3];
+} else {
+    $current_address = $url_array[2];
+}
+?>
 <style>
     #top_bar {
         z-index: 50;
@@ -119,56 +128,56 @@ if (!empty($_GET['view'])) {
                     <?php } ?>
 
                     <?php if(!in_array($_SESSION['PK_ROLES'], [1, 4, 5])) { ?>
-                        <li>
-                            <a class="nav-link" href="../admin/all_schedules.php" aria-expanded="false">
+                        <li class="<?=(('all_schedules.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('all_schedules.php' === $current_address)?'active':'')?>" href="../admin/all_schedules.php" aria-expanded="false">
                                 <i class="icon-calender"></i>
                                 <span class="hide-menu">Calendar</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="nav-link" href="../admin/appointment_list.php" aria-expanded="false">
+                        <li class="<?=(('appointment_list.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('appointment_list.php' === $current_address)?'active':'')?>" href="../admin/appointment_list.php" aria-expanded="false">
                                 <i class="icon-list"></i>
                                 <span class="hide-menu">Appointments</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="nav-link" href="../admin/to_do_list.php" aria-expanded="false">
+                        <li class="<?=(('to_do_list.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('to_do_list.php' === $current_address)?'active':'')?>" href="../admin/to_do_list.php" aria-expanded="false">
                                 <i class="icon-notebook"></i>
                                 <span class="hide-menu">To-Do</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="nav-link" href="../admin/all_customers.php" aria-expanded="false">
+                        <li class="<?=(('all_customers.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('all_customers.php' === $current_address)?'active':'')?>" href="../admin/all_customers.php" aria-expanded="false">
                                 <i class="icons-User"></i>
                                 <span class="hide-menu">Customers</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="nav-link" href="../admin/all_enrollments.php" aria-expanded="false">
+                        <li class="<?=(('all_enrollments.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('all_enrollments.php' === $current_address)?'active':'')?>" href="../admin/all_enrollments.php" aria-expanded="false">
                                 <i class="icon-note"></i>
                                 <span class="hide-menu">Enrollments</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="nav-link" href="../admin/all_events.php" aria-expanded="false">
+                        <li class="<?=(('all_events.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('all_events.php' === $current_address)?'active':'')?>" href="../admin/all_events.php" aria-expanded="false">
                                 <i class="ti-calendar"></i>
                                 <span class="hide-menu">Events</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="nav-link" href="../admin/operations.php" aria-expanded="false">
+                        <li class="<?=(('operations.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('operations.php' === $current_address)?'active':'')?>" href="../admin/operations.php" aria-expanded="false">
                                 <i class="ti-layers-alt"></i>
                                 <span class="hide-menu"><?=$operation_tab_title?></span>
                             </a>
                         </li>
-                        <li>
-                            <a class="nav-link" href="../admin/reports.php" aria-expanded="false">
+                        <li class="<?=(('reports.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('reports.php' === $current_address)?'active':'')?>" href="../admin/reports.php" aria-expanded="false">
                                 <i class="ti-bar-chart"></i>
                                 <span class="hide-menu">Reports</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="nav-link" href="../admin/setup.php" aria-expanded="false">
+                        <li class="<?=(('setup.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('setup.php' === $current_address)?'active':'')?>" href="../admin/setup.php" aria-expanded="false">
                                 <i class="ti-settings"></i>
                                 <span class="hide-menu">Setup</span>
                             </a>
@@ -176,7 +185,7 @@ if (!empty($_GET['view'])) {
                     <?php } ?>
 
                     <?php if($_SESSION['PK_ROLES'] == 3) { ?>
-                        <!--<li> <a class="has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="ti-layout-grid2"></i><span class="hide-menu">Setup</span></a>
+                        <!--<li class="<?=(('all_enrollments.php' === $current_address)?'active':'')?>"> <a class="has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="ti-layout-grid2"></i><span class="hide-menu">Setup</span></a>
                             <ul aria-expanded="false" class="collapse">
                                 <li><a href="../super_admin/all_users.php">Users</a></li>
                             </ul>

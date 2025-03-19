@@ -6,6 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_enrollments.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_enrollments.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/pagination/get_calendar_data.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/pagination/get_calendar_data.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/reports.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/reports.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/includes/setup_menu.php" beforeDir="false" afterPath="$PROJECT_DIR$/includes/setup_menu.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/includes/top_menu_bar.php" beforeDir="false" afterPath="$PROJECT_DIR$/includes/top_menu_bar.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -202,7 +209,7 @@
       <workItem from="1742138705671" duration="176000" />
       <workItem from="1742287697211" duration="11000" />
       <workItem from="1742313509077" duration="2654000" />
-      <workItem from="1742375929925" duration="4639000" />
+      <workItem from="1742375929925" duration="14214000" />
     </task>
     <servers />
   </component>

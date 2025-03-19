@@ -212,58 +212,73 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         db_perform_account('DOA_APPOINTMENT_MASTER', $GROUP_CLASS_DATA, 'update', " PK_APPOINTMENT_MASTER =  '$PK_APPOINTMENT_MASTER'");
     }
 
-    $db_account->Execute("UPDATE `DOA_APPOINTMENT_CUSTOMER` SET `IS_ACTIVE` = 0 WHERE  `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
     if (isset($_POST['PK_USER_MASTER']) || isset($_POST['PARTNER'])) {
+        $existing_customer = (!empty($_POST['EXISTING_CUSTOMER'])) ? explode(',', $_POST['EXISTING_CUSTOMER']) : [];
+        $existing_partner = (!empty($_POST['EXISTING_PARTNER'])) ? explode(',', $_POST['EXISTING_PARTNER']) : [];
+
         $CUSTOMERS = $_POST['PK_USER_MASTER'] ?? [];
         $SELECTED_PARTNERS = $_POST['PARTNER'] ?? [];
-        for ($j = 0; $j < count($CUSTOMERS); $j++) {
+
+        $customer_to_add = array_values(array_diff($CUSTOMERS, $existing_customer));
+        $customer_to_remove = array_values(array_diff($existing_customer, $CUSTOMERS));
+
+        $partner_to_add = array_values(array_diff($SELECTED_PARTNERS, $existing_partner));
+        $partner_to_remove = array_values(array_diff($existing_partner, $SELECTED_PARTNERS));
+
+        for ($j = 0; $j < count($customer_to_add); $j++) {
             $GROUP_CLASS_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-            $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $CUSTOMERS[$j];
-            $GROUP_CLASS_CUSTOMER_DATA['CHANGED_BY_USER_ID'] = $_SESSION['PK_USER'];
-            $GROUP_CLASS_CUSTOMER_DATA['TIME_STAMP'] = date("Y-m-d H:i");
-            if (in_array($CUSTOMERS[$j], $SELECTED_PARTNERS)) {
-                $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'] = 1;
-            } else {
-                $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'] = 0;
-            }
-            $customer_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = ".$CUSTOMERS[$j]);
-            if ($customer_data->RecordCount() > 0) {
-                $GROUP_CLASS_UPDATE_DATA['IS_ACTIVE'] = 1;
-                $GROUP_CLASS_UPDATE_DATA['WITH_PARTNER'] = $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'];
-                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_UPDATE_DATA, 'update', " `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = ".$CUSTOMERS[$j]);
-            } else {
-                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
-            }
+            $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $customer_to_add[$j];
+            $GROUP_CLASS_CUSTOMER_DATA['IS_PARTNER'] = 0;
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
+
+            $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$customer_to_add[$j]);
+            $details = '('.$user_data->fields['NAME'].' is Added By '.$_SESSION['FIRST_NAME'].' '.$_SESSION['LAST_NAME'].' at '.date("m/d/Y h:i A").')';
+            $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
 
             if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
-                updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $CUSTOMERS[$j]);
+                updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $customer_to_add[$j]);
             } else {
-                updateSessionCreatedCountGroupClass($PK_APPOINTMENT_MASTER, $CUSTOMERS[$j]);
+                updateSessionCreatedCountGroupClass($PK_APPOINTMENT_MASTER, $customer_to_add[$j]);
             }
         }
-        for ($j = 0; $j < count($SELECTED_PARTNERS); $j++) {
-            if (!in_array($SELECTED_PARTNERS[$j], $CUSTOMERS)) {
-                $GROUP_CLASS_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-                $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $SELECTED_PARTNERS[$j];
-                $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'] = 2;
-                $GROUP_CLASS_CUSTOMER_DATA['CHANGED_BY_USER_ID'] = $_SESSION['PK_USER'];
-                $GROUP_CLASS_CUSTOMER_DATA['TIME_STAMP'] = date("Y-m-d H:i");
+        for ($j = 0; $j < count($customer_to_remove); $j++) {
+            $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = '$customer_to_remove[$j]' AND IS_PARTNER = 0");
 
-                $partner_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = ".$SELECTED_PARTNERS[$j]);
-                if ($partner_data->RecordCount() > 0) {
-                    $GROUP_CLASS_UPDATE_DATA['IS_ACTIVE'] = 1;
-                    $GROUP_CLASS_UPDATE_DATA['WITH_PARTNER'] = $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'];
-                    db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_UPDATE_DATA, 'update', " `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = ".$SELECTED_PARTNERS[$j]);
-                } else {
-                    db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
-                }
+            $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$customer_to_remove[$j]);
+            $details = '('.$user_data->fields['NAME'].' is Removed By '.$_SESSION['FIRST_NAME'].' '.$_SESSION['LAST_NAME'].' at '.date("m/d/Y h:i A").')';
+            $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
+        }
 
-                if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
-                    updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $SELECTED_PARTNERS[$j]);
-                } else {
-                    updateSessionCreatedCountGroupClass($PK_APPOINTMENT_MASTER, $SELECTED_PARTNERS[$j]);
-                }
+        for ($j = 0; $j < count($partner_to_add); $j++) {
+            $GROUP_CLASS_PARTNER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $GROUP_CLASS_PARTNER_DATA['PK_USER_MASTER'] = $partner_to_add[$j];
+            $GROUP_CLASS_PARTNER_DATA['IS_PARTNER'] = 1;
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_PARTNER_DATA, 'insert');
+
+            $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = ".$partner_to_add[$j]);
+            $details = '('.$partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'].' is Added By '.$_SESSION['FIRST_NAME'].' '.$_SESSION['LAST_NAME'].' at '.date("m/d/Y h:i A").')';
+            $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
+
+            if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
+                updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $partner_to_add[$j]);
+            } else {
+                updateSessionCreatedCountGroupClass($PK_APPOINTMENT_MASTER, $partner_to_add[$j]);
             }
+        }
+        for ($j = 0; $j < count($partner_to_remove); $j++) {
+            $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = '$partner_to_remove[$j]' AND IS_PARTNER = 1");
+
+            $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = ".$partner_to_remove[$j]);
+            $details = '('.$partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'].' is Removed By '.$_SESSION['FIRST_NAME'].' '.$_SESSION['LAST_NAME'].' at '.date("m/d/Y h:i A").')';
+            $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
         }
     }
 

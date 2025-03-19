@@ -120,14 +120,14 @@ if (isset($_POST['SUBMIT'])){
         db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE, 'update'," PK_ENROLLMENT_SERVICE = ".$_POST['PK_ENROLLMENT_SERVICE'][$i]);
     }
 
-    if ($_POST['USE_AVAILABLE_CREDIT'] == 1) {
+    /*if ($_POST['USE_AVAILABLE_CREDIT'] == 1) {
         $TOTAL_POSITIVE_BALANCE += $TOTAL_NEGATIVE_BALANCE;
         $TOTAL_NEGATIVE_BALANCE = $TOTAL_POSITIVE_BALANCE;
         for ($i = 0; $i < count($_POST['PK_ENROLLMENT_SERVICE']); $i++) {
             $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'] = $_POST['TOTAL_AMOUNT_PAID'][$i];
             db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE, 'update'," PK_ENROLLMENT_SERVICE = ".$_POST['PK_ENROLLMENT_SERVICE'][$i]);
         }
-    }
+    }*/
 
     db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
 

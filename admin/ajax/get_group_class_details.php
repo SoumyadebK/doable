@@ -28,12 +28,11 @@ $INTERNAL_COMMENT = $res->fields['INTERNAL_COMMENT'];
 $IMAGE = $res->fields['IMAGE'];
 $VIDEO = $res->fields['VIDEO'];
 
-//$status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
-$status_data = $db_account->Execute("SELECT CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS CUSTOMER_NAME, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME, DOA_APPOINTMENT_CUSTOMER.TIME_STAMP FROM DOA_APPOINTMENT_CUSTOMER LEFT JOIN DOA_MASTER.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN DOA_MASTER.DOA_USERS AS CUSTOMER ON CUSTOMER.PK_USER = DOA_APPOINTMENT_CUSTOMER.CHANGED_BY_USER_ID LEFT JOIN DOA_MASTER.DOA_USERS AS SERVICE_PROVIDER ON SERVICE_PROVIDER.PK_USER = DOA_USER_MASTER.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
-$CHANGED_BY = '';
-while (!$status_data->EOF) {
-    $CHANGED_BY .= "(Added ".$status_data->fields['SERVICE_PROVIDER_NAME']." by ".$status_data->fields['CUSTOMER_NAME']." at ".date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])).")<br>";
-    $status_data->MoveNext();
+$customer_update_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY` WHERE PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]' ORDER BY PK_APPOINTMENT_CUSTOMER_UPDATE_HISTORY DESC");
+$CUSTOMER_UPDATE_DETAILS = '';
+while (!$customer_update_data->EOF) {
+    $CUSTOMER_UPDATE_DETAILS .= $customer_update_data->fields['DETAILS'].'<br>';
+    $customer_update_data->MoveNext();
 }
 ?>
 <style>
@@ -172,12 +171,12 @@ while (!$status_data->EOF) {
 
                             $selected_customer = [];
                             $selected_partner = [];
-                            $selected_customer_row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE `IS_ACTIVE` = 1 AND PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
+                            $selected_customer_row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
                             while (!$selected_customer_row->EOF) {
-                                if ($selected_customer_row->fields['WITH_PARTNER'] == 0 || $selected_customer_row->fields['WITH_PARTNER'] == 1) {
+                                if ($selected_customer_row->fields['IS_PARTNER'] == 0) {
                                     $selected_customer[] = $selected_customer_row->fields['PK_USER_MASTER'];
                                 }
-                                if ($selected_customer_row->fields['WITH_PARTNER'] == 1 || $selected_customer_row->fields['WITH_PARTNER'] == 2) {
+                                if ($selected_customer_row->fields['IS_PARTNER'] == 1) {
                                     $selected_partner[] = $selected_customer_row->fields['PK_USER_MASTER'];
                                 }
                                 $selected_customer_row->MoveNext();
@@ -210,6 +209,8 @@ while (!$status_data->EOF) {
                                 }
                                 $customer_name .= '<p><span class="m-r-30" style="display: '.$display.'"><i class="fa fa-check-square" style="font-size:15px; color: #1d1;"></i>&nbsp;&nbsp;<a href="customer.php?id='.$selected_user_id.'&master_id='.$selected_customer_id.'&tab=profile" target="_blank" style="color: blue;">'.$row->fields['NAME'].'</a></span>'.$partner_name.'</p>';
                             } ?>
+                            <input type="hidden" name="EXISTING_CUSTOMER" value="<?=implode(',', $selected_customer)?>">
+                            <input type="hidden" name="EXISTING_PARTNER" value="<?=implode(',', $selected_partner)?>">
                             <li class="customer-li">
                                 <label style="width: 50%;"> <input type="checkbox" name="PK_USER_MASTER[]" value="<?=$row->fields['PK_USER_MASTER']?>" class="customer-checkbox" <?=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"checked":""?>> <?=$row->fields['NAME']?> </label>
                                 <?php if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner') { ?>
@@ -296,7 +297,7 @@ while (!$status_data->EOF) {
                     </div>
                     <div class="col-12" style="margin-bottom: 10px">
                         <div class="truncate" id="text">
-                            <span><?=$CHANGED_BY?></span>
+                            <span><?=$CUSTOMER_UPDATE_DETAILS?></span>
                         </div>
                     </div>
 
