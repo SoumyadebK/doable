@@ -13,6 +13,10 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION
 
 $type = $_GET['type'];
 
+$PK_PACKAGE = $_GET['PK_PACKAGE'];
+$TRANSPORTATION_CHARGES = $_GET['TRANSPORTATION_CHARGES'];
+$PACKAGE_COSTS = $_GET['PACKAGE_COSTS'];
+
 $week_number = $_GET['week_number'];
 $YEAR = date('Y');
 
@@ -171,8 +175,7 @@ while (!$executive_data->EOF) {
                                     <table id="myTable" class="table table-bordered" data-page-length='50'>
                                         <thead>
                                         <tr>
-                                            <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?=($account_data->fields['FRANCHISE']==1)?'Franchisee: ':''?><?=$business_name." (".$concatenatedResults.")"?></th>
-                                            <th style="width:50%; text-align: center; font-weight: bold" colspan="2">(<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</th>
+                                            <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="8"><?=($account_data->fields['FRANCHISE']==1)?'Franchisee: ':''?><?=$business_name." (".$concatenatedResults.")"?></th>
                                         </tr>
                                         <tr>
                                             <th style="width:10%; text-align: center">Receipt No.</th>
