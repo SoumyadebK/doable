@@ -12,9 +12,9 @@ if (!empty($_GET['NAME'])) {
     $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
     $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
     $report_name = $_GET['NAME'];
-    $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
-    $START_DATE = $_GET['start_date'];
-    $END_DATE = $_GET['end_date'];
+    $PK_PACKAGE = $_GET['NAME'];
+    $TRANSPORTATION_CHARGES = $_GET['TRANSPORTATION_CHARGES'];
+    $PACKAGE_COSTS = $_GET['PACKAGE_COSTS'];
 
     if ($generate_pdf === 1) {
         header('location:generate_report_pdf.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&report_type='.$report_name);
@@ -31,8 +31,8 @@ if (!empty($_GET['NAME'])) {
             header('location:staff_performance_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
         } elseif ($_GET['NAME'] == 'summary_of_staff_member_report') {
             header('location:summary_of_staff_member_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($_GET['NAME'] == 'miscellaneous_service_summary_report.php') {
-            header('location:miscellaneous_service_summary_report.php.php?transportation_charges=' . $TRANSPORTATION_CHARGES . '&package_costs=' . $PACKAGE_COSTS . '&type=' . $type);
+        } else {
+            header('location:miscellaneous_service_summary_report.php?PK_PACKAGE=' . $PK_PACKAGE . '&TRANSPORTATION_CHARGES=' . $TRANSPORTATION_CHARGES . '&PACKAGE_COSTS=' . $PACKAGE_COSTS . '&type=' . $type);
         }
     }
 }
@@ -85,8 +85,13 @@ if (!empty($_GET['NAME'])) {
                                     <div class="col-2">
                                         <div class="form-group">
                                             <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
-                                                <option value="">Select Report</option>
-                                                <option value="payments_made_report">World DOR 2025</option>
+                                                <option value="">Select a package</option>
+                                                <?php
+                                                $row = $db_account->Execute("SELECT PK_PACKAGE, PACKAGE_NAME FROM DOA_PACKAGE WHERE ACTIVE = 1");
+                                                while (!$row->EOF) {?>
+                                                <option value="<?=$row->fields['PK_PACKAGE']?>"><?=$row->fields['PACKAGE_NAME']?></option>
+                                                <?php $row->MoveNext();
+                                                $i++; } ?>
                                             </select>
                                         </div>
                                     </div>
@@ -160,28 +165,6 @@ if (!empty($_GET['NAME'])) {
                 }
             });
         }
-    });
-
-    $(document).ready(function(){
-        $("#START_DATE").datepicker({
-            numberOfMonths: 1,
-            onSelect: function(dateText, inst) {
-                let d = new Date(dateText);
-                let start_date = (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
-                $(this).closest('form').find('#start_date').val(start_date);
-                $("#END_DATE").datepicker("option","minDate", dateText);
-                $("#START_DATE, #END_DATE").trigger("change");
-            }
-        });
-        $("#END_DATE").datepicker({
-            numberOfMonths: 1,
-            onSelect: function(dateText, inst) {
-                let d = new Date(dateText);
-                let end_date = (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
-                $(this).closest('form').find('#end_date').val(end_date);
-                $("#START_DATE").datepicker("option","maxDate", dateText)
-            }
-        });
     });
 
     function wk(d) {
