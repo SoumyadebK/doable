@@ -10,7 +10,7 @@
 .fluid-container-big .row .col-md-6 img {
     height: 100%;
 	width: 100%;
-	max-height: 620px;
+	max-height: 645px;
 }
 .fluid-container-big .row .col-md-6 {
 	padding: 0px;
@@ -46,6 +46,7 @@
 background-color: #65bb46 !important;
 color: #fff !important;
 padding: 10px 36px !important;
+font-size: 16px !important;
 }
 .theme_doable_btn:hover {
 	background-color: #3a6d28 !important;
@@ -132,7 +133,7 @@ color: #65bb46 !important;
 		padding: 10px 0;
 	}
 	.payment-image-section img {
-		width: 100px;
+		width: 130px;
 		margin: 0 10px;
 	}
 	.technology-section .ce-feature-box-15:hover .icon span {
@@ -143,4 +144,11 @@ color: #65bb46 !important;
 	}
 	.navbar-nav {
 		margin-top: 15px !important;
+	}
+	.section-content .font-18 {
+		font-size: 20px;
+		/* line-height: 30px; */
+	}
+	.font-55 {
+		font-size: 55px;
 	}

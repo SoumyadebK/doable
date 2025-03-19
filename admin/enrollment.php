@@ -197,6 +197,9 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                 <li> <a class="nav-link" data-bs-toggle="tab" id="ledger_link" href="#ledger" role="tab" onclick="goToLedgerTab()"><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Ledger</span></a> </li>
                                 <?php if (!empty($_GET['id'])) { ?>
                                     <li> <a class="nav-link" data-bs-toggle="tab" id="history_link" href="#history" role="tab"><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">History</span></a> </li>
+                                    <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
+                                    <li> <a class="nav-link" href="../<?=$upload_path?>/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank"><span class="hidden-sm-up"><i class="ti-file"></i></span> <span class="hidden-xs-down">PDF Agreement</span></a> </li>
+                                    <?php } ?>
                                 <?php } ?>
                             </ul>
 
@@ -536,9 +539,9 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                                 <option value="<?php echo $row->fields['PK_DOCUMENT_LIBRARY'];?>" <?=($PK_DOCUMENT_LIBRARY == $row->fields['PK_DOCUMENT_LIBRARY'])?'selected':''?>><?=$row->fields['DOCUMENT_NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>
                                                         </select>
-                                                        <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                                                            <a href="../<?=$upload_path?>/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
-                                                        <?php } ?>
+                                                        <?php /*if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { */?><!--
+                                                            <a href="../<?php /*=$upload_path*/?>/enrollment_pdf/<?php /*=$AGREEMENT_PDF_LINK*/?>" target="_blank">View Agreement</a>
+                                                        --><?php /*} */?>
                                                     </div>
                                                 </div>
                                                 <div class="col-2">

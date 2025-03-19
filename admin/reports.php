@@ -79,6 +79,7 @@ if (!empty($_GET['NAME'])) {
                                         <li><a href="business_reports.php">Business Reports</a></li>
                                         <!--<li><a href="electronic_weekly_reports.php">Electronic Weekly Reports</a></li>-->
                                         <li><a href="service_provider_reports.php">Service Provider Reports</a></li>
+                                        <li><a href="electronic_miscellaneous_reports.php">Electronic Miscellaneous Reports</a></li>
                                         <li><a href="#">Enrollment Reports</a></li>
                                         <li><a href="customer_summary_report.php">Customer Reports</a></li>
                                         <li><a href="student_mailing_list.php">Student Mailing List</a></li>
