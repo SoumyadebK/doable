@@ -31,7 +31,7 @@ $search='';
 $SPECIFIC_DATE='';
 $FROM_DATE='';
 $END_DATE='';
-
+$date_selection = '';
 if (!empty($_GET['DATE_SELECTION'])) {
     if ($_GET['DATE_SELECTION'] == 1) {
         $date_selection = 1;

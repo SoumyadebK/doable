@@ -212,7 +212,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         db_perform_account('DOA_APPOINTMENT_MASTER', $GROUP_CLASS_DATA, 'update', " PK_APPOINTMENT_MASTER =  '$PK_APPOINTMENT_MASTER'");
     }
 
-    $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+    $db_account->Execute("UPDATE `DOA_APPOINTMENT_CUSTOMER` SET `IS_ACTIVE` = 0 WHERE  `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
     if (isset($_POST['PK_USER_MASTER']) || isset($_POST['PARTNER'])) {
         $CUSTOMERS = $_POST['PK_USER_MASTER'] ?? [];
         $SELECTED_PARTNERS = $_POST['PARTNER'] ?? [];
@@ -226,7 +226,14 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
             } else {
                 $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'] = 0;
             }
-            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
+            $customer_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = ".$CUSTOMERS[$j]);
+            if ($customer_data->RecordCount() > 0) {
+                $GROUP_CLASS_UPDATE_DATA['IS_ACTIVE'] = 1;
+                $GROUP_CLASS_UPDATE_DATA['WITH_PARTNER'] = $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'];
+                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_UPDATE_DATA, 'update', " `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = ".$CUSTOMERS[$j]);
+            } else {
+                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
+            }
 
             if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
                 updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $CUSTOMERS[$j]);
@@ -241,7 +248,15 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
                 $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'] = 2;
                 $GROUP_CLASS_CUSTOMER_DATA['CHANGED_BY_USER_ID'] = $_SESSION['PK_USER'];
                 $GROUP_CLASS_CUSTOMER_DATA['TIME_STAMP'] = date("Y-m-d H:i");
-                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
+
+                $partner_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = ".$SELECTED_PARTNERS[$j]);
+                if ($partner_data->RecordCount() > 0) {
+                    $GROUP_CLASS_UPDATE_DATA['IS_ACTIVE'] = 1;
+                    $GROUP_CLASS_UPDATE_DATA['WITH_PARTNER'] = $GROUP_CLASS_CUSTOMER_DATA['WITH_PARTNER'];
+                    db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_UPDATE_DATA, 'update', " `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = ".$SELECTED_PARTNERS[$j]);
+                } else {
+                    db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
+                }
 
                 if ($_POST['PK_APPOINTMENT_STATUS'] == 2) {
                     updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $SELECTED_PARTNERS[$j]);
