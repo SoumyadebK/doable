@@ -17,9 +17,9 @@ if (!empty($_GET['NAME'])) {
     $PACKAGE_COSTS = $_GET['PACKAGE_COSTS'];
 
     if ($generate_pdf === 1) {
-        header('location:generate_report_pdf.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&report_type='.$report_name);
+        header('location:generate_report_pdf.php?PK_PACKAGE=' . $PK_PACKAGE . '&TRANSPORTATION_CHARGES=' . $TRANSPORTATION_CHARGES . '&PACKAGE_COSTS=' . $PACKAGE_COSTS . '&report_type='.$report_name);
     } elseif ($generate_excel === 1) {
-        header('location:excel_'.$report_name.'.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&report_type='.$report_name);
+        header('location:excel_miscellaneous_service_summary_report.php?PK_PACKAGE=' . $PK_PACKAGE . '&TRANSPORTATION_CHARGES=' . $TRANSPORTATION_CHARGES . '&PACKAGE_COSTS=' . $PACKAGE_COSTS . '&report_type='.$report_name);
     } else {
         if ($_GET['NAME'] == 'payments_made_report') {
             header('location:payments_made_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
@@ -49,6 +49,19 @@ if (!empty($_GET['NAME'])) {
 
     .menu-list li{
         margin: 10px;
+    }
+</style>
+<style>
+    .form-group {
+        display: flex;
+        align-items: center;
+    }
+    .form-group label {
+        width: 170px; /* Adjust label width */
+    }
+    .form-group input {
+        flex: 1; /* Takes remaining space */
+        padding: 5px;
     }
 </style>
 <body class="skin-default-dark fixed-layout">
@@ -97,30 +110,32 @@ if (!empty($_GET['NAME'])) {
                                     </div>
                                     <div class="col-2">
                                         <div class="form-group">
-                                            <input type="text" id="TRANSPORTATION_CHARGES" name="TRANSPORTATION_CHARGES" class="form-control" placeholder="Transportation Charges : $" value="<?=!empty($_GET['TRANSPORTATION_CHARGES'])?$_GET['TRANSPORTATION_CHARGES']:''?>" required>
+                                            <label for="TRANSPORTATION_CHARGES">Transportation Charges : $</label>
+                                            <input type="text" id="TRANSPORTATION_CHARGES" name="TRANSPORTATION_CHARGES" class="form-control" placeholder="" value="<?=!empty($_GET['TRANSPORTATION_CHARGES'])?$_GET['TRANSPORTATION_CHARGES']:''?>" required>
                                         </div>
                                     </div>
                                     <div class="col-2">
                                         <div class="form-group">
-                                            <input type="text" id="PACKAGE_COSTS" name="PACKAGE_COSTS" class="form-control" placeholder="Package Costs : $" value="<?=!empty($_GET['PACKAGE_COSTS'])?$_GET['PACKAGE_COSTS']:''?>" required>
+                                            <label for="PACKAGE_COSTS">Package Costs : $</label>
+                                            <input type="text" id="PACKAGE_COSTS" name="PACKAGE_COSTS" class="form-control" placeholder="" value="<?=!empty($_GET['PACKAGE_COSTS'])?$_GET['PACKAGE_COSTS']:''?>" required>
                                         </div>
                                     </div>
                                     <div class="col-4">
                                         <?php if(in_array('Reports Create', $PERMISSION_ARRAY)){ ?>
-                                            <input type="submit" name="view" value="View" class="btn btn-info">
-                                            <input type="submit" name="export" value="Export" class="btn btn-info">
-                                            <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info">
-                                            <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info">
+                                            <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <!--<input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">-->
+                                            <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
                                         <?php } ?>
                                     </div>
-                                    <div class="col-4">
+                                    <!--<div class="col-4">
                                         <p id="last_export_message" style="color: red; margin-top: 9px;"></p>
-                                    </div>
+                                    </div>-->
                                 </div>
-                                <div class="row">
+                                <!--<div class="row">
                                     <div class="col-4" id="export_log">
                                     </div>
-                                </div>
+                                </div>-->
                             </form>
                         </div>
                     </div>

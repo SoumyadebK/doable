@@ -17,16 +17,6 @@ $PK_PACKAGE = $_GET['PK_PACKAGE'];
 $TRANSPORTATION_CHARGES = $_GET['TRANSPORTATION_CHARGES'];
 $PACKAGE_COSTS = $_GET['PACKAGE_COSTS'];
 
-$week_number = $_GET['week_number'];
-$YEAR = date('Y');
-
-$from_date = date('Y-m-d', strtotime($_GET['start_date']));
-$to_date = date('Y-m-d', strtotime($_GET['end_date']));
-
-$payment_date = "AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
-$enrollment_date = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
-$appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
-
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
@@ -112,13 +102,6 @@ foreach ($resultsArray as $key => $result) {
         $concatenatedResults .= ", ";
     }
 }
-
-$executive_data = $db_account->Execute("SELECT DISTINCT(ENROLLMENT_BY_ID) AS ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER > 0 $enrollment_date");
-$executive_id = [];
-while (!$executive_data->EOF) {
-    $executive_id[] = $executive_data->fields['ENROLLMENT_BY_ID'];
-    $executive_data->MoveNext();
-}
 ?>
 
 <!DOCTYPE html>
@@ -180,8 +163,8 @@ while (!$executive_data->EOF) {
                                         <tr>
                                             <th style="width:10%; text-align: center">Receipt No.</th>
                                             <th style="width:10%; text-align: center" >Date</th>
-                                            <th style="width:10%; text-align: center" >Name of Participant</th>
-                                            <th style="width:12%; text-align: center" >Teacher(s)</th>
+                                            <th style="width:20%; text-align: center" >Name of Participant</th>
+                                            <th style="width:20%; text-align: center" >Teacher(s)</th>
                                             <th style="width:10%; text-align: center" >Unique ID</th>
                                             <th style="width:10%; text-align: center" >Total Charges Due</th>
                                             <th style="width:10%; text-align: center" >Amount of Payment</th>
@@ -191,25 +174,44 @@ while (!$executive_data->EOF) {
                                         <tbody>
                                         <?php
                                         $i=1;
-                                        //$row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
-                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_DATE, ENROLLMENT_TYPE, FINAL_AMOUNT, TOTAL_AMOUNT_PAID, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER LEFT JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ".$enrollment_date);
+                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, TOTAL_AMOUNT, BALANCE_PAYABLE, PAYMENT_DATE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME_OF_PARTICIPANT, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, RECEIPT_NUMBER, AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_PACKAGE = ".$PK_PACKAGE. " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ORDER BY AMOUNT ");
                                         while (!$row->EOF) {
-                                            $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = ".$row->fields['ENROLLMENT_BY_ID']);
                                             $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                            $partner = $db_account->Execute("SELECT CONCAT(DOA_CUSTOMER_DETAILS.PARTNER_FIRST_NAME, ' ', DOA_CUSTOMER_DETAILS.PARTNER_LAST_NAME) AS PARTNER_NAME, ATTENDING_WITH FROM DOA_CUSTOMER_DETAILS WHERE PK_USER_MASTER = ".$row->fields['PK_USER_MASTER']);
+                                            if(($partner->fields['ATTENDING_WITH']) == 'With a Partner') {
+                                                $NAME = $row->fields['NAME_OF_PARTICIPANT'].' & '.$partner->fields['PARTNER_NAME'];
+                                            } else {
+                                                $NAME = $row->fields['NAME_OF_PARTICIPANT'];
+                                            }
+                                            $date = $row->fields['PAYMENT_DATE']; // Example date
+                                            $weekNumber = date("W", strtotime($date));
                                             ?>
                                             <tr>
+                                                <td style="text-align: center"><?=$row->fields['RECEIPT_NUMBER']?></td>
                                                 <td style="text-align: center"><?=date('m-d-Y', strtotime($row->fields['PAYMENT_DATE']))?></td>
-                                                <td style="text-align: right">$<?=$row->fields['AMOUNT']?></td>
-                                                <td style="text-align: left"><?=$row->fields['PAYMENT_INFO']?></td>
-                                                <td style="text-align: center"><?=$row->fields['PAYMENT_TYPE']?></td>
-                                                <td style="text-align: right"><?=$row->fields['RECEIPT_NUMBER']?></td>
-                                                <td style="text-align: left"><?=$row->fields['MEMO']?></td>
-                                                <td style="text-align: left"><?=$row->fields['CLIENT']?></td>
-                                                <td style="text-align: left"><?=$row->fields['ENROLLMENT_NAME']?></td>
+                                                <td style="text-align: center"><?=$NAME?></td>
+                                                <td style="text-align: center"><?=$service_provider->fields['TEACHER']?></td>
+                                                <td style="text-align: center"><?=$row->fields['PK_ENROLLMENT_MASTER']?></td>
+                                                <td style="text-align: center">$<?=$row->fields['BALANCE_PAYABLE']?></td>
+                                                <td style="text-align: center">$<?=number_format($row->fields['AMOUNT'], 2)?></td>
+                                                <td style="text-align: center">#<?=$weekNumber?></td>
                                             </tr>
                                             <?php $row->MoveNext();
                                             $i++; } ?>
                                         </tbody>
+                                        <?php
+                                        $row = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT) AS TOTAL, SUM(BALANCE_PAYABLE) AS BALANCE, SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_PACKAGE = ".$PK_PACKAGE. " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ORDER BY AMOUNT ");
+                                        ?>
+                                        <tr>
+                                            <th style="width:10%; text-align: center"></th>
+                                            <th style="width:10%; text-align: center" ></th>
+                                            <th style="width:20%; text-align: center" ></th>
+                                            <th style="width:20%; text-align: center" ></th>
+                                            <th style="width:10%; text-align: center" >Totals :</th>
+                                            <th style="width:10%; text-align: center" >$<?=number_format($row->fields['BALANCE'], 2)?></th>
+                                            <th style="width:10%; text-align: center" >$<?=number_format($row->fields['TOTAL_PAID_AMOUNT'], 2)?></th>
+                                            <th style="width:10%; text-align: center" ></th>
+                                        </tr>
                                     </table>
                                     <table id="myTable" class="table table-bordered" data-page-length='50'>
                                         <thead>
@@ -223,25 +225,17 @@ while (!$executive_data->EOF) {
                                         </thead>
                                         <tbody>
                                         <?php
-                                        $i=1;
-                                        //$row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
-                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_DATE, ENROLLMENT_TYPE, FINAL_AMOUNT, TOTAL_AMOUNT_PAID, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER LEFT JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ".$enrollment_date);
-                                        while (!$row->EOF) {
-                                            $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = ".$row->fields['ENROLLMENT_BY_ID']);
-                                            $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, SUM(TOTAL_AMOUNT) AS TOTAL FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_PACKAGE = ".$PK_PACKAGE. " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ");
+                                        $TOTAL_DEDUCTION = $PACKAGE_COSTS + $TRANSPORTATION_CHARGES;
+                                        $TOTAL_SUBJECT_TO_ROYALTY = $row->fields['TOTAL'] - $TOTAL_DEDUCTION;
                                             ?>
                                             <tr>
-                                                <td style="text-align: center"><?=date('m-d-Y', strtotime($row->fields['PAYMENT_DATE']))?></td>
-                                                <td style="text-align: right">$<?=$row->fields['AMOUNT']?></td>
-                                                <td style="text-align: left"><?=$row->fields['PAYMENT_INFO']?></td>
-                                                <td style="text-align: center"><?=$row->fields['PAYMENT_TYPE']?></td>
-                                                <td style="text-align: right"><?=$row->fields['RECEIPT_NUMBER']?></td>
-                                                <td style="text-align: left"><?=$row->fields['MEMO']?></td>
-                                                <td style="text-align: left"><?=$row->fields['CLIENT']?></td>
-                                                <td style="text-align: left"><?=$row->fields['ENROLLMENT_NAME']?></td>
+                                                <td style="text-align: center">$<?=number_format($row->fields['TOTAL'], 2)?></td>
+                                                <td style="text-align: center">$<?=number_format($TRANSPORTATION_CHARGES, 2)?></td>
+                                                <td style="text-align: center">$<?=number_format($PACKAGE_COSTS, 2)?></td>
+                                                <td style="text-align: center">$<?=number_format($TOTAL_DEDUCTION, 2)?></td>
+                                                <td style="text-align: center">$<?=number_format($TOTAL_SUBJECT_TO_ROYALTY, 2)?></td>
                                             </tr>
-                                            <?php $row->MoveNext();
-                                            $i++; } ?>
                                         </tbody>
                                     </table>
                                 </div>
