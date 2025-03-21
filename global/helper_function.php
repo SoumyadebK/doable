@@ -617,8 +617,10 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
         $enrollmentServiceData->MoveNext();
     }
 
-    $ledger_details = $db_account->Execute("SELECT PK_ENROLLMENT_LEDGER FROM `DOA_ENROLLMENT_LEDGER` WHERE (DOA_ENROLLMENT_LEDGER.IS_PAID = 0 OR DOA_ENROLLMENT_LEDGER.IS_PAID = 2) AND PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
-    $paid_count = ($ledger_details->RecordCount() > 0) ? 1 : 0;
+    $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE TYPE = 'Payment' AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+
+    $paid_count = (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) ? 0 : 1;
 
     $enr_data = $db_account->Execute("SELECT STATUS, CHARGE_TYPE FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
     if (($enr_data->fields['STATUS'] == 'C' || $enr_data->fields['STATUS'] == 'CA') && $enr_data->fields['CHARGE_TYPE'] != 'Membership') {
