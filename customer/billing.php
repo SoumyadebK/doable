@@ -238,7 +238,7 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
                 <div class="col-md-7 align-self-center">
-                    <ul class="nav nav-tabs" role="tablist" style="width: 34%">
+                    <ul class="nav nav-pills" role="tablist">
                             <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
                             <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
                     </ul>
