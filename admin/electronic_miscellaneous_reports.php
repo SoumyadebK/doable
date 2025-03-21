@@ -117,7 +117,7 @@ if (!empty($_GET['NAME'])) {
                                     <div class="col-2">
                                         <div class="form-group">
                                             <label for="PACKAGE_COSTS">Package Costs : $</label>
-                                            <input type="text" id="PACKAGE_COSTS" name="PACKAGE_COSTS" class="form-control" placeholder="" value="<?=!empty($_GET['PACKAGE_COSTS'])?$_GET['PACKAGE_COSTS']:''?>" required>
+                                            <input style="margin-left: -50px" type="text" id="PACKAGE_COSTS" name="PACKAGE_COSTS" class="form-control" placeholder="" value="<?=!empty($_GET['PACKAGE_COSTS'])?$_GET['PACKAGE_COSTS']:''?>" required>
                                         </div>
                                     </div>
                                     <div class="col-4">

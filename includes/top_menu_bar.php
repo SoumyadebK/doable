@@ -194,37 +194,37 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
 
                     <?php if($_SESSION['PK_ROLES'] == 4) { ?>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/all_schedules.php" aria-expanded="false">
+                            <a class="nav-link <?=(('all_schedules.php' === $current_address)?'active':'')?>" href="../customer/all_schedules.php" aria-expanded="false">
                                 <i class="icon-calender"></i>
                                 <span class="hide-menu">Calendar</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/appointment_list.php" aria-expanded="false">
+                            <a class="nav-link <?=(('appointment_list.php' === $current_address)?'active':'')?>" href="../customer/appointment_list.php" aria-expanded="false">
                                 <i class="icon-list"></i>
                                 <span class="hide-menu">Appointments</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/all_products.php" aria-expanded="false">
+                            <a class="nav-link <?=(('all_products.php' === $current_address)?'active':'')?>" href="../customer/all_products.php" aria-expanded="false">
                                 <b class="icons-Add-Cart"></b>
                                 <span class="hide-menu">Shop</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/all_gift_certificates.php" aria-expanded="false">
+                            <a class="nav-link <?=(('all_gift_certificates.php' === $current_address)?'active':'')?>" href="../customer/all_gift_certificates.php" aria-expanded="false">
                                 <i class="icons-Gift-Box"></i>
                                 <span class="hide-menu">Gift Cards</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/billing.php" aria-expanded="false">
-                                <i class="icons-Receipt-2"></i>
-                                <span class="hide-menu">Billing</span>
+                            <a class="nav-link <?=(('billing.php' === $current_address)?'active':'')?>" href="../customer/billing.php" aria-expanded="false">
+                                <i class="icon-note"></i>
+                                <span class="hide-menu">Enrollment</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/accounts.php" aria-expanded="false">
+                            <a class="nav-link <?=(('accounts.php' === $current_address)?'active':'')?>" href="../customer/accounts.php" aria-expanded="false">
                                 <i class="icons-Receipt"></i>
                                 <span class="hide-menu">Accounts</span>
                             </a>

@@ -192,7 +192,7 @@ foreach ($resultsArray as $key => $result) {
                                                 <td style="text-align: center"><?=$NAME?></td>
                                                 <td style="text-align: center"><?=$service_provider->fields['TEACHER']?></td>
                                                 <td style="text-align: center"><?=$row->fields['PK_ENROLLMENT_MASTER']?></td>
-                                                <td style="text-align: center">$<?=$row->fields['BALANCE_PAYABLE']?></td>
+                                                <td style="text-align: center">$<?=$row->fields['TOTAL_AMOUNT']?></td>
                                                 <td style="text-align: center">$<?=number_format($row->fields['AMOUNT'], 2)?></td>
                                                 <td style="text-align: center">#<?=$weekNumber?></td>
                                             </tr>
@@ -200,7 +200,7 @@ foreach ($resultsArray as $key => $result) {
                                             $i++; } ?>
                                         </tbody>
                                         <?php
-                                        $row = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT) AS TOTAL, SUM(BALANCE_PAYABLE) AS BALANCE, SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_PACKAGE = ".$PK_PACKAGE. " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ORDER BY AMOUNT ");
+                                        $row = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT) AS TOTAL, SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_PACKAGE = ".$PK_PACKAGE. " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ORDER BY AMOUNT ");
                                         ?>
                                         <tr>
                                             <th style="width:10%; text-align: center"></th>
@@ -208,7 +208,7 @@ foreach ($resultsArray as $key => $result) {
                                             <th style="width:20%; text-align: center" ></th>
                                             <th style="width:20%; text-align: center" ></th>
                                             <th style="width:10%; text-align: center" >Totals :</th>
-                                            <th style="width:10%; text-align: center" >$<?=number_format($row->fields['BALANCE'], 2)?></th>
+                                            <th style="width:10%; text-align: center" >$<?=number_format($row->fields['TOTAL'], 2)?></th>
                                             <th style="width:10%; text-align: center" >$<?=number_format($row->fields['TOTAL_PAID_AMOUNT'], 2)?></th>
                                             <th style="width:10%; text-align: center" ></th>
                                         </tr>
