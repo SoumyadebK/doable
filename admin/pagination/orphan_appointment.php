@@ -61,9 +61,9 @@ $page_first_result = ($page-1) * $orphan_results_per_page;
 $orphan_appointment_data = $db_account->Execute($ORPHAN_APPOINTMENT_QUERY, $page_first_result . ',' . $orphan_results_per_page);
 if ($orphan_appointment_data->RecordCount() > 0) {
 ?>
-<h5>List of Orphan Appointments</h5>
+<h5>List of Orphan Appointments (<?=$number_of_result?>)</h5>
 <table id="myTable" class="table table-striped border" data-page-length='50'>
-    <thead>
+    <thead style="cursor:pointer;" onclick="$(this).next().slideToggle();">
         <tr>
             <th data-type="number" style="cursor: pointer">No</i></th>
             <th data-type="string" style="cursor: pointer">Customer</th>
@@ -78,7 +78,7 @@ if ($orphan_appointment_data->RecordCount() > 0) {
         </tr>
     </thead>
 
-    <tbody>
+    <tbody style="display: none">
     <?php
     $i=$orphan_appointment_data->RecordCount();
     while (!$orphan_appointment_data->EOF) { ?>

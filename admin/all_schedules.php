@@ -233,7 +233,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
 
             $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
             $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$customer_to_add[$j]);
-            $details = '('.$user_data->fields['NAME'].' is Added By '.$_SESSION['FIRST_NAME'].' '.$_SESSION['LAST_NAME'].' at '.date("m/d/Y h:i A").')';
+            $details = '('.$user_data->fields['NAME'].' Added By '.$_SESSION['FIRST_NAME'].' '.$_SESSION['LAST_NAME'].' at '.date("m/d/Y h:i A").')';
             $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
             db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
 
@@ -248,7 +248,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
 
             $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
             $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$customer_to_remove[$j]);
-            $details = '('.$user_data->fields['NAME'].' is Removed By '.$_SESSION['FIRST_NAME'].' '.$_SESSION['LAST_NAME'].' at '.date("m/d/Y h:i A").')';
+            $details = '('.$user_data->fields['NAME'].' Removed By '.$_SESSION['FIRST_NAME'].' '.$_SESSION['LAST_NAME'].' at '.date("m/d/Y h:i A").')';
             $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
             db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
         }
@@ -261,7 +261,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
 
             $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
             $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = ".$partner_to_add[$j]);
-            $details = '('.$partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'].' is Added By '.$_SESSION['FIRST_NAME'].' '.$_SESSION['LAST_NAME'].' at '.date("m/d/Y h:i A").')';
+            $details = '('.$partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'].' Added By '.$_SESSION['FIRST_NAME'].' '.$_SESSION['LAST_NAME'].' at '.date("m/d/Y h:i A").')';
             $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
             db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
 
@@ -276,7 +276,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
 
             $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
             $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = ".$partner_to_remove[$j]);
-            $details = '('.$partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'].' is Removed By '.$_SESSION['FIRST_NAME'].' '.$_SESSION['LAST_NAME'].' at '.date("m/d/Y h:i A").')';
+            $details = '('.$partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'].' Removed By '.$_SESSION['FIRST_NAME'].' '.$_SESSION['LAST_NAME'].' at '.date("m/d/Y h:i A").')';
             $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
             db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
         }
