@@ -212,7 +212,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         db_perform_account('DOA_APPOINTMENT_MASTER', $GROUP_CLASS_DATA, 'update', " PK_APPOINTMENT_MASTER =  '$PK_APPOINTMENT_MASTER'");
     }
 
-    if (isset($_POST['PK_USER_MASTER']) || isset($_POST['PARTNER'])) {
+    //if (isset($_POST['PK_USER_MASTER']) || isset($_POST['PARTNER'])) {
         $existing_customer = (!empty($_POST['EXISTING_CUSTOMER'])) ? explode(',', $_POST['EXISTING_CUSTOMER']) : [];
         $existing_partner = (!empty($_POST['EXISTING_PARTNER'])) ? explode(',', $_POST['EXISTING_PARTNER']) : [];
 
@@ -280,7 +280,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
             $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
             db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
         }
-    }
+    //}
 
     $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
     if (isset($_POST['SERVICE_PROVIDER_ID'])) {
