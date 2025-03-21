@@ -197,7 +197,7 @@ while (!$serviceCodeData->EOF) {
     $cancelled_enrollment_ledger = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER." AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = -1");
     while (!$cancelled_enrollment_ledger->EOF) {
         ?>
-        <tr style="color: <?=(($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Balance Owed') ? 'red' : ''))?>;">
+        <tr style="color: <?=(($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Cancelled' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Balance Owed') ? 'red' : ''))?>;">
             <td style="text-align: center;"><?=date('m/d/Y', strtotime($cancelled_enrollment_ledger->fields['DUE_DATE']))?></td>
             <td style="text-align: center;">Canceled<?php /*=$cancelled_enrollment_ledger->fields['TRANSACTION_TYPE']*/?></td>
             <td style="text-align: right;"><?=$cancelled_enrollment_ledger->fields['BILLED_AMOUNT']?></td>

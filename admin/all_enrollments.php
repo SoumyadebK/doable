@@ -94,6 +94,7 @@ if (isset($_POST['SUBMIT'])){
     } else {
         $UPDATE_DATA['STATUS'] = 'CA';
     }
+
     $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
 
     $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
@@ -113,7 +114,7 @@ if (isset($_POST['SUBMIT'])){
         } else {
             $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getPaidSessionCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
         }
-        if ($TOTAL_POSITIVE_BALANCE > 0) {
+        if ($TOTAL_POSITIVE_BALANCE >= 0) {
             $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'] = $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] * $enr_service_data->fields['PRICE_PER_SESSION'];
         }
         $ENR_SERVICE_UPDATE['FINAL_AMOUNT'] = $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'];
@@ -148,8 +149,8 @@ if (isset($_POST['SUBMIT'])){
         $LEDGER_DATA_BILLING['BALANCE'] = abs($TOTAL_NEGATIVE_BALANCE);
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_BILLING, 'insert');
         $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
-    } elseif ($TOTAL_POSITIVE_BALANCE > 0) {
-        $LEDGER_DATA['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund';
+    } elseif ($TOTAL_POSITIVE_BALANCE >= 0) {
+        $LEDGER_DATA['TRANSACTION_TYPE'] = (($TOTAL_POSITIVE_BALANCE == 0) ? 'Cancelled' : (($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund'));
         $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = -1;
         $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
         $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
@@ -164,7 +165,7 @@ if (isset($_POST['SUBMIT'])){
     }
 
     $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
-    if ($TOTAL_POSITIVE_BALANCE > 0) {
+    if ($TOTAL_POSITIVE_BALANCE >= 0) {
         /*$wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
         if ($wallet_data->RecordCount() > 0) {
             $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
@@ -239,19 +240,21 @@ if (isset($_POST['SUBMIT'])){
                 db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
             }
 
-            $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-            $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
-            $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE_REFUND;
-            $PAYMENT_DATA['AMOUNT'] = $TOTAL_POSITIVE_BALANCE;
-            $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
-            $PAYMENT_DATA['TYPE'] = 'Refund';
-            $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
-            $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-            $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-            $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
-            $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
-            $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
-            db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+            if ($TOTAL_POSITIVE_BALANCE > 0) {
+                $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+                $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE_REFUND;
+                $PAYMENT_DATA['AMOUNT'] = $TOTAL_POSITIVE_BALANCE;
+                $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
+                $PAYMENT_DATA['TYPE'] = 'Refund';
+                $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+                $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+                $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+                $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+                $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
+                db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+            }
         }
     }
 
@@ -565,8 +568,8 @@ if (isset($_POST['SUBMIT'])){
                                     </div>
                                 </div>
 
-                                <input type="submit" name="SUBMIT" value="Cancel and Store Info only" style="float: right; margin-left: 8px; background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;"/>
-                                <input type="submit" name="SUBMIT" value="Submit" style="float: right; margin-left: 8px; background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;"/>
+                                <input type="submit" name="SUBMIT" value="Cancel and Store Info only" style="float: right; margin-left: 8px; background-color: #39B54A !important; border-color: #39B54A !important; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;"/>
+                                <input type="submit" name="SUBMIT" value="Submit" style="float: right; margin-left: 8px; background-color: #39B54A !important; border-color: #39B54A !important; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;"/>
                                 <a href="javascript:" style="float: right; background-color: #39B54A; border-color: #39B54A; padding: 7px 10px; color: white; font-size: 15px; border-radius: 5px;" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
                             </div>
 
