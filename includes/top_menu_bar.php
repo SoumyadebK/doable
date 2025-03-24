@@ -220,7 +220,7 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
                         <li>
                             <a class="nav-link <?=(('billing.php' === $current_address)?'active':'')?>" href="../customer/billing.php" aria-expanded="false">
                                 <i class="icon-note"></i>
-                                <span class="hide-menu">Enrollment</span>
+                                <span class="hide-menu">Enrollments</span>
                             </a>
                         </li>
                         <li>
