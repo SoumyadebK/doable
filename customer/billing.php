@@ -15,7 +15,7 @@ use Mpdf\Mpdf;
 use Stripe\Exception\ApiErrorException;
 use Stripe\StripeClient;
 
-$title = "Enrollment";
+$title = "Enrollments";
 
 $user_master_data = $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER_MASTER = ".$_SESSION['PK_USER_MASTER']);
 $PK_USER = $user_master_data->fields['PK_USER'];
