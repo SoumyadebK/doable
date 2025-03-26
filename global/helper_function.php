@@ -627,6 +627,7 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
         if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0)) {
             $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
             $ENR_UPDATE_DATA['STATUS'] = 'C';
+            $ENR_UPDATE_DATA['IS_SALE'] = NULL;
         } elseif ($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) {
             $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
             $ENR_UPDATE_DATA['STATUS'] = 'CA';
@@ -641,6 +642,7 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
         if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0)) {
             $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
             $ENR_UPDATE_DATA['STATUS'] = 'CO';
+            $ENR_UPDATE_DATA['IS_SALE'] = 'N';
         } elseif ($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) {
             $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
             $ENR_UPDATE_DATA['STATUS'] = 'A';

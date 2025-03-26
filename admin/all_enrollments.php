@@ -238,6 +238,9 @@ if (isset($_POST['SUBMIT'])){
                 $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                 db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+            } elseif ($PK_PAYMENT_TYPE_REFUND == 2) {
+                $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['REFUND_CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['REFUND_CHECK_DATE']))];
+                $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
             }
 
             if ($TOTAL_POSITIVE_BALANCE > 0) {
@@ -552,7 +555,7 @@ if (isset($_POST['SUBMIT'])){
                                 <div class="form-group credit_balance_div" style="display: none;">
                                     <label class="form-label">Refund Method?</label>
                                     <div class="col-md-8">
-                                        <select class="form-control" name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND">
+                                        <select class="form-control" name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND" onchange="selectRefundType(this)">
                                             <option value="">Select</option>
                                             <?php
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
@@ -565,6 +568,25 @@ if (isset($_POST['SUBMIT'])){
                                 <div class="form-group credit_balance_div" style="display: none;">
                                     <div class="row">
                                         <b>Note: Credit balance $<span id="total_credit_balance"></span> will be moved  to Wallet.</b>
+                                    </div>
+                                </div>
+
+                                <div class="row" id="check_payment" style="display: none;">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Check Number</label>
+                                            <div class="col-md-12">
+                                                <input type="text" name="REFUND_CHECK_NUMBER" id="REFUND_CHECK_NUMBER" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Check Date</label>
+                                            <div class="col-md-12">
+                                                <input type="text" name="REFUND_CHECK_DATE" id="REFUND_CHECK_DATE" class="form-control datepicker-normal">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -588,6 +610,10 @@ if (isset($_POST['SUBMIT'])){
 <?php require_once('../includes/footer.php');?>
 
 <script>
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+    });
+
     function ConfirmDelete(PK_ENROLLMENT_MASTER)
     {
         var conf = confirm("Are you sure you want to delete?");
@@ -628,6 +654,15 @@ if (isset($_POST['SUBMIT'])){
         $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
         $('.PK_USER_MASTER').val(PK_USER_MASTER);
         $('#enrollment_cancel_modal').modal('show');
+    }
+
+    function selectRefundType(param) {
+        let paymentType = parseInt($(param).val());
+        if (paymentType === 2) {
+            $(param).closest('.modal-body').find('#check_payment').slideDown();
+        } else {
+            $(param).closest('.modal-body').find('#check_payment').slideUp();
+        }
     }
 
     function showEnrollmentServiceDetails() {
