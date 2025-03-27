@@ -177,7 +177,7 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
                             </a>
                         </li>
                         <li class="<?=(('setup.php' === $current_address)?'active':'')?>">
-                            <a class="nav-link <?=(('setup.php' === $current_address)?'active':'')?>" href="../admin/setup.php" aria-expanded="false">
+                            <a class="nav-link <?=(('setup.php' === $current_address || $current_address == "business_profile.php" || $current_address == "settings.php" || $current_address == "all_locations.php" || $current_address == "all_users.php" || $current_address == "deleted_customer.php" || $current_address == "all_service_codes.php" || $current_address == "all_packages.php" || $current_address == "all_scheduling_codes.php" || $current_address == "all_document_library.php" || $current_address == "all_interests.php" || $current_address == "all_skill_levels.php" || $current_address == "all_gift_certificates.php" || $current_address == "all_gift_certificate_setup.php" || $current_address == "all_event_types.php" || $current_address == "all_inquiry_methods.php" || $current_address == "all_email_accounts.php" || $current_address == "all_email_templates.php" || $current_address == "all_text_templates.php" || $current_address == "test_chat_gpt.php" || $current_address == "data_uploader.php" || $current_address == "all_products.php" || $current_address == "all_orders.php" || $current_address == "order_details.php")?'active':'')?>" href="../admin/setup.php" aria-expanded="false">
                                 <i class="ti-settings"></i>
                                 <span class="hide-menu">Setup</span>
                             </a>
