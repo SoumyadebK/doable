@@ -368,6 +368,7 @@ function saveEnrollmentData($RESPONSE_DATA){
             $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
         }
 
+        $ENROLLMENT_MASTER_DATA['IS_SALE'] = 'Y';
         $ENROLLMENT_MASTER_DATA['ACTIVE'] = 1;
         $ENROLLMENT_MASTER_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $ENROLLMENT_MASTER_DATA['CREATED_ON']  = date("Y-m-d H:i");

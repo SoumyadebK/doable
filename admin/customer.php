@@ -2043,7 +2043,7 @@ if ($PK_USER_MASTER > 0) {
         </div>
     </div>
 
-<!--Confirm Model-->
+<!--Refund Model-->
 <div class="modal fade" id="refund_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog" style="max-width: 450px;">
         <div class="modal-content">
