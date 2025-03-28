@@ -706,6 +706,7 @@ function generatePdf($html): string
 
     if (!file_exists('../../'.$upload_path.'/enrollment_pdf/')) {
         mkdir('../../'.$upload_path.'/enrollment_pdf/', 0777, true);
+        chmod('../../'.$upload_path.'/enrollment_pdf/', 0777);
     }
 
     $file_name = "enrollment_pdf_".time().".pdf";
@@ -797,6 +798,7 @@ function saveProfileData($RESPONSE_DATA){
     if($_FILES['USER_IMAGE']['name'] != ''){
         if (!file_exists('../../'.$upload_path.'/user_image/')) {
             mkdir('../../'.$upload_path.'/user_image/', 0777, true);
+            chmod('../../'.$upload_path.'/user_image/', 0777);
         }
 
         $extn 			= explode(".",$_FILES['USER_IMAGE']['name']);
@@ -1149,6 +1151,7 @@ function saveDocumentData($RESPONSE_DATA)
     if (isset($RESPONSE_DATA['DOCUMENT_NAME'])){
         if (!file_exists('../../'.$upload_path.'/user_doc/')) {
             mkdir('../../'.$upload_path.'/user_doc/', 0777, true);
+            chmod('../../'.$upload_path.'/user_doc/', 0777);
         }
 
         $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
@@ -1183,6 +1186,7 @@ function saveUserDocumentData($RESPONSE_DATA)
     if (isset($RESPONSE_DATA['DOCUMENT_NAME'])){
         if (!file_exists('../../'.$upload_path.'/user_doc/')) {
             mkdir('../../'.$upload_path.'/user_doc/', 0777, true);
+            chmod('../../'.$upload_path.'/user_doc/', 0777);
         }
 
         $db_account->Execute("DELETE FROM `DOA_USER_DOCUMENT` WHERE `PK_USER` = '$RESPONSE_DATA[PK_USER]'");

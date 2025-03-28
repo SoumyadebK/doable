@@ -37,6 +37,7 @@ if ($APPOINTMENT_TYPE == 'GROUP') {
     if (isset($_FILES['IMAGE']['name']) && $_FILES['IMAGE']['name'] != '') {
         if (!file_exists('../../'.$upload_path.'/appointment_image/')) {
             mkdir('../../'.$upload_path.'/appointment_image/', 0777, true);
+            chmod('../../'.$upload_path.'/appointment_image/', 0777);
         }
 
         $extn = explode(".", $_FILES['IMAGE']['name']);
@@ -56,6 +57,7 @@ if ($APPOINTMENT_TYPE == 'GROUP') {
     if (isset($_FILES['VIDEO']['name']) && $_FILES['VIDEO']['name'] != '') {
         if (!file_exists('../../'.$upload_path.'/appointment_video/')) {
             mkdir('../../'.$upload_path.'/appointment_video/', 0777, true);
+            chmod('../../'.$upload_path.'/appointment_video/', 0777);
         }
 
         $extn = explode(".", $_FILES['VIDEO']['name']);

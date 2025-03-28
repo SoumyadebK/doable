@@ -499,14 +499,14 @@ if (isset($_POST['SUBMIT'])){
                                 <div class="form-group">
                                     <div class="row">
                                         <div class="col-md-8">
-                                            <label>Cancel All Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="1" checked/></label>
+                                            <label>Cancel All Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_1" value="1" checked/></label>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <div class="row">
                                         <div class="col-md-8">
-                                            <label>Cancel Only Unpaid Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="2"/></label>
+                                            <label>Cancel Only Unpaid Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_2" value="2"/></label>
                                         </div>
                                     </div>
                                 </div>
@@ -526,7 +526,7 @@ if (isset($_POST['SUBMIT'])){
                                     </div>
                                 </div>
                                 <a href="javascript:" class="btn btn-info waves-effect waves-light m-l-10 text-white next" style="float: right;" onclick="$('#step_2').hide();$('#step_3').show();showEnrollmentServiceDetails();">Continue</a>
-                                <a href="javascript:" class="btn btn-info waves-effect waves-light text-white prev" style="float: right;" onclick="$('#step_2').hide();$('#step_1').show();">Go Back</a>
+                                <a href="javascript:" class="btn btn-info waves-effect waves-light text-white prev" style="*float: right;" onclick="$('#step_2').hide();$('#step_1').show();">Go Back</a>
                             </div>
 
                             <div id="step_3" style="display: none;">
@@ -592,7 +592,7 @@ if (isset($_POST['SUBMIT'])){
 
                                 <input type="submit" name="SUBMIT" value="Cancel and Store Info only" style="float: right; margin-left: 8px; background-color: #39B54A !important; border-color: #39B54A !important; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;"/>
                                 <input type="submit" name="SUBMIT" value="Submit" style="float: right; margin-left: 8px; background-color: #39B54A !important; border-color: #39B54A !important; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;"/>
-                                <a href="javascript:" style="float: right; background-color: #39B54A; border-color: #39B54A; padding: 7px 10px; color: white; font-size: 15px; border-radius: 5px;" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
+                                <a href="javascript:" class="btn btn-info waves-effect waves-light text-white" style="*float: right;" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
                             </div>
 
                         </div>
@@ -653,6 +653,11 @@ if (isset($_POST['SUBMIT'])){
     function cancelEnrollment(PK_ENROLLMENT_MASTER, PK_USER_MASTER) {
         $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
         $('.PK_USER_MASTER').val(PK_USER_MASTER);
+        $('#CANCEL_FUTURE_APPOINTMENT_2').prop('checked', false);
+        $('#CANCEL_FUTURE_APPOINTMENT_1').prop('checked', true);
+        $('#step_3').hide();
+        $('#step_2').hide();
+        $('#step_1').show();
         $('#enrollment_cancel_modal').modal('show');
     }
 

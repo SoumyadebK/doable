@@ -305,8 +305,6 @@ if ($PK_USER_MASTER > 0) {
 
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
 <style>
 #paymentModel {
 z-index: 500;
@@ -640,7 +638,7 @@ z-index: 500;
                     <?php if ($SERVICE_NAME != 'For records only') { ?>
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="form-label">Comments (Visual for client)</label>
+                                <label class="form-label" style="color: red;">Comments (Visual for client)</label>
                                 <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
                             </div>
                         </div>
@@ -2983,6 +2981,3 @@ z-index: 500;
         openPaymentModel();
     }
 </script>
-
-</body>
-</html>
