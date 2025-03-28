@@ -470,8 +470,17 @@ else if ($SQUARE_MODE == 2)
                     $('#enr-payment-btn').prop('disabled', false);
                 } else {
                     $('#payment_status').html(`<p class="alert alert-success">Payment Successful, Page will refresh automatically.</p>`);
+
                     setTimeout(function() {
-                        location.reload();
+                        let header = '<?=$header?>';
+                        if (header) {
+                            window.location.href = header;
+                        } else {
+                            let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
+                            let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+                            window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
+                        }
+                        //location.reload();
                     }, 3000);
                 }
                 console.log(data);

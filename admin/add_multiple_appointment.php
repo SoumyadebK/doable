@@ -100,6 +100,7 @@ if (isset($_POST['FUNCTION_NAME'])){
     }else{
         if (!file_exists('../'.$upload_path.'/appointment_image/')) {
             mkdir('../'.$upload_path.'/appointment_image/', 0777, true);
+            chmod('../'.$upload_path.'/appointment_image/', 0777);
         }
         //$_POST['ACTIVE'] = $_POST['ACTIVE'];
         if($_FILES['IMAGE']['name'] != ''){

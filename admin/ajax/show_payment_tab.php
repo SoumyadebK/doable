@@ -135,7 +135,7 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
             </div>
             <div class="col-1">
                 <div class="form-group">
-                    <input type="text" class="form-control PRICE_PER_SESSION" value="<?=$enrollment_service_data->fields['PRICE_PER_SESSION']?>" disabled>
+                    <input type="text" class="form-control PRICE_PER_SESSION" value="<?=($enrollment_service_data->fields['TOTAL']/$enrollment_service_data->fields['NUMBER_OF_SESSION'])?>" disabled>
                 </div>
             </div>
             <div class="col-1">

@@ -160,6 +160,7 @@ if(!empty($_POST)){
         if ($_FILES['IMAGE_PATH']['name'] != '') {
             if (!file_exists('../'.$upload_path.'/location_image/')) {
                 mkdir('../'.$upload_path.'/location_image/', 0777, true);
+                chmod('../'.$upload_path.'/location_image/', 0777);
             }
 
             $extn = explode(".", $_FILES['IMAGE_PATH']['name']);

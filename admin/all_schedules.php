@@ -44,6 +44,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAdhocAppo
     }else{
         if (!file_exists('../'.$upload_path.'/appointment_image/')) {
             mkdir('../'.$upload_path.'/appointment_image/', 0777, true);
+            chmod('../'.$upload_path.'/appointment_image/', 0777);
         }
         //$_POST['ACTIVE'] = $_POST['ACTIVE'];
         if($_FILES['IMAGE']['name'] != ''){
@@ -171,6 +172,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
 
     if (!file_exists('../'.$upload_path.'/appointment_image/')) {
         mkdir('../'.$upload_path.'/appointment_image/', 0777, true);
+        chmod('../'.$upload_path.'/appointment_image/', 0777);
     }
     if($_FILES['IMAGE']['name'] != ''){
         $extn 			= explode(".",$_FILES['IMAGE']['name']);
@@ -188,6 +190,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
 
     if (!file_exists('../'.$upload_path.'/appointment_video/')) {
         mkdir('../'.$upload_path.'/appointment_video/', 0777, true);
+        chmod('../'.$upload_path.'/appointment_video/', 0777);
     }
     if($_FILES['VIDEO']['name'] != ''){
         $extn 			= explode(".",$_FILES['VIDEO']['name']);
@@ -348,6 +351,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData
 
         if (!file_exists('../'.$upload_path.'/event_image/')) {
             mkdir('../'.$upload_path.'/event_image/', 0777, true);
+            chmod('../'.$upload_path.'/event_image/', 0777);
         }
 
         $db_account->Execute("DELETE FROM `DOA_EVENT_IMAGE` WHERE `PK_EVENT` = '$PK_EVENT'");

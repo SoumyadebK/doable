@@ -6,9 +6,21 @@
   <component name="ChangeListManager">
     <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_document_library.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_document_library.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/user.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/user.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/super_admin/includes/create_database.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/includes/create_database.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/add_multiple_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/add_multiple_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/show_payment_tab.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/show_payment_tab.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/enrollment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/includes/enrollment_payment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/enrollment_payment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/includes/update_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/update_appointment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/location.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/location.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/my_profile.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/my_profile.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/product.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/product.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/service.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/service.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/wizard_location.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/wizard_location.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/ajax/AjaxFunctions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/login.php" beforeDir="false" afterPath="$PROJECT_DIR$/login.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service_provider/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/service_provider/all_schedules.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -214,6 +226,7 @@
       <workItem from="1742916044609" duration="277000" />
       <workItem from="1742995109260" duration="6199000" />
       <workItem from="1743058957766" duration="3302000" />
+      <workItem from="1743144401142" duration="4208000" />
     </task>
     <servers />
   </component>
