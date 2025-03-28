@@ -305,8 +305,6 @@ if ($PK_USER_MASTER > 0) {
 
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
 <style>
 #paymentModel {
 z-index: 500;
@@ -2983,6 +2981,3 @@ z-index: 500;
         openPaymentModel();
     }
 </script>
-
-</body>
-</html>
