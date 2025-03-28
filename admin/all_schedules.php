@@ -44,6 +44,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAdhocAppo
     }else{
         if (!file_exists('../'.$upload_path.'/appointment_image/')) {
             mkdir('../'.$upload_path.'/appointment_image/', 0777, true);
+            chmod('../'.$upload_path.'/appointment_image/', 0777);
         }
         //$_POST['ACTIVE'] = $_POST['ACTIVE'];
         if($_FILES['IMAGE']['name'] != ''){
@@ -171,6 +172,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
 
     if (!file_exists('../'.$upload_path.'/appointment_image/')) {
         mkdir('../'.$upload_path.'/appointment_image/', 0777, true);
+        chmod('../'.$upload_path.'/appointment_image/', 0777);
     }
     if($_FILES['IMAGE']['name'] != ''){
         $extn 			= explode(".",$_FILES['IMAGE']['name']);
@@ -188,6 +190,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
 
     if (!file_exists('../'.$upload_path.'/appointment_video/')) {
         mkdir('../'.$upload_path.'/appointment_video/', 0777, true);
+        chmod('../'.$upload_path.'/appointment_video/', 0777);
     }
     if($_FILES['VIDEO']['name'] != ''){
         $extn 			= explode(".",$_FILES['VIDEO']['name']);
@@ -348,6 +351,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData
 
         if (!file_exists('../'.$upload_path.'/event_image/')) {
             mkdir('../'.$upload_path.'/event_image/', 0777, true);
+            chmod('../'.$upload_path.'/event_image/', 0777);
         }
 
         $db_account->Execute("DELETE FROM `DOA_EVENT_IMAGE` WHERE `PK_EVENT` = '$PK_EVENT'");
@@ -504,9 +508,9 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                         <div class="card-body">
                             <form id="search_form" class="form-material form-horizontal" action="" method="get" style="margin-bottom: -30px;">
                                 <div class="col-12 row m-10">
-                                    <div class="col-2">
-                                        <h5 class="card-title"><?=$title?></h5>
-                                    </div>
+                                    <!--<div class="col-2">
+                                        <h5 class="card-title"><?php /*=$title*/?></h5>
+                                    </div>-->
                                     <div class="col-2" >
                                         <div class="form-material form-horizontal">
                                             <select class="form-control" name="STATUS_CODE" id="STATUS_CODE" onchange="$('#search_form').submit();">
@@ -519,21 +523,21 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-5">
                                         <div class="input-group">
                                             <input type="hidden" id="IS_SELECTED" value="0">
-                                            <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
-                                            <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" multiple>
+                                            <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" style="width: 100px;" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
+                                            <select  style="width: 200px;" class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" multiple>
                                                 <?php
                                                 $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
                                                 while (!$row->EOF) { ?>
                                                     <option value="<?=$row->fields['PK_USER']?>" <?=(!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers)))?"selected":""?>><?=$row->fields['NAME']?></option>
                                                 <?php $row->MoveNext(); } ?>
                                             </select>
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="margin-left: 2px; height: 33px"><i class="fa fa-search"></i></button>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="margin-left: -47px; height: 33px"><i class="fa fa-search"></i></button>
                                         </div>
                                     </div>
-                                    <div class="col-2" >
+                                    <div class="col-3">
                                         <div class="form-material form-horizontal">
                                             <select class="form-control" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();">
                                                 <option value="">Select Appointment Type</option>
