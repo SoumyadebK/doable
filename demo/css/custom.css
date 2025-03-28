@@ -46,7 +46,7 @@
 background-color: #65bb46 !important;
 color: #fff !important;
 padding: 10px 36px !important;
-font-size: 16px !important;
+font-size: 18px !important;
 }
 .theme_doable_btn:hover {
 	background-color: #3a6d28 !important;
@@ -133,8 +133,24 @@ color: #65bb46 !important;
 		padding: 10px 0;
 	}
 	.payment-image-section img {
-		width: 130px;
+		width: 150px;
 		margin: 0 10px;
+	}
+	.coming-soon-section {
+		display: flex;
+    justify-content: start;
+    background: rgba(152, 194, 64, .4);
+    margin-top: 20px;
+    padding: 10px 95px;
+    align-items: center;
+	}
+	.coming-soon-section h3 {
+		margin-right: 10px;
+	}
+	.coming-soon-section img {
+		width: 150px;
+		margin-right: 20px;
+		height: max-content;
 	}
 	.technology-section .ce-feature-box-15:hover .icon span {
 		color: #fff !important;
@@ -151,4 +167,39 @@ color: #65bb46 !important;
 	}
 	.font-55 {
 		font-size: 55px;
+	}
+	.text-black {
+		color: #000 !important;
+	}
+	.login-doable-btn {
+		position: absolute !important;
+		top: 40px;
+		right: 0;
+	}
+	.login-doable-btn .theme_doable_btn {
+		background-color: #65bb46 !important;
+		color: #fff !important;
+		padding: 10px 36px !important;
+		font-size: 16px !important;
+		border-radius: 20px;
+		text-transform: capitalize;
+	}
+	.login-doable-btn .theme_doable_btn:hover {
+		color: #000 !important;
+	}
+	.login-doable-btn a.login-button:hover span.text-black {
+		color: #fff !important;
+	}
+	.login-doable-btn a.login-button:hover span.text-white {
+		color: #000 !important;
+	}
+	@media screen and (max-width: 991px) {
+		li.login-doable-btn {
+			position: inherit !important;
+			width: max-content;
+			padding: 5px 25px;
+		}
+		li.login-doable-btn a {
+			text-transform: capitalize !important;
+		}
 	}
