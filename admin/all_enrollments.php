@@ -590,8 +590,10 @@ if (isset($_POST['SUBMIT'])){
                                     </div>
                                 </div>
 
-                                <input type="submit" name="SUBMIT" value="Cancel and Store Info only" style="float: right; margin-left: 8px; background-color: #39B54A !important; border-color: #39B54A !important; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;"/>
-                                <input type="submit" name="SUBMIT" value="Submit" style="float: right; margin-left: 8px; background-color: #39B54A !important; border-color: #39B54A !important; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;"/>
+                                <input type="hidden" name="SUBMIT" id="SUBMIT">
+                                <button type="submit" class="btn btn-info waves-effect waves-light text-white" onclick="$('#SUBMIT').val('Cancel and Store Info only')" style="float: right;">Cancel and Store Info only</button>
+                                <button type="submit" class="btn btn-info waves-effect waves-light text-white" onclick="$('#SUBMIT').val('Submit')" style="float: right; margin-right: 5px;">Submit</button>
+
                                 <a href="javascript:" class="btn btn-info waves-effect waves-light text-white" style="*float: right;" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
                             </div>
 
