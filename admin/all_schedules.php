@@ -478,7 +478,32 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
     .list-select li:not(.init):hover, .list-select li.selected:not(.init) { background: #09f; border-top: 1px solid #eeecec;}
     li.init { cursor: pointer; }
 </style>
+<style>
+    .search-container {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Default gap for desktop */
+    }
 
+    .search-button:hover {
+        background-color: #0056b3;
+    }
+
+    /* Media query for tablets (for example, max-width 768px) */
+    @media (max-width: 768px) {
+        .search-container {
+            gap: 8px; /* Reduced gap for tablet screens */
+        }
+
+        .SERVICE_PROVIDER_ID {
+            width: 150px; /* Adjust input width for tablet */
+        }
+
+        .btn {
+            font-size: 14px; /* Smaller button size for tablets */
+        }
+    }
+</style>
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 
 <body class="skin-default-dark fixed-layout">
@@ -534,37 +559,42 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                             </select>
                                         </div>
                                     </div>
-                                    <!--<div class="col-5">
-                                        <div class="input-group">
-                                            <input type="hidden" id="IS_SELECTED" value="0">
-                                            <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" style="width: 100px;" value="<?php /*=($_GET['CHOOSE_DATE']) ?? ''*/?>">&nbsp;&nbsp;&nbsp;&nbsp;
-                                            <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" multiple>
-                                                <?php
-/*                                                $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
-                                                while (!$row->EOF) { */?>
-                                                    <option value="<?php /*=$row->fields['PK_USER']*/?>" <?php /*=(!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers)))?"selected":""*/?>><?php /*=$row->fields['NAME']*/?></option>
-                                                <?php /*$row->MoveNext(); } */?>
-                                            </select>
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="margin-left: -47px; height: 33px"><i class="fa fa-search"></i></button>
-                                        </div>
-                                    </div>-->
                                     <div class="col-2">
                                         <input type="hidden" id="IS_SELECTED" value="0">
-                                        <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" value="<?php /*=($_GET['CHOOSE_DATE']) ?? ''*/?>">
                                     </div>
                                     <div class="col-3">
-                                        <div class="input-group">
-                                            <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="width: 300px" multiple>
+                                        <div class="search-container">
+                                            <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="height: 37px" multiple>
                                                 <?php
                                                 $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
                                                 while (!$row->EOF) { ?>
                                                     <option value="<?=$row->fields['PK_USER']?>" <?=(!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers)))?"selected":""?>><?=$row->fields['NAME']?></option>
-                                                    <?php $row->MoveNext(); } ?>
+                                                <?php $row->MoveNext(); } ?>
                                             </select>
-                                            <button type="submit" class="btn btn-info waves-effect waves-light text-white input-form-btn m-b-1" style="margin-left: 30px; height: 33px; float: left"><i class="fa fa-search"></i></button>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="height: 37px"><i class="fa fa-search"></i></button>
+                                        </div>
+                                    </div>
+
+                                    <!--<div class="col-2">
+                                        <div class="input-group">
+                                            <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="width: 150px; height: 37px" multiple>
+                                                <?php
+/*                                                $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
+                                                while (!$row->EOF) { */?>
+                                                    <option value="<?php /*=$row->fields['PK_USER']*/?>" <?php /*=(!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers)))?"selected":""*/?>><?php /*=$row->fields['NAME']*/?></option>
+                                                    <?php /*$row->MoveNext(); } */?>
+                                            </select>
 
                                         </div>
                                     </div>
+
+
+                                    <div class="col-1">
+                                        <div>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="margin-left:-14px; height: 37px; float: left"><i class="fa fa-search"></i></button>
+                                        </div>
+                                    </div>-->
                                     <div class="col-2">
                                         <div class="input-group" style="width: 100px; float: right;">
                                             <a onclick="zoomInOut('out');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-minus"></i></a>
@@ -734,7 +764,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 <script>
     var is_editable = <?= in_array('Calendar Edit', $PERMISSION_ARRAY) ? 1 : 0; ?>;
     var move_copy = <?= in_array('Calendar Move/Copy', $PERMISSION_ARRAY) ? 1 : 0; ?>;
-    $('.multi_sumo_select').SumoSelect({placeholder: 'Select Service Provider', selectAll: true});
+    $('.multi_sumo_select').SumoSelect({placeholder: 'Service Provider', selectAll: true});
 
     var calendar;
     document.addEventListener('DOMContentLoaded', function() {
