@@ -523,20 +523,6 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-5">
-                                        <div class="input-group">
-                                            <input type="hidden" id="IS_SELECTED" value="0">
-                                            <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" style="width: 100px;" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
-                                            <select  style="width: 200px;" class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" multiple>
-                                                <?php
-                                                $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
-                                                while (!$row->EOF) { ?>
-                                                    <option value="<?=$row->fields['PK_USER']?>" <?=(!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers)))?"selected":""?>><?=$row->fields['NAME']?></option>
-                                                <?php $row->MoveNext(); } ?>
-                                            </select>
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="margin-left: -47px; height: 33px"><i class="fa fa-search"></i></button>
-                                        </div>
-                                    </div>
                                     <div class="col-3">
                                         <div class="form-material form-horizontal">
                                             <select class="form-control" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();">
@@ -546,6 +532,37 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 <option value="TO-DO" <?php if($appointment_type=="TO-DO"){echo "selected";}?>>To Dos</option>
                                                 <option value="EVENT" <?php if($appointment_type=="EVENT"){echo "selected";}?>>Event</option>
                                             </select>
+                                        </div>
+                                    </div>
+                                    <!--<div class="col-5">
+                                        <div class="input-group">
+                                            <input type="hidden" id="IS_SELECTED" value="0">
+                                            <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" style="width: 100px;" value="<?php /*=($_GET['CHOOSE_DATE']) ?? ''*/?>">&nbsp;&nbsp;&nbsp;&nbsp;
+                                            <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" multiple>
+                                                <?php
+/*                                                $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
+                                                while (!$row->EOF) { */?>
+                                                    <option value="<?php /*=$row->fields['PK_USER']*/?>" <?php /*=(!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers)))?"selected":""*/?>><?php /*=$row->fields['NAME']*/?></option>
+                                                <?php /*$row->MoveNext(); } */?>
+                                            </select>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="margin-left: -47px; height: 33px"><i class="fa fa-search"></i></button>
+                                        </div>
+                                    </div>-->
+                                    <div class="col-2">
+                                        <input type="hidden" id="IS_SELECTED" value="0">
+                                        <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" value="<?=($_GET['CHOOSE_DATE']) ?? ''?>">&nbsp;&nbsp;&nbsp;&nbsp;
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="input-group">
+                                            <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="width: 300px" multiple>
+                                                <?php
+                                                $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
+                                                while (!$row->EOF) { ?>
+                                                    <option value="<?=$row->fields['PK_USER']?>" <?=(!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers)))?"selected":""?>><?=$row->fields['NAME']?></option>
+                                                    <?php $row->MoveNext(); } ?>
+                                            </select>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light text-white input-form-btn m-b-1" style="margin-left: 30px; height: 33px; float: left"><i class="fa fa-search"></i></button>
+
                                         </div>
                                     </div>
                                     <div class="col-2">
