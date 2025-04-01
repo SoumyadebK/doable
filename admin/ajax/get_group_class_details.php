@@ -285,7 +285,7 @@ while (!$customer_update_data->EOF) {
                 <div class="row" id="add_info_div">
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="form-label">Comment</label>
+                            <label class="form-label" style="color: red">Comment</label>
                             <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea>
                         </div>
                     </div>
