@@ -16,8 +16,14 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
         $link = $http_path.'reset-password.php?cmVzZXQ='.$time;
         $receiver_name = $result->fields['FIRST_NAME'].' '.$result->fields['LAST_NAME'];
 
-        $db1 = connectDatabase($result->fields['PK_ACCOUNT_MASTER']);
-        $email_account_data = getEmailAccountData($db1, $result->fields['PRIMARY_LOCATION_ID']);
+        $selected_roles_row = $db->Execute("SELECT DOA_USER_ROLES.PK_ROLES, DOA_ROLES.SORT_ORDER FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER' ORDER BY DOA_ROLES.SORT_ORDER ASC LIMIT 1");
+        $selected_role = $selected_roles_row->fields['PK_ROLES'];
+        if ($selected_role == 2) {
+            $email_account_data = $db->Execute("SELECT * FROM `DOA_SMTP_SETUP` WHERE `PK_SMTP_SETUP` = 1");
+        } else {
+            $db1 = connectDatabase($result->fields['PK_ACCOUNT_MASTER']);
+            $email_account_data = getEmailAccountData($db1, $result->fields['PRIMARY_LOCATION_ID']);
+        }
 
         require_once('global/phpmailer/class.phpmailer.php');
         $mail = new PHPMailer();
@@ -34,8 +40,8 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
         $mail->Host = $email_account_data->fields['HOST'];
         // set the SMTP port for the GMAIL server
         $mail->Port = $email_account_data->fields['PORT'];
-        $mail->From= $email_account_data->fields['USER_NAME'];
-        $mail->FromName='Doable';
+        $mail->From = $email_account_data->fields['USER_NAME'];
+        $mail->FromName = 'Doable';
         $mail->AddAddress("$email", "$receiver_name");
         $mail->Subject  =  'Reset Password';
         $mail->IsHTML(true);
