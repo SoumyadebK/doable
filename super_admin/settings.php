@@ -45,10 +45,10 @@ if(!empty($_POST)){
     }
 
     $SMTP_SETUP_DATA['PK_SMTP_SETUP'] = $_POST['PK_SMTP_SETUP'];
-    $SMTP_SETUP_DATA['SMTP_HOST'] = $_POST['SMTP_HOST'];
-    $SMTP_SETUP_DATA['SMTP_PORT'] = $_POST['SMTP_PORT'];
-    $SMTP_SETUP_DATA['SMTP_USERNAME'] = $_POST['SMTP_USERNAME'];
-    $SMTP_SETUP_DATA['SMTP_PASSWORD'] = $_POST['SMTP_PASSWORD'];
+    $SMTP_SETUP_DATA['HOST'] = $_POST['HOST'];
+    $SMTP_SETUP_DATA['PORT'] = $_POST['PORT'];
+    $SMTP_SETUP_DATA['USERNAME'] = $_POST['USERNAME'];
+    $SMTP_SETUP_DATA['PASSWORD'] = $_POST['PASSWORD'];
     if ($_POST['PK_SMTP_SETUP'] == 0) {
         db_perform('DOA_SMTP_SETUP', $SMTP_SETUP_DATA, 'insert');
     } else {
@@ -110,10 +110,10 @@ $SMTP_PASSWORD = '';
 $smtp = $db->Execute("SELECT * FROM DOA_SMTP_SETUP");
 if ($smtp->RecordCount() > 0) {
     $PK_SMTP_SETUP = $smtp->fields['PK_SMTP_SETUP'];
-    $SMTP_HOST = $smtp->fields['SMTP_HOST'];
-    $SMTP_PORT = $smtp->fields['SMTP_PORT'];
-    $SMTP_USERNAME = $smtp->fields['SMTP_USERNAME'];
-    $SMTP_PASSWORD = $smtp->fields['SMTP_PASSWORD'];
+    $HOST = $smtp->fields['HOST'];
+    $PORT = $smtp->fields['PORT'];
+    $USERNAME = $smtp->fields['USERNAME'];
+    $PASSWORD = $smtp->fields['PASSWORD'];
 }
 ?>
 
@@ -256,25 +256,25 @@ if ($smtp->RecordCount() > 0) {
                                     <div class="col-3">
                                         <div class="form-group">
                                             <label class="form-label">SMTP HOST</label>
-                                            <input type="text" class="form-control" name="SMTP_HOST" value="<?=$SMTP_HOST?>">
+                                            <input type="text" class="form-control" name="HOST" value="<?=$HOST?>">
                                         </div>
                                     </div>
                                     <div class="col-3">
                                         <div class="form-group">
                                             <label class="form-label">SMTP PORT</label>
-                                            <input type="text" class="form-control" name="SMTP_PORT" value="<?=$SMTP_PORT?>">
+                                            <input type="text" class="form-control" name="PORT" value="<?=$PORT?>">
                                         </div>
                                     </div>
                                     <div class="col-3">
                                         <div class="form-group">
                                             <label class="form-label">SMTP USERNAME</label>
-                                            <input type="text" class="form-control" name="SMTP_USERNAME" value="<?=$SMTP_USERNAME?>">
+                                            <input type="text" class="form-control" name="USERNAME" value="<?=$USERNAME?>">
                                         </div>
                                     </div>
                                     <div class="col-3">
                                         <div class="form-group">
                                             <label class="form-label">SMTP PASSWORD</label>
-                                            <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?=$SMTP_PASSWORD?>">
+                                            <input type="text" class="form-control" name="PASSWORD" value="<?=$PASSWORD?>">
                                         </div>
                                     </div>
                                 </div>
