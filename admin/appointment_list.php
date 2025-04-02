@@ -618,16 +618,22 @@ $page_first_result = ($page-1) * $results_per_page;
     }
 
     function showStandingAppointmentDetails(param, STANDING_ID, PK_APPOINTMENT_MASTER) {
-        $(param).nextUntil('tr.header').remove();
-        $.ajax({
-            url: "pagination/get_standing_appointment.php",
-            type: 'GET',
-            data: {STANDING_ID:STANDING_ID, PK_APPOINTMENT_MASTER:PK_APPOINTMENT_MASTER},
-            success: function (result) {
-                //$(param).nextUntil('tr.header').slideToggle();
-                $(result).insertAfter($(param).closest('tr'));
-            }
-        });
+        let $nextRows = $(param).nextUntil('tr.header');
+
+        if ($nextRows.length) {
+            // If details are already shown, remove them
+            $nextRows.remove();
+        } else {
+            // Otherwise, fetch and show details
+            $.ajax({
+                url: "pagination/get_standing_appointment.php",
+                type: 'GET',
+                data: { STANDING_ID: STANDING_ID, PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER },
+                success: function (result) {
+                    $(result).insertAfter($(param).closest('tr'));
+                }
+            });
+        }
     }
 
     function ConfirmDelete(PK_APPOINTMENT_MASTER, type)

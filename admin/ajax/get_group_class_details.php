@@ -50,6 +50,38 @@ while (!$customer_update_data->EOF) {
         overflow: visible;
     }
 </style>
+<!-- CSS for Popup -->
+<style>
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 80%;
+        text-align: center;
+    }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        color: white;
+        cursor: pointer;
+    }
+</style>
 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
     <input type="hidden" name="FUNCTION_NAME" value="saveGroupClassData">
     <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=$PK_APPOINTMENT_MASTER?>">
@@ -103,7 +135,7 @@ while (!$customer_update_data->EOF) {
                 </div>
                 <div class="col-6">
                     <label class="form-label"><?=$service_provider_title?></label>
-                    <div style="margin-bottom: 15px; margin-top: 10px; width: 480px;">
+                    <div style="margin-bottom: 15px; margin-top: 5px; width: 480px;">
                         <select name="SERVICE_PROVIDER_ID[]" class="SERVICE_PROVIDER_ID multi_sumo_select" id="SERVICE_PROVIDER_ID" multiple>
                             <?php
                             $selected_service_provider = [];
@@ -269,7 +301,9 @@ while (!$customer_update_data->EOF) {
                     </div>
                     <p><?=$customer_name;?></p>
                 </div>
-                <div class="col-4">
+            </div>
+            <div class="row">
+                <div class="col-6">
                     <div class="form-group">
                         <label class="form-label">Status:</label>
                         <select class="form-control" name="PK_APPOINTMENT_STATUS" id="PK_APPOINTMENT_STATUS">
@@ -279,16 +313,17 @@ while (!$customer_update_data->EOF) {
                             $row = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_STATUS` WHERE `ACTIVE` = 1");
                             while (!$row->EOF) { ?>
                                 <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($PK_APPOINTMENT_STATUS==$row->fields['PK_APPOINTMENT_STATUS'])?'selected':''?>><?=$row->fields['APPOINTMENT_STATUS']?></option>
-                            <?php $row->MoveNext(); } ?>
+                                <?php $row->MoveNext(); } ?>
                         </select>
                         <p id="appointment_status"><?=$selected_status?></p>
                     </div>
                 </div>
+            </div>
 
                 <div class="row" id="add_info_div">
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="form-label" style="color: red">Comment</label>
+                            <label class="form-label" style="color: red">Comment (Visual for client)</label>
                             <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea>
                         </div>
                     </div>
@@ -308,7 +343,7 @@ while (!$customer_update_data->EOF) {
                         <div class="form-group">
                             <label class="form-label">Upload Image</label>
                             <input type="file" class="form-control" name="IMAGE" id="IMAGE">
-                            <a href="<?=$IMAGE?>" target="_blank">
+                            <a href="javascript:void(0);" onclick="showPopup('image', '<?=$IMAGE?>')">
                                 <img src="<?=$IMAGE?>" style="margin-top: 15px; width: 150px; height: auto;">
                             </a>
                         </div>
@@ -317,13 +352,24 @@ while (!$customer_update_data->EOF) {
                         <div class="form-group">
                             <label class="form-label">Upload Video</label>
                             <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
-                            <a href="<?=$VIDEO?>" target="_blank">
-                                <?php if($VIDEO != '') {?>
+                            <a href="javascript:void(0);" onclick="showPopup('video', '<?=$VIDEO?>')">
+                                <?php if($VIDEO != '') { ?>
                                     <video width="240" height="135" controls>
                                         <source src="<?=$VIDEO?>" type="video/mp4">
                                     </video>
-                                <?php }?>
+                                <?php } ?>
                             </a>
+                        </div>
+                    </div>
+
+                    <!-- Popup Modal -->
+                    <div id="mediaPopup" class="popup">
+                        <span class="close" onclick="closePopup()">&times;</span>
+                        <div class="popup-content">
+                            <img id="popupImage" src="" style="display:none; max-width: 100%;">
+                            <video id="popupVideo" controls style="display:none; max-width: 100%;">
+                                <source id="popupVideoSource" src="" type="video/mp4">
+                            </video>
                         </div>
                     </div>
                 </div>
@@ -420,4 +466,42 @@ while (!$customer_update_data->EOF) {
     document.getElementById('text').addEventListener('click', function() {
         this.classList.toggle('expanded');
     });
+</script>
+
+<!-- JavaScript for Popup -->
+<script>
+    function showPopup(type, src) {
+        let popup = document.getElementById("mediaPopup");
+        let image = document.getElementById("popupImage");
+        let video = document.getElementById("popupVideo");
+        let videoSource = document.getElementById("popupVideoSource");
+
+        if (type === 'image') {
+            image.src = src;
+            image.style.display = "block";
+            video.style.display = "none";
+        } else if (type === 'video') {
+            videoSource.src = src;
+            video.load();
+            video.style.display = "block";
+            image.style.display = "none";
+        }
+
+        popup.style.display = "flex";
+
+        // Add event listener to detect ESC key press
+        document.addEventListener("keydown", escClose);
+    }
+
+    function closePopup() {
+        document.getElementById("mediaPopup").style.display = "none";
+        document.removeEventListener("keydown", escClose); // Remove listener when popup is closed
+    }
+
+    // Function to detect ESC key press and close the popup
+    function escClose(event) {
+        if (event.key === "Escape") {
+            closePopup();
+        }
+    }
 </script>

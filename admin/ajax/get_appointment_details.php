@@ -314,6 +314,38 @@ z-index: 500;
     z-index: 500;
 }
 </style>
+<!-- CSS for Popup -->
+<style>
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 80%;
+        text-align: center;
+    }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        color: white;
+        cursor: pointer;
+    }
+</style>
 <!-- Nav tabs -->
 <?php if(!empty($_GET['tab'])) { ?>
     <ul class="nav nav-tabs" role="tablist">
@@ -656,7 +688,7 @@ z-index: 500;
                         <div class="form-group">
                             <label class="form-label">Upload Image</label>
                             <input type="file" class="form-control" name="IMAGE" id="IMAGE">
-                            <a href="<?=$IMAGE?>" target="_blank">
+                            <a href="javascript:void(0);" onclick="showPopup('image', '<?=$IMAGE?>')">
                                 <img src="<?=$IMAGE?>" style="margin-top: 15px; width: 150px; height: auto;">
                             </a>
                         </div>
@@ -665,14 +697,32 @@ z-index: 500;
                         <div class="form-group">
                             <label class="form-label">Upload Video</label>
                             <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
-                            <a href="<?=$VIDEO?>" target="_blank">
-                                <?php if($VIDEO != '') {?>
-                                <video width="240" height="135" controls>
-                                    <source src="<?=$VIDEO?>" type="video/mp4">
-                                </video>
-                                <?php }?>
+                            <a href="javascript:void(0);" onclick="showPopup('video', '<?=$VIDEO?>')">
+                                <?php if($VIDEO != '') { ?>
+                                    <video width="240" height="135" controls>
+                                        <source src="<?=$VIDEO?>" type="video/mp4">
+                                    </video>
+                                <?php } ?>
                             </a>
                         </div>
+                    </div>
+                </div>
+                <!-- Popup Modal -->
+                <div id="mediaPopup" class="popup">
+                    <span class="close" onclick="closePopup()">&times;</span>
+                    <div class="popup-content">
+                        <img id="popupImage" src="" style="display:none; max-width: 100%;">
+                        <video id="popupVideo" controls style="display:none; max-width: 100%;">
+                            <source id="popupVideoSource" src="" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+
+                <div id="modal" class="hidden modal">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <div class="modal-content">
+                        <img id="modalImage" class="hidden">
+                        <video id="modalVideo" class="hidden" controls></video>
                     </div>
                 </div>
 
@@ -2979,5 +3029,99 @@ z-index: 500;
         $('#AMOUNT_TO_PAY_CUSTOMER').val(parseFloat(TOTAL).toFixed(2));
         $('#payment_confirmation_form_div_customer').slideDown();
         openPaymentModel();
+    }
+</script>
+
+<script>
+    document.getElementById('IMAGE').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let img = document.getElementById('previewImage');
+            img.src = e.target.result;
+            img.classList.remove('hidden');
+            document.getElementById('imageLink').addEventListener('click', function() {
+                openModal(e.target.result, 'image');
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+
+    document.getElementById('VIDEO').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let video = document.getElementById('previewVideo');
+            video.src = e.target.result;
+            video.classList.remove('hidden');
+            document.getElementById('videoLink').addEventListener('click', function() {
+                openModal(e.target.result, 'video');
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+
+    function openModal(src, type) {
+        const modal = document.getElementById('modal');
+        const img = document.getElementById('modalImage');
+        const video = document.getElementById('modalVideo');
+
+        if (type === 'image') {
+            img.src = src;
+            img.classList.remove('hidden');
+            video.classList.add('hidden');
+        } else {
+            video.src = src;
+            video.classList.remove('hidden');
+            img.classList.add('hidden');
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('modal').classList.add('hidden');
+    }
+</script>
+
+<!-- JavaScript for Popup -->
+<script>
+    function showPopup(type, src) {
+        let popup = document.getElementById("mediaPopup");
+        let image = document.getElementById("popupImage");
+        let video = document.getElementById("popupVideo");
+        let videoSource = document.getElementById("popupVideoSource");
+
+        if (type === 'image') {
+            image.src = src;
+            image.style.display = "block";
+            video.style.display = "none";
+        } else if (type === 'video') {
+            videoSource.src = src;
+            video.load();
+            video.style.display = "block";
+            image.style.display = "none";
+        }
+
+        popup.style.display = "flex";
+
+        // Add event listener to detect ESC key press
+        document.addEventListener("keydown", escClose);
+    }
+
+    function closePopup() {
+        document.getElementById("mediaPopup").style.display = "none";
+        document.removeEventListener("keydown", escClose); // Remove listener when popup is closed
+    }
+
+    // Function to detect ESC key press and close the popup
+    function escClose(event) {
+        if (event.key === "Escape") {
+            closePopup();
+        }
     }
 </script>
