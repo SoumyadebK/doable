@@ -103,10 +103,10 @@ if ($other_setting->RecordCount() > 0) {
 }
 
 $PK_SMTP_SETUP = 0;
-$SMTP_HOST = '';
-$SMTP_PORT = '';
-$SMTP_USERNAME = '';
-$SMTP_PASSWORD = '';
+$HOST = '';
+$PORT = '';
+$USERNAME = '';
+$PASSWORD = '';
 $smtp = $db->Execute("SELECT * FROM DOA_SMTP_SETUP");
 if ($smtp->RecordCount() > 0) {
     $PK_SMTP_SETUP = $smtp->fields['PK_SMTP_SETUP'];

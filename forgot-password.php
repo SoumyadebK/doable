@@ -9,9 +9,10 @@ $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 
 if ($FUNCTION_NAME == 'resetPasswordFunction') {
     $email = $_POST['EMAIL'];
-    $result = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USER_MASTER.PRIMARY_LOCATION_ID, DOA_USER_MASTER.PK_ACCOUNT_MASTER FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.EMAIL_ID = '$email'");
+    $result = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USER_MASTER.PRIMARY_LOCATION_ID, DOA_USER_MASTER.PK_ACCOUNT_MASTER FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE (DOA_USERS.EMAIL_ID = '$email' OR DOA_USERS.USER_NAME = '$email')");
     if ($result->RecordCount() > 0) {
-        $to= $result->fields['EMAIL_ID'];
+        $PK_USER = $result->fields['PK_USER'];
+        $to = $result->fields['EMAIL_ID'];
         $time = base64_encode($result->fields['PK_USER'].'_'.time());
         $link = $http_path.'reset-password.php?cmVzZXQ='.$time;
         $receiver_name = $result->fields['FIRST_NAME'].' '.$result->fields['LAST_NAME'];
@@ -117,7 +118,7 @@ if ($FUNCTION_NAME == 'resetPasswordFunction') {
 
                     <div class="form-group ">
                         <div class="col-xs-12">
-                            <input class="form-control" type="text" required="" placeholder="Email" id="EMAIL" name="EMAIL">
+                            <input class="form-control" type="text" required="" placeholder="Email OR Username" id="EMAIL" name="EMAIL">
                         </div>
                     </div>
                     <div class="form-group text-center">
