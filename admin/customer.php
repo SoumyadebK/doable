@@ -941,11 +941,11 @@ if ($PK_USER_MASTER > 0) {
                                                                     <label class="form-label">Active : </label>
                                                                 </div>
                                                                 <div class="col-md-4">
-                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                 </div>
                                                             </div>
-                                                        <? } ?>
+                                                        <?php } ?>
                                                     </div>
                                                     <div class="form-group">
                                                         <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -1013,7 +1013,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     <!--<div class="col-3">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Old Password</label>
-                                                                            <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?/*=$PASSWORD*/?>">
+                                                                            <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?php /*$PASSWORD */?>">
                                                                             <input type="password" required name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
                                                                         </div>
                                                                     </div>-->
@@ -1040,11 +1040,11 @@ if ($PK_USER_MASTER > 0) {
                                                                     <label class="form-label">Active : </label>
                                                                 </div>
                                                                 <div class="col-md-4">
-                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                 </div>
                                                             </div>
-                                                        <? } ?>
+                                                        <?php } ?>
                                                     </div>
                                                     <div class="form-group">
                                                         <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
