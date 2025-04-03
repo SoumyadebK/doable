@@ -1929,6 +1929,20 @@ function deleteAppointment($RESPONSE_DATA): void
     echo 1;
 }
 
+function deleteImage($RESPONSE_DATA): void
+{
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET IMAGE = NULL WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+}
+
+function deleteVideo($RESPONSE_DATA): void
+{
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET VIDEO = NULL WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+}
+
 function deleteSpecialAppointment($RESPONSE_DATA) {
     global $db_account;
     $PK_SPECIAL_APPOINTMENT = $RESPONSE_DATA['PK_SPECIAL_APPOINTMENT'];

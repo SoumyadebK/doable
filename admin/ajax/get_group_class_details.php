@@ -339,33 +339,36 @@ while (!$customer_update_data->EOF) {
                         </div>
                     </div>
 
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label class="form-label">Upload Image</label>
-                            <input type="file" class="form-control" name="IMAGE" id="IMAGE">
-                            <a href="javascript:void(0);" onclick="showPopup('image', '<?=$IMAGE?>')">
-                                <img src="<?=$IMAGE?>" style="margin-top: 15px; width: 150px; height: auto;">
-                            </a>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Upload Image</label>
+                                <input type="file" class="form-control" name="IMAGE" id="IMAGE">
+                                <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 15px; width: 150px; height: auto;">
+                                <?php if((in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) && ($IMAGE!= '')) { ?>
+                                    <a href="javascript:" onclick='ConfirmDeleteImage(<?=$PK_APPOINTMENT_MASTER?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <?php } ?>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label class="form-label">Upload Video</label>
-                            <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
-                            <a href="javascript:void(0);" onclick="showPopup('video', '<?=$VIDEO?>')">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Upload Video</label>
+                                <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
                                 <?php if($VIDEO != '') { ?>
-                                    <video width="240" height="135" controls>
+                                    <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO?>')" style="cursor: pointer;">
                                         <source src="<?=$VIDEO?>" type="video/mp4">
                                     </video>
+                                    <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) { ?>
+                                        <a href="javascript:" onclick='ConfirmDeleteVideo(<?=$PK_APPOINTMENT_MASTER?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <?php } ?>
                                 <?php } ?>
-                            </a>
+                            </div>
                         </div>
                     </div>
-
                     <!-- Popup Modal -->
-                    <div id="mediaPopup" class="popup">
+                    <div id="mediaPopup" class="popup" onclick="closePopup()">
                         <span class="close" onclick="closePopup()">&times;</span>
-                        <div class="popup-content">
+                        <div class="popup-content" onclick="event.stopPropagation();">
                             <img id="popupImage" src="" style="display:none; max-width: 100%;">
                             <video id="popupVideo" controls style="display:none; max-width: 100%;">
                                 <source id="popupVideoSource" src="" type="video/mp4">
@@ -466,42 +469,4 @@ while (!$customer_update_data->EOF) {
     document.getElementById('text').addEventListener('click', function() {
         this.classList.toggle('expanded');
     });
-</script>
-
-<!-- JavaScript for Popup -->
-<script>
-    function showPopup(type, src) {
-        let popup = document.getElementById("mediaPopup");
-        let image = document.getElementById("popupImage");
-        let video = document.getElementById("popupVideo");
-        let videoSource = document.getElementById("popupVideoSource");
-
-        if (type === 'image') {
-            image.src = src;
-            image.style.display = "block";
-            video.style.display = "none";
-        } else if (type === 'video') {
-            videoSource.src = src;
-            video.load();
-            video.style.display = "block";
-            image.style.display = "none";
-        }
-
-        popup.style.display = "flex";
-
-        // Add event listener to detect ESC key press
-        document.addEventListener("keydown", escClose);
-    }
-
-    function closePopup() {
-        document.getElementById("mediaPopup").style.display = "none";
-        document.removeEventListener("keydown", escClose); // Remove listener when popup is closed
-    }
-
-    // Function to detect ESC key press and close the popup
-    function escClose(event) {
-        if (event.key === "Escape") {
-            closePopup();
-        }
-    }
 </script>

@@ -10,7 +10,8 @@
 .fluid-container-big .row .col-md-6 img {
     height: 100%;
 	width: 100%;
-	max-height: 645px;
+	max-height: 700px;
+	/* max-height: 645px; */
 }
 .fluid-container-big .row .col-md-6 {
 	padding: 0px;
@@ -133,7 +134,7 @@ color: #65bb46 !important;
 		padding: 10px 0;
 	}
 	.payment-image-section img {
-		width: 150px;
+		width: 180px;
 		margin: 0 10px;
 	}
 	.coming-soon-section {
@@ -148,9 +149,9 @@ color: #65bb46 !important;
 		margin-right: 10px;
 	}
 	.coming-soon-section img {
-		width: 150px;
+		width: 280px;
 		margin-right: 20px;
-		height: max-content;
+		/* height: max-content; */
 	}
 	.technology-section .ce-feature-box-15:hover .icon span {
 		color: #fff !important;
@@ -163,7 +164,7 @@ color: #65bb46 !important;
 	}
 	.section-content .font-18 {
 		font-size: 20px;
-		/* line-height: 30px; */
+		line-height: 30px;
 	}
 	.font-55 {
 		font-size: 55px;

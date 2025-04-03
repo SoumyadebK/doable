@@ -688,29 +688,31 @@ z-index: 500;
                         <div class="form-group">
                             <label class="form-label">Upload Image</label>
                             <input type="file" class="form-control" name="IMAGE" id="IMAGE">
-                            <a href="javascript:void(0);" onclick="showPopup('image', '<?=$IMAGE?>')">
-                                <img src="<?=$IMAGE?>" style="margin-top: 15px; width: 150px; height: auto;">
-                            </a>
+                            <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 15px; width: 150px; height: auto;">
+                            <?php if((in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) && ($IMAGE!= '')) { ?>
+                                <a href="javascript:" onclick='ConfirmDeleteImage(<?=$PK_APPOINTMENT_MASTER?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <?php } ?>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Upload Video</label>
                             <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
-                            <a href="javascript:void(0);" onclick="showPopup('video', '<?=$VIDEO?>')">
-                                <?php if($VIDEO != '') { ?>
-                                    <video width="240" height="135" controls>
-                                        <source src="<?=$VIDEO?>" type="video/mp4">
-                                    </video>
+                            <?php if($VIDEO != '') { ?>
+                                <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO?>')" style="cursor: pointer;">
+                                    <source src="<?=$VIDEO?>" type="video/mp4">
+                                </video>
+                                <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) { ?>
+                                    <a href="javascript:" onclick='ConfirmDeleteVideo(<?=$PK_APPOINTMENT_MASTER?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                 <?php } ?>
-                            </a>
+                            <?php } ?>
                         </div>
                     </div>
                 </div>
                 <!-- Popup Modal -->
-                <div id="mediaPopup" class="popup">
+                <div id="mediaPopup" class="popup" onclick="closePopup()">
                     <span class="close" onclick="closePopup()">&times;</span>
-                    <div class="popup-content">
+                    <div class="popup-content" onclick="event.stopPropagation();">
                         <img id="popupImage" src="" style="display:none; max-width: 100%;">
                         <video id="popupVideo" controls style="display:none; max-width: 100%;">
                             <source id="popupVideoSource" src="" type="video/mp4">
