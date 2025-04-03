@@ -192,14 +192,13 @@ while (!$customer_update_data->EOF) {
                                 } else {
                                     $NUMBER_OF_SESSION = $serviceCodeData->fields['NUMBER_OF_SESSION'];
                                 }
-                                $with_enr_customer[] = $serviceCodeData->fields['PK_USER_MASTER'];
-                                /*$SESSION_CREATED = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE'], 'GROUP');
+                                //$with_enr_customer[] = $serviceCodeData->fields['PK_USER_MASTER'];
+                                $SESSION_CREATED = getAllSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE'], 'GROUP');
                                 if ($NUMBER_OF_SESSION > $SESSION_CREATED) {
                                     $with_enr_customer[] = $serviceCodeData->fields['PK_USER_MASTER'];
-                                }*/
+                                }
                                 $serviceCodeData->MoveNext();
                             }
-                            $user_master_id = implode(',', $with_enr_customer);
 
                             $selected_customer = [];
                             $selected_partner = [];
@@ -212,16 +211,20 @@ while (!$customer_update_data->EOF) {
                                     $selected_partner[] = $selected_customer_row->fields['PK_USER_MASTER'];
                                 }
                                 $selected_customer_row->MoveNext();
-                            } ?>
+                            }
+
+                            $all_customer = array_merge($with_enr_customer, $selected_customer, $selected_partner);
+                            $user_master_id = implode(',', $all_customer);
+                            ?>
                             <li class="init"><?=((count($selected_customer) + count($selected_partner)) > 0) ? (count($selected_customer) + count($selected_partner)).' Selected' : 'Select Customer'?></li>
                             <li> <input type="text" id="customer_search" placeholder="Search..." onkeyup="searchCustomerList()" style="width: 100%; border: none;"></li>
                             <?php
-                            /*if (count($selected_customer) > 0) {
+                            if (count($selected_customer) > 0) {
                                 $orderBy = " ORDER BY FIELD(PK_USER_MASTER, ".implode(',', $selected_customer).") DESC, DOA_USERS.FIRST_NAME ASC";
                             } else {
-                                $orderBy = " DOA_USERS.FIRST_NAME ASC";
-                            }*/
-                            $orderBy = " ORDER BY DOA_USERS.FIRST_NAME ASC";
+                                $orderBy = " ORDER BY DOA_USERS.FIRST_NAME ASC";
+                            }
+                            //$orderBy = " ORDER BY DOA_USERS.FIRST_NAME ASC";
 
                             $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_MASTER.PK_USER_MASTER IN (".$user_master_id.") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'".$orderBy);
                             $customer_name = '';

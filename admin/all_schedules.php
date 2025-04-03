@@ -307,7 +307,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData'){
     $PK_EVENT = $_POST['PK_EVENT'];
-    if(!empty($_POST)){
+    if(!empty($_POST)) {
         $EVENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
         $EVENT_DATA['HEADER'] = $_POST['HEADER'];
         $EVENT_DATA['PK_EVENT_TYPE'] = $_POST['PK_EVENT_TYPE'];
