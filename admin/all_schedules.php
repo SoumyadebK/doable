@@ -1276,5 +1276,110 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
     }
 </script>
 
+<!-- JavaScript for Popup -->
+<script>
+    function showPopup(type, src) {
+        let popup = document.getElementById("mediaPopup");
+        let image = document.getElementById("popupImage");
+        let video = document.getElementById("popupVideo");
+        let videoSource = document.getElementById("popupVideoSource");
+
+        if (type === 'image') {
+            image.src = src;
+            image.style.display = "block";
+            video.style.display = "none";
+        } else if (type === 'video') {
+            videoSource.src = src;
+            video.load();
+            video.style.display = "block";
+            image.style.display = "none";
+        }
+
+        popup.style.display = "flex";
+
+        // Add event listener to detect ESC key press
+        document.addEventListener("keydown", escClose);
+    }
+
+    function closePopup() {
+        document.getElementById("mediaPopup").style.display = "none";
+        document.removeEventListener("keydown", escClose); // Remove listener when popup is closed
+    }
+
+    // Function to detect ESC key press and close the popup
+    function escClose(event) {
+        if (event.key === "Escape") {
+            closePopup();
+        }
+    }
+
+    // Disable right-click on images and videos
+    document.addEventListener("contextmenu", function (event) {
+        let target = event.target;
+        if (target.tagName === "IMG" || target.tagName === "VIDEO") {
+            event.preventDefault(); // Prevent right-click menu
+        }
+    });
+
+    // Optional: Disable right-click for the whole page
+    // Uncomment the line below if you want to block right-click everywhere
+    // document.addEventListener("contextmenu", (event) => event.preventDefault());
+
+    // Function to delete uploaded image
+    function ConfirmDeleteImage(PK_APPOINTMENT_MASTER)
+    {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {FUNCTION_NAME: 'deleteImage', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                    success: function (data) {
+                        window.location.href = 'all_schedules.php';
+                    }
+                });
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                Swal.fire("Cancelled", "Your image is safe.", "info"); // ✅ Show feedback for cancel
+            }
+        });
+    }
+
+    function ConfirmDeleteVideo(PK_APPOINTMENT_MASTER)
+    {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {FUNCTION_NAME: 'deleteVideo', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                    success: function (data) {
+                        window.location.href = 'all_schedules.php';
+                    }
+                });
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                Swal.fire("Cancelled", "Your video is safe.", "info"); // ✅ Show feedback for cancel
+            }
+        });
+    }
+</script>
+
 </body>
 </html>
