@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_schedules.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/css/custom.css" beforeDir="false" afterPath="$PROJECT_DIR$/demo/css/custom.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/demo/index.html" afterDir="false" />
-    </list>
+    <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
