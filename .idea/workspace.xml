@@ -4,7 +4,6 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="46dd2d3a-5340-4f18-824a-7a9873453af8" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -88,6 +87,7 @@
       <recent name="$PROJECT_DIR$/customer" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/uploads/1010" />
       <recent name="$PROJECT_DIR$/admin" />
       <recent name="$PROJECT_DIR$/assets/dist/css" />
       <recent name="$PROJECT_DIR$/includes" />
@@ -214,6 +214,7 @@
       <workItem from="1743501472599" duration="3357000" />
       <workItem from="1743533368293" duration="267000" />
       <workItem from="1743603593859" duration="11396000" />
+      <workItem from="1743691241464" duration="5476000" />
     </task>
     <servers />
   </component>

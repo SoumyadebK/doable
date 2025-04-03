@@ -63,6 +63,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
                             DOA_SCHEDULING_CODE.COLOR_CODE,
+                            DOA_SCHEDULING_CODE.UNIT,
                             GROUP_CONCAT(DISTINCT(CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME)) SEPARATOR ', ') AS SERVICE_PROVIDER_NAME,
                             GROUP_CONCAT(DISTINCT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME)) SEPARATOR ', ') AS CUSTOMER_NAME
                         FROM
@@ -130,6 +131,7 @@ $page_first_result = ($page-1) * $results_per_page;
         $i=$page_first_result+1;
         $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
         while (!$appointment_data->EOF) {
+            $UNIT = $appointment_data->fields['UNIT'];
             $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
             $CHANGED_BY = '';
             while (!$status_data->EOF) {
@@ -146,16 +148,16 @@ $page_first_result = ($page-1) * $results_per_page;
             } else {
                 $SESSION_CREATED = getSessionCreatedCount($appointment_data->fields['APT_ENR_SERVICE'], $appointment_data->fields['APPOINTMENT_TYPE']);
                 $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
-                $ENROLLMENT_ID = $appointment_data->fields['APT_ENR_NAME'];
-                $ENROLLMENT_NAME = $appointment_data->fields['APT_ENR_ID'];
+                $ENROLLMENT_ID = $appointment_data->fields['APT_ENR_ID'];
+                $ENROLLMENT_NAME = $appointment_data->fields['APT_ENR_NAME'];
             }
 
             $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, SESSION_CREATED, SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
             if ($enr_service_data->RecordCount() > 0) {
                 if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
-                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - 1;
+                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - $UNIT;
                 } else {
-                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $SESSION_CREATED;
+                    $service_code_array[$PK_ENROLLMENT_SERVICE] = getSessionCreatedCount($PK_ENROLLMENT_SERVICE);;
                 }
             } ?>
         <tr onclick="$(this).next().slideToggle();">
