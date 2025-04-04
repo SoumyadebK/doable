@@ -164,7 +164,7 @@ $page_first_result = ($page-1) * $results_per_page;
             <td><?=$i;?></td>
             <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
             <?php if (!empty($ENROLLMENT_ID) || !empty($ENROLLMENT_NAME)) { ?>
-                <td><?=(($ENROLLMENT_NAME) ? $ENROLLMENT_NAME.' - ' : '').$ENROLLMENT_ID." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
+                <td><?=$ENROLLMENT_ID.(($ENROLLMENT_NAME) ? ' - '.$ENROLLMENT_NAME : '')." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
             <?php } elseif (empty($appointment_data->fields['SERVICE_NAME']) && empty($appointment_data->fields['SERVICE_CODE'])) { ?>
                 <td><?=$appointment_data->fields['SERVICE_NAME']."  ".$appointment_data->fields['SERVICE_CODE']?></td>
             <?php } else { ?>
