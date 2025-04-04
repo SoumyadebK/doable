@@ -337,6 +337,38 @@ if ($PK_USER_MASTER > 0) {
     }
 
 </style>
+<!-- CSS for Popup -->
+<style>
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 99999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 80%;
+        text-align: center;
+    }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        color: white;
+        cursor: pointer;
+    }
+</style>
 <?php require_once('../includes/header.php');?>
 <style>
     #advice-required-entry-ACCEPT_HANDLING{width: 150px;top: 20px;position: absolute;}
@@ -3271,5 +3303,65 @@ if ($PK_USER_MASTER > 0) {
         });
     });
 </script>
+<!-- JavaScript for Popup -->
+<script>
+    function showPopup(type, src) {
+        let popup = document.getElementById("mediaPopup");
+        let image = document.getElementById("popupImage");
+        let video = document.getElementById("popupVideo");
+        let videoSource = document.getElementById("popupVideoSource");
+
+        if (type === 'image') {
+            image.src = src;
+            image.style.display = "block";
+            video.style.display = "none";
+        } else if (type === 'video') {
+            videoSource.src = src;
+            video.load();
+            video.style.display = "block";
+            image.style.display = "none";
+        }
+
+        popup.style.display = "flex";
+
+        // Add event listener to detect ESC key press
+        document.addEventListener("keydown", escClose);
+    }
+
+    function closePopup() {
+        document.getElementById("mediaPopup").style.display = "none";
+        document.removeEventListener("keydown", escClose); // Remove listener when popup is closed
+    }
+
+    // Function to detect ESC key press and close the popup
+    function escClose(event) {
+        if (event.key === "Escape") {
+            closePopup();
+        }
+    }
+
+    // Disable right-click on images and videos
+    document.addEventListener("contextmenu", function (event) {
+        let target = event.target;
+        if (target.tagName === "IMG" || target.tagName === "VIDEO") {
+            event.preventDefault(); // Prevent right-click menu
+        }
+    });
+
+    // Optional: Disable right-click for the whole page
+    // Uncomment the line below if you want to block right-click everywhere
+    // document.addEventListener("contextmenu", (event) => event.preventDefault());
+
+</script>
+<!-- Popup Modal -->
+<div id="mediaPopup" class="popup" onclick="closePopup()">
+    <span class="close" onclick="closePopup()">&times;</span>
+    <div class="popup-content" onclick="event.stopPropagation();">
+        <img id="popupImage" src="" style="display:none; max-width: 100%;">
+        <video id="popupVideo" controls style="display:none; max-width: 100%;">
+            <source id="popupVideoSource" src="" type="video/mp4">
+        </video>
+    </div>
+</div>
 </body>
 </html>

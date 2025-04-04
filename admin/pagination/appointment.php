@@ -160,7 +160,7 @@ $page_first_result = ($page-1) * $results_per_page;
                     $service_code_array[$PK_ENROLLMENT_SERVICE] = getSessionCreatedCount($PK_ENROLLMENT_SERVICE);;
                 }
             } ?>
-        <tr onclick="$(this).next().slideToggle();">
+        <tr onclick="$(this).next().slideToggle(); loadMedia(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>)">
             <td><?=$i;?></td>
             <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
             <?php if (!empty($ENROLLMENT_ID) || !empty($ENROLLMENT_NAME)) { ?>
@@ -177,7 +177,7 @@ $page_first_result = ($page-1) * $results_per_page;
             <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
             <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
             <td style="cursor: pointer; vertical-align: middle; text-align: center;"><?php if($appointment_data->fields['COMMENT'] != '' || $IMAGE_LINK!='' || $VIDEO_LINK!='' || $CHANGED_BY!='') { ?>
-                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white">View</button> <?php } ?>
+                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="loadMedia(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);">View</button> <?php } ?>
             </td>
             <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
             <td style="text-align: center;">
@@ -209,40 +209,10 @@ $page_first_result = ($page-1) * $results_per_page;
                             <textarea class="form-control" name="COMMENT" rows="3"><?=$appointment_data->fields['COMMENT']?></textarea><span><?=$CHANGED_BY?></span>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <a href="<?=$IMAGE_LINK?>" target="_blank">
-                                    <img src="<?=$IMAGE_LINK?>" style="margin-top: 15px; width: 150px; height: auto;">
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <a href="<?=$VIDEO_LINK?>" target="_blank">
-                                    <?php if($VIDEO_LINK != '') {?>
-                                        <video width="240" height="135" controls>
-                                            <source src="<?=$VIDEO_LINK?>" type="video/mp4">
-                                        </video>
-                                    <?php }?>
-                                </a>
-                            </div>
-                        </div>
+                    <div id="media_div_<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>">
+
                     </div>
-
-
-                    <?php /*=$appointment_data->fields['COMMENT']*/?><!--
-                    <?php /*if ($IMAGE_LINK != '' && $IMAGE_LINK != null) { */?>
-                        (<a href="<?php /*=$IMAGE_LINK*/?>" target="_blank">View Image</a>)
-                    <?php /*} */?>
-                    <?php /*if ($VIDEO_LINK != '' && $VIDEO_LINK != null) { */?>
-                        (<a href="<?php /*=$VIDEO_LINK*/?>" target="_blank">View Video</a>)
-                    <?php /*} */?>
-                    <br><span><?php /*=$CHANGED_BY*/?></span>-->
                 </td>
-            </tr>
-            <tr style="display: none">
-
             </tr>
         <?php $appointment_data->MoveNext();
         $i++; } ?>
@@ -500,4 +470,20 @@ $page_first_result = ($page-1) * $results_per_page;
         }
 
     });
+</script>
+<script>
+    function loadMedia(PK_APPOINTMENT_MASTER) {
+        if (PK_APPOINTMENT_MASTER) {
+            $.ajax({
+                url: "ajax/get_media.php",
+                type: "POST",
+                data: {PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#media_div_'+PK_APPOINTMENT_MASTER).html(result);
+                }
+            });
+        }
+    }
 </script>
