@@ -699,12 +699,16 @@ z-index: 500;
                             <label class="form-label">Upload Video</label>
                             <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
                             <?php if($VIDEO != '') { ?>
-                                <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO?>')" style="cursor: pointer;">
-                                    <source src="<?=$VIDEO?>" type="video/mp4">
-                                </video>
-                                <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) { ?>
-                                    <a href="javascript:" onclick='ConfirmDeleteVideo(<?=$PK_APPOINTMENT_MASTER?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                <?php } ?>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px">
+                                    <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO?>')" style="cursor: pointer;">
+                                        <source src="<?=$VIDEO?>" type="video/mp4">
+                                    </video>
+                                    <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) { ?>
+                                        <a href="javascript:" onclick='ConfirmDeleteVideo(<?=$PK_APPOINTMENT_MASTER?>);'>
+                                            <i class="fa fa-trash"></i>
+                                        </a>
+                                    <?php } ?>
+                                </div>
                             <?php } ?>
                         </div>
                     </div>
