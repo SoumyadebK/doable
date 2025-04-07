@@ -344,7 +344,7 @@ while (!$customer_update_data->EOF) {
                             <div class="form-group">
                                 <label class="form-label">Upload Image</label>
                                 <input type="file" class="form-control" name="IMAGE" id="IMAGE">
-                                <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 15px; width: 150px; height: auto;">
+                                <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; width: 150px; height: auto;">
                                 <?php if((in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) && ($IMAGE!= '')) { ?>
                                     <a href="javascript:" onclick='ConfirmDeleteImage(<?=$PK_APPOINTMENT_MASTER?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                 <?php } ?>
@@ -355,7 +355,7 @@ while (!$customer_update_data->EOF) {
                                 <label class="form-label">Upload Video</label>
                                 <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
                                 <?php if($VIDEO != '') { ?>
-                                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px">
+                                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
                                         <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO?>')" style="cursor: pointer;">
                                             <source src="<?=$VIDEO?>" type="video/mp4">
                                         </video>
