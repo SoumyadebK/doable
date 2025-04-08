@@ -1933,14 +1933,26 @@ function deleteImage($RESPONSE_DATA): void
 {
     global $db_account;
     $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
-    $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET IMAGE = NULL WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+    $imageNumber = $RESPONSE_DATA['imageNumber'];
+    if ($imageNumber == 1) {
+        $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET IMAGE = NULL WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+    } else {
+        $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET IMAGE_2 = NULL WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+    }
+
 }
 
 function deleteVideo($RESPONSE_DATA): void
 {
     global $db_account;
     $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
-    $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET VIDEO = NULL WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+    $videoNumber = $RESPONSE_DATA['videoNumber'];
+    if ($videoNumber == 1) {
+        $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET VIDEO = NULL WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+    } else {
+        $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET VIDEO_2 = NULL WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+    }
+
 }
 
 function deleteSpecialAppointment($RESPONSE_DATA) {

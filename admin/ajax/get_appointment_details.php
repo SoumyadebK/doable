@@ -69,6 +69,8 @@ $COMMENT = $res->fields['COMMENT'];
 $INTERNAL_COMMENT = $res->fields['INTERNAL_COMMENT'];
 $IMAGE = $res->fields['IMAGE'];
 $VIDEO = $res->fields['VIDEO'];
+$IMAGE_2 = $res->fields['IMAGE_2'];
+$VIDEO_2 = $res->fields['VIDEO_2'];
 $IS_CHARGED = $res->fields['IS_CHARGED'];
 $APPOINTMENT_TYPE = $res->fields['APPOINTMENT_TYPE'];
 
@@ -690,13 +692,15 @@ z-index: 500;
                             <input type="file" class="form-control" name="IMAGE" id="IMAGE">
                             <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; width: 150px; height: auto;">
                             <?php if((in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) && ($IMAGE!= '')) { ?>
-                                <a href="javascript:" onclick='ConfirmDeleteImage(<?=$PK_APPOINTMENT_MASTER?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <a href="javascript:" onclick='ConfirmDeleteImage(<?=$PK_APPOINTMENT_MASTER?>, 1);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                             <?php } ?>
                         </div>
                     </div>
+
+                    <!-- Video 1 -->
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="form-label">Upload Video</label>
+                            <label class="form-label">Upload Video 1</label>
                             <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
                             <?php if($VIDEO != '') { ?>
                                 <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
@@ -704,9 +708,37 @@ z-index: 500;
                                         <source src="<?=$VIDEO?>" type="video/mp4">
                                     </video>
                                     <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) { ?>
-                                        <a href="javascript:" onclick='ConfirmDeleteVideo(<?=$PK_APPOINTMENT_MASTER?>);'>
-                                            <i class="fa fa-trash"></i>
-                                        </a>
+                                        <a href="javascript:" onclick='ConfirmDeleteVideo(<?=$PK_APPOINTMENT_MASTER?>, 1);'><i class="fa fa-trash"></i></a>
+                                    <?php } ?>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    </div>
+
+                    <!-- Image 2 -->
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label class="form-label">Upload Image 2</label>
+                            <input type="file" class="form-control" name="IMAGE_2" id="IMAGE_2">
+                            <img src="<?=$IMAGE_2?>" onclick="showPopup('image', '<?=$IMAGE_2?>')" style="cursor: pointer; margin-top: 10px; width: 150px; height: auto;">
+                            <?php if((in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) && ($IMAGE_2 != '')) { ?>
+                                <a href="javascript:" onclick='ConfirmDeleteImage(<?=$PK_APPOINTMENT_MASTER?>, 2);'><i class="fa fa-trash"></i></a>
+                            <?php } ?>
+                        </div>
+                    </div>
+
+                    <!-- Video 2 -->
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label class="form-label">Upload Video 2</label>
+                            <input type="file" class="form-control" name="VIDEO_2" id="VIDEO_2" accept="video/*">
+                            <?php if($VIDEO_2 != '') { ?>
+                                <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                                    <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO_2?>')" style="cursor: pointer;">
+                                        <source src="<?=$VIDEO_2?>" type="video/mp4">
+                                    </video>
+                                    <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) { ?>
+                                        <a href="javascript:" onclick='ConfirmDeleteVideo(<?=$PK_APPOINTMENT_MASTER?>, 2);'><i class="fa fa-trash"></i></a>
                                     <?php } ?>
                                 </div>
                             <?php } ?>

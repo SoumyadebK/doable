@@ -188,6 +188,20 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         }
     }
 
+    if($_FILES['IMAGE_2']['name'] != ''){
+        $extn 			= explode(".",$_FILES['IMAGE_2']['name']);
+        $iindex			= count($extn) - 1;
+        $rand_string 	= time()."-".rand(100000,999999);
+        $file11			= 'appointment_image_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
+        $extension   	= strtolower($extn[$iindex]);
+
+        if($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg"){
+            $image_path    = '../'.$upload_path.'/appointment_image/'.$file11;
+            move_uploaded_file($_FILES['IMAGE_2']['tmp_name'], $image_path);
+            $GROUP_CLASS_DATA['IMAGE_2'] = $image_path;
+        }
+    }
+
     if (!file_exists('../'.$upload_path.'/appointment_video/')) {
         mkdir('../'.$upload_path.'/appointment_video/', 0777, true);
         chmod('../'.$upload_path.'/appointment_video/', 0777);
@@ -205,6 +219,21 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
             $GROUP_CLASS_DATA['VIDEO'] = $video_path;
         }
     }
+
+    if($_FILES['VIDEO_2']['name'] != ''){
+        $extn 			= explode(".",$_FILES['VIDEO_2']['name']);
+        $iindex			= count($extn) - 1;
+        $rand_string 	= time()."-".rand(100000,999999);
+        $file11			= 'appointment_video_'.$_SESSION['PK_USER'].$rand_string.".".$extn[$iindex];
+        $extension   	= strtolower($extn[$iindex]);
+
+        if($extension == "mp4" || $extension == "avi" || $extension == "mov" || $extension == "wmv") {
+            $video_path    = '../'.$upload_path.'/appointment_video/'.$file11;
+            move_uploaded_file($_FILES["VIDEO_2"]["tmp_name"], $video_path);
+            $GROUP_CLASS_DATA['VIDEO_2'] = $video_path;
+        }
+    }
+
     $GROUP_CLASS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
     $GROUP_CLASS_DATA['EDITED_ON'] = date("Y-m-d H:i");
 
@@ -1326,7 +1355,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
     // document.addEventListener("contextmenu", (event) => event.preventDefault());
 
     // Function to delete uploaded image
-    function ConfirmDeleteImage(PK_APPOINTMENT_MASTER)
+    function ConfirmDeleteImage(PK_APPOINTMENT_MASTER, imageNumber)
     {
         Swal.fire({
             title: "Are you sure?",
@@ -1342,7 +1371,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                 $.ajax({
                     url: "ajax/AjaxFunctions.php",
                     type: 'POST',
-                    data: {FUNCTION_NAME: 'deleteImage', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                    data: {FUNCTION_NAME: 'deleteImage', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER, imageNumber: imageNumber},
                     success: function (data) {
                         window.location.href = 'all_schedules.php';
                     }
@@ -1353,7 +1382,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
         });
     }
 
-    function ConfirmDeleteVideo(PK_APPOINTMENT_MASTER)
+    function ConfirmDeleteVideo(PK_APPOINTMENT_MASTER, videoNumber)
     {
         Swal.fire({
             title: "Are you sure?",
@@ -1369,7 +1398,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                 $.ajax({
                     url: "ajax/AjaxFunctions.php",
                     type: 'POST',
-                    data: {FUNCTION_NAME: 'deleteVideo', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                    data: {FUNCTION_NAME: 'deleteVideo', PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER, videoNumber: videoNumber},
                     success: function (data) {
                         window.location.href = 'all_schedules.php';
                     }
