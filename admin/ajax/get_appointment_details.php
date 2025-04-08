@@ -688,7 +688,7 @@ z-index: 500;
                 <div class="row">
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="form-label">Upload Image</label>
+                            <label class="form-label">Upload Image 1</label>
                             <input type="file" class="form-control" name="IMAGE" id="IMAGE">
                             <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; width: 150px; height: auto;">
                             <?php if((in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) && ($IMAGE!= '')) { ?>
