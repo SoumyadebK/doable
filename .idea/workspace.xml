@@ -6,10 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="4d3a3733-f2b4-4ab6-bd38-c47cc7c890f5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/get_special_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_special_appointment_details.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/create_appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/create_appointment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global/helper_function.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/helper_function.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/super_admin/includes/create_database.php" beforeDir="false" afterPath="$PROJECT_DIR$/super_admin/includes/create_database.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -223,7 +222,7 @@
       <workItem from="1743603593859" duration="11396000" />
       <workItem from="1743691241464" duration="5476000" />
       <workItem from="1743742640467" duration="8414000" />
-      <workItem from="1744106216182" duration="4369000" />
+      <workItem from="1744106216182" duration="9557000" />
     </task>
     <servers />
   </component>
