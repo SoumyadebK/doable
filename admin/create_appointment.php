@@ -113,6 +113,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             }
 
             for ($j = 0; $j < count($GROUP_CLASS_DATE_ARRAY); $j++) {
+                $GROUP_CLASS_DATA['SERIAL_NUMBER'] = getGroupClassSerialNumber();
                 $GROUP_CLASS_DATA['STANDING_ID'] = $standing_id;
                 $GROUP_CLASS_DATA['GROUP_NAME'] = $GROUP_NAME;
                 $GROUP_CLASS_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;

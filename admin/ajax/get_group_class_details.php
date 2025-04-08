@@ -309,13 +309,13 @@ while (!$customer_update_data->EOF) {
                     <div class="form-group">
                         <label class="form-label">Status:</label>
                         <select class="form-control" name="PK_APPOINTMENT_STATUS" id="PK_APPOINTMENT_STATUS">
-                            <option value="">Select Status</option>
+                            <option value="1">Select Status</option>
                             <?php
                             $selected_status = '';
                             $row = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_STATUS` WHERE `ACTIVE` = 1");
                             while (!$row->EOF) { ?>
                                 <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS'];?>" <?=($PK_APPOINTMENT_STATUS==$row->fields['PK_APPOINTMENT_STATUS'])?'selected':''?>><?=$row->fields['APPOINTMENT_STATUS']?></option>
-                                <?php $row->MoveNext(); } ?>
+                            <?php $row->MoveNext(); } ?>
                         </select>
                         <p id="appointment_status"><?=$selected_status?></p>
                     </div>

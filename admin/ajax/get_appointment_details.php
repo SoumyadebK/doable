@@ -629,7 +629,7 @@ z-index: 500;
                             <label class="form-label">Status : <?php /*if($PK_APPOINTMENT_STATUS!=2) {*/?><!--<span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span><?php /*}*/?>
                                 <span id="cancel_change_status" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeStatus()">Cancel</a></span>--></label><br>
                             <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" onchange="changeAppointmentStatus(this)" <?=($PK_APPOINTMENT_STATUS == 2)?'disabled':''?>>
-                                <option value="">Select Status</option>
+                                <option value="1">Select Status</option>
                                 <?php
                                 $selected_status = '';
                                 $row = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_STATUS` WHERE `ACTIVE` = 1");
