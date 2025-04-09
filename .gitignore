@@ -1,6 +1,7 @@
 .idea
 /.idea/
 admin/test_chat_gpt.php
+admin/test_chat_gpt1.php
 test_chat_gpt.php
 test_chat_gpt1.php
 test_chat_gpt2.php
