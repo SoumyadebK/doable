@@ -5,14 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5733c243-9a75-4756-b39f-158f1746ff3c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/payments_made_report.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/payments_made_report.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/summary_of_studio_business_report.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/summary_of_studio_business_report.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/accounts.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/accounts.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/pagination/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/pagination/enrollment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/pagination/get_enrollment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/pagination/get_enrollment_details.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/login.php" beforeDir="false" afterPath="$PROJECT_DIR$/login.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
