@@ -53,7 +53,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
                         LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER
                         %s
-                        AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
+                        /*AND DOA_APPOINTMENT_MASTER.STATUS = 'A'*/
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
                         ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC";
 
@@ -70,19 +70,19 @@ while (!$serviceCodeData->EOF) {
 
 <table id="myTable" class="table billing_details">
     <thead style="background-color: #f44336; cursor:pointer;" onclick="$(this).next().slideToggle();">
-        <tr>
-            <th style="text-align: center;">Due Date</th>
-            <th style="text-align: center;">Transaction Type</th>
-            <th style="text-align: center;">Billed Amount</th>
-            <th style="text-align: center;">Paid Amount</th>
-            <th style="text-align: center;">Payment Type</th>
-            <th style="text-align: center;">Balance</th>
-            <th style="text-align: center;">
-                <?php if ($paid_count > 0) { ?>
-                    <input type="checkbox" class="pay_now_check" id="toggleEnrollment_<?=$PK_ENROLLMENT_MASTER?>" onclick="toggleEnrollmentCheckboxes(<?=$PK_ENROLLMENT_MASTER?>)"/><button type="button" class="btn btn-info m-l-10 text-white pay_selected_btn" onclick="paySelected(<?=$PK_ENROLLMENT_MASTER?>, '<?=$ENROLLMENT_ID?>')" disabled> Pay Selected</button>
-                <?php } ?>
-            </th>
-        </tr>
+    <tr>
+        <th style="text-align: center;">Due Date</th>
+        <th style="text-align: center;">Transaction Type</th>
+        <th style="text-align: center;">Billed Amount</th>
+        <th style="text-align: center;">Paid Amount</th>
+        <th style="text-align: center;">Payment Type</th>
+        <th style="text-align: center;">Balance</th>
+        <th style="text-align: center;">
+            <?php if ($paid_count > 0) { ?>
+                <input type="checkbox" class="pay_now_check" id="toggleEnrollment_<?=$PK_ENROLLMENT_MASTER?>" onclick="toggleEnrollmentCheckboxes(<?=$PK_ENROLLMENT_MASTER?>)"/><button type="button" class="btn btn-info m-l-10 text-white pay_selected_btn" onclick="paySelected(<?=$PK_ENROLLMENT_MASTER?>, '<?=$ENROLLMENT_ID?>')" disabled> Pay Selected</button>
+            <?php } ?>
+        </th>
+    </tr>
     </thead>
 
     <tbody>
@@ -110,16 +110,14 @@ while (!$serviceCodeData->EOF) {
             <td style="text-align: center;"></td>
             <td style="text-align: right;"><?php /*=($billing_details->fields['AMOUNT_REMAIN'] > 0) ? $billing_details->fields['AMOUNT_REMAIN'] : ''*/?><?php /*=number_format((float)$balance, 2, '.', '')*/?></td>
             <td style="text-align: right;">
-                <?php if(in_array('Customers Active Enrollments Edit', $PERMISSION_ARRAY)) {
-                if($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS'] == 'A') {
+                <?php if($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS'] == 'A') {
                     if ($billing_details->fields['AMOUNT_REMAIN'] > 0) { ?>
                         <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$PK_ENROLLMENT_MASTER?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['AMOUNT_REMAIN']?>, '<?=$ENROLLMENT_ID?>');">Pay Now</button>
                     <?php } else { ?>
                         <label><input type="checkbox" name="PK_ENROLLMENT_LEDGER[]" class="pay_now_check PK_ENROLLMENT_LEDGER PAYMENT_CHECKBOX_<?=$PK_ENROLLMENT_MASTER?>" data-billed_amount="<?=$billing_details->fields['BILLED_AMOUNT']?>" value="<?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>"></label>
                         <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$PK_ENROLLMENT_MASTER?>, <?=$billing_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$billing_details->fields['BILLED_AMOUNT']?>, '<?=$ENROLLMENT_ID?>');">Pay Now</button>
                     <?php }
-                    }
-                }?>
+                } ?>
             </td>
         </tr>
         <?php
@@ -127,12 +125,18 @@ while (!$serviceCodeData->EOF) {
         if ($payment_details->RecordCount() > 0) {
             $p++;
             $balance = $billed_amount;
+            $refund_balance = 0;
             while (!$payment_details->EOF) {
                 $PK_ENROLLMENT_MASTER = $payment_details->fields['PK_ENROLLMENT_MASTER'];
                 $PK_ENROLLMENT_LEDGER = $payment_details->fields['PK_ENROLLMENT_LEDGER'];
 
                 if ($payment_details->fields['TYPE'] == 'Payment' && $payment_details->fields['IS_REFUNDED'] == 0) {
                     $balance -= $payment_details->fields['AMOUNT'];
+                    $refund_balance = $payment_details->fields['AMOUNT'];;
+                } elseif ($payment_details->fields['TYPE'] == 'Payment' && $payment_details->fields['IS_REFUNDED'] == 1) {
+                    $refund_balance = $payment_details->fields['AMOUNT'];;
+                }  elseif ($payment_details->fields['TYPE'] == 'Refund') {
+                    $refund_balance -= $payment_details->fields['AMOUNT'];
                 }
 
                 if ($payment_details->fields['TYPE'] == 'Move') {
@@ -156,7 +160,7 @@ while (!$serviceCodeData->EOF) {
                         }
                     }
                     $payment_type = implode(', ', $payment_type_array);
-                } else{
+                } else {
                     $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                 } ?>
                 <tr style="border-style: hidden; color: <?=($payment_details->fields['TYPE'] == 'Refund') ? 'green' : ''?>; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
@@ -164,16 +168,22 @@ while (!$serviceCodeData->EOF) {
                         <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, 'enrollment_payment')"><i class="ti-info-alt"></i></a>&nbsp;&nbsp;
                         <?=date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE']))?>&nbsp;&nbsp;
                         <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, '<?=date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE']))?>', 'payment')"><i class="ti-pencil-alt"></i></a>
+                        <?php if ($payment_details->fields['PK_PAYMENT_TYPE'] == 12) { ?>
+                            <a href="javascript:" title="Delete" onclick="deletePayment(<?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['AMOUNT']?>)" style="color: red;"><i class="ti-trash"></i></a>
+                        <?php } ?>
                     </td>
                     <td style="text-align: center;"><?=$payment_details->fields['TYPE']?></td>
                     <td></td>
                     <td style="text-align: right;"><?=$payment_details->fields['AMOUNT']?></td>
                     <td style="text-align: center;"><?=$payment_type?></td>
-                    <td style="text-align: right;"><?=($payment_details->fields['TYPE'] == 'Payment' || $payment_details->fields['TYPE'] == 'Adjustment') ? number_format((float)$balance, 2, '.', '') : ''?></td>
+                    <td style="text-align: right;"><?=($payment_details->fields['TYPE'] == 'Payment' || $payment_details->fields['TYPE'] == 'Adjustment') ? number_format((float)$balance, 2, '.', '') : number_format((float)$refund_balance, 2, '.', '')?></td>
                     <td style="text-align: right;">
                         <?php if (($payment_details->fields['IS_REFUNDED'] == 0) && ($billing_details->fields['STATUS'] == 'A') && ($payment_details->fields['TYPE'] == 'Payment')) { ?>
-                            <!--<a class="btn btn-info waves-effect waves-light text-white <?php /*=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''*/?>" href="javascript:" onclick="moveToWallet(this, <?php /*=$payment_details->fields['PK_ENROLLMENT_PAYMENT']*/?>, <?php /*=$payment_details->fields['PK_ENROLLMENT_MASTER']*/?>, <?php /*=$payment_details->fields['PK_ENROLLMENT_LEDGER']*/?>, <?php /*=$PK_USER_MASTER*/?>, <?php /*=$payment_details->fields['AMOUNT']*/?>, 'active', 'Move', <?php /*=$p*/?>)">Move</a>
-                            <a class="btn btn-info waves-effect waves-light text-white <?php /*=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''*/?>" href="javascript:" onclick="moveToWallet(this, <?php /*=$payment_details->fields['PK_ENROLLMENT_PAYMENT']*/?>, <?php /*=$payment_details->fields['PK_ENROLLMENT_MASTER']*/?>, <?php /*=$payment_details->fields['PK_ENROLLMENT_LEDGER']*/?>, <?php /*=$PK_USER_MASTER*/?>, <?php /*=$payment_details->fields['AMOUNT']*/?>, 'active', 'Refund', <?php /*=$p*/?>)">Refund</a>-->
+                            <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['AMOUNT']?>, 'active', 'Move', <?=$p?>)">Move</a>
+                            <a class="btn btn-info waves-effect waves-light text-white <?=($payment_details->fields['IS_REFUNDED'] == 1)?'disabled':''?>" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=$payment_details->fields['AMOUNT']?>, 'active', 'Refund', <?=$p?>)">Refund</a>
+                        <?php } elseif (($payment_details->fields['IS_REFUNDED'] == 1 && $billing_details->fields['AMOUNT_REMAIN'] > 0) && ($billing_details->fields['STATUS'] == 'A') && ($payment_details->fields['TYPE'] == 'Payment')) { ?>
+                            <a class="btn btn-info waves-effect waves-light text-white" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=($billed_amount-$billing_details->fields['AMOUNT_REMAIN'])?>, 'active', 'Move', <?=$p?>)">Move</a>
+                            <a class="btn btn-info waves-effect waves-light text-white" href="javascript:" onclick="moveToWallet(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=($billed_amount-$billing_details->fields['AMOUNT_REMAIN'])?>, 'active', 'Refund', <?=$p?>)">Refund</a>
                         <?php } ?>
                         <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?=$PK_ENROLLMENT_MASTER?>, '<?=$payment_details->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
                     </td>
@@ -187,7 +197,7 @@ while (!$serviceCodeData->EOF) {
     $cancelled_enrollment_ledger = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER." AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = -1");
     while (!$cancelled_enrollment_ledger->EOF) {
         ?>
-        <tr style="color: <?=(($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Balance Owed') ? 'red' : ''))?>;">
+        <tr style="color: <?=(($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Cancelled' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Balance Owed') ? 'red' : ''))?>;">
             <td style="text-align: center;"><?=date('m/d/Y', strtotime($cancelled_enrollment_ledger->fields['DUE_DATE']))?></td>
             <td style="text-align: center;">Canceled<?php /*=$cancelled_enrollment_ledger->fields['TRANSACTION_TYPE']*/?></td>
             <td style="text-align: right;"><?=$cancelled_enrollment_ledger->fields['BILLED_AMOUNT']?></td>
@@ -198,7 +208,7 @@ while (!$serviceCodeData->EOF) {
                 <?php if($cancelled_enrollment_ledger->fields['IS_PAID'] == 0) { ?>
                     <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?=$cancelled_enrollment_ledger->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment_ledger->fields['PK_ENROLLMENT_LEDGER']?>, <?=$cancelled_enrollment_ledger->fields['BILLED_AMOUNT']?>, '');">Pay Now</button>
                 <?php } elseif($cancelled_enrollment_ledger->fields['IS_PAID'] == 2) { ?>
-                    <!--<button class="btn btn-success waves-effect waves-light m-l-10 text-white" onclick="moveToWallet(this, 0, <?php /*=$cancelled_enrollment_ledger->fields['PK_ENROLLMENT_MASTER']*/?>, <?php /*=$cancelled_enrollment_ledger->fields['PK_ENROLLMENT_LEDGER']*/?>, <?php /*=$PK_USER_MASTER*/?>, <?php /*=$cancelled_enrollment_ledger->fields['BALANCE']*/?>, 'cancelled', 'Refund', 0)">Refund</button>-->
+                    <button class="btn btn-success waves-effect waves-light m-l-10 text-white" onclick="moveToWallet(this, 0, <?=$cancelled_enrollment_ledger->fields['PK_ENROLLMENT_MASTER']?>, <?=$cancelled_enrollment_ledger->fields['PK_ENROLLMENT_LEDGER']?>, <?=$PK_USER_MASTER?>, <?=$cancelled_enrollment_ledger->fields['BALANCE']?>, 'cancelled', 'Refund', 0)">Refund</button>
                 <?php } ?>
             </td>
         </tr>
@@ -233,18 +243,18 @@ while (!$serviceCodeData->EOF) {
                 } else{
                     $payment_type = $cancelled_enrollment_payment_details->fields['PAYMENT_TYPE'];
                 } ?>
-            <tr style="border-style: hidden; color: <?=($cancelled_enrollment_payment_details->fields['TYPE'] == 'Refund') ? 'green' : ''?>; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
-                <td style="text-align: center;"><?=date('m/d/Y', strtotime($cancelled_enrollment_payment_details->fields['PAYMENT_DATE']))?></td>
-                <td style="text-align: center;"><?=$cancelled_enrollment_payment_details->fields['TYPE']?></td>
-                <td></td>
-                <td style="text-align: right;"><?=$cancelled_enrollment_payment_details->fields['AMOUNT']?></td>
-                <td style="text-align: center;"><?=$payment_type?></td>
-                <td style="text-align: right;"></td>
-                <td style="text-align: right;">
-                    <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?=$PK_ENROLLMENT_MASTER?>, '<?=$cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
-                </td>
-            </tr>
-        <?php $cancelled_enrollment_payment_details->MoveNext();
+                <tr style="border-style: hidden; color: <?=($cancelled_enrollment_payment_details->fields['TYPE'] == 'Refund') ? 'green' : ''?>; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
+                    <td style="text-align: center;"><?=date('m/d/Y', strtotime($cancelled_enrollment_payment_details->fields['PAYMENT_DATE']))?></td>
+                    <td style="text-align: center;"><?=$cancelled_enrollment_payment_details->fields['TYPE']?></td>
+                    <td></td>
+                    <td style="text-align: right;"><?=$cancelled_enrollment_payment_details->fields['AMOUNT']?></td>
+                    <td style="text-align: center;"><?=$payment_type?></td>
+                    <td style="text-align: right;"></td>
+                    <td style="text-align: right;">
+                        <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?=$PK_ENROLLMENT_MASTER?>, '<?=$cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER']?>')" href="javascript:">Receipt</a>
+                    </td>
+                </tr>
+                <?php $cancelled_enrollment_payment_details->MoveNext();
             }
         }
         $cancelled_enrollment_ledger->MoveNext();
@@ -255,17 +265,17 @@ while (!$serviceCodeData->EOF) {
 
 <table id="myTable" class="table border appointment_details">
     <thead style="background-color: #1E90FF; cursor:pointer;" onclick="$(this).closest('.appointment_details').find('tbody').slideToggle();">
-        <tr>
-            <th style="text-align: left;">Service</th>
-            <th style="text-align: left;">Apt #</th>
-            <th style="text-align: left;">Service Code</th>
-            <th style="text-align: center;">Date</th>
-            <th style="text-align: center;">Time</th>
-            <th style="text-align: left;">Status</th>
-            <th style="text-align: left;"><?=$service_provider_title?></th>
-            <th style="text-align: right;">Session Cost</th>
-            <th style="text-align: right;">Amount $</th>
-        </tr>
+    <tr>
+        <th style="text-align: left;">Service</th>
+        <th style="text-align: left;">Apt #</th>
+        <th style="text-align: left;">Service Code</th>
+        <th style="text-align: center;">Date</th>
+        <th style="text-align: center;">Time</th>
+        <th style="text-align: left;">Status</th>
+        <th style="text-align: left;"><?=$service_provider_title?></th>
+        <th style="text-align: right;">Session Cost</th>
+        <th style="text-align: right;">Amount $</th>
+    </tr>
     </thead>
 
     <?php
@@ -286,8 +296,15 @@ while (!$serviceCodeData->EOF) {
             $PRICE_PER_SESSION = $per_session_price->fields['PRICE_PER_SESSION'] * $UNIT;
             //$total_amount_needed = $SESSION_CREATED * $per_session_price->fields['PRICE_PER_SESSION'];
 
+            if ($appointment_data->fields['APPOINTMENT_TYPE'] == 'GROUP') {
+                $appointment_enr_data = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_ENROLLMENT WHERE PK_APPOINTMENT_MASTER = " . $appointment_data->fields['PK_APPOINTMENT_MASTER'] . " AND PK_USER_MASTER = '$PK_USER_MASTER'");
+                $IS_CHARGED = $appointment_enr_data->fields['IS_CHARGED'];
+            } else {
+                $IS_CHARGED = $appointment_data->fields['IS_CHARGED'];
+            }
+
             /*if (($appointment_data->fields['APPOINTMENT_STATUS'] != 'Cancelled' && $appointment_data->fields['APPOINTMENT_STATUS'] != 'No Show') || $appointment_data->fields['IS_CHARGED'] == 1)*/
-            if ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_data->fields['IS_CHARGED'] == 1) {
+            if ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $IS_CHARGED == 1) {
                 if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
                     $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] + $UNIT;
                     $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] + $PRICE_PER_SESSION;
@@ -297,24 +314,25 @@ while (!$serviceCodeData->EOF) {
                 }
             }
 
-            if ($appointment_data->fields['APPOINTMENT_TYPE'] == 'GROUP') {
-                $appointment_enr_data = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_ENROLLMENT WHERE PK_APPOINTMENT_MASTER = " . $appointment_data->fields['PK_APPOINTMENT_MASTER'] . " AND PK_USER_MASTER = '$PK_USER_MASTER'");
-                $IS_CHARGED = $appointment_enr_data->fields['IS_CHARGED'];
+            if ($per_session_price->fields['NUMBER_OF_SESSION'] == 0) {
+                $NUMBER_OF_SESSION = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
             } else {
-                $IS_CHARGED = $appointment_data->fields['IS_CHARGED'];
+                $NUMBER_OF_SESSION = $per_session_price->fields['NUMBER_OF_SESSION'];
             }
+
+
 
             if (!isset($total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']])) {
                 $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] = $per_session_price->fields['TOTAL_AMOUNT_PAID'];
             }
-            $service_credit = $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']];
+            $service_credit = ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $IS_CHARGED == 1) ? $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']] : 0;
             $appointment_array[] = [
                 "PK_APPOINTMENT_MASTER" => $appointment_data->fields['PK_APPOINTMENT_MASTER'],
                 "SERVICE_NAME" => $appointment_data->fields['SERVICE_NAME'],
                 "APPOINTMENT_STATUS" => $appointment_data->fields['APPOINTMENT_STATUS'],
                 "STATUS_COLOR" => $appointment_data->fields['STATUS_COLOR'],
                 "IS_CHARGED" => $IS_CHARGED,
-                "APPOINTMENT_NUMBER" => $service_code_array[$appointment_data->fields['SERVICE_CODE']] . '/' . $per_session_price->fields['NUMBER_OF_SESSION'],
+                "APPOINTMENT_NUMBER" => ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $IS_CHARGED == 1) ? $service_code_array[$appointment_data->fields['SERVICE_CODE']] . '/' . $NUMBER_OF_SESSION : '',
                 "SERVICE_CODE" => $appointment_data->fields['SERVICE_CODE'],
                 "APPOINTMENT_DATE" => date('m/d/Y', strtotime($appointment_data->fields['DATE'])),
                 "APPOINTMENT_TIME" => date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME'])),
@@ -332,7 +350,7 @@ while (!$serviceCodeData->EOF) {
                     <?=$appointment_value['SERVICE_NAME']?>
                 </td>
                 <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
-                    if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
+                if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
                     <td style="text-align: left;"><?=$appointment_value['APPOINTMENT_NUMBER']?></td>
                 <?php } else { ?>
                     <td></td>
@@ -348,20 +366,19 @@ while (!$serviceCodeData->EOF) {
                 </td>
                 <td style="text-align: left;"><?=$appointment_value['SERVICE_PROVIDER']?></td>
                 <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
-                    if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
-                        <td style="text-align: right;"><?=number_format((float)$appointment_value['PRICE_PER_SESSION'], 2, '.', ',');?></td>
+                if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
+                    <td style="text-align: right;"><?=number_format((float)$appointment_value['PRICE_PER_SESSION'], 2, '.', ',');?></td>
                 <?php } else {?>
-                        <td></td>
+                    <td></td>
                 <?php }?>
                 <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
-                    if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
-                        <td style="color:<?=($appointment_value['SERVICE_CREDIT'] < 0)?'red':'black'?>; text-align: right;"><?=number_format((float)($appointment_value['SERVICE_CREDIT']), 2, '.', ',');?></td>
+                if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
+                    <td style="color:<?=($appointment_value['SERVICE_CREDIT'] < 0)?'red':'black'?>; text-align: right;"><?=number_format((float)($appointment_value['SERVICE_CREDIT']), 2, '.', ',');?></td>
                 <?php } else { ?>
-                        <td></td>
+                    <td></td>
                 <?php } ?>
             </tr>
         <?php } ?>
         </tbody>
     <?php } ?>
 </table>
-<sc

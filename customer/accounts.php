@@ -118,7 +118,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                         <div class="col-4"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']." || ".implode(', ', $serviceCode)?></div>
                                         <div class="col-2">Paid : $<?=number_format($total_paid_amount, 2)?></div>
                                         <div class="col-2">Used : <?=number_format($total_amount-$total_used_amount<0.00 ? $total_amount : $total_used_amount, 2)?></div>
-                                        <div class="col-2" style="color:<?=($total_paid_amount-$total_used_amount<0)?'red':'black'?>;">Service Credit : <?=($total_paid_amount-$total_used_amount > 0) ? number_format($total_paid_amount-$total_used_amount, 2) : 0?></div>
+                                        <div class="col-2" style="color:<?=($total_paid_amount-$total_used_amount<0)?'red':'black'?>;">Service Credit : <?=number_format($total_paid_amount-$total_used_amount, 2)?></div>
                                         <div class="col-2">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count;?></div>
                                     </div>
                                     <table id="myTable" class="table table-striped border" style="display: none">

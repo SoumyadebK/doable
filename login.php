@@ -58,6 +58,19 @@ if ($FUNCTION_NAME == 'loginFunction'){
                 } elseif ($_SESSION['PK_ROLES'] == 4) {
                     $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$result->fields['PK_USER']." LIMIT 1");
                     $_SESSION['PK_ACCOUNT_MASTER'] = $account->fields['PK_ACCOUNT_MASTER'];
+
+                    $selected_location = [];
+                    $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = ".$_SESSION['PK_USER']);
+                    while (!$selected_location_row->EOF) {
+                        $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                        $selected_location_row->MoveNext();
+                    }
+                    if (count($selected_location) > 0) {
+                        $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $selected_location);
+                    } else {
+                        $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
+                    }
+
                     header("location: customer/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 5) {
                     header("location: service_provider/all_schedules.php?view=table");

@@ -5,7 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5733c243-9a75-4756-b39f-158f1746ff3c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/payments_made_report.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/payments_made_report.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/summary_of_studio_business_report.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/summary_of_studio_business_report.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/accounts.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/accounts.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/pagination/enrollment.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/pagination/enrollment.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/pagination/get_enrollment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/pagination/get_enrollment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/login.php" beforeDir="false" afterPath="$PROJECT_DIR$/login.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,7 +78,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;roumya&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Applications/XAMPP/xamppfiles/htdocs/doable/global/excel&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -219,6 +226,7 @@
       <workItem from="1743603593859" duration="11396000" />
       <workItem from="1743691241464" duration="5476000" />
       <workItem from="1743772327169" duration="10687000" />
+      <workItem from="1744177001955" duration="9819000" />
     </task>
     <servers />
   </component>
