@@ -211,7 +211,7 @@ $page_first_result = ($page-1) * $results_per_page;
                         <div class="col-6">
                             <div class="form-group">
                                 <a href="<?=$IMAGE_LINK?>" target="_blank">
-                                    <img src="<?=$IMAGE_LINK?>" style="margin-top: 15px; width: 150px; height: auto;">
+                                    <img src="<?=$IMAGE_LINK?>" style="margin-top: 15px; max-width: 150px; height: auto;">
                                 </a>
                             </div>
                         </div>

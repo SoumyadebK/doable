@@ -5,7 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5733c243-9a75-4756-b39f-158f1746ff3c" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/customer/ajax/get_media.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_appointment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/get_group_class_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/ajax/get_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/ajax/get_appointment_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/ajax/get_group_class_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/ajax/get_group_class_details.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/all_gift_certificates.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/all_gift_certificates.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/all_schedules.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/appointment_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/appointment_list.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/billing.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/billing.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/gift_certificate.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/gift_certificate.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customer/pagination/appointment.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/pagination/appointment.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,27 +78,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;roumya&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Applications/XAMPP/xamppfiles/htdocs/doable/global/excel&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.IDE.editor.colors.Database&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "roumya",
+    "last_opened_file_path": "C:/xampp/htdocs/doable/customer/ajax",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.Database",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\xampp\htdocs\doable\customer\ajax" />
       <recent name="$PROJECT_DIR$/global/excel" />
       <recent name="$PROJECT_DIR$/global" />
       <recent name="$PROJECT_DIR$/email" />
       <recent name="$PROJECT_DIR$/assets/dist/js" />
-      <recent name="$PROJECT_DIR$/customer" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/uploads/1010" />
@@ -219,6 +230,7 @@
       <workItem from="1743603593859" duration="11396000" />
       <workItem from="1743691241464" duration="5476000" />
       <workItem from="1743772327169" duration="10687000" />
+      <workItem from="1744209846551" duration="7056000" />
     </task>
     <servers />
   </component>

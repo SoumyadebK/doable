@@ -690,7 +690,7 @@ z-index: 500;
                         <div class="form-group">
                             <label class="form-label">Upload Image 1</label>
                             <input type="file" class="form-control" name="IMAGE" id="IMAGE">
-                            <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; width: 150px; height: auto;">
+                            <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
                             <?php if((in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) && ($IMAGE!= '')) { ?>
                                 <a href="javascript:" onclick='ConfirmDeleteImage(<?=$PK_APPOINTMENT_MASTER?>, 1);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                             <?php } ?>
@@ -720,7 +720,7 @@ z-index: 500;
                         <div class="form-group">
                             <label class="form-label">Upload Image 2</label>
                             <input type="file" class="form-control" name="IMAGE_2" id="IMAGE_2">
-                            <img src="<?=$IMAGE_2?>" onclick="showPopup('image', '<?=$IMAGE_2?>')" style="cursor: pointer; margin-top: 10px; width: 150px; height: auto;">
+                            <img src="<?=$IMAGE_2?>" onclick="showPopup('image', '<?=$IMAGE_2?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
                             <?php if((in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) && ($IMAGE_2 != '')) { ?>
                                 <a href="javascript:" onclick='ConfirmDeleteImage(<?=$PK_APPOINTMENT_MASTER?>, 2);'><i class="fa fa-trash"></i></a>
                             <?php } ?>

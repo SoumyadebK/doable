@@ -384,6 +384,10 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
 </body>
 <script>
+    window.onload = function () {
+        document.getElementById("enrollment_tab_link").click();
+    };
+
     $('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
     });
