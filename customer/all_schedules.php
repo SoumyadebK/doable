@@ -639,7 +639,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         title: info.event.title,
                         placement: 'top',
                         trigger: 'hover',
-                        content: 'Comment : '+event_data.comment+'<br>Internal Comment : '+event_data.internal_comment,
+                        content: 'Comment : '+event_data.comment,
                         container: 'body',
                         html: true,
                     });
@@ -967,6 +967,54 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         });
     }
 </script>
+<!-- JavaScript for Popup -->
+<script>
+    function showPopup(type, src) {
+        let popup = document.getElementById("mediaPopup");
+        let image = document.getElementById("popupImage");
+        let video = document.getElementById("popupVideo");
+        let videoSource = document.getElementById("popupVideoSource");
 
+        if (type === 'image') {
+            image.src = src;
+            image.style.display = "block";
+            video.style.display = "none";
+        } else if (type === 'video') {
+            videoSource.src = src;
+            video.load();
+            video.style.display = "block";
+            image.style.display = "none";
+        }
+
+        popup.style.display = "flex";
+
+        // Add event listener to detect ESC key press
+        document.addEventListener("keydown", escClose);
+    }
+
+    function closePopup() {
+        document.getElementById("mediaPopup").style.display = "none";
+        document.removeEventListener("keydown", escClose); // Remove listener when popup is closed
+    }
+
+    // Function to detect ESC key press and close the popup
+    function escClose(event) {
+        if (event.key === "Escape") {
+            closePopup();
+        }
+    }
+
+    // Disable right-click on images and videos
+    document.addEventListener("contextmenu", function (event) {
+        let target = event.target;
+        if (target.tagName === "IMG" || target.tagName === "VIDEO") {
+            event.preventDefault(); // Prevent right-click menu
+        }
+    });
+
+    // Optional: Disable right-click for the whole page
+    // Uncomment the line below if you want to block right-click everywhere
+    // document.addEventListener("contextmenu", (event) => event.preventDefault());
+</script>
 </body>
 </html>

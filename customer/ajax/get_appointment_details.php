@@ -68,6 +68,8 @@ $COMMENT = $res->fields['COMMENT'];
 $INTERNAL_COMMENT = $res->fields['INTERNAL_COMMENT'];
 $IMAGE = $res->fields['IMAGE'];
 $VIDEO = $res->fields['VIDEO'];
+$IMAGE_2 = $res->fields['IMAGE_2'];
+$VIDEO_2 = $res->fields['VIDEO_2'];
 $IS_CHARGED = $res->fields['IS_CHARGED'];
 
 $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE AS STATUS_COLOR, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
@@ -306,6 +308,38 @@ z-index: 500;
     z-index: 500;
 }
 </style>
+<!-- CSS for Popup -->
+<style>
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 80%;
+        text-align: center;
+    }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        color: white;
+        cursor: pointer;
+    }
+</style>
 <!-- Nav tabs -->
 <?php if(!empty($_GET['tab'])) { ?>
     <ul class="nav nav-tabs" role="tablist">
@@ -328,15 +362,15 @@ z-index: 500;
 <?php } else { ?>
     <ul class="nav nav-pills" role="tablist">
         <li> <a class="nav-link active" data-bs-toggle="tab" href="#edit_appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Edit Appointment</span></a> </li>
-        <li> <a class="nav-link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
-        <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-        <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
+        <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+        <li id="login_info_tab" style="display: <?php /*=($CREATE_LOGIN == 1)?'':'none'*/?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
+        <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>-->
         <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>-->
-        <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" onclick="showAgreementDocument()" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
+        <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" onclick="showAgreementDocument()" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" ><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment_view" onclick="showAppointmentListView(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
-        <li> <a class="nav-link" data-bs-toggle="tab" href="#comments" id="comment_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+        <li> <a class="nav-link" data-bs-toggle="tab" href="#comments" id="comment_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>-->
     </ul>
 <?php } ?>
 
@@ -561,39 +595,77 @@ z-index: 500;
                 </div>
 
                 <div class="row" id="add_info_div">
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label class="form-label">Comments (Visual for client)</label>
-                            <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Comments (Visual for client)</label>
+                                <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><!--<span><?php /*=$CHANGED_BY*/?></span>-->
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6">
+                        <!--<div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Internal Comment</label>
-                            <textarea class="form-control" name="INTERNAL_COMMENT" rows="4"><?=$INTERNAL_COMMENT?></textarea>
+                            <textarea class="form-control" name="INTERNAL_COMMENT" rows="4"><?php /*=$INTERNAL_COMMENT*/?></textarea>
+                        </div>
+                    </div>-->
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Upload Image 1</label>
+                                <input type="file" class="form-control" name="IMAGE" id="IMAGE">
+                                <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                            </div>
+                        </div>
+
+                        <!-- Video 1 -->
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Upload Video 1</label>
+                                <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
+                                <?php if($VIDEO != '') { ?>
+                                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                                        <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO?>')" style="cursor: pointer;">
+                                            <source src="<?=$VIDEO?>" type="video/mp4">
+                                        </video>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        </div>
+
+                        <!-- Image 2 -->
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Upload Image 2</label>
+                                <input type="file" class="form-control" name="IMAGE_2" id="IMAGE_2">
+                                <img src="<?=$IMAGE_2?>" onclick="showPopup('image', '<?=$IMAGE_2?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                            </div>
+                        </div>
+
+                        <!-- Video 2 -->
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Upload Video 2</label>
+                                <input type="file" class="form-control" name="VIDEO_2" id="VIDEO_2" accept="video/*">
+                                <?php if($VIDEO_2 != '') { ?>
+                                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                                        <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO_2?>')" style="cursor: pointer;">
+                                            <source src="<?=$VIDEO_2?>" type="video/mp4">
+                                        </video>
+                                    </div>
+                                <?php } ?>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label class="form-label">Upload Image</label>
-                            <input type="file" class="form-control" name="IMAGE" id="IMAGE">
-                            <a href="<?=$IMAGE?>" target="_blank">
-                                <img src="<?=$IMAGE?>" style="margin-top: 15px; width: 150px; height: auto;">
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label class="form-label">Upload Video</label>
-                            <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
-                            <a href="<?=$VIDEO?>" target="_blank">
-                                <?php if($VIDEO != '') {?>
-                                <video width="240" height="135" controls>
-                                    <source src="<?=$VIDEO?>" type="video/mp4">
-                                </video>
-                                <?php }?>
-                            </a>
-                        </div>
+                </div>
+                <!-- Popup Modal -->
+                <div id="mediaPopup" class="popup" onclick="closePopup()">
+                    <span class="close" onclick="closePopup()">&times;</span>
+                    <div class="popup-content" onclick="event.stopPropagation();">
+                        <img id="popupImage" src="" style="display:none; max-width: 100%;">
+                        <video id="popupVideo" controls style="display:none; max-width: 100%;">
+                            <source id="popupVideoSource" src="" type="video/mp4">
+                        </video>
                     </div>
                 </div>
 

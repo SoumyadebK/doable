@@ -4,7 +4,7 @@ global $db;
 global $db_account;
 global $master_database;
 
-$res = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.STANDING_ID, DOA_APPOINTMENT_MASTER.PK_LOCATION, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.COMMENT, DOA_APPOINTMENT_MASTER.INTERNAL_COMMENT, DOA_APPOINTMENT_MASTER.IMAGE, DOA_APPOINTMENT_MASTER.VIDEO, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
+$res = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.STANDING_ID, DOA_APPOINTMENT_MASTER.PK_LOCATION, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_APPOINTMENT_MASTER.COMMENT, DOA_APPOINTMENT_MASTER.INTERNAL_COMMENT, DOA_APPOINTMENT_MASTER.IMAGE, DOA_APPOINTMENT_MASTER.VIDEO, DOA_APPOINTMENT_MASTER.IMAGE_2, DOA_APPOINTMENT_MASTER.VIDEO_2, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE, DOA_APPOINTMENT_MASTER.ACTIVE FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
 
 if($res->RecordCount() == 0){
     header("location:all_schedule.php");
@@ -27,6 +27,8 @@ $COMMENT = $res->fields['COMMENT'];
 $INTERNAL_COMMENT = $res->fields['INTERNAL_COMMENT'];
 $IMAGE = $res->fields['IMAGE'];
 $VIDEO = $res->fields['VIDEO'];
+$IMAGE_2 = $res->fields['IMAGE_2'];
+$VIDEO_2 = $res->fields['VIDEO_2'];
 
 $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
 $CHANGED_BY = '';
@@ -36,6 +38,38 @@ while (!$status_data->EOF) {
 }
 ?>
 
+<!-- CSS for Popup -->
+<style>
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 80%;
+        text-align: center;
+    }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        color: white;
+        cursor: pointer;
+    }
+</style>
 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
     <input type="hidden" name="FUNCTION_NAME" value="saveGroupClassData">
     <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=$PK_APPOINTMENT_MASTER?>">
@@ -197,32 +231,69 @@ while (!$status_data->EOF) {
                             <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
                         </div>
                     </div>
-                    <div class="col-6">
+                    <!--<div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Internal Comment</label>
-                            <textarea class="form-control" name="INTERNAL_COMMENT" rows="4"><?=$INTERNAL_COMMENT?></textarea>
+                            <textarea class="form-control" name="INTERNAL_COMMENT" rows="4"><?php /*=$INTERNAL_COMMENT*/?></textarea>
+                        </div>
+                    </div>-->
+                    <div class="row">
+                        <!-- Image 1 -->
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Upload Image 1</label>
+                                <input type="file" class="form-control" name="IMAGE" id="IMAGE">
+                                <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                            </div>
+                        </div>
+
+                        <!-- Video 1 -->
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Upload Video 1</label>
+                                <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
+                                <?php if($VIDEO != '') { ?>
+                                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                                        <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO?>')" style="cursor: pointer;">
+                                            <source src="<?=$VIDEO?>" type="video/mp4">
+                                        </video>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        </div>
+
+                        <!-- Image 2 -->
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Upload Image 2</label>
+                                <input type="file" class="form-control" name="IMAGE_2" id="IMAGE_2">
+                                <img src="<?=$IMAGE_2?>" onclick="showPopup('image', '<?=$IMAGE_2?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                            </div>
+                        </div>
+
+                        <!-- Video 2 -->
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Upload Video 2</label>
+                                <input type="file" class="form-control" name="VIDEO_2" id="VIDEO_2" accept="video/*">
+                                <?php if($VIDEO_2 != '') { ?>
+                                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                                        <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO_2?>')" style="cursor: pointer;">
+                                            <source src="<?=$VIDEO_2?>" type="video/mp4">
+                                        </video>
+                                    </div>
+                                <?php } ?>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label class="form-label">Upload Image</label>
-                            <input type="file" class="form-control" name="IMAGE" id="IMAGE">
-                            <a href="<?=$IMAGE?>" target="_blank">
-                                <img src="<?=$IMAGE?>" style="margin-top: 15px; width: 150px; height: auto;">
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label class="form-label">Upload Video</label>
-                            <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
-                            <a href="<?=$VIDEO?>" target="_blank">
-                                <?php if($VIDEO != '') {?>
-                                    <video width="240" height="135" controls>
-                                        <source src="<?=$VIDEO?>" type="video/mp4">
-                                    </video>
-                                <?php }?>
-                            </a>
+                    <!-- Popup Modal -->
+                    <div id="mediaPopup" class="popup" onclick="closePopup()">
+                        <span class="close" onclick="closePopup()">&times;</span>
+                        <div class="popup-content" onclick="event.stopPropagation();">
+                            <img id="popupImage" src="" style="display:none; max-width: 100%;">
+                            <video id="popupVideo" controls style="display:none; max-width: 100%;">
+                                <source id="popupVideoSource" src="" type="video/mp4">
+                            </video>
                         </div>
                     </div>
                 </div>
