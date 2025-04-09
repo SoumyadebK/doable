@@ -378,7 +378,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <td style="vertical-align: middle; text-align: center;" colspan="13">
                                                 <div class="col-12">
                                                     <div class="form-group">
-                                                        <textarea class="form-control" name="COMMENT" rows="3"><?=$appointment_data->fields['COMMENT']?></textarea><span><?=$CHANGED_BY?></span>
+                                                        <textarea class="form-control" name="COMMENT" rows="3"><?=$appointment_data->fields['COMMENT']?></textarea><!--<span><?php /*=$CHANGED_BY*/?></span>-->
                                                     </div>
                                                 </div>
                                                 <div id="media_div_<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>">

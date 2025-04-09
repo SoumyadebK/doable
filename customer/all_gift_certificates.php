@@ -10,7 +10,7 @@ if ($status_check == 'active'){
     $status = 0;
 }
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4) {
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4 ){
     header("location:../login.php");
     exit;
 }
@@ -48,18 +48,46 @@ $page_first_result = ($page-1) * $results_per_page;
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid body_content">
+        <?php require_once('../includes/setup_menu.php') ?>
+        <div class="container-fluid body_content m-0">
             <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+                <div class="col-md-3 align-self-center">
+                    <?php if ($status_check=='inactive') { ?>
+                        <h4 class="text-themecolor">Not Active Gift Certificates</h4>
+                    <?php } elseif ($status_check=='active') { ?>
+                        <h4 class="text-themecolor">Active Gift Certificates</h4>
+                    <?php } ?>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
+
+                <?php if ($status_check=='inactive') { ?>
+                    <div class="col-md-2 align-self-center">
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_gift_certificates.php?status=active'"><i class="fa fa-user"></i> Show Active</button>
+                    </div>
+                <?php } elseif ($status_check=='active') { ?>
+                    <div class="col-md-2 align-self-center">
+                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_gift_certificates.php?status=inactive'"><i class="fa fa-user-times"></i> Show Not Active</button>
+                    </div>
+                <?php } ?>
+
+                <div class="col-md-3 align-self-center text-end">
+                    <form class="form-material form-horizontal" action="" method="get">
+                        <input type="hidden" name="status" value="<?=$status_check?>" >
+                        <div class="input-group">
+                            <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?=$search_text?>">
+                            <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
+                        <ol class="breadcrumb justify-content-end">
+                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
+                            <li class="breadcrumb-item active"><?=$title?></li>
+                        </ol>
                         <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='gift_certificate.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
                     </div>
                 </div>
             </div>
-
             <div class="row">
                 <div class="col-12">
                     <div class="card">
@@ -79,29 +107,52 @@ $page_first_result = ($page-1) * $results_per_page;
 
                                     <tbody>
                                     <?php
-                                    $i=1;
-                                    //$row = $db_account->Execute("SELECT DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_GIFT_CERTIFICATE_MASTER.GIFT_CERTIFICATE_CODE, DOA_GIFT_CERTIFICATE_MASTER.GIFT_CERTIFICATE_NAME, DOA_GIFT_CERTIFICATE_MASTER.DATE_OF_PURCHASE, DOA_GIFT_CERTIFICATE_MASTER.AMOUNT, DOA_GIFT_CERTIFICATE_MASTER.ACTIVE FROM `DOA_GIFT_CERTIFICATE_MASTER` INNER JOIN `DOA_USER_MASTER` ON DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN `DOA_USERS` ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.PK_USER = ".$_SESSION['PK_USER']);
-                                    $row = $db_account->Execute("SELECT DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_CODE, DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_NAME, DOA_GIFT_CERTIFICATE_MASTER.DATE_OF_PURCHASE, DOA_GIFT_CERTIFICATE_MASTER.AMOUNT, DOA_GIFT_CERTIFICATE_MASTER.ACTIVE FROM `DOA_GIFT_CERTIFICATE_MASTER` INNER JOIN `DOA_GIFT_CERTIFICATE_SETUP` ON DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_SETUP=DOA_GIFT_CERTIFICATE_SETUP.PK_GIFT_CERTIFICATE_SETUP LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.PK_USER = ".$_SESSION['PK_USER']." AND DOA_GIFT_CERTIFICATE_MASTER.ACTIVE = '$status' AND DOA_GIFT_CERTIFICATE_MASTER.PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER'].$search." ORDER BY DOA_GIFT_CERTIFICATE_MASTER.DATE_OF_PURCHASE DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
+                                    $i = $page_first_result+1;
+                                    $row = $db_account->Execute("SELECT DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_CODE, DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_NAME, DOA_GIFT_CERTIFICATE_MASTER.DATE_OF_PURCHASE, DOA_GIFT_CERTIFICATE_MASTER.AMOUNT, DOA_GIFT_CERTIFICATE_MASTER.ACTIVE FROM `DOA_GIFT_CERTIFICATE_MASTER` INNER JOIN `DOA_GIFT_CERTIFICATE_SETUP` ON DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_SETUP=DOA_GIFT_CERTIFICATE_SETUP.PK_GIFT_CERTIFICATE_SETUP LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_GIFT_CERTIFICATE_MASTER.ACTIVE = '$status' AND DOA_GIFT_CERTIFICATE_MASTER.PK_ACCOUNT_MASTER=".$_SESSION['PK_ACCOUNT_MASTER'].$search." ORDER BY DOA_GIFT_CERTIFICATE_MASTER.DATE_OF_PURCHASE DESC"." LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$row->EOF) { ?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=$row->fields['NAME']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=(empty($row->fields['NAME'])?"":$row->fields['NAME'])?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=$row->fields['GIFT_CERTIFICATE_CODE']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=$row->fields['GIFT_CERTIFICATE_NAME']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=$row->fields['DATE_OF_PURCHASE']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><?=$row->fields['AMOUNT']?></td>
                                             <td>
-                                                <a href="gift_certificate.php?id=<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="gift_certificate.php?id=<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>"><i class="fa fa-edit" title="Edit" style="font-size:21px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php if($row->fields['ACTIVE']==1){ ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
                                                     <span class="active-box-red"></span>
                                                 <?php } ?>
+                                                <a href="javascript:;" onclick="giftCertificate(<?=$row->fields['PK_GIFT_CERTIFICATE_MASTER']?>);"><i class="fa fa-download" title="Download" style="font-size:21px; padding-left: 15px"></i></a>
                                             </td>
                                         </tr>
                                         <?php $row->MoveNext();
                                         $i++; } ?>
                                     </tbody>
                                 </table>
+                                <div class="center">
+                                    <div class="pagination outer">
+                                        <ul>
+                                            <?php if ($page > 1) { ?>
+                                                <li><a href="all_gift_certificates.php?status=<?=$status_check?>&page=1">&laquo;</a></li>
+                                                <li><a href="all_gift_certificates.php?status=<?=$status_check?>&page=<?=($page-1)?>">&lsaquo;</a></li>
+                                            <?php }
+                                            for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
+                                                if ($page_count == $page || $page_count == ($page+1) || $page_count == ($page-1) || $page_count == $number_of_page) {
+                                                    echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_gift_certificates.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                } elseif ($page_count == ($number_of_page-1)){
+                                                    echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
+                                                } else {
+                                                    echo '<li><a class="hidden" href="all_gift_certificates.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                }
+                                            }
+                                            if ($page < $number_of_page) { ?>
+                                                <li><a href="all_gift_certificates.php?status=<?=$status_check?>&page=<?=($page+1)?>">&rsaquo;</a></li>
+                                                <li><a href="all_gift_certificates.php?status=<?=$status_check?>&page=<?=$number_of_page?>">&raquo;</a></li>
+                                            <?php } ?>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -112,18 +163,39 @@ $page_first_result = ($page-1) * $results_per_page;
 </div>
 <?php require_once('../includes/footer.php');?>
 <script>
-    $(function () {
-        $('#myTable').DataTable();
-    });
+    // $(function () {
+    //     $('#myTable').DataTable();
+    // });
+
     function ConfirmDelete(anchor)
     {
         var conf = confirm("Are you sure you want to delete?");
         if(conf)
             window.location=anchor.attr("href");
     }
+
     function editpage(id){
         //alert(i);
         window.location.href = "gift_certificate.php?id="+id;
+    }
+
+    function giftCertificate(PK_GIFT_CERTIFICATE_MASTER) {
+        //alert(PK_GIFT_CERTIFICATE_MASTER)
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {FUNCTION_NAME: 'viewGiftCertificatePdf', PK_GIFT_CERTIFICATE_MASTER: PK_GIFT_CERTIFICATE_MASTER},
+            success:function (data) {
+                window.open(
+                    data,
+                    '_blank' // <- This is what makes it open in a new window.
+                );
+            },
+            error: (error) => {
+                console.log(JSON.stringify(error));
+            }
+        });
+
     }
 </script>
 </body>

@@ -124,7 +124,7 @@ while (!$status_data->EOF) {
                 <div class="col-6">
                     <label class="form-label"><?=$service_provider_title?></label>
                     <div style="margin-bottom: 15px; margin-top: 10px; width: 480px;">
-                        <select name="SERVICE_PROVIDER_ID[]" class="SERVICE_PROVIDER_ID multi_sumo_select" id="SERVICE_PROVIDER_ID" multiple>
+                        <select name="SERVICE_PROVIDER_ID[]" class="SERVICE_PROVIDER_ID multi_sumo_select" id="SERVICE_PROVIDER_ID" multiple disabled>
                             <?php
                             $selected_service_provider = [];
                             $selected_service_provider_row = $db_account->Execute("SELECT DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER FROM DOA_APPOINTMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USER_MASTER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = $master_database.DOA_USER_MASTER.PK_USER WHERE DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
@@ -166,12 +166,12 @@ while (!$status_data->EOF) {
                 </div>
             </div>
             <div class="row">
-                <div class="col-8">
+                <!--<div class="col-8">
                     <label class="form-label">Customer</label>
                     <div style="margin-bottom: 15px; margin-top: 10px; width: 480px;">
-                        <select class="multi_sumo_select" name="PK_USER_MASTER[]" id="PK_USER_MASTER" multiple>
+                        <select class="multi_sumo_select" name="PK_USER_MASTER[]" id="PK_USER_MASTER" multiple disabled>
                             <?php
-                            $with_enr_customer = [];
+/*                            $with_enr_customer = [];
                             $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = $PK_SERVICE_MASTER AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
                             while (!$serviceCodeData->EOF) {
                                 $SESSION_CREATED = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE'], 'GROUP');
@@ -201,13 +201,13 @@ while (!$status_data->EOF) {
                                     $selected_customer_id = $row->fields['PK_USER_MASTER'];
                                     $selected_user_id = $row->fields['PK_USER'];
                                     $customer_name.= '<p><i class="fa fa-check-square" style="font-size:15px; color: #069419"></i>&nbsp;&nbsp;<a href="customer.php?id='.$selected_user_id.'&master_id='.$selected_customer_id.'&tab=profile" target="_blank">'.$row->fields['NAME'].'<br></a></p>';
-                                }?>
-                                <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" <?=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""?>><?=$row->fields['NAME']?></option>
-                            <?php $row->MoveNext(); } ?>
+                                }*/?>
+                                <option value="<?php /*echo $row->fields['PK_USER_MASTER'];*/?>" <?php /*=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""*/?>><?php /*=$row->fields['NAME']*/?></option>
+                            <?php /*$row->MoveNext(); } */?>
                         </select>
                     </div>
-                    <p><?=$customer_name;?></p>
-                </div>
+                    <p><?php /*=$customer_name;*/?></p>
+                </div>-->
                 <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">Status:</label>
@@ -228,7 +228,7 @@ while (!$status_data->EOF) {
                     <div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Comment</label>
-                            <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
+                            <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><!--<span><?php /*=$CHANGED_BY*/?></span>-->
                         </div>
                     </div>
                     <!--<div class="col-6">
@@ -238,53 +238,64 @@ while (!$status_data->EOF) {
                         </div>
                     </div>-->
                     <div class="row">
-                        <!-- Image 1 -->
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="form-label">Upload Image 1</label>
-                                <input type="file" class="form-control" name="IMAGE" id="IMAGE">
-                                <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                        <?php if ($IMAGE != '') {?>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Uploaded Image 1</label>
+                                    <!--<input type="file" class="form-control" name="IMAGE" id="IMAGE">-->
+                                    <div>
+                                        <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        <?php }?>
 
                         <!-- Video 1 -->
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="form-label">Upload Video 1</label>
-                                <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
-                                <?php if($VIDEO != '') { ?>
-                                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
-                                        <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO?>')" style="cursor: pointer;">
-                                            <source src="<?=$VIDEO?>" type="video/mp4">
-                                        </video>
-                                    </div>
-                                <?php } ?>
+                        <?php if ($VIDEO != '') {?>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Uploaded Video 1</label>
+                                    <!--<input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">-->
+                                    <?php if($VIDEO != '') { ?>
+                                        <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                                            <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO?>')" style="cursor: pointer;">
+                                                <source src="<?=$VIDEO?>" type="video/mp4">
+                                            </video>
+                                        </div>
+                                    <?php } ?>
+                                </div>
                             </div>
-                        </div>
+                        <?php }?>
 
                         <!-- Image 2 -->
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="form-label">Upload Image 2</label>
-                                <input type="file" class="form-control" name="IMAGE_2" id="IMAGE_2">
-                                <img src="<?=$IMAGE_2?>" onclick="showPopup('image', '<?=$IMAGE_2?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                        <?php if ($IMAGE_2 != '') {?>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Uploaded Image 2</label>
+                                    <!--<input type="file" class="form-control" name="IMAGE_2" id="IMAGE_2">-->
+                                    <div>
+                                        <img src="<?=$IMAGE_2?>" onclick="showPopup('image', '<?=$IMAGE_2?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        <?php }?>
 
                         <!-- Video 2 -->
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="form-label">Upload Video 2</label>
-                                <input type="file" class="form-control" name="VIDEO_2" id="VIDEO_2" accept="video/*">
-                                <?php if($VIDEO_2 != '') { ?>
-                                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
-                                        <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO_2?>')" style="cursor: pointer;">
-                                            <source src="<?=$VIDEO_2?>" type="video/mp4">
-                                        </video>
-                                    </div>
-                                <?php } ?>
+                        <?php if ($VIDEO_2 != '') {?>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Uploaded Video 2</label>
+                                    <!--<input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">-->
+                                    <?php if($VIDEO_2 != '') { ?>
+                                        <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                                            <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO_2?>')" style="cursor: pointer;">
+                                                <source src="<?=$VIDEO_2?>" type="video/mp4">
+                                            </video>
+                                        </div>
+                                    <?php } ?>
+                                </div>
                             </div>
-                        </div>
+                        <?php }?>
                     </div>
                     <!-- Popup Modal -->
                     <div id="mediaPopup" class="popup" onclick="closePopup()">
@@ -303,7 +314,7 @@ while (!$status_data->EOF) {
     <div class="form-group">
         <label><input type="checkbox" name="STANDING_ID" value="<?=$STANDING_ID?>"> All Session Details Will Be Changed</label>
     </div>
-    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
+    <!--<button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>-->
     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
 </form>
 

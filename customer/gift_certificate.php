@@ -22,8 +22,10 @@ $CHECK_NUMBER = '';
 $CHECK_DATE = '';
 $PAYMENT_INFO = '';
 
+$row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']." AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME");
+$PK_USER_MASTER = $row->fields['PK_USER_MASTER'];
+
 if (empty($_GET['id'])) {
-    $PK_USER_MASTER = '';
     $PK_GIFT_CERTIFICATE_SETUP ='';
     $DATE_OF_PURCHASE = '';
     $GIFT_NOTE = '';
@@ -35,7 +37,6 @@ if (empty($_GET['id'])) {
         header("location:all_gift_certificates.php");
         exit;
     }
-    $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
     $PK_GIFT_CERTIFICATE_SETUP = $res->fields['PK_GIFT_CERTIFICATE_SETUP'];
     $DATE_OF_PURCHASE = $res->fields['DATE_OF_PURCHASE'];
     $GIFT_NOTE = $res->fields['GIFT_NOTE'];
@@ -96,11 +97,11 @@ if(!empty($_POST)){
             $STRIPE_TOKEN = $_POST['token'];
 
             /*Check the user is already a stripe user or not*/
-            $user_payment_info_data = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+            $user_payment_info_data = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = ".$PK_USER_MASTER);
             if ($user_payment_info_data->RecordCount() > 0) {
                 $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
             } else {
-                $user_master = $db_account->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+                $user_master = $db_account->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = ".$PK_USER_MASTER);
                 try {
                     $customer = $stripe->customers->create([
                         'email' => $user_master->fields['EMAIL_ID'],
@@ -323,7 +324,7 @@ if(!empty($_POST)){
             }
         }
 
-        $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
+        //$PK_USER_MASTER = $_POST['PK_USER_MASTER'];
         $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID, MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$_POST['PK_ENROLLMENT_MASTER']);
         if(empty($enrollment_data->fields['ENROLLMENT_ID'])) {
             $enrollment_id = $enrollment_data->fields['MISC_ID'];
@@ -347,7 +348,7 @@ if(!empty($_POST)){
     }
 
     $GIFT_CERTIFICATE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
+    $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
     if (empty($_GET['id'])) {
         $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
         $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));

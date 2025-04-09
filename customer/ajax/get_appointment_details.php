@@ -610,19 +610,24 @@ z-index: 500;
                     </div>-->
                     </div>
                     <div class="row">
+                        <?php if ($IMAGE != '') {?>
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="form-label">Upload Image 1</label>
-                                <input type="file" class="form-control" name="IMAGE" id="IMAGE">
-                                <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                                <label class="form-label">Uploaded Image 1</label>
+                                <!--<input type="file" class="form-control" name="IMAGE" id="IMAGE">-->
+                                <div>
+                                    <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                                </div>
                             </div>
                         </div>
+                        <?php }?>
 
                         <!-- Video 1 -->
+                        <?php if ($VIDEO != '') {?>
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="form-label">Upload Video 1</label>
-                                <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
+                                <label class="form-label">Uploaded Video 1</label>
+                                <!--<input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">-->
                                 <?php if($VIDEO != '') { ?>
                                     <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
                                         <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO?>')" style="cursor: pointer;">
@@ -632,21 +637,27 @@ z-index: 500;
                                 <?php } ?>
                             </div>
                         </div>
+                        <?php }?>
 
                         <!-- Image 2 -->
+                        <?php if ($IMAGE_2 != '') {?>
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="form-label">Upload Image 2</label>
-                                <input type="file" class="form-control" name="IMAGE_2" id="IMAGE_2">
-                                <img src="<?=$IMAGE_2?>" onclick="showPopup('image', '<?=$IMAGE_2?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                                <label class="form-label">Uploaded Image 2</label>
+                                <!--<input type="file" class="form-control" name="IMAGE_2" id="IMAGE_2">-->
+                                <div>
+                                    <img src="<?=$IMAGE_2?>" onclick="showPopup('image', '<?=$IMAGE_2?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                                </div>
                             </div>
                         </div>
+                        <?php }?>
 
                         <!-- Video 2 -->
+                        <?php if ($VIDEO_2 != '') {?>
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="form-label">Upload Video 2</label>
-                                <input type="file" class="form-control" name="VIDEO_2" id="VIDEO_2" accept="video/*">
+                                <label class="form-label">Uploaded Video 2</label>
+                                <!--<input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">-->
                                 <?php if($VIDEO_2 != '') { ?>
                                     <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
                                         <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO_2?>')" style="cursor: pointer;">
@@ -656,6 +667,7 @@ z-index: 500;
                                 <?php } ?>
                             </div>
                         </div>
+                        <?php }?>
                     </div>
                 </div>
                 <!-- Popup Modal -->
@@ -680,7 +692,7 @@ z-index: 500;
                     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
                     <?php } ?>
                     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
-                    <a href="enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
+                    <!--<a href="enrollment.php?customer_id=<?php /*=$selected_customer_id;*/?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>-->
                     <!--<a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
                     <a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>-->
                 </div>
@@ -1091,7 +1103,7 @@ z-index: 500;
                 <div class="row">
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="col-md-12">Image Upload</label>
+                            <label class="col-md-12">Image Uploaded</label>
                             <div class="col-md-12">
                                 <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control">
                             </div>
@@ -1646,7 +1658,7 @@ z-index: 500;
             $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
             while (!$res->EOF) {?>
                 <div style="margin-top: 5px">
-                    <?=$res->fields['ENROLLMENT_ID']?> - <a href="../uploads/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
+                    <?=$res->fields['ENROLLMENT_ID']?> - <a href="../Uploadeds/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
                 </div>
                 <?php $res->MoveNext();
             } ?>
