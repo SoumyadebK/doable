@@ -607,7 +607,6 @@ if(!empty($_POST)){
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
                             <li class="breadcrumb-item"><a href="all_gift_certificates.php">All Gift Certificates</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>

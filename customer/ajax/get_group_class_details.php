@@ -90,7 +90,7 @@ while (!$status_data->EOF) {
                 </div>
                 <div class="col-4">
                     <div class="form-group">
-                        <label class="form-label">Scheduling Code : <span id="change_scheduling_code" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>
+                        <label class="form-label">Scheduling Code  <!--<span id="change_scheduling_code" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>-->
                             <span id="cancel_change_scheduling_code" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeSchedulingCode()">Cancel</a></span></label>
                         <div id="scheduling_code_select" style="display: none;">
                             <select class="form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
@@ -111,7 +111,7 @@ while (!$status_data->EOF) {
                 <div class="col-6">
                     <div class="form-group">
                         <label class="form-label">Location</label>
-                        <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
+                        <select class="form-control" name="PK_LOCATION" id="PK_LOCATION" disabled>
                             <option value="">Select Location</option>
                             <?php
                             $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
@@ -149,19 +149,19 @@ while (!$status_data->EOF) {
                 <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">Date</label>
-                        <input type="text" id="DATE" name="DATE" class="form-control datepicker-normal" required value="<?php echo ($DATE)?date('m/d/Y', strtotime($DATE)):''?>">
+                        <input type="text" id="DATE" name="DATE" class="form-control" required value="<?php echo ($DATE)?date('m/d/Y', strtotime($DATE)):''?>" readonly>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">Start Time</label>
-                        <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" required value="<?php echo ($START_TIME)?date('h:i A', strtotime($START_TIME)):''?>">
+                        <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" required value="<?php echo ($START_TIME)?date('h:i A', strtotime($START_TIME)):''?>" readonly>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="form-group">
                         <label class="form-label">End Time</label>
-                        <input type="text" id="END_TIME" name="END_TIME" class="form-control time-picker" required value="<?php echo ($END_TIME)?date('h:i A', strtotime($END_TIME)):''?>">
+                        <input type="text" id="END_TIME" name="END_TIME" class="form-control time-picker" required value="<?php echo ($END_TIME)?date('h:i A', strtotime($END_TIME)):''?>" readonly>
                     </div>
                 </div>
             </div>
@@ -210,8 +210,8 @@ while (!$status_data->EOF) {
                 </div>-->
                 <div class="col-4">
                     <div class="form-group">
-                        <label class="form-label">Status:</label>
-                        <select class="form-control" name="PK_APPOINTMENT_STATUS" id="PK_APPOINTMENT_STATUS">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" name="PK_APPOINTMENT_STATUS" id="PK_APPOINTMENT_STATUS" disabled>
                             <option value="">Select Status</option>
                             <?php
                             $selected_status = '';
@@ -228,7 +228,7 @@ while (!$status_data->EOF) {
                     <div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Comment</label>
-                            <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><!--<span><?php /*=$CHANGED_BY*/?></span>-->
+                            <textarea class="form-control" name="COMMENT" rows="4" readonly><?=$COMMENT?></textarea><!--<span><?php /*=$CHANGED_BY*/?></span>-->
                         </div>
                     </div>
                     <!--<div class="col-6">
@@ -311,9 +311,9 @@ while (!$status_data->EOF) {
             </div>
         </div>
     </div>
-    <div class="form-group">
-        <label><input type="checkbox" name="STANDING_ID" value="<?=$STANDING_ID?>"> All Session Details Will Be Changed</label>
-    </div>
+    <!--<div class="form-group">
+        <label><input type="checkbox" name="STANDING_ID" value="<?php /*=$STANDING_ID*/?>"> All Session Details Will Be Changed</label>
+    </div>-->
     <!--<button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>-->
     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
 </form>

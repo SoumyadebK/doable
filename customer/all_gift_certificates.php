@@ -48,8 +48,7 @@ $page_first_result = ($page-1) * $results_per_page;
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
         <?php require_once('../includes/top_menu_bar.php') ?>
-        <?php require_once('../includes/setup_menu.php') ?>
-        <div class="container-fluid body_content m-0">
+        <div class="container-fluid body_content">
             <div class="row page-titles">
                 <div class="col-md-3 align-self-center">
                     <?php if ($status_check=='inactive') { ?>
@@ -81,7 +80,6 @@ $page_first_result = ($page-1) * $results_per_page;
                 <div class="col-md-4 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
                             <li class="breadcrumb-item active"><?=$title?></li>
                         </ol>
                         <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='gift_certificate.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
