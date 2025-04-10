@@ -162,7 +162,7 @@ while (!$enrollment_data->EOF) {
                             <td style="text-align: right;"><?=($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_COMPLETED <= 0) ? 'XX' : $SESSION_COMPLETED?></td>
                             <td style="text-align: right; color:<?=($ENR_BALANCE < 0)?'red':'black'?>;"><?=number_format($ENR_BALANCE, 2)?></td>
                             <td style="text-align: right"><?=number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/(($PRICE_PER_SESSION == 0)?1:$PRICE_PER_SESSION), 2)?></td>
-                            <td style="text-align: right;"><?=($SERVICE_CREDIT > 0) ? number_format($SERVICE_CREDIT, 2) : 0?></td>
+                            <td style="text-align: right; color:<?=($SERVICE_CREDIT < 0)?'red':'black'?>;"><?=number_format($SERVICE_CREDIT, 2)?></td>
                         </tr>
                     <?php $serviceCodeData->MoveNext();
                     } ?>
@@ -172,7 +172,7 @@ while (!$enrollment_data->EOF) {
                         <td style="text-align: right;"><?=number_format($total_amount-$total_used_amount<0.00 ? $total_amount : $total_used_amount, 2)?></td>
                         <td style="text-align: right; color:<?=($total_amount-$total_paid_amount<-0.03)?'red':'black'?>;"><?=number_format((($total_amount-$total_paid_amount<0.03) ? 0 : $total_amount-$total_paid_amount), 2)?></td>
                         <td style="text-align: right;">$<?=number_format($total_paid_amount, 2)?></td>
-                        <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? number_format($total_paid_amount-$total_used_amount, 2) : 0?></td>
+                        <td style="text-align: right; color:<?=($total_paid_amount-$total_used_amount < 0)?'red':'black'?>;"><?=number_format($total_paid_amount-$total_used_amount, 2)?></td>
                     </tr>
                     </tbody>
                 </table>
