@@ -386,26 +386,26 @@ z-index: 500;
                     <div class="row">
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Name: </label>
+                                <label class="form-label">Name </label>
                                 <p><a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank"><?=$selected_customer?></a></p>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Phone: </label>
+                                <label class="form-label">Phone </label>
                                 <p><?=$customer_phone?></p>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Email: </label>
+                                <label class="form-label">Email </label>
                                 <p><?=$customer_email?></p>
                             </div>
                         </div>
 
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Enrollment ID : </label>
+                                <label class="form-label">Enrollment ID  </label>
                                 <select class="form-control" required name="PK_SERVICE_MASTER" id="PK_SERVICE_MASTER" style="display: none;" onchange="selectThisEnrollment(this);" disabled>
                                     <option value="">Select Enrollment ID</option>
                                     <?php
@@ -420,13 +420,13 @@ z-index: 500;
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Apt #: </label>
+                                <label class="form-label">Apt # </label>
                                 <p><?=$SERIAL_NUMBER?></p>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Service : </label>
+                                <label class="form-label">Service  </label>
                                 <select class="form-control" required name="PK_SERVICE_MASTER" id="PK_SERVICE_MASTER" style="display: none;" onchange="selectThisService(this);" disabled>
                                     <option value="">Select Service</option>
                                     <?php
@@ -441,7 +441,7 @@ z-index: 500;
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Service Code : </label>
+                                <label class="form-label">Service Code  </label>
                                 <?php if ($PK_SERVICE_CODE==0) {
                                     $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE IS_DEFAULT=1");
                                     $service_code = $row->fields['SERVICE_CODE'];?>
@@ -463,10 +463,10 @@ z-index: 500;
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Scheduling Code : <span id="change_scheduling_code" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>
+                                <label class="form-label">Scheduling Code  <!--<span id="change_scheduling_code" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>-->
                                     <span id="cancel_change_scheduling_code" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeSchedulingCode()">Cancel</a></span></label>
                                 <div id="scheduling_code_select" style="display: none;">
-                                    <select class="form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE">
+                                    <select class="form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" disabled>
                                         <option value="">Select Scheduling Code</option>
                                         <?php
                                         $selected_scheduling_code = '';
@@ -481,7 +481,7 @@ z-index: 500;
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label"><?=$service_provider_title?> : <span id="change_service_provider" style="margin-left: 30px;"><a href="javascript:;" onclick="changeServiceProvider()">Change</a></span>
+                                <label class="form-label"><?=$service_provider_title?>  <!--<span id="change_service_provider" style="margin-left: 30px;"><a href="javascript:;" onclick="changeServiceProvider()">Change</a></span>-->
                                     <span id="cancel_change_service_provider" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeServiceProvider()">Cancel</a></span></label>
                                 <div id="service_provider_select" style="display: none;">
                                     <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
@@ -502,7 +502,7 @@ z-index: 500;
                     <div class="row" id="date_time_div">
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Date : </label>
+                                <label class="form-label">Date  </label>
                                 <p><?=$DATE?></p>
                             </div>
                         </div>
@@ -555,9 +555,9 @@ z-index: 500;
                     <input type="hidden" name="PK_APPOINTMENT_STATUS_OLD" value="<?=$PK_APPOINTMENT_STATUS?>">
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="form-label">Status : <?php if($PK_APPOINTMENT_STATUS!=2) {?><span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span><?php }?>
+                            <label class="form-label">Status  <?php /*if($PK_APPOINTMENT_STATUS!=2) {*/?><!--<span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span>--><?php /*}*/?>
                                 <span id="cancel_change_status" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeStatus()">Cancel</a></span></label><br>
-                            <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" style="display: none;" onchange="changeAppointmentStatus(this)">
+                            <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" style="display: none;" onchange="changeAppointmentStatus(this)" disabled>
                                 <option value="">Select Status</option>
                                 <?php
                                 $selected_status = '';
@@ -573,7 +573,7 @@ z-index: 500;
                         <input type="hidden" name="IS_CHARGED_OLD" value="<?=$IS_CHARGED?>">
                         <div class="form-group">
                             <label class="form-label">Payment Status</label>
-                            <select class="form-control" name="IS_CHARGED" id="IS_CHARGED">
+                            <select class="form-control" name="IS_CHARGED" id="IS_CHARGED" disabled>
                                 <option value="1" <?=($IS_CHARGED==1)?'selected':''?>>Charge</option>
                                 <option value="0" <?=($IS_CHARGED==0)?'selected':''?>>No charge</option>
                             </select>
@@ -599,7 +599,7 @@ z-index: 500;
                         <div class="col-6">
                             <div class="form-group">
                                 <label class="form-label">Comments (Visual for client)</label>
-                                <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><!--<span><?php /*=$CHANGED_BY*/?></span>-->
+                                <textarea class="form-control" name="COMMENT" rows="4" readonly><?=$COMMENT?></textarea><!--<span><?php /*=$CHANGED_BY*/?></span>-->
                             </div>
                         </div>
                         <!--<div class="col-6">
@@ -1658,7 +1658,7 @@ z-index: 500;
             $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
             while (!$res->EOF) {?>
                 <div style="margin-top: 5px">
-                    <?=$res->fields['ENROLLMENT_ID']?> - <a href="../Uploadeds/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
+                    <?=$res->fields['ENROLLMENT_ID']?> - <a href="../Uploads/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
                 </div>
                 <?php $res->MoveNext();
             } ?>
