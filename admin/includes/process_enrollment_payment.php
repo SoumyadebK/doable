@@ -61,12 +61,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $PAYMENT_STATUS = 'Success';
     $IS_ORIGINAL_RECEIPT = 1;
 
-    $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY CONVERT(RECEIPT_NUMBER, DECIMAL) DESC LIMIT 1");
-    if ($receipt->RecordCount() > 0) {
-        $RECEIPT_NUMBER_ORIGINAL = $receipt->fields['RECEIPT_NUMBER'] + 1;
-    } else {
-        $RECEIPT_NUMBER_ORIGINAL = 1;
-    }
+    $RECEIPT_NUMBER_ORIGINAL = generateReceiptNumber($_POST['PK_ENROLLMENT_MASTER']);
 
     if ($_POST['PK_PAYMENT_TYPE'] == 1 || $_POST['PK_PAYMENT_TYPE'] == 14) {
         if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
