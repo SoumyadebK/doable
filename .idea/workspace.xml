@@ -6,15 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5733c243-9a75-4756-b39f-158f1746ff3c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/ajax/AjaxFunctions.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/all_enrollments.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/all_enrollments.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/includes/process_enrollment_payment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/process_enrollment_payment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/includes/process_wallet_payment.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/includes/process_wallet_payment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/location.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/location.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/product_checkout.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/product_checkout.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/ajax/AjaxFunctions.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/ajax/AjaxFunctions.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/includes/process_enrollment_payment.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/includes/process_enrollment_payment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global/helper_function.php" beforeDir="false" afterPath="$PROJECT_DIR$/global/helper_function.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -231,6 +222,7 @@
       <workItem from="1744177001955" duration="9819000" />
       <workItem from="1744294079526" duration="34000" />
       <workItem from="1744294119319" duration="6415000" />
+      <workItem from="1744380849524" duration="8000" />
     </task>
     <servers />
   </component>
