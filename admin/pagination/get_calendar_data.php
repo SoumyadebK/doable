@@ -6,8 +6,10 @@ global $master_database;
 
 $OPEN_TIME = '00:00:00';
 $CLOSE_TIME = '23:59:00';
+$DAYS = 0;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
 
 $utc_tz =  new DateTimeZone('UTC');
 try {
@@ -16,6 +18,9 @@ try {
 
     $START_DATE = $start_dt->format('Y-m-d');
     $END_DATE = $end_dt->format('Y-m-d');
+
+    $date_difference = date_diff(date_create($START_DATE), date_create($END_DATE));
+    $DAYS = $date_difference->days;
 
     $APPOINTMENT_DATE_CONDITION = " AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$START_DATE' AND '$END_DATE' ";
     $SPL_APPOINTMENT_DATE_CONDITION = " AND DOA_SPECIAL_APPOINTMENT.DATE BETWEEN '$START_DATE' AND '$END_DATE' ";
@@ -264,6 +269,100 @@ if ($appointment_type == 'EVENT' || $appointment_type == '') {
             'statusCode' => '',
         ];
         $event_data->MoveNext();
+    }
+}
+
+if ($DAYS === 1 && count($LOCATION_ARRAY) === 1) {
+    $i = 0;
+    $service_provider_data = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $SERVICE_PROVIDER_ID . " AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DISPLAY_ORDER");
+    while (!$service_provider_data->EOF) {
+        $LOCATION_OPEN_TIME = '';
+        $LOCATION_CLOSE_TIME = '';
+        $USER_OPEN_TIME = '';
+        $USER_CLOSE_TIME = '';
+
+        $PK_USER = $service_provider_data->fields['PK_USER'];
+        $PK_LOCATION = $DEFAULT_LOCATION_ID;
+
+        $dayNumber1 = date('N', strtotime($START_DATE));
+        $location_operational_hour = $db_account->Execute("SELECT OPEN_TIME, CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber1' AND CLOSED = 0 AND PK_LOCATION = ".$PK_LOCATION);
+        if ($location_operational_hour->RecordCount() > 0) {
+            $LOCATION_OPEN_TIME = $location_operational_hour->fields['OPEN_TIME'];
+            $LOCATION_CLOSE_TIME = $location_operational_hour->fields['CLOSE_TIME'];
+        }
+
+        $user_operational_hour = $db_account->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_LOCATION_HOURS` WHERE PK_USER = '$PK_USER' AND PK_LOCATION = ".$PK_LOCATION);
+        if ($user_operational_hour->RecordCount() > 0) {
+            switch ((int)$dayNumber1) {
+                case 1:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['MON_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['MON_END_TIME'];
+                    break;
+                case 2:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['TUE_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['TUE_END_TIME'];
+                    break;
+                case 3:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['WED_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['WED_END_TIME'];
+                    break;
+                case 4:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['THU_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['THU_END_TIME'];
+                    break;
+                case 5:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['FRI_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['FRI_END_TIME'];
+                    break;
+                case 6:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['SAT_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['SAT_END_TIME'];
+                    break;
+                case 7:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['SUN_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['SUN_END_TIME'];
+                    break;
+
+            }
+        }
+
+        if ($LOCATION_OPEN_TIME < $USER_OPEN_TIME) {
+            $appointment_array[] = [
+                'id' => $i++,
+                'resourceId' => $PK_USER,
+                'title' => 'Not Available',
+                'start' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($LOCATION_OPEN_TIME)),
+                'end' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($USER_OPEN_TIME)),
+                'color' => 'gray',
+                'type' => 'not_available',
+                /*'status' => $special_appointment_data->fields['STATUS_CODE'],
+                'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
+                'comment' => '',
+                'internal_comment' => '',
+                'statusCode' => '',
+                'duration' => '',
+            ];
+        }
+
+        if ($LOCATION_CLOSE_TIME > $USER_CLOSE_TIME) {
+            $appointment_array[] = [
+                'id' => $i++,
+                'resourceId' => $PK_USER,
+                'title' => 'Not Available',
+                'start' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($USER_CLOSE_TIME)),
+                'end' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($LOCATION_CLOSE_TIME)),
+                'color' => 'gray',
+                'type' => 'not_available',
+                /*'status' => $special_appointment_data->fields['STATUS_CODE'],
+                'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
+                'comment' => '',
+                'internal_comment' => '',
+                'statusCode' => '',
+                'duration' => '',
+            ];
+        }
+
+        $service_provider_data->MoveNext();
     }
 }
 

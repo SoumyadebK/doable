@@ -518,7 +518,7 @@ if(!empty($_POST)){
                                                     <div class="form-group">
                                                         <label class="col-md-12" for="example-text">Receipt Character</label>
                                                         <div class="col-md-12">
-                                                            <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Character" value="<?=$RECEIPT_CHARACTER?>">
+                                                            <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Character" required value="<?=$RECEIPT_CHARACTER?>">
                                                         </div>
                                                     </div>
                                                 </div>
