@@ -957,13 +957,7 @@ function moveToWallet($RESPONSE_DATA)
         $TYPE = 'Refund';
         $IS_ORIGINAL_RECEIPT = 1;
 
-        $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY CONVERT(RECEIPT_NUMBER, DECIMAL) DESC LIMIT 1");
-        if ($receipt->RecordCount() > 0) {
-            $lastSerialNumber = $receipt->fields['RECEIPT_NUMBER'];
-            $RECEIPT_NUMBER = $lastSerialNumber + 1;
-        } else {
-            $RECEIPT_NUMBER = 1;
-        }
+        $RECEIPT_NUMBER = generateReceiptNumber($PK_ENROLLMENT_MASTER);
 
         $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
     }

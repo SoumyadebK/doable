@@ -466,7 +466,7 @@ function copyEnrollment($PK_ENROLLMENT_MASTER){
         db_perform_account('DOA_ENROLLMENT_LEDGER', $ENROLLMENT_LEDGER_DATA, 'insert');
         $ENROLLMENT_LEDGER_PARENT = $db_account->insert_ID();
 
-        $RECEIPT_NUMBER = generateReceiptNumber();
+        $RECEIPT_NUMBER = generateReceiptNumber($PK_ENROLLMENT_MASTER_NEW);
         try {
             $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
             $SECRET_KEY = $account_data->fields['SECRET_KEY'];
@@ -857,14 +857,16 @@ function checkAllEnrollmentStatus($PK_USER_MASTER): void
     }
 }
 
-function generateReceiptNumber()
+function generateReceiptNumber($PK_ENROLLMENT_MASTER)
 {
+    global $db;
     global $db_account;
-    $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY CONVERT(RECEIPT_NUMBER, DECIMAL) DESC LIMIT 1");
-    if ($receipt->RecordCount() > 0) {
-        $RECEIPT_NUMBER = $receipt->fields['RECEIPT_NUMBER'] + 1;
-    } else {
-        $RECEIPT_NUMBER = 1;
-    }
-    return $RECEIPT_NUMBER;
+    $enrollment_location = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER);
+    $PK_LOCATION = $enrollment_location->fields['PK_LOCATION'];
+    $receipt_data = $db->Execute("SELECT `RECEIPT_CHARACTER` FROM `DOA_LOCATION` WHERE `PK_LOCATION` = ".$PK_LOCATION);
+    $RECEIPT_CHARACTER = $receipt_data->fields['RECEIPT_CHARACTER'];
+
+    $receipt = $db_account->Execute("SELECT COUNT(RECEIPT_NUMBER) AS TOTAL_RECEIPT FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE IS_ORIGINAL_RECEIPT = 1 AND DOA_ENROLLMENT_MASTER.PK_LOCATION = ".$PK_LOCATION);
+    $TOTAL_RECEIPT = $receipt->fields['TOTAL_RECEIPT'];
+    return (($RECEIPT_CHARACTER == null) ? ($TOTAL_RECEIPT+1) : $RECEIPT_CHARACTER.'-'.($TOTAL_RECEIPT+1));
 }

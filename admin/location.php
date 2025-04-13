@@ -55,6 +55,7 @@ if(empty($_GET['id'])){
     $AM_PASSWORD = '';
     $AM_REFRESH_TOKEN = '';
     $SALES_TAX = '';
+    $RECEIPT_CHARACTER = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
 
@@ -91,6 +92,7 @@ if(empty($_GET['id'])){
     $AM_PASSWORD            = $res->fields['AM_PASSWORD'];
     $AM_REFRESH_TOKEN       = $res->fields['AM_REFRESH_TOKEN'];
     $SALES_TAX              = $res->fields['SALES_TAX'];
+    $RECEIPT_CHARACTER      = $res->fields['RECEIPT_CHARACTER'];
 }
 
 $SMTP_HOST = '';
@@ -512,6 +514,14 @@ if(!empty($_POST)){
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Receipt Character</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Character" required value="<?=$RECEIPT_CHARACTER?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <div class="form-group">
@@ -640,8 +650,8 @@ if(!empty($_POST)){
                                                             <label>Active</label>
                                                         </div>
                                                         <div class="col-md-4">
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                         </div>
                                                     </div>
                                                 </div>

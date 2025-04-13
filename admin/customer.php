@@ -1946,6 +1946,11 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="col-md-6">
                                                             <h3>Credit Card</h3>
                                                         </div>
+                                                        <?php if ($PAYMENT_GATEWAY == null || $PAYMENT_GATEWAY == '') { ?>
+                                                            <div class="alert alert-danger">
+                                                                Payment Gateway is Not set Yet
+                                                            </div>
+                                                        <?php } else { ?>
                                                         <div class="col-md-6">
                                                             <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard(this)" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
                                                         </div>
@@ -2016,7 +2021,9 @@ if ($PK_USER_MASTER > 0) {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        <?php } ?>
+                                                        <?php }
+                                                        } ?>
+
                                                     </div>
                                                 </div>
                                             </div>

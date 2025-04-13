@@ -193,13 +193,7 @@ if (isset($_POST['SUBMIT'])){
         $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();*/
 
         if ($_POST['SUBMIT'] === 'Submit') {
-            $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY CONVERT(RECEIPT_NUMBER, DECIMAL) DESC LIMIT 1");
-            if ($receipt->RecordCount() > 0) {
-                $lastSerialNumber = $receipt->fields['RECEIPT_NUMBER'];
-                $RECEIPT_NUMBER = $lastSerialNumber + 1;
-            } else {
-                $RECEIPT_NUMBER = 1;
-            }
+            $RECEIPT_NUMBER = generateReceiptNumber($PK_ENROLLMENT_MASTER);
 
             $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE_REFUND' AND TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
             $PAYMENT_INFO = ($old_payment_data->RecordCount() > 0) ? $old_payment_data->fields['PAYMENT_INFO'] : 'Refund';;

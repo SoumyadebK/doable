@@ -89,6 +89,7 @@ if(!empty($_POST)) {
     } else {
         $RECEIPT_NUMBER_ORIGINAL = 1;
     }
+    $RECEIPT_NUMBER_ORIGINAL = generateReceiptNumber(0);
 
     $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER_ORIGINAL;
     $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;

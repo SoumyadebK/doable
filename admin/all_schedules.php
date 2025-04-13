@@ -974,24 +974,26 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                     selectedOptions.each(function(){
                         selected_service_provider.push($(this).val());
                     });
+                    let appointment_type = info.event.extendedProps.type;
+                    if (appointment_type !== 'not_available') {
+                        if (calendar.view.type === 'agendaWeek' && move_copy) {
+                            if (selected_service_provider.length === 1) {
+                                $('#calendar-container').removeClass('col-12').addClass('col-10');
+                                let event_data = info.event;
+                                let event_data_ext_prop = info.event.extendedProps;
+                                let TYPE = event_data_ext_prop.type;
 
-                    if (calendar.view.type === 'agendaWeek' && move_copy) {
-                        if (selected_service_provider.length === 1) {
-                            $('#calendar-container').removeClass('col-12').addClass('col-10');
-                            let event_data = info.event;
-                            let event_data_ext_prop = info.event.extendedProps;
-                            let TYPE = event_data_ext_prop.type;
+                                $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                            }
+                        } else {
+                            if (calendar.view.type === 'agendaDay') {
+                                $('#calendar-container').removeClass('col-12').addClass('col-10');
+                                let event_data = info.event;
+                                let event_data_ext_prop = info.event.extendedProps;
+                                let TYPE = event_data_ext_prop.type;
 
-                            $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
-                        }
-                    } else {
-                        if (calendar.view.type === 'agendaDay') {
-                            $('#calendar-container').removeClass('col-12').addClass('col-10');
-                            let event_data = info.event;
-                            let event_data_ext_prop = info.event.extendedProps;
-                            let TYPE = event_data_ext_prop.type;
-
-                            $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                                $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                            }
                         }
                     }
                 }
@@ -1058,8 +1060,9 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
     });
 
     $(document).on('click', '.fc-agendaDay-button', function () {
-        calendar.setOption('editable', true);
-        getServiceProviderCount();
+        window.location.reload();
+        /*calendar.setOption('editable', true);
+        getServiceProviderCount();*/
     });
 
     $(document).on('click', '.fc-agendaWeek-button', function () {
