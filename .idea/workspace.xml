@@ -6,12 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5733c243-9a75-4756-b39f-158f1746ff3c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/ajax/get_appointment_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/ajax/get_appointment_details.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/ajax/get_group_class_details.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/ajax/get_group_class_details.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/all_gift_certificates.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/all_gift_certificates.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/all_schedules.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/all_schedules.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/appointment_list.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/appointment_list.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/customer/gift_certificate.php" beforeDir="false" afterPath="$PROJECT_DIR$/customer/gift_certificate.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
