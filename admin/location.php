@@ -516,7 +516,7 @@ if(!empty($_POST)){
                                                 </div>
                                                 <div class="col-6">
                                                     <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Receipt Character</label>
+                                                        <label class="col-md-12" for="example-text">Receipt Character<span class="text-danger">*</span></label>
                                                         <div class="col-md-12">
                                                             <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Character" required value="<?=$RECEIPT_CHARACTER?>">
                                                         </div>
