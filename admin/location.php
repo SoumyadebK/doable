@@ -28,6 +28,7 @@ if(empty($_GET['id'])){
     $account_res = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = '$_SESSION[PK_ACCOUNT_MASTER]'");
 
     $PK_LOCATION = 0;
+    $PK_CORPORATION = '';
     $LOCATION_NAME = '';
     $LOCATION_CODE = '';
     $ADDRESS = $account_res->fields['ADDRESS'];
@@ -65,6 +66,7 @@ if(empty($_GET['id'])){
     }
 
     $PK_LOCATION = $_GET['id'];
+    $PK_CORPORATION = $res->fields['PK_CORPORATION'];
     $LOCATION_NAME = $res->fields['LOCATION_NAME'];
     $LOCATION_CODE = $res->fields['LOCATION_CODE'];
     $ADDRESS = $res->fields['ADDRESS'];
@@ -359,6 +361,26 @@ if(!empty($_POST)){
                                     <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
                                         <div class="p-20">
+                                            <div class="row">
+                                            <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Corporation<span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="col-md-12">
+                                                            <div class="col-sm-12">
+                                                                <select class="form-control" name="PK_CORPORATION" id="PK_CORPORATION" required>
+                                                                    <option value="">Select Corporation</option>
+                                                                    <?php
+                                                                    $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 ORDER BY PK_CORPORATION");
+                                                                    while (!$row->EOF) { ?>
+                                                                        <option value="<?php echo $row->fields['PK_CORPORATION'];?>" <?=($row->fields['PK_CORPORATION'] == $PK_CORPORATION)?"selected":""?>><?=$row->fields['CORPORATION_NAME']?></option>
+                                                                        <?php $row->MoveNext(); } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div> 
                                             <div class="row">
                                                 <div class="col-6">
                                                     <div class="form-group">
