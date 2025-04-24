@@ -290,7 +290,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
             }
 
-            /*$card = new \Square\Models\Card();
+            $card = new \Square\Models\Card();
             $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
             //$card->setBillingAddress($billing_address);
             $card->setCustomerId($CUSTOMER_PAYMENT_ID);
@@ -302,7 +302,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 $card
             );
 
-            $api_response = $client->getCardsApi()->createCard($body);*/
+            $api_response = $client->getCardsApi()->createCard($body);
 
 
             // Create a money object (amount in cents)
@@ -322,14 +322,22 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                     $last4Digits = $response->getResult()->getPayment()->getCardDetails()->getCard()->getLast4();
                     $PAYMENT_STATUS = 'Success';
                     $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $paymentId, 'LAST4' => $last4Digits];
-                    $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                    $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
                 } else {
                     $PAYMENT_STATUS = 'Failed';
                     $PAYMENT_INFO = $response->getErrors()[0]->getDetail();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    echo json_encode($RETURN_DATA); die();
                 }
             } catch (\Square\Exceptions\ApiException $e) {
                 $PAYMENT_STATUS = 'Failed';
                 $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA); die();
             }
         }
 

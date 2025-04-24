@@ -327,6 +327,7 @@ else if ($SQUARE_MODE == 2)
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
 ?>
 
+
 <script src="https://js.stripe.com/v3/"></script>
 <script type="text/javascript">
     var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
@@ -353,23 +354,23 @@ else if ($SQUARE_MODE == 2)
     };
 
     // Create an instance of the card Element.
-    var card = elements.create('card', {style: style});
+    var stripe_card = elements.create('card', {style: style});
     var pay_type = '';
 
     function stripePaymentFunction(type) {
         pay_type = type;
         // Add an instance of the card Element into the `card-element` <div>.
         if (($('#card-element')).length > 0) {
-            card.mount('#card-element');
+            stripe_card.mount('#card-element');
         }
         // Handle real-time validation errors from the card Element.
-        card.addEventListener('change', function (event) {
+        stripe_card.addEventListener('change', function (event) {
             var displayError = document.getElementById('card-errors');
             if (event.error) {
                 displayError.textContent = event.error.message;
             } else {
                 displayError.textContent = '';
-                addTokenOnForm();
+                addStripeTokenOnForm();
             }
         });
         // Handle form submission.
@@ -377,9 +378,9 @@ else if ($SQUARE_MODE == 2)
         form.addEventListener('submit', listener);*/
     }
 
-    function addTokenOnForm(){
+    function addStripeTokenOnForm(){
         //event.preventDefault();
-        stripe.createToken(card).then(function (result) {
+        stripe.createToken(stripe_card).then(function (result) {
             if (result.error) {
                 // Inform the user if there was an error.
                 let errorElement = document.getElementById('card-errors');
@@ -410,54 +411,68 @@ else if ($SQUARE_MODE == 2)
 
 <script src="<?=$URL?>"></script>
 <script type="text/javascript">
-    async function squarePaymentFunction(type) {
-        let square_appId = '<?=$SQUARE_APP_ID ?>';
-        let square_locationId = '<?=$SQUARE_LOCATION_ID ?>';
-        const payments = Square.payments(square_appId, square_locationId);
-        const card = await payments.card();
-        $('#'+type+'-card-container').text('');
-        await card.attach('#'+type+'-card-container');
+let square_card;
 
-        let form = document.getElementById(type+'_payment_form');
+async function squarePaymentFunction(type) {
+    let square_appId = '<?=$SQUARE_APP_ID ?>';
+    let square_locationId = '<?=$SQUARE_LOCATION_ID ?>';
+    const payments = Square.payments(square_appId, square_locationId);
+    square_card = await payments.card();
+    $('#'+type+'-card-container').text('');
+    await square_card.attach('#'+type+'-card-container');
+}
 
-        //const cardButton = document.getElementById('enr-payment-btn');
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const statusContainer = document.getElementById('payment-status-container');
+async function addSquareTokenOnForm() {
+    const statusContainer = document.getElementById('payment-status-container');
 
-            try {
-                const result = await card.tokenize();
-                if (result.status === 'OK') {
-                    document.getElementById('enrollment_sourceId').value = result.token;
-                    console.log(`Payment token is ${result.token}`);
-                    //statusContainer.innerHTML = "Payment Successful";
-                    form.submit();
-                } else {
-                    let errorMessage = `Tokenization failed with status: ${result.status}`;
-                    if (result.errors) {
-                        errorMessage += ` and errors: ${JSON.stringify(
-                            result.errors
-                        )}`;
-                    }
-                    if ($('#enrollment-card-container').length > 0) {
-                        throw new Error(errorMessage);
-                    } else {
-                        form.submit();
-                    }
-                }
-            } catch (e) {
-                console.error(e);
-                statusContainer.innerHTML = "Payment Failed";
+    try {
+        // Tokenize the card details
+        const result = await square_card.tokenize();
+        if (result.status === 'OK') {
+            // Add the token to the hidden input field
+            $('#enrollment_sourceId').val(result.token);
+            console.log(`Payment token is ${result.token}`);
+
+            // Submit the form after adding the token
+            //form.submit();
+        } else {
+            // Handle tokenization errors
+            let errorMessage = `Tokenization failed with status: ${result.status}`;
+            if (result.errors) {
+                errorMessage += ` and errors: ${JSON.stringify(result.errors)}`;
             }
-        });
+            throw new Error(errorMessage);
+        }
+    } catch (e) {
+        console.error(e);
+        statusContainer.innerHTML = `<p class="alert alert-danger">Payment Failed: ${e.message}</p>`;
     }
+}
+
 </script>
 
 
 <script>
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     $(document).on('submit', '#enrollment_payment_form', function (event) {
         $('#enr-payment-btn').prop('disabled', true);
         event.preventDefault();
+
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+        if (PAYMENT_GATEWAY == 'Square') {
+            addSquareTokenOnForm();
+            sleep(3000).then(() => {
+                submitEnrollmentPaymentForm()
+            });
+        } else {
+            submitEnrollmentPaymentForm();
+        }
+    });
+
+    function submitEnrollmentPaymentForm() {
         let form_data = $('#enrollment_payment_form').serialize();
         $.ajax({
             url: "includes/process_enrollment_payment.php",
@@ -486,7 +501,7 @@ else if ($SQUARE_MODE == 2)
                 console.log(data);
             }
         });
-    });
+    }
 
     function getPaymentMethodId(param) {
         $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
@@ -513,6 +528,7 @@ else if ($SQUARE_MODE == 2)
         $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
         switch (paymentType) {
             case 1:
+                $(param).closest('.payment_modal').find('#credit_card_payment').slideDown();
                 if (PAYMENT_GATEWAY == 'Stripe') {
                     $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
                     stripePaymentFunction(type);
@@ -524,12 +540,14 @@ else if ($SQUARE_MODE == 2)
                     squarePaymentFunction(type);
                 }
 
+                if (PAYMENT_GATEWAY == 'Authorized.net') {
+                    $("#CARD_NUMBER").inputmask({
+                        mask: "9999 9999 9999 9999",
+                        placeholder: ""
+                    });
+                }
                 getCreditCardList();
-                $(param).closest('.payment_modal').find('#credit_card_payment').slideDown();
-                $("#CARD_NUMBER").inputmask({
-                    mask: "9999 9999 9999 9999",
-                    placeholder: ""
-                });
+                
                 break;
 
             case 14:

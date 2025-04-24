@@ -415,14 +415,16 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveEventData
     }
 }
 
-$dayNumber = date('N');
-$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber' AND CLOSED = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].")");
+$dayConfig = [];
+$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DAY_NUMBER FROM DOA_OPERATIONAL_HOUR WHERE CLOSED = 0 AND PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") GROUP BY DAY_NUMBER");
 if ($location_operational_hour->RecordCount() > 0) {
-    $OPEN_TIME = $location_operational_hour->fields['OPEN_TIME'] ?? '00:00:00';
-    $CLOSE_TIME = $location_operational_hour->fields['CLOSE_TIME'] ?? '23:59:00';
-} else {
-    $OPEN_TIME = '00:00:00';
-    $CLOSE_TIME = '23:59:00';
+    while (!$location_operational_hour->EOF) {
+        $dayConfig[$location_operational_hour->fields['DAY_NUMBER']-1] = [
+            'minTime' => $location_operational_hour->fields['OPEN_TIME'],
+            'maxTime' => $location_operational_hour->fields['CLOSE_TIME']
+        ];
+        $location_operational_hour->MoveNext();
+    }
 }
 
 if (isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '') {
@@ -803,45 +805,107 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
     var move_copy = <?= in_array('Calendar Move/Copy', $PERMISSION_ARRAY) ? 1 : 0; ?>;
     $('.multi_sumo_select').SumoSelect({placeholder: 'Service Provider', selectAll: true});
 
-    var calendar;
-    document.addEventListener('DOMContentLoaded', function() {
-        let open_time = '<?=$OPEN_TIME?>';
-        let close_time = '<?=$CLOSE_TIME?>';
-        let clickCount = 0;
+    let calendar;
+    let todayDate = new Date(); 
+    const dayConfigs = <?=json_encode($dayConfig)?>;
 
-        var Calendar = FullCalendar.Calendar;
+    function getDayConfig(date) {
+        var day = moment(date).day(); // 0 (Sunday) to 6 (Saturday)
+        return dayConfig[day] || { minTime: "08:00:00", maxTime: "18:00:00" };
+    }
+
+    function renderCalendar(date) {
+        const day = date.getDay();
+        const config = dayConfigs[day] || { minTime: '08:00:00', maxTime: '18:00:00' };
+
+        if (calendar) {
+            calendar.destroy();
+        }
+
+        let clickCount = 0;
         var Draggable = FullCalendar.Draggable;
 
         var containerEl = document.getElementById('external-events');
         var calendarEl = document.getElementById('calendar');
         var checkbox = document.getElementById('drop-remove');
 
-        new Draggable(containerEl, {
-            itemSelector: '.fc-event',
-            eventData: function(eventEl) {
-                let color = eventEl.attributes["data-color"].value;
-                let type = eventEl.attributes["data-type"].value;
-                let duration = eventEl.attributes["data-duration"].value;
-                return {
-                    title: eventEl.innerText,
-                    backgroundColor: color,
-                    type: type,
-                    duration: '00:'+duration
-                };
-            }
-        });
+        // new Draggable(containerEl, {
+        //     itemSelector: '.fc-event',
+        //     eventData: function(eventEl) {
+        //         let color = eventEl.attributes["data-color"].value;
+        //         let type = eventEl.attributes["data-type"].value;
+        //         let duration = eventEl.attributes["data-duration"].value;
+        //         return {
+        //             title: eventEl.innerText,
+        //             backgroundColor: color,
+        //             type: type,
+        //             duration: '00:'+duration
+        //         };
+        //     }
+        // });
 
-        calendar = new Calendar(calendarEl, {
+        // Initialize Draggable only once
+        if (!containerEl.dataset.draggableInitialized) {
+            new FullCalendar.Draggable(containerEl, {
+                itemSelector: '.fc-event',
+                eventData: function(eventEl) {
+                    let color = eventEl.attributes["data-color"].value;
+                    let type = eventEl.attributes["data-type"].value;
+                    let duration = eventEl.attributes["data-duration"].value;
+                    return {
+                        title: eventEl.innerText,
+                        backgroundColor: color,
+                        type: type,
+                        duration: '00:' + duration
+                    };
+                }
+            });
+            containerEl.dataset.draggableInitialized = true; // Mark as initialized
+        }
+
+        calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
             editable: true,
             selectable: true,
             eventLimit: true,
             scrollTime: '00:00',
             header: {
-                left: 'prev,next today',
+                left: 'customPrev,customNext,customToday',
                 center: 'title',
                 right: 'agendaDay,agendaWeek,month,'
             },
+            customButtons: {
+                customPrev: {
+                    text: 'Prev',
+                    click: function () {
+                        todayDate.setDate(todayDate.getDate() - 1);
+                        renderCalendar(todayDate);
+                        calendar.gotoDate(todayDate);
+                    }
+                },
+                customNext: {
+                    text: 'Next',
+                    click: function () {
+                        todayDate.setDate(todayDate.getDate() + 1);
+                        renderCalendar(todayDate);
+                        calendar.gotoDate(todayDate);
+                    }
+                },
+                customToday: {
+                    text: 'Today',
+                    click: function () {
+                        todayDate = new Date();
+                        renderCalendar(todayDate);
+                        calendar.gotoDate(todayDate);
+                    }
+                }
+            },
+
+            /*header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'agendaDay,agendaWeek,month,'
+            },*/
             views: {
                 agendaDay: {
                     titleFormat: { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }
@@ -850,8 +914,8 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
             defaultView: 'agendaDay',
             slotDuration: '<?=$INTERVAL?>',
             slotLabelInterval: {minutes: 5},
-            minTime: open_time,
-            maxTime: close_time,
+            minTime: config.minTime,
+            maxTime: config.maxTime,
             contentHeight: 1000,
             windowResize: true,
             droppable: true,
@@ -1048,16 +1112,25 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
         calendar.render();
 
-        $('.fc-prev-button').click(function () {
-            getServiceProviderCount();
-        });
-        $('.fc-next-button').click(function () {
-            getServiceProviderCount();
-        });
-        $('.fc-today-button').click(function () {
-            getServiceProviderCount();
-        });
+
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        //todayDate.setDate(todayDate.getDate() + 5);
+        renderCalendar(todayDate);
+        //renderCalendar(new Date());
     });
+
+    /*$('.fc-prev-button').click(function () {
+        getServiceProviderCount();
+    });
+    $('.fc-next-button').click(function () {
+        getServiceProviderCount();
+    });
+    $('.fc-today-button').click(function () {
+        getServiceProviderCount();
+    });*/
+
 
     $(document).on('click', '.fc-agendaDay-button', function () {
         window.location.reload();
@@ -1239,6 +1312,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
     function getServiceProviderCount() {
         let currentDate = new Date(calendar.getDate());
+        //renderCalendar(currentDate);
         let day = currentDate.getDate();
         let month = currentDate.getMonth()+1;
         let year = currentDate.getFullYear();
@@ -1274,8 +1348,12 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
             let day = currentDate.getDate();
             let month = currentDate.getMonth()+1;
             let year = currentDate.getFullYear();
-
+            
+            renderCalendar(currentDate);
             calendar.gotoDate(month+'/'+day+'/'+year);
+
+            todayDate = currentDate;
+
             $('#IS_SELECTED').val(0);
         } else {
             calendar.refetchEvents();
