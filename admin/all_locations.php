@@ -52,6 +52,7 @@ if ($header_data->RecordCount() > 0) {
                                                 <tr>
                                                     <th>No</th>
                                                     <th>Location Name</th>
+                                                    <th>Corporation Name</th>
                                                     <th>City</th>
                                                     <th>Phone</th>
                                                     <th>Email</th>
@@ -62,11 +63,12 @@ if ($header_data->RecordCount() > 0) {
                                             <tbody>
                                             <?php
                                             $i=1;
-                                            $row = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
+                                            $row = $db->Execute("SELECT DOA_LOCATION.*, DOA_CORPORATION.CORPORATION_NAME FROM `DOA_LOCATION` LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION=DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
                                             while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$i;?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['LOCATION_NAME']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['CORPORATION_NAME']?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['CITY']?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['PHONE']?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['EMAIL']?></td>

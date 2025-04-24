@@ -371,7 +371,7 @@ if(!empty($_POST)){
                                                                 <select class="form-control" name="PK_CORPORATION" id="PK_CORPORATION" required>
                                                                     <option value="">Select Corporation</option>
                                                                     <?php
-                                                                    $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 ORDER BY PK_CORPORATION");
+                                                                    $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY PK_CORPORATION");
                                                                     while (!$row->EOF) { ?>
                                                                         <option value="<?php echo $row->fields['PK_CORPORATION'];?>" <?=($row->fields['PK_CORPORATION'] == $PK_CORPORATION)?"selected":""?>><?=$row->fields['CORPORATION_NAME']?></option>
                                                                         <?php $row->MoveNext(); } ?>
