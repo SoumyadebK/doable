@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b1106abf-0e6b-41e0-a1f4-6838a538eb41" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/location.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin/location.php" afterDir="false" />
-    </list>
+    <list default="true" id="b1106abf-0e6b-41e0-a1f4-6838a538eb41" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -16,6 +13,29 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="PhpWorkspaceProjectConfiguration">
+    <include_path>
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/jsonmapper" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/core-interfaces" />
+      <path value="$PROJECT_DIR$/global/vendor/composer" />
+      <path value="$PROJECT_DIR$/global/vendor/php-http/message-factory" />
+      <path value="$PROJECT_DIR$/global/vendor/setasign/fpdi" />
+      <path value="$PROJECT_DIR$/global/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/global/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/global/vendor/psr/log" />
+      <path value="$PROJECT_DIR$/global/vendor/mpdf/mpdf" />
+      <path value="$PROJECT_DIR$/global/vendor/square/square" />
+      <path value="$PROJECT_DIR$/global/vendor/twilio/sdk" />
+      <path value="$PROJECT_DIR$/global/vendor/myclabs/deep-copy" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/unirest-php" />
+      <path value="$PROJECT_DIR$/global/vendor/apimatic/core" />
+    </include_path>
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 1
+}]]></component>
+  <component name="ProjectId" id="2w5dooSbwN0eOEUpkLcPIEo4y62" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
@@ -23,20 +43,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;roumya&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/xampp/htdocs/doable/customer/ajax&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.IDE.editor.colors.Database&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "roumya",
+    "last_opened_file_path": "C:/xampp/htdocs/doable/customer/ajax",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\xampp\htdocs\doable\customer\ajax" />
@@ -55,14 +75,14 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-PS-243.26053.13" />
-        <option value="bundled-php-predefined-a98d8de5180a-1ec7b7818973-com.jetbrains.php.sharedIndexes-PS-243.26053.13" />
+        <option value="bundled-js-predefined-d6986cc7102b-f27c65a3e318-JavaScript-PS-251.23774.436" />
+        <option value="bundled-php-predefined-a98d8de5180a-aaeaa8632555-com.jetbrains.php.sharedIndexes-PS-251.23774.436" />
       </set>
     </attachedChunks>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="5733c243-9a75-4756-b39f-158f1746ff3c" name="Changes" comment="" />
+      <changelist id="b1106abf-0e6b-41e0-a1f4-6838a538eb41" name="Changes" comment="" />
       <created>1730741806985</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -175,6 +195,7 @@
       <workItem from="1743691241464" duration="5476000" />
       <workItem from="1743772327169" duration="10687000" />
       <workItem from="1744209846551" duration="7056000" />
+      <workItem from="1745335548074" duration="1215000" />
     </task>
     <servers />
   </component>
