@@ -463,10 +463,15 @@ async function addSquareTokenOnForm() {
 
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         if (PAYMENT_GATEWAY == 'Square') {
-            addSquareTokenOnForm();
-            sleep(3000).then(() => {
-                submitEnrollmentPaymentForm()
-            });
+            let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
+            if (PAYMENT_METHOD_ID == '') {    
+                addSquareTokenOnForm();
+                sleep(3000).then(() => {
+                    submitEnrollmentPaymentForm();
+                });
+            } else {
+                submitEnrollmentPaymentForm();
+            }
         } else {
             submitEnrollmentPaymentForm();
         }
@@ -504,11 +509,13 @@ async function addSquareTokenOnForm() {
     }
 
     function getPaymentMethodId(param) {
+        $('.credit-card-div').css("opacity", "1");
         $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
         $(param).css("opacity", "0.6");
         /*let form = document.getElementById('enrollment_payment_form');
         form.removeEventListener('submit', listener);*/
         $(param).closest('.payment_modal').find('#card-element').remove();
+        $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
     }
 
     $(document).on('click', '.credit-card', function () {

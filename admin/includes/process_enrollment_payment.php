@@ -242,7 +242,6 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         }
 
         elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
-            $sourceId = $_POST['sourceId'];
             require_once("../../global/vendor/autoload.php");
 
             $client = new SquareClient([
@@ -290,20 +289,30 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
             }
 
-            $card = new \Square\Models\Card();
-            $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
-            //$card->setBillingAddress($billing_address);
-            $card->setCustomerId($CUSTOMER_PAYMENT_ID);
-            //$card->setReferenceId('user-id-1');
+            if (empty($_POST['PAYMENT_METHOD_ID'])) {
+                $sourceId = $_POST['sourceId'];
 
-            $body = new \Square\Models\CreateCardRequest(
-                uniqid(),
-                $sourceId,
-                $card
-            );
+                $card = new \Square\Models\Card();
+                $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
+                //$card->setBillingAddress($billing_address);
+                $card->setCustomerId($CUSTOMER_PAYMENT_ID);
+                //$card->setReferenceId('user-id-1');
 
-            $api_response = $client->getCardsApi()->createCard($body);
+                $body = new \Square\Models\CreateCardRequest(
+                    uniqid(),
+                    $sourceId,
+                    $card
+                );
 
+                $api_response = $client->getCardsApi()->createCard($body);
+
+                $result = $api_response->getResult();
+                $card = $result->getCard();
+
+                $CUSTOMER_CARD_ID = $card->getId();
+            } else {
+                $CUSTOMER_CARD_ID = $_POST['PAYMENT_METHOD_ID'];
+            }
 
             // Create a money object (amount in cents)
             $money = new Money();
@@ -311,7 +320,10 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $money->setCurrency('USD'); // Currency type (USD, EUR, etc.)
 
             // Create the payment request
-            $paymentRequest = new CreatePaymentRequest($sourceId, uniqid(), $money);
+            $paymentRequest = new CreatePaymentRequest($CUSTOMER_CARD_ID, uniqid(), $money);
+
+            // Add the customer ID to the payment request
+            $paymentRequest->setCustomerId($CUSTOMER_PAYMENT_ID);
 
             // Create payment using the Square API
             $paymentsApi = $client->getPaymentsApi();
@@ -320,6 +332,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 if ($response->isSuccess()) {
                     $paymentId = $response->getResult()->getPayment()->getId();
                     $last4Digits = $response->getResult()->getPayment()->getCardDetails()->getCard()->getLast4();
+
                     $PAYMENT_STATUS = 'Success';
                     $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $paymentId, 'LAST4' => $last4Digits];
                     $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);

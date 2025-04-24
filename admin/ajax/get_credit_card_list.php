@@ -50,7 +50,7 @@ if($PAYMENT_GATEWAY == "Stripe") {
             $card_type = getCardTypeDetails($card_details['brand']);
             ?>
             <h5>Saved Card Details</h5>
-            <div id="<?php echo $card_details['id']; ?>" onclick="getPaymentMethodId(this)" style="width: 303px;">
+            <div class="credit-card-div" id="<?php echo $card_details['id']; ?>" onclick="getPaymentMethodId(this)" style="width: 303px;">
                 <div class="credit-card <?=$card_type?> selectable">
                     <div class="credit-card-last4">
                         <?=$card_details['last4']?>
@@ -86,7 +86,7 @@ if($PAYMENT_GATEWAY == "Stripe") {
         foreach ($all_payment_methods_array->cards as $all_payment_methods_data) {
             $card_type = getCardTypeDetails($all_payment_methods_data->card_brand);
 
-            $card_list .= '<div id="' . $all_payment_methods_data->id . '" onclick="getPaymentMethodId(this)" style="width: 303px;">
+            $card_list .= '<div class="credit-card-div" id="' . $all_payment_methods_data->id . '" onclick="getPaymentMethodId(this)" style="width: 303px;">
                             <div class="credit-card ' . $card_type . ' selectable">
                                 <div class="credit-card-last4">
                                     ' . $all_payment_methods_data->last_4 . '
