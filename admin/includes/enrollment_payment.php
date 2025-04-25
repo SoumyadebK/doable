@@ -97,6 +97,7 @@
                             <div class="payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="row" id="card_list">
                                 </div>
+
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="form-group">
@@ -164,6 +165,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                
                             </div>
                         <?php } ?>
 

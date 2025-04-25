@@ -90,6 +90,12 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                         'description' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
                     ]);
                     $CUSTOMER_PAYMENT_ID = $customer->id;
+
+                    $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+                    $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                    $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Stripe';
+                    $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
                 }
             } catch (\Stripe\Exception\InvalidRequestException $e) {
                 // Invalid parameters
@@ -132,13 +138,6 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
                 db_perform('error_info', $error, 'insert');
             }
-
-            $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
-            $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
-            $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Stripe';
-            $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
-
 
             $LAST4 = '';
             try {
@@ -364,20 +363,14 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             //$LOGIN_ID = '4Y5pCy8Qr'; //$account_data->fields['LOGIN_ID'];
             //$TRANSACTION_KEY = '8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay'; // $account_data->fields['TRANSACTION_KEY'];
 
+            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = ".$user_master->fields['PK_USER']);
+
             // Product Details
             $itemName = $_POST['PK_ENROLLMENT_MASTER'];
             $itemNumber = $_POST['PK_ENROLLMENT_BILLING'];
             $itemPrice = $AMOUNT_TO_PAY;
             $currency = "USD";
-
-            // Retrieve card and user info from the submitted form data
-            $name = $_POST['NAME'];
-            $email = $_POST['EMAIL'];
-            $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
-            $card_exp_month = $_POST['EXPIRATION_MONTH'];
-            $card_exp_year = $_POST['EXPIRATION_YEAR'];
-            $card_exp_year_month = $card_exp_year . '-' . $card_exp_month;
-            $card_cvc = $_POST['SECURITY_CODE'];
 
             $refID = 'ref' . time();
 
@@ -385,32 +378,141 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $merchantAuthentication->setName($AUTHORIZE_LOGIN_ID);
             $merchantAuthentication->setTransactionKey($AUTHORIZE_TRANSACTION_KEY);
 
-            // Create the payment data for a credit card
-            $creditCard = new AnetAPI\CreditCardType();
-            $creditCard->setCardNumber($card_number);
-            $creditCard->setExpirationDate($card_exp_year_month);
-            $creditCard->setCardCode($card_cvc);
+            if (!empty($_POST['PAYMENT_METHOD_ID'])) {
+                // Set payment using saved profile
+                $profileToCharge = new AnetAPI\CustomerProfilePaymentType();
+                $profileToCharge->setCustomerProfileId($customer_payment_info->fields['CUSTOMER_PAYMENT_ID']);
 
-            // Add the payment data to a paymentType object
-            $paymentOne = new AnetAPI\PaymentType();
-            $paymentOne->setCreditCard($creditCard);
+                $paymentProfile = new AnetAPI\PaymentProfileType();
+                $paymentProfile->setPaymentProfileId($_POST['PAYMENT_METHOD_ID']);
+                $profileToCharge->setPaymentProfile($paymentProfile);
+            } else {
+                // Retrieve card and user info from the submitted form data
+                $name = $_POST['NAME'];
+                $email = $_POST['EMAIL'];
+                $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
+                $card_exp_month = $_POST['EXPIRATION_MONTH'];
+                $card_exp_year = $_POST['EXPIRATION_YEAR'];
+                $card_exp_year_month = $card_exp_year . '-' . sprintf('%02d', $card_exp_month);
+                $card_cvc = $_POST['SECURITY_CODE'];
+
+                // Create the payment data for a credit card
+                $creditCard = new AnetAPI\CreditCardType();
+                $creditCard->setCardNumber($card_number);
+                $creditCard->setExpirationDate($card_exp_year_month);
+                $creditCard->setCardCode($card_cvc);
+
+                // Add the payment data to a paymentType object
+                $paymentOne = new AnetAPI\PaymentType();
+                $paymentOne->setCreditCard($creditCard);
+
+                //$paymentOne->setPaymentProfile($CUSTOMER_PAYMENT_ID);
+
+                // Create Payment Profile
+                $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
+                $paymentProfile->setCustomerType('individual');
+                $paymentProfile->setPayment($paymentOne);
+                
+                if ($customer_payment_info->RecordCount() > 0) {
+                    // Existing customer profile
+                    $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+            
+                    // Add a new payment profile to the existing customer profile
+                    $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
+                    $paymentProfile->setCustomerType('individual');
+                    $paymentProfile->setPayment($paymentOne);
+            
+                    $createPaymentProfileRequest = new AnetAPI\CreateCustomerPaymentProfileRequest();
+                    $createPaymentProfileRequest->setMerchantAuthentication($merchantAuthentication);
+                    $createPaymentProfileRequest->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
+                    $createPaymentProfileRequest->setPaymentProfile($paymentProfile);
+                    $createPaymentProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
+            
+                    $controller = new AnetController\CreateCustomerPaymentProfileController($createPaymentProfileRequest);
+                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+            
+                    if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+                        $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileId();
+                        //echo "Payment profile created successfully: " . $PAYMENT_PROFILE_ID;
+                    } else {
+                        $PAYMENT_STATUS = 'Failed';
+                        $PAYMENT_INFO = "Error saving card: " . $response->getMessages()->getMessage()[0]->getText();
+            
+                        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                        echo json_encode($RETURN_DATA);
+                        die();
+                    }
+                } else {
+                    // Create a new customer profile
+                    $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
+                    $paymentProfile->setCustomerType('individual');
+                    $paymentProfile->setPayment($paymentOne);
+            
+                    $customerProfile = new AnetAPI\CustomerProfileType();
+                    $customerProfile->setMerchantCustomerId("M_" . time());
+                    $customerProfile->setEmail($email);
+                    $customerProfile->setPaymentProfiles([$paymentProfile]);
+            
+                    $createProfileRequest = new AnetAPI\CreateCustomerProfileRequest();
+                    $createProfileRequest->setMerchantAuthentication($merchantAuthentication);
+                    $createProfileRequest->setProfile($customerProfile);
+                    $createProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
+            
+                    $controller = new AnetController\CreateCustomerProfileController($createProfileRequest);
+                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+            
+                    if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+                        $CUSTOMER_PAYMENT_ID = $response->getCustomerProfileId();
+                        $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileIdList()[0];
+            
+                        // Save the customer profile ID in the database
+                        $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+                        $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                        $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Authorized.net';
+                        $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                        db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
+                    } else {
+                        $PAYMENT_STATUS = 'Failed';
+                        $PAYMENT_INFO = "Error creating customer profile: " . $response->getMessages()->getMessage()[0]->getText();
+            
+                        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                        echo json_encode($RETURN_DATA);
+                        die();
+                    }
+                }
+                $profileToCharge = new AnetAPI\CustomerProfilePaymentType();
+                $profileToCharge->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
+            }
 
             // Create order information
             $order = new AnetAPI\OrderType();
             $order->setDescription($itemName);
-
-            // Set the customer's identifying information
-            $customerData = new AnetAPI\CustomerDataType();
-            $customerData->setType("individual");
-            $customerData->setEmail($email);
 
             // Create a transaction
             $transactionRequestType = new AnetAPI\TransactionRequestType();
             $transactionRequestType->setTransactionType("authCaptureTransaction");
             $transactionRequestType->setAmount($itemPrice);
             $transactionRequestType->setOrder($order);
-            $transactionRequestType->setPayment($paymentOne);
-            $transactionRequestType->setCustomer($customerData);
+
+            if (empty($_POST['PAYMENT_METHOD_ID'])) {
+                $transactionRequestType->setPayment($paymentOne);
+            } else {
+                $transactionRequestType->setProfile($profileToCharge);
+            }
+
+            //$transactionRequestType->setProfile($profileToCharge);
+
+            //$transactionRequestType->setPayment($paymentOne);
+            //$transactionRequestType->setCustomer($customerData);
+
+            // $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
+            // $paymentProfile->setPaymentProfileId($PAYMENT_PROFILE_ID);
+            // $profileToCharge->setPaymentProfile($paymentProfile);
+
+            //$transactionRequest->setProfile($profileToCharge);
+
             $request = new AnetAPI\CreateTransactionRequest();
             $request->setMerchantAuthentication($merchantAuthentication);
             $request->setRefId($refID);
@@ -429,18 +531,30 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                     if ($tresponse != null && $tresponse->getMessages() != null) {
                         $PAYMENT_STATUS = 'Success';
                         $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $tresponse->getTransId(), 'LAST4' => $tresponse->getaccountNumber()];
-                        $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                        $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
                     } else {
                         $PAYMENT_STATUS = 'Failed';
                         $PAYMENT_INFO = $tresponse->getErrors()[0]->getErrorCode();
+
+                        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                        echo json_encode($RETURN_DATA); die();
                     }
                 } else {
                     $PAYMENT_STATUS = 'Failed';
                     $PAYMENT_INFO = "Transaction Failed";
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    echo json_encode($RETURN_DATA); die();
                 }
             } catch (\Square\Exceptions\ApiException $e) {
                 $PAYMENT_STATUS = 'Failed';
                 $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA); die();
             }
         }
 
