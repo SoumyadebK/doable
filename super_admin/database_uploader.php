@@ -680,12 +680,12 @@ if(!empty($_POST))
                     $SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
                     $SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
                     $SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
-                    $SERVICE_DATA['NUMBER_OF_SESSION'] = 1;
+                    $SERVICE_DATA['NUMBER_OF_SESSION'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_SESSION_COUNT'] = 1;
                     $SERVICE_DATA['PRICE_PER_SESSION'] = $TOTAL_AMOUNT;
                     $SERVICE_DATA['TOTAL'] = $ACTUAL_AMOUNT;
                     $SERVICE_DATA['DISCOUNT'] = $DISCOUNT;
                     $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
-                    $SERVICE_DATA['FINAL_AMOUNT'] = $TOTAL_AMOUNT;
+                    $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = $TOTAL_AMOUNT;
                     $SERVICE_DATA['STATUS'] = 'A';
                     db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
                 } else {
@@ -700,20 +700,20 @@ if(!empty($_POST))
                         $SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
                         $SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
                         $SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
-                        $SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
+                        $SERVICE_DATA['NUMBER_OF_SESSION'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_SESSION_COUNT'] = $quantity;
 
                         if (strpos($service_code, 'PRI')  !== false) {
                             $SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $TOTAL_AMOUNT / $quantity : 0;
                             $SERVICE_DATA['TOTAL'] = $ACTUAL_AMOUNT;
                             $SERVICE_DATA['DISCOUNT'] = $DISCOUNT;
                             $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
-                            $SERVICE_DATA['FINAL_AMOUNT'] = $TOTAL_AMOUNT;
+                            $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = $TOTAL_AMOUNT;
                         } else {
                             $SERVICE_DATA['PRICE_PER_SESSION'] = 0;
                             $SERVICE_DATA['TOTAL'] = 0;
                             $SERVICE_DATA['DISCOUNT'] = 0;
                             $SERVICE_DATA['DISCOUNT_TYPE'] = 0;
-                            $SERVICE_DATA['FINAL_AMOUNT'] = 0;
+                            $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = 0;
                         }
 
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
