@@ -19,6 +19,7 @@ if(!empty($_POST)){
     if (isset($_POST['PK_LOCATION'])){
         if (!file_exists('../'.$upload_path.'/service_document/')) {
             mkdir('../'.$upload_path.'/service_document/', 0777, true);
+            chmod('../'.$upload_path.'/service_document/', 0777);
         }
 
         $res = $db_account->Execute("DELETE FROM `DOA_SERVICE_DOCUMENTS` WHERE PK_SERVICE_MASTER =  '$_GET[id]'");

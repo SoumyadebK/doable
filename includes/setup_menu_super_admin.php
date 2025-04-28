@@ -48,6 +48,7 @@
                                 <a class="dropdown-item" href="../super_admin/all_alert_messages.php">Alert Messages</a>
                                 <a class="dropdown-item" href="../super_admin/all_email_triggers.php">Email Triggers</a>
                                 <a class="dropdown-item" href="../super_admin/all_template_categories.php">Template Category</a>
+                                <a class="dropdown-item" href="../super_admin/manage_terms_of_use.php?id=1">Terms of Use</a>
                                 <a class="dropdown-item" href="../super_admin/all_header_texts.php">Header Texts</a>
                                 <a class="dropdown-item" href="../super_admin/manage_help_page.php">Help Pages</a>
                                 <a class="dropdown-item" href="../super_admin/manage_help_category.php">Help Category</a>

@@ -7,6 +7,15 @@ if (!empty($_GET['view'])) {
 }
 ?>
 
+<?php
+$mail_url = parse_url($_SERVER['REQUEST_URI']);
+$url_array = explode("/", $mail_url['path']);
+if($_SERVER['HTTP_HOST'] == 'localhost' ) {
+    $current_address = $url_array[3];
+} else {
+    $current_address = $url_array[2];
+}
+?>
 <style>
     #top_bar {
         z-index: 50;
@@ -34,11 +43,21 @@ if (!empty($_GET['view'])) {
         text-decoration: none;
         background-color: #f4f4f4;
     }
+    nav a:active {
+        text-decoration: none;
+        border-bottom: none;
+        outline: none;
+    }
+    nav .active {
+        border-bottom: none;
+        box-shadow: none;
+        text-decoration: none;
+    }
 </style>
 
 <div id="top_bar" class="container-fluid p-0 nav-top-new topbar">
     <div class="row">
-        <div class="d-flex flex-column flex-md-row align-items-center py-2 px-4 bg-white border-bottomm box-shadow justify-content-end">
+        <div class="d-flex flex-column flex-md-row align-items-center py-0 px-4 bg-white border-bottom box-shadow justify-content-end">
             <?php /*if($_SESSION['PK_ROLES'] == 2) { */?><!--
             <div class="col-md-4 new-top-menu">
                 <nav class="navbar navbar-expand-lg px-2 py-1">
@@ -92,16 +111,16 @@ if (!empty($_GET['view'])) {
             </div>
             --><?php /*} */?>
             <nav class="my-2 my-md-0 mr-md-3 new-top-nav col-md-12">
-                <ul id="sidebarnav" style="float: right;">
+                <ul id="sidebarnav" class="nav nav-pills" style="float: right;">
                     <?php if($_SESSION['PK_ROLES'] == 1) { ?>
                         <li>
-                            <a class="waves-effect waves-dark" href="../super_admin/all_accounts.php" aria-expanded="false">
+                            <a class="nav-link" href="../super_admin/all_accounts.php" aria-expanded="false">
                                 <i class="ti-user"></i>
                                 <span class="hide-menu">Accounts</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../super_admin/setup.php" aria-expanded="false">
+                            <a class="nav-link" href="../super_admin/setup.php" aria-expanded="false">
                                 <i class="ti-settings"></i>
                                 <span class="hide-menu">Setup</span>
                             </a>
@@ -109,56 +128,56 @@ if (!empty($_GET['view'])) {
                     <?php } ?>
 
                     <?php if(!in_array($_SESSION['PK_ROLES'], [1, 4, 5])) { ?>
-                        <li>
-                            <a class="waves-effect waves-dark" href="../admin/all_schedules.php" aria-expanded="false">
+                        <li class="<?=(('all_schedules.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('all_schedules.php' === $current_address)?'active':'')?>" href="../admin/all_schedules.php" aria-expanded="false">
                                 <i class="icon-calender"></i>
                                 <span class="hide-menu">Calendar</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="waves-effect waves-dark" href="../admin/appointment_list.php" aria-expanded="false">
+                        <li class="<?=(('appointment_list.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('appointment_list.php' === $current_address)?'active':'')?>" href="../admin/appointment_list.php" aria-expanded="false">
                                 <i class="icon-list"></i>
                                 <span class="hide-menu">Appointments</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="waves-effect waves-dark" href="../admin/to_do_list.php" aria-expanded="false">
+                        <li class="<?=(('to_do_list.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('to_do_list.php' === $current_address)?'active':'')?>" href="../admin/to_do_list.php" aria-expanded="false">
                                 <i class="icon-notebook"></i>
                                 <span class="hide-menu">To-Do</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="waves-effect waves-dark" href="../admin/all_customers.php" aria-expanded="false">
+                        <li class="<?=(('all_customers.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('all_customers.php' === $current_address)?'active':'')?>" href="../admin/all_customers.php" aria-expanded="false">
                                 <i class="icons-User"></i>
                                 <span class="hide-menu">Customers</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="waves-effect waves-dark" href="../admin/all_enrollments.php" aria-expanded="false">
+                        <li class="<?=(('all_enrollments.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('all_enrollments.php' === $current_address)?'active':'')?>" href="../admin/all_enrollments.php" aria-expanded="false">
                                 <i class="icon-note"></i>
                                 <span class="hide-menu">Enrollments</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="waves-effect waves-dark" href="../admin/all_events.php" aria-expanded="false">
+                        <li class="<?=(('all_events.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('all_events.php' === $current_address)?'active':'')?>" href="../admin/all_events.php" aria-expanded="false">
                                 <i class="ti-calendar"></i>
                                 <span class="hide-menu">Events</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="waves-effect waves-dark" href="../admin/operations.php" aria-expanded="false">
+                        <li class="<?=(('operations.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('operations.php' === $current_address)?'active':'')?>" href="../admin/operations.php" aria-expanded="false">
                                 <i class="ti-layers-alt"></i>
                                 <span class="hide-menu"><?=$operation_tab_title?></span>
                             </a>
                         </li>
-                        <li>
-                            <a class="waves-effect waves-dark" href="../admin/reports.php" aria-expanded="false">
+                        <li class="<?=(('reports.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('reports.php' === $current_address)?'active':'')?>" href="../admin/reports.php" aria-expanded="false">
                                 <i class="ti-bar-chart"></i>
                                 <span class="hide-menu">Reports</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="waves-effect waves-dark" href="../admin/setup.php" aria-expanded="false">
+                        <li class="<?=(('setup.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('setup.php' === $current_address || $current_address == "business_profile.php" || $current_address == "settings.php" || $current_address == "all_locations.php" || $current_address == "all_users.php" || $current_address == "deleted_customer.php" || $current_address == "all_service_codes.php" || $current_address == "all_packages.php" || $current_address == "all_scheduling_codes.php" || $current_address == "all_document_library.php" || $current_address == "all_interests.php" || $current_address == "all_skill_levels.php" || $current_address == "all_gift_certificates.php" || $current_address == "all_gift_certificate_setup.php" || $current_address == "all_event_types.php" || $current_address == "all_inquiry_methods.php" || $current_address == "all_email_accounts.php" || $current_address == "all_email_templates.php" || $current_address == "all_text_templates.php" || $current_address == "test_chat_gpt.php" || $current_address == "data_uploader.php" || $current_address == "all_products.php" || $current_address == "all_orders.php" || $current_address == "order_details.php")?'active':'')?>" href="../admin/setup.php" aria-expanded="false">
                                 <i class="ti-settings"></i>
                                 <span class="hide-menu">Setup</span>
                             </a>
@@ -166,7 +185,7 @@ if (!empty($_GET['view'])) {
                     <?php } ?>
 
                     <?php if($_SESSION['PK_ROLES'] == 3) { ?>
-                        <!--<li> <a class="has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="ti-layout-grid2"></i><span class="hide-menu">Setup</span></a>
+                        <!--<li class="<?=(('all_enrollments.php' === $current_address)?'active':'')?>"> <a class="has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="ti-layout-grid2"></i><span class="hide-menu">Setup</span></a>
                             <ul aria-expanded="false" class="collapse">
                                 <li><a href="../super_admin/all_users.php">Users</a></li>
                             </ul>
@@ -175,37 +194,37 @@ if (!empty($_GET['view'])) {
 
                     <?php if($_SESSION['PK_ROLES'] == 4) { ?>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/all_schedules.php" aria-expanded="false">
+                            <a class="nav-link <?=(('all_schedules.php' === $current_address)?'active':'')?>" href="../customer/all_schedules.php" aria-expanded="false">
                                 <i class="icon-calender"></i>
                                 <span class="hide-menu">Calendar</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/appointment_list.php" aria-expanded="false">
+                            <a class="nav-link <?=(('appointment_list.php' === $current_address)?'active':'')?>" href="../customer/appointment_list.php" aria-expanded="false">
                                 <i class="icon-list"></i>
                                 <span class="hide-menu">Appointments</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/all_products.php" aria-expanded="false">
+                            <a class="nav-link <?=(('all_products.php' === $current_address)?'active':'')?>" href="../customer/all_products.php" aria-expanded="false">
                                 <b class="icons-Add-Cart"></b>
                                 <span class="hide-menu">Shop</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/all_gift_certificates.php" aria-expanded="false">
+                            <a class="nav-link <?=(('all_gift_certificates.php' === $current_address)?'active':'')?>" href="../customer/all_gift_certificates.php" aria-expanded="false">
                                 <i class="icons-Gift-Box"></i>
                                 <span class="hide-menu">Gift Cards</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/billing.php" aria-expanded="false">
-                                <i class="icons-Receipt-2"></i>
-                                <span class="hide-menu">Billing</span>
+                            <a class="nav-link <?=(('billing.php' === $current_address)?'active':'')?>" href="../customer/billing.php" aria-expanded="false">
+                                <i class="icon-note"></i>
+                                <span class="hide-menu">Enrollments</span>
                             </a>
                         </li>
                         <li>
-                            <a class="waves-effect waves-dark" href="../customer/accounts.php" aria-expanded="false">
+                            <a class="nav-link <?=(('accounts.php' === $current_address)?'active':'')?>" href="../customer/accounts.php" aria-expanded="false">
                                 <i class="icons-Receipt"></i>
                                 <span class="hide-menu">Accounts</span>
                             </a>

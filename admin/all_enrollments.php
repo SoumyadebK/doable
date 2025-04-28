@@ -44,10 +44,8 @@ $search_text = '';
 $search = $START_DATE.$END_DATE. ' ';
 if (!empty($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = $START_DATE.$END_DATE." AND (DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%".$search_text."%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%".$search_text."%' OR DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%'OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%') ";
+    $search = $START_DATE.$END_DATE." AND (DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LIKE '%".$search_text."%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%".$search_text."%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%".$search_text."%' OR DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%'OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%' OR DOA_USERS.PHONE LIKE '%".$search_text."%') ";
 }
-
-
 
 /*if (isset($_GET['search_text']) || isset($_GET['FROM_DATE']) || isset($_GET['END_DATE'])) {
     $FROM_DATE = date('Y-m-d', strtotime($_GET['FROM_DATE']));
@@ -96,6 +94,7 @@ if (isset($_POST['SUBMIT'])){
     } else {
         $UPDATE_DATA['STATUS'] = 'CA';
     }
+
     $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
 
     $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
@@ -115,21 +114,21 @@ if (isset($_POST['SUBMIT'])){
         } else {
             $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getPaidSessionCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
         }
-        if ($TOTAL_POSITIVE_BALANCE > 0) {
+        if ($TOTAL_POSITIVE_BALANCE >= 0) {
             $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'] = $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] * $enr_service_data->fields['PRICE_PER_SESSION'];
         }
         $ENR_SERVICE_UPDATE['FINAL_AMOUNT'] = $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'];
         db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE, 'update'," PK_ENROLLMENT_SERVICE = ".$_POST['PK_ENROLLMENT_SERVICE'][$i]);
     }
 
-    if ($_POST['USE_AVAILABLE_CREDIT'] == 1) {
+    /*if ($_POST['USE_AVAILABLE_CREDIT'] == 1) {
         $TOTAL_POSITIVE_BALANCE += $TOTAL_NEGATIVE_BALANCE;
         $TOTAL_NEGATIVE_BALANCE = $TOTAL_POSITIVE_BALANCE;
         for ($i = 0; $i < count($_POST['PK_ENROLLMENT_SERVICE']); $i++) {
             $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'] = $_POST['TOTAL_AMOUNT_PAID'][$i];
             db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE, 'update'," PK_ENROLLMENT_SERVICE = ".$_POST['PK_ENROLLMENT_SERVICE'][$i]);
         }
-    }
+    }*/
 
     db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
 
@@ -150,8 +149,8 @@ if (isset($_POST['SUBMIT'])){
         $LEDGER_DATA_BILLING['BALANCE'] = abs($TOTAL_NEGATIVE_BALANCE);
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_BILLING, 'insert');
         $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
-    } elseif ($TOTAL_POSITIVE_BALANCE > 0) {
-        $LEDGER_DATA['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund';
+    } elseif ($TOTAL_POSITIVE_BALANCE >= 0) {
+        $LEDGER_DATA['TRANSACTION_TYPE'] = (($TOTAL_POSITIVE_BALANCE == 0) ? 'Cancelled' : (($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund'));
         $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = -1;
         $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
         $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
@@ -166,7 +165,7 @@ if (isset($_POST['SUBMIT'])){
     }
 
     $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
-    if ($TOTAL_POSITIVE_BALANCE > 0) {
+    if ($TOTAL_POSITIVE_BALANCE >= 0) {
         /*$wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
         if ($wallet_data->RecordCount() > 0) {
             $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
@@ -194,13 +193,7 @@ if (isset($_POST['SUBMIT'])){
         $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();*/
 
         if ($_POST['SUBMIT'] === 'Submit') {
-            $receipt = $db_account->Execute("SELECT RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1 ORDER BY CONVERT(RECEIPT_NUMBER, DECIMAL) DESC LIMIT 1");
-            if ($receipt->RecordCount() > 0) {
-                $lastSerialNumber = $receipt->fields['RECEIPT_NUMBER'];
-                $RECEIPT_NUMBER = $lastSerialNumber + 1;
-            } else {
-                $RECEIPT_NUMBER = 1;
-            }
+            $RECEIPT_NUMBER = generateReceiptNumber($PK_ENROLLMENT_MASTER);
 
             $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE_REFUND' AND TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
             $PAYMENT_INFO = ($old_payment_data->RecordCount() > 0) ? $old_payment_data->fields['PAYMENT_INFO'] : 'Refund';;
@@ -224,21 +217,41 @@ if (isset($_POST['SUBMIT'])){
                     $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $refund->id, 'LAST4' => $payment_info->LAST4];
                     $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
                 }
+            } elseif ($PK_PAYMENT_TYPE_REFUND == 7) {
+                $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+                if ($wallet_data->RecordCount() > 0) {
+                    $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
+                } else {
+                    $INSERT_DATA['CURRENT_BALANCE'] = $BALANCE;
+                }
+                $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                $INSERT_DATA['CREDIT'] = $BALANCE;
+                $INSERT_DATA['BALANCE_LEFT'] = $BALANCE;
+                $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+                $INSERT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+                $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+            } elseif ($PK_PAYMENT_TYPE_REFUND == 2) {
+                $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['REFUND_CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['REFUND_CHECK_DATE']))];
+                $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
             }
 
-            $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-            $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
-            $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE_REFUND;
-            $PAYMENT_DATA['AMOUNT'] = $TOTAL_POSITIVE_BALANCE;
-            $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
-            $PAYMENT_DATA['TYPE'] = 'Refund';
-            $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
-            $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-            $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-            $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
-            $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
-            $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
-            db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+            if ($TOTAL_POSITIVE_BALANCE > 0) {
+                $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+                $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE_REFUND;
+                $PAYMENT_DATA['AMOUNT'] = $TOTAL_POSITIVE_BALANCE;
+                $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
+                $PAYMENT_DATA['TYPE'] = 'Refund';
+                $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+                $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+                $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+                $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+                $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
+                db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+            }
         }
     }
 
@@ -338,7 +351,9 @@ if (isset($_POST['SUBMIT'])){
                                     <tr>
                                         <th data-type="number" class="sortable" style="cursor: pointer">No</th>
                                         <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer">Unique Id</th>
                                         <th data-type="string" class="sortable" style="cursor: pointer">Enrollment Id</th>
+                                        <th data-type="string" class="sortable" style="cursor: pointer">Enrollment Name</th>
                                         <th data-type="number" class="sortable" style="cursor: pointer">Total Amount</th>
                                         <th data-type="number" class="sortable" style="cursor: pointer">Date</th>
                                         <th data-type="string" class="sortable" style="cursor: pointer">Email ID</th>
@@ -375,7 +390,9 @@ if (isset($_POST['SUBMIT'])){
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$i;?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['FIRST_NAME']." ".$row->fields['LAST_NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$enrollment_name.$id." || ".implode(', ', $serviceCode)?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['PK_ENROLLMENT_MASTER']?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$id?></td>
+                                            <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$enrollment_name.implode(', ', $serviceCode)?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['TOTAL_AMOUNT']?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE']))?></td>
                                             <td onclick="editpage(<?=$row->fields['PK_ENROLLMENT_MASTER']?>);"><?=$row->fields['EMAIL_ID']?></td>
@@ -476,14 +493,14 @@ if (isset($_POST['SUBMIT'])){
                                 <div class="form-group">
                                     <div class="row">
                                         <div class="col-md-8">
-                                            <label>Cancel All Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="1" checked/></label>
+                                            <label>Cancel All Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_1" value="1" checked/></label>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <div class="row">
                                         <div class="col-md-8">
-                                            <label>Cancel Only Unpaid Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" value="2"/></label>
+                                            <label>Cancel Only Unpaid Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_2" value="2"/></label>
                                         </div>
                                     </div>
                                 </div>
@@ -503,7 +520,7 @@ if (isset($_POST['SUBMIT'])){
                                     </div>
                                 </div>
                                 <a href="javascript:" class="btn btn-info waves-effect waves-light m-l-10 text-white next" style="float: right;" onclick="$('#step_2').hide();$('#step_3').show();showEnrollmentServiceDetails();">Continue</a>
-                                <a href="javascript:" class="btn btn-info waves-effect waves-light text-white prev" style="float: right;" onclick="$('#step_2').hide();$('#step_1').show();">Go Back</a>
+                                <a href="javascript:" class="btn btn-info waves-effect waves-light text-white prev" style="*float: right;" onclick="$('#step_2').hide();$('#step_1').show();">Go Back</a>
                             </div>
 
                             <div id="step_3" style="display: none;">
@@ -532,7 +549,7 @@ if (isset($_POST['SUBMIT'])){
                                 <div class="form-group credit_balance_div" style="display: none;">
                                     <label class="form-label">Refund Method?</label>
                                     <div class="col-md-8">
-                                        <select class="form-control" name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND">
+                                        <select class="form-control" name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND" onchange="selectRefundType(this)">
                                             <option value="">Select</option>
                                             <?php
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
@@ -548,9 +565,30 @@ if (isset($_POST['SUBMIT'])){
                                     </div>
                                 </div>
 
-                                <input type="submit" name="SUBMIT" value="Cancel and Store Info only" style="float: right; margin-left: 8px; background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;"/>
-                                <input type="submit" name="SUBMIT" value="Submit" style="float: right; margin-left: 8px; background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;"/>
-                                <a href="javascript:" style="float: right; background-color: #39B54A; border-color: #39B54A; padding: 7px 10px; color: white; font-size: 15px; border-radius: 5px;" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
+                                <div class="row" id="check_payment" style="display: none;">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Check Number</label>
+                                            <div class="col-md-12">
+                                                <input type="text" name="REFUND_CHECK_NUMBER" id="REFUND_CHECK_NUMBER" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Check Date</label>
+                                            <div class="col-md-12">
+                                                <input type="text" name="REFUND_CHECK_DATE" id="REFUND_CHECK_DATE" class="form-control datepicker-normal">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" name="SUBMIT" id="SUBMIT">
+                                <button type="submit" class="btn btn-info waves-effect waves-light text-white" onclick="$('#SUBMIT').val('Cancel and Store Info only')" style="float: right;">Cancel and Store Info only</button>
+                                <button type="submit" class="btn btn-info waves-effect waves-light text-white" onclick="$('#SUBMIT').val('Submit')" style="float: right; margin-right: 5px;">Submit</button>
+
+                                <a href="javascript:" class="btn btn-info waves-effect waves-light text-white" style="*float: right;" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
                             </div>
 
                         </div>
@@ -568,6 +606,10 @@ if (isset($_POST['SUBMIT'])){
 <?php require_once('../includes/footer.php');?>
 
 <script>
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+    });
+
     function ConfirmDelete(PK_ENROLLMENT_MASTER)
     {
         var conf = confirm("Are you sure you want to delete?");
@@ -607,7 +649,21 @@ if (isset($_POST['SUBMIT'])){
     function cancelEnrollment(PK_ENROLLMENT_MASTER, PK_USER_MASTER) {
         $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
         $('.PK_USER_MASTER').val(PK_USER_MASTER);
+        $('#CANCEL_FUTURE_APPOINTMENT_2').prop('checked', false);
+        $('#CANCEL_FUTURE_APPOINTMENT_1').prop('checked', true);
+        $('#step_3').hide();
+        $('#step_2').hide();
+        $('#step_1').show();
         $('#enrollment_cancel_modal').modal('show');
+    }
+
+    function selectRefundType(param) {
+        let paymentType = parseInt($(param).val());
+        if (paymentType === 2) {
+            $(param).closest('.modal-body').find('#check_payment').slideDown();
+        } else {
+            $(param).closest('.modal-body').find('#check_payment').slideUp();
+        }
     }
 
     function showEnrollmentServiceDetails() {

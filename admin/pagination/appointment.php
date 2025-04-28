@@ -63,6 +63,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
                             DOA_SCHEDULING_CODE.COLOR_CODE,
+                            DOA_SCHEDULING_CODE.UNIT,
                             GROUP_CONCAT(DISTINCT(CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME)) SEPARATOR ', ') AS SERVICE_PROVIDER_NAME,
                             GROUP_CONCAT(DISTINCT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME)) SEPARATOR ', ') AS CUSTOMER_NAME
                         FROM
@@ -130,6 +131,7 @@ $page_first_result = ($page-1) * $results_per_page;
         $i=$page_first_result+1;
         $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
         while (!$appointment_data->EOF) {
+            $UNIT = $appointment_data->fields['UNIT'];
             $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
             $CHANGED_BY = '';
             while (!$status_data->EOF) {
@@ -146,23 +148,23 @@ $page_first_result = ($page-1) * $results_per_page;
             } else {
                 $SESSION_CREATED = getSessionCreatedCount($appointment_data->fields['APT_ENR_SERVICE'], $appointment_data->fields['APPOINTMENT_TYPE']);
                 $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
-                $ENROLLMENT_ID = $appointment_data->fields['APT_ENR_NAME'];
-                $ENROLLMENT_NAME = $appointment_data->fields['APT_ENR_ID'];
+                $ENROLLMENT_ID = $appointment_data->fields['APT_ENR_ID'];
+                $ENROLLMENT_NAME = $appointment_data->fields['APT_ENR_NAME'];
             }
 
             $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, SESSION_CREATED, SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
             if ($enr_service_data->RecordCount() > 0) {
                 if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
-                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - 1;
+                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - $UNIT;
                 } else {
-                    $service_code_array[$PK_ENROLLMENT_SERVICE] = $SESSION_CREATED;
+                    $service_code_array[$PK_ENROLLMENT_SERVICE] = getSessionCreatedCount($PK_ENROLLMENT_SERVICE);;
                 }
             } ?>
-        <tr onclick="$(this).next().slideToggle();">
+        <tr onclick="$(this).next().slideToggle(); loadMedia(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>)">
             <td><?=$i;?></td>
             <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
             <?php if (!empty($ENROLLMENT_ID) || !empty($ENROLLMENT_NAME)) { ?>
-                <td><?=(($ENROLLMENT_NAME) ? $ENROLLMENT_NAME.' - ' : '').$ENROLLMENT_ID." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
+                <td><?=$ENROLLMENT_ID.(($ENROLLMENT_NAME) ? ' - '.$ENROLLMENT_NAME : '')." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
             <?php } elseif (empty($appointment_data->fields['SERVICE_NAME']) && empty($appointment_data->fields['SERVICE_CODE'])) { ?>
                 <td><?=$appointment_data->fields['SERVICE_NAME']."  ".$appointment_data->fields['SERVICE_CODE']?></td>
             <?php } else { ?>
@@ -175,7 +177,7 @@ $page_first_result = ($page-1) * $results_per_page;
             <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
             <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
             <td style="cursor: pointer; vertical-align: middle; text-align: center;"><?php if($appointment_data->fields['COMMENT'] != '' || $IMAGE_LINK!='' || $VIDEO_LINK!='' || $CHANGED_BY!='') { ?>
-                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white">View</button> <?php } ?>
+                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="loadMedia(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);">View</button> <?php } ?>
             </td>
             <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
             <td style="text-align: center;">
@@ -207,40 +209,10 @@ $page_first_result = ($page-1) * $results_per_page;
                             <textarea class="form-control" name="COMMENT" rows="3"><?=$appointment_data->fields['COMMENT']?></textarea><span><?=$CHANGED_BY?></span>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <a href="<?=$IMAGE_LINK?>" target="_blank">
-                                    <img src="<?=$IMAGE_LINK?>" style="margin-top: 15px; width: 150px; height: auto;">
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <a href="<?=$VIDEO_LINK?>" target="_blank">
-                                    <?php if($VIDEO_LINK != '') {?>
-                                        <video width="240" height="135" controls>
-                                            <source src="<?=$VIDEO_LINK?>" type="video/mp4">
-                                        </video>
-                                    <?php }?>
-                                </a>
-                            </div>
-                        </div>
+                    <div id="media_div_<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>">
+
                     </div>
-
-
-                    <?php /*=$appointment_data->fields['COMMENT']*/?><!--
-                    <?php /*if ($IMAGE_LINK != '' && $IMAGE_LINK != null) { */?>
-                        (<a href="<?php /*=$IMAGE_LINK*/?>" target="_blank">View Image</a>)
-                    <?php /*} */?>
-                    <?php /*if ($VIDEO_LINK != '' && $VIDEO_LINK != null) { */?>
-                        (<a href="<?php /*=$VIDEO_LINK*/?>" target="_blank">View Video</a>)
-                    <?php /*} */?>
-                    <br><span><?php /*=$CHANGED_BY*/?></span>-->
                 </td>
-            </tr>
-            <tr style="display: none">
-
             </tr>
         <?php $appointment_data->MoveNext();
         $i++; } ?>
@@ -498,4 +470,20 @@ $page_first_result = ($page-1) * $results_per_page;
         }
 
     });
+</script>
+<script>
+    function loadMedia(PK_APPOINTMENT_MASTER) {
+        if (PK_APPOINTMENT_MASTER) {
+            $.ajax({
+                url: "ajax/get_media.php",
+                type: "POST",
+                data: {PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#media_div_'+PK_APPOINTMENT_MASTER).html(result);
+                }
+            });
+        }
+    }
 </script>

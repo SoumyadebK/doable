@@ -337,6 +337,38 @@ if ($PK_USER_MASTER > 0) {
     }
 
 </style>
+<!-- CSS for Popup -->
+<style>
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 99999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 80%;
+        text-align: center;
+    }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        color: white;
+        cursor: pointer;
+    }
+</style>
 <?php require_once('../includes/header.php');?>
 <style>
     #advice-required-entry-ACCEPT_HANDLING{width: 150px;top: 20px;position: absolute;}
@@ -365,6 +397,10 @@ if ($PK_USER_MASTER > 0) {
     .StripeElement--webkit-autofill {
         background-color: #fefde5 !important;
     }
+
+    nav-link {
+        border: 1px solid #555;
+    }
 </style>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
@@ -392,41 +428,41 @@ if ($PK_USER_MASTER > 0) {
                 <?php } ?>
                 </div>
                 <div class="col-md-8 align-self-center">
-                    <ul class="nav nav-tabs" role="tablist" style="width: 80%">
+                    <ul class="nav nav-pills navbar-expand-lg navbar-light bg-light px-2 py-1 d-non" role="tablist" style="width: 124%">
                         <?php if(in_array('Customers Profile Edit', $PERMISSION_ARRAY)){ ?>
-                        <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
-                        <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-                        <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
+                        <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+                        <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
+                        <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
                         <?php } ?>
                         <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>-->
 
                         <?php if(!empty($_GET['id'])) { ?>
                             <?php if(in_array('Customers Profile Edit', $PERMISSION_ARRAY)){ ?>
-                            <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                            <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
-                            <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
-                            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'posted')" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
-                            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#demo_appointment" onclick="showDemoAppointment(1)" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">For Record Only</span></a> </li>
+                            <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
+                            <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
+                            <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
+                            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'posted')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
+                            <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#demo_appointment" onclick="showDemoAppointment(1)" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">For Record Only</span></a> </li>
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
-                            <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
-                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#credit_card" role="tab"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
-                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab"><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
+                            <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#credit_card" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
+                            <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
                             <?php } ?>
                             <?php if(in_array('Customers Delete', $PERMISSION_ARRAY)){ ?>
-                            <li> <a class="nav-link" id="delete_tab_link" data-bs-toggle="tab" href="#delete_customer" role="tab"><span class="hidden-sm-up"><i class="ti-trash"></i></span> <span class="hidden-xs-down">Delete</span></a> </li>
+                            <li> <a class="nav-link" id="delete_tab_link" data-bs-toggle="tab" href="#delete_customer" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-trash"></i></span> <span class="hidden-xs-down">Delete</span></a> </li>
                             <?php } ?>
                         <?php } ?>
                     </ul>
                 </div>
-                <div class="col-md-1 align-self-center text-end">
+                <!--<div class="col-md-1 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center" style="width: 240px;">
                         <ol class="breadcrumb justify-content-end">
                             <li class="breadcrumb-item active"><a href="all_customers.php">All Customers</a></li>
-                            <li class="breadcrumb-item active"><a href="customer.php"><?=$title?></a></li>
+                            <li class="breadcrumb-item active"><a href="customer.php"><?php /*=$title*/?></a></li>
                         </ol>
                     </div>
-                </div>
+                </div>-->
         </div>
 
         <div class="row">
@@ -476,7 +512,7 @@ if ($PK_USER_MASTER > 0) {
                                             <?php /*}*/?>
                                         </div>
                                     </div>-->
-                                    <div class="card-body" style="margin-top: 50px;">
+                                    <div class="card-body" style="margin-top: 25px;">
                                         <div class="tab-content tabcontent-border">
                                             <div class="tab-pane active" id="profile" role="tabpanel">
                                                 <form class="form-material form-horizontal" id="profile_form">
@@ -606,7 +642,7 @@ if ($PK_USER_MASTER > 0) {
                                                             <div class="col-3">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Call Preference</label>
-                                                                    <div class="col-md-12">
+                                                                    <div class="col-md-12 custom-select">
                                                                         <select class="form-control" name="CALL_PREFERENCE">
                                                                             <option >Select</option>
                                                                             <option value="email" <?php if($CALL_PREFERENCE == "email") echo 'selected = "selected"';?>>Email</option>
@@ -638,12 +674,14 @@ if ($PK_USER_MASTER > 0) {
                                                             <div class="col-md-6">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Gender</label>
-                                                                    <select class="form-control" id="GENDER" name="GENDER">
-                                                                        <option value="">Select Gender</option>
-                                                                        <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
-                                                                        <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
-                                                                        <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
-                                                                    </select>
+                                                                    <div class="custom-select">
+                                                                        <select class="form-control" id="GENDER" name="GENDER">
+                                                                            <option value="">Select Gender</option>
+                                                                            <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
+                                                                            <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
+                                                                            <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
+                                                                        </select>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-6">
@@ -680,7 +718,7 @@ if ($PK_USER_MASTER > 0) {
                                                                 <div class="form-group">
                                                                     <label class="col-md-12">Country<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
-                                                                        <div class="col-sm-12">
+                                                                        <div class="col-sm-12 custom-select">
                                                                             <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
                                                                                 <option>Select Country</option>
                                                                                 <?php
@@ -698,7 +736,7 @@ if ($PK_USER_MASTER > 0) {
                                                                 <div class="form-group">
                                                                     <label class="col-md-12">State<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12">
-                                                                        <div class="col-sm-12">
+                                                                        <div class="col-sm-12 custom-select">
                                                                             <div id="State_div"></div>
                                                                         </div>
                                                                     </div>
@@ -728,7 +766,7 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="row">
                                                             <div class="col-6">
                                                                 <label class="col-md-12">Primary Location<span class="text-danger">*</span></label>
-                                                                <div class="form-group" style="margin-bottom: 15px;">
+                                                                <div class="custom-select" style="margin-bottom: 15px;">
                                                                     <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" onchange="selectThisPrimaryLocation(this)" required>
                                                                         <option value="">Select Primary Location</option>
                                                                         <?php
@@ -896,12 +934,14 @@ if ($PK_USER_MASTER > 0) {
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
                                                                         <label class="form-label">Partner's Gender</label>
-                                                                        <select class="form-control" id="PARTNER_GENDER" name="PARTNER_GENDER">
-                                                                            <option value="">Select Gender</option>
-                                                                            <option value="Male" <?=(($PARTNER_GENDER=='Male')?'selected':'')?>>Male</option>
-                                                                            <option value="Female" <?=(($PARTNER_GENDER=='Female')?'selected':'')?>>Female</option>
-                                                                            <option value="Other" <?=(($PARTNER_GENDER=='Other')?'selected':'')?>>Other</option>
-                                                                        </select>
+                                                                        <div class="custom-select">
+                                                                            <select class="form-control" id="PARTNER_GENDER" name="PARTNER_GENDER">
+                                                                                <option value="">Select Gender</option>
+                                                                                <option value="Male" <?=(($PARTNER_GENDER=='Male')?'selected':'')?>>Male</option>
+                                                                                <option value="Female" <?=(($PARTNER_GENDER=='Female')?'selected':'')?>>Female</option>
+                                                                                <option value="Other" <?=(($PARTNER_GENDER=='Other')?'selected':'')?>>Other</option>
+                                                                            </select>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-md-6">
@@ -933,11 +973,11 @@ if ($PK_USER_MASTER > 0) {
                                                                     <label class="form-label">Active : </label>
                                                                 </div>
                                                                 <div class="col-md-4">
-                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                 </div>
                                                             </div>
-                                                        <? } ?>
+                                                        <?php } ?>
                                                     </div>
                                                     <div class="form-group">
                                                         <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -1005,7 +1045,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     <!--<div class="col-3">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Old Password</label>
-                                                                            <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?/*=$PASSWORD*/?>">
+                                                                            <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?php /*$PASSWORD */?>">
                                                                             <input type="password" required name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
                                                                         </div>
                                                                     </div>-->
@@ -1032,11 +1072,11 @@ if ($PK_USER_MASTER > 0) {
                                                                     <label class="form-label">Active : </label>
                                                                 </div>
                                                                 <div class="col-md-4">
-                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                 </div>
                                                             </div>
-                                                        <? } ?>
+                                                        <?php } ?>
                                                     </div>
                                                     <div class="form-group">
                                                         <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -1047,7 +1087,7 @@ if ($PK_USER_MASTER > 0) {
 
                                             <?php $family_member_count = 0;?>
                                             <div class="tab-pane" id="family" role="tabpanel">
-                                                <form id="family_form">
+                                                <form id="family_form" class="form-material form-horizontal">
                                                     <input type="hidden" name="FUNCTION_NAME" value="saveFamilyData">
                                                     <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
                                                     <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
@@ -1081,7 +1121,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     <div class="col-3">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Relationship</label>
-                                                                            <div class="col-md-12">
+                                                                            <div class="col-md-12 custom-select">
                                                                                 <select class="form-control" name="PK_RELATIONSHIP[]">
                                                                                     <option>Select Relationship</option>
                                                                                     <?php
@@ -1125,12 +1165,14 @@ if ($PK_USER_MASTER > 0) {
                                                                         <div class="col-md-6">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Gender</label>
-                                                                                <select class="form-control" name="FAMILY_GENDER[]">
-                                                                                    <option>Select Gender</option>
-                                                                                    <option value="Male" <?php if($family_member_details->fields['GENDER'] == "Male") echo 'selected = "selected"';?>>Male</option>
-                                                                                    <option value="Female" <?php if($family_member_details->fields['GENDER'] == "Female") echo 'selected = "selected"';?>>Female</option>
-                                                                                    <option value="Other" <?php if($family_member_details->fields['GENDER'] == "Other") echo 'selected = "selected"';?>>Other</option>
-                                                                                </select>
+                                                                                <div class="custom-select">
+                                                                                    <select class="form-control" name="FAMILY_GENDER[]">
+                                                                                        <option>Select Gender</option>
+                                                                                        <option value="Male" <?php if($family_member_details->fields['GENDER'] == "Male") echo 'selected = "selected"';?>>Male</option>
+                                                                                        <option value="Female" <?php if($family_member_details->fields['GENDER'] == "Female") echo 'selected = "selected"';?>>Female</option>
+                                                                                        <option value="Other" <?php if($family_member_details->fields['GENDER'] == "Other") echo 'selected = "selected"';?>>Other</option>
+                                                                                    </select>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-md-6">
@@ -1904,6 +1946,11 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="col-md-6">
                                                             <h3>Credit Card</h3>
                                                         </div>
+                                                        <?php if ($PAYMENT_GATEWAY == null || $PAYMENT_GATEWAY == '') { ?>
+                                                            <div class="alert alert-danger">
+                                                                Payment Gateway is Not set Yet
+                                                            </div>
+                                                        <?php } else { ?>
                                                         <div class="col-md-6">
                                                             <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard(this)" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
                                                         </div>
@@ -1974,7 +2021,9 @@ if ($PK_USER_MASTER > 0) {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        <?php } ?>
+                                                        <?php }
+                                                        } ?>
+
                                                     </div>
                                                 </div>
                                             </div>
@@ -2033,7 +2082,7 @@ if ($PK_USER_MASTER > 0) {
         </div>
     </div>
 
-<!--Confirm Model-->
+<!--Refund Model-->
 <div class="modal fade" id="refund_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog" style="max-width: 450px;">
         <div class="modal-content">
@@ -2046,7 +2095,7 @@ if ($PK_USER_MASTER > 0) {
                         <div class="form-group">
                             <label class="form-label">How you want your money back?</label>
                             <div class="col-md-12">
-                                <select class="form-control" required name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND">
+                                <select class="form-control" required name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND" onchange="selectRefundType(this)">
                                     <option value="">Select</option>
                                     <?php
                                     $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
@@ -2054,6 +2103,25 @@ if ($PK_USER_MASTER > 0) {
                                         <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
                                     <?php $row->MoveNext(); } ?>
                                 </select>
+                            </div>
+                        </div>
+
+                        <div class="row" id="check_payment" style="display: none;">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Check Number</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="REFUND_CHECK_NUMBER" id="REFUND_CHECK_NUMBER" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Check Date</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="REFUND_CHECK_DATE" id="REFUND_CHECK_DATE" class="form-control datepicker-normal">
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -2122,6 +2190,8 @@ if ($PK_USER_MASTER > 0) {
         </div>
     </div>
 </div>
+
+<?php require_once('../includes/footer.php');?>
 
 <!--Wallet Payment Model-->
 <?php include('includes/add_money_to_wallet.php'); ?>
@@ -2219,7 +2289,7 @@ if ($PK_USER_MASTER > 0) {
         height:18px !important;
     }
 </style>
-<?php require_once('../includes/footer.php');?>
+
     <script>
         let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
         let PK_USER_MASTER = parseInt(<?=empty($_GET['master_id'])?0:$_GET['master_id']?>);
@@ -2335,6 +2405,15 @@ if ($PK_USER_MASTER > 0) {
                     }
                 }).responseText;
             });
+        }
+
+        function selectRefundType(param) {
+            let paymentType = parseInt($(param).val());
+            if (paymentType === 2) {
+                $(param).closest('.modal-body').find('#check_payment').slideDown();
+            } else {
+                $(param).closest('.modal-body').find('#check_payment').slideUp();
+            }
         }
     </script>
     <script>
@@ -2571,7 +2650,7 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="col-3">
                                                             <div class="form-group">
                                                                 <label class="form-label">Relationship</label>
-                                                                <div class="col-md-12">
+                                                                <div class="col-md-12 customer-select">
                                                                     <select class="form-control" name="PK_RELATIONSHIP[]">
                                                                         <option>Select Relationship</option>
                                                                         <?php
@@ -2615,12 +2694,15 @@ if ($PK_USER_MASTER > 0) {
                                                             <div class="col-md-6">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Gender</label>
+                                                                    <div class="customer-select">
                                                                     <select class="form-control" name="FAMILY_GENDER[]">
                                                                         <option>Select Gender</option>
                                                                         <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
                                                                         <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
                                                                         <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
                                                                     </select>
+                                                                    </div>
+
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-6">
@@ -3228,5 +3310,65 @@ if ($PK_USER_MASTER > 0) {
         });
     });
 </script>
+<!-- JavaScript for Popup -->
+<script>
+    function showPopup(type, src) {
+        let popup = document.getElementById("mediaPopup");
+        let image = document.getElementById("popupImage");
+        let video = document.getElementById("popupVideo");
+        let videoSource = document.getElementById("popupVideoSource");
+
+        if (type === 'image') {
+            image.src = src;
+            image.style.display = "block";
+            video.style.display = "none";
+        } else if (type === 'video') {
+            videoSource.src = src;
+            video.load();
+            video.style.display = "block";
+            image.style.display = "none";
+        }
+
+        popup.style.display = "flex";
+
+        // Add event listener to detect ESC key press
+        document.addEventListener("keydown", escClose);
+    }
+
+    function closePopup() {
+        document.getElementById("mediaPopup").style.display = "none";
+        document.removeEventListener("keydown", escClose); // Remove listener when popup is closed
+    }
+
+    // Function to detect ESC key press and close the popup
+    function escClose(event) {
+        if (event.key === "Escape") {
+            closePopup();
+        }
+    }
+
+    // Disable right-click on images and videos
+    document.addEventListener("contextmenu", function (event) {
+        let target = event.target;
+        if (target.tagName === "IMG" || target.tagName === "VIDEO") {
+            event.preventDefault(); // Prevent right-click menu
+        }
+    });
+
+    // Optional: Disable right-click for the whole page
+    // Uncomment the line below if you want to block right-click everywhere
+    // document.addEventListener("contextmenu", (event) => event.preventDefault());
+
+</script>
+<!-- Popup Modal -->
+<div id="mediaPopup" class="popup" onclick="closePopup()">
+    <span class="close" onclick="closePopup()">&times;</span>
+    <div class="popup-content" onclick="event.stopPropagation();">
+        <img id="popupImage" src="" style="display:none; max-width: 100%;">
+        <video id="popupVideo" controls style="display:none; max-width: 100%;">
+            <source id="popupVideoSource" src="" type="video/mp4">
+        </video>
+    </div>
+</div>
 </body>
 </html>

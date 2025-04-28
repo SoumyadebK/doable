@@ -8,12 +8,16 @@ use Square\Models\Address;
 use Square\SquareClient;
 use Square\Environment;
 
+require_once('../../global/authorizenet/autoload.php');
+use net\authorize\api\contract\v1 as AnetAPI;
+use net\authorize\api\controller as AnetController;
+
 $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
 $PAYMENT_GATEWAY = $_POST['PAYMENT_GATEWAY'];
 
 if($PAYMENT_GATEWAY == "Stripe") {
-    $customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+    $customer_payment_info = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
     $SECRET_KEY = $account_data->fields['SECRET_KEY'];
     if ($SECRET_KEY != '') {
         $stripe = new \Stripe\StripeClient($SECRET_KEY);
@@ -44,10 +48,26 @@ if($PAYMENT_GATEWAY == "Stripe") {
 
             $response = curl_exec($curl);
             $card_details = json_decode($response, true);
-        }
-    }
+        } ?>
+
+        <?php if (isset($card_details['last4'])) {
+            $card_type = getCardTypeDetails($card_details['brand']);
+            ?>
+            <h5>Saved Card Details</h5>
+            <div class="credit-card-div" id="<?php echo $card_details['id']; ?>" onclick="getPaymentMethodId(this)" style="width: 303px;">
+                <div class="credit-card <?=$card_type?> selectable">
+                    <div class="credit-card-last4">
+                        <?=$card_details['last4']?>
+                    </div>
+                    <div class="credit-card-expiry">
+                        <?=$card_details['exp_month'].'/'.$card_details['exp_year']?>
+                    </div>
+                </div>
+            </div>
+        <?php } ?>
+    <?php }
 } elseif ($PAYMENT_GATEWAY == "Square") {
-    $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+    $user_payment_info_data = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Square' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
 
     if ($user_payment_info_data->RecordCount() > 0) {
         require_once("../../global/vendor/autoload.php");
@@ -57,19 +77,25 @@ if($PAYMENT_GATEWAY == "Stripe") {
         ]);
 
         $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
-        $card = new \Square\Models\Card();
-        $card->setCustomerId($CUSTOMER_PAYMENT_ID);
-        $all_payment_methods = $client->getCardsApi()->listCards();
-        $all_payment_methods_array = json_decode($all_payment_methods->getBody());
+        try {
+            $card = new \Square\Models\Card();
+            $card->setCustomerId($CUSTOMER_PAYMENT_ID);
+            $all_payment_methods = $client->getCardsApi()->listCards();
+            $all_payment_methods_array = json_decode($all_payment_methods->getBody());
+        } catch (Exception $e) {
+            echo 'Caught exception: ',  $e->getMessage(), "\n";
+        }
 
         $card_list = '';
         foreach ($all_payment_methods_array->cards as $all_payment_methods_data) {
-            $card_list .= '<div class="col-4"> 
-                            <div class="credit-card selectable">
-                                <div class="credit-card-last4" style="font-size: 20px;">
-                                   ' . $all_payment_methods_data->last_4 . '
+            $card_type = getCardTypeDetails($all_payment_methods_data->card_brand);
+
+            $card_list .= '<div class="credit-card-div" id="' . $all_payment_methods_data->id . '" onclick="getPaymentMethodId(this)" style="width: 303px;">
+                            <div class="credit-card ' . $card_type . ' selectable">
+                                <div class="credit-card-last4">
+                                    ' . $all_payment_methods_data->last_4 . '
                                 </div>
-                                <div class="credit-card-expiry" style="font-size: 11px; font-weight: bold;">
+                                <div class="credit-card-expiry">
                                     ' . $all_payment_methods_data->exp_month . '/' . $all_payment_methods_data->exp_year . '
                                 </div>
                             </div>
@@ -77,53 +103,97 @@ if($PAYMENT_GATEWAY == "Stripe") {
         }
         echo $card_list;
     }
+} elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
+    $user_payment_info_data = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+
+    if ($user_payment_info_data->RecordCount() > 0) {
+        // Your API credentials
+        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+        $merchantAuthentication->setName($account_data->fields['LOGIN_ID']);
+        $merchantAuthentication->setTransactionKey($account_data->fields['TRANSACTION_KEY']);
+
+        // Customer Profile ID (from your DB or after creating profile)
+        $customerProfileId = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
+
+        // Prepare the request
+        $request = new AnetAPI\GetCustomerProfileRequest();
+        $request->setMerchantAuthentication($merchantAuthentication);
+        $request->setCustomerProfileId($customerProfileId);
+
+        // Execute the API call
+        $controller = new AnetController\GetCustomerProfileController($request);
+        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX); // or PRODUCTION
+
+        // Handle response
+        if (($response != null) && ($response->getMessages()->getResultCode() == "Ok")) {
+            $paymentProfiles = $response->getProfile()->getPaymentProfiles();
+
+            $card_list = '';
+            foreach ($paymentProfiles as $profile) {
+                $card = $profile->getPayment()->getCreditCard();
+                $card_type = getCardTypeDetails($card->getCardType());
+
+                $card_list .= '<div class="credit-card-div" id="' . $profile->getCustomerPaymentProfileId() . '" onclick="getPaymentMethodId(this)" style="width: 303px;">
+                            <div class="credit-card ' . $card_type . ' selectable">
+                                <div class="credit-card-last4">
+                                    ' . $card->getCardNumber() . '
+                                </div>
+                                <div class="credit-card-expiry">
+                                    ' . $card->getExpirationDate() . '
+                                </div>
+                            </div>
+                        </div>';
+            }
+            echo $card_list;
+        } else {
+            echo "Error fetching payment profiles.\n";
+            $errorMessages = $response->getMessages()->getMessage();
+            foreach ($errorMessages as $error) {
+                echo "Error: " . $error->getCode() . " - " . $error->getText() . "\n";
+            }
+        }
+    }
 } ?>
 
-<?php if (isset($card_details['last4'])) {
-    switch ($card_details['brand']) {
-        case 'Visa':
-        case 'Visa (debit)':
+<?php  
+function getCardTypeDetails ($brand) {
+    $card_type = '';
+    $brand = strtolower($brand);
+    switch ($brand) {
+        case 'visa':
+        case 'visa (debit)':
             $card_type = 'visa';
             break;
-        case 'MasterCard':
-        case 'Mastercard (2-series)':
-        case 'Mastercard (debit)':
-        case 'Mastercard (prepaid)':
+        case 'mastercard':
+        case 'mastercard (2-series)':
+        case 'mastercard (debit)':
+        case 'mastercard (prepaid)':
             $card_type = 'mastercard';
             break;
-        case 'American Express':
+        case 'american express':
             $card_type = 'amex';
             break;
-        case 'Discover':
-        case 'Discover (debit)':
+        case 'discover':
+        case 'discover (debit)':
             $card_type = 'discover';
             break;
-        case 'Diners Club':
-        case 'Diners Club (14-digit card)':
+        case 'diners club':
+        case 'diners club (14-digit card)':
             $card_type = 'diners';
             break;
-        case 'JCB':
+        case 'jcb':
             $card_type = 'jcb';
             break;
-        case 'UnionPay':
-        case 'UnionPay (debit)':
-        case 'UnionPay (19-digit card)':
+        case 'unionpay':
+        case 'unionpay (debit)':
+        case 'unionpay (19-digit card)':
             $card_type = 'unionpay';
             break;
         default:
             $card_type = '';
             break;
 
-    } ?>
-    <div class="p-20" id="<?=$card_details['id']?>" onclick="getPaymentMethodId(this)">
-        <h5>Saved Card Details</h5>
-        <div class="credit-card <?=$card_type?> selectable" style="margin-right: 80%;">
-            <div class="credit-card-last4">
-                <?=$card_details['last4']?>
-            </div>
-            <div class="credit-card-expiry">
-                <?=$card_details['exp_month'].'/'.$card_details['exp_year']?>
-            </div>
-        </div>
-    </div>
-<?php } ?>
+    }
+    return $card_type;
+}
+?>

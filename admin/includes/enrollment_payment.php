@@ -1,13 +1,14 @@
 <div class="modal fade payment_modal" id="enrollment_payment_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <form id="enrollment_payment_form" action="includes/process_enrollment_payment.php" method="post" enctype="multipart/form-data">
+        <form id="enrollment_payment_form">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4><b>Payment</b></h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#enrollment_payment_modal').modal('hide');"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="sourceId" id="enrollment_sourceId">
+                    <input type="hidden" name="token" id="token">
                     <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
                     <!--<input type="hidden" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">-->
                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
@@ -70,9 +71,9 @@
                         </div>
 
                         <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
+                            <div class="row" id="card_list">
+                            </div>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" style="margin: auto;" id="card_list">
-                                </div>
                                 <div class="col-12">
                                     <div class="form-group" id="card_div">
 
@@ -81,7 +82,7 @@
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" style="margin: auto;" id="card_list">
+                                <div class="row" id="card_list">
                                 </div>
                                 <div class="col-12">
                                     <div class="form-group" id="card_div">
@@ -94,8 +95,9 @@
                             $customer_data = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.EMAIL_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
                             ?>
                             <div class="payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" style="margin: auto;" id="card_list">
+                                <div class="row" id="card_list">
                                 </div>
+
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="form-group">
@@ -163,6 +165,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                
                             </div>
                         <?php } ?>
 
@@ -244,7 +247,7 @@
                                         <select class="form-control" name="PK_PAYMENT_TYPE_PARTIAL" id="PK_PAYMENT_TYPE_PARTIAL" onchange="selectPartialPaymentType(this)">
                                             <option value="">Select</option>
                                             <?php
-                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
+                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE NOT IN (1, 7, 8, 9, 10, 11, 13, 14) AND ACTIVE = 1");
                                             while (!$row->EOF) { ?>
                                                 <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
                                             <?php $row->MoveNext(); } ?>
@@ -291,11 +294,16 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-12" id="payment_status">
+
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="$('#enrollment_payment_modal').modal('hide');">Close</button>
+                    <button type="submit" id="enr-payment-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
                 </div>
             </div>
         </form>
@@ -320,6 +328,7 @@ if ($SQUARE_MODE == 1)
 else if ($SQUARE_MODE == 2)
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
 ?>
+
 
 <script src="https://js.stripe.com/v3/"></script>
 <script type="text/javascript">
@@ -347,45 +356,49 @@ else if ($SQUARE_MODE == 2)
     };
 
     // Create an instance of the card Element.
-    var card = elements.create('card', {style: style});
+    var stripe_card = elements.create('card', {style: style});
     var pay_type = '';
 
     function stripePaymentFunction(type) {
         pay_type = type;
         // Add an instance of the card Element into the `card-element` <div>.
         if (($('#card-element')).length > 0) {
-            card.mount('#card-element');
+            stripe_card.mount('#card-element');
         }
         // Handle real-time validation errors from the card Element.
-        card.addEventListener('change', function (event) {
+        stripe_card.addEventListener('change', function (event) {
             var displayError = document.getElementById('card-errors');
             if (event.error) {
                 displayError.textContent = event.error.message;
             } else {
                 displayError.textContent = '';
+                addStripeTokenOnForm();
             }
         });
         // Handle form submission.
-        let form = document.getElementById(type+'_payment_form');
-        form.addEventListener('submit', listener);
+        /*let form = document.getElementById(type+'_payment_form');
+        form.addEventListener('submit', listener);*/
     }
 
-    const listener = async event => {
-        event.preventDefault();
-        stripe.createToken(card).then(function (result) {
+    function addStripeTokenOnForm(){
+        //event.preventDefault();
+        stripe.createToken(stripe_card).then(function (result) {
             if (result.error) {
                 // Inform the user if there was an error.
                 let errorElement = document.getElementById('card-errors');
                 errorElement.textContent = result.error.message;
             } else {
                 // Send the token to your server.
-                stripeTokenHandler(result.token);
+                $('#token').val(result.token.id);
+                //stripeTokenHandler(result.token);
             }
         });
     }
 
     // Submit the form with the token ID.
     function stripeTokenHandler(token) {
+        $('#token').val(token.id);
+        /*alert(token);
         // Insert the token ID into the form, so it gets submitted to the server
         let form = document.getElementById(pay_type+'_payment_form');
         let hiddenInput = document.createElement('input');
@@ -393,75 +406,138 @@ else if ($SQUARE_MODE == 2)
         hiddenInput.setAttribute('name', 'token');
         hiddenInput.setAttribute('value', token.id);
         form.appendChild(hiddenInput);
-        form.submit();
+        //form.submit();*/
     }
 </script>
 
 
 <script src="<?=$URL?>"></script>
 <script type="text/javascript">
-    async function squarePaymentFunction(type) {
-        let square_appId = '<?=$SQUARE_APP_ID ?>';
-        let square_locationId = '<?=$SQUARE_LOCATION_ID ?>';
-        const payments = Square.payments(square_appId, square_locationId);
-        const card = await payments.card();
-        $('#'+type+'-card-container').text('');
-        await card.attach('#'+type+'-card-container');
+let square_card;
 
-        let form = document.getElementById(type+'_payment_form');
+async function squarePaymentFunction(type) {
+    let square_appId = '<?=$SQUARE_APP_ID ?>';
+    let square_locationId = '<?=$SQUARE_LOCATION_ID ?>';
+    const payments = Square.payments(square_appId, square_locationId);
+    square_card = await payments.card();
+    $('#'+type+'-card-container').text('');
+    await square_card.attach('#'+type+'-card-container');
+}
 
-        //const cardButton = document.getElementById('card-button');
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const statusContainer = document.getElementById('payment-status-container');
+async function addSquareTokenOnForm() {
+    const statusContainer = document.getElementById('payment-status-container');
 
-            try {
-                const result = await card.tokenize();
-                if (result.status === 'OK') {
-                    document.getElementById('enrollment_sourceId').value = result.token;
-                    console.log(`Payment token is ${result.token}`);
-                    //statusContainer.innerHTML = "Payment Successful";
-                    form.submit();
-                } else {
-                    let errorMessage = `Tokenization failed with status: ${result.status}`;
-                    if (result.errors) {
-                        errorMessage += ` and errors: ${JSON.stringify(
-                            result.errors
-                        )}`;
-                    }
-                    if ($('#enrollment-card-container').length > 0) {
-                        throw new Error(errorMessage);
-                    } else {
-                        form.submit();
-                    }
-                }
-            } catch (e) {
-                console.error(e);
-                statusContainer.innerHTML = "Payment Failed";
+    try {
+        // Tokenize the card details
+        const result = await square_card.tokenize();
+        if (result.status === 'OK') {
+            // Add the token to the hidden input field
+            $('#enrollment_sourceId').val(result.token);
+            console.log(`Payment token is ${result.token}`);
+
+            // Submit the form after adding the token
+            //form.submit();
+        } else {
+            // Handle tokenization errors
+            let errorMessage = `Tokenization failed with status: ${result.status}`;
+            if (result.errors) {
+                errorMessage += ` and errors: ${JSON.stringify(result.errors)}`;
             }
-        });
+            throw new Error(errorMessage);
+        }
+    } catch (e) {
+        console.error(e);
+        statusContainer.innerHTML = `<p class="alert alert-danger">Payment Failed: ${e.message}</p>`;
     }
+}
+
 </script>
 
 
 <script>
-    function getPaymentMethodId(param) {
-        $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
-        let form = document.getElementById('enrollment_payment_form');
-        form.removeEventListener('submit', listener);
-        $(param).closest('.payment_modal').find('#card-element').remove();
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
+
+    $(document).on('submit', '#enrollment_payment_form', function (event) {
+        $('#enr-payment-btn').prop('disabled', true);
+        event.preventDefault();
+
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+        if (PAYMENT_GATEWAY == 'Square') {
+            let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
+            if (PAYMENT_METHOD_ID == '') {    
+                addSquareTokenOnForm();
+                sleep(3000).then(() => {
+                    submitEnrollmentPaymentForm();
+                });
+            } else {
+                submitEnrollmentPaymentForm();
+            }
+        } else {
+            submitEnrollmentPaymentForm();
+        }
+    });
+
+    function submitEnrollmentPaymentForm() {
+        let form_data = $('#enrollment_payment_form').serialize();
+        $.ajax({
+            url: "includes/process_enrollment_payment.php",
+            type: 'POST',
+            data: form_data,
+            dataType: 'json',
+            success:function (data) {
+                if (data.STATUS === 'Failed') {
+                    $('#payment_status').html(`<p class="alert alert-danger">${data.PAYMENT_INFO}</p>`);
+                    $('#enr-payment-btn').prop('disabled', false);
+                } else {
+                    $('#payment_status').html(`<p class="alert alert-success">Payment Successful, Page will refresh automatically.</p>`);
+
+                    setTimeout(function() {
+                        let header = '<?=$header?>';
+                        if (header) {
+                            window.location.href = header;
+                        } else {
+                            let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
+                            let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+                            window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
+                        }
+                        //location.reload();
+                    }, 3000);
+                }
+                console.log(data);
+            }
+        });
+    }
+
+    function getPaymentMethodId(param) {
+        $('.credit-card-div').css("opacity", "1");
+        $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
+        $(param).css("opacity", "0.6");
+        /*let form = document.getElementById('enrollment_payment_form');
+        form.removeEventListener('submit', listener);*/
+        $(param).closest('.payment_modal').find('#card-element').remove();
+        $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
+    }
+
+    $(document).on('click', '.credit-card', function () {
+        $('.credit-card').css("opacity", "1");
+        $(this).css("opacity", "0.6");
+    });
 
     function selectPaymentType(param, type){
         let paymentType = parseInt($(param).val());
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         $(param).closest('.payment_modal').find('.payment_type_div').slideUp();
-        let form = document.getElementById(type+'_payment_form');
-        form.removeEventListener('submit', listener);
+        $('#PAYMENT_METHOD_ID').val('');
+        $('#card_list').slideUp();
+        /*let form = document.getElementById(type+'_payment_form');
+        form.removeEventListener('submit', listener);*/
         $(param).closest('.payment_modal').find('#card-element').remove();
         $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
         switch (paymentType) {
             case 1:
+                $(param).closest('.payment_modal').find('#credit_card_payment').slideDown();
                 if (PAYMENT_GATEWAY == 'Stripe') {
                     $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
                     stripePaymentFunction(type);
@@ -473,12 +549,18 @@ else if ($SQUARE_MODE == 2)
                     squarePaymentFunction(type);
                 }
 
+                if (PAYMENT_GATEWAY == 'Authorized.net') {
+                    $("#CARD_NUMBER").inputmask({
+                        mask: "9999 9999 9999 9999",
+                        placeholder: ""
+                    });
+                }
                 getCreditCardList();
-                $(param).closest('.payment_modal').find('#credit_card_payment').slideDown();
-                $("#CARD_NUMBER").inputmask({
-                    mask: "9999 9999 9999 9999",
-                    placeholder: ""
-                });
+                
+                break;
+
+            case 14:
+                getCreditCardList();
                 break;
 
             case 2:
@@ -538,7 +620,7 @@ else if ($SQUARE_MODE == 2)
             type: 'POST',
             data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
             success: function (data) {
-                $('#card_list').html(data);
+                $('#card_list').slideDown().html(data);
             }
         });
     }
@@ -634,4 +716,5 @@ else if ($SQUARE_MODE == 2)
             }
         }
     }
+
 </script>

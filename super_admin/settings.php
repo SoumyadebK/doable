@@ -43,6 +43,17 @@ if(!empty($_POST)){
     } else {
         db_perform('DOA_OTHER_SETTING', $OTHER_SETTING_DATA, 'update', " PK_OTHER_SETTING = 1 ");
     }
+
+    $SMTP_SETUP_DATA['PK_SMTP_SETUP'] = $_POST['PK_SMTP_SETUP'];
+    $SMTP_SETUP_DATA['HOST'] = $_POST['HOST'];
+    $SMTP_SETUP_DATA['PORT'] = $_POST['PORT'];
+    $SMTP_SETUP_DATA['USERNAME'] = $_POST['USERNAME'];
+    $SMTP_SETUP_DATA['PASSWORD'] = $_POST['PASSWORD'];
+    if ($_POST['PK_SMTP_SETUP'] == 0) {
+        db_perform('DOA_SMTP_SETUP', $SMTP_SETUP_DATA, 'insert');
+    } else {
+        db_perform('DOA_SMTP_SETUP', $SMTP_SETUP_DATA, 'update', " PK_SMTP_SETUP = 1 ");
+    }
 }
 
 $PK_TEXT_SETTINGS = 0;
@@ -89,6 +100,20 @@ if ($other_setting->RecordCount() > 0) {
     $PK_OTHER_SETTING = $other_setting->fields['PK_OTHER_SETTING'];
     $PAYMENT_REMINDER_BEFORE_DAYS = $other_setting->fields['PAYMENT_REMINDER_BEFORE_DAYS'];
     $PAYMENT_FAILED_REMINDER_AFTER_DAYS = $other_setting->fields['PAYMENT_FAILED_REMINDER_AFTER_DAYS'];
+}
+
+$PK_SMTP_SETUP = 0;
+$HOST = '';
+$PORT = '';
+$USERNAME = '';
+$PASSWORD = '';
+$smtp = $db->Execute("SELECT * FROM DOA_SMTP_SETUP");
+if ($smtp->RecordCount() > 0) {
+    $PK_SMTP_SETUP = $smtp->fields['PK_SMTP_SETUP'];
+    $HOST = $smtp->fields['HOST'];
+    $PORT = $smtp->fields['PORT'];
+    $USERNAME = $smtp->fields['USERNAME'];
+    $PASSWORD = $smtp->fields['PASSWORD'];
 }
 ?>
 
@@ -221,6 +246,35 @@ if ($other_setting->RecordCount() > 0) {
                                             <div class="col-md-12">
                                                 <input type="text" id="PAYMENT_FAILED_REMINDER_AFTER_DAYS" name="PAYMENT_FAILED_REMINDER_AFTER_DAYS" class="form-control" placeholder="Payment failed reminder after days" value="<?=$PAYMENT_FAILED_REMINDER_AFTER_DAYS?>">
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row smtp" id="smtp" >
+                                    <b class="btn btn-light" style="margin-bottom: 20px;">SMTP Setup</b>
+                                    <input type="hidden" name="PK_SMTP_SETUP" value="<?=$PK_SMTP_SETUP?>">
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <label class="form-label">SMTP HOST</label>
+                                            <input type="text" class="form-control" name="HOST" value="<?=$HOST?>">
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <label class="form-label">SMTP PORT</label>
+                                            <input type="text" class="form-control" name="PORT" value="<?=$PORT?>">
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <label class="form-label">SMTP USERNAME</label>
+                                            <input type="text" class="form-control" name="USERNAME" value="<?=$USERNAME?>">
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <label class="form-label">SMTP PASSWORD</label>
+                                            <input type="text" class="form-control" name="PASSWORD" value="<?=$PASSWORD?>">
                                         </div>
                                     </div>
                                 </div>

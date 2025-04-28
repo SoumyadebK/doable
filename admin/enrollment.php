@@ -20,7 +20,7 @@ else
 if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
     $header = 'customer.php?id='.$_GET['id_customer'].'&master_id='.$_GET['master_id_customer'].'&tab=enrollment';
 } else {
-    $header = 'all_enrollments.php';
+    $header = '';
 }
 
 $PK_ENROLLMENT_MASTER = 0;
@@ -197,23 +197,26 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                 <li> <a class="nav-link" data-bs-toggle="tab" id="ledger_link" href="#ledger" role="tab" onclick="goToLedgerTab()"><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Ledger</span></a> </li>
                                 <?php if (!empty($_GET['id'])) { ?>
                                     <li> <a class="nav-link" data-bs-toggle="tab" id="history_link" href="#history" role="tab"><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">History</span></a> </li>
+                                    <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
+                                    <li> <a class="nav-link" href="../<?=$upload_path?>/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank"><span class="hidden-sm-up"><i class="ti-file"></i></span> <span class="hidden-xs-down">PDF Agreement</span></a> </li>
+                                    <?php } ?>
                                 <?php } ?>
                             </ul>
 
 
                             <!-- Enrollment Tab panes -->
-                            <div class="tab-content tabcontent-border">
+                            <div class="tab-content tabcontent-border" style="margin-bottom: -35px">
                                 <div class="tab-pane active" id="enrollment" role="tabpanel">
                                     <form class="form-material form-horizontal" id="enrollment_form">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentData">
                                         <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
-                                        <div class="p-20">
+                                        <div class="p-20" style="margin-top: -10px">
                                             <div class="row">
                                                 <div class="col-3">
                                                     <div>
                                                         <label class="form-label">Customer<span class="text-danger">*</span></label><br>
                                                         <select required name="PK_USER_MASTER" id="PK_USER_MASTER" onchange="selectThisCustomer(this);">
-                                                            <option value="">Select Customer</option>
+                                                            <option>Select Customer</option>
                                                             <?php
                                                             $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_USER_MASTER.PRIMARY_LOCATION_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME ASC");
                                                             while (!$row->EOF) { ?>
@@ -244,7 +247,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 </div>
                                             </div>
 
-                                            <div class="row <?=($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : ''?>">
+                                            <div class="row <?=($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : ''?>" style="margin-top: -15px">
                                                 <div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Packages</label>
@@ -291,7 +294,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 </div>
                                             </div>
 
-                                            <div class="card-body">
+                                            <div class="card-body" style="margin-top: -15px">
                                                 <div class="row">
                                                     <div class="col-2">
                                                         <div class="form-group">
@@ -382,7 +385,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                         </div>
                                                         <div class="col-1">
                                                             <div class="form-group">
-                                                                <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" value="<?=$enrollment_service_data->fields['PRICE_PER_SESSION']?>" onkeyup="calculateServiceTotal(this)">
+                                                                <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" value="<?=($enrollment_service_data->fields['TOTAL']/$enrollment_service_data->fields['NUMBER_OF_SESSION'])?>" onkeyup="calculateServiceTotal(this)">
                                                             </div>
                                                         </div>
                                                         <div class="col-1">
@@ -489,7 +492,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 </div>
                                             </div>
 
-                                            <div class="col-3 <?=($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : ''?>" style="margin-left: 75%; margin-top: -15px;">
+                                            <div class="col-3 <?=($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : ''?>" style="margin-left: 75%; margin-top: -40px;">
                                                 <div class="form-group">
                                                     <div class="row">
                                                         <div class="col-md-4">
@@ -502,7 +505,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 </div>
                                             </div>
 
-                                            <div class="row add_more <?=($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : ''?>">
+                                            <div class="row add_more <?=($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : ''?>" style="margin-top: -15px">
                                                 <div class="col-12">
                                                     <div class="form-group" style="float: right; display: <?=$CHARGE_TYPE=='Session' ? 'none' : ''?>">
                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServices();">Add More</a>
@@ -511,7 +514,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                             </div>
 
 
-                                            <div class="row">
+                                            <div class="row" style="margin-top: -15px">
                                                 <!--<div class="col-3">
                                                     <div class="form-group">
                                                         <label class="form-label">Agreement Type<span class="text-danger">*</span></label>
@@ -536,9 +539,9 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                                 <option value="<?php echo $row->fields['PK_DOCUMENT_LIBRARY'];?>" <?=($PK_DOCUMENT_LIBRARY == $row->fields['PK_DOCUMENT_LIBRARY'])?'selected':''?>><?=$row->fields['DOCUMENT_NAME']?></option>
                                                             <?php $row->MoveNext(); } ?>
                                                         </select>
-                                                        <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                                                            <a href="../<?=$upload_path?>/enrollment_pdf/<?=$AGREEMENT_PDF_LINK?>" target="_blank">View Agreement</a>
-                                                        <?php } ?>
+                                                        <?php /*if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { */?><!--
+                                                            <a href="../<?php /*=$upload_path*/?>/enrollment_pdf/<?php /*=$AGREEMENT_PDF_LINK*/?>" target="_blank">View Agreement</a>
+                                                        --><?php /*} */?>
                                                     </div>
                                                 </div>
                                                 <div class="col-2">
@@ -622,6 +625,11 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                             <div class="col-1">
                                                                 <div class="form-group">
                                                                     <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-2">
+                                                                <div class="form-group" style="float: left;">
+                                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServiceProviders();">Add More</a>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -713,18 +721,18 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 </div>
                                             </div>-->
 
-                                            <div class="row">
-                                                <div class="col-4">
+                                            <div class="row" style="margin-top: -15px">
+                                                <div class="col-8">
                                                     <div class="form-group">
                                                         <label class="form-label">Memo</label>
-                                                        <textarea class="form-control" name="MEMO" rows="3"><?=$MEMO?></textarea>
+                                                        <textarea class="form-control" name="MEMO" rows="1"><?=$MEMO?></textarea>
                                                     </div>
                                                 </div>
-                                                <div class="col-7">
-                                                    <div class="form-group" style="float: right">
+                                                <!--<div class="col-7">
+                                                    <div class="form-group" style="float: right; margin-top: -15px">
                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServiceProviders();">Add More</a>
                                                     </div>
-                                                </div>
+                                                </div>-->
                                             </div>
 
                                             <?php if(!empty($_GET['id'])) { ?>
@@ -741,7 +749,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 </div>
                                             <?php } ?>
 
-                                            <div class="form-group">
+                                            <div class="form-group" style="margin-top: -15px">
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=($PK_ENROLLMENT_MASTER > 0) ? 'Save' : 'Continue'?></button>
                                                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                             </div>
@@ -780,12 +788,12 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                 <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
                                                 <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
                                                 <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=$PK_ENROLLMENT_BILLING?>">
-                                                <div class="p-20">
+                                                <div class="p-20" style="margin-top: -30px; margin-bottom: -30px">
                                                     <div class="row" id="payment_tab_div">
                                                         <!--Data coming from ajax-->
                                                     </div>
 
-                                                    <div class="row" style="margin-top: -50px;">
+                                                    <div class="row" style="margin-top: -55px;">
                                                         <h4><b>Payment Plans</b></h4>
                                                         <div class="col-6">
                                                             <div class="form-group">
@@ -798,7 +806,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
 
                                                         <div class="row">
-                                                            <div class="col-6">
+                                                            <div class="col-6" style="margin-top: -15px">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Payment Method</label>
                                                                     <div class="col-md-12">
@@ -825,7 +833,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                                 </div>
                                                             </div>-->
                                                         </div>
-                                                        <div class="row">
+                                                        <div class="row" style="margin-top: -15px">
                                                             <div class="col-6">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Billing Date</label>
@@ -1116,10 +1124,11 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
     </div>
 </div>
 
+<?php require_once('../includes/footer.php');?>
+
 <!--Payment Model-->
 <?php include('includes/enrollment_payment.php'); ?>
 
-<?php require_once('../includes/footer.php');?>
 
 <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
 <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
@@ -1835,7 +1844,14 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                 }
                                 $('#enrollment_payment_modal').modal('show');
                             } else {
-                                window.location.href = '<?=$header?>';
+                                let header = '<?=$header?>';
+                                if (header) {
+                                    window.location.href = header;
+                                } else {
+                                    let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
+                                    let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+                                    window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
+                                }
                             }
                         }
                     });
@@ -1874,11 +1890,6 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
         $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
         $('#enrollment_payment_modal').modal('show');
     }
-
-    $(document).on('click', '.credit-card', function () {
-        $('.credit-card').css("opacity", "1");
-        $(this).css("opacity", "0.6");
-    });
 
     function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
         let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');

@@ -9,17 +9,28 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION
 
 if (!empty($_GET['NAME'])) {
     $type = isset($_GET['view']) ? 'view' : 'export';
+    $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
+    $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+    $report_name = $_GET['NAME'];
     $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
     $START_DATE = $_GET['start_date'];
 
-    if ($_GET['NAME'] == 'royalty') {
-        header('location:royalty_service_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
-    } elseif ($_GET['NAME'] == 'summary_of_studio_business_report'){
-        header('location:summary_of_studio_business_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
-    } elseif ($_GET['NAME'] == 'staff_performance_report'){
-        header('location:staff_performance_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
-    } elseif ($_GET['NAME'] == 'summary_of_staff_member_report'){
-        header('location:summary_of_staff_member_report.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&type='.$type);
+    if ($generate_pdf === 1) {
+        header('location:generate_report_pdf.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&report_type='.$report_name);
+    } elseif ($generate_excel === 1) {
+        header('location:excel_'.$report_name.'.php?week_number='.$WEEK_NUMBER.'&start_date='.$START_DATE.'&report_type='.$report_name);
+    } else {
+        if ($_GET['NAME'] == 'payments_made_report') {
+            header('location:payments_made_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+        } elseif ($_GET['NAME'] == 'royalty_service_report') {
+            header('location:royalty_service_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+        } elseif ($_GET['NAME'] == 'summary_of_studio_business_report') {
+            header('location:summary_of_studio_business_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+        } elseif ($_GET['NAME'] == 'staff_performance_report') {
+            header('location:staff_performance_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+        } elseif ($_GET['NAME'] == 'summary_of_staff_member_report') {
+            header('location:summary_of_staff_member_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+        }
     }
 }
 ?>
@@ -65,9 +76,11 @@ if (!empty($_GET['NAME'])) {
                                 <h4 class="card-title">Reports</h4>
                                 <div>
                                     <ul class="menu-list">
-                                        <li><a href="#">Business Reports</a></li>
+                                        <li><a href="business_reports.php">Business Reports</a></li>
+                                        <!--<li><a href="electronic_weekly_reports.php">Electronic Weekly Reports</a></li>-->
+                                        <li><a href="service_provider_reports.php">Service Provider Reports</a></li>
+                                        <li><a href="electronic_miscellaneous_reports.php">Electronic Miscellaneous Reports</a></li>
                                         <li><a href="#">Enrollment Reports</a></li>
-                                        <li><a href="#">Service Provider Reports</a></li>
                                         <li><a href="customer_summary_report.php">Customer Reports</a></li>
                                         <li><a href="student_mailing_list.php">Student Mailing List</a></li>
                                         <li><a href="total_open_liability.php">Total Open Liability Since Last Activity</a></li>
@@ -92,35 +105,123 @@ if (!empty($_GET['NAME'])) {
                             <form class="form-material form-horizontal" action="" method="get">
                                 <input type="hidden" name="start_date" id="start_date">
                                 <div class="row">
-                                    <div class="col-4">
+                                    <div class="col-2">
                                         <div class="form-group">
-                                            <select class="form-control" required name="NAME" id="NAME">
+                                            <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
                                                 <option value="">Select Report</option>
-                                                <option value="royalty">ROYALTY / SERVICE REPORT</option>
+                                                <option value="royalty_service_report">ROYALTY / SERVICE REPORT</option>
                                                 <option value="summary_of_studio_business_report">SUMMARY OF STUDIO BUSINESS REPORT</option>
                                                 <option value="staff_performance_report">STAFF PERFORMANCE REPORT</option>
-                                                <option value="summary_of_staff_member_report">SUMMARY OF STAFF MEMBER REPORT</option>
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-2">
                                         <div class="form-group">
-                                            <input type="text" id="WEEK_NUMBER" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''?>" required>
+                                            <input type="text" id="WEEK_NUMBER1" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?php /*=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''*/?>" required>
                                         </div>
                                     </div>
-                                    <div class="col-2">
-                                        <?php if(in_array('Reports Create', $PERMISSION_ARRAY)){ ?>
-                                        <input type="submit" name="view" id="submit"  value="View" style="background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;">
-                                        <input type="submit" name="export" id="submit" style="background-color: #39B54A; border-color: #39B54A; padding: 5px 10px; color: white; font-size: 15px; border-radius: 5px;" value="Export">
-                                        <?php } ?>
+                                    <div class="col-4">
+                                        <?php /*if(in_array('Reports Create', $PERMISSION_ARRAY)){ */?>
+                                            <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
+                                        <?php /*} */?>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-4">
                                         <p id="last_export_message" style="color: red; margin-top: 9px;"></p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4" id="export_log">
                                     </div>
                                 </div>
                             </form>
                         </div>
                     </div>
+
+                    <!--<div class="card">
+                        <div class="row" style="padding: 15px 35px 35px 35px;">
+                            <div class="col-md-3 col-sm-3 mt-3">
+                                <h4 class="card-title">Business Reports</h4>
+                            </div>
+                            <form class="form-material form-horizontal" action="" method="get">
+                                <input type="hidden" name="start_date" id="start_date">
+                                <div class="row">
+                                    <div class="col-2">
+                                        <div class="form-group">
+                                            <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
+                                                <option value="">Select Report</option>
+                                                <option value="payments_made_report">PAYMENTS MADE REPORT</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="form-group">
+                                            <input type="text" id="WEEK_NUMBER2" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?php /*=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''*/?>" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <?php /*if(in_array('Reports Create', $PERMISSION_ARRAY)){ */?>
+                                            <input type="submit" name="view" value="View" class="btn btn-info">
+                                            <input type="submit" name="export" value="Export" class="btn btn-info">
+                                            <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info">
+                                            <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info">
+                                        <?php /*} */?>
+                                    </div>
+                                    <div class="col-4">
+                                        <p id="last_export_message" style="color: red; margin-top: 9px;"></p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4" id="export_log">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="row" style="padding: 15px 35px 35px 35px;">
+                            <div class="col-md-3 col-sm-3 mt-3">
+                                <h4 class="card-title">Service Provider Reports</h4>
+                            </div>
+                            <form class="form-material form-horizontal" action="" method="get">
+                                <input type="hidden" name="start_date" id="start_date">
+                                <div class="row">
+                                    <div class="col-2">
+                                        <div class="form-group">
+                                            <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
+                                                <option value="">Select Report</option>
+                                                <option value="summary_of_staff_member_report">SUMMARY OF STAFF MEMBER REPORT</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <div class="form-group">
+                                            <input type="text" id="WEEK_NUMBER3" name="WEEK_NUMBER" class="form-control datepicker-normal week-picker" placeholder="Start Date" value="<?php /*=!empty($_GET['WEEK_NUMBER'])?$_GET['WEEK_NUMBER']:''*/?>" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <?php /*if(in_array('Reports Create', $PERMISSION_ARRAY)){ */?>
+                                            <input type="submit" name="view" value="View" class="btn btn-info">
+                                            <input type="submit" name="export" value="Export" class="btn btn-info">
+                                            <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info">
+                                            <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info">
+                                        <?php /*} */?>
+                                    </div>
+                                    <div class="col-4">
+                                        <p id="last_export_message" style="color: red; margin-top: 9px;"></p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4" id="export_log">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>-->
+
                 </div>
             </div>
         </div>
@@ -146,10 +247,10 @@ if (!empty($_GET['NAME'])) {
         onSelect: function(dateText, inst) {
             let d = new Date(dateText);
             let start_date = (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
-            $('#start_date').val(start_date);
+            $(this).closest('form').find('#start_date').val(start_date);
             d.setDate(d.getDate() -363);
             let week_number = $.datepicker.iso8601Week(d);
-            let report_type = $('#NAME').val();
+            let report_type = $(this).closest('form').find('#NAME').val();
             $(this).val("Week Number " + week_number);
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
@@ -170,16 +271,16 @@ if (!empty($_GET['NAME'])) {
         return '#' + $.datepicker.iso8601Week(d);
     }
 
-    function generateReport(){
-        let week_number = $('#WEEK_NUMBER').val();
+    function showReportLog(param) {
+        let report_type = $(param).closest('form').find('#NAME').val();
         $.ajax({
-            url: "ajax/AjaxFunctions.php",
+            url: "includes/get_report_details.php",
             type: "POST",
-            data: {FUNCTION_NAME:'generateAmReport', week_number:week_number},
+            data: {REPORT_TYPE:report_type},
             async: false,
             cache: false,
             success: function (result) {
-                console.log(result);
+                $(param).closest('form').find('#export_log').html(result);
             }
         });
     }

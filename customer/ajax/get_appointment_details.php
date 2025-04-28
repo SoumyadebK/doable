@@ -68,6 +68,8 @@ $COMMENT = $res->fields['COMMENT'];
 $INTERNAL_COMMENT = $res->fields['INTERNAL_COMMENT'];
 $IMAGE = $res->fields['IMAGE'];
 $VIDEO = $res->fields['VIDEO'];
+$IMAGE_2 = $res->fields['IMAGE_2'];
+$VIDEO_2 = $res->fields['VIDEO_2'];
 $IS_CHARGED = $res->fields['IS_CHARGED'];
 
 $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE AS STATUS_COLOR, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
@@ -306,6 +308,38 @@ z-index: 500;
     z-index: 500;
 }
 </style>
+<!-- CSS for Popup -->
+<style>
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 80%;
+        text-align: center;
+    }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        color: white;
+        cursor: pointer;
+    }
+</style>
 <!-- Nav tabs -->
 <?php if(!empty($_GET['tab'])) { ?>
     <ul class="nav nav-tabs" role="tablist">
@@ -326,17 +360,17 @@ z-index: 500;
         <?php } ?>
     </ul>
 <?php } else { ?>
-    <ul class="nav nav-tabs" role="tablist">
+    <ul class="nav nav-pills" role="tablist">
         <li> <a class="nav-link active" data-bs-toggle="tab" href="#edit_appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Edit Appointment</span></a> </li>
-        <li> <a class="nav-link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
-        <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-        <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
+        <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+        <li id="login_info_tab" style="display: <?php /*=($CREATE_LOGIN == 1)?'':'none'*/?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
+        <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>-->
         <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>-->
-        <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" onclick="showAgreementDocument()" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
+        <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" onclick="showAgreementDocument()" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" ><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment_view" onclick="showAppointmentListView(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
-        <li> <a class="nav-link" data-bs-toggle="tab" href="#comments" id="comment_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+        <li> <a class="nav-link" data-bs-toggle="tab" href="#comments" id="comment_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>-->
     </ul>
 <?php } ?>
 
@@ -352,26 +386,26 @@ z-index: 500;
                     <div class="row">
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Name: </label>
+                                <label class="form-label">Name </label>
                                 <p><a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank"><?=$selected_customer?></a></p>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Phone: </label>
+                                <label class="form-label">Phone </label>
                                 <p><?=$customer_phone?></p>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Email: </label>
+                                <label class="form-label">Email </label>
                                 <p><?=$customer_email?></p>
                             </div>
                         </div>
 
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Enrollment ID : </label>
+                                <label class="form-label">Enrollment ID  </label>
                                 <select class="form-control" required name="PK_SERVICE_MASTER" id="PK_SERVICE_MASTER" style="display: none;" onchange="selectThisEnrollment(this);" disabled>
                                     <option value="">Select Enrollment ID</option>
                                     <?php
@@ -386,13 +420,13 @@ z-index: 500;
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Apt #: </label>
+                                <label class="form-label">Apt # </label>
                                 <p><?=$SERIAL_NUMBER?></p>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Service : </label>
+                                <label class="form-label">Service  </label>
                                 <select class="form-control" required name="PK_SERVICE_MASTER" id="PK_SERVICE_MASTER" style="display: none;" onchange="selectThisService(this);" disabled>
                                     <option value="">Select Service</option>
                                     <?php
@@ -407,7 +441,7 @@ z-index: 500;
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Service Code : </label>
+                                <label class="form-label">Service Code  </label>
                                 <?php if ($PK_SERVICE_CODE==0) {
                                     $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE IS_DEFAULT=1");
                                     $service_code = $row->fields['SERVICE_CODE'];?>
@@ -429,10 +463,10 @@ z-index: 500;
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Scheduling Code : <span id="change_scheduling_code" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>
+                                <label class="form-label">Scheduling Code  <!--<span id="change_scheduling_code" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>-->
                                     <span id="cancel_change_scheduling_code" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeSchedulingCode()">Cancel</a></span></label>
                                 <div id="scheduling_code_select" style="display: none;">
-                                    <select class="form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE">
+                                    <select class="form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" disabled>
                                         <option value="">Select Scheduling Code</option>
                                         <?php
                                         $selected_scheduling_code = '';
@@ -447,7 +481,7 @@ z-index: 500;
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label"><?=$service_provider_title?> : <span id="change_service_provider" style="margin-left: 30px;"><a href="javascript:;" onclick="changeServiceProvider()">Change</a></span>
+                                <label class="form-label"><?=$service_provider_title?>  <!--<span id="change_service_provider" style="margin-left: 30px;"><a href="javascript:;" onclick="changeServiceProvider()">Change</a></span>-->
                                     <span id="cancel_change_service_provider" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeServiceProvider()">Cancel</a></span></label>
                                 <div id="service_provider_select" style="display: none;">
                                     <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
@@ -468,7 +502,7 @@ z-index: 500;
                     <div class="row" id="date_time_div">
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Date : </label>
+                                <label class="form-label">Date  </label>
                                 <p><?=$DATE?></p>
                             </div>
                         </div>
@@ -521,9 +555,9 @@ z-index: 500;
                     <input type="hidden" name="PK_APPOINTMENT_STATUS_OLD" value="<?=$PK_APPOINTMENT_STATUS?>">
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="form-label">Status : <?php if($PK_APPOINTMENT_STATUS!=2) {?><span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span><?php }?>
+                            <label class="form-label">Status  <?php /*if($PK_APPOINTMENT_STATUS!=2) {*/?><!--<span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span>--><?php /*}*/?>
                                 <span id="cancel_change_status" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeStatus()">Cancel</a></span></label><br>
-                            <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" style="display: none;" onchange="changeAppointmentStatus(this)">
+                            <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" style="display: none;" onchange="changeAppointmentStatus(this)" disabled>
                                 <option value="">Select Status</option>
                                 <?php
                                 $selected_status = '';
@@ -539,7 +573,7 @@ z-index: 500;
                         <input type="hidden" name="IS_CHARGED_OLD" value="<?=$IS_CHARGED?>">
                         <div class="form-group">
                             <label class="form-label">Payment Status</label>
-                            <select class="form-control" name="IS_CHARGED" id="IS_CHARGED">
+                            <select class="form-control" name="IS_CHARGED" id="IS_CHARGED" disabled>
                                 <option value="1" <?=($IS_CHARGED==1)?'selected':''?>>Charge</option>
                                 <option value="0" <?=($IS_CHARGED==0)?'selected':''?>>No charge</option>
                             </select>
@@ -561,39 +595,89 @@ z-index: 500;
                 </div>
 
                 <div class="row" id="add_info_div">
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label class="form-label">Comments (Visual for client)</label>
-                            <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Comments (Visual for client)</label>
+                                <textarea class="form-control" name="COMMENT" rows="4" readonly><?=$COMMENT?></textarea><!--<span><?php /*=$CHANGED_BY*/?></span>-->
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6">
+                        <!--<div class="col-6">
                         <div class="form-group">
                             <label class="form-label">Internal Comment</label>
-                            <textarea class="form-control" name="INTERNAL_COMMENT" rows="4"><?=$INTERNAL_COMMENT?></textarea>
+                            <textarea class="form-control" name="INTERNAL_COMMENT" rows="4"><?php /*=$INTERNAL_COMMENT*/?></textarea>
                         </div>
+                    </div>-->
                     </div>
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label class="form-label">Upload Image</label>
-                            <input type="file" class="form-control" name="IMAGE" id="IMAGE">
-                            <a href="<?=$IMAGE?>" target="_blank">
-                                <img src="<?=$IMAGE?>" style="margin-top: 15px; width: 150px; height: auto;">
-                            </a>
+                    <div class="row">
+                        <?php if ($IMAGE != '') {?>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Uploaded Image 1</label>
+                                <!--<input type="file" class="form-control" name="IMAGE" id="IMAGE">-->
+                                <div>
+                                    <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                                </div>
+                            </div>
                         </div>
+                        <?php }?>
+
+                        <!-- Video 1 -->
+                        <?php if ($VIDEO != '') {?>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Uploaded Video 1</label>
+                                <!--<input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">-->
+                                <?php if($VIDEO != '') { ?>
+                                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                                        <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO?>')" style="cursor: pointer;">
+                                            <source src="<?=$VIDEO?>" type="video/mp4">
+                                        </video>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        </div>
+                        <?php }?>
+
+                        <!-- Image 2 -->
+                        <?php if ($IMAGE_2 != '') {?>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Uploaded Image 2</label>
+                                <!--<input type="file" class="form-control" name="IMAGE_2" id="IMAGE_2">-->
+                                <div>
+                                    <img src="<?=$IMAGE_2?>" onclick="showPopup('image', '<?=$IMAGE_2?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                                </div>
+                            </div>
+                        </div>
+                        <?php }?>
+
+                        <!-- Video 2 -->
+                        <?php if ($VIDEO_2 != '') {?>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Uploaded Video 2</label>
+                                <!--<input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">-->
+                                <?php if($VIDEO_2 != '') { ?>
+                                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                                        <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO_2?>')" style="cursor: pointer;">
+                                            <source src="<?=$VIDEO_2?>" type="video/mp4">
+                                        </video>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        </div>
+                        <?php }?>
                     </div>
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label class="form-label">Upload Video</label>
-                            <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
-                            <a href="<?=$VIDEO?>" target="_blank">
-                                <?php if($VIDEO != '') {?>
-                                <video width="240" height="135" controls>
-                                    <source src="<?=$VIDEO?>" type="video/mp4">
-                                </video>
-                                <?php }?>
-                            </a>
-                        </div>
+                </div>
+                <!-- Popup Modal -->
+                <div id="mediaPopup" class="popup" onclick="closePopup()">
+                    <span class="close" onclick="closePopup()">&times;</span>
+                    <div class="popup-content" onclick="event.stopPropagation();">
+                        <img id="popupImage" src="" style="display:none; max-width: 100%;">
+                        <video id="popupVideo" controls style="display:none; max-width: 100%;">
+                            <source id="popupVideoSource" src="" type="video/mp4">
+                        </video>
                     </div>
                 </div>
 
@@ -608,7 +692,7 @@ z-index: 500;
                     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
                     <?php } ?>
                     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
-                    <a href="enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
+                    <!--<a href="enrollment.php?customer_id=<?php /*=$selected_customer_id;*/?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>-->
                     <!--<a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
                     <a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>-->
                 </div>
@@ -676,9 +760,9 @@ z-index: 500;
                     <div class="col-2">
                         <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreEmail();"><i class="ti-plus"></i> New</a>
                     </div>
-                    <div class="col-2">
-                        <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?=($CREATE_LOGIN == 1)?'checked':''?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
-                    </div>
+                    <!--<div class="col-2">
+                        <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?php /*=($CREATE_LOGIN == 1)?'checked':''*/?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
+                    </div>-->
                 </div>
                 <div class="row">
                     <div class="col-5" id="add_more_phone">
@@ -1019,7 +1103,7 @@ z-index: 500;
                 <div class="row">
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="col-md-12">Image Upload</label>
+                            <label class="col-md-12">Image Uploaded</label>
                             <div class="col-md-12">
                                 <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control">
                             </div>
@@ -1062,7 +1146,7 @@ z-index: 500;
                         <div class="form-group">
                             <label class="col-md-12">User Name</label>
                             <div class="col-md-12">
-                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>">
+                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>" readonly>
                                 <a class="btn-link" onclick="$('#change_password_div').slideToggle();">Change Password</a>
                             </div>
                         </div>
@@ -1574,7 +1658,7 @@ z-index: 500;
             $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
             while (!$res->EOF) {?>
                 <div style="margin-top: 5px">
-                    <?=$res->fields['ENROLLMENT_ID']?> - <a href="../uploads/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
+                    <?=$res->fields['ENROLLMENT_ID']?> - <a href="../Uploads/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
                 </div>
                 <?php $res->MoveNext();
             } ?>

@@ -34,6 +34,7 @@ if(!empty($_POST)){
         if ($_FILES['USER_IMAGE']['name'] != '') {
             if (!file_exists('../'.$upload_path.'/user_image/')) {
                 mkdir('../'.$upload_path.'/user_image/', 0777, true);
+                chmod('../'.$upload_path.'/user_image/', 0777);
             }
 
             $USER_DATA = [];

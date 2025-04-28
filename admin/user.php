@@ -1110,7 +1110,7 @@ if(!empty($_GET['id'])) {
             }
         });
 
-        const phone = document.getElementById("PHONE");
+        /*const phone = document.getElementById("PHONE");
         if (phone.value !== "") {
             phone.setAttribute("readonly", "readonly");
         }
@@ -1118,7 +1118,7 @@ if(!empty($_GET['id'])) {
         const email_id = document.getElementById("EMAIL_ID");
         if (email_id.value !== "") {
             email_id.setAttribute("readonly", "readonly");
-        }
+        }*/
 
         function goToLoginTab() {
             let PK_USER = $('.PK_USER').val();

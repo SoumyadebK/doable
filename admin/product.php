@@ -55,6 +55,7 @@ if(!empty($_POST)){
     if ($_FILES['PRODUCT_IMAGES']['name'] != '') {
         if (!file_exists('../'.$upload_path.'/product_image/')) {
             mkdir('../'.$upload_path.'/product_image/', 0777, true);
+            chmod('../'.$upload_path.'/product_image/', 0777);
         }
         $extn = explode(".", $_FILES['PRODUCT_IMAGES']['name']);
         $iindex = count($extn) - 1;

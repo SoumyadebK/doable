@@ -13,19 +13,19 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION
 
 $type = $_GET['type'];
 
-if (!empty($_GET['week_number'])){
+
     $week_number = $_GET['week_number'];
     $YEAR = date('Y');
 
     $from_date = date('Y-m-d', strtotime($_GET['start_date']));
-    $to_date = date('Y-m-d', strtotime($from_date. ' +6 day'));
+    $to_date = date('Y-m-d', strtotime($_GET['end_date']));
 
     $weekly_date_condition = "'".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
     $net_year_date_condition = "'".date('Y', strtotime($to_date))."-01-01' AND '".date('Y-m-d', strtotime($to_date))."'";
     $prev_year_date_condition = "'".(date('Y', strtotime($to_date))-1)."-01-01' AND '".(date('Y', strtotime($to_date))-1).date('-m-d', strtotime($to_date))."'";
 
     $appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
-}
+
 
 
 // Calculate the year and week number of the selected date
@@ -182,6 +182,7 @@ while (!$selected_service_provider_row->EOF) {
     $selected_service_provider_name[] = $selected_service_provider_row->fields['NAME'];
     $selected_service_provider_row->MoveNext();
 }
+
 $row = $db->Execute("SELECT PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS WHERE ACTIVE = 1 AND PK_USER IN (".implode(',', $selected_service_provider).")");
 $totalResults = count($selected_service_provider_name);
 $concatenatedResults = "";
@@ -265,7 +266,7 @@ foreach ($selected_service_provider_name as $key => $result) {
                                         <tr>
                                             <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?=$business_name." (".$concatenatedResults.")"?></th>
                                             <th style="width:20%; text-align: center; font-weight: bold">(<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</th>
-                                            <th style="width:20%; text-align: center; font-weight: bold">Week # <?=$week_number?></th>
+                                            <!--<th style="width:20%; text-align: center; font-weight: bold">Week # <?php /*=$week_number*/?></th>-->
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -679,7 +680,9 @@ foreach ($selected_service_provider_name as $key => $result) {
         let PK_USER = $(param).val();
         let type = "<?php echo $_GET['type']; ?>"
         let week_number = "<?php echo $_GET['week_number']; ?>"
-        window.location.href = "summary_of_staff_member_report.php?week_number="+week_number+"&type="+type+"&PK_USER="+PK_USER;
+        let start_date = "<?php echo $_GET['start_date']; ?>"
+        let end_date = "<?php echo $_GET['end_date']; ?>"
+        window.location.href = "summary_of_staff_member_report.php?week_number="+week_number+"&start_date="+start_date+"&end_date="+end_date+"&type="+type+"&PK_USER="+PK_USER;
     }
 </script>
 

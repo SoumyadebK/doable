@@ -43,7 +43,7 @@ if ($_GET['type'] == 'normal') { ?>
             }
             ?>
             <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:" onclick="$('#export_model').modal('show');" style="width: 120px; "><i class="fa fa-file-export"></i> Export</a>
-            <h5 id="wallet_balance_span">Credit Balance : $<?=number_format((float)$credit_balance, 2)?></h5>
+            <h5 id="wallet_balance_span">Balance : $<?=number_format((float)$credit_balance, 2)?></h5>
             <h5 id="wallet_balance_span">Miscellaneous Balance : $<?=number_format((float)$misc_balance, 2)?></h5>
             <h5 id="wallet_balance_span">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></h5>
         </div>
@@ -69,7 +69,7 @@ if ($_GET['type'] == 'normal') { ?>
 <?php } ?>
 
 <?php
-$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE ".$enr_condition." AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE ".$enr_condition." AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
 $AGREEMENT_PDF_LINK = '';
 while (!$enrollment_data->EOF) {
     $name = $enrollment_data->fields['ENROLLMENT_NAME'];
@@ -89,7 +89,7 @@ while (!$enrollment_data->EOF) {
         <div class="row enrollment_div" style="font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
             <div class="col-2" style="text-align: center; margin-top: 1.5%;">
                 <p><?=$enrollment_data->fields['LOCATION_NAME']?></p>
-                <a href="enrollment.php?id=<?=$enrollment_data->fields['PK_ENROLLMENT_MASTER']?>"><?=$enrollment_name.$enrollment_data->fields['ENROLLMENT_ID']?></a>
+                <a href="enrollment.php?id=<?=$enrollment_data->fields['PK_ENROLLMENT_MASTER']?>"><?=($enrollment_name.$enrollment_data->fields['ENROLLMENT_ID']==null) ? $enrollment_name.$enrollment_data->fields['MISC_ID'] : $enrollment_name.$enrollment_data->fields['ENROLLMENT_ID']?></a>
                 <p><?=implode(' || ', $serviceMaster)?></p>
                 <p><?=date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE']))?></p>
                 <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
@@ -99,7 +99,7 @@ while (!$enrollment_data->EOF) {
             </div>
             <?php
                 $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = ".$enrollment_data->fields['PK_ENROLLMENT_MASTER']);
-                $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER = ".$enrollment_data->fields['PK_ENROLLMENT_MASTER']);
+                $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE TYPE = 'Payment' AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = ".$enrollment_data->fields['PK_ENROLLMENT_MASTER']);
             ?>
             <div class="col-8" onclick="showEnrollmentDetails(this, <?=$PK_USER?>, <?=$PK_USER_MASTER?>, <?=$enrollment_data->fields['PK_ENROLLMENT_MASTER']?>, '<?=$enrollment_data->fields['ENROLLMENT_ID']?>', '<?=$type?>', 'appointment_details')" style="cursor: pointer;">
                 <table id="myTable" class="table <?=(($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) ? 'table-success' : 'table-striped'?> border">
@@ -162,7 +162,7 @@ while (!$enrollment_data->EOF) {
                             <td style="text-align: right;"><?=($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_COMPLETED <= 0) ? 'XX' : $SESSION_COMPLETED?></td>
                             <td style="text-align: right; color:<?=($ENR_BALANCE < 0)?'red':'black'?>;"><?=number_format($ENR_BALANCE, 2)?></td>
                             <td style="text-align: right"><?=number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID']/(($PRICE_PER_SESSION == 0)?1:$PRICE_PER_SESSION), 2)?></td>
-                            <td style="text-align: right;"><?=($SERVICE_CREDIT > 0) ? number_format($SERVICE_CREDIT, 2) : 0?></td>
+                            <td style="text-align: right; color:<?=($SERVICE_CREDIT < 0)?'red':'black'?>;"><?=number_format($SERVICE_CREDIT, 2)?></td>
                         </tr>
                     <?php $serviceCodeData->MoveNext();
                     } ?>
@@ -172,7 +172,7 @@ while (!$enrollment_data->EOF) {
                         <td style="text-align: right;"><?=number_format($total_amount-$total_used_amount<0.00 ? $total_amount : $total_used_amount, 2)?></td>
                         <td style="text-align: right; color:<?=($total_amount-$total_paid_amount<-0.03)?'red':'black'?>;"><?=number_format((($total_amount-$total_paid_amount<0.03) ? 0 : $total_amount-$total_paid_amount), 2)?></td>
                         <td style="text-align: right;">$<?=number_format($total_paid_amount, 2)?></td>
-                        <td style="text-align: right;"><?=($total_paid_amount-$total_used_amount > 0) ? number_format($total_paid_amount-$total_used_amount, 2) : 0?></td>
+                        <td style="text-align: right; color:<?=($total_paid_amount-$total_used_amount < 0)?'red':'black'?>;"><?=number_format($total_paid_amount-$total_used_amount, 2)?></td>
                     </tr>
                     </tbody>
                 </table>
@@ -284,6 +284,8 @@ while (!$enrollment_data->EOF) {
                     alert("Refund amount can't be grater then balance");
                     $('#REFUND_AMOUNT').val(BALANCE);
                 } else {
+                    let REFUND_CHECK_NUMBER = $('#REFUND_CHECK_NUMBER').val();
+                    let REFUND_CHECK_DATE = $('#REFUND_CHECK_DATE').val();
                     $.ajax({
                         url: "ajax/AjaxFunctions.php",
                         type: 'POST',
@@ -297,7 +299,9 @@ while (!$enrollment_data->EOF) {
                             REFUND_AMOUNT: REFUND_AMOUNT,
                             ENROLLMENT_TYPE: ENROLLMENT_TYPE,
                             TRANSACTION_TYPE: TRANSACTION_TYPE,
-                            PK_PAYMENT_TYPE: PK_PAYMENT_TYPE
+                            PK_PAYMENT_TYPE: PK_PAYMENT_TYPE,
+                            REFUND_CHECK_NUMBER: REFUND_CHECK_NUMBER,
+                            REFUND_CHECK_DATE: REFUND_CHECK_DATE
                         },
                         success: function (data) {
                             if (data == 1) {
@@ -360,6 +364,38 @@ while (!$enrollment_data->EOF) {
                     container: 'body',
                     html: true,
                 }).popover('show');
+            }
+        });
+    }
+
+    function deletePayment(PK_ENROLLMENT_PAYMENT, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, BALANCE) {
+        Swal.fire({
+            title: "Are you sure you want to delete this payment?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'deletePayment',
+                        PK_ENROLLMENT_PAYMENT: PK_ENROLLMENT_PAYMENT,
+                        PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                        PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                        BALANCE: BALANCE
+                    },
+                    success: function (data) {
+                        if (data == 1) {
+                            window.location.reload();
+                        } else {
+                            alert(data);
+                        }
+                    }
+                });
             }
         });
     }

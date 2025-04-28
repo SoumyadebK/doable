@@ -11,7 +11,7 @@ while (!$user_master_data->EOF){
     $user_master_data->MoveNext();
 }
 $PK_USER_MASTERS = implode(',', $PK_USER_MASTER_ARRAY);
-
+$type = !empty($_GET['type']) ? $_GET['type'] : 'normal';
 $results_per_page = 100;
 
 if (isset($_GET['search_text']) && $_GET['search_text'] != '') {
@@ -82,12 +82,43 @@ $page_first_result = ($page-1) * $results_per_page;
                                         $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'];
                                         $serviceCodeData->MoveNext();
                                     }
-                                    ?>
+                                    $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_MASTER.PK_SERVICE_CLASS, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                    $total_amount = 0;
+                                    $total_paid_amount = 0;
+                                    $total_used_amount = 0;
+                                    $enrollment_service_array = [];
+                                    $serviceCode = [];
+                                    while (!$serviceCodeData->EOF) {
+                                        if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
+                                            $SESSION_COMPLETED = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                                        } else {
+                                            $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                                        }
+
+                                        $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
+                                        $PRICE_PER_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? 0 : $serviceCodeData->fields['PRICE_PER_SESSION'];
+
+                                        if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
+                                            $TOTAL_PAID_SESSION = $SESSION_COMPLETED;
+                                            $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['FINAL_AMOUNT'];
+                                        } else {
+                                            $TOTAL_PAID_SESSION = ($serviceCodeData->fields['PRICE_PER_SESSION'] <= 0) ? $serviceCodeData->fields['NUMBER_OF_SESSION'] : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $serviceCodeData->fields['PRICE_PER_SESSION'], 2);
+                                            $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                                        }
+
+                                        $ENR_BALANCE = $TOTAL_PAID_SESSION - $SESSION_COMPLETED;
+
+                                        $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
+                                        $total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                                        $total_used_amount +=  ($PRICE_PER_SESSION * $SESSION_COMPLETED);
+                                            $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'];
+                                            $serviceCodeData->MoveNext();
+                                        }?>
                                     <div class="row" onclick="$(this).next().slideToggle()" style="cursor:pointer; font-size: 15px; *border: 1px solid #ebe5e2; padding: 8px;">
                                         <div class="col-4"><span class="hidden-sm-up" style="margin-right: 20px;"><i class="ti-arrow-circle-right"></i></span></i> <?=$row->fields['ENROLLMENT_ID']." || ".implode(', ', $serviceCode)?></div>
-                                        <div class="col-2">Paid : <?=$total_bill_and_paid->fields['TOTAL_PAID'];?></div>
-                                        <div class="col-2">Used : <?=number_format((float)$total_used, 2, '.', ',');?></div>
-                                        <div class="col-2" style="color:<?=($service_credit<0)?'red':'black'?>;">Service Credit : <?=number_format((float)$service_credit, 2, '.', ',');?></div>
+                                        <div class="col-2">Paid : $<?=number_format($total_paid_amount, 2)?></div>
+                                        <div class="col-2">Used : <?=number_format($total_amount-$total_used_amount<0.00 ? $total_amount : $total_used_amount, 2)?></div>
+                                        <div class="col-2" style="color:<?=($total_paid_amount-$total_used_amount<0)?'red':'black'?>;">Service Credit : <?=number_format($total_paid_amount-$total_used_amount, 2)?></div>
                                         <div class="col-2">Session : <?=$used_session_count->fields['USED_SESSION_COUNT'].'/'.$total_session_count;?></div>
                                     </div>
                                     <table id="myTable" class="table table-striped border" style="display: none">

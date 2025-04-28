@@ -113,6 +113,14 @@ if ($account_payment_info->RecordCount() > 0) {
     //pre_r($card_details);
 }
 
+$help_title = '';
+$help_description = '';
+$help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'business_profile'");
+if($help->RecordCount() > 0) {
+    $help_title = $help->fields['TITLE'];
+    $help_description = $help->fields['DESCRIPTION'];
+}
+
 if(!empty($_POST)){
     if ($_POST['FUNCTION_NAME'] == 'saveProfileData') {
         $ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
@@ -315,7 +323,7 @@ if ($header_data->RecordCount() > 0) {
                 </div>
             </div>
             <div class="row">
-                <div class="col-12">
+                <div class="col-8">
                     <div class="card">
                         <div class="card-body">
                             <div class="row" style="text-align: center;">
@@ -925,6 +933,20 @@ if ($header_data->RecordCount() > 0) {
                                 </div>
                             </div>
 
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <h4 class="col-md-12" STYLE="text-align: center">
+                                    <?=$help_title?>
+                                </h4>
+                                <div class="col-md-12">
+                                    <text class="required-entry rich" id="DESCRIPTION"><?=$help_description?></text>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -69,7 +69,10 @@ $COMMENT = $res->fields['COMMENT'];
 $INTERNAL_COMMENT = $res->fields['INTERNAL_COMMENT'];
 $IMAGE = $res->fields['IMAGE'];
 $VIDEO = $res->fields['VIDEO'];
+$IMAGE_2 = $res->fields['IMAGE_2'];
+$VIDEO_2 = $res->fields['VIDEO_2'];
 $IS_CHARGED = $res->fields['IS_CHARGED'];
+$APPOINTMENT_TYPE = $res->fields['APPOINTMENT_TYPE'];
 
 $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE AS STATUS_COLOR, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
 $CHANGED_BY = '';
@@ -304,8 +307,6 @@ if ($PK_USER_MASTER > 0) {
 
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
 <style>
 #paymentModel {
 z-index: 500;
@@ -314,6 +315,38 @@ z-index: 500;
 #commentModel {
     z-index: 500;
 }
+</style>
+<!-- CSS for Popup -->
+<style>
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 80%;
+        text-align: center;
+    }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        color: white;
+        cursor: pointer;
+    }
 </style>
 <!-- Nav tabs -->
 <?php if(!empty($_GET['tab'])) { ?>
@@ -335,7 +368,7 @@ z-index: 500;
         <?php } ?>
     </ul>
 <?php } else { ?>
-    <ul class="nav nav-tabs" role="tablist">
+    <ul class="nav nav-pills" role="tablist">
         <li> <a class="nav-link active" data-bs-toggle="tab" href="#edit_appointment" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Edit Appointment</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
         <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
@@ -356,13 +389,13 @@ z-index: 500;
 <!--            <input type="hidden" name="FUNCTION_NAME" value="saveAppointmentData">-->
             <input type="hidden" name="REDIRECT_URL" value="../all_schedules.php">
             <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?=$PK_APPOINTMENT_MASTER?>">
-            <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="NORMAL">
+            <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="<?=$APPOINTMENT_TYPE?>>">
             <div style="padding-top: 10px;">
                     <div class="row">
                         <div class="col-4">
                             <div class="form-group">
                                 <label class="form-label">Name: </label>
-                                <p><a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank" style="color: blue;"><?=$selected_customer?></a></p>
+                                <p><a href="customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" target="_blank" style="color: blue; font-weight: bold"><?=$selected_customer?></a></p>
                             </div>
                         </div>
                         <div class="col-4">
@@ -401,16 +434,18 @@ z-index: 500;
                         </div>
                     <?php } ?>
                     <div class="row">
-                        <?php if ($SERVICE_NAME != 'For records only') { ?>
+                        <?php if ($SERVICE_NAME != 'For records only' && $APPOINTMENT_TYPE == 'NORMAL') { ?>
                             <div class="col-4" id="enrollment_div">
                                 <div class="form-group">
-                                    <label class="form-label">Enrollment ID : <span id="change_enrollment" style="margin-left: 30px;"><a href="javascript:" onclick="changeEnrollment()">Change</a></span>
-                                        <span id="cancel_change_enrollment" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeEnrollment()">Cancel</a></span></label>
-                                    <select  id="enrollment_select" class="form-control" required name="PK_ENROLLMENT_MASTER" style="display: none;">
+                                    <label class="form-label">Enrollment :
+                                        <!--<span id="change_enrollment" style="margin-left: 30px;"><a href="javascript:" onclick="changeEnrollment()">Change</a></span>
+                                        <span id="cancel_change_enrollment" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeEnrollment()">Cancel</a></span>-->
+                                    </label>
+                                    <select  id="enrollment_select" class="form-control" required name="PK_ENROLLMENT_MASTER">
                                         <option value="">Select Enrollment ID</option>
                                         <?php
                                         $selected_enrollment = '';
-                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_PACKAGE.PACKAGE_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.PK_LOCATION, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_PACKAGE ON DOA_ENROLLMENT_MASTER.PK_PACKAGE = DOA_PACKAGE.PK_PACKAGE WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 AND DOA_SERVICE_CODE.IS_GROUP != 1 AND DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
+                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_PACKAGE.PACKAGE_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.PK_LOCATION, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_PACKAGE ON DOA_ENROLLMENT_MASTER.PK_PACKAGE = DOA_PACKAGE.PK_PACKAGE WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 AND DOA_SERVICE_CODE.IS_GROUP != 1 AND ((DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0) OR (DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = $PK_ENROLLMENT_MASTER)) AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = ".$PK_USER_MASTER);
                                         while (!$row->EOF) {
                                             $name = $row->fields['ENROLLMENT_NAME'];
                                             if(empty($name)){
@@ -437,25 +472,31 @@ z-index: 500;
                                             $USED_SESSION_COUNT = getAllSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE'], 'NORMAL');
                                             $paid_session = ($PRICE_PER_SESSION > 0) ? number_format(($TOTAL_AMOUNT_PAID/$PRICE_PER_SESSION), 2) : $NUMBER_OF_SESSION;
 
-                                            if ((($NUMBER_OF_SESSION - $USED_SESSION_COUNT) > 0) || ($row->fields['CHARGE_TYPE'] == 'Membership')) {
-                                                if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
-                                                <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-location_id="<?=$row->fields['PK_LOCATION']?>" data-no_of_session="<?=$NUMBER_OF_SESSION?>" data-used_session="<?=$USED_SESSION_COUNT?>" <?=(($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled':''?> <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$enrollment_name.$row->fields['ENROLLMENT_ID'].' || '.$PACKAGE.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$USED_SESSION_COUNT.'/'.$NUMBER_OF_SESSION.' || Paid : '.$paid_session;?></option>
-                                            <?php }
+                                            if($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER']){$selected_enrollment = $row->fields['ENROLLMENT_ID'];} ?>
+                                            <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'].','.$row->fields['PK_ENROLLMENT_SERVICE'].','.$row->fields['PK_SERVICE_MASTER'].','.$row->fields['PK_SERVICE_CODE'];?>" data-location_id="<?=$row->fields['PK_LOCATION']?>" data-no_of_session="<?=$NUMBER_OF_SESSION?>" data-used_session="<?=$USED_SESSION_COUNT?>" <?=(($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled':''?> <?=($PK_ENROLLMENT_MASTER==$row->fields['PK_ENROLLMENT_MASTER'])?'selected':''?>><?=$enrollment_name.$row->fields['PK_ENROLLMENT_MASTER'].' || '.$PACKAGE.$row->fields['SERVICE_NAME'].' || '.$row->fields['SERVICE_CODE'].' || '.$USED_SESSION_COUNT.'/'.$NUMBER_OF_SESSION.' || Paid : '.$paid_session;?></option>
+                                            <?php
                                             $row->MoveNext();
                                         } ?>
                                     </select>
-                                    <p class="enrollment_info"><?=$selected_enrollment?></p>
+                                    <!--<p class="enrollment_info"><?php /*=$selected_enrollment*/?></p>-->
+                                </div>
+                            </div>
+                            <div class="col-4 enrollment_info">
+                                <div class="form-group">
+                                    <label class="form-label">Enrollment ID: </label>
+                                    <p style="margin-top: 8px;"><?=$selected_enrollment?></p>
                                 </div>
                             </div>
                         <?php } ?>
-
                         <div class="col-4 enrollment_info">
                             <div class="form-group">
                                 <label class="form-label">Apt #: </label>
-                                <p><?=$SERIAL_NUMBER?></p>
+                                <p style="margin-top: 8px;"><?=$SERIAL_NUMBER?></p>
                             </div>
                         </div>
-                        <div class="col-4 enrollment_info">
+                    </div>
+                    <div class="row">
+                        <div class="col-2 enrollment_info">
                             <div class="form-group">
                                 <label class="form-label">Service : </label>
                                 <select class="form-control" required name="PK_SERVICE_MASTER" id="PK_SERVICE_MASTER" style="display: none;" onchange="selectThisService(this);" disabled>
@@ -465,14 +506,12 @@ z-index: 500;
                                     $row = $db_account->Execute("SELECT DISTINCT(DOA_SERVICE_MASTER.PK_SERVICE_MASTER), DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER");
                                     while (!$row->EOF) { if($PK_SERVICE_MASTER==$row->fields['PK_SERVICE_MASTER']){$selected_service = $row->fields['SERVICE_NAME'];} ?>
                                         <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($PK_SERVICE_MASTER==$row->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
-                                    <?php $row->MoveNext(); } ?>
+                                        <?php $row->MoveNext(); } ?>
                                 </select>
-                                <p><?=$selected_service?></p>
+                                <p style="margin-top: 8px;"><?=$selected_service?></p>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
+                        <div class="col-2">
                             <div class="form-group">
                                 <label class="form-label">Service Code : </label>
                                 <?php if ($PK_SERVICE_CODE==0) {
@@ -490,15 +529,14 @@ z-index: 500;
                                 <?php $row->MoveNext(); } ?>
                                 </select>
                                 <?php } ?>
-
-                                <p><?=$selected_service_code?></p>
+                                <p style="margin-top: 8px;"><?=$selected_service_code?></p>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label">Scheduling Code : <span id="change_scheduling_code" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>
-                                    <span id="cancel_change_scheduling_code" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeSchedulingCode()">Cancel</a></span></label>
-                                <div id="scheduling_code_select" style="display: none;">
+                                <label class="form-label">Scheduling Code : <!--<span id="change_scheduling_code" style="margin-left: 30px;"><a href="javascript:;" onclick="changeSchedulingCode()">Change</a></span>
+                                    <span id="cancel_change_scheduling_code" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeSchedulingCode()">Cancel</a></span></label>-->
+                                <div id="scheduling_code_select">
                                     <select class="form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE">
                                         <option value="">Select Scheduling Code</option>
                                         <?php
@@ -509,14 +547,14 @@ z-index: 500;
                                         <?php $row->MoveNext(); } ?>
                                     </select>
                                 </div>
-                                <p id="scheduling_code_name"><?=$selected_scheduling_code?></p>
+                                <!--<p id="scheduling_code_name"><?php /*=$selected_scheduling_code*/?></p>-->
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="form-group">
-                                <label class="form-label"><?=$service_provider_title?> : <span id="change_service_provider" style="margin-left: 30px;"><a href="javascript:;" onclick="changeServiceProvider()">Change</a></span>
-                                    <span id="cancel_change_service_provider" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeServiceProvider()">Cancel</a></span></label>
-                                <div id="service_provider_select" style="display: none;">
+                                <label class="form-label"><?=$service_provider_title?> : <!--<span id="change_service_provider" style="margin-left: 30px;"><a href="javascript:;" onclick="changeServiceProvider()">Change</a></span>
+                                    <span id="cancel_change_service_provider" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeServiceProvider()">Cancel</a></span></label>-->
+                                <div id="service_provider_select">
                                     <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
                                         <option value="">Select <?=$service_provider_title?></option>
                                         <?php
@@ -527,7 +565,7 @@ z-index: 500;
                                         <?php $row->MoveNext(); } ?>
                                     </select>
                                 </div>
-                                <p id="service_provider_name"><?=$selected_service_provider?></p>
+                                <!--<p id="service_provider_name"><?php /*=$selected_service_provider*/?></p>-->
                             </div>
                         </div>
                     </div>
@@ -591,7 +629,7 @@ z-index: 500;
                             <label class="form-label">Status : <?php /*if($PK_APPOINTMENT_STATUS!=2) {*/?><!--<span id="change_status" style="margin-left: 30px;"><a href="javascript:;" onclick="changeStatus()">Change</a></span><?php /*}*/?>
                                 <span id="cancel_change_status" style="margin-left: 30px; display: none;"><a href="javascript:;" onclick="cancelChangeStatus()">Cancel</a></span>--></label><br>
                             <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" onchange="changeAppointmentStatus(this)" <?=($PK_APPOINTMENT_STATUS == 2)?'disabled':''?>>
-                                <option value="">Select Status</option>
+                                <option value="1">Select Status</option>
                                 <?php
                                 $selected_status = '';
                                 $row = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_STATUS` WHERE `ACTIVE` = 1");
@@ -634,7 +672,7 @@ z-index: 500;
                     <?php if ($SERVICE_NAME != 'For records only') { ?>
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="form-label">Comments (Visual for client)</label>
+                                <label class="form-label" style="color: red;">Comments (Visual for client)</label>
                                 <textarea class="form-control" name="COMMENT" rows="4"><?=$COMMENT?></textarea><span><?=$CHANGED_BY?></span>
                             </div>
                         </div>
@@ -650,25 +688,79 @@ z-index: 500;
                 <div class="row">
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="form-label">Upload Image</label>
+                            <label class="form-label">Upload Image 1</label>
                             <input type="file" class="form-control" name="IMAGE" id="IMAGE">
-                            <a href="<?=$IMAGE?>" target="_blank">
-                                <img src="<?=$IMAGE?>" style="margin-top: 15px; width: 150px; height: auto;">
-                            </a>
+                            <img src="<?=$IMAGE?>" onclick="showPopup('image', '<?=$IMAGE?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                            <?php if((in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) && ($IMAGE!= '')) { ?>
+                                <a href="javascript:" onclick='ConfirmDeleteImage(<?=$PK_APPOINTMENT_MASTER?>, 1);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <?php } ?>
                         </div>
                     </div>
+
+                    <!-- Video 1 -->
                     <div class="col-6">
                         <div class="form-group">
-                            <label class="form-label">Upload Video</label>
+                            <label class="form-label">Upload Video 1</label>
                             <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
-                            <a href="<?=$VIDEO?>" target="_blank">
-                                <?php if($VIDEO != '') {?>
-                                <video width="240" height="135" controls>
-                                    <source src="<?=$VIDEO?>" type="video/mp4">
-                                </video>
-                                <?php }?>
-                            </a>
+                            <?php if($VIDEO != '') { ?>
+                                <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                                    <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO?>')" style="cursor: pointer;">
+                                        <source src="<?=$VIDEO?>" type="video/mp4">
+                                    </video>
+                                    <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) { ?>
+                                        <a href="javascript:" onclick='ConfirmDeleteVideo(<?=$PK_APPOINTMENT_MASTER?>, 1);'><i class="fa fa-trash"></i></a>
+                                    <?php } ?>
+                                </div>
+                            <?php } ?>
                         </div>
+                    </div>
+
+                    <!-- Image 2 -->
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label class="form-label">Upload Image 2</label>
+                            <input type="file" class="form-control" name="IMAGE_2" id="IMAGE_2">
+                            <img src="<?=$IMAGE_2?>" onclick="showPopup('image', '<?=$IMAGE_2?>')" style="cursor: pointer; margin-top: 10px; max-width: 150px; height: auto;">
+                            <?php if((in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) && ($IMAGE_2 != '')) { ?>
+                                <a href="javascript:" onclick='ConfirmDeleteImage(<?=$PK_APPOINTMENT_MASTER?>, 2);'><i class="fa fa-trash"></i></a>
+                            <?php } ?>
+                        </div>
+                    </div>
+
+                    <!-- Video 2 -->
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label class="form-label">Upload Video 2</label>
+                            <input type="file" class="form-control" name="VIDEO_2" id="VIDEO_2" accept="video/*">
+                            <?php if($VIDEO_2 != '') { ?>
+                                <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                                    <video width="240" height="135" controls onclick="showPopup('video', '<?=$VIDEO_2?>')" style="cursor: pointer;">
+                                        <source src="<?=$VIDEO_2?>" type="video/mp4">
+                                    </video>
+                                    <?php if(in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) { ?>
+                                        <a href="javascript:" onclick='ConfirmDeleteVideo(<?=$PK_APPOINTMENT_MASTER?>, 2);'><i class="fa fa-trash"></i></a>
+                                    <?php } ?>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                </div>
+                <!-- Popup Modal -->
+                <div id="mediaPopup" class="popup" onclick="closePopup()">
+                    <span class="close" onclick="closePopup()">&times;</span>
+                    <div class="popup-content" onclick="event.stopPropagation();">
+                        <img id="popupImage" src="" style="display:none; max-width: 100%;">
+                        <video id="popupVideo" controls style="display:none; max-width: 100%;">
+                            <source id="popupVideoSource" src="" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+
+                <div id="modal" class="hidden modal">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <div class="modal-content">
+                        <img id="modalImage" class="hidden">
+                        <video id="modalVideo" class="hidden" controls></video>
                     </div>
                 </div>
 
@@ -681,7 +773,7 @@ z-index: 500;
                 <div class="form-group" style="margin-top: 25px;">
                     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
                     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
-                    <a href="enrollment.php?customer_id=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
+                    <a href="enrollment.php?master_id_customer=<?=$selected_customer_id;?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>
                     <!--<a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
                     <a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>-->
                     <a onclick="deleteThisAppointment(<?=$PK_APPOINTMENT_MASTER?>)" class="btn btn-danger waves-effect waves-light"><i class="ti-trash"></i> Delete</a>
@@ -1110,11 +1202,11 @@ z-index: 500;
                             <label class="form-label">Active : </label>
                         </div>
                         <div class="col-md-4">
-                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                         </div>
                     </div>
-                <? } ?>
+                <?php } ?>
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -1182,7 +1274,7 @@ z-index: 500;
                             <!--<div class="col-3">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Old Password</label>
-                                                                            <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?/*=$PASSWORD*/?>">
+                                                                            <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?php /*$PASSWORD */?>">
                                                                             <input type="password" required name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
                                                                         </div>
                                                                     </div>-->
@@ -1209,11 +1301,11 @@ z-index: 500;
                             <label class="form-label">Active : </label>
                         </div>
                         <div class="col-md-4">
-                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                         </div>
                     </div>
-                <? } ?>
+                <?php } ?>
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
@@ -1634,16 +1726,8 @@ z-index: 500;
     </div>
 
     <div class="tab-pane" id="document" role="tabpanel">
-        <div class="card-body" style="margin-top: 10PX">
-            <a style="font-weight: bold">Client Enrollment Agreements :-</a><br>
-            <?php
-            $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
-            while (!$res->EOF) {?>
-                <div style="margin-top: 5px">
-                    <?=$res->fields['ENROLLMENT_ID']?> - <a href="../uploads/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
-                </div>
-                <?php $res->MoveNext();
-            } ?>
+        <div class="card-body m-t-10" id="agreement_document">
+
         </div>
         <form id="document_form">
             <input type="hidden" name="FUNCTION_NAME" value="saveDocumentData">
@@ -1738,9 +1822,9 @@ z-index: 500;
     </div>
 
 
-    <!--Payment Model-->
+    <!--
     <div id="paymentModel" class="modal">
-        <!-- Modal content -->
+
         <div class="modal-content" style="width: 50%;">
             <span class="close" style="margin-left: 96%;">&times;</span>
 
@@ -1753,15 +1837,15 @@ z-index: 500;
                         <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
                         <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING">
                         <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
-                        <input type="hidden" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
-                        <input type="hidden" name="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
+                        <input type="hidden" name="SECRET_KEY" value="<?php /*=$SECRET_KEY*/?>">
+                        <input type="hidden" name="PAYMENT_GATEWAY" value="<?php /*=$PAYMENT_GATEWAY*/?>">
                         <div class="p-20">
                             <div class="row">
                                 <div class="col-6">
                                     <div class="form-group">
                                         <label class="form-label">Customer Name</label>
                                         <div class="col-md-12">
-                                            <p><?=$FIRST_NAME." ".$LAST_NAME?></p>
+                                            <p><?php /*=$FIRST_NAME." ".$LAST_NAME*/?></p>
                                         </div>
                                     </div>
                                 </div>
@@ -1790,16 +1874,16 @@ z-index: 500;
                                             <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE_CUSTOMER" onchange="selectPaymentTypeCustomer(this)">
                                                 <option value="">Select</option>
                                                 <?php
-                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
-                                                while (!$row->EOF) { ?>
-                                                    <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                    <?php $row->MoveNext(); } ?>
+/*                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                                while (!$row->EOF) { */?>
+                                                    <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/?>"><?php /*=$row->fields['PAYMENT_TYPE']*/?></option>
+                                                    <?php /*$row->MoveNext(); } */?>
                                             </select>
                                         </div>
-                                        <?php $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); ?>
-                                        <span id="wallet_balance_span" style="font-size: 10px;color: green; display: none;">Wallet Balance : $<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?></span>
-                                        <input type="hidden" id="WALLET_BALANCE" name="WALLET_BALANCE" value="<?=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00?>">
-                                        <input type="hidden" name="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
+                                        <?php /*$wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); */?>
+                                        <span id="wallet_balance_span" style="font-size: 10px;color: green; display: none;">Wallet Balance : $<?php /*=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00*/?></span>
+                                        <input type="hidden" id="WALLET_BALANCE" name="WALLET_BALANCE" value="<?php /*=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00*/?>">
+                                        <input type="hidden" name="PK_USER_MASTER" value="<?php /*=$PK_USER_MASTER*/?>">
                                     </div>
                                 </div>
                             </div>
@@ -1822,10 +1906,10 @@ z-index: 500;
                                             <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING_CUSTOMER" onchange="selectRemainingPaymentType(this)">
                                                 <option value="">Select</option>
                                                 <?php
-                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
-                                                while (!$row->EOF) { ?>
-                                                    <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                    <?php $row->MoveNext(); } ?>
+/*                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
+                                                while (!$row->EOF) { */?>
+                                                    <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/?>"><?php /*=$row->fields['PAYMENT_TYPE']*/?></option>
+                                                    <?php /*$row->MoveNext(); } */?>
                                             </select>
                                         </div>
                                     </div>
@@ -1860,7 +1944,7 @@ z-index: 500;
                             </div>
 
 
-                            <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
+                            <?php /*if ($PAYMENT_GATEWAY == 'Stripe'){ */?>
                                 <div class="row payment_type_div" id="credit_card_payment_customer" style="display: none;">
                                     <div class="col-12">
                                         <div class="form-group" id="customer_card_div">
@@ -1868,14 +1952,14 @@ z-index: 500;
                                         </div>
                                     </div>
                                 </div>
-                            <?php } elseif ($PAYMENT_GATEWAY == 'Square'){?>
+                            <?php /*} elseif ($PAYMENT_GATEWAY == 'Square'){*/?>
                                 <div class="payment_type_div" id="credit_card_payment_customer" style="display: none;">
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="form-group">
                                                 <label class="form-label">Name (As it appears on your card)</label>
                                                 <div class="col-md-12">
-                                                    <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$NAME?>">
+                                                    <input type="text" name="NAME" id="NAME" class="form-control" value="<?php /*=$NAME*/?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -1885,7 +1969,7 @@ z-index: 500;
                                             <div class="form-group">
                                                 <label class="form-label">Card Number</label>
                                                 <div class="col-md-12">
-                                                    <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?=$CARD_NUMBER?>">
+                                                    <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?php /*=$CARD_NUMBER*/?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -1895,7 +1979,7 @@ z-index: 500;
                                             <div class="form-group">
                                                 <label class="form-label">Expiration Date</label>
                                                 <div class="col-md-12">
-                                                    <input type="text" name="EXPIRATION_DATE" id="EXPIRATION_DATE" class="form-control" value="<?=$EXPIRATION_DATE?>" placeholder="MM/YYYY">
+                                                    <input type="text" name="EXPIRATION_DATE" id="EXPIRATION_DATE" class="form-control" value="<?php /*=$EXPIRATION_DATE*/?>" placeholder="MM/YYYY">
                                                 </div>
                                             </div>
                                         </div>
@@ -1903,13 +1987,13 @@ z-index: 500;
                                             <div class="form-group">
                                                 <label class="form-label">Security Code</label>
                                                 <div class="col-md-12">
-                                                    <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?=$SECURITY_CODE?>">
+                                                    <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?php /*=$SECURITY_CODE*/?>">
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            <?php } ?>
+                            <?php /*} */?>
 
 
                             <div class="row payment_type_div" id="check_payment_customer" style="display: none;">
@@ -1958,7 +2042,7 @@ z-index: 500;
         <div id="ledger_list" class="p-20">
 
         </div>
-    </div>
+    </div>-->
 
     <div class="tab-pane" id="comments" role="tabpanel">
         <div class="p-20">
@@ -2640,90 +2724,6 @@ z-index: 500;
     });
 </script>
 
-
-<script src="https://js.stripe.com/v3/"></script>
-<script type="text/javascript">
-    function stripePaymentFunction() {
-
-        // Create a Stripe client.
-        var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
-
-        // Create an instance of Elements.
-        var elements = stripe.elements();
-
-        // Custom styling can be passed to options when creating an Element.
-        // (Note that this demo uses a wider set of styles than the guide below.)
-        var style = {
-            base: {
-                height: '34px',
-                padding: '6px 12px',
-                fontSize: '14px',
-                lineHeight: '1.42857143',
-                color: '#555',
-                backgroundColor: '#fff',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                '::placeholder': {
-                    color: '#ddd'
-                }
-            },
-            invalid: {
-                color: '#fa755a',
-                iconColor: '#fa755a'
-            }
-        };
-
-        // Create an instance of the card Element.
-        var card = elements.create('card', {style: style});
-
-        // Add an instance of the card Element into the `card-element` <div>.
-        if (($('#card-element')).length > 0) {
-            card.mount('#card-element');
-        }
-
-        // Handle real-time validation errors from the card Element.
-        card.addEventListener('change', function (event) {
-            var displayError = document.getElementById('card-errors');
-            if (event.error) {
-                displayError.textContent = event.error.message;
-            } else {
-                displayError.textContent = '';
-            }
-        });
-
-        // Handle form submission.
-        var form = document.getElementById('payment_confirmation_form_customer');
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            stripe.createToken(card).then(function (result) {
-                if (result.error) {
-                    // Inform the user if there was an error.
-                    var errorElement = document.getElementById('card-errors');
-                    errorElement.textContent = result.error.message;
-                } else {
-                    // Send the token to your server.
-                    stripeTokenHandler(result.token);
-                }
-            });
-        });
-
-        // Submit the form with the token ID.
-        function stripeTokenHandler(token) {
-            // Insert the token ID into the form so it gets submitted to the server
-            var form = document.getElementById('payment_confirmation_form_customer');
-            var hiddenInput = document.createElement('input');
-            hiddenInput.setAttribute('type', 'hidden');
-            hiddenInput.setAttribute('name', 'token');
-            hiddenInput.setAttribute('value', token.id);
-            form.appendChild(hiddenInput);
-
-            //ACCEPT_HANDLING_ERROR
-            // Submit the form
-            form.submit();
-        }
-    }
-
-</script>
 <script>
     $('#NAME').SumoSelect({placeholder: 'Select Customer', search: true, searchText: 'Search...'});
 
@@ -2735,77 +2735,6 @@ z-index: 500;
         format: 'mm/dd/yyyy',
         maxDate: 0
     });
-
-    function payNow(PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, BILLED_AMOUNT, ENROLLMENT_ID) {
-        $('#enrollment_number').text(ENROLLMENT_ID);
-        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
-        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
-        $('#AMOUNT_TO_PAY_CUSTOMER').val(BILLED_AMOUNT);
-        $('#payment_confirmation_form_div_customer').slideDown();
-        openPaymentModel();
-    }
-
-    function selectPaymentTypeCustomer(param){
-        let paymentType = $("#PK_PAYMENT_TYPE_CUSTOMER option:selected").text();
-        $('.payment_type_div').slideUp();
-        $('#card-element').remove();
-        switch (paymentType) {
-            case 'Credit Card':
-                $('#customer_card_div').html(`<div id="card-element"></div>`);
-                stripePaymentFunction();
-                $('#credit_card_payment_customer').slideDown();
-                break;
-
-            case 'Check':
-                $('#check_payment_customer').slideDown();
-                break;
-
-            case 'Wallet':
-                $('#wallet_balance_span').slideDown();
-                let AMOUNT_TO_PAY_CUSTOMER = parseFloat($('#AMOUNT_TO_PAY_CUSTOMER').val());
-                let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
-
-                if(AMOUNT_TO_PAY_CUSTOMER > WALLET_BALANCE){
-                    $('#REMAINING_AMOUNT_CUSTOMER').val(AMOUNT_TO_PAY_CUSTOMER-WALLET_BALANCE);
-                    $('#remaining_amount_div').slideDown();
-                    $('#PK_PAYMENT_TYPE_REMAINING_CUSTOMER').prop('required', true);
-                } else {
-                    $('#remaining_amount_div').slideUp();
-                    $('#PK_PAYMENT_TYPE_REMAINING_CUSTOMER').prop('required', false);
-                }
-                break;
-
-            case 'Cash':
-            default:
-                $('.payment_type_div').slideUp();
-                $('#wallet_balance_span').slideUp();
-                $('#remaining_amount_div').slideUp();
-                $('#PK_PAYMENT_TYPE_REMAINING_CUSTOMER').prop('required', false);
-                break;
-        }
-    }
-
-    function selectRemainingPaymentType(param){
-        let paymentType = $("#PK_PAYMENT_TYPE_REMAINING_CUSTOMER option:selected").text();
-        $('.remaining_payment_type_div').slideUp();
-        $('#card-element').remove();
-        switch (paymentType) {
-            case 'Credit Card':
-                $('#remaining_card_div').html(`<div id="card-element"></div>`);
-                stripePaymentFunction();
-                $('#remaining_credit_card_payment').slideDown();
-                break;
-
-            case 'Check':
-                $('#remaining_check_payment').slideDown();
-                break;
-
-            case 'Cash':
-            default:
-                $('.remaining_payment_type_div').slideUp();
-                break;
-        }
-    }
 
     function confirmComplete(param)
     {
@@ -3141,5 +3070,96 @@ z-index: 500;
     }
 </script>
 
-</body>
-</html>
+<script>
+    document.getElementById('IMAGE').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let img = document.getElementById('previewImage');
+            img.src = e.target.result;
+            img.classList.remove('hidden');
+            document.getElementById('imageLink').addEventListener('click', function() {
+                openModal(e.target.result, 'image');
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+
+    document.getElementById('VIDEO').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let video = document.getElementById('previewVideo');
+            video.src = e.target.result;
+            video.classList.remove('hidden');
+            document.getElementById('videoLink').addEventListener('click', function() {
+                openModal(e.target.result, 'video');
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+
+    function openModal(src, type) {
+        const modal = document.getElementById('modal');
+        const img = document.getElementById('modalImage');
+        const video = document.getElementById('modalVideo');
+
+        if (type === 'image') {
+            img.src = src;
+            img.classList.remove('hidden');
+            video.classList.add('hidden');
+        } else {
+            video.src = src;
+            video.classList.remove('hidden');
+            img.classList.add('hidden');
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('modal').classList.add('hidden');
+    }
+</script>
+
+<!-- JavaScript for Popup -->
+<script>
+    function showPopup(type, src) {
+        let popup = document.getElementById("mediaPopup");
+        let image = document.getElementById("popupImage");
+        let video = document.getElementById("popupVideo");
+        let videoSource = document.getElementById("popupVideoSource");
+
+        if (type === 'image') {
+            image.src = src;
+            image.style.display = "block";
+            video.style.display = "none";
+        } else if (type === 'video') {
+            videoSource.src = src;
+            video.load();
+            video.style.display = "block";
+            image.style.display = "none";
+        }
+
+        popup.style.display = "flex";
+
+        // Add event listener to detect ESC key press
+        document.addEventListener("keydown", escClose);
+    }
+
+    function closePopup() {
+        document.getElementById("mediaPopup").style.display = "none";
+        document.removeEventListener("keydown", escClose); // Remove listener when popup is closed
+    }
+
+    // Function to detect ESC key press and close the popup
+    function escClose(event) {
+        if (event.key === "Escape") {
+            closePopup();
+        }
+    }
+</script>

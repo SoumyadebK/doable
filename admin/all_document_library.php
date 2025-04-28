@@ -92,7 +92,7 @@ if ($header_data->RecordCount() > 0) {
                                             <td>
                                                 <a href="document_library.php?id=<?=$row->fields['PK_DOCUMENT_LIBRARY']?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <a href="all_document_library.php?type=del&id=<?=$row->fields['PK_DOCUMENT_LIBRARY']?>" onclick='javascript:ConfirmDelete(<?=$row->fields['PK_DOCUMENT_LIBRARY']?>);return false;'><img src="../assets/images/delete.png" title="Delete" style="padding-top:3px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <?php if($row->fields['ACTIVE']==1){ ?>
+                                                <?php if($row->fields['ACTIVE']==1) { ?>
                                                     <span class="active-box-green"></span>
                                                 <?php } else{ ?>
                                                     <span class="active-box-red"></span>

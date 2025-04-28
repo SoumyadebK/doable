@@ -6,7 +6,7 @@ global $master_database;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
-$title = "All Products";
+$title = "Products Coming Soon";
 
 $status_check = empty($_GET['status'])?'active':$_GET['status'];
 
@@ -50,9 +50,9 @@ if ($header_data->RecordCount() > 0) {
                     <div class="card">
                         <div class="card-body">
                             <div class="row" style="text-align: center;">
-                                <h5 style="font-weight: bold;"><?=$header_text?></h5>
+                                <h5 style="font-weight: bold;"><?=$title?></h5>
                             </div>
-                            <div class="table-responsive">
+                            <!--<div class="table-responsive">
                                 <table id="myTable" class="table table-striped border" data-page-length="50">
                                     <thead>
                                     <tr>
@@ -68,25 +68,25 @@ if ($header_data->RecordCount() > 0) {
 
                                     <tbody>
                                     <?php
-                                    $i=1;
+/*                                    $i=1;
                                     $row = $db_account->Execute("SELECT * FROM DOA_PRODUCT WHERE IS_DELETED = 0 AND ACTIVE = 1 ORDER BY PRODUCT_NAME ASC");
-                                    while (!$row->EOF) { ?>
+                                    while (!$row->EOF) { */?>
                                         <tr>
-                                            <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRODUCT_ID']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><img src="<?=$row->fields['PRODUCT_IMAGES']?>" alt="<?=$row->fields['PRODUCT_NAME']?>" style="width: 150px; height: auto;"></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRODUCT_NAME']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRODUCT_DESCRIPTION']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['PRICE']?></td>
-                                            <td onclick="editpage(<?=$row->fields['PK_PRODUCT']?>);"><?=$row->fields['SHIPPING_INFORMATION']?></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_PRODUCT']*/?>);"><?php /*=$row->fields['PRODUCT_ID']*/?></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_PRODUCT']*/?>);"><img src="<?php /*=$row->fields['PRODUCT_IMAGES']*/?>" alt="<?php /*=$row->fields['PRODUCT_NAME']*/?>" style="width: 150px; height: auto;"></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_PRODUCT']*/?>);"><?php /*=$row->fields['PRODUCT_NAME']*/?></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_PRODUCT']*/?>);"><?php /*=$row->fields['PRODUCT_DESCRIPTION']*/?></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_PRODUCT']*/?>);"><?php /*=$row->fields['PRICE']*/?></td>
+                                            <td onclick="editpage(<?php /*=$row->fields['PK_PRODUCT']*/?>);"><?php /*=$row->fields['SHIPPING_INFORMATION']*/?></td>
                                             <td>
-                                                <a href="javascript:" onclick="addToCart(<?=$row->fields['PK_PRODUCT']?>);"><i class="fa fa-cart-plus" title="Add to Cart"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <a href="javascript:" onclick="addToCart(<?php /*=$row->fields['PK_PRODUCT']*/?>);"><i class="fa fa-cart-plus" title="Add to Cart"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </td>
                                         </tr>
-                                        <?php $row->MoveNext();
-                                        $i++; } ?>
+                                        <?php /*$row->MoveNext();
+                                        $i++; } */?>
                                     </tbody>
                                 </table>
-                            </div>
+                            </div>-->
                         </div>
                     </div>
                 </div>

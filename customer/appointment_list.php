@@ -83,6 +83,9 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.IS_CHARGED,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS,
+                            DOA_APPOINTMENT_MASTER.COMMENT,
+                            DOA_APPOINTMENT_MASTER.IMAGE,
+                            DOA_APPOINTMENT_MASTER.VIDEO,
                             DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
@@ -205,7 +208,7 @@ $page_first_result = ($page-1) * $results_per_page;
                     <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=appointment'"><i class="fa fa-plus-circle"></i> Appointment</button>
                     <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=standing'"><i class="fa fa-plus-circle"></i> Standing</button>
                     <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=ad_hoc'"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>-->
-                    <button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="showMessage()"><i class="fa fa-plus-circle"></i> Appointments</button>
+                    <!--<button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="showMessage()"><i class="fa fa-plus-circle"></i> Appointments</button>-->
                     <!--<button type="button" id="operations" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"><i class="ti-layers-alt"></i> <?php /*=$operation_tab_title*/?></button>-->
                 </div>
             </div>
@@ -279,6 +282,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <th data-type="string" class="sortable" style="cursor: pointer">Day</th>
                                             <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
                                             <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
+                                            <th data-type="string" class="sortable" style="cursor: pointer">Comment & Uploads</th>
                                             <th>Paid</th>
                                             <th>Status</th>
                                             <th>Actions</th>
@@ -290,10 +294,19 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <?php
                                     $i=$page_first_result+1;
                                     $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
-                                    while (!$appointment_data->EOF) { if ($standing == 0) { ?>
-                                        <tr>
+                                    while (!$appointment_data->EOF) {
+                                        $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
+                                        $CHANGED_BY = '';
+                                        while (!$status_data->EOF) {
+                                            $CHANGED_BY .= "(".$status_data->fields['APPOINTMENT_STATUS']." by ".$status_data->fields['NAME']." at ".date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])).")<br>";
+                                            $status_data->MoveNext();
+                                        }
+                                        $IMAGE_LINK = $appointment_data->fields['IMAGE'];
+                                        $VIDEO_LINK = $appointment_data->fields['VIDEO'];
+                                        if ($standing == 0) { ?>
+                                        <tr onclick="$(this).next().slideToggle(); loadMedia(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>)">
                                     <?php } else { ?>
-                                        <tr class="header" onclick="showStandingAppointmentDetails(this, <?=$appointment_data->fields['STANDING_ID']?>, <?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>)" style="cursor: pointer;">
+                                        <tr onclick="$(this).next().slideToggle(); loadMedia(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>)" class="header" onclick="showStandingAppointmentDetails(this, <?=$appointment_data->fields['STANDING_ID']?>, <?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>)" style="cursor: pointer;">
                                     <?php } ?>
                                             <td><?=$i;?></td>
                                             <td><?=(($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class'))?>
@@ -319,6 +332,9 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <?php } ?>
 
                                             <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
+                                            <td style="cursor: pointer; vertical-align: middle; text-align: center;"><?php if($appointment_data->fields['COMMENT'] != '' || $IMAGE_LINK!='' || $VIDEO_LINK!='' || $CHANGED_BY!='') { ?>
+                                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="loadMedia(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>);">View</button> <?php } ?>
+                                            </td>
                                             <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
                                             <td style="text-align: left; color: <?=$appointment_data->fields['APPOINTMENT_COLOR']?>">
                                                 <?=$appointment_data->fields['APPOINTMENT_STATUS']?>&nbsp;
@@ -356,6 +372,28 @@ $page_first_result = ($page-1) * $results_per_page;
                                                     <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['STANDING_ID']?>, "standing");'><i class="fa fa-trash"></i></a>
                                                     <?php } ?>
                                                 <?php } ?>
+                                            </td>
+                                        </tr>
+                                        <tr style="display: none">
+                                            <td style="vertical-align: middle; text-align: center;" colspan="13">
+                                                <div class="col-12">
+                                                    <div class="form-group">
+                                                        <textarea class="form-control" name="COMMENT" rows="3"><?=$appointment_data->fields['COMMENT']?></textarea><!--<span><?php /*=$CHANGED_BY*/?></span>-->
+                                                    </div>
+                                                </div>
+                                                <div id="media_div_<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>">
+
+                                                </div>
+
+
+                                                <?php /*=$appointment_data->fields['COMMENT']*/?><!--
+                    <?php /*if ($IMAGE_LINK != '' && $IMAGE_LINK != null) { */?>
+                        (<a href="<?php /*=$IMAGE_LINK*/?>" target="_blank">View Image</a>)
+                    <?php /*} */?>
+                    <?php /*if ($VIDEO_LINK != '' && $VIDEO_LINK != null) { */?>
+                        (<a href="<?php /*=$VIDEO_LINK*/?>" target="_blank">View Video</a>)
+                    <?php /*} */?>
+                    <br><span><?php /*=$CHANGED_BY*/?></span>-->
                                             </td>
                                         </tr>
                                     <!--<tbody class="standing_list" style="display: none; background-color: #dee2e6;">
@@ -679,5 +717,21 @@ $page_first_result = ($page-1) * $results_per_page;
         var status = $(param).val();
         window.location.href = "appointment_list.php?appointment_status="+status;
 
+    }
+</script>
+<script>
+    function loadMedia(PK_APPOINTMENT_MASTER) {
+        if (PK_APPOINTMENT_MASTER) {
+            $.ajax({
+                url: "ajax/get_media.php",
+                type: "POST",
+                data: {PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#media_div_'+PK_APPOINTMENT_MASTER).html(result);
+                }
+            });
+        }
     }
 </script>

@@ -15,7 +15,7 @@ use Mpdf\Mpdf;
 use Stripe\Exception\ApiErrorException;
 use Stripe\StripeClient;
 
-$title = "Billing";
+$title = "Enrollments";
 
 $user_master_data = $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER_MASTER = ".$_SESSION['PK_USER_MASTER']);
 $PK_USER = $user_master_data->fields['PK_USER'];
@@ -237,8 +237,8 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                 <div class="col-md-5 align-self-center">
                     <h4 class="text-themecolor"><?=$title?></h4>
                 </div>
-                <div class="col-md-4 align-self-center">
-                    <ul class="nav nav-tabs" role="tablist" style="width: 61%">
+                <div class="col-md-7 align-self-center">
+                    <ul class="nav nav-pills" role="tablist">
                             <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
                             <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
                     </ul>
@@ -384,6 +384,10 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
 </body>
 <script>
+    window.onload = function () {
+        document.getElementById("enrollment_tab_link").click();
+    };
+
     $('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
     });

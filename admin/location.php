@@ -28,16 +28,17 @@ if(empty($_GET['id'])){
     $account_res = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = '$_SESSION[PK_ACCOUNT_MASTER]'");
 
     $PK_LOCATION = 0;
+    $PK_CORPORATION = '';
     $LOCATION_NAME = '';
     $LOCATION_CODE = '';
-    $ADDRESS = $account_res->fields['ADDRESS'];
-    $ADDRESS_1 = $account_res->fields['ADDRESS_1'];
-    $PK_COUNTRY = $account_res->fields['PK_COUNTRY'];
-    $PK_STATES = $account_res->fields['PK_STATES'];
-    $CITY = $account_res->fields['CITY'];
-    $ZIP_CODE = $account_res->fields['ZIP'];
-    $PHONE = $account_res->fields['PHONE'];
-    $EMAIL = $account_res->fields['EMAIL'];
+    $ADDRESS = ''; //$account_res->fields['ADDRESS'];
+    $ADDRESS_1 = ''; //$account_res->fields['ADDRESS_1'];
+    $PK_COUNTRY = ''; //$account_res->fields['PK_COUNTRY'];
+    $PK_STATES = ''; //$account_res->fields['PK_STATES'];
+    $CITY = ''; //$account_res->fields['CITY'];
+    $ZIP_CODE = ''; //$account_res->fields['ZIP'];
+    $PHONE = ''; //$account_res->fields['PHONE'];
+    $EMAIL = ''; //$account_res->fields['EMAIL'];
     $IMAGE_PATH = '';
     $PK_TIMEZONE = '';
     $ROYALTY_PERCENTAGE = '';
@@ -55,6 +56,7 @@ if(empty($_GET['id'])){
     $AM_PASSWORD = '';
     $AM_REFRESH_TOKEN = '';
     $SALES_TAX = '';
+    $RECEIPT_CHARACTER = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
 
@@ -64,6 +66,7 @@ if(empty($_GET['id'])){
     }
 
     $PK_LOCATION = $_GET['id'];
+    $PK_CORPORATION = $res->fields['PK_CORPORATION'];
     $LOCATION_NAME = $res->fields['LOCATION_NAME'];
     $LOCATION_CODE = $res->fields['LOCATION_CODE'];
     $ADDRESS = $res->fields['ADDRESS'];
@@ -91,6 +94,7 @@ if(empty($_GET['id'])){
     $AM_PASSWORD            = $res->fields['AM_PASSWORD'];
     $AM_REFRESH_TOKEN       = $res->fields['AM_REFRESH_TOKEN'];
     $SALES_TAX              = $res->fields['SALES_TAX'];
+    $RECEIPT_CHARACTER      = $res->fields['RECEIPT_CHARACTER'];
 }
 
 $SMTP_HOST = '';
@@ -111,6 +115,14 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
 $payment_gateway_setting = $db->Execute( "SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 $STRIPE_SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
 $STRIPE_PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+
+$help_title = '';
+$help_description = '';
+$help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'location'");
+if($help->RecordCount() > 0) {
+    $help_title = $help->fields['TITLE'];
+    $help_description = $help->fields['DESCRIPTION'];
+}
 
 require_once("../global/stripe-php-master/init.php");
 $stripe = new StripeClient($STRIPE_SECRET_KEY);
@@ -160,6 +172,7 @@ if(!empty($_POST)){
         if ($_FILES['IMAGE_PATH']['name'] != '') {
             if (!file_exists('../'.$upload_path.'/location_image/')) {
                 mkdir('../'.$upload_path.'/location_image/', 0777, true);
+                chmod('../'.$upload_path.'/location_image/', 0777);
             }
 
             $extn = explode(".", $_FILES['IMAGE_PATH']['name']);
@@ -323,7 +336,7 @@ if(!empty($_POST)){
             </div>
 
             <div class="row">
-                <div class="col-12">
+                <div class="col-8">
                     <div class="card">
                         <div class="card-title" style="margin-top: 15px; margin-left: 15px;">
                             <?php
@@ -348,6 +361,26 @@ if(!empty($_POST)){
                                     <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
                                         <div class="p-20">
+                                            <div class="row">
+                                            <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Corporation<span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="col-md-12">
+                                                            <div class="col-sm-12">
+                                                                <select class="form-control" name="PK_CORPORATION" id="PK_CORPORATION" required>
+                                                                    <option value="">Select Corporation</option>
+                                                                    <?php
+                                                                    $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY PK_CORPORATION");
+                                                                    while (!$row->EOF) { ?>
+                                                                        <option value="<?php echo $row->fields['PK_CORPORATION'];?>" <?=($row->fields['PK_CORPORATION'] == $PK_CORPORATION)?"selected":""?>><?=$row->fields['CORPORATION_NAME']?></option>
+                                                                        <?php $row->MoveNext(); } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div> 
                                             <div class="row">
                                                 <div class="col-6">
                                                     <div class="form-group">
@@ -503,6 +536,14 @@ if(!empty($_POST)){
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Receipt Character<span class="text-danger">*</span></label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Character" required value="<?=$RECEIPT_CHARACTER?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <div class="form-group">
@@ -631,8 +672,8 @@ if(!empty($_POST)){
                                                             <label>Active</label>
                                                         </div>
                                                         <div class="col-md-4">
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -823,6 +864,20 @@ if(!empty($_POST)){
                                             </div>
                                         </div>
                                     <?php } ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <h4 class="col-md-12" STYLE="text-align: center">
+                                    <?=$help_title?>
+                                </h4>
+                                <div class="col-md-12">
+                                    <text class="required-entry rich" id="DESCRIPTION"><?=$help_description?></text>
                                 </div>
                             </div>
                         </div>

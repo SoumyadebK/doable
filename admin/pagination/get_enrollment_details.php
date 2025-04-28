@@ -53,7 +53,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
                         LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER
                         %s
-                        AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
+                        /*AND DOA_APPOINTMENT_MASTER.STATUS = 'A'*/
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
                         ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC";
 
@@ -130,10 +130,12 @@ while (!$serviceCodeData->EOF) {
                 $PK_ENROLLMENT_MASTER = $payment_details->fields['PK_ENROLLMENT_MASTER'];
                 $PK_ENROLLMENT_LEDGER = $payment_details->fields['PK_ENROLLMENT_LEDGER'];
 
-                if ($payment_details->fields['TYPE'] == 'Payment') {
+                if ($payment_details->fields['TYPE'] == 'Payment' && $payment_details->fields['IS_REFUNDED'] == 0) {
                     $balance -= $payment_details->fields['AMOUNT'];
                     $refund_balance = $payment_details->fields['AMOUNT'];;
-                } elseif ($payment_details->fields['TYPE'] == 'Refund') {
+                } elseif ($payment_details->fields['TYPE'] == 'Payment' && $payment_details->fields['IS_REFUNDED'] == 1) {
+                    $refund_balance = $payment_details->fields['AMOUNT'];;
+                }  elseif ($payment_details->fields['TYPE'] == 'Refund') {
                     $refund_balance -= $payment_details->fields['AMOUNT'];
                 }
 
@@ -158,7 +160,7 @@ while (!$serviceCodeData->EOF) {
                         }
                     }
                     $payment_type = implode(', ', $payment_type_array);
-                } else{
+                } else {
                     $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                 } ?>
                 <tr style="border-style: hidden; color: <?=($payment_details->fields['TYPE'] == 'Refund') ? 'green' : ''?>; background-color: <?=(fmod($b, 2) == 0) ? '#ebeced' : ''?>;">
@@ -166,6 +168,9 @@ while (!$serviceCodeData->EOF) {
                         <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, 'enrollment_payment')"><i class="ti-info-alt"></i></a>&nbsp;&nbsp;
                         <?=date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE']))?>&nbsp;&nbsp;
                         <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, '<?=date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE']))?>', 'payment')"><i class="ti-pencil-alt"></i></a>
+                        <?php if ($payment_details->fields['PK_PAYMENT_TYPE'] == 12) { ?>
+                            <a href="javascript:" title="Delete" onclick="deletePayment(<?=$payment_details->fields['PK_ENROLLMENT_PAYMENT']?>, <?=$payment_details->fields['PK_ENROLLMENT_MASTER']?>, <?=$payment_details->fields['PK_ENROLLMENT_LEDGER']?>, <?=$payment_details->fields['AMOUNT']?>)" style="color: red;"><i class="ti-trash"></i></a>
+                        <?php } ?>
                     </td>
                     <td style="text-align: center;"><?=$payment_details->fields['TYPE']?></td>
                     <td></td>
@@ -192,7 +197,7 @@ while (!$serviceCodeData->EOF) {
     $cancelled_enrollment_ledger = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER." AND DOA_ENROLLMENT_LEDGER.ENROLLMENT_LEDGER_PARENT = -1");
     while (!$cancelled_enrollment_ledger->EOF) {
         ?>
-        <tr style="color: <?=(($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Balance Owed') ? 'red' : ''))?>;">
+        <tr style="color: <?=(($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Cancelled' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Balance Owed') ? 'red' : ''))?>;">
             <td style="text-align: center;"><?=date('m/d/Y', strtotime($cancelled_enrollment_ledger->fields['DUE_DATE']))?></td>
             <td style="text-align: center;">Canceled<?php /*=$cancelled_enrollment_ledger->fields['TRANSACTION_TYPE']*/?></td>
             <td style="text-align: right;"><?=$cancelled_enrollment_ledger->fields['BILLED_AMOUNT']?></td>

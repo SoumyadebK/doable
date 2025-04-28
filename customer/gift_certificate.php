@@ -1,13 +1,12 @@
 <?php
-
 require_once('../global/config.php');
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4 ){
+if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4 ) {
     header("location:../login.php");
     exit;
 }
 
-if (empty($_GET['id'])){
+if (empty($_GET['id'])) {
     $title = "Add Gift Certificate";
 } else {
     $title = "Edit Gift Certificate";
@@ -15,64 +14,34 @@ if (empty($_GET['id'])){
 
 $PAYMENT_GATEWAY = '';
 $PK_PAYMENT_TYPE = '';
-$AMOUNT = '';
 $NAME = '';
 $CARD_NUMBER = '';
 $SECURITY_CODE = '';
 $EXPIRATION_DATE = '';
 $CHECK_NUMBER = '';
 $CHECK_DATE = '';
-$NOTE = '';
+$PAYMENT_INFO = '';
+
+$row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']." AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME");
+$PK_USER_MASTER = $row->fields['PK_USER_MASTER'];
 
 if (empty($_GET['id'])) {
-    $PK_USER_MASTER = '';
-    $GIFT_CERTIFICATE_CODE ='';
-    $GIFT_CERTIFICATE_NAME ='';
+    $PK_GIFT_CERTIFICATE_SETUP ='';
     $DATE_OF_PURCHASE = '';
+    $GIFT_NOTE = '';
     $AMOUNT = '';
     $ACTIVE = '';
-
 } else {
     $res = $db_account->Execute("SELECT * FROM DOA_GIFT_CERTIFICATE_MASTER WHERE PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
         header("location:all_gift_certificates.php");
         exit;
     }
-    $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
-    $GIFT_CERTIFICATE_CODE = $res->fields['GIFT_CERTIFICATE_CODE'];
-    $GIFT_CERTIFICATE_NAME = $res->fields['GIFT_CERTIFICATE_NAME'];
+    $PK_GIFT_CERTIFICATE_SETUP = $res->fields['PK_GIFT_CERTIFICATE_SETUP'];
     $DATE_OF_PURCHASE = $res->fields['DATE_OF_PURCHASE'];
+    $GIFT_NOTE = $res->fields['GIFT_NOTE'];
     $AMOUNT = $res->fields['AMOUNT'];
     $ACTIVE = $res->fields['ACTIVE'];
-}
-
-if (!empty($_POST)) {
-    $GIFT_CERTIFICATE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    $row = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']);
-    $PK_USER_MASTER = $row->fields['PK_USER_MASTER'];
-    if (empty($_GET['id'])) {
-        $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_CODE'] = $_POST['GIFT_CERTIFICATE_CODE'];
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_NAME'] = $_POST['GIFT_CERTIFICATE_NAME'];
-        $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
-        $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
-        $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
-        db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
-        header("location:all_gift_certificates.php");
-    } else {
-        $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_CODE'] = $_POST['GIFT_CERTIFICATE_CODE'];
-        $GIFT_CERTIFICATE_DATA['GIFT_CERTIFICATE_NAME'] = $_POST['GIFT_CERTIFICATE_NAME'];
-        $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
-        $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
-        $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
-        header("location:all_gift_certificates.php");
-    }
 }
 
 use net\authorize\api\contract\v1 as AnetAPI;
@@ -80,6 +49,10 @@ use net\authorize\api\controller as AnetController;
 
 use Square\SquareClient;
 use Square\Environment;
+use Stripe\Exception\ApiErrorException;
+use Stripe\PaymentIntent;
+use Stripe\Stripe;
+use Stripe\StripeClient;
 
 $user_payment_gateway = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER, DOA_LOCATION.PAYMENT_GATEWAY_TYPE, DOA_LOCATION.SECRET_KEY, DOA_LOCATION.PUBLISHABLE_KEY, DOA_LOCATION.ACCESS_TOKEN, DOA_LOCATION.APP_ID, DOA_LOCATION.LOCATION_ID, DOA_LOCATION.LOGIN_ID, DOA_LOCATION.TRANSACTION_KEY, DOA_LOCATION.AUTHORIZE_CLIENT_KEY FROM DOA_LOCATION INNER JOIN DOA_USER_MASTER ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
 if($user_payment_gateway->RecordCount() > 0){
@@ -116,330 +89,285 @@ if ($SQUARE_MODE == 1)
 else if ($SQUARE_MODE == 2)
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
 
-if(!empty($_POST['PK_PAYMENT_TYPE'])){
+if(!empty($_POST)){
+    if ($_POST['PK_PAYMENT_TYPE'] == 1) {
+        if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
+            require_once("../global/stripe-php-master/init.php");
+            $stripe = new StripeClient($SECRET_KEY);
+            $STRIPE_TOKEN = $_POST['token'];
 
-    $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
-
-    unset($_POST['PK_ENROLLMENT_LEDGER']);
-    if(empty($_POST['PK_ENROLLMENT_PAYMENT'])){
-        if ($_POST['PK_PAYMENT_TYPE'] == 1) {
-            if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
-                require_once("../global/stripe-php-master/init.php");
-                $stripe = new \Stripe\StripeClient($SECRET_KEY);
-                $STRIPE_TOKEN = $_POST['token'];
-
-                $user_payment_info_data = $db->Execute("SELECT $account_database.DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM $account_database.DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER=$account_database.DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-                if ($user_payment_info_data->RecordCount() > 0) {
-                    $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
-                } else {
-                    $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-
-                    try {
-                        $customer = $stripe->customers->create([
-                            'email' => $user_master->fields['EMAIL_ID'],
-                            'name' => $user_master->fields['FIRST_NAME']." ".$user_master->fields['LAST_NAME'],
-                            'phone' => $user_master->fields['PHONE'],
-                            'description' => $user_master->fields['PK_USER'],
-                        ]);
-                    } catch (\Stripe\Exception\ApiErrorException $e) {
-                        pre_r($e->getMessage());
-                    }
-
-                    $CUSTOMER_PAYMENT_ID = $customer->id;
-                    $STRIPE_DETAILS['PK_USER']  = $user_master->fields['PK_USER'];
-                    $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
-                    $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
-                    $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                    db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
-                }
-
-                $PAYMENT_METHOD_ID = '';
-                if (isset($_POST['PAYMENT_METHOD_ID'])) {
-                    $PAYMENT_METHOD_ID = $_POST['PAYMENT_METHOD_ID'];
-                } else {
-                    try {
-                        $payment_method = $stripe->paymentMethods->create([
-                            'type' => 'card',
-                            'card' => [
-                                'token' => $STRIPE_TOKEN
-                            ],
-                        ]);
-
-                        $stripe->paymentMethods->attach(
-                            $payment_method->id,
-                            ['customer' => $CUSTOMER_PAYMENT_ID]
-                        );
-
-                        $PAYMENT_METHOD_ID = $payment_method->id;
-                    } catch (\Stripe\Exception\ApiErrorException $e) {
-                        pre_r($e->getMessage());
-                    }
-                }
-
-                $AMOUNT = $_POST['AMOUNT']*100;
-                try {\Stripe\Stripe::setApiKey($SECRET_KEY);
-                    $payment_intent = \Stripe\PaymentIntent::create([
-                        'amount' => $AMOUNT,
-                        'currency' => 'USD',
-                        'customer' => $CUSTOMER_PAYMENT_ID,
-                        'payment_method' => $PAYMENT_METHOD_ID,
+            /*Check the user is already a stripe user or not*/
+            $user_payment_info_data = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = ".$PK_USER_MASTER);
+            if ($user_payment_info_data->RecordCount() > 0) {
+                $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
+            } else {
+                $user_master = $db_account->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = ".$PK_USER_MASTER);
+                try {
+                    $customer = $stripe->customers->create([
+                        'email' => $user_master->fields['EMAIL_ID'],
+                        'name' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
+                        'phone' => $user_master->fields['PHONE'],
+                        'description' => $user_master->fields['PK_USER'],
                     ]);
-                } catch (Exception $e) {
+                } catch (ApiErrorException $e) {
                     pre_r($e->getMessage());
                 }
 
-                //pre_r($payment_intent);
-
-            } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
-
-                require_once("../global/vendor/autoload.php");
-
-                $AMOUNT = $_POST['AMOUNT'];
-
-                $client = new SquareClient([
-                    'accessToken' => $ACCESS_TOKEN,
-                    'environment' => Environment::SANDBOX,
-                ]);
-
-                $user_payment_info_data = $db->Execute("SELECT $account_database.DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM $account_database.DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER ON $master_database.DOA_USER_MASTER.PK_USER=$account_database.DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Square' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-                if ($user_payment_info_data->RecordCount() > 0) {
-                    $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
-                } else {
-                    $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-
-                    $address = new \Square\Models\Address();
-                    $address->setAddressLine1('500 Electric Ave');
-                    $address->setAddressLine2('Suite 600');
-                    $address->setLocality('New York');
-                    $address->setAdministrativeDistrictLevel1('NY');
-                    $address->setPostalCode('10003');
-                    $address->setCountry('US');
-
-                    $body = new \Square\Models\CreateCustomerRequest();
-                    $body->setGivenName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
-                    $body->setFamilyName('Earhart');
-                    $body->setEmailAddress($user_master->fields['EMAIL_ID']);
-                    $body->setAddress($address);
-                    $body->setPhoneNumber($user_master->fields['PHONE']);
-                    $body->setReferenceId('YOUR_REFERENCE_ID');
-                    $body->setNote('a customer');
-
-                    try {
-                        $api_response = $client->getCustomersApi()->createCustomer($body);
-                    } catch (\Square\Exceptions\ApiException $e) {
-                        pre_r($e->getMessage());
-                    }
-
-                    $CUSTOMER_PAYMENT_ID = json_decode($api_response->getBody())->customer->id;
-                    $SQUARE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
-                    $SQUARE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
-                    $SQUARE_DETAILS['PAYMENT_TYPE'] = 'Square';
-                    $SQUARE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                    db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
-
-                }
-
-                $card = new \Square\Models\Card();
-                $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
-                //$card->setBillingAddress($billing_address);
-                $card->setCustomerId($CUSTOMER_PAYMENT_ID);
-                //$card->setReferenceId('user-id-1');
-
-                $body = new \Square\Models\CreateCardRequest(
-                    uniqid(),
-                    $_POST['sourceId'],
-                    $card
-                );
-
-                $api_response = $client->getCardsApi()->createCard($body);
-
-                if ($api_response->isSuccess()) {
-                    $result = $api_response->getResult();
-                } else {
-                    $errors = $api_response->getErrors();
-                }
-
-            } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-
-                require_once('../global/authorizenet/vendor/autoload.php');
-
-                $LOGIN_ID = $account_data->fields['LOGIN_ID'];
-                $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
-
-                // Product Details
-                $itemName = $_POST['PK_ENROLLMENT_MASTER'];
-                $itemNumber = $_POST['PK_ENROLLMENT_BILLING'];
-                $itemPrice = $_POST['AMOUNT'];
-                $currency = "USD";
-
-                // Retrieve card and user info from the submitted form data
-                $name = $_POST['NAME'];
-                $email = $_POST['EMAIL'];
-                $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
-                $card_exp_month = $_POST['EXPIRATION_MONTH'];
-                $card_exp_year = $_POST['EXPIRATION_YEAR'];
-                $card_exp_year_month = $card_exp_year . '-' . $card_exp_month;
-                $card_cvc = $_POST['SECURITY_CODE'];
-
-                $refID = 'ref' . time();
-
-                $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-                $merchantAuthentication->setName($LOGIN_ID);
-                $merchantAuthentication->setTransactionKey($TRANSACTION_KEY);
-
-                // Create the payment data for a credit card
-                $creditCard = new AnetAPI\CreditCardType();
-                $creditCard->setCardNumber($card_number);
-                $creditCard->setExpirationDate($card_exp_year_month);
-                $creditCard->setCardCode($card_cvc);
-
-                // Add the payment data to a paymentType object
-                $paymentOne = new AnetAPI\PaymentType();
-                $paymentOne->setCreditCard($creditCard);
-
-                // Create order information
-                $order = new AnetAPI\OrderType();
-                $order->setDescription($itemName);
-
-                // Set the customer's identifying information
-                $customerData = new AnetAPI\CustomerDataType();
-                $customerData->setType("individual");
-                $customerData->setEmail($email);
-
-                $ANET_ENV = 'SANDBOX';
-
-                // Create a transaction
-                $transactionRequestType = new AnetAPI\TransactionRequestType();
-                $transactionRequestType->setTransactionType("authCaptureTransaction");
-                $transactionRequestType->setAmount($itemPrice);
-                $transactionRequestType->setOrder($order);
-                $transactionRequestType->setPayment($paymentOne);
-                $transactionRequestType->setCustomer($customerData);
-                $request = new AnetAPI\CreateTransactionRequest();
-                $request->setMerchantAuthentication($merchantAuthentication);
-                $request->setRefId($refID);
-                $request->setTransactionRequest($transactionRequestType);
-                $controller = new AnetController\CreateTransactionController($request);
-                $response = $controller->executeWithApiResponse(constant("\\net\authorize\api\constants\ANetEnvironment::$ANET_ENV"));
-
-                if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
-                    $tresponse = $response->getTransactionResponse();
-                    $PAYMENT_INFO = $tresponse->getTransId();
-                } else {
-                    $PAYMENT_INFO = 'Payment Unsuccessful.';
-                }
-                pre_r($response);
-            }
-        } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
-            $AMOUNT = $_POST['AMOUNT'];
-            $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
-            $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
-
-            if ($_POST['PK_PAYMENT_TYPE_REMAINING'] == 1) {
-                require_once("../global/stripe-php-master/init.php");
-                \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
-                $STRIPE_TOKEN = $_POST['token'];
-                $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
-                try {
-                    $charge = \Stripe\Charge::create([
-                        'amount' => ($REMAINING_AMOUNT * 100),
-                        'currency' => 'usd',
-                        'description' => $_POST['NOTE'],
-                        'source' => $STRIPE_TOKEN
-                    ]);
-                } catch (Exception $e) {
-
-                }
-                if($charge->paid == 1){
-                    $PAYMENT_INFO = $charge->id;
-                }else{
-                    $PAYMENT_INFO = 'Payment Unsuccessful.';
-                }
+                $CUSTOMER_PAYMENT_ID = $customer->id;
+                $STRIPE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+                $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
+                $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                db_perform('DOA_CUSTOMER_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
             }
 
-            $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
-            $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID, MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$_POST['PK_ENROLLMENT_MASTER']);
-            if(empty($enrollment_data->fields['ENROLLMENT_ID'])) {
-                $enrollment_id = $enrollment_data->fields['MISC_ID'];
+            $PAYMENT_METHOD_ID = '';
+            if (isset($_POST['PAYMENT_METHOD_ID'])) {
+                $PAYMENT_METHOD_ID = $_POST['PAYMENT_METHOD_ID'];
             } else {
-                $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
+                try {
+                    $payment_method = $stripe->paymentMethods->create([
+                        'type' => 'card',
+                        'card' => [
+                            'token' => $STRIPE_TOKEN
+                        ],
+                    ]);
+                    $stripe->paymentMethods->attach(
+                        $payment_method->id,
+                        ['customer' => $CUSTOMER_PAYMENT_ID]
+                    );
+                    $PAYMENT_METHOD_ID = $payment_method->id;
+                } catch (ApiErrorException $e) {
+                    pre_r($e->getMessage());
+                }
             }
-            $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-            $DEBIT_AMOUNT = ($WALLET_BALANCE>$AMOUNT)?$AMOUNT:$WALLET_BALANCE;
-            if ($wallet_data->RecordCount() > 0) {
-                $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
+
+            $AMOUNT = $_POST['AMOUNT'] * 100;
+            try {
+                Stripe::setApiKey($SECRET_KEY);
+                $payment_intent = PaymentIntent::create([
+                    'amount' => $AMOUNT,
+                    'currency' => 'USD',
+                    'customer' => $CUSTOMER_PAYMENT_ID,
+                    'payment_method' => $PAYMENT_METHOD_ID,
+                ]);
+            } catch (Exception $e) {
+                pre_r($e->getMessage());
             }
-            $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-            $INSERT_DATA['DEBIT'] = $DEBIT_AMOUNT;
-            $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment ".$enrollment_id;
-            $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-            $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
-        }else{
-            $PAYMENT_INFO = 'Payment Done.';
+            $PAYMENT_INFO = $payment_intent->id;
+
+        } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
+
+            require_once("../global/vendor/autoload.php");
+
+            $AMOUNT = $_POST['AMOUNT'];
+
+            $client = new SquareClient([
+                'accessToken' => $ACCESS_TOKEN,
+                'environment' => Environment::SANDBOX,
+            ]);
+
+            $user_payment_info_data = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Square' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+            if ($user_payment_info_data->RecordCount() > 0) {
+                $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
+            } else {
+                $user_master = $db_account->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+
+                $address = new \Square\Models\Address();
+                $address->setAddressLine1('500 Electric Ave');
+                $address->setAddressLine2('Suite 600');
+                $address->setLocality('New York');
+                $address->setAdministrativeDistrictLevel1('NY');
+                $address->setPostalCode('10003');
+                $address->setCountry('US');
+
+                $body = new \Square\Models\CreateCustomerRequest();
+                $body->setGivenName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
+                $body->setFamilyName('Earhart');
+                $body->setEmailAddress($user_master->fields['EMAIL_ID']);
+                $body->setAddress($address);
+                $body->setPhoneNumber($user_master->fields['PHONE']);
+                $body->setReferenceId('YOUR_REFERENCE_ID');
+                $body->setNote('a customer');
+
+                try {
+                    $api_response = $client->getCustomersApi()->createCustomer($body);
+                } catch (\Square\Exceptions\ApiException $e) {
+                    pre_r($e->getMessage());
+                }
+
+                $CUSTOMER_PAYMENT_ID = json_decode($api_response->getBody())->customer->id;
+                $SQUARE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+                $SQUARE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                $SQUARE_DETAILS['PAYMENT_TYPE'] = 'Square';
+                $SQUARE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                db_perform('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
+
+            }
+
+            $card = new \Square\Models\Card();
+            $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
+            //$card->setBillingAddress($billing_address);
+            $card->setCustomerId($CUSTOMER_PAYMENT_ID);
+            //$card->setReferenceId('user-id-1');
+
+            $body = new \Square\Models\CreateCardRequest(
+                uniqid(),
+                $_POST['sourceId'],
+                $card
+            );
+
+            $api_response = $client->getCardsApi()->createCard($body);
+
+            if ($api_response->isSuccess()) {
+                $result = $api_response->getResult();
+            } else {
+                $errors = $api_response->getErrors();
+            }
+
+        } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
+
+            require_once('../global/authorizenet/vendor/autoload.php');
+
+            $LOGIN_ID = $account_data->fields['LOGIN_ID'];
+            $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
+
+            // Product Details
+            $itemName = $_POST['PK_ENROLLMENT_MASTER'];
+            $itemNumber = $_POST['PK_ENROLLMENT_BILLING'];
+            $itemPrice = $_POST['AMOUNT'];
+            $currency = "USD";
+
+            // Retrieve card and user info from the submitted form data
+            $name = $_POST['NAME'];
+            $email = $_POST['EMAIL'];
+            $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
+            $card_exp_month = $_POST['EXPIRATION_MONTH'];
+            $card_exp_year = $_POST['EXPIRATION_YEAR'];
+            $card_exp_year_month = $card_exp_year . '-' . $card_exp_month;
+            $card_cvc = $_POST['SECURITY_CODE'];
+
+            $refID = 'ref' . time();
+
+            $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+            $merchantAuthentication->setName($LOGIN_ID);
+            $merchantAuthentication->setTransactionKey($TRANSACTION_KEY);
+
+            // Create the payment data for a credit card
+            $creditCard = new AnetAPI\CreditCardType();
+            $creditCard->setCardNumber($card_number);
+            $creditCard->setExpirationDate($card_exp_year_month);
+            $creditCard->setCardCode($card_cvc);
+
+            // Add the payment data to a paymentType object
+            $paymentOne = new AnetAPI\PaymentType();
+            $paymentOne->setCreditCard($creditCard);
+
+            // Create order information
+            $order = new AnetAPI\OrderType();
+            $order->setDescription($itemName);
+
+            // Set the customer's identifying information
+            $customerData = new AnetAPI\CustomerDataType();
+            $customerData->setType("individual");
+            $customerData->setEmail($email);
+
+            $ANET_ENV = 'SANDBOX';
+
+            // Create a transaction
+            $transactionRequestType = new AnetAPI\TransactionRequestType();
+            $transactionRequestType->setTransactionType("authCaptureTransaction");
+            $transactionRequestType->setAmount($itemPrice);
+            $transactionRequestType->setOrder($order);
+            $transactionRequestType->setPayment($paymentOne);
+            $transactionRequestType->setCustomer($customerData);
+            $request = new AnetAPI\CreateTransactionRequest();
+            $request->setMerchantAuthentication($merchantAuthentication);
+            $request->setRefId($refID);
+            $request->setTransactionRequest($transactionRequestType);
+            $controller = new AnetController\CreateTransactionController($request);
+            $response = $controller->executeWithApiResponse(constant("\\net\authorize\api\constants\ANetEnvironment::$ANET_ENV"));
+
+            if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+                $tresponse = $response->getTransactionResponse();
+                $PAYMENT_INFO = $tresponse->getTransId();
+            } else {
+                $PAYMENT_INFO = 'Payment Unsuccessful.';
+            }
+            pre_r($response);
+        }
+    } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
+        $AMOUNT = $_POST['AMOUNT'];
+        $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
+        $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
+
+        if ($_POST['PK_PAYMENT_TYPE_REMAINING'] == 1) {
+            require_once("../global/stripe-php-master/init.php");
+            Stripe::setApiKey($_POST['SECRET_KEY']);
+            $STRIPE_TOKEN = $_POST['token'];
+            $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
+            try {
+                $charge = \Stripe\Charge::create([
+                    'amount' => ($REMAINING_AMOUNT * 100),
+                    'currency' => 'usd',
+                    'description' => $_POST['NOTE'],
+                    'source' => $STRIPE_TOKEN
+                ]);
+            } catch (Exception $e) {
+
+            }
+            if ($charge->paid == 1) {
+                $PAYMENT_INFO = $charge->id;
+            } else {
+                $PAYMENT_INFO = 'Payment Unsuccessful.';
+            }
         }
 
-        $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
-        $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-        $PAYMENT_DATA['AMOUNT'] = $_POST['AMOUNT'];
-        if ($_POST['PK_PAYMENT_TYPE'] == 7) {
-            $PAYMENT_DATA['REMAINING_AMOUNT'] = $_POST['REMAINING_AMOUNT'];
-            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER_REMAINING'];
-            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE_REMAINING']));
-        } elseif($_POST['PK_PAYMENT_TYPE'] == 2) {
-            $PAYMENT_DATA['REMAINING_AMOUNT'] = 0.00;
-            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
-            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));
+        //$PK_USER_MASTER = $_POST['PK_USER_MASTER'];
+        $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID, MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$_POST['PK_ENROLLMENT_MASTER']);
+        if(empty($enrollment_data->fields['ENROLLMENT_ID'])) {
+            $enrollment_id = $enrollment_data->fields['MISC_ID'];
+        } else {
+            $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
         }
-
-        $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
-        $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-        $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-
-        if($_POST['PK_PAYMENT_TYPE'] == 1 && $_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-            $PAYMENT_DATA['NAME'] = $_POST['NAME'];
-            $PAYMENT_DATA['CARD_NUMBER'] = $_POST['CARD_NUMBER'];
-            $PAYMENT_DATA['EXPIRATION_DATE'] = $_POST['EXPIRATION_MONTH'] . "/" . $_POST['EXPIRATION_YEAR'];
-            $PAYMENT_DATA['SECURITY_CODE'] = $_POST['SECURITY_CODE'];
+        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+        $DEBIT_AMOUNT = ($WALLET_BALANCE > $AMOUNT) ? $AMOUNT : $WALLET_BALANCE;
+        if ($wallet_data->RecordCount() > 0) {
+            $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
         }
+        $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+        $INSERT_DATA['DEBIT'] = $DEBIT_AMOUNT;
+        $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment " . $enrollment_id;
+        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
 
-        db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+    } else {
+        $PAYMENT_INFO = 'Payment Done.';
+    }
 
-        $enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
-        if ($enrollment_balance->RecordCount() > 0){
-            $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $enrollment_balance->fields['TOTAL_BALANCE_PAID']+$_POST['AMOUNT'];
-            $ENROLLMENT_BALANCE_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
-            $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
-        }else{
-            $ENROLLMENT_BALANCE_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-            $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $_POST['AMOUNT'];
-            $ENROLLMENT_BALANCE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-            $ENROLLMENT_BALANCE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-            db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
-        }
-
-        $PK_ENROLLMENT_PAYMENT = $db_account->insert_ID();
-        $ledger_record = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
-        $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
-        $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $PK_ENROLLMENT_LEDGER;
-        $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-        $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
-        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
-        $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
-        $LEDGER_DATA['PAID_AMOUNT'] = $ledger_record->fields['BILLED_AMOUNT'];
-        $LEDGER_DATA['BALANCE'] = 0.00;
-        $LEDGER_DATA['IS_PAID'] = 1;
-        $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-        $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-        $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
-    }else{
-        db_perform_account('DOA_ENROLLMENT_PAYMENT', $_POST, 'update'," PK_ENROLLMENT_PAYMENT =  '$_POST[PK_ENROLLMENT_PAYMENT]'");
-        $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
+    $GIFT_CERTIFICATE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    $GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+    if (empty($_GET['id'])) {
+        $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
+        $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
+        $GIFT_CERTIFICATE_DATA['GIFT_NOTE'] = $_POST['GIFT_NOTE'];
+        $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
+        $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+        $GIFT_CERTIFICATE_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
+        $GIFT_CERTIFICATE_DATA['CHECK_DATE'] = (!empty($_POST['CHECK_DATE']))?date('Y-m-d', strtotime($_POST['CHECK_DATE'])):'0000-00-00';
+        $GIFT_CERTIFICATE_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+        $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
+        db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
+    } else {
+        $GIFT_CERTIFICATE_DATA['GIFT_NOTE'] = $_POST['GIFT_NOTE'];
+        $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+        $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
+        db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
     }
 
     header('location:all_gift_certificates.php');
@@ -692,141 +620,140 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     <div class="card">
                         <div class="card-body">
                             <!-- Nav tabs -->
-                            <!--<ul class="nav nav-tabs" role="tablist">
+                            <ul class="nav nav-tabs" role="tablist">
                                 <li class="active"> <a class="nav-link active" data-bs-toggle="tab" id="gift_certificate_link" href="#gift_certificate" role="tab"><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Gift Certificate</span></a> </li>
-                            </ul>-->
+                            </ul>
 
                             <div class="tab-content tabcontent-border">
                                 <div class="tab-pane active" id="gift_certificate" role="tabpanel">
-                                    <form id="gift_certificate_form" action="" method="post" enctype="multipart/form-data">
+                                    <form class="form-material form-horizontal" id="payment_confirmation_form" action="" method="post" enctype="multipart/form-data">
                                         <div class="p-20">
                                             <div class="row">
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label" for="GIFT_CERTIFICATE_CODE">Gift Certificate Code</label>
-                                                        <select id="GIFT_CERTIFICATE_CODE" name="GIFT_CERTIFICATE_CODE" class="form-control">
-                                                            <option disabled selected>Select Gift Certificate Code</option>
-                                                            <?php
-                                                            $row = $db->Execute("SELECT DOA_GIFT_CERTIFICATE_MASTER.GIFT_CERTIFICATE_CODE FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_GIFT_CERTIFICATE_MASTER ON DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']);
-                                                            while (!$row->EOF) {
-                                                                $selected = '';
-                                                                if($GIFT_CERTIFICATE_CODE!='' && $GIFT_CERTIFICATE_CODE == $row->fields['GIFT_CERTIFICATE_CODE']){
-                                                                    $selected = 'selected';
-                                                                }
-                                                                ?>
-                                                                <option value="<?php echo $row->fields['GIFT_CERTIFICATE_CODE']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE_CODE']; ?></option>
-                                                                <?php $row->MoveNext(); } ?>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label" for="GIFT_CERTIFICATE_NAME">Gift Certificate Name</label>
-                                                        <select id="GIFT_CERTIFICATE_NAME" name="GIFT_CERTIFICATE_NAME" class="form-control">
-                                                            <option disabled selected>Select Gift Certificate Name</option>
-                                                            <?php
-                                                            $row = $db->Execute("SELECT $account_database.DOA_GIFT_CERTIFICATE_MASTER.GIFT_CERTIFICATE_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN $account_database.DOA_GIFT_CERTIFICATE_MASTER ON $account_database.DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.PK_USER = ".$_SESSION['PK_USER']);
-                                                            while (!$row->EOF) {
-                                                                $selected = '';
-                                                                if($GIFT_CERTIFICATE_NAME!='' && $GIFT_CERTIFICATE_NAME == $row->fields['GIFT_CERTIFICATE_NAME']){
-                                                                    $selected = 'selected';
-                                                                }
-                                                                ?>
-                                                                <option value="<?php echo $row->fields['GIFT_CERTIFICATE_NAME']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE_NAME']; ?></option>
-                                                                <?php $row->MoveNext(); } ?>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Date of Purchase</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="DATE_OF_PURCHASE" id="DATE_OF_PURCHASE" value="<?=($DATE_OF_PURCHASE == '')?date('m/d/Y'):date('m/d/Y', strtotime($DATE_OF_PURCHASE))?>" class="form-control datepicker-normal">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Amount</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Payment Type</label>
-                                                        <div class="col-md-12">
-                                                            <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)">
-                                                                <option value="">Select</option>
+                                                <?php if (empty($_GET['id'])) { ?>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label" for="GIFT_CERTIFICATE">Gift Certificate</label>
+                                                            <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" onchange="showMinMaxAmount()" class="form-control" required>
+                                                                <option disabled selected>Select Gift Certificate Name</option>
                                                                 <?php
-                                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
-                                                                while (!$row->EOF) { ?>
-                                                                    <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                                    <?php $row->MoveNext(); } ?>
-                                                            </select>
-                                                        </div>
-                                                        <div id="wallet_balance_div">
-
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row" id="remaining_amount_div" style="display: none;">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Remaining Amount</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="REMAINING_AMOUNT" id="REMAINING_AMOUNT" class="form-control" readonly>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Payment Type</label>
-                                                        <div class="col-md-12">
-                                                            <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING" onchange="selectRemainingPaymentType(this)">
-                                                                <option value="">Select</option>
-                                                                <?php
-                                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
-                                                                while (!$row->EOF) { ?>
-                                                                    <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
+                                                                $row = $db_account->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>=EFFECTIVE_DATE AND CURRENT_DATE()<=END_DATE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                                while (!$row->EOF) {
+                                                                    $selected = '';
+                                                                    if($PK_GIFT_CERTIFICATE_SETUP != '' && $PK_GIFT_CERTIFICATE_SETUP == $row->fields['PK_GIFT_CERTIFICATE_SETUP']){
+                                                                        $selected = 'selected';
+                                                                    }
+                                                                    ?>
+                                                                    <option data-minimum="<?=$row->fields['MINIMUM_AMOUNT']?>" data-maximum="<?=$row->fields['MAXIMUM_AMOUNT']?>" value="<?php echo $row->fields['PK_GIFT_CERTIFICATE_SETUP']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
                                                                     <?php $row->MoveNext(); } ?>
                                                             </select>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row remaining_payment_type_div" id="remaining_credit_card_payment" style="display: none;">
-                                                <div class="col-12">
-                                                    <div class="form-group" id="remaining_card_div">
-
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row remaining_payment_type_div" id="remaining_check_payment" style="display: none;">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Check Number</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="CHECK_NUMBER_REMAINING" class="form-control">
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Date of Purchase</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="DATE_OF_PURCHASE" id="DATE_OF_PURCHASE" value="<?=($DATE_OF_PURCHASE == '')?date('m/d/Y'):date('m/d/Y', strtotime($DATE_OF_PURCHASE))?>" class="form-control datepicker-normal">
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Check Date</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="CHECK_DATE_REMAINING" class="form-control datepicker-normal">
+                                                    <div class="col-3 align-self-center">
+                                                        <label class="form-label">Gift Note</label>
+                                                        <textarea class="form-control" rows="3" name="GIFT_NOTE" id="GIFT_NOTE"><?php echo $GIFT_NOTE ?></textarea>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Amount</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT?>">
+                                                            </div>
+                                                            <p id="number_of_payment_error" style="color: red; display: none; font-size: 12px; margin: 5px;"></p>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Payment Type</label>
+                                                            <div class="col-md-12">
+                                                                <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)">
+                                                                    <option value="">Select</option>
+                                                                    <?php
+                                                                    $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                                                    while (!$row->EOF) { ?>
+                                                                        <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
+                                                                        <?php $row->MoveNext(); } ?>
+                                                                </select>
+                                                            </div>
+                                                            <div id="wallet_balance_div">
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php } else { ?>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label" for="GIFT_CERTIFICATE">Gift Certificate</label>
+                                                            <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" onchange="showMinMaxAmount()" class="form-control" disabled>
+                                                                <option disabled selected>Select Gift Certificate Name</option>
+                                                                <?php
+                                                                $row = $db_account->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>=EFFECTIVE_DATE AND CURRENT_DATE()<=END_DATE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
+                                                                while (!$row->EOF) {
+                                                                    $selected = '';
+                                                                    if($PK_GIFT_CERTIFICATE_SETUP != '' && $PK_GIFT_CERTIFICATE_SETUP == $row->fields['PK_GIFT_CERTIFICATE_SETUP']){
+                                                                        $selected = 'selected';
+                                                                    }
+                                                                    ?>
+                                                                    <option data-minimum="<?=$row->fields['MINIMUM_AMOUNT']?>" data-maximum="<?=$row->fields['MAXIMUM_AMOUNT']?>" value="<?php echo $row->fields['PK_GIFT_CERTIFICATE_SETUP']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
+                                                                    <?php $row->MoveNext(); } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Date of Purchase</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="DATE_OF_PURCHASE" id="DATE_OF_PURCHASE" value="<?=($DATE_OF_PURCHASE == '')?date('m/d/Y'):date('m/d/Y', strtotime($DATE_OF_PURCHASE))?>" class="form-control datepicker-normal" disabled>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3 align-self-center">
+                                                        <label class="form-label">Gift Note</label>
+                                                        <textarea class="form-control" rows="3" name="GIFT_NOTE" id="GIFT_NOTE"><?php echo $GIFT_NOTE ?></textarea>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Amount</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT?>" disabled>
+                                                            </div>
+                                                            <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;"></p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Payment Details</label>
+                                                            <div class="col-md-12">
+                                                                <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)" disabled>
+                                                                    <?php
+                                                                    $row = $db->Execute("SELECT $master_database.DOA_PAYMENT_TYPE.PAYMENT_TYPE, $account_database.DOA_GIFT_CERTIFICATE_MASTER.CHECK_NUMBER, $account_database.DOA_GIFT_CERTIFICATE_MASTER.CHECK_DATE, $account_database.DOA_GIFT_CERTIFICATE_MASTER.PAYMENT_INFO FROM $master_database.DOA_PAYMENT_TYPE INNER JOIN $account_database.DOA_GIFT_CERTIFICATE_MASTER ON $master_database.DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE=$account_database.DOA_GIFT_CERTIFICATE_MASTER.PK_PAYMENT_TYPE WHERE $account_database.DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER='$_GET[id]'");
+                                                                    while (!$row->EOF) { ?>
+                                                                        <?php if ($row->fields['PAYMENT_TYPE'] == "Check") { ?>
+                                                                            <option value=""><?=$row->fields['PAYMENT_TYPE'].' Number: '.$row->fields['CHECK_NUMBER'].', Date: '.$row->fields['CHECK_DATE']?></option>
+                                                                        <?php } else if ($row->fields['PAYMENT_TYPE'] == "Credit Card") { ?>
+                                                                            <option value=""><?='CC-Confirmation Number: '.$row->fields['PAYMENT_INFO']?></option>
+                                                                        <?php } else { ?>
+                                                                            <option value=""><?=$row->fields['PAYMENT_TYPE']?></option>
+                                                                        <?php } ?>
+                                                                        <?php $row->MoveNext(); } ?>
+                                                                </select>
+                                                            </div>
+                                                            <div id="wallet_balance_div">
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php } ?>
                                             </div>
 
-
+                                            <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
                                             <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
                                                 <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
                                                     <div class="row" style="margin: auto;" id="card_list">
@@ -846,7 +773,6 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
                                                         </div>
                                                     </div>
-                                                    <div id="payment-status-container"></div>
                                                 </div>
                                             <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net'){?>
                                                 <div class="payment_type_div" id="credit_card_payment" style="display: none;">
@@ -910,26 +836,26 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                     </div>
                                                 </div>
                                             <?php } ?>
+                                            <div id="payment-status-container"></div>
 
 
                                             <div class="row payment_type_div" id="check_payment" style="display: none;">
                                                 <div class="col-6">
                                                     <div class="form-group">
-                                                        <label class="form-label">Check Number</label>
+                                                        <label class="form-label">Check Number<span class="text-danger">*</span></label>
                                                         <div class="col-md-12">
-                                                            <input type="text" name="CHECK_NUMBER" class="form-control">
+                                                            <input type="text" name="CHECK_NUMBER" id="CHECK_NUMBER" class="form-control"="">
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="col-6">
                                                     <div class="form-group">
-                                                        <label class="form-label">Check Date</label>
+                                                        <label class="form-label">Check Date<span class="text-danger">*</span></label>
                                                         <div class="col-md-12">
-                                                            <input type="text" name="CHECK_DATE" class="form-control datepicker-normal">
+                                                            <input type="text" name="CHECK_DATE" id="CHECK_DATE" class="form-control datepicker-normal">
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
                                             </div>
 
                                             <?php if(!empty($_GET['id'])) { ?>
@@ -939,15 +865,15 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                                                             <label>Active</label>
                                                         </div>
                                                         <div class="col-md-4">
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <? } ?>
+                                            <?php } ?>
 
                                             <div class="form-group">
-                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Purchase'; } else { echo 'Update'; }?></button>
+                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"><?php if(empty($_GET['id'])){ echo 'Purchase'; } else { echo 'Pay'; }?></button>
                                                 <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_gift_certificates.php'" >Cancel</button>
                                             </div>
                                         </div>
@@ -964,6 +890,8 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
 <?php require_once('../includes/footer.php');?>
 
+<script src="https://js.stripe.com/v3/"></script>
+
 <script>
     $('.datepicker-future').datepicker({
         format: 'mm/dd/yyyy',
@@ -973,6 +901,13 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     $('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
     });
+
+    function showMinMaxAmount() {
+        let MINIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('minimum');
+        let MAXIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('maximum')
+        $('#number_of_payment_error').show();
+        $('#number_of_payment_error').text("Minimum Amount = "+MINIMUM+", Maximum Amount = "+MAXIMUM);
+    }
 
     function selectPaymentType(param){
         let paymentType = $("#PK_PAYMENT_TYPE option:selected").text();
@@ -986,11 +921,13 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
                     stripePaymentFunction();
                 }
 
-                getCreditCardList();
+                //getCreditCardList();
                 $('#credit_card_payment').slideDown();
                 break;
 
             case 'Check':
+                $('#CHECK_NUMBER').prop('required', true);
+                $('#CHECK_DATE').prop('required', true);
                 $('#check_payment').slideDown();
                 break;
 
@@ -1021,6 +958,8 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
 
             case 'Cash':
             default:
+                $('#CHECK_NUMBER').prop('required', false);
+                $('#CHECK_DATE').prop('required', false);
                 $('.payment_type_div').slideUp();
                 $('#wallet_balance_div').slideUp();
                 $('#remaining_amount_div').slideUp();
@@ -1029,43 +968,34 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         }
     }
 
-    function getCreditCardList() {
-        let PK_USER_MASTER = $('#PK_USER_MASTER').val();
-        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $.ajax({
-            url: "ajax/get_credit_card_list.php",
-            type: 'POST',
-            data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
-            success: function (data) {
-                $('#card_list').html(data);
-            }
-        });
-    }
-
-    function selectRemainingPaymentType(param){
-        let paymentType = $("#PK_PAYMENT_TYPE_REMAINING option:selected").text();
-        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $('.remaining_payment_type_div').slideUp();
-        $('#card-element').remove();
-        switch (paymentType) {
-            case 'Credit Card':
-                if (PAYMENT_GATEWAY == 'Stripe') {
-                    $('#card_div').html(`<div id="card-element"></div>`);
-                    stripePaymentFunction();
+    /*    function getCreditCardList() {
+            let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+            let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+            $.ajax({
+                url: "ajax/get_credit_card_list.php",
+                type: 'POST',
+                data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
+                success: function (data) {
+                    $('#card_list').html(data);
                 }
-                $('#remaining_credit_card_payment').slideDown();
-                break;
+            });
+        }*/
 
-            case 'Check':
-                $('#remaining_check_payment').slideDown();
-                break;
+    $(document).on('submit', '#payment_confirmation_form', function (event) {
+        //event.preventDefault();
+        let MINIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('minimum');
+        let MAXIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('maximum');
+        let entered_amount = $('#AMOUNT').val();
 
-            case 'Cash':
-            default:
-                $('.remaining_payment_type_div').slideUp();
-                break;
+        if (parseFloat(entered_amount)>=parseFloat(MINIMUM) && parseFloat(entered_amount)<=parseFloat(MAXIMUM)) {
+            return true;
+        } else {
+            $('#number_of_payment_error').show();
+            $('#number_of_payment_error').text("Minimum Amount = "+MINIMUM+", Maximum Amount = "+MAXIMUM);
+            $('#number_of_payment_error').effect('shake');
+            return false;
         }
-    }
+    });
 
     $(document).on('click', '.credit-card', function () {
         $('.credit-card').css("opacity", "1");
@@ -1159,6 +1089,8 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
     }
 
 </script>
+
+
 
 <script type="text/javascript" src="<?=$URL?>"></script>
 <script>
@@ -1281,6 +1213,5 @@ if(!empty($_POST['PK_PAYMENT_TYPE'])){
         });
     });
 </script>
-
 </body>
 </html>

@@ -120,7 +120,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                     <div class="form-group">
                         <label class="form-label">Status:</label>
                         <select class="form-control" name="PK_APPOINTMENT_STATUS" id="PK_APPOINTMENT_STATUS">
-                            <option value="">Select Status</option>
+                            <option value="1">Select Status</option>
                             <?php
                             $selected_status = '';
                             $row = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_STATUS` WHERE `ACTIVE` = 1");

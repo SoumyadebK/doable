@@ -19,10 +19,23 @@
     <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
 
     <style>
+        strong {
+            font-weight: bold;
+        }
         .multiselect-box {
             margin-bottom: 15px;
             margin-top: 6px;
             width: 149%;
+        }
+    </style>
+
+    <style>
+        input, textarea, select {
+            background-color: #f5f5f5 !important;
+        }
+
+        input[readonly] {
+            background-color: #FFFFFF !important;
         }
     </style>
 

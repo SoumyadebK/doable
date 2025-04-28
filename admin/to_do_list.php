@@ -12,6 +12,9 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION
     exit;
 }
 
+$date_start = '';
+$date_end = '';
+
 $START_DATE = ' ';
 $END_DATE = ' ';
 
@@ -22,9 +25,11 @@ if (empty($_GET['START_DATE']) && empty($_GET['END_DATE']) && empty($_GET['searc
 $appointment_status = empty($_GET['appointment_status']) ? '1, 2, 3, 5, 7, 8' : $_GET['appointment_status'];
 
 if (!empty($_GET['START_DATE'])) {
+    $date_start = $_GET['START_DATE'];
     $START_DATE = " AND DOA_SPECIAL_APPOINTMENT.DATE >= '".date('Y-m-d', strtotime($_GET['START_DATE']))."'";
 }
 if (!empty($_GET['END_DATE'])) {
+    $date_end = $_GET['END_DATE'];
     $END_DATE = " AND DOA_SPECIAL_APPOINTMENT.DATE <= '".date('Y-m-d', strtotime($_GET['END_DATE']))."'";
 }
 
@@ -168,6 +173,7 @@ $page_first_result = ($page-1) * $results_per_page;
         <div class="container-fluid body_content">
 
             <form class="form-material form-horizontal" id="search_form" action="" method="get">
+                <input type="hidden" name="standing" id="standing" value="<?=$standing?>">
                 <div class="row page-titles">
                     <div class="col-md-2 align-self-center">
                         <h4 class="text-themecolor"><?=$title?></h4>
@@ -175,9 +181,9 @@ $page_first_result = ($page-1) * $results_per_page;
 
                     <div class="col-md-2 align-self-center">
                         <?php if ($standing == 0) { ?>
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='to_do_list.php?standing=1'">Show Standing</button>
+                            <button type="submit" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="$('#standing').val(1)">Show Standing</button>
                         <?php } else { ?>
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='to_do_list.php'">Show Normal</button>
+                            <button type="submit" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="$('#standing').val(0);">Show Normal</button>
                         <?php } ?>
                     </div>
 
@@ -290,21 +296,21 @@ $page_first_result = ($page-1) * $results_per_page;
                                     <div class="pagination outer">
                                         <ul>
                                             <?php if ($page > 1) { ?>
-                                                <li><a href="to_do_list.php?appointment_status=<?=$appointment_status?>&page=1">&laquo;</a></li>
-                                                <li><a href="to_do_list.php?appointment_status=<?=$appointment_status?>&page=<?=($page-1)?>">&lsaquo;</a></li>
+                                                <li><a href="to_do_list.php?START_DATE=<?=$date_start?>&END_DATE=<?=$date_end?>&appointment_status=<?=$appointment_status?>&page=1">&laquo;</a></li>
+                                                <li><a href="to_do_list.php?START_DATE=<?=$date_start?>&END_DATE=<?=$date_end?>&appointment_status=<?=$appointment_status?>&page=<?=($page-1)?>">&lsaquo;</a></li>
                                             <?php }
                                             for($page_count = 1; $page_count<=$number_of_page; $page_count++) {
                                                 if ($page_count == $page || $page_count == ($page+1) || $page_count == ($page-1) || $page_count == $number_of_page) {
-                                                    echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="to_do_list.php?appointment_status=' . $appointment_status . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                    echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="to_do_list.php?START_DATE='.$date_start.'&END_DATE='.$date_end.'&appointment_status=' . $appointment_status . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
                                                 } elseif ($page_count == ($number_of_page-1)){
                                                     echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
                                                 } else {
-                                                    echo '<li><a class="hidden" href="to_do_list.php?appointment_status=' . $appointment_status . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                    echo '<li><a class="hidden" href="to_do_list.php?START_DATE='.$date_start.'&END_DATE='.$date_end.'&appointment_status=' . $appointment_status . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
                                                 }
                                             }
                                             if ($page < $number_of_page) { ?>
-                                                <li><a href="to_do_list.php?appointment_status=<?=$appointment_status?>&page=<?=($page+1)?>">&rsaquo;</a></li>
-                                                <li><a href="to_do_list.php?appointment_status=<?=$appointment_status?>&page=<?=$number_of_page?>">&raquo;</a></li>
+                                                <li><a href="to_do_list.php?START_DATE=<?=$date_start?>&END_DATE=<?=$date_end?>&appointment_status=<?=$appointment_status?>&page=<?=($page+1)?>">&rsaquo;</a></li>
+                                                <li><a href="to_do_list.php?START_DATE=<?=$date_start?>&END_DATE=<?=$date_end?>&appointment_status=<?=$appointment_status?>&page=<?=$number_of_page?>">&raquo;</a></li>
                                             <?php } ?>
                                         </ul>
                                     </div>

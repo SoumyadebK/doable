@@ -225,14 +225,14 @@ if ($type === 'export') {
     $url = constant('ami_api_url') . '/api/v1/reports';
     $post_data = callArturMurrayApi($url, $data, $authorization);
 
-    $data = json_decode($post_data);
-    if (isset($data->error) || isset($data->errors)) {
-        $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'royalty' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = ".$week_number);
+    $response = json_decode($post_data);
+    if (isset($response->error) || isset($response->errors)) {
+        $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'royalty_service_report' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = ".$week_number);
         if ($report_details->RecordCount() > 0) {
             $error_message = 'This report has already been exported on '.date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
         }
     } else {
-        $REPORT_DATA['REPORT_TYPE'] = 'royalty';
+        $REPORT_DATA['REPORT_TYPE'] = 'royalty_service_report';
         $REPORT_DATA['WEEK_NUMBER'] = $week_number;
         $REPORT_DATA['YEAR'] = $YEAR;
         $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
@@ -295,14 +295,14 @@ foreach ($resultsArray as $key => $result) {
                 if (isset($error_message)) {
                     echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $error_message . '</div>';
                 } else {
-                    $data = json_decode($post_data);
-                    if (isset($data->error)) {
-                        echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $data->error_description . '</div>';
-                    } elseif (isset($data->errors)) {
-                        if (isset($data->errors->errors[0])) {
-                            echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $data->errors->errors[0] . '</div>';
+                    $response = json_decode($post_data);
+                    if (isset($response->error)) {
+                        echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->error_description . '</div>';
+                    } elseif (isset($response->errors)) {
+                        if (isset($response->errors->errors[0])) {
+                            echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->errors->errors[0] . '</div>';
                         } else {
-                            echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $data->message . '</div>';
+                            echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->message . '</div>';
                         }
                     } else {
                         echo "<h3 style='color: green;'>Data export to Arthur Murray API Successfully</h3>";
@@ -538,7 +538,7 @@ foreach ($resultsArray as $key => $result) {
                                         <tr>
                                             <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?=$business_name?></th>
                                             <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 2</th>
-                                            <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?=$week_number?> (<?=$from_date?> - <?=$to_date?>)</th>
+                                            <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?=$week_number?> (<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</th>
                                         </tr>
                                         <tr>
                                             <th colspan="13">Refunds or credits below completed tuition refund report & photocopy of front & back of caceled cheks must be attached in order to receive credits.

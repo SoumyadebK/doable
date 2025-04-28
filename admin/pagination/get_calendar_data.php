@@ -6,8 +6,10 @@ global $master_database;
 
 $OPEN_TIME = '00:00:00';
 $CLOSE_TIME = '23:59:00';
+$DAYS = 0;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
 
 $utc_tz =  new DateTimeZone('UTC');
 try {
@@ -16,6 +18,9 @@ try {
 
     $START_DATE = $start_dt->format('Y-m-d');
     $END_DATE = $end_dt->format('Y-m-d');
+
+    $date_difference = date_diff(date_create($START_DATE), date_create($END_DATE));
+    $DAYS = $date_difference->days;
 
     $APPOINTMENT_DATE_CONDITION = " AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '$START_DATE' AND '$END_DATE' ";
     $SPL_APPOINTMENT_DATE_CONDITION = " AND DOA_SPECIAL_APPOINTMENT.DATE BETWEEN '$START_DATE' AND '$END_DATE' ";
@@ -61,6 +66,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.COMMENT,
                             DOA_APPOINTMENT_MASTER.INTERNAL_COMMENT,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                            DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
                             DOA_SERVICE_CODE.SERVICE_CODE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
@@ -73,7 +79,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_SCHEDULING_CODE.DURATION,
                             DOA_SCHEDULING_CODE.UNIT,
                             GROUP_CONCAT(DISTINCT(DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER) SEPARATOR ',') AS SERVICE_PROVIDER_ID,
-                            GROUP_CONCAT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) SEPARATOR ',') AS CUSTOMER_NAME,
+                            GROUP_CONCAT(DISTINCT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME)) SEPARATOR ', ') AS CUSTOMER_NAME,
                             DOA_PACKAGE.PACKAGE_NAME
                         FROM
                             DOA_APPOINTMENT_MASTER
@@ -146,19 +152,33 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             }else {
                 $PACKAGE = " || "."$PACKAGE_NAME";
             }
-            $title = $appointment_data->fields['CUSTOMER_NAME'].$PACKAGE . ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['ENROLLMENT_ID'] === 0) ? '(Ad-Hoc)' : $appointment_data->fields['ENROLLMENT_ID']) . ' - ' . $appointment_data->fields['SERIAL_NUMBER'] . (($appointment_data->fields['IS_PAID'] == 1) ? ' (Paid)' : ' (Unpaid)');
+            $title = $PACKAGE . ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['PK_ENROLLMENT_MASTER'] == 0) ? '(Ad-Hoc)' : $appointment_data->fields['PK_ENROLLMENT_MASTER']) . ' - ' . $appointment_data->fields['SERIAL_NUMBER'] . (($appointment_data->fields['IS_PAID'] == 1) ? ' (Paid)' : ' (Unpaid)');
             $type = "appointment";
         } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'DEMO') {
-            $title = $appointment_data->fields['CUSTOMER_NAME'].' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . ' - ' . $appointment_data->fields['SERIAL_NUMBER'];
+            $title = ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . ' - ' . $appointment_data->fields['SERIAL_NUMBER'];
             $type = "appointment";
         } else {
-            $title = (($appointment_data->fields['CUSTOMER_NAME'] !== null) ? (count(explode(',', $appointment_data->fields['CUSTOMER_NAME']))) : '0') . ' - ' . $appointment_data->fields['GROUP_NAME'] . ' - ' . $appointment_data->fields['SERVICE_NAME'] . ' - ' . $appointment_data->fields['SERVICE_CODE'];
+            $title = ' - ' . $appointment_data->fields['GROUP_NAME'] . ' - ' . $appointment_data->fields['SERVICE_NAME'] . ' - ' . $appointment_data->fields['SERVICE_CODE'];
             $type = "group_class";
         }
+        $customerName = $appointment_data->fields['CUSTOMER_NAME'];
         if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
             $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
         } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'GROUP') {
+            $customerNameArray = [];
             $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
+            $selected_customer = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
+            while (!$selected_customer->EOF) {
+                if ($selected_customer->fields['IS_PARTNER'] == 0) {
+                    $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$selected_customer->fields['PK_USER_MASTER']);
+                    $customerNameArray[] = $user_data->fields['NAME'];
+                } elseif ($selected_customer->fields['IS_PARTNER'] == 1) {
+                    $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = ".$selected_customer->fields['PK_USER_MASTER']);
+                    $customerNameArray[] = $partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'];
+                }
+                $selected_customer->MoveNext();
+            }
+            $customerName = implode(', ', $customerNameArray);
         }
         $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
         $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE, $appointment_data->fields['APPOINTMENT_TYPE']);
@@ -174,6 +194,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
         $appointment_array[] = [
             'id' => $appointment_data->fields['PK_APPOINTMENT_MASTER'],
             'resourceIds' => explode(',', $appointment_data->fields['SERVICE_PROVIDER_ID']),
+            'customerName' => $customerName,
             'title' => $title,
             'start' => date("Y-m-d", strtotime($appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($appointment_data->fields['START_TIME'])),
             'end' => date("Y-m-d", strtotime($appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($appointment_data->fields['END_TIME'])),
@@ -193,10 +214,11 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
 if ($appointment_type == 'TO-DO' || $appointment_type == '') {
     $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
     while (!$special_appointment_data->EOF) {
+        preg_match_all("/\\((.*?)\\)/", $special_appointment_data->fields['TITLE'], $statusCode);
         $appointment_array[] = [
             'id' => $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'],
             'resourceIds' => explode(',', $special_appointment_data->fields['SERVICE_PROVIDER_ID']),
-            'title' => $special_appointment_data->fields['TITLE'],
+            'title' => preg_replace("/\([^)]+\)/","", $special_appointment_data->fields['TITLE']),
             'start' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['START_TIME'])),
             'end' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['END_TIME'])),
             'color' => $special_appointment_data->fields['COLOR_CODE'],
@@ -205,7 +227,7 @@ if ($appointment_type == 'TO-DO' || $appointment_type == '') {
             'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
             'comment' => $special_appointment_data->fields['DESCRIPTION'],
             'internal_comment' => '',
-            'statusCode' => '',
+            'statusCode' => (isset($statusCode[1][0])) ? $statusCode[1][0] : '',
             'duration' => $special_appointment_data->fields['DURATION'],
         ];
         $special_appointment_data->MoveNext();
@@ -247,6 +269,100 @@ if ($appointment_type == 'EVENT' || $appointment_type == '') {
             'statusCode' => '',
         ];
         $event_data->MoveNext();
+    }
+}
+
+if ($DAYS === 1 && count($LOCATION_ARRAY) === 1) {
+    $i = 0;
+    $service_provider_data = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $SERVICE_PROVIDER_ID . " AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DISPLAY_ORDER");
+    while (!$service_provider_data->EOF) {
+        $LOCATION_OPEN_TIME = '';
+        $LOCATION_CLOSE_TIME = '';
+        $USER_OPEN_TIME = '';
+        $USER_CLOSE_TIME = '';
+
+        $PK_USER = $service_provider_data->fields['PK_USER'];
+        $PK_LOCATION = $DEFAULT_LOCATION_ID;
+
+        $dayNumber1 = date('N', strtotime($START_DATE));
+        $location_operational_hour = $db_account->Execute("SELECT OPEN_TIME, CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber1' AND CLOSED = 0 AND PK_LOCATION = ".$PK_LOCATION);
+        if ($location_operational_hour->RecordCount() > 0) {
+            $LOCATION_OPEN_TIME = $location_operational_hour->fields['OPEN_TIME'];
+            $LOCATION_CLOSE_TIME = $location_operational_hour->fields['CLOSE_TIME'];
+        }
+
+        $user_operational_hour = $db_account->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_LOCATION_HOURS` WHERE PK_USER = '$PK_USER' AND PK_LOCATION = ".$PK_LOCATION);
+        if ($user_operational_hour->RecordCount() > 0) {
+            switch ((int)$dayNumber1) {
+                case 1:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['MON_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['MON_END_TIME'];
+                    break;
+                case 2:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['TUE_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['TUE_END_TIME'];
+                    break;
+                case 3:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['WED_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['WED_END_TIME'];
+                    break;
+                case 4:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['THU_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['THU_END_TIME'];
+                    break;
+                case 5:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['FRI_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['FRI_END_TIME'];
+                    break;
+                case 6:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['SAT_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['SAT_END_TIME'];
+                    break;
+                case 7:
+                    $USER_OPEN_TIME = $user_operational_hour->fields['SUN_START_TIME'];
+                    $USER_CLOSE_TIME = $user_operational_hour->fields['SUN_END_TIME'];
+                    break;
+
+            }
+        }
+
+        if ($LOCATION_OPEN_TIME < $USER_OPEN_TIME) {
+            $appointment_array[] = [
+                'id' => $i++,
+                'resourceId' => $PK_USER,
+                'title' => 'Not Available',
+                'start' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($LOCATION_OPEN_TIME)),
+                'end' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($USER_OPEN_TIME)),
+                'color' => 'gray',
+                'type' => 'not_available',
+                /*'status' => $special_appointment_data->fields['STATUS_CODE'],
+                'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
+                'comment' => '',
+                'internal_comment' => '',
+                'statusCode' => '',
+                'duration' => '',
+            ];
+        }
+
+        if ($LOCATION_CLOSE_TIME > $USER_CLOSE_TIME) {
+            $appointment_array[] = [
+                'id' => $i++,
+                'resourceId' => $PK_USER,
+                'title' => 'Not Available',
+                'start' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($USER_CLOSE_TIME)),
+                'end' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($LOCATION_CLOSE_TIME)),
+                'color' => 'gray',
+                'type' => 'not_available',
+                /*'status' => $special_appointment_data->fields['STATUS_CODE'],
+                'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
+                'comment' => '',
+                'internal_comment' => '',
+                'statusCode' => '',
+                'duration' => '',
+            ];
+        }
+
+        $service_provider_data->MoveNext();
     }
 }
 
