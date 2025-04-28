@@ -7,17 +7,16 @@ global $db_account;
 
 $title = "Upload CSV";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 1 ){
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 1) {
     header("location:../login.php");
     exit;
 }
 
-if(!empty($_POST))
-{
+if (!empty($_POST)) {
     $PK_ACCOUNT_MASTER = $_POST['PK_ACCOUNT_MASTER'];
     $PK_LOCATION = $_POST['PK_LOCATION'];
 
-    $account_data = $db->Execute("SELECT DB_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+    $account_data = $db->Execute("SELECT DB_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
     $DB_NAME = $account_data->fields['DB_NAME'];
     if (!empty($DB_NAME)) {
         require_once('../global/common_functions_account.php');
@@ -77,11 +76,11 @@ if(!empty($_POST))
 
         case 'DOA_USERS':
             $allUsers = getAllUsers();
-            $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+            $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
             $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
             while (!$allUsers->EOF) {
                 $user_id = $allUsers->fields['user_id'];
-                $user_exist = $db->Execute("SELECT USER_ID FROM `DOA_USERS` WHERE `USER_ID` LIKE '$user_id' AND PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+                $user_exist = $db->Execute("SELECT USER_ID FROM `DOA_USERS` WHERE `USER_ID` LIKE '$user_id' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
                 if ($user_exist->RecordCount() == 0) {
                     $roleId = $allUsers->fields['role'];
                     $getRole = getRole($roleId);
@@ -174,11 +173,11 @@ if(!empty($_POST))
 
         case 'DOA_CUSTOMER':
             $allCustomers = getAllCustomers();
-            $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+            $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
             $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
             while (!$allCustomers->EOF) {
                 $customer_id = $allCustomers->fields['customer_id'];
-                $customer_exist = $db->Execute("SELECT USER_ID FROM `DOA_USERS` WHERE `USER_ID` LIKE '$customer_id' AND PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+                $customer_exist = $db->Execute("SELECT USER_ID FROM `DOA_USERS` WHERE `USER_ID` LIKE '$customer_id' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
                 if ($customer_exist->RecordCount() == 0) {
                     try {
                         $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
@@ -523,7 +522,7 @@ if(!empty($_POST))
             while (!$allEnrollments->EOF) {
                 $enrollment_id = $allEnrollments->fields['enrollment_id'];
                 [$enrollment_type, $code] = getEnrollmentType($allEnrollments->fields['enrollment_type']);
-                if($code == 'MISC') {
+                if ($code == 'MISC') {
                     $ENROLLMENT_DATA['MISC_ID'] = $enrollment_id;
                 }
                 $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_id;
@@ -537,11 +536,11 @@ if(!empty($_POST))
                 }
 
                 $ENROLLMENT_DATA['MISC_TYPE'] = NULL;
-                if($allEnrollments->fields['miscserv'] == 'G') {
+                if ($allEnrollments->fields['miscserv'] == 'G') {
                     $ENROLLMENT_DATA['MISC_TYPE'] = 'GENERAL';
-                } elseif($allEnrollments->fields['miscserv'] == 'S') {
+                } elseif ($allEnrollments->fields['miscserv'] == 'S') {
                     $ENROLLMENT_DATA['MISC_TYPE'] = 'SHOWCASE';
-                } elseif($allEnrollments->fields['miscserv'] == 'D') {
+                } elseif ($allEnrollments->fields['miscserv'] == 'D') {
                     $ENROLLMENT_DATA['MISC_TYPE'] = 'DOR';
                 }
 
@@ -549,8 +548,8 @@ if(!empty($_POST))
                 $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$customerId' AND DOA_USER_MASTER.PRIMARY_LOCATION_ID = '$PK_LOCATION' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
                 $ENROLLMENT_DATA['PK_USER_MASTER'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
 
-                $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = ".$ENROLLMENT_DATA['PK_USER_MASTER']." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-                if ($customer_enrollment_number->RecordCount() > 0){
+                $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = " . $ENROLLMENT_DATA['PK_USER_MASTER'] . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+                if ($customer_enrollment_number->RecordCount() > 0) {
                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = $customer_enrollment_number->fields['CUSTOMER_ENROLLMENT_NUMBER'] + 1;
                 } else {
                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
@@ -576,7 +575,7 @@ if(!empty($_POST))
                 $ENROLLMENT_DATA['IS_SALE'] = $allEnrollments->fields['is_sale'];
                 $ENROLLMENT_DATA['STATUS'] = "A";
                 $ENROLLMENT_DATA['ENROLLMENT_DATE'] = $allEnrollments->fields['enrollment_date'];
-                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = $allEnrollments->fields['enroll_pdf_file'].'.pdf';
+                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = $allEnrollments->fields['enroll_pdf_file'] . '.pdf';
                 $ENROLLMENT_DATA['CHARGE_TYPE'] = 0;
                 $ENROLLMENT_DATA['EXPIRY_DATE'] = $allEnrollments->fields['expdate'];
                 $ENROLLMENT_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
@@ -787,7 +786,7 @@ if(!empty($_POST))
                                 $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $enrollment_payment->fields['check_number'], 'CHECK_DATE' => $newDate];
                                 $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
                             }
-                            $ENROLLMENT_PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO; ;
+                            $ENROLLMENT_PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;;
                             $ENROLLMENT_PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
                             $ENROLLMENT_PAYMENT_DATA['RECEIPT_NUMBER'] = $enrollment_payment->fields['receipt'];
 
@@ -817,7 +816,7 @@ if(!empty($_POST))
                                     $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = 0;
                                     $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
                                 }
-                                db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', ' PK_ENROLLMENT_LEDGER = '.$PK_ENROLLMENT_LEDGER);
+                                db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', ' PK_ENROLLMENT_LEDGER = ' . $PK_ENROLLMENT_LEDGER);
                             }
                             $enrollment_payment->MoveNext();
                         }
@@ -1159,7 +1158,7 @@ if(!empty($_POST))
                 }
                 $GROUP_CLASS_DATA['INTERNAL_COMMENT'] = $allGroupAppointments->fields['appts_comment'];
                 $GROUP_CLASS_DATA['GROUP_NAME'] = null;
-                if($service_id == 'PRT' || $service_id == 'GRP1' ||  $service_id == 'GRP2' || $service_id == 'GRP3') {
+                if ($service_id == 'PRT' || $service_id == 'GRP1' ||  $service_id == 'GRP2' || $service_id == 'GRP3') {
                     $GROUP_CLASS_DATA['GROUP_NAME'] = $allGroupAppointments->fields['appt_name'];
                     $GROUP_CLASS_DATA['APPOINTMENT_TYPE'] = 'GROUP';
                 } else {
@@ -1177,7 +1176,7 @@ if(!empty($_POST))
                 db_perform_account('DOA_APPOINTMENT_MASTER', $GROUP_CLASS_DATA, 'insert');
                 $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
-                if($service_id == 'PRT' || $service_id == 'GRP1' ||  $service_id == 'GRP2' || $service_id == 'GRP3') {
+                if ($service_id == 'PRT' || $service_id == 'GRP1' ||  $service_id == 'GRP2' || $service_id == 'GRP3') {
                     $service_appt_id = $allGroupAppointments->fields['service_appt_id'];
                     $groupStudentIds = getAllStudentIds($service_appt_id);
                     while (!$groupStudentIds->EOF) {
@@ -1226,7 +1225,7 @@ if(!empty($_POST))
             $startTime = getStartTime();
             $endTime = getEndTime();
 
-            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER) FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$PK_LOCATION.") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER) FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $PK_LOCATION . ") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
             while (!$row->EOF) {
 
                 $SERVICE_PROVIDER_HOURS['PK_USER'] = $row->fields['PK_USER'];
@@ -1246,7 +1245,7 @@ if(!empty($_POST))
                 $SERVICE_PROVIDER_HOURS['SUN_START_TIME'] = '00:00:00';
                 $SERVICE_PROVIDER_HOURS['SUN_END_TIME'] = '00:00:00';
 
-                $location_data = $db->Execute("SELECT PK_SERVICE_PROVIDER_LOCATION_HOURS FROM DOA_SERVICE_PROVIDER_LOCATION_HOURS WHERE PK_USER = ".$row->fields['PK_USER']);
+                $location_data = $db->Execute("SELECT PK_SERVICE_PROVIDER_LOCATION_HOURS FROM DOA_SERVICE_PROVIDER_LOCATION_HOURS WHERE PK_USER = " . $row->fields['PK_USER']);
                 if ($location_data->RecordCount() == 0) {
                     db_perform_account('DOA_SERVICE_PROVIDER_LOCATION_HOURS', $SERVICE_PROVIDER_HOURS, 'insert');
                 }
@@ -1285,7 +1284,7 @@ if(!empty($_POST))
                         $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $enrollment_payment->fields['check_number'], 'CHECK_DATE' => $newDate];
                         $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
                     }
-                    $ENROLLMENT_PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO; ;
+                    $ENROLLMENT_PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;;
                     $ENROLLMENT_PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
                     $ENROLLMENT_PAYMENT_DATA['RECEIPT_NUMBER'] = $enrollment_payment->fields['receipt'];
                     db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
@@ -1314,7 +1313,7 @@ if(!empty($_POST))
             }
             break;
 
-        case 'MARK_APPOINTMENT_PAID' :
+        case 'MARK_APPOINTMENT_PAID':
             $allEnrollmentService = $db_account->Execute("SELECT `PK_ENROLLMENT_SERVICE` FROM `DOA_ENROLLMENT_SERVICE`");
             while (!$allEnrollmentService->EOF) {
                 markAppointmentPaid($allEnrollmentService->fields['PK_ENROLLMENT_SERVICE']);
@@ -1325,7 +1324,7 @@ if(!empty($_POST))
         case 'ENR_PDF':
             $allEnrollments = getAllEnrollments();
             while (!$allEnrollments->EOF) {
-                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = ($allEnrollments->fields['enroll_pdf_file'])?$allEnrollments->fields['enroll_pdf_file'].'.pdf':NULL;
+                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = ($allEnrollments->fields['enroll_pdf_file']) ? $allEnrollments->fields['enroll_pdf_file'] . '.pdf' : NULL;
                 $enrollment_id = $allEnrollments->fields['enrollment_id'];
                 db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'update', " ENROLLMENT_ID = '$enrollment_id'");
                 $allEnrollments->MoveNext();
@@ -1363,116 +1362,129 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<?php require_once('../includes/header.php');?>
+<?php require_once('../includes/header.php'); ?>
+
 <body class="skin-default-dark fixed-layout">
-<?php require_once('../includes/loader.php');?>
-<div id="main-wrapper">
-    <?php require_once('../includes/top_menu.php');?>
-    <div class="page-wrapper">
-        <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
-            <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+    <?php require_once('../includes/loader.php'); ?>
+    <div id="main-wrapper">
+        <?php require_once('../includes/top_menu.php'); ?>
+        <div class="page-wrapper">
+            <?php require_once('../includes/top_menu_bar.php') ?>
+            <div class="container-fluid">
+                <div class="row page-titles">
+                    <div class="col-md-5 align-self-center">
+                        <h4 class="text-themecolor"><?= $title ?></h4>
+                    </div>
+                    <div class="col-md-7 align-self-center text-end">
+                        <div class="d-flex justify-content-end align-items-center">
+                            <ol class="breadcrumb justify-content-end">
+                                <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
+                                <li class="breadcrumb-item active"><?= $title ?></li>
+                            </ol>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-            <form action="" method="post" enctype="multipart/form-data">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label class="form-label">Business Name</label>
-                            <select class="form-control" name="PK_ACCOUNT_MASTER" id="PK_ACCOUNT_MASTER">
-                                <option value="">Select Business</option>
-                                <?php
-                                $row = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_BUSINESS_TYPE.BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_BUSINESS_TYPE ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE = DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE ORDER BY CREATED_ON DESC");
-                                while (!$row->EOF) { ?>
-                                    <option value="<?php echo $row->fields['PK_ACCOUNT_MASTER'];?>" ><?=$row->fields['BUSINESS_NAME']?></option>
-                                <?php $row->MoveNext(); } ?>
-                            </select>
+                <form action="" method="post" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label">Business Name</label>
+                                <select class="form-control" name="PK_ACCOUNT_MASTER" id="PK_ACCOUNT_MASTER" onchange="getLocations(this)">
+                                    <option value="">Select Business</option>
+                                    <?php
+                                    $row = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_BUSINESS_TYPE.BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_BUSINESS_TYPE ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE = DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE ORDER BY CREATED_ON DESC");
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?php echo $row->fields['PK_ACCOUNT_MASTER']; ?>"><?= $row->fields['BUSINESS_NAME'] ?>(<?php echo $row->fields['PK_ACCOUNT_MASTER']; ?>)</option>
+                                    <?php $row->MoveNext();
+                                    } ?>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label class="form-label">Select Location</label>
-                            <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
-                                <option value="">Select Location</option>
-                                <?php
-                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1");
-                                while (!$row->EOF) { ?>
-                                    <option value="<?php echo $row->fields['PK_LOCATION'];?>"><?=$row->fields['LOCATION_NAME']?></option>
-                                <?php $row->MoveNext(); } ?>
-                            </select>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="form-label">Select Location</label>
+                                <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
+                                    <option value="">Select Location</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label class="form-label">Select Database Name</label>
-                            <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
-                                <option value="">Select Database Name</option>
-                                <option value="AMSJ">AMSJ</option>
-                                <option value="AMTO">AMTO</option>
-                                <option value="AMWH">AMWH</option>
-                            </select>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="form-label">Select Database Name</label>
+                                <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
+                                    <option value="">Select Database Name</option>
+                                    <option value="AMSJ">AMSJ</option>
+                                    <option value="AMTO">AMTO</option>
+                                    <option value="AMWH">AMWH</option>
+                                    <option value="AMLS" selected>AMLS</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label class="form-label">Select Table Name</label>
-                            <select class="form-control" name="TABLE_NAME" id="TABLE_NAME" onchange="viewCsvDownload(this)">
-                                <option value="">Select Table Name</option>
-                                <option value="DOA_OPERATIONAL_HOUR">DOA_OPERATIONAL_HOUR</option>
-                                <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
-                                <!--<option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label">Select Table Name</label>
+                                <select class="form-control" name="TABLE_NAME" id="TABLE_NAME" onchange="viewCsvDownload(this)">
+                                    <option value="">Select Table Name</option>
+                                    <option value="DOA_OPERATIONAL_HOUR">DOA_OPERATIONAL_HOUR</option>
+                                    <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
+                                    <!--<option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
                                 <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>-->
-                                <option value="DOA_USERS">DOA_USERS</option>
-                                <option value="DOA_CUSTOMER">DOA_CUSTOMER</option>
-                                <option value="DOA_SERVICE_MASTER">DOA_SERVICE_MASTER</option>
-                                <option value="DOA_SCHEDULING_CODE">DOA_SCHEDULING_CODE</option>
-                                <option value="DOA_ENROLLMENT_TYPE">DOA_ENROLLMENT_TYPE</option>
-                                <option value="DOA_PACKAGE">DOA_PACKAGE</option>
-                                <option value="DOA_ENROLLMENT">DOA_ENROLLMENT</option>
-                                <option value="OTHER_PAYMENT">OTHER_PAYMENT</option>
-                                <!--<option value="DOA_ENROLLMENT_SERVICE">DOA_ENROLLMENT_SERVICE</option>
+                                    <option value="DOA_USERS">DOA_USERS</option>
+                                    <option value="DOA_CUSTOMER">DOA_CUSTOMER</option>
+                                    <option value="DOA_SERVICE_MASTER">DOA_SERVICE_MASTER</option>
+                                    <option value="DOA_SCHEDULING_CODE">DOA_SCHEDULING_CODE</option>
+                                    <option value="DOA_ENROLLMENT_TYPE">DOA_ENROLLMENT_TYPE</option>
+                                    <option value="DOA_PACKAGE">DOA_PACKAGE</option>
+                                    <option value="DOA_ENROLLMENT">DOA_ENROLLMENT</option>
+                                    <option value="OTHER_PAYMENT">OTHER_PAYMENT</option>
+                                    <!--<option value="DOA_ENROLLMENT_SERVICE">DOA_ENROLLMENT_SERVICE</option>
                                 <option value="DOA_ENROLLMENT_PAYMENT">DOA_ENROLLMENT_PAYMENT</option>-->
-                                <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
-                                <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
+                                    <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
+                                    <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
 
-                                <!--<option value="ENR_PDF">ENR_PDF</option>-->
-
-
+                                    <!--<option value="ENR_PDF">ENR_PDF</option>-->
 
 
-                                <!--<option value="SP_TIME">Service Provider Time</option>
+
+
+                                    <!--<option value="SP_TIME">Service Provider Time</option>
 
                                 <option value="USER_JOINING_DATE">USER_JOINING_DATE</option>
 
                                 <option value="ENR_IS_SALE">ENR_IS_SALE</option>-->
 
-                                <option value="MARK_APPOINTMENT_PAID">MARK_APPOINTMENT_PAID</option>
-                            </select>
-                            <div id="view_download_div" class="m-10"></div>
+                                    <option value="MARK_APPOINTMENT_PAID">MARK_APPOINTMENT_PAID</option>
+                                </select>
+                                <div id="view_download_div" class="m-10"></div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
-            </form>
+                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-<?php require_once('../includes/footer.php');?>
+    <?php require_once('../includes/footer.php'); ?>
 </body>
 <script>
     function viewCsvDownload(param) {
         let table_name = $(param).val();
         $('#view_download_div').html(`<a href="../uploads/csv_upload/${table_name}.csv" target="_blank">View Sample</a>`);
     }
+
+    function getLocations(param) {
+        let PK_ACCOUNT_MASTER = $(param).val();
+        $.ajax({
+            url: "ajax/get_location.php",
+            type: 'GET',
+            data: {
+                PK_ACCOUNT_MASTER: PK_ACCOUNT_MASTER
+            },
+            success: function(data) {
+                $('#PK_LOCATION').empty().append(data);
+            }
+        });
+    }
 </script>
+
 </html>
