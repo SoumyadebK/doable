@@ -40,13 +40,23 @@ if ($FUNCTION_NAME == 'loginFunction'){
                 $_SESSION['ACCESS_TOKEN'] = $result->fields['ACCESS_TOKEN'];
                 $_SESSION['TICKET_SYSTEM_ACCESS'] = $result->fields['TICKET_SYSTEM_ACCESS'];
 
-                $row = $db->Execute("SELECT PK_LOCATION FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                $LOCATION_ARRAY = [];
-                while (!$row->EOF) {
-                    $LOCATION_ARRAY[] = $row->fields['PK_LOCATION'];
-                    $row->MoveNext();
+                if ($_SESSION['PK_ROLES'] == 2) {
+                    $row = $db->Execute("SELECT PK_LOCATION FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                    $LOCATION_ARRAY = [];
+                    while (!$row->EOF) {
+                        $LOCATION_ARRAY[] = $row->fields['PK_LOCATION'];
+                        $row->MoveNext();
+                    }
+                    $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
+                } else {
+                    $selected_location = [];
+                    $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = ".$_SESSION['PK_USER']);
+                    while (!$selected_location_row->EOF) {
+                        $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                        $selected_location_row->MoveNext();
+                    }
+                    $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $selected_location);
                 }
-                $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
 
                 if (!file_exists('uploads/'.$_SESSION['PK_ACCOUNT_MASTER'])) {
                     mkdir('uploads/'.$_SESSION['PK_ACCOUNT_MASTER'], 0777, true);
