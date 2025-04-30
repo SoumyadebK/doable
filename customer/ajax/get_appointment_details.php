@@ -681,17 +681,17 @@ z-index: 500;
                     </div>
                 </div>
 
-                <?php if ($STANDING_ID > 0) { ?>
+                <!-- <?php if ($STANDING_ID > 0) { ?>
                     <div class="form-group">
                         <label><input type="checkbox" name="STANDING_ID" value="<?=$STANDING_ID?>"> All Session Details Will Be Changed</label>
                     </div>
-                <?php } ?>
+                <?php } ?> -->
 
                 <div class="form-group" style="margin-top: 25px;">
                     <?php if(in_array('Customer Profile Edit', $PERMISSION_ARRAY)){ ?>
                     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
                     <?php } ?>
-                    <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
+                    <a onclick="closeEditAppointment()" class="btn btn-secondary waves-effect waves-light m-r-10 text-black">Cancel</a>
                     <!--<a href="enrollment.php?customer_id=<?php /*=$selected_customer_id;*/?>" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Enroll</a>-->
                     <!--<a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=billing" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">Pay</a>
                     <a href="customer.php?id=<?php /*=$selected_user_id*/?>&master_id=<?php /*=$selected_customer_id*/?>&tab=appointment" target="_blank" class="btn btn-info waves-effect waves-light m-r-10 text-white">View Appointment</a>-->
