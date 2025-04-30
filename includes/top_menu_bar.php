@@ -232,21 +232,32 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
                     <?php } ?>
 
                     <?php if($_SESSION['PK_ROLES'] == 5) { ?>
-                        <li>
-                            <?php if ($view=='list') { ?>
-                                <a class="waves-effect waves-dark" href="../service_provider/all_schedules.php?view=table" aria-expanded="false">
-                                    <i class="icon-calender"></i>
-                                    <span class="hide-menu">Calendar</span>
-                                </a>
-                            <?php } elseif ($view=='table') { ?>
-                                <a class="waves-effect waves-dark" href="../service_provider/all_schedules.php?view=list" aria-expanded="false">
-                                    <i class="icon-list"></i>
-                                    <span class="hide-menu">List</span>
-                                </a>
-                            <?php } ?>
+                        <li class="<?=(('all_schedules.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('all_schedules.php' === $current_address)?'active':'')?>" href="../admin/all_schedules.php" aria-expanded="false">
+                                <i class="icon-calender"></i>
+                                <span class="hide-menu">Calendar</span>
+                            </a>
                         </li>
-                        <li>
-                            <a class="waves-effect waves-dark" href="../service_provider/operations.php" aria-expanded="false">
+                        <li class="<?=(('appointment_list.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('appointment_list.php' === $current_address)?'active':'')?>" href="../admin/appointment_list.php" aria-expanded="false">
+                                <i class="icon-calender"></i>
+                                <span class="hide-menu">Appointments</span>
+                            </a>
+                        </li>
+                        <li class="<?=(('all_customers.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('all_customers.php' === $current_address)?'active':'')?>" href="../admin/all_customers.php" aria-expanded="false">
+                                <i class="icons-User"></i>
+                                <span class="hide-menu">Customers</span>
+                            </a>
+                        </li>
+                        <li class="<?=(('all_enrollments.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('all_enrollments.php' === $current_address)?'active':'')?>" href="../admin/all_enrollments.php" aria-expanded="false">
+                                <i class="icon-note"></i>
+                                <span class="hide-menu">Enrollments</span>
+                            </a>
+                        </li>
+                        <li class="<?=(('operations.php' === $current_address)?'active':'')?>">
+                            <a class="nav-link <?=(('operations.php' === $current_address)?'active':'')?>" href="../admin/operations.php" aria-expanded="false">
                                 <i class="ti-layers-alt"></i>
                                 <span class="hide-menu">Operations</span>
                             </a>

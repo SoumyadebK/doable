@@ -65,7 +65,7 @@ if ($FUNCTION_NAME == 'loginFunction'){
 
                     header("location: customer/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 5) {
-                    header("location: service_provider/all_schedules.php?view=table");
+                    header("location: admin/all_schedules.php");
                 } elseif ($_SESSION['IS_NEW'] == 1) {
                     header("location: admin/wizard_business_profile.php");
                 } else {
@@ -90,7 +90,7 @@ if (!empty($_SESSION['PK_ACCOUNT_MASTER']) && !empty($_SESSION['PK_ROLES'])) {
         $_SESSION['PK_ACCOUNT_MASTER'] = $account->fields['PK_ACCOUNT_MASTER'];
         header("location: customer/all_schedules.php?view=table");
     } elseif ($_SESSION['PK_ROLES'] == 5) {
-        header("location: service_provider/all_schedules.php?view=table");
+        header("location: admin/all_schedules.php");
     } elseif ($_SESSION['IS_NEW'] == 1) {
         header("location: admin/wizard_business_profile.php");
     } else {
