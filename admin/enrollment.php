@@ -748,11 +748,13 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                                                     </div>
                                                 </div>
                                             <?php } ?>
-
-                                            <div class="form-group" style="margin-top: -15px">
-                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=($PK_ENROLLMENT_MASTER > 0) ? 'Save' : 'Continue'?></button>
-                                                <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                                            </div>
+                                            
+                                            <?php if($_SESSION['PK_ROLES'] != 5) { ?>
+                                                <div class="form-group" style="margin-top: -15px">
+                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=($PK_ENROLLMENT_MASTER > 0) ? 'Save' : 'Continue'?></button>
+                                                    <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                </div>
+                                            <?php } ?>
                                         </div>
                                     </form>
                                 </div>

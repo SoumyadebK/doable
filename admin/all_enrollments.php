@@ -334,11 +334,13 @@ if (isset($_POST['SUBMIT'])){
                         </div>
                     </form>
                 </div>
-                <div class="col-md-2 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='enrollment.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
+                <?php if($_SESSION['PK_ROLES'] != 5) { ?>
+                    <div class="col-md-2 align-self-center text-end">
+                        <div class="d-flex justify-content-end align-items-center">
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='enrollment.php'" ><i class="fa fa-plus-circle"></i> Create New</button>
+                        </div>
                     </div>
-                </div>
+                <?php } ?>
             </div>
 
             <div class="row">
@@ -361,14 +363,16 @@ if (isset($_POST['SUBMIT'])){
                                         <th data-type="string" class="sortable" style="cursor: pointer">Location</th>
                                         <th>Actions</th>
                                         <th>Status</th>
-                                        <th>Cancel</th>
+                                        <?php if($_SESSION['PK_ROLES'] != 5) { ?>
+                                            <th>Cancel</th>
+                                        <?php } ?>
                                     </tr>
                                     </thead>
 
                                     <tbody>
                                     <?php
                                     $i=$page_first_result+1;
-                                    $row = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_TYPE, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED, DOA_USER_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT FROM DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ".$search." ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT " . $page_first_result . ',' . $results_per_page);
+                                    $row = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_TYPE, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED, DOA_USER_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT FROM DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ".$search." ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT " . $page_first_result . ',' . $results_per_page);
                                     while (!$row->EOF) {
                                         $name = $row->fields['ENROLLMENT_NAME'];
                                         if ($row->fields['MISC_TYPE']) {
@@ -403,13 +407,14 @@ if (isset($_POST['SUBMIT'])){
                                                 <a href="enrollment.php?id=<?=$row->fields['PK_ENROLLMENT_MASTER']?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php } ?>
 
-                                                <?php if($row->fields['ACTIVE']==1){ ?>
+                                                <?php if($row->fields['ACTIVE']==1) { ?>
                                                     <span class="active-box-green"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <?php } else{ ?>
+                                                <?php } else { ?>
                                                     <span class="active-box-red"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php } ?>
-
-                                                <a href="enrollment.php?customer_id=<?=$row->fields['PK_USER_MASTER']?>" title="Add Enrollment" style="font-size:18px"><i class="fa fa-plus-circle"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php if($_SESSION['PK_ROLES'] != 5) { ?>
+                                                    <a href="enrollment.php?id_customer=<?=$row->fields['PK_USER']?>&master_id_customer=<?=$row->fields['PK_USER_MASTER']?>" title="Add Enrollment" style="font-size:18px"><i class="fa fa-plus-circle"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php } ?>
                                                 <?php
                                                 $res = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_PAID, SUM(SESSION_COMPLETED) AS COMPLETED FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                                                 if($res->fields['TOTAL_PAID']==0 && $res->fields['COMPLETED']==0){
@@ -428,14 +433,16 @@ if (isset($_POST['SUBMIT'])){
                                                     <span class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></span>
                                                 <?php } ?>
                                             </td>
-                                            <td>
-                                                <?php if ($row->fields['STATUS']=='A') { ?>
-                                                    <a href="javascript:;" onclick="cancelEnrollment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px;"></a>
-                                                <?php } elseif ($row->fields['STATUS']=='C') { ?>
-                                                        <p style="color: red;">Cancelled</p>
-                                                    <!--<a href="all_enrollments.php?id=<?php /*=$row->fields['PK_ENROLLMENT_MASTER']*/?>&status=active">Active Enrollment</a>-->
-                                                <?php } ?>
-                                            </td>
+                                            <?php if($_SESSION['PK_ROLES'] != 5) { ?>
+                                                <td>
+                                                    <?php if ($row->fields['STATUS']=='A') { ?>
+                                                        <a href="javascript:;" onclick="cancelEnrollment(<?=$row->fields['PK_ENROLLMENT_MASTER']?>, <?=$row->fields['PK_USER_MASTER']?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px;"></a>
+                                                    <?php } elseif ($row->fields['STATUS']=='C') { ?>
+                                                            <p style="color: red;">Cancelled</p>
+                                                        <!--<a href="all_enrollments.php?id=<?php /*=$row->fields['PK_ENROLLMENT_MASTER']*/?>&status=active">Active Enrollment</a>-->
+                                                    <?php } ?>
+                                                </td>
+                                            <?php } ?>
                                         </tr>
                                         <?php $row->MoveNext();
                                         $i++; } ?>
