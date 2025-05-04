@@ -58,7 +58,9 @@ if ($_GET['type'] == 'normal') { ?>
             ?>
             <!--<input type="checkbox" id="toggleAll" onclick="toggleAllCheckboxes()"/>
             <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="javascript:;" onclick="payAll(<?php /*=$all_row->fields['PK_ENROLLMENT_MASTER']*/?>, '<?php /*=$all_row->fields['ENROLLMENT_ID']*/?>')">Pay All</a>-->
-            <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="enrollment.php?id_customer=<?=$_GET['pk_user']?>&master_id_customer=<?=$PK_USER_MASTER?>&source=customer" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
+            <?php if($_SESSION['PK_ROLES'] != 5) { ?>
+                <a class="btn btn-info d-none d-lg-block m-15 text-white right-aside" href="enrollment.php?id_customer=<?=$_GET['pk_user']?>&master_id_customer=<?=$PK_USER_MASTER?>&source=customer" style="width: 120px; "><i class="fa fa-plus-circle"></i> Enrollment</a>
+            <?php } ?>
         </div>
     </div>
 <?php } else { ?>
