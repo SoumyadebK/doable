@@ -681,7 +681,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
     $html_template = str_replace('{SCHEDULE_AMOUNT}', $SCHEDULING_AMOUNT, $html_template);
     $html_template = str_replace('{DUE_DATE}', $DUE_DATE, $html_template);
     $html_template = str_replace('{BILLED_AMOUNT}', $BILLED_AMOUNT, $html_template);
-    $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template);
+    $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template, $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
 
     markAdhocAppointmentNormal($RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
@@ -694,9 +694,11 @@ function saveEnrollmentBillingData($RESPONSE_DATA){
 /**
  * @throws MpdfException
  */
-function generatePdf($html): string
+function generatePdf($html, $PK_ENROLLMENT_MASTER): string
 {
     global $upload_path;
+    global $master_database;
+    global $db_account;
     require_once('../../global/vendor/autoload.php');
 
     $mpdf = new Mpdf();
@@ -709,10 +711,18 @@ function generatePdf($html): string
         chmod('../../'.$upload_path.'/enrollment_pdf/', 0777);
     }
 
-    $file_name = "enrollment_pdf_".time().".pdf";
-    $mpdf->Output('../../'.$upload_path.'/enrollment_pdf/'.$file_name, 'F');
+    $enrollment_location = $db_account->Execute("SELECT DOA_LOCATION.LOCATION_CODE FROM DOA_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
+    $LOCATION_CODE = $enrollment_location->fields['LOCATION_CODE'];
 
-    return $file_name;
+    if (!file_exists('../../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/')) {
+        mkdir('../../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/', 0777, true);
+        chmod('../../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/', 0777);
+    }
+
+    $file_name = "enrollment_pdf_".time().".pdf";
+    $mpdf->Output('../../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/'.$file_name, 'F');
+
+    return $LOCATION_CODE.'/'.$file_name;
 }
 
 /*function confirmEnrollmentPayment($RESPONSE_DATA){
