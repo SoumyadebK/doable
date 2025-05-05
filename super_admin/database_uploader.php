@@ -1,5 +1,6 @@
 <?php
-error_reporting(0);
+//error_reporting(0);
+mysqli_report(MYSQLI_REPORT_OFF);
 set_time_limit(0);
 require_once('../global/config.php');
 global $db;
@@ -345,8 +346,8 @@ if (!empty($_POST)) {
                                 db_perform_account('DOA_CUSTOMER_INTEREST_OTHER_DATA', $INQUIRY_VALUE, 'insert');
                             }
                         }
-                    } catch (Exception $ex) {
-                        echo $ex->getMessage() . "<br>";
+                    } catch (mysqli_sql_exception $ex) {
+                        echo $ex->getMessage() . "<br>"; die();
                     }
                 }
                 $allCustomers->MoveNext();
@@ -375,10 +376,6 @@ if (!empty($_POST)) {
                     db_perform_account('DOA_SERVICE_MASTER', $SERVICE, 'insert');
                     $PK_SERVICE_MASTER = $db_account->insert_ID();
 
-                    $SERVICE_LOCATION_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
-                    $SERVICE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
-                    db_perform_account('DOA_SERVICE_LOCATION', $SERVICE_LOCATION_DATA, 'insert');
-
                     $SERVICE_CODE['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
                     $SERVICE_CODE['SERVICE_CODE'] = $allServices->fields['service_id'];
                     //$SERVICE_CODE['PK_FREQUENCY'] = 0;
@@ -400,7 +397,16 @@ if (!empty($_POST)) {
                     }
                     $SERVICE_CODE['ACTIVE'] = 1;
                     db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE, 'insert');
+                } else {
+                    $PK_SERVICE_MASTER = $table_data->fields['PK_SERVICE_MASTER'];
                 }
+                $service_location_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_LOCATION WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND PK_LOCATION = '$PK_LOCATION'");
+                if ($service_location_data->RecordCount() == 0) {
+                    $SERVICE_LOCATION_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                    $SERVICE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+                    db_perform_account('DOA_SERVICE_LOCATION', $SERVICE_LOCATION_DATA, 'insert');
+                }
+
                 $allServices->MoveNext();
             }
             break;
@@ -479,8 +485,6 @@ if (!empty($_POST)) {
 
                 $PACKAGE_LOCATION_DATA['PK_PACKAGE'] = $PK_PACKAGE;
                 $PACKAGE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
-
-
                 db_perform_account('DOA_PACKAGE_LOCATION', $PACKAGE_LOCATION_DATA, 'insert');
 
                 $packageServiceData = getPackageServices($allPackages->fields['package_id']);
@@ -1415,8 +1419,8 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                     <option value="">Select Database Name</option>
                                     <option value="AMSJ">AMSJ</option>
                                     <option value="AMTO">AMTO</option>
-                                    <option value="AMWH">AMWH</option>
-                                    <option value="AMLS" selected>AMLS</option>
+                                    <option value="AMWH" selected>AMWH</option>
+                                    <option value="AMLS">AMLS</option>
                                 </select>
                             </div>
                         </div>
