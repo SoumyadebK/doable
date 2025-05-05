@@ -16,22 +16,30 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION
 <div id="main-wrapper">
     <?php require_once('../includes/top_menu.php');?>
     <div class="page-wrapper">
-
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid body_content">
-
             <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
-                </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item active"><a href="reports.php">Reports</a></li>
-                            <li class="breadcrumb-item active"><a href="student_mailing_list.php"><?=$title?></a></li>
-                        </ol>
-
-                    </div>
+                <div class="col-md-12 align-self-start">
+                    <?php
+                    $currentURL = parse_url($_SERVER['REQUEST_URI']);
+                    $url = explode("/", $currentURL['path']);
+                    if($_SERVER['HTTP_HOST'] == 'localhost' ) {
+                        $address = $url[3];
+                    } else {
+                        $address = $url[2];
+                    }
+                    if ($address == "reports.php" || $address == "business_reports.php" || $address == "service_provider_reports.php" || $address == "electronic_miscellaneous_reports.php" || $address == "enrollment_reports.php" || $address == "student_mailing_list.php" || $address == "total_open_liability.php") { ?>
+                        <ul class="nav nav-pills justify-content-left">
+                            <li class="nav-item"><a class="nav-link <?=($address == 'reports.php') ? 'active' : ''?>" href="../admin/reports.php">Electronic Weekly Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'business_reports.php') ? 'active' : ''?>" href="../admin/business_reports.php">Business Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'service_provider_reports.php') ? 'active' : ''?>" href="../admin/service_provider_reports.php">Service Provider Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'electronic_miscellaneous_reports.php') ? 'active' : ''?>" href="../admin/electronic_miscellaneous_reports.php">Electronic Miscellaneous Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'enrollment_reports.php') ? 'active' : ''?>" href="../admin/enrollment_reports.php">Enrollment Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'customer_summary_report.php') ? 'active' : ''?>" href="../admin/customer_summary_report.php">Customer Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'student_mailing_list.php') ? 'active' : ''?>" href="../admin/student_mailing_list.php">Student Mailing List</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'total_open_liability.php') ? 'active' : ''?>" href="../admin/total_open_liability.php">Total Open Liability Since Last Activity</a></li>
+                        </ul>
+                    <?php } ?>
                 </div>
             </div>
 

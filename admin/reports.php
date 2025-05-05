@@ -56,19 +56,31 @@ if (!empty($_GET['NAME'])) {
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid body_content">
             <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
-                </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
-                    </div>
+                <div class="col-md-12 align-self-start">
+                    <?php
+                    $currentURL = parse_url($_SERVER['REQUEST_URI']);
+                    $url = explode("/", $currentURL['path']);
+                    if($_SERVER['HTTP_HOST'] == 'localhost' ) {
+                        $address = $url[3];
+                    } else {
+                        $address = $url[2];
+                    }
+                    if ($address == "reports.php" || $address == "business_reports.php" || $address == "service_provider_reports.php" || $address == "electronic_miscellaneous_reports.php" || $address == "enrollment_reports.php" || $address == "student_mailing_list.php" || $address == "total_open_liability.php") { ?>
+                        <ul class="nav nav-pills justify-content-left">
+                            <li class="nav-item"><a class="nav-link <?=($address == 'reports.php') ? 'active' : ''?>" href="../admin/reports.php">Electronic Weekly Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'business_reports.php') ? 'active' : ''?>" href="../admin/business_reports.php">Business Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'service_provider_reports.php') ? 'active' : ''?>" href="../admin/service_provider_reports.php">Service Provider Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'electronic_miscellaneous_reports.php') ? 'active' : ''?>" href="../admin/electronic_miscellaneous_reports.php">Electronic Miscellaneous Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'enrollment_reports.php') ? 'active' : ''?>" href="../admin/enrollment_reports.php">Enrollment Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'customer_summary_report.php') ? 'active' : ''?>" href="../admin/customer_summary_report.php">Customer Summary Report</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'student_mailing_list.php') ? 'active' : ''?>" href="../admin/student_mailing_list.php">Student Mailing List</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'total_open_liability.php') ? 'active' : ''?>" href="../admin/total_open_liability.php">Total Open Liability Since Last Activity</a></li>
+                        </ul>
+                    <?php } ?>
                 </div>
             </div>
 
-            <div class="row">
+            <!-- <div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="row" style="padding: 15px 35px 35px 35px;">
@@ -77,23 +89,23 @@ if (!empty($_GET['NAME'])) {
                                 <div>
                                     <ul class="menu-list">
                                         <li><a href="business_reports.php">Business Reports</a></li>
-                                        <!--<li><a href="electronic_weekly_reports.php">Electronic Weekly Reports</a></li>-->
+                                        <li><a href="electronic_weekly_reports.php">Electronic Weekly Reports</a></li>
                                         <li><a href="service_provider_reports.php">Service Provider Reports</a></li>
                                         <li><a href="electronic_miscellaneous_reports.php">Electronic Miscellaneous Reports</a></li>
                                         <li><a href="#">Enrollment Reports</a></li>
                                         <li><a href="customer_summary_report.php">Customer Reports</a></li>
                                         <li><a href="student_mailing_list.php">Student Mailing List</a></li>
                                         <li><a href="total_open_liability.php">Total Open Liability Since Last Activity</a></li>
-                                        <!--<li><a href="royalty.php">Royalty / Service Report</a></li>
+                                        <li><a href="royalty.php">Royalty / Service Report</a></li>
                                         <li><a href="summary_of_studio_business_report.php">Summary of Studio Business Report</a></li>
-                                        <li><a href="staff_performance_report.php">Staff Performance Report</a></li>-->
+                                        <li><a href="staff_performance_report.php">Staff Performance Report</a></li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <div class="row">
                 <div class="col-12">

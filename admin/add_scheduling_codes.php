@@ -78,6 +78,14 @@ if (empty($_GET['id'])) {
     $SORT_ORDER           = $res->fields['SORT_ORDER'];
     $ACTIVE               = $res->fields['ACTIVE'];
 }
+
+$help_title = '';
+$help_description = '';
+$help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'add_scheduling_codes'");
+if($help->RecordCount() > 0) {
+    $help_title = $help->fields['TITLE'];
+    $help_description = $help->fields['DESCRIPTION'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -106,12 +114,11 @@ if (empty($_GET['id'])) {
                 </div>
             </div>
 
-            <div class="row mb-20">
+            <div class="row">
                 <div class="col-8">
                     <div class="card">
                         <div class="card-body">
                             <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
-
                                 <div class="col-md-12 mb-3">
                                     <label for="SCHEDULING_CODE">Scheduling Code</label>
                                     <input type="text" class="form-control" id="SCHEDULING_CODE" name="SCHEDULING_CODE" value="<?php echo $SCHEDULING_CODE ?>" required>
@@ -186,7 +193,7 @@ if (empty($_GET['id'])) {
                                 </div>-->
                                 <div class="form-group">
                                     <label class="" for="example-text">To Dos</label>
-                                    <input type="checkbox" id="TO_DOS" name="TO_DOS" class="form-check-inline" style="margin-left: 10px;" <?=($TO_DOS == 1)?'checked':''?>
+                                    <input type="checkbox" id="TO_DOS" name="TO_DOS" class="form-check-inline" style="margin-left: 10px;" <?=($TO_DOS == 1)?'checked':''?>>
                                 </div>
                                 <!--<div class="form-group" style="margin-top: 15px">
                                     <label class="" for="example-text">Is Group</label>
@@ -250,10 +257,23 @@ if (empty($_GET['id'])) {
                                     </div>
                                 <?php } ?>
 
-
                                 <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Save'; } else { echo 'Update'; }?></button>
                                 <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_scheduling_codes.php'" >Cancel</button>
                             </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <h4 class="col-md-12" STYLE="text-align: center">
+                                    <?=$help_title?>
+                                </h4>
+                                <div class="col-md-12">
+                                    <text class="required-entry rich" id="DESCRIPTION"><?=$help_description?></text>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

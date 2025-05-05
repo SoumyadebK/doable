@@ -171,7 +171,7 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
                             </a>
                         </li>
                         <li class="<?=(('reports.php' === $current_address)?'active':'')?>">
-                            <a class="nav-link <?=(('reports.php' === $current_address)?'active':'')?>" href="../admin/reports.php" aria-expanded="false">
+                            <a class="nav-link <?=(('reports.php' === $current_address || 'business_reports.php' === $current_address || "service_provider_reports.php" === $current_address || "electronic_miscellaneous_reports.php" === $current_address || "enrollment_reports.php" === $current_address || "customer_summary_report.php" === $current_address || "student_mailing_list.php" === $current_address || "total_open_liability.php" === $current_address)?'active':'')?>" href="../admin/reports.php" aria-expanded="false">
                                 <i class="ti-bar-chart"></i>
                                 <span class="hide-menu">Reports</span>
                             </a>

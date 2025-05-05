@@ -42,6 +42,14 @@ else {
     $CORPORATION_NAME = $res->fields['CORPORATION_NAME'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
+
+$help_title = '';
+$help_description = '';
+$help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'corporation'");
+if($help->RecordCount() > 0) {
+    $help_title = $help->fields['TITLE'];
+    $help_description = $help->fields['DESCRIPTION'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -71,7 +79,7 @@ else {
             </div>
 
             <div class="row">
-                <div class="col-12">
+                <div class="col-8">
                     <div class="card">
                         <div class="card-body">
                             <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
@@ -82,7 +90,6 @@ else {
                                         <input type="text" id="CORPORATION_NAME" name="CORPORATION_NAME" class="form-control" placeholder="Enter Corporation Name" value="<?php echo $CORPORATION_NAME?>">
                                     </div>
                                 </div>
-
                                 <?php if(!empty($_GET['id'])) { ?>
                                     <div class="row" style="margin-bottom: 15px;">
                                         <div class="col-6">
@@ -96,10 +103,23 @@ else {
                                         </div>
                                     </div>
                                 <? } ?>
-
                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                                 <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_corporations.php'">Cancel</button>
                             </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <h4 class="col-md-12" STYLE="text-align: center">
+                                    <?=$help_title?>
+                                </h4>
+                                <div class="col-md-12">
+                                    <text class="required-entry rich" id="DESCRIPTION"><?=$help_description?></text>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -34,6 +34,14 @@ if (!empty($_GET['NAME'])) {
         }
     }
 }
+
+$mail_url = parse_url($_SERVER['REQUEST_URI']);
+$url_array = explode("/", $mail_url['path']);
+if($_SERVER['HTTP_HOST'] == 'localhost' ) {
+    $current_address = $url_array[3];
+} else {
+    $current_address = $url_array[2];
+}
 ?>
 
 <!DOCTYPE html>
@@ -57,16 +65,27 @@ if (!empty($_GET['NAME'])) {
         <?php require_once('../includes/top_menu_bar.php') ?>
         <div class="container-fluid body_content">
             <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
-                </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="reports.php">All Reports</a></li>
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
-                    </div>
+                <div class="col-md-12 align-self-start">
+                    <?php
+                    $currentURL = parse_url($_SERVER['REQUEST_URI']);
+                    $url = explode("/", $currentURL['path']);
+                    if($_SERVER['HTTP_HOST'] == 'localhost' ) {
+                        $address = $url[3];
+                    } else {
+                        $address = $url[2];
+                    }
+                    if ($address == "business_reports.php" || $address == "business_reports.php" || $address == "service_provider_reports.php" || $address == "electronic_miscellaneous_reports.php" || $address == "all_locations.php" || $address == "all_users.php" || $address == "deleted_customer.php") { ?>
+                        <ul class="nav nav-pills justify-content-left">
+                            <li class="nav-item"><a class="nav-link <?=($address == 'reports.php') ? 'active' : ''?>" href="../admin/reports.php">Electronic Weekly Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'business_reports.php') ? 'active' : ''?>" href="../admin/business_reports.php">Business Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'service_provider_reports.php') ? 'active' : ''?>" href="../admin/service_provider_reports.php">Service Provider Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'electronic_miscellaneous_reports.php') ? 'active' : ''?>" href="../admin/electronic_miscellaneous_reports.php">Electronic Miscellaneous Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'enrollment_reports.php') ? 'active' : ''?>" href="../admin/enrollment_reports.php">Enrollment Reports</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'customer_reports.php') ? 'active' : ''?>" href="../admin/customer_reports.php">Customer Summary Report</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'student_mailing_list.php') ? 'active' : ''?>" href="../admin/student_mailing_list.php">Student Mailing List</a></li>
+                            <li class="nav-item"><a class="nav-link <?=($address == 'deleted_customer.php') ? 'active' : ''?>" href="../admin/deleted_customer.php">Total Open Liability Since Last Activity</a></li>
+                        </ul>
+                    <?php } ?>
                 </div>
             </div>
             <div class="row">
