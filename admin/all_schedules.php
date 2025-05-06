@@ -1000,6 +1000,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
                     $(element).find(".fc-title").prepend(' <strong style="color: ' + event_data.statusColor + '">(' + event_data.status + ')</strong> ');
                 }
                 if (event_data.comment || event_data.internal_comment) {
+                    $('.popover').remove();
                     $(element).find(".fc-title").prepend(' <i class="fa fa-comment-dots" style="font-size: 15px"></i> ');
                     $(info.el).popover({
                         title: info.event.title,
