@@ -522,6 +522,20 @@ if (!empty($_POST)) {
             break;
 
         case "DOA_ENROLLMENT":
+            $upload_path = 'uploads/'.$PK_ACCOUNT_MASTER;
+
+            if (!file_exists('../'.$upload_path.'/enrollment_pdf/')) {
+                mkdir('../'.$upload_path.'/enrollment_pdf/', 0777, true);
+                chmod('../'.$upload_path.'/enrollment_pdf/', 0777);
+            }
+            
+            $location_data = $db->Execute("SELECT LOCATION_CODE FROM DOA_LOCATION WHERE PK_LOCATION = '$PK_LOCATION'");
+            $LOCATION_CODE = $location_data->fields['LOCATION_CODE'];
+            if (!file_exists('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/')) {
+                mkdir('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/', 0777, true);
+                chmod('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/', 0777);
+            }
+
             $allEnrollments = getAllEnrollments();
             while (!$allEnrollments->EOF) {
                 $enrollment_id = $allEnrollments->fields['enrollment_id'];
@@ -579,7 +593,11 @@ if (!empty($_POST)) {
                 $ENROLLMENT_DATA['IS_SALE'] = $allEnrollments->fields['is_sale'];
                 $ENROLLMENT_DATA['STATUS'] = "A";
                 $ENROLLMENT_DATA['ENROLLMENT_DATE'] = $allEnrollments->fields['enrollment_date'];
-                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = $allEnrollments->fields['enroll_pdf_file'] . '.pdf';
+
+                $location_data = $db->Execute("SELECT LOCATION_CODE FROM DOA_LOCATION WHERE PK_LOCATION = '$PK_LOCATION'");
+                $LOCATION_CODE = $location_data->fields['LOCATION_CODE'];
+
+                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = ($allEnrollments->fields['enroll_pdf_file']) ? $LOCATION_CODE.'/'.$allEnrollments->fields['enroll_pdf_file'] . '.pdf' : NULL;
                 $ENROLLMENT_DATA['CHARGE_TYPE'] = 0;
                 $ENROLLMENT_DATA['EXPIRY_DATE'] = $allEnrollments->fields['expdate'];
                 $ENROLLMENT_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
@@ -1326,11 +1344,25 @@ if (!empty($_POST)) {
             break;
 
         case 'ENR_PDF':
+            $upload_path = 'uploads/'.$PK_ACCOUNT_MASTER;
+
+            if (!file_exists('../'.$upload_path.'/enrollment_pdf/')) {
+                mkdir('../'.$upload_path.'/enrollment_pdf/', 0777, true);
+                chmod('../'.$upload_path.'/enrollment_pdf/', 0777);
+            }
+            
+            $location_data = $db->Execute("SELECT LOCATION_CODE FROM DOA_LOCATION WHERE PK_LOCATION = '$PK_LOCATION'");
+            $LOCATION_CODE = $location_data->fields['LOCATION_CODE'];
+            if (!file_exists('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/')) {
+                mkdir('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/', 0777, true);
+                chmod('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/', 0777);
+            }
+
             $allEnrollments = getAllEnrollments();
             while (!$allEnrollments->EOF) {
-                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = ($allEnrollments->fields['enroll_pdf_file']) ? $allEnrollments->fields['enroll_pdf_file'] . '.pdf' : NULL;
+                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = ($allEnrollments->fields['enroll_pdf_file']) ? $LOCATION_CODE.'/'.$allEnrollments->fields['enroll_pdf_file'] . '.pdf' : NULL;
                 $enrollment_id = $allEnrollments->fields['enrollment_id'];
-                db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'update', " ENROLLMENT_ID = '$enrollment_id'");
+                db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'update', " ENROLLMENT_ID = '$enrollment_id' AND PK_LOCATION = '$PK_LOCATION'");
                 $allEnrollments->MoveNext();
             }
             break;
@@ -1446,7 +1478,7 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                     <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
                                     <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
 
-                                    <!--<option value="ENR_PDF">ENR_PDF</option>-->
+                                    <option value="ENR_PDF">ENR_PDF</option>
 
 
 

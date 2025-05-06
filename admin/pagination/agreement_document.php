@@ -7,12 +7,18 @@ global $upload_path;
 <?php
 $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
 $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = ".$PK_USER_MASTER);
-while (!$res->EOF) {?>
+
+// Convert the relative path to an absolute filesystem path
+$filesystem_path = $_SERVER['DOCUMENT_ROOT'] . '/' . $upload_path . '/enrollment_pdf/';
+
+while (!$res->EOF) {
+    $file_path = $filesystem_path . $res->fields['AGREEMENT_PDF_LINK'];
+    ?>
     <div style="margin-top: 5px">
-        <?php if(file_exists('../'.$upload_path.'/enrollment_pdf/'.$res->fields['AGREEMENT_PDF_LINK'])) { ?>
+        <?php if (file_exists($file_path)) { ?>
             <?=$res->fields['ENROLLMENT_ID']?> - <a href="../<?=$upload_path?>/enrollment_pdf/<?=$res->fields['AGREEMENT_PDF_LINK']?>" target="_blank">  View Agreement</a><br>
         <?php } else { ?>
-            <?=$res->fields['ENROLLMENT_ID']?> - <a href="javascript:">  View Agreement (Not Available)</a><br>
+            <?=$res->fields['ENROLLMENT_ID']?> - <a href="javascript:"> (Not Available)</a><br>
         <?php } ?>
     </div>
     <?php $res->MoveNext();

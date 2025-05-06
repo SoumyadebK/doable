@@ -386,5 +386,35 @@
             display: inline-block;
             vertical-align: middle;
         }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: #069419F0 !important;
+            border: 1px solid #069419F0 !important;
+        }
+
+        input[type="checkbox"]:checked::after {
+            content: "";
+            position: absolute;
+            left: 6px; /* Adjust for proper alignment */
+            top: 3px; /* Adjust for proper alignment */
+            width: 6px;
+            height: 12px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            display: block;
+        }
     </style>
 </head>

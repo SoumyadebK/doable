@@ -533,7 +533,7 @@ if(!empty($_GET['id'])) {
                                                                                     </div>
                                                                                     <div class="col-1" style="width: 4.5%; margin-top: 7px;">
                                                                                         <input type="hidden" name="PK_RATE_TYPE[]" value="<?=$row->fields['PK_RATE_TYPE']?>">
-                                                                                        <input type="checkbox" class="form-check-input engagement_terms" name="PK_RATE_TYPE_ACTIVE[<?=$i?>]" id="<?=$row->fields['PK_RATE_TYPE']?>" value="1" <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'':'checked'?>>
+                                                                                        <input type="checkbox" class="engagement_terms" name="PK_RATE_TYPE_ACTIVE[<?=$i?>]" id="<?=$row->fields['PK_RATE_TYPE']?>" value="1" <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'':'checked'?>>
                                                                                     </div>
                                                                                     <div class="col-4" style="*display: <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'none':''?>;">
                                                                                         <div class="col-md-6">
@@ -563,7 +563,7 @@ if(!empty($_GET['id'])) {
                                                                                     </div>
                                                                                     <div class="col-1" style="width: 4.5%; margin-top: 7px;">
                                                                                         <input type="hidden" name="PK_RATE_TYPE[]" value="<?=$row->fields['PK_RATE_TYPE']?>">
-                                                                                        <input type="checkbox" class="form-check-input engagement_terms" oninput="setFormat(this)" name="PK_RATE_TYPE_ACTIVE[<?=$i?>]" id="<?=$row->fields['PK_RATE_TYPE']?>" value="1">
+                                                                                        <input type="checkbox" class="engagement_terms" oninput="setFormat(this)" name="PK_RATE_TYPE_ACTIVE[<?=$i?>]" id="<?=$row->fields['PK_RATE_TYPE']?>" value="1">
                                                                                     </div>
                                                                                     <div class="col-4" style="display: <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'none':''?>;">
                                                                                         <div class="col-md-6">
@@ -594,7 +594,7 @@ if(!empty($_GET['id'])) {
                                                                                 </div>
                                                                                 <div class="col-1" style="width: 4.5%; margin-top: 7px;">
                                                                                     <input type="hidden" name="PK_RATE_TYPE[]" value="<?=$row->fields['PK_RATE_TYPE']?>">
-                                                                                    <input type="checkbox" class="form-check-input engagement_terms" oninput="setFormat(this)" name="PK_RATE_TYPE_ACTIVE[<?=$i?>]" id="<?=$row->fields['PK_RATE_TYPE']?>" value="1">
+                                                                                    <input type="checkbox" class="engagement_terms" oninput="setFormat(this)" name="PK_RATE_TYPE_ACTIVE[<?=$i?>]" id="<?=$row->fields['PK_RATE_TYPE']?>" value="1">
                                                                                 </div>
                                                                                 <div class="col-4" style="display: <?=(is_null($row->fields['ACTIVE']) || $row->fields['ACTIVE'] == 0)?'none':''?>;">
                                                                                     <div class="col-md-6">
