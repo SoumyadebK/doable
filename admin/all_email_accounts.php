@@ -61,7 +61,7 @@ if ($header_data->RecordCount() > 0) {
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db_account->Execute("SELECT * FROM `DOA_EMAIL_ACCOUNT` WHERE PK_LOCATION > 0");
+                                    $row = $db_account->Execute("SELECT * FROM `DOA_EMAIL_ACCOUNT` LEFT JOIN DOA_EMAIL_ACCOUNT_LOCATION ON DOA_EMAIL_ACCOUNT.PK_EMAIL_ACCOUNT = DOA_EMAIL_ACCOUNT_LOCATION.PK_EMAIL_ACCOUNT WHERE DOA_EMAIL_ACCOUNT_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") GROUP BY DOA_EMAIL_ACCOUNT.PK_EMAIL_ACCOUNT ORDER BY DOA_EMAIL_ACCOUNT.PK_EMAIL_ACCOUNT DESC"); 
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_EMAIL_ACCOUNT']?>);"><?=$row->fields['HOST']?></td>

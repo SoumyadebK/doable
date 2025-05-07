@@ -34,6 +34,15 @@ if (!empty($_POST)) {
         db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_ACCOUNT_DATA, 'update', " PK_EMAIL_ACCOUNT = '$_GET[id]'");
         $PK_EMAIL_ACCOUNT = $_GET['id'];
     }
+
+    $db_account->Execute("DELETE FROM `DOA_EMAIL_ACCOUNT_LOCATION` WHERE `PK_EMAIL_ACCOUNT` = '$PK_EMAIL_ACCOUNT'");
+    if (isset($_POST['PK_LOCATION'])) {
+        for ($k = 0; $k < count($_POST['PK_LOCATION']); $k++) {
+            $EMAIL_ACCOUNT_LOCATION_DATA['PK_EMAIL_ACCOUNT'] = $PK_EMAIL_ACCOUNT;
+            $EMAIL_ACCOUNT_LOCATION_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'][$k];
+            db_perform_account('DOA_EMAIL_ACCOUNT_LOCATION', $EMAIL_ACCOUNT_LOCATION_DATA, 'insert');
+        }
+    }
     header("location:all_email_accounts.php");
 }
 $pageHeaderTitle = "";
@@ -64,6 +73,36 @@ if (empty($_GET['id'])) {
 <?php require_once('../includes/header.php');?>
 <body class="skin-default-dark fixed-layout">
 <?php require_once('../includes/loader.php');?>
+<style>
+    /* Style the input wrapper */
+    .password-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    /* Style the password input box */
+    .password-wrapper input {
+        padding-right: 40px; /* Space for the eye icon */
+        
+        height: 40px;
+        font-size: 15px;
+    }
+
+    /* Style the eye icon */
+    .password-wrapper .eye-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    /* Optional: Icon hover effect */
+    .password-wrapper .eye-icon:hover {
+        color: #007bff;
+    }
+</style>
 <div id="main-wrapper">
     <?php require_once('../includes/top_menu.php');?>
         <div class="page-wrapper">
@@ -91,14 +130,22 @@ if (empty($_GET['id'])) {
                             <div class="card-body">
                                 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
 
-                                    <div class="col-12">
+                                    <div class="col-9">
                                         <label class="form-label">Location</label>
                                         <div class="col-md-12 multiselect-box">
                                             <select class="multi_sumo_select_location" name="PK_LOCATION[]" id="PK_LOCATION" multiple>
                                                 <?php
+                                                $selected_location = [];
+                                                if(!empty($_GET['id'])) {
+                                                    $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_EMAIL_ACCOUNT_LOCATION` WHERE `PK_EMAIL_ACCOUNT` = '$_GET[id]'");
+                                                    while (!$selected_location_row->EOF) {
+                                                        $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                                        $selected_location_row->MoveNext();
+                                                    }
+                                                }
                                                 $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                 while (!$row->EOF) { ?>
-                                                    <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=($row->fields['PK_LOCATION'] == $PK_LOCATION)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
+                                                    <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
                                                 <?php $row->MoveNext(); } ?>
                                             </select>
                                         </div>
@@ -119,9 +166,16 @@ if (empty($_GET['id'])) {
                                         <input type="text" class="form-control" id="USER_NAME" name="USER_NAME" value="<?php echo $USER_NAME ?>" required>
                                     </div>
 
-                                    <div class="col-md-12 mb-3">
+                                    <div class="col-md-12 mb-3 password-wrapper">
                                         <label for="PASSWORD">Password</label>
-                                        <input type="text" class="form-control" id="PASSWORD" name="PASSWORD" value="<?php echo $PASSWORD ?>">
+                                        <div class="row">
+                                        <div class="col-md-12" style="position: relative; padding-right: 10px;">
+                                            <input type="password" class="form-control" id="PASSWORD" name="PASSWORD" value="<?php echo $PASSWORD ?>">
+                                            <a href="javascript:" onclick="togglePasswordVisibility()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);">
+                                            <i class="icon-eye"></i>
+                                            </a>
+                                        </div>
+                                        </div>
                                     </div>
 
                                     <?php if(!empty($_GET['id'])){?>
@@ -156,6 +210,15 @@ if (empty($_GET['id'])) {
 
 <script>
     $('#PK_LOCATION').SumoSelect({placeholder: 'Select Location', selectAll: true});
+
+    function togglePasswordVisibility() {
+        let passwordInput = document.getElementById("PASSWORD");
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text"; // Show password
+        } else {
+            passwordInput.type = "password"; // Hide password
+        }
+    }
 </script>
 
 </body>

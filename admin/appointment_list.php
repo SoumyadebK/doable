@@ -273,6 +273,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                         <tr>
                                             <th data-type="number" class="sortable" style="cursor: pointer">No</th>
                                             <th data-type="number" class="sortable" style="cursor: pointer">Service Name</th>
+                                            <th data-type="number" class="sortable" style="cursor: pointer">Class Name</th>
                                             <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
                                             <th data-type="string" class="sortable" style="cursor: pointer">Enrollment ID</th>
                                             <th data-type="string" class="sortable" style="cursor: pointer"><?=$service_provider_title?></th>
@@ -300,6 +301,7 @@ $page_first_result = ($page-1) * $results_per_page;
                                                     <span style="font-weight: bold; color: #1B72B8">(S)</span>
                                                 <?php } ?>
                                             </td>
+                                            <td><?=$appointment_data->fields['GROUP_NAME']?></td>
                                             <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
                                             <?php if (!empty($appointment_data->fields['ENROLLMENT_ID']) || !empty($appointment_data->fields['ENROLLMENT_NAME'])) { ?>
                                                 <td><?=(($appointment_data->fields['ENROLLMENT_NAME']) ? $appointment_data->fields['ENROLLMENT_NAME'].' - ' : '').$appointment_data->fields['ENROLLMENT_ID']." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
