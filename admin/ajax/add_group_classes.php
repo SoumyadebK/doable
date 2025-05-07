@@ -205,6 +205,8 @@ $AND_PK_USER = ' ';
 
     $('.timepicker-normal').timepicker({
         timeFormat: 'hh:mm p',
+        maxTime: '11:00pm',
+        minTime: '11:00am',
     });
 
     $('.DAYS').on('change', function(){
