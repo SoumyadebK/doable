@@ -48,8 +48,14 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
 }
 
 $service_master = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE SERVICE_CODE = 'COMM'");
-$PK_SERVICE_MASTER = $service_master->fields['PK_SERVICE_MASTER'];
-$PK_SERVICE_CODE = $service_master->fields['PK_SERVICE_CODE'];
+if ($service_master->RecordCount()==0) {
+    $PK_SERVICE_MASTER = 0;
+    $PK_SERVICE_CODE = 0;
+} else {
+    $PK_SERVICE_MASTER = $service_master->fields['PK_SERVICE_MASTER'];
+    $PK_SERVICE_CODE = $service_master->fields['PK_SERVICE_CODE'];
+}
+
 ?>
 
 

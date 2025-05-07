@@ -1286,6 +1286,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
     }
 
     function modifyAppointment(info) {
+        let OLD_SERVICE_PROVIDER_ID = info.oldResource.id;
         let event_data = info.event.extendedProps;
         let TYPE = event_data.type;
         let PK_ID = info.event.id;
@@ -1296,7 +1297,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
         $.ajax({
             url: "ajax/AjaxFunctions.php",
             type: "POST",
-            data: {FUNCTION_NAME:'modifyAppointment', PK_ID:PK_ID, TYPE:TYPE, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, START_DATE_TIME:START_DATE_TIME, END_DATE_TIME:END_DATE_TIME},
+            data: {FUNCTION_NAME:'modifyAppointment', PK_ID:PK_ID, TYPE:TYPE, OLD_SERVICE_PROVIDER_ID:OLD_SERVICE_PROVIDER_ID, SERVICE_PROVIDER_ID:SERVICE_PROVIDER_ID, START_DATE_TIME:START_DATE_TIME, END_DATE_TIME:END_DATE_TIME},
             async: false,
             cache: false,
             success: function (data) {
