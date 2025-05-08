@@ -355,7 +355,7 @@ function saveProfileData($RESPONSE_DATA){
         $USER_DATA['JOINING_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['CREATED_ON']));
         $USER_DATA['ACTIVE'] = $USER_DATA_ACCOUNT['ACCOUNT'] = 1;
         $USER_DATA['CREATED_BY']  = $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
-        $USER_DATA['CREATED_ON']  = date('Y-m-d', strtotime($RESPONSE_DATA['CREATED_ON']));
+        $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform('DOA_USERS', $USER_DATA, 'insert');
         $PK_USER = $db->insert_ID();
         $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
