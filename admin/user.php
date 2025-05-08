@@ -293,10 +293,10 @@ if(!empty($_GET['id'])) {
                                                             <div class="row">
                                                                 <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <label class="col-md-12">Country</label>
+                                                                        <label class="col-md-12">Country<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
                                                                             <div class="col-sm-12">
-                                                                                <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
+                                                                                <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
                                                                                     <option>Select Country</option>
                                                                                     <?php
                                                                                     $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
@@ -311,7 +311,7 @@ if(!empty($_GET['id'])) {
 
                                                                 <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <label class="col-md-12">State</label>
+                                                                        <label class="col-md-12">State<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
                                                                             <div class="col-sm-12">
                                                                                 <div id="State_div"></div>
@@ -415,9 +415,9 @@ if(!empty($_GET['id'])) {
                                                             <div class="row">
                                                                 <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <label class="col-md-12">User Name</label>
+                                                                        <label class="col-md-12">User Name<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>">
+                                                                            <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>" required>
                                                                             <div id="uname_result"></div>
                                                                         </div>
                                                                     </div>
@@ -506,7 +506,9 @@ if(!empty($_GET['id'])) {
                                                         </div>
                                                         <div class="form-group">
                                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?=empty($_GET['id'])?'Continue':'Save'?></button>
-                                                            <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="$('#change_password_div').slideToggle();">Change Password</a>
+                                                            <?php if(!empty($_GET['id']) && $PASSWORD != '') { ?>
+                                                                <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="$('#change_password_div').slideToggle();">Change Password</a>
+                                                            <?php } ?>
                                                             <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                                         </div>
                                                     </form>
@@ -1202,6 +1204,7 @@ if(!empty($_GET['id'])) {
         });
 
         function getLocationHours() {
+            let PK_USER = $('.PK_USER').val();
             $.ajax({
                 url: "ajax/get_location_hours.php",
                 type: 'POST',
