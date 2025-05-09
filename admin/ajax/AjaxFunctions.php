@@ -1333,6 +1333,9 @@ function saveLocationData($RESPONSE_DATA){
             $EMAIL_DATA['EDITED_ON'] = date("Y-m-d H:i");
             db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_LOCATION = '$PK_LOCATION'");
         }    
+        
+        $response['success'] = true;
+        echo json_encode($response);
 }
 
 function saveLocationHourData($RESPONSE_DATA){
