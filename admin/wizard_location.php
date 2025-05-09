@@ -217,13 +217,13 @@ if(!empty($_POST)){
                 $PK_LOCATION = (int)$_GET['id'];
                 $DAY_NUMBER = (int)($i+1);
                 $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = $_GET['id'];
-                $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $i + 1;
+                $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $DAY_NUMBER;
                 $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = ($ALL_DAYS == 0) ? (($_POST['OPEN_TIME'][$i])?date('H:i', strtotime($_POST['OPEN_TIME'][$i])):'') : date('H:i', strtotime($_POST['OPEN_TIME'][0]));
                 $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = ($ALL_DAYS == 0) ? (($_POST['CLOSE_TIME'][$i])?date('H:i', strtotime($_POST['CLOSE_TIME'][$i])):'') : date('H:i', strtotime($_POST['CLOSE_TIME'][0]));
                 $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_'.$i])?1:0;
                 db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'update', " PK_LOCATION =  $PK_LOCATION AND DAY_NUMBER = $DAY_NUMBER");
             }
-        }else {
+        } else {
             if (count($_POST['OPEN_TIME']) > 0) {
                 for ($i = 0; $i < count($_POST['OPEN_TIME']); $i++) {
                     $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = $_GET['id'];
