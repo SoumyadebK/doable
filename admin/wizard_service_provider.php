@@ -5,7 +5,7 @@ global $db;
 $title = "Add Service Provider";
 
 $userType = "Users";
-$user_role_condition = " AND PK_ROLES IN(5)";
+$user_role_condition = " AND PK_ROLES IN(2,3,5,6,7,8,9,10)";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
@@ -833,6 +833,7 @@ if(!empty($_GET['id'])) {
     </div>
 
     <?php require_once('../includes/footer.php');?>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
     <script>
         $('.datepicker-past').datepicker({
@@ -1314,6 +1315,34 @@ if(!empty($_GET['id'])) {
             if ($(this).attr('id') == 5 && $(this).is(':checked')) {
                 $('#4').prop('checked', false);
             }
+        });
+
+        // Validate role selection on form submit
+        document.getElementById('profile_form').addEventListener('submit', function(e) {
+            const roleSelect = document.getElementById('PK_ROLES');
+            const selectedRoles = Array.from(roleSelect.selectedOptions).map(opt => opt.value);
+            
+            if (!selectedRoles.includes('5')) {
+                e.preventDefault(); // Stop form submission
+                //alert('Error: Service Provider role is mandatory in this stage. Please select it before submitting.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing Required Role',
+                    html: '<b>Service Provider</b> role is mandatory in this stage. Please select it before submitting.',
+                    confirmButtonColor: '#3085d6',
+                }).then(() => {
+                    $('#PK_ROLES').focus().css('border-color', '#ff7675');
+                });
+                roleSelect.focus(); // Focus on the role dropdown
+                roleSelect.style.border = '1px solid red'; // Highlight in red
+                return false;
+            }
+            return true;
+        });
+
+        // Optional: Clear the red border when user changes selection
+        document.getElementById('PK_ROLES').addEventListener('change', function() {
+            this.style.border = '';
         });
     </script>
 </body>
