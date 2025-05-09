@@ -127,7 +127,7 @@ if(!empty($_POST)){
         }
     }
 
-    header("location:wizard_location.php");
+    header("location:wizard_corporation.php");
 }
 
 $header_text = '';
