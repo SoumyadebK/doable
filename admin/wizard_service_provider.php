@@ -1169,6 +1169,7 @@ if(!empty($_GET['id'])) {
         });
 
         function getLocationHours() {
+            let PK_USER = $('.PK_USER').val();
             $.ajax({
                 url: "ajax/get_location_hours.php",
                 type: 'POST',
