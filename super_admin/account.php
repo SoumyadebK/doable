@@ -415,7 +415,7 @@ while (!$account_payment_info->EOF) {
                                                 <div class="row">
                                                     <div class="col-6">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Country</label>
+                                                            <label class="col-md-12">Country<span class="text-danger">*</span></label>
                                                             <div class="col-md-12">
                                                                 <div class="col-sm-12">
                                                                     <select class="form-control" name="ACCOUNT_PK_COUNTRY" id="ACCOUNT_PK_COUNTRY" onChange="fetch_Account_State(this.value)" required>
@@ -665,7 +665,7 @@ while (!$account_payment_info->EOF) {
                                                             <label class="col-md-12">Country<span class="text-danger">*</span></label>
                                                             <div class="col-md-12">
                                                                 <div class="col-sm-12">
-                                                                    <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
+                                                                    <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
                                                                         <option>Select Country</option>
                                                                         <?php
                                                                         $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
