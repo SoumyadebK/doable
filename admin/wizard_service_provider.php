@@ -204,7 +204,7 @@ if(!empty($_GET['id'])) {
                                                                     <label class="col-md-12"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?=($CREATE_LOGIN == 1)?'checked':''?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
                                                                 </div>
                                                                 <div class="col-2">
-                                                                    <label class="col-md-12"><input type="checkbox" id="APPEAR_IN_CALENDAR" name="APPEAR_IN_CALENDAR" class="form-check-inline" <?=($APPEAR_IN_CALENDAR == 1)?'checked':''?> style="margin-top: 30px;"> Appear In Calendar</label>
+                                                                    <label class="col-md-12"><input type="checkbox" id="APPEAR_IN_CALENDAR" name="APPEAR_IN_CALENDAR" class="form-check-inline" style="margin-top: 30px;" checked> Appear In Calendar</label>
                                                                 </div>
                                                                 <div id="display_order" class="col-2">
                                                                     <div class="form-group">
@@ -1024,6 +1024,8 @@ if(!empty($_GET['id'])) {
             event.preventDefault();
             const PHONE = $('#PHONE').val().trim();
             const EMAIL_ID = $('#EMAIL_ID').val().trim();
+            const roleSelect = document.getElementById('PK_ROLES');
+            const selectedRoles = Array.from(roleSelect.selectedOptions).map(opt => opt.value);
             if (PHONE != '') {
                 $.ajax({
                     url: 'ajax/username_checker.php',
@@ -1041,6 +1043,20 @@ if(!empty($_GET['id'])) {
                                     success: function (response) {
                                         if(response && PK_USER == 0) {
                                             $('#email_result').html(response);
+                                        } else if (!selectedRoles.includes('5')) {
+                                            e.preventDefault(); // Stop form submission
+                                            //alert('Error: Service Provider role is mandatory in this stage. Please select it before submitting.');
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Missing Required Role',
+                                                html: '<b>Service Provider</b> role is mandatory in this stage. Please select it before submitting.',
+                                                confirmButtonColor: '#3085d6',
+                                            }).then(() => {
+                                                $('#PK_ROLES').focus().css('border-color', '#ff7675');
+                                            });
+                                            roleSelect.focus(); // Focus on the role dropdown
+                                            roleSelect.style.border = '1px solid red'; // Highlight in red
+                                            return false;
                                         } else {
                                             let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
                                             $.ajax({
@@ -1317,28 +1333,28 @@ if(!empty($_GET['id'])) {
             }
         });
 
-        // Validate role selection on form submit
-        document.getElementById('profile_form').addEventListener('submit', function(e) {
-            const roleSelect = document.getElementById('PK_ROLES');
-            const selectedRoles = Array.from(roleSelect.selectedOptions).map(opt => opt.value);
+        // // Validate role selection on form submit
+        // document.getElementById('profile_form').addEventListener('submit', function(e) {
+        //     const roleSelect = document.getElementById('PK_ROLES');
+        //     const selectedRoles = Array.from(roleSelect.selectedOptions).map(opt => opt.value);
             
-            if (!selectedRoles.includes('5')) {
-                e.preventDefault(); // Stop form submission
-                //alert('Error: Service Provider role is mandatory in this stage. Please select it before submitting.');
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Missing Required Role',
-                    html: '<b>Service Provider</b> role is mandatory in this stage. Please select it before submitting.',
-                    confirmButtonColor: '#3085d6',
-                }).then(() => {
-                    $('#PK_ROLES').focus().css('border-color', '#ff7675');
-                });
-                roleSelect.focus(); // Focus on the role dropdown
-                roleSelect.style.border = '1px solid red'; // Highlight in red
-                return false;
-            }
-            return true;
-        });
+        //     if (!selectedRoles.includes('5')) {
+        //         e.preventDefault(); // Stop form submission
+        //         //alert('Error: Service Provider role is mandatory in this stage. Please select it before submitting.');
+        //         Swal.fire({
+        //             icon: 'error',
+        //             title: 'Missing Required Role',
+        //             html: '<b>Service Provider</b> role is mandatory in this stage. Please select it before submitting.',
+        //             confirmButtonColor: '#3085d6',
+        //         }).then(() => {
+        //             $('#PK_ROLES').focus().css('border-color', '#ff7675');
+        //         });
+        //         roleSelect.focus(); // Focus on the role dropdown
+        //         roleSelect.style.border = '1px solid red'; // Highlight in red
+        //         return false;
+        //     }
+        //     return true;
+        // });
 
         // Optional: Clear the red border when user changes selection
         document.getElementById('PK_ROLES').addEventListener('change', function() {

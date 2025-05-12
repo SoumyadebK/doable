@@ -1335,6 +1335,7 @@ function saveLocationData($RESPONSE_DATA){
         }    
         
         $response['success'] = true;
+        $response['PK_LOCATION'] = $PK_LOCATION;
         echo json_encode($response);
 }
 

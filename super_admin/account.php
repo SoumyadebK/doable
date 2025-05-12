@@ -419,7 +419,7 @@ while (!$account_payment_info->EOF) {
                                                             <div class="col-md-12">
                                                                 <div class="col-sm-12">
                                                                     <select class="form-control" name="ACCOUNT_PK_COUNTRY" id="ACCOUNT_PK_COUNTRY" onChange="fetch_Account_State(this.value)" required>
-                                                                        <option>Select Country</option>
+                                                                        <option value="">Select Country</option>
                                                                         <?php
                                                                         $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
                                                                         while (!$row->EOF) { ?>

@@ -146,125 +146,63 @@ if ($account_payment_info->RecordCount() > 0) {
 }
 
 if(!empty($_POST)){
-    // if ($_POST['FUNCTION_NAME'] == 'saveLocationData') {
-    //     $EMAIL_DATA['HOST'] = $_POST['SMTP_HOST'];
-    //     $EMAIL_DATA['PORT'] = $_POST['SMTP_PORT'];
-    //     $EMAIL_DATA['USER_NAME'] = $_POST['SMTP_USERNAME'];
-    //     $EMAIL_DATA['PASSWORD'] = $_POST['SMTP_PASSWORD'];
-    //     unset($_POST['FUNCTION_NAME']);
-    //     unset($_POST['SMTP_HOST']);
-    //     unset($_POST['SMTP_PORT']);
-    //     unset($_POST['SMTP_USERNAME']);
-    //     unset($_POST['SMTP_PASSWORD']);
-    //     $LOCATION_DATA = $_POST;
-    //     $LOCATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-
-    //     if ($_FILES['IMAGE_PATH']['name'] != '') {
-    //         if (!file_exists('../'.$upload_path.'/location_image/')) {
-    //             mkdir('../'.$upload_path.'/location_image/', 0777, true);
-    //             chmod('../'.$upload_path.'/location_image/', 0777);
-    //         }
-
-    //         $extn = explode(".", $_FILES['IMAGE_PATH']['name']);
-    //         $iindex = count($extn) - 1;
-    //         $rand_string = time() . "-" . rand(100000, 999999);
-    //         $file11 = 'location_image_' . $_SESSION['PK_USER'] . $rand_string . "." . $extn[$iindex];
-    //         $extension = strtolower($extn[$iindex]);
-
-    //         if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-    //             $image_path = '../'.$upload_path.'/location_image/' . $file11;
-    //             move_uploaded_file($_FILES['IMAGE_PATH']['tmp_name'], $image_path);
-    //             $LOCATION_DATA['IMAGE_PATH'] = $image_path;
-    //         }
-    //     }
-
-    //     if (empty($_GET['id'])) {
-    //         $LOCATION_DATA['ACTIVE'] = 1;
-    //         $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-    //         $LOCATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
-    //         db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
-    //         $PK_LOCATION = $db->insert_ID();
-    //         $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
-    //         $LOCATION_ARRAY[] = $PK_LOCATION;
-    //         $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
-    //     } else {
-    //         $LOCATION_DATA['ACTIVE'] = $_POST['ACTIVE'];
-    //         $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-    //         $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
-    //         db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_GET[id]'");
-    //         $PK_LOCATION = $_GET['id'];
-    //     }
-    //     $EMAIL_DATA['PK_LOCATION'] = $PK_LOCATION;
-    //     $EMAIL_DATA['ACTIVE'] = 1;
-    //     $EMAIL_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-    //     $EMAIL_DATA['CREATED_ON'] = date("Y-m-d H:i");
-
-    //     $email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = ".$PK_LOCATION);
-    //     if ($email->RecordCount() == 0) {
-    //         db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'insert');
-    //     } else {
-    //         $EMAIL_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-    //         $EMAIL_DATA['EDITED_ON'] = date("Y-m-d H:i");
-    //         db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_LOCATION = '$PK_LOCATION'");
-    //     }
-    // }
-
     if ($_POST['FUNCTION_NAME'] == 'saveOperationalHours') {
-        $ALL_DAYS = isset($_POST['ALL_DAYS'])?1:0;
-        $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$_GET[id]'");
+        $ALL_DAYS = isset($_POST['ALL_DAYS']) ? 1 : 0;
+        $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '".(int)$_POST['PK_LOCATION']."'");
+    
         if($operational_hours->RecordCount() > 0){
             for ($i = 0; $i < count($_POST['OPEN_TIME']); $i++) {
-                $PK_LOCATION = (int)$_GET['id'];
+                $PK_LOCATION = (int)$_POST['PK_LOCATION'];
                 $DAY_NUMBER = (int)($i+1);
-                $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = $_GET['id'];
+                $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = $PK_LOCATION;
                 $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $DAY_NUMBER;
-                $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = ($ALL_DAYS == 0) ? (($_POST['OPEN_TIME'][$i])?date('H:i', strtotime($_POST['OPEN_TIME'][$i])):'') : date('H:i', strtotime($_POST['OPEN_TIME'][0]));
-                $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = ($ALL_DAYS == 0) ? (($_POST['CLOSE_TIME'][$i])?date('H:i', strtotime($_POST['CLOSE_TIME'][$i])):'') : date('H:i', strtotime($_POST['CLOSE_TIME'][0]));
-                $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_'.$i])?1:0;
-                db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'update', " PK_LOCATION =  $PK_LOCATION AND DAY_NUMBER = $DAY_NUMBER");
+                
+                // Special handling for 12:00 AM
+                $open_time = ($ALL_DAYS == 0) ? $_POST['OPEN_TIME'][$i] : $_POST['OPEN_TIME'][0];
+                if (strtoupper($open_time) == '12:00 AM' || strtoupper($open_time) == '12:00:00 AM') {
+                    $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = '24:00:00';
+                } else {
+                    $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = !empty($open_time) ? date('H:i:s', strtotime($open_time)) : '00:00:00';
+                }
+                
+                $close_time = ($ALL_DAYS == 0) ? $_POST['CLOSE_TIME'][$i] : $_POST['CLOSE_TIME'][0];
+                if (strtoupper($close_time) == '12:00 AM' || strtoupper($close_time) == '12:00:00 AM') {
+                    $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = '24:00:00';
+                } else {
+                    $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = !empty($close_time) ? date('H:i:s', strtotime($close_time)) : '00:00:00';
+                }
+                
+                $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_'.$i]) ? 1 : 0;
+                
+                db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'update', " PK_LOCATION = $PK_LOCATION AND DAY_NUMBER = $DAY_NUMBER");
             }
         } else {
             if (count($_POST['OPEN_TIME']) > 0) {
                 for ($i = 0; $i < count($_POST['OPEN_TIME']); $i++) {
-                    $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = $_GET['id'];
+                    $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = (int)$_POST['PK_LOCATION'];
                     $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $i + 1;
-                    $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = ($ALL_DAYS == 0) ? (($_POST['OPEN_TIME'][$i]) ? date('H:i', strtotime($_POST['OPEN_TIME'][$i])) : '') : date('H:i', strtotime($_POST['OPEN_TIME'][0]));
-                    $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = ($ALL_DAYS == 0) ? (($_POST['CLOSE_TIME'][$i]) ? date('H:i', strtotime($_POST['CLOSE_TIME'][$i])) : '') : date('H:i', strtotime($_POST['CLOSE_TIME'][0]));
-                    $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_' . $i]) ? 1 : 0;
+                    
+                    // Special handling for 12:00 AM
+                    $open_time = ($ALL_DAYS == 0) ? $_POST['OPEN_TIME'][$i] : $_POST['OPEN_TIME'][0];
+                    if (strtoupper($open_time) == '12:00 AM' || strtoupper($open_time) == '12:00:00 AM') {
+                        $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = '24:00:00';
+                    } else {
+                        $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = !empty($open_time) ? date('H:i:s', strtotime($open_time)) : '00:00:00';
+                    }
+                    
+                    $close_time = ($ALL_DAYS == 0) ? $_POST['CLOSE_TIME'][$i] : $_POST['CLOSE_TIME'][0];
+                    if (strtoupper($close_time) == '12:00 AM' || strtoupper($close_time) == '12:00:00 AM') {
+                        $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = '24:00:00';
+                    } else {
+                        $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = !empty($close_time) ? date('H:i:s', strtotime($close_time)) : '00:00:00';
+                    }
+                    
+                    $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_'.$i]) ? 1 : 0;
+                
                     db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'insert');
                 }
             }
         }
-    }
-
-    if ($_POST['FUNCTION_NAME'] == 'saveCreditCard') {
-        $STRIPE_TOKEN = $_POST['token'];
-        $ACCOUNT_PAYMENT_ID = '';
-        if ($account_payment_info->RecordCount() > 0) {
-            $ACCOUNT_PAYMENT_ID = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
-        } else {
-            $account_data = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-            try {
-                $customer = $stripe->customers->create([
-                    'email' => $EMAIL,
-                    'name' => $account_data->fields['BUSINESS_NAME'].'('.$LOCATION_NAME.')',
-                    'phone' => $PHONE,
-                    'description' => $account_data->fields['BUSINESS_NAME'].'('.$LOCATION_NAME.')',
-                ]);
-                $ACCOUNT_PAYMENT_ID = $customer->id;
-            } catch (ApiErrorException $e) {
-                pre_r($e->getMessage());
-            }
-
-            $STRIPE_DETAILS['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-            $STRIPE_DETAILS['PK_LOCATION'] = $PK_LOCATION;
-            $STRIPE_DETAILS['ACCOUNT_PAYMENT_ID'] = $ACCOUNT_PAYMENT_ID;
-            $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
-            $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_ACCOUNT_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
-        }
-        $card = $stripe->customers->createSource($ACCOUNT_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
-        $stripe->customers->update($ACCOUNT_PAYMENT_ID, ['default_source' => $card->id]);
     }
     header("location:wizard_scheduling_code.php");
 }
@@ -340,6 +278,7 @@ if(!empty($_POST)){
                                 <div class="tab-pane active" id="location_div" role="tabpanel">
                                     <form class="form-material form-horizontal" id="location_form" enctype="multipart/form-data">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
+                                        <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?=$PK_LOCATION?>">
                                         <div class="p-20">
                                             <div class="row">
                                                 <div class="col-6">
@@ -659,6 +598,7 @@ if(!empty($_POST)){
                                 <div class="tab-pane" id="operational_hours" role="tabpanel">
                                     <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveOperationalHours">
+                                        <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?=$PK_LOCATION?>">
                                         <div class="p-20" id="holiday_list_div">
                                             <div class="row">
                                                 <div class="col-3">
@@ -1008,6 +948,7 @@ if(!empty($_POST)){
                 success:function (data) {
                     console.log(data);
                     if (data.success) {
+                        $('.PK_LOCATION').val(data.PK_LOCATION);
                         $('#operational_hours_link')[0].click();
                     } else {
                         alert(data.message);
