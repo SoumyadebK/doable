@@ -880,12 +880,16 @@ if(!empty($_GET['id'])) {
         }
 
         $(document).on('focus', '.time-picker', function () {
+            let minTime = $(this).closest('.location-hours').find('.minTime').val();
+            let maxTime = $(this).closest('.location-hours').find('.maxTime').val();
             $(this).timepicker({
                 timeFormat: 'hh:mm p',
                 interval: 30,
                 dynamic: false,
                 dropdown: true,
-                scrollbar: true
+                scrollbar: true,
+                minTime: minTime,
+                maxTime: maxTime
             });
         });
 
@@ -893,7 +897,7 @@ if(!empty($_GET['id'])) {
             if ($(param).is(':checked')){
                 $(param).closest('.row').find('.time-input').val('');
                 $(param).closest('.row').find('.time-input').css('pointer-events', 'none');
-            }else {
+            } else {
                 $(param).closest('.row').find('.time-input').css('pointer-events', '');
             }
         }

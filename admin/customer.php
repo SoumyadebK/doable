@@ -2193,11 +2193,11 @@ if ($PK_USER_MASTER > 0) {
 
 <?php require_once('../includes/footer.php');?>
 
-<!--Wallet Payment Model-->
-<?php include('includes/add_money_to_wallet.php'); ?>
-
 <!--Payment Model-->
 <?php include('includes/enrollment_payment.php'); ?>
+
+<!--Wallet Payment Model-->
+<?php include('includes/add_money_to_wallet.php'); ?>
 
 <!--Add Credit Card Model-->
 <div class="modal fade payment_modal" id="add_credit_card_modal" tabindex="-1" aria-hidden="true">

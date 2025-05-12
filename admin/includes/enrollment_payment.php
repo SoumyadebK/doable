@@ -113,7 +113,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Email (For receiving payment confirmation mail)</label>
                                             <div class="col-md-12">
-                                                <input type="email" name="EMAIL" id="EMAIL" class="form-control" value="<?=$customer_data->fields['EMAIL_ID']?>">
+                                                <input type="email" name="EMAIL" id="EMAIL" class="form-control" value="<?=$customer_data->fields['EMAIL_ID']?>" required>
                                             </div>
                                         </div>
                                     </div>
@@ -123,7 +123,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Card Number</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" placeholder="Card Number" class="form-control">
+                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" placeholder="Card Number" class="form-control format-card" required>
                                             </div>
                                         </div>
                                     </div>
@@ -133,7 +133,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Expiration Month</label>
                                             <div class="col-md-12">
-                                                <select name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control">
+                                                <select name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control" required>
                                                     <?php
                                                     for ($i = 1; $i <= 12; $i++) { ?>
                                                         <option value="<?=$i?>"><?=$i?></option>
@@ -146,7 +146,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Expiration Year</label>
                                             <div class="col-md-12">
-                                                <select name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control">
+                                                <select name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control" required>
                                                     <?php
                                                     $year = (int)date('Y');
                                                     for ($i = $year; $i <= $year+25; $i++) { ?>
@@ -160,7 +160,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Security Code</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control">
+                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" required>
                                             </div>
                                         </div>
                                     </div>
@@ -550,7 +550,7 @@ async function addSquareTokenOnForm() {
                 }
 
                 if (PAYMENT_GATEWAY == 'Authorized.net') {
-                    $("#CARD_NUMBER").inputmask({
+                    $(".format-card").inputmask({
                         mask: "9999 9999 9999 9999",
                         placeholder: ""
                     });
