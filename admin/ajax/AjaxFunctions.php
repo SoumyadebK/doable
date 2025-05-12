@@ -1270,69 +1270,72 @@ function saveEngagementData($RESPONSE_DATA){
     }
 }
 
-function saveLocationData($RESPONSE_DATA) {
+function saveLocationData($RESPONSE_DATA){
     global $db;
     global $db_account;
-    $EMAIL_DATA['HOST'] = $RESPONSE_DATA['SMTP_HOST'];
-    $EMAIL_DATA['PORT'] = $RESPONSE_DATA['SMTP_PORT'];
-    $EMAIL_DATA['USER_NAME'] = $RESPONSE_DATA['SMTP_USERNAME'];
-    $EMAIL_DATA['PASSWORD'] = $RESPONSE_DATA['SMTP_PASSWORD'];
-    unset($RESPONSE_DATA['FUNCTION_NAME']);
-    unset($RESPONSE_DATA['SMTP_HOST']);
-    unset($RESPONSE_DATA['SMTP_PORT']);
-    unset($RESPONSE_DATA['SMTP_USERNAME']);
-    unset($RESPONSE_DATA['SMTP_PASSWORD']);
-    $LOCATION_DATA = $RESPONSE_DATA;
-    $LOCATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $EMAIL_DATA['HOST'] = $RESPONSE_DATA['SMTP_HOST'];
+        $EMAIL_DATA['PORT'] = $RESPONSE_DATA['SMTP_PORT'];
+        $EMAIL_DATA['USER_NAME'] = $RESPONSE_DATA['SMTP_USERNAME'];
+        $EMAIL_DATA['PASSWORD'] = $RESPONSE_DATA['SMTP_PASSWORD'];
+        unset($RESPONSE_DATA['FUNCTION_NAME']);
+        unset($RESPONSE_DATA['SMTP_HOST']);
+        unset($RESPONSE_DATA['SMTP_PORT']);
+        unset($RESPONSE_DATA['SMTP_USERNAME']);
+        unset($RESPONSE_DATA['SMTP_PASSWORD']);
+        $LOCATION_DATA = $RESPONSE_DATA;
+        $LOCATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
 
-    if ($_FILES['IMAGE_PATH']['name'] != '') {
-        if (!file_exists('../'.$upload_path.'/location_image/')) {
-            mkdir('../'.$upload_path.'/location_image/', 0777, true);
-            chmod('../'.$upload_path.'/location_image/', 0777);
+        if ($_FILES['IMAGE_PATH']['name'] != '') {
+            if (!file_exists('../'.$upload_path.'/location_image/')) {
+                mkdir('../'.$upload_path.'/location_image/', 0777, true);
+                chmod('../'.$upload_path.'/location_image/', 0777);
+            }
+
+            $extn = explode(".", $_FILES['IMAGE_PATH']['name']);
+            $iindex = count($extn) - 1;
+            $rand_string = time() . "-" . rand(100000, 999999);
+            $file11 = 'location_image_' . $_SESSION['PK_USER'] . $rand_string . "." . $extn[$iindex];
+            $extension = strtolower($extn[$iindex]);
+
+            if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
+                $image_path = '../'.$upload_path.'/location_image/' . $file11;
+                move_uploaded_file($_FILES['IMAGE_PATH']['tmp_name'], $image_path);
+                $LOCATION_DATA['IMAGE_PATH'] = $image_path;
+            }
         }
 
-        $extn = explode(".", $_FILES['IMAGE_PATH']['name']);
-        $iindex = count($extn) - 1;
-        $rand_string = time() . "-" . rand(100000, 999999);
-        $file11 = 'location_image_' . $_SESSION['PK_USER'] . $rand_string . "." . $extn[$iindex];
-        $extension = strtolower($extn[$iindex]);
-
-        if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-            $image_path = '../'.$upload_path.'/location_image/' . $file11;
-            move_uploaded_file($_FILES['IMAGE_PATH']['tmp_name'], $image_path);
-            $LOCATION_DATA['IMAGE_PATH'] = $image_path;
+        if (empty($_GET['id'])) {
+            $LOCATION_DATA['ACTIVE'] = 1;
+            $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+            $LOCATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
+            db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
+            $PK_LOCATION = $db->insert_ID();
+            $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
+            $LOCATION_ARRAY[] = $PK_LOCATION;
+            $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
+        } else {
+            $LOCATION_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+            $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+            $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
+            db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_GET[id]'");
+            $PK_LOCATION = $_GET['id'];
         }
-    }
+        $EMAIL_DATA['PK_LOCATION'] = $PK_LOCATION;
+        $EMAIL_DATA['ACTIVE'] = 1;
+        $EMAIL_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $EMAIL_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
-    if (empty($_GET['id'])) {
-        $LOCATION_DATA['ACTIVE'] = 1;
-        $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $LOCATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
-        $PK_LOCATION = $db->insert_ID();
-        $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
-        $LOCATION_ARRAY[] = $PK_LOCATION;
-        $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
-    } else {
-        $LOCATION_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
-        $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_GET[id]'");
-        $PK_LOCATION = $_GET['id'];
-    }
-    $EMAIL_DATA['PK_LOCATION'] = $PK_LOCATION;
-    $EMAIL_DATA['ACTIVE'] = 1;
-    $EMAIL_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-    $EMAIL_DATA['CREATED_ON'] = date("Y-m-d H:i");
-
-    $email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = ".$PK_LOCATION);
-    if ($email->RecordCount() == 0) {
-        db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'insert');
-    } else {
-        $EMAIL_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $EMAIL_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_LOCATION = '$PK_LOCATION'");
-    }    
+        $email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = ".$PK_LOCATION);
+        if ($email->RecordCount() == 0) {
+            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'insert');
+        } else {
+            $EMAIL_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+            $EMAIL_DATA['EDITED_ON'] = date("Y-m-d H:i");
+            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_LOCATION = '$PK_LOCATION'");
+        }    
+        
+        $response['success'] = true;
+        echo json_encode($response);
 }
 
 function saveLocationHourData($RESPONSE_DATA){
