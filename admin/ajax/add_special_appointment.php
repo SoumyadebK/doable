@@ -1,6 +1,8 @@
 <?php
 require_once('../../global/config.php');
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+
 if (!empty($_GET['date']) && !empty($_GET['time'])) {
     $date = $_GET['date'];
     $time = $_GET['time'];
@@ -19,6 +21,15 @@ if (empty($_GET['PK_USER_MASTER'])) {
     $PK_USER_MASTER = 0;
 } else {
     $PK_USER_MASTER = $_GET['PK_USER_MASTER'];
+}
+
+$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DAY_NUMBER FROM DOA_OPERATIONAL_HOUR WHERE CLOSED = 0 AND PK_LOCATION = ".$DEFAULT_LOCATION_ID);
+if ($location_operational_hour->RecordCount() > 0) {
+    $minTime = $location_operational_hour->fields['OPEN_TIME'];
+    $maxTime = $location_operational_hour->fields['CLOSE_TIME'];
+} else {
+    $minTime = '00:00:00';
+    $maxTime = '24:00:00';
 }
 
 ?>
@@ -157,6 +168,8 @@ if (empty($_GET['PK_USER_MASTER'])) {
 
     $('#START_TIME').timepicker({
         timeFormat: 'hh:mm p',
+        maxTime: '<?=$maxTime?>',
+        minTime: '<?=$minTime?>',
         change: function () {
             calculateEndTime();
         },
@@ -164,6 +177,8 @@ if (empty($_GET['PK_USER_MASTER'])) {
 
     $('#END_TIME').timepicker({
         timeFormat: 'hh:mm p',
+        maxTime: '<?=$maxTime?>',
+        minTime: '<?=$minTime?>'
     });
 
     $('.DAYS').on('change', function(){

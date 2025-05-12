@@ -3,6 +3,8 @@ require_once('../../global/config.php');
 global $db;
 global $db_account;
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+
 if (empty($_GET['PK_USER_MASTER'])) {
     $PK_USER_MASTER = 0;
 } else {
@@ -27,6 +29,15 @@ if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
     $header = 'customer.php?id='.$_GET['id_customer'].'&master_id='.$_GET['PK_USER_MASTER'].'&tab=appointment';
 } else {
     $header = 'all_schedules.php';
+}
+
+$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DAY_NUMBER FROM DOA_OPERATIONAL_HOUR WHERE CLOSED = 0 AND PK_LOCATION = ".$DEFAULT_LOCATION_ID);
+if ($location_operational_hour->RecordCount() > 0) {
+    $minTime = $location_operational_hour->fields['OPEN_TIME'];
+    $maxTime = $location_operational_hour->fields['CLOSE_TIME'];
+} else {
+    $minTime = '00:00:00';
+    $maxTime = '24:00:00';
 }
 
 /*$row = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_MASTER WHERE DATE = '".date('Y-m-d', strtotime($date))."' AND '".date('H:i:s', strtotime($time))."' >= START_TIME AND '".date('H:i:s', strtotime($time))."' <= END_TIME");
@@ -165,6 +176,8 @@ $AND_PK_USER = '';
 
     $('.timepicker-normal').timepicker({
         timeFormat: 'hh:mm p',
+        maxTime: '<?=$maxTime?>',
+        minTime: '<?=$minTime?>'
     });
 
     $('.DAYS').on('change', function(){

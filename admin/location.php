@@ -1443,7 +1443,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                 </div>
                                             <?php } ?>
 
-                                            <button type="button" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                            <button type="button" class="btn btn-info waves-effect waves-light m-r-10 text-white" id="saveButton">Save</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
 
                                             <!-- Hidden submit button for the form -->
@@ -1824,37 +1824,36 @@ $(document).ready(function() {
     $('#saveButton').click(function(e) {
         e.preventDefault(); // Prevent form submission
         
-    //     // Show payment modal
-    //     $('#paymentModal').modal('show');
-    //     $(1).closest('.payment_modal').find('#credit_card_payment').slideDown();
-    //             if (PAYMENT_GATEWAY == 'Stripe') {
-    //                 $(1).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
-    //                 stripePaymentFunction(type);
-    //             }
+        // Show payment modal
+        $('#paymentModal').modal('show');
+        $(1).closest('.payment_modal').find('#credit_card_payment').slideDown();
+                if (PAYMENT_GATEWAY == 'Stripe') {
+                    $(1).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
+                    stripePaymentFunction(type);
+                }
 
-    //             if (PAYMENT_GATEWAY == 'Square') {
-    //                 $(1).closest('.payment_modal').find('#card_div').html(`<div id="enrollment-card-container"></div>`);
-    //                 $('#'+type+'-card-container').text('Loading......');
-    //                 squarePaymentFunction(type);
-    //             }
+                if (PAYMENT_GATEWAY == 'Square') {
+                    $(1).closest('.payment_modal').find('#card_div').html(`<div id="enrollment-card-container"></div>`);
+                    $('#'+type+'-card-container').text('Loading......');
+                    squarePaymentFunction(type);
+                }
 
-    //             if (PAYMENT_GATEWAY == 'Authorized.net') {
-    //                 $("#CARD_NUMBER").inputmask({
-    //                     mask: "9999 9999 9999 9999",
-    //                     placeholder: ""
-    //                 });
-    //             }
-    //             getCreditCardList();
-    // });
+                if (PAYMENT_GATEWAY == 'Authorized.net') {
+                    $("#CARD_NUMBER").inputmask({
+                        mask: "9999 9999 9999 9999",
+                        placeholder: ""
+                    });
+                }
+                getCreditCardList();
+    });
     
-    // $('#confirmPayment').click(function() {
-    //     // Hide modal first
-    //     $('#paymentModal').modal('hide');
+    $('#confirmPayment').click(function() {
+        // Hide modal first
+        $('#paymentModal').modal('hide');
         
-    //     // Trigger the actual form submission
-    //     $('#realSubmit').click();
-    // });
-    $('#realSubmit').click();
+        // Trigger the actual form submission
+        $('#realSubmit').click();
+    });
 });
 
 function getCreditCardList() {

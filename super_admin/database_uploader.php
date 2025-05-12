@@ -456,11 +456,11 @@ if (!empty($_POST)) {
         case "DOA_ENROLLMENT_TYPE":
             $allEnrollmentTypes = getAllEnrollmentTypes();
             while (!$allEnrollmentTypes->EOF) {
-                $enrollment_type = $allEnrollmentTypes->fields['enrollment_type'];
-                $table_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_TYPE WHERE ENROLLMENT_TYPE='$enrollment_type'");
+                $CODE = $allEnrollmentTypes->fields['code'];
+                $table_data = $db->Execute("SELECT * FROM DOA_ENROLLMENT_TYPE WHERE CODE = '$CODE'");
                 if ($table_data->RecordCount() == 0) {
-                    $INSERT_DATA['ENROLLMENT_TYPE'] = $enrollment_type;
-                    $INSERT_DATA['CODE'] = $allEnrollmentTypes->fields['code'];
+                    $INSERT_DATA['ENROLLMENT_TYPE'] = $allEnrollmentTypes->fields['enrollment_type'];
+                    $INSERT_DATA['CODE'] = $CODE;
                     $INSERT_DATA['ACTIVE'] = 1;
                     $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                     $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -546,7 +546,7 @@ if (!empty($_POST)) {
                 $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_id;
                 $ENROLLMENT_DATA['ENROLLMENT_NAME'] = $allEnrollments->fields['enrollmentname'];
 
-                $enrollment_type_data = $db->Execute("SELECT PK_ENROLLMENT_TYPE FROM `DOA_ENROLLMENT_TYPE` WHERE ENROLLMENT_TYPE = '$enrollment_type'");
+                $enrollment_type_data = $db->Execute("SELECT PK_ENROLLMENT_TYPE FROM `DOA_ENROLLMENT_TYPE` WHERE CODE = '$code'");
                 if ($enrollment_type_data->RecordCount() > 0) {
                     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = $enrollment_type_data->fields['PK_ENROLLMENT_TYPE'];
                 } else {
@@ -1451,8 +1451,8 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                     <option value="">Select Database Name</option>
                                     <option value="AMSJ">AMSJ</option>
                                     <option value="AMTO">AMTO</option>
-                                    <option value="AMWH" selected>AMWH</option>
-                                    <option value="AMLS">AMLS</option>
+                                    <option value="AMWH">AMWH</option>
+                                    <option value="AMLS" selected>AMLS</option>
                                 </select>
                             </div>
                         </div>

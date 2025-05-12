@@ -259,8 +259,8 @@ if (isset($_POST['FUNCTION_NAME'])){
 
         $('.timepicker-normal').timepicker({
             timeFormat: 'hh:mm p',
-            minTime: '01:00 PM',
-            maxTime: '09:00 PM'
+            minTime: '<?=$minTime?>',
+            maxTime: '<?=$maxTime?>'
         });
 
         $('.DAYS').on('change', function(){
