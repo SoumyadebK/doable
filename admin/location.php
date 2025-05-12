@@ -1443,7 +1443,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                 </div>
                                             <?php } ?>
 
-                                            <button type="button" class="btn btn-info waves-effect waves-light m-r-10 text-white" id="saveButton">Save</button>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
 
                                             <!-- Hidden submit button for the form -->
