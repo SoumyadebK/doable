@@ -233,7 +233,7 @@ $ACTIVE = $user_data->fields['ACTIVE'];
                                             <div class="col-md-12">
                                                 <div class="col-sm-12">
                                                     <select class="form-control" required name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
-                                                        <option>Select Country</option>
+                                                        <option value="">Select Country</option>
                                                         <?php
                                                         $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
                                                         while (!$row->EOF) { ?>

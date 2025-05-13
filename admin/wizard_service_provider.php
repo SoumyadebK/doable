@@ -204,7 +204,7 @@ if(!empty($_GET['id'])) {
                                                                     <label class="col-md-12"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?=($CREATE_LOGIN == 1)?'checked':''?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
                                                                 </div>
                                                                 <div class="col-2">
-                                                                    <label class="col-md-12"><input type="checkbox" id="APPEAR_IN_CALENDAR" name="APPEAR_IN_CALENDAR" class="form-check-inline" style="margin-top: 30px;" checked> Appear In Calendar</label>
+                                                                    <label class="col-md-12"><input type="checkbox" id="APPEAR_IN_CALENDAR" name="APPEAR_IN_CALENDAR" class="form-check-inline" style="margin-top: 30px;" checked disabled> Appear In Calendar</label>
                                                                 </div>
                                                                 <div id="display_order" class="col-2">
                                                                     <div class="form-group">
@@ -1048,7 +1048,7 @@ if(!empty($_GET['id'])) {
                                         if(response && PK_USER == 0) {
                                             $('#email_result').html(response);
                                         } else if (!selectedRoles.includes('5')) {
-                                            e.preventDefault(); // Stop form submission
+                                            //e.preventDefault(); // Stop form submission
                                             //alert('Error: Service Provider role is mandatory in this stage. Please select it before submitting.');
                                             Swal.fire({
                                                 icon: 'error',

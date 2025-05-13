@@ -325,7 +325,7 @@ while (!$account_payment_info->EOF) {
                                     <?php if(empty($_GET['id'])) { ?>
                                         <li> <a class="nav-link" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab"><span class="hidden-sm-up"><i class="ti-folder"></i></span> <span class="hidden-xs-down">User Profile</span></a> </li>
                                     <?php } else { ?>
-                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#login" role="tab" id="logintab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">User List</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#login" role="tab" id="locationtab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Location List</span></a> </li>
                                     <?php } ?>
                                     <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                 </ul>
@@ -794,8 +794,8 @@ while (!$account_payment_info->EOF) {
                                         </form>
                                     </div>
                                     <?php } else { ?>
-                                    <!--User List Tab-->
-                                    <div class="tab-pane p-20" id="login" role="tabpanel">
+                                    <!--Location List Tab-->
+                                    <div class="tab-pane p-20" id="location" role="tabpanel">
                                         <table id="myTable" class="table table-striped border">
                                             <thead>
                                             <tr>
