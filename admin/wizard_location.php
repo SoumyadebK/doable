@@ -29,6 +29,8 @@ if(empty($_GET['id'])){
 
     $PK_LOCATION = 0;
     $PK_CORPORATION = '';
+    $FRANCHISE = '';
+    $PK_ACCOUNT_TYPE = '';
     $LOCATION_NAME = '';
     $LOCATION_CODE = '';
     $ADDRESS = $account_res->fields['ADDRESS'];
@@ -56,6 +58,10 @@ if(empty($_GET['id'])){
     $AM_PASSWORD = '';
     $AM_REFRESH_TOKEN = '';
     $SALES_TAX = '';
+    $RECEIPT_CHARACTER = '';
+    $TEXTING_FEATURE_ENABLED = '';
+    $TWILIO_ACCOUNT_TYPE = '';
+    $FOCUSBIZ_API_KEY = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
 
@@ -66,6 +72,8 @@ if(empty($_GET['id'])){
 
     $PK_LOCATION = $_GET['id'];
     $PK_CORPORATION = $res->fields['PK_CORPORATION'];
+    $PK_ACCOUNT_TYPE = $res->fields['PK_ACCOUNT_TYPE'];
+    $FRANCHISE = $res->fields['FRANCHISE'];
     $LOCATION_NAME = $res->fields['LOCATION_NAME'];
     $LOCATION_CODE = $res->fields['LOCATION_CODE'];
     $ADDRESS = $res->fields['ADDRESS'];
@@ -93,6 +101,10 @@ if(empty($_GET['id'])){
     $AM_PASSWORD            = $res->fields['AM_PASSWORD'];
     $AM_REFRESH_TOKEN       = $res->fields['AM_REFRESH_TOKEN'];
     $SALES_TAX              = $res->fields['SALES_TAX'];
+    $RECEIPT_CHARACTER      = $res->fields['RECEIPT_CHARACTER'];
+    $TEXTING_FEATURE_ENABLED = $res->fields['TEXTING_FEATURE_ENABLED'];
+    $TWILIO_ACCOUNT_TYPE = $res->fields['TWILIO_ACCOUNT_TYPE'];
+    $FOCUSBIZ_API_KEY = $res->fields['FOCUSBIZ_API_KEY'];
 }
 
 $SMTP_HOST = '';
@@ -299,6 +311,29 @@ if(!empty($_POST)){
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Account Type<span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="col-md-12">
+                                                            <?php
+                                                            $row = $db->Execute("SELECT PK_ACCOUNT_TYPE,ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
+                                                            while (!$row->EOF) { ?>
+                                                                <input type="radio" name="PK_ACCOUNT_TYPE" id="<?=$row->fields['PK_ACCOUNT_TYPE'];?>" value="<?=$row->fields['PK_ACCOUNT_TYPE'];?>" <?php if($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked';?> required>
+                                                                <label for="<?=$row->fields['PK_ACCOUNT_TYPE'];?>"><?=$row->fields['ACCOUNT_TYPE']?></label>
+                                                            <?php $row->MoveNext(); } ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Arthur Murray Franchise ?</label>
+                                                        <div class="col-md-12">
+                                                            <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="1" <?php if($FRANCHISE == 1) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);"/>&nbsp;Yes</label>&nbsp;&nbsp;
+                                                            <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if($FRANCHISE == 0) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);"/>&nbsp;No</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             
                                                 <div class="col-6">
                                                     <div class="form-group">
@@ -454,6 +489,40 @@ if(!empty($_POST)){
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Receipt Character<span class="text-danger">*</span></label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Character" required value="<?=$RECEIPT_CHARACTER?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Texting Feature Enabled?</label>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="1" <? if($TEXTING_FEATURE_ENABLED == 1) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="0" <? if($TEXTING_FEATURE_ENABLED == 0) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);"/>&nbsp;No</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="row twilio_account_type" id="twilio_account_type" style="display: <?=($TEXTING_FEATURE_ENABLED=='1')?'':'none'?>; margin-bottom: 15px;">
+                                                <div class="col-md-6">
+                                                    <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE" value="0" <? if($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE" value="1" <? if($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> />&nbsp;Using Their own Twilio Account</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-6">
+                                                <div class="form-group">
+                                                    <label class="col-md-12">Focusbiz API Key</label>
+                                                    <div class="col-md-12">
+                                                        <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY?>">
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <div class="form-group">
@@ -551,29 +620,27 @@ if(!empty($_POST)){
                                                 </div>
                                             </div>
 
-                                            <?php if ($FRANCHISE == 1) { ?>
-                                                <div class="row" style="margin-top: 30px;">
-                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
-                                                    <div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="form-label">User Name</label>
-                                                            <input type="text" class="form-control" name="AM_USER_NAME" value="<?=$AM_USER_NAME?>">
-                                                        </div>
+                                            <div class="row arthur_murray_setup" id="arthur_murray_setup" style="display: <?=($FRANCHISE=='1')?'':'none'?>; margin-top: 30px;">
+                                                <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">User Name</label>
+                                                        <input type="text" class="form-control" name="AM_USER_NAME" value="<?=$AM_USER_NAME?>">
                                                     </div>
-                                                    <div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Password</label>
-                                                            <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
-                                                        </div>
-                                                    </div>
-                                                    <!--<div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Refresh Token</label>
-                                                            <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/?>">
-                                                        </div>
-                                                    </div>-->
                                                 </div>
-                                            <?php } ?>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Password</label>
+                                                        <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
+                                                    </div>
+                                                </div>
+                                                <!--<div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Refresh Token</label>
+                                                        <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/?>">
+                                                    </div>
+                                                </div>-->
+                                            </div>
 
                                             <?php if(!empty($_GET['id'])) { ?>
                                                 <div class="row" style="margin-bottom: 15px;">
@@ -935,27 +1002,74 @@ if(!empty($_POST)){
     }
 </script>
 <script>
-        $(document).on('submit', '#location_form', function (event) {
-            event.preventDefault();
-            let form_data = new FormData($('#location_form')[0]);
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: form_data,
-                processData: false,
-                contentType: false,
-                dataType: 'JSON',
-                success:function (data) {
-                    console.log(data);
-                    if (data.success) {
-                        $('.PK_LOCATION').val(data.PK_LOCATION);
-                        $('#operational_hours_link')[0].click();
-                    } else {
-                        alert(data.message);
-                    }
+    $(document).on('submit', '#location_form', function (event) {
+        event.preventDefault();
+        let form_data = new FormData($('#location_form')[0]);
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            dataType: 'JSON',
+            success:function (data) {
+                console.log(data);
+                if (data.success) {
+                    $('.PK_LOCATION').val(data.PK_LOCATION);
+                    $('#operational_hours_link')[0].click();
+                } else {
+                    alert(data.message);
                 }
-            });
+            }
         });
-    </script>
+    });
+</script>
+<script>
+    function showTwilioAccountSetting(param) {
+        if($(param).val() === '1'){
+            $('#twilio_account_type').slideDown();
+        }else {
+            $('#twilio_account_type').slideUp();
+        }
+    }
+
+    function showArthurMurraySetup(param) {
+        if($(param).val() === '1'){
+            $('#arthur_murray_setup').slideDown();
+        }else {
+            $('#arthur_murray_setup').slideUp();
+        }
+    }
+
+    function addMoreHoliday(){
+        $('#holiday_list_section').append(`<div class="row">
+                                            <div class="col-3">
+                                                <div class="form-group">
+                                                    <div class="col-md-12">
+                                                        <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-3">
+                                                <div class="form-group">
+                                                    <div class="col-md-12">
+                                                        <input type="text" name="HOLIDAY_NAME[]" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-3" style="padding-top: 5px;">
+                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                            </div>
+                                        </div>`);
+
+        $('.datepicker-normal').datepicker({
+            format: 'mm/dd/yyyy',
+        });
+    } 
+
+    function removeThis(param) {
+        $(param).closest('.row').remove();
+    }
+</script>
 </body>
 </html>

@@ -27,20 +27,22 @@ if ($franchise_data->RecordCount() > 0) {
 $PK_USER = $_SESSION['PK_USER'];
 
 if(empty($_GET['id'])){
-    $account_res = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = '$_SESSION[PK_ACCOUNT_MASTER]'");
+    $res = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = '$_SESSION[PK_ACCOUNT_MASTER]'");
 
     $PK_LOCATION = 0;
     $PK_CORPORATION = '';
+    $PK_ACCOUNT_TYPE = '';
+    $FRANCHISE = '';
     $LOCATION_NAME = '';
     $LOCATION_CODE = '';
-    $ADDRESS = ''; //$account_res->fields['ADDRESS'];
-    $ADDRESS_1 = ''; //$account_res->fields['ADDRESS_1'];
-    $PK_COUNTRY = ''; //$account_res->fields['PK_COUNTRY'];
-    $PK_STATES = ''; //$account_res->fields['PK_STATES'];
-    $CITY = ''; //$account_res->fields['CITY'];
-    $ZIP_CODE = ''; //$account_res->fields['ZIP'];
-    $PHONE = ''; //$account_res->fields['PHONE'];
-    $EMAIL = ''; //$account_res->fields['EMAIL'];
+    $ADDRESS = ''; //$res->fields['ADDRESS'];
+    $ADDRESS_1 = ''; //$res->fields['ADDRESS_1'];
+    $PK_COUNTRY = ''; //$res->fields['PK_COUNTRY'];
+    $PK_STATES = ''; //$res->fields['PK_STATES'];
+    $CITY = ''; //$res->fields['CITY'];
+    $ZIP_CODE = ''; //$res->fields['ZIP'];
+    $PHONE = ''; //$res->fields['PHONE'];
+    $EMAIL = ''; //$res->fields['EMAIL'];
     $IMAGE_PATH = '';
     $PK_TIMEZONE = '';
     $ROYALTY_PERCENTAGE = '';
@@ -59,6 +61,9 @@ if(empty($_GET['id'])){
     $AM_REFRESH_TOKEN = '';
     $SALES_TAX = '';
     $RECEIPT_CHARACTER = '';
+    $TEXTING_FEATURE_ENABLED = '';
+    $TWILIO_ACCOUNT_TYPE = '';
+    $FOCUSBIZ_API_KEY = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
 
@@ -69,6 +74,8 @@ if(empty($_GET['id'])){
 
     $PK_LOCATION = $_GET['id'];
     $PK_CORPORATION = $res->fields['PK_CORPORATION'];
+    $PK_ACCOUNT_TYPE = $res->fields['PK_ACCOUNT_TYPE'];
+    $FRANCHISE = $res->fields['FRANCHISE'];
     $LOCATION_NAME = $res->fields['LOCATION_NAME'];
     $LOCATION_CODE = $res->fields['LOCATION_CODE'];
     $ADDRESS = $res->fields['ADDRESS'];
@@ -97,6 +104,9 @@ if(empty($_GET['id'])){
     $AM_REFRESH_TOKEN       = $res->fields['AM_REFRESH_TOKEN'];
     $SALES_TAX              = $res->fields['SALES_TAX'];
     $RECEIPT_CHARACTER      = $res->fields['RECEIPT_CHARACTER'];
+    $TEXTING_FEATURE_ENABLED = $res->fields['TEXTING_FEATURE_ENABLED'];
+    $TWILIO_ACCOUNT_TYPE = $res->fields['TWILIO_ACCOUNT_TYPE'];
+    $FOCUSBIZ_API_KEY = $res->fields['FOCUSBIZ_API_KEY'];
 }
 
 $SMTP_HOST = '';
@@ -301,6 +311,17 @@ if(!empty($_POST)){
                     db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'insert');
                 }
             }
+        }
+    }
+
+    if ($_POST['FUNCTION_NAME'] == 'saveHolidayData') {
+        unset($_POST['FUNCTION_NAME']);
+        $db_account->Execute("DELETE FROM `DOA_HOLIDAY_LIST` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        for ($i=0; $i < count($_POST['HOLIDAY_DATE']); $i++) {
+            $HOLIDAY_LIST_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+            $HOLIDAY_LIST_DATA['HOLIDAY_DATE'] = date('Y-m-d', strtotime($_POST['HOLIDAY_DATE'][$i]));
+            $HOLIDAY_LIST_DATA['HOLIDAY_NAME'] = $_POST['HOLIDAY_NAME'][$i];
+            db_perform_account('DOA_HOLIDAY_LIST', $HOLIDAY_LIST_DATA, 'insert');
         }
     }
 
@@ -1114,6 +1135,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                 <li> <a class="nav-link active" data-bs-toggle="tab" id="location_link" href="#location_div" role="tab"><span class="hidden-sm-up"><i class="ti-location-pin"></i></span> <span class="hidden-xs-down">Location</span></a> </li>
                                 <?php if (!empty($_GET['id'])) { ?>
                                     <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
+                                    <li> <a class="nav-link" data-bs-toggle="tab" id="holiday_list_link" href="#holiday_list" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Holiday List</span></a> </li>
                                     <li> <a class="nav-link" data-bs-toggle="tab" id="credit_card_link" href="#credit_card" role="tab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
                                     <li> <a class="nav-link" data-bs-toggle="tab" id="receipts_link" href="#receipts" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Receipts</span></a> </li>
                                 <?php } ?>
@@ -1126,7 +1148,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                         <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
                                         <div class="p-20">
                                             <div class="row">
-                                            <div class="col-6">
+                                                <div class="col-6">
                                                     <div class="form-group">
                                                         <label class="col-md-12" for="example-text">Corporation<span class="text-danger">*</span>
                                                         </label>
@@ -1141,6 +1163,29 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                                         <?php $row->MoveNext(); } ?>
                                                                 </select>
                                                             </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Account Type<span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="col-md-12">
+                                                            <?php
+                                                            $row = $db->Execute("SELECT PK_ACCOUNT_TYPE,ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
+                                                            while (!$row->EOF) { ?>
+                                                                <input type="radio" name="PK_ACCOUNT_TYPE" id="<?=$row->fields['PK_ACCOUNT_TYPE'];?>" value="<?=$row->fields['PK_ACCOUNT_TYPE'];?>" <?php if($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked';?> required>
+                                                                <label for="<?=$row->fields['PK_ACCOUNT_TYPE'];?>"><?=$row->fields['ACCOUNT_TYPE']?></label>
+                                                            <?php $row->MoveNext(); } ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Arthur Murray Franchise ?</label>
+                                                        <div class="col-md-12">
+                                                            <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="1" <?php if($FRANCHISE == 1) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);"/>&nbsp;Yes</label>&nbsp;&nbsp;
+                                                            <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if($FRANCHISE == 0) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);"/>&nbsp;No</label>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1309,6 +1354,31 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Texting Feature Enabled?</label>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="1" <? if($TEXTING_FEATURE_ENABLED == 1) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="0" <? if($TEXTING_FEATURE_ENABLED == 0) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);"/>&nbsp;No</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="row twilio_account_type" id="twilio_account_type" style="display: <?=($TEXTING_FEATURE_ENABLED=='1')?'':'none'?>; margin-bottom: 15px;">
+                                                <div class="col-md-6">
+                                                    <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE" value="0" <? if($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE" value="1" <? if($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> />&nbsp;Using Their own Twilio Account</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-6">
+                                                <div class="form-group">
+                                                    <label class="col-md-12">Focusbiz API Key</label>
+                                                    <div class="col-md-12">
+                                                        <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY?>">
+                                                    </div>
+                                                </div>
+                                            </div>
 
                                             <div class="form-group">
                                                 <?php if($IMAGE_PATH!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $IMAGE_PATH;?>" data-fancybox-group="gallery"><img src = "<?php echo $IMAGE_PATH;?>" style="width:120px; height:120px" /></a></div><?php } ?>
@@ -1405,29 +1475,29 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                 </div>
                                             </div>
 
-                                            <?php if ($FRANCHISE == 1) { ?>
-                                                <div class="row" style="margin-top: 30px;">
-                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
-                                                    <div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="form-label">User Name</label>
-                                                            <input type="text" class="form-control" name="AM_USER_NAME" value="<?=$AM_USER_NAME?>">
-                                                        </div>
+                                            
+                                            <div class="row arthur_murray_setup" id="arthur_murray_setup" style="display: <?=($FRANCHISE=='1')?'':'none'?>; margin-top: 30px;">
+                                                <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">User Name</label>
+                                                        <input type="text" class="form-control" name="AM_USER_NAME" value="<?=$AM_USER_NAME?>">
                                                     </div>
-                                                    <div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Password</label>
-                                                            <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
-                                                        </div>
-                                                    </div>
-                                                    <!--<div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Refresh Token</label>
-                                                            <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/?>">
-                                                        </div>
-                                                    </div>-->
                                                 </div>
-                                            <?php } ?>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Password</label>
+                                                        <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
+                                                    </div>
+                                                </div>
+                                                <!--<div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Refresh Token</label>
+                                                        <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/?>">
+                                                    </div>
+                                                </div>-->
+                                            </div>
+                                            
 
                                             <?php if(!empty($_GET['id'])) { ?>
                                                 <div class="row" style="margin-bottom: 15px;">
@@ -1569,6 +1639,77 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                         <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
                                     </form>
                                 </div>
+
+                                <div class="tab-pane" id="holiday_list" role="tabpanel">
+                                    <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                        <input type="hidden" name="FUNCTION_NAME" value="saveHolidayData">
+                                        <div class="p-20" id="holiday_list_section">
+                                            <div class="row">
+                                                <div class="col-3">
+                                                    <div class="form-group" style="text-align: center;">
+                                                        <label class="form-label" style="font-weight: bold;">Holiday Date</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group" style="text-align: center;">
+                                                        <label class="form-label" style="font-weight: bold;">Holiday Name</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3" style="margin-top: -30px;">
+                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreHoliday();">Add More</a>
+                                                </div>
+                                            </div>
+                                            <?php
+                                            $holiday_list = $db_account->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                            if($holiday_list->RecordCount() > 0) {
+                                                while (!$holiday_list->EOF) { ?>
+                                                <div class="row">
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal" value="<?=date('m/d/Y', strtotime($holiday_list->fields['HOLIDAY_DATE']))?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="HOLIDAY_NAME[]" class="form-control" value="<?=$holiday_list->fields['HOLIDAY_NAME']?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3" style="padding-top: 5px;">
+                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                    </div>
+                                                </div>
+                                                <?php $holiday_list->MoveNext(); } ?>
+                                            <?php } else { ?>
+                                                <div class="row">
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="HOLIDAY_NAME[]" class="form-control">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3" style="padding-top: 5px;">
+                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                    </div>
+                                                </div>
+                                            <?php } ?>
+                                        </div>
+                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                        <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
+                                    </form>
+                                </div>
+
 
                                 <div class="tab-pane" id="credit_card" role="tabpanel">
                                     <form class="form-material form-horizontal" id="creditCardForm" action="" method="post" enctype="multipart/form-data">
@@ -1857,17 +1998,63 @@ $(document).ready(function() {
 });
 
 function getCreditCardList() {
-        let PK_USER = "<?php echo $PK_USER; ?>";
-        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $.ajax({
-            url: "ajax/get_credit_card_list_from_master.php",
-            type: 'POST',
-            data: {PK_USER: PK_USER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
-            success: function (data) {
-                $('#card_list').slideDown().html(data);
-            }
-        });
+    let PK_USER = "<?php echo $PK_USER; ?>";
+    let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+    $.ajax({
+        url: "ajax/get_credit_card_list_from_master.php",
+        type: 'POST',
+        data: {PK_USER: PK_USER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
+        success: function (data) {
+            $('#card_list').slideDown().html(data);
+        }
+    });
+}
+
+function showTwilioAccountSetting(param) {
+    if($(param).val() === '1'){
+        $('#twilio_account_type').slideDown();
+    }else {
+        $('#twilio_account_type').slideUp();
     }
+}
+
+function showArthurMurraySetup(param) {
+    if($(param).val() === '1'){
+        $('#arthur_murray_setup').slideDown();
+    }else {
+        $('#arthur_murray_setup').slideUp();
+    }
+}
+
+function addMoreHoliday(){
+    $('#holiday_list_section').append(`<div class="row">
+                                        <div class="col-3">
+                                            <div class="form-group">
+                                                <div class="col-md-12">
+                                                    <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="form-group">
+                                                <div class="col-md-12">
+                                                    <input type="text" name="HOLIDAY_NAME[]" class="form-control">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-3" style="padding-top: 5px;">
+                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                        </div>
+                                    </div>`);
+
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+    });
+} 
+
+function removeThis(param) {
+            $(param).closest('.row').remove();
+        }
 </script>
 </body>
 </html>
