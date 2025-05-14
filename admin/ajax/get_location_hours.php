@@ -141,10 +141,10 @@ if($user_location->RecordCount() > 0) {
                     <label class="form-label">Monday</label>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="MON_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" value="<?=($MON_START_TIME=='00:00:00' || $MON_START_TIME=='')?'':date('h:i A', strtotime($MON_START_TIME))?>" readonly>
+                    <input type="text" name="MON_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" style="background-color: <?=($MON_START_TIME=='00:00:00'&&$MON_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($MON_START_TIME=='00:00:00' || $MON_START_TIME=='')?'':date('h:i A', strtotime($MON_START_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="MON_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" value="<?=($MON_END_TIME=='00:00:00' || $MON_END_TIME=='')?'':date('h:i A', strtotime($MON_END_TIME))?>" readonly>
+                    <input type="text" name="MON_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" style="background-color: <?=($MON_START_TIME=='00:00:00'&&$MON_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($MON_END_TIME=='00:00:00' || $MON_END_TIME=='')?'':date('h:i A', strtotime($MON_END_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
                     <label><input type="checkbox" onchange="closeThisDay(this)" <?=($MON_START_TIME=='00:00:00'&&$MON_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
@@ -156,10 +156,10 @@ if($user_location->RecordCount() > 0) {
                     <label class="form-label">Tuesday</label>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="TUE_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" value="<?=($TUE_START_TIME=='00:00:00' || $TUE_START_TIME=='')?'':date('h:i A', strtotime($TUE_START_TIME))?>" readonly>
+                    <input type="text" name="TUE_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" style="background-color: <?=($TUE_START_TIME=='00:00:00'&&$TUE_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($TUE_START_TIME=='00:00:00' || $TUE_START_TIME=='')?'':date('h:i A', strtotime($TUE_START_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="TUE_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" value="<?=($TUE_END_TIME=='00:00:00' || $TUE_END_TIME=='')?'':date('h:i A', strtotime($TUE_END_TIME))?>" readonly>
+                    <input type="text" name="TUE_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" style="background-color: <?=($TUE_START_TIME=='00:00:00'&&$TUE_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($TUE_END_TIME=='00:00:00' || $TUE_END_TIME=='')?'':date('h:i A', strtotime($TUE_END_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
                     <label><input type="checkbox" onchange="closeThisDay(this)" <?=($TUE_START_TIME=='00:00:00'&&$TUE_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
@@ -171,10 +171,10 @@ if($user_location->RecordCount() > 0) {
                     <label class="form-label">Wednesday</label>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="WED_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" value="<?=($WED_START_TIME=='00:00:00' || $WED_START_TIME=='')?'':date('h:i A', strtotime($WED_START_TIME))?>" readonly>
+                    <input type="text" name="WED_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" style="background-color: <?=($WED_START_TIME=='00:00:00'&&$WED_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($WED_START_TIME=='00:00:00' || $WED_START_TIME=='')?'':date('h:i A', strtotime($WED_START_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="WED_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" value="<?=($WED_END_TIME=='00:00:00' || $WED_END_TIME=='')?'':date('h:i A', strtotime($WED_END_TIME))?>" readonly>
+                    <input type="text" name="WED_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" style="background-color: <?=($WED_START_TIME=='00:00:00'&&$WED_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($WED_END_TIME=='00:00:00' || $WED_END_TIME=='')?'':date('h:i A', strtotime($WED_END_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
                     <label><input type="checkbox" onchange="closeThisDay(this)" <?=($WED_START_TIME=='00:00:00'&&$WED_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
@@ -186,10 +186,10 @@ if($user_location->RecordCount() > 0) {
                     <label class="form-label">Thursday</label>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="THU_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" value="<?=($THU_START_TIME=='00:00:00' || $THU_START_TIME=='')?'':date('h:i A', strtotime($THU_START_TIME))?>" readonly>
+                    <input type="text" name="THU_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" style="background-color: <?=($THU_START_TIME=='00:00:00'&&$THU_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($THU_START_TIME=='00:00:00' || $THU_START_TIME=='')?'':date('h:i A', strtotime($THU_START_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="THU_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" value="<?=($THU_END_TIME=='00:00:00' || $THU_END_TIME=='')?'':date('h:i A', strtotime($THU_END_TIME))?>" readonly>
+                    <input type="text" name="THU_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" style="background-color: <?=($THU_START_TIME=='00:00:00'&&$THU_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($THU_END_TIME=='00:00:00' || $THU_END_TIME=='')?'':date('h:i A', strtotime($THU_END_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
                     <label><input type="checkbox" onchange="closeThisDay(this)" <?=($THU_START_TIME=='00:00:00'&&$THU_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
@@ -201,10 +201,10 @@ if($user_location->RecordCount() > 0) {
                     <label class="form-label">Friday</label>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="FRI_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" value="<?=($FRI_START_TIME=='00:00:00' || $FRI_START_TIME=='')?'':date('h:i A', strtotime($FRI_START_TIME))?>" readonly>
+                    <input type="text" name="FRI_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" style="background-color: <?=($FRI_START_TIME=='00:00:00'&&$FRI_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($FRI_START_TIME=='00:00:00' || $FRI_START_TIME=='')?'':date('h:i A', strtotime($FRI_START_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="FRI_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" value="<?=($FRI_END_TIME=='00:00:00' || $FRI_END_TIME=='')?'':date('h:i A', strtotime($FRI_END_TIME))?>" readonly>
+                    <input type="text" name="FRI_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" style="background-color: <?=($FRI_START_TIME=='00:00:00'&&$FRI_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($FRI_END_TIME=='00:00:00' || $FRI_END_TIME=='')?'':date('h:i A', strtotime($FRI_END_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
                     <label><input type="checkbox" onchange="closeThisDay(this)" <?=($FRI_START_TIME=='00:00:00'&&$FRI_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
@@ -216,10 +216,10 @@ if($user_location->RecordCount() > 0) {
                     <label class="form-label">Saturday</label>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="SAT_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" value="<?=($SAT_START_TIME=='00:00:00' || $SAT_START_TIME=='')?'':date('h:i A', strtotime($SAT_START_TIME))?>" readonly>
+                    <input type="text" name="SAT_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" style="background-color: <?=($SAT_START_TIME=='00:00:00'&&$SAT_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($SAT_START_TIME=='00:00:00' || $SAT_START_TIME=='')?'':date('h:i A', strtotime($SAT_START_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="SAT_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" value="<?=($SAT_END_TIME=='00:00:00' || $SAT_END_TIME=='')?'':date('h:i A', strtotime($SAT_END_TIME))?>" readonly>
+                    <input type="text" name="SAT_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" style="background-color: <?=($SAT_START_TIME=='00:00:00'&&$SAT_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($SAT_END_TIME=='00:00:00' || $SAT_END_TIME=='')?'':date('h:i A', strtotime($SAT_END_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
                     <label><input type="checkbox" onchange="closeThisDay(this)" <?=($SAT_START_TIME=='00:00:00'&&$SAT_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>
@@ -231,10 +231,10 @@ if($user_location->RecordCount() > 0) {
                     <label class="form-label">Sunday</label>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="SUN_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" value="<?=($SUN_START_TIME=='00:00:00' || $SUN_START_TIME=='')?'':date('h:i A', strtotime($SUN_START_TIME))?>" readonly>
+                    <input type="text" name="SUN_START_TIME[]" class="form-control time-input time-picker" placeholder="Start Time" style="background-color: <?=($SUN_START_TIME=='00:00:00'&&$SUN_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($SUN_START_TIME=='00:00:00' || $SUN_START_TIME=='')?'':date('h:i A', strtotime($SUN_START_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
-                    <input type="text" name="SUN_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" value="<?=($SUN_END_TIME=='00:00:00' || $SUN_END_TIME=='')?'':date('h:i A', strtotime($SUN_END_TIME))?>" readonly>
+                    <input type="text" name="SUN_END_TIME[]" class="form-control time-input time-picker" placeholder="End Time" style="background-color: <?=($SUN_START_TIME=='00:00:00'&&$SUN_END_TIME=='00:00:00')?'#80808080 !important; pointer-events: none !important;':''?>" value="<?=($SUN_END_TIME=='00:00:00' || $SUN_END_TIME=='')?'':date('h:i A', strtotime($SUN_END_TIME))?>" readonly>
                 </div>
                 <div class="col-2">
                     <label><input type="checkbox" onchange="closeThisDay(this)" <?=($SUN_START_TIME=='00:00:00'&&$SUN_END_TIME=='00:00:00')?'checked':''?>> Holiday</label>

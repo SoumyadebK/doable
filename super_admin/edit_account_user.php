@@ -22,7 +22,7 @@ if(!empty($_POST)){
         $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_USERS', $USER_DATA, 'update'," PK_USER =  '$_GET[id]'");
     }
-    header("location:account.php?id=".$_GET['ac_id']);
+    header("location:user_list.php?id=".$_GET['ac_id']);
 }
 
 if(empty($_GET['id'])){
@@ -128,7 +128,7 @@ else {
                                                     </div>
                                                 </div>
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
-                                                <button type="button" onclick="window.location.href='account.php?id=<?=$_GET['ac_id']?>'" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                <button type="button" onclick="window.location.href='user_list.php?id=<?=$_GET['ac_id']?>'" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                             </div>
                                         </div>
                                     </div>

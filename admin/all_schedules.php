@@ -811,7 +811,7 @@ $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
 
     function renderCalendar(date) {
         const day = date.getDay();
-        const config = dayConfigs[day] || { minTime: '00:00:00', maxTime: '00:00:00' };
+        const config = dayConfigs[day] || { minTime: '00:00:00', maxTime: '24:00:00' };
 
         if (calendar) {
             calendar.destroy();

@@ -931,9 +931,13 @@ if(!empty($_GET['id'])) {
         function closeThisDay(param){
             if ($(param).is(':checked')){
                 $(param).closest('.row').find('.time-input').val('');
-                $(param).closest('.row').find('.time-input').css('pointer-events', 'none');
+                //$(param).closest('.row').find('.time-input').css('pointer-events', 'none');
+                $(param).closest('.row').find('.time-input').each(function () {
+                    this.style.cssText = 'background-color: #80808080 !important; pointer-events: none !important;';
+                });
             }else {
                 $(param).closest('.row').find('.time-input').css('pointer-events', '');
+                $(param).closest('.row').find('.time-input').css('background-color', '');
             }
         }
     </script>

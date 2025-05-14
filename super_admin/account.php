@@ -325,7 +325,7 @@ while (!$account_payment_info->EOF) {
                                     <?php if(empty($_GET['id'])) { ?>
                                         <li> <a class="nav-link" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab"><span class="hidden-sm-up"><i class="ti-folder"></i></span> <span class="hidden-xs-down">User Profile</span></a> </li>
                                     <?php } else { ?>
-                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#login" role="tab" id="logintab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">User List</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#location" role="tab" id="location_tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Location List</span></a> </li>
                                     <?php } ?>
                                     <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                 </ul>
@@ -795,47 +795,39 @@ while (!$account_payment_info->EOF) {
                                     </div>
                                     <?php } else { ?>
                                     <!--User List Tab-->
-                                    <div class="tab-pane p-20" id="login" role="tabpanel">
-                                        <table id="myTable" class="table table-striped border">
+                                    <div class="tab-pane p-20" id="location" role="tabpanel">
+                                        <table id="myTable" class="table table-striped border" data-page-length='50'>
                                             <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Name</th>
-                                                <th>Username</th>
-                                                <th>Roles</th>
-                                                <th>Email Id</th>
-                                                <th>Actions</th>
-                                            </tr>
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>Location Name</th>
+                                                    <th>Corporation Name</th>
+                                                    <th>City</th>
+                                                    <th>Phone</th>
+                                                    <th>Email</th>
+                                                    <th>Actions</th>
+                                                </tr>
                                             </thead>
 
                                             <tbody>
                                             <?php
                                             $i=1;
-                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7,8) AND DOA_USERS.PK_ACCOUNT_MASTER='$_GET[id]' ORDER BY DOA_USERS.ACTIVE DESC");
-                                            while (!$row->EOF) {
-                                                $selected_roles = [];
-                                                if(!empty($row->fields['PK_USER'])) {
-                                                    $PK_USER = $row->fields['PK_USER'];
-                                                    $selected_roles_row = $db->Execute("SELECT DOA_ROLES.ROLES FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER'");
-                                                    while (!$selected_roles_row->EOF) {
-                                                        $selected_roles[] = $selected_roles_row->fields['ROLES'];
-                                                        $selected_roles_row->MoveNext();
-                                                    }
-                                                } ?>
+                                            $row = $db->Execute("SELECT DOA_LOCATION.*, DOA_CORPORATION.CORPORATION_NAME FROM `DOA_LOCATION` LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION=DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.PK_ACCOUNT_MASTER = '$_GET[id]'");
+                                            while (!$row->EOF) { ?>
                                                 <tr>
-                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$i;?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['NAME']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['USER_NAME']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=implode(', ', $selected_roles)?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_USER']?>, <?=$_GET['id']?>);"><?=$row->fields['EMAIL_ID']?></td>
-                                                    <td style="padding: 10px 0px 0px 0px;font-size: 20px;">
-                                                        <a href="edit_account_user.php?id=<?=$row->fields['PK_USER']?>&ac_id=<?=$_GET['id']?>" title="Reset Password" style="color: #03a9f3;"><i class="ti-lock"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$i;?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['LOCATION_NAME']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['CORPORATION_NAME']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['CITY']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['PHONE']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['EMAIL']?></td>
+                                                    <td>
+                                                        <a href="user_list.php?id=<?=$row->fields['PK_LOCATION']?>"><i class="ti-user"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php if($row->fields['ACTIVE']==1){ ?>
-                                                            <span title="Active" class="active-box-green"></span>
+                                                            <span class="active-box-green"></span>
                                                         <?php } else{ ?>
-                                                            <span title="Inactive" class="active-box-red"></span>
-                                                        <?php } ?>&nbsp;&nbsp;
-                                                        <a href="javascript:;" data-href="account.php?id=<?=$_GET['id']?>&PK_USER=<?=$row->fields['PK_USER']?>&cond=del" onclick="confirmDelete(this);" title="Delete" style="color: red;"><i class="ti-trash"></i></a>
+                                                            <span class="active-box-red"></span>
+                                                        <?php } ?>
                                                     </td>
                                                 </tr>
                                                 <?php $row->MoveNext();
@@ -1126,8 +1118,8 @@ while (!$account_payment_info->EOF) {
         }
     }
 
-    function editpage(PK_USER, AC_ID){
-        window.location.href = "edit_account_user.php?id="+PK_USER+"&ac_id="+AC_ID;
+    function editpage(PK_LOCATION){
+        window.location.href = "user_list.php?id="+PK_LOCATION;
     }
 
     function confirmDelete(anchor)
