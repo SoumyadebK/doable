@@ -19,13 +19,13 @@ $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_BUSINESS_TYPE.BUSINESS_TYPE LIKE '%".$search_text."%' OR DOA_ACCOUNT_MASTER.BUSINESS_NAME LIKE '%".$search_text."%' OR DOA_ACCOUNT_MASTER.CITY LIKE '%".$search_text."%' OR DOA_ACCOUNT_MASTER.EMAIL LIKE '%".$search_text."%' OR DOA_ACCOUNT_MASTER.PHONE LIKE '%".$search_text."%')";
+    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%".$search_text."%' OR DOA_USERS.LAST_NAME LIKE '%".$search_text."%' OR DOA_USERS.USER_NAME LIKE '%".$search_text."%' OR DOA_USERS.EMAIL_ID LIKE '%".$search_text."%')";
 } else {
     $search_text = '';
     $search = ' ';
 }
 
-$query = $db->Execute("SELECT count((DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER)) AS TOTAL_RECORDS FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_BUSINESS_TYPE ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE = DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE");
+$query = $db->Execute("SELECT COUNT(DOA_USERS.PK_USER) AS TOTAL_RECORDS FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE (DOA_USER_ROLES.PK_ROLES = 2 || DOA_USER_ROLES.PK_ROLES = 11) ".$search." AND DOA_USERS.ACTIVE = '$status'");
 $number_of_result =  $query->fields['TOTAL_RECORDS'];
 $number_of_page = ceil ($number_of_result / $results_per_page);
 
@@ -93,9 +93,8 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <thead>
                                                 <tr>
                                                     <th>No</th>
-                                                    <th>Business Name</th>
-                                                    <th>Business type</th>
-                                                    <th>City</th>
+                                                    <th>Name</th>
+                                                    <th>User Name</th>
                                                     <th>Phone No.</th>
                                                     <th>Email</th>
                                                     <th>Joined On</th>
@@ -105,15 +104,14 @@ $page_first_result = ($page-1) * $results_per_page;
                                             <tbody>
                                                 <?php
                                                     $i=1;
-                                                    $row = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_BUSINESS_TYPE.BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_BUSINESS_TYPE ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE = DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE WHERE DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER > 1  ".$search." AND DOA_ACCOUNT_MASTER.ACTIVE = '$status' ORDER BY CREATED_ON DESC LIMIT " . $page_first_result . ',' . $results_per_page);
+                                                    $row = $db->Execute("SELECT DOA_USERS.* FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE (DOA_USER_ROLES.PK_ROLES = 2 || DOA_USER_ROLES.PK_ROLES = 11) ".$search." AND DOA_USERS.ACTIVE = '$status' ORDER BY CREATED_ON DESC LIMIT " . $page_first_result . ',' . $results_per_page);
                                                     while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?=$row->fields['PK_ACCOUNT_MASTER'];?>);"><?=$i;?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_ACCOUNT_MASTER'];?>);"><?=$row->fields['BUSINESS_NAME']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_ACCOUNT_MASTER'];?>);"><?=$row->fields['BUSINESS_TYPE']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_ACCOUNT_MASTER'];?>);"><?=$row->fields['CITY']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_ACCOUNT_MASTER'];?>);"><?=$row->fields['FIRST_NAME'].' '.$row->fields['LAST_NAME']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_ACCOUNT_MASTER'];?>);"><?=$row->fields['USER_NAME']?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_ACCOUNT_MASTER'];?>);"><?=$row->fields['PHONE']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_ACCOUNT_MASTER'];?>);"><?=$row->fields['EMAIL']?></td>
+                                                    <td onclick="editpage(<?=$row->fields['PK_ACCOUNT_MASTER'];?>);"><?=$row->fields['EMAIL_ID']?></td>
                                                     <td onclick="editpage(<?=$row->fields['PK_ACCOUNT_MASTER'];?>);"><?=date('m/d/Y', strtotime($row->fields['CREATED_ON']))?></td>
                                                     <td style="text-align: center;padding: 10px 0px 0px 0px;font-size: 25px;">
                                                         <a href="account.php?id=<?=$row->fields['PK_ACCOUNT_MASTER']?>" style="color: #03a9f3;"><i class="ti-eye"></i></a>&nbsp;&nbsp;

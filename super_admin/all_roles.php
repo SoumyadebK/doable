@@ -79,7 +79,7 @@ if (isset($_GET['search_text'])) {
                                     <tbody>
                                     <?php
                                     $i=1;
-                                    $row = $db->Execute("SELECT * FROM `DOA_ROLES` WHERE PK_ROLES > 0 ".$search);
+                                    $row = $db->Execute("SELECT * FROM `DOA_ROLES` WHERE PK_ROLES > 0 ".$search." ORDER BY SORT_ORDER ASC");
                                     while (!$row->EOF) { ?>
                                         <tr>
                                             <td onclick="editpage(<?=$row->fields['PK_ROLES']?>);"><?=$i;?></td>
