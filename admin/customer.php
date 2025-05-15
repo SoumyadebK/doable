@@ -54,12 +54,18 @@ $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
 
 $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
+$GATEWAY_MODE  = $account_data->fields['GATEWAY_MODE'];
+
 $SECRET_KEY = $account_data->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
 
 $SQUARE_ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
 $SQUARE_APP_ID = $account_data->fields['APP_ID'];
 $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
+
+$AUTHORIZE_LOGIN_ID 		= $account_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+$AUTHORIZE_TRANSACTION_KEY 	= $account_data->fields['TRANSACTION_KEY'];//"4ke43FW8z3287HV5";
+$AUTHORIZE_CLIENT_KEY 		= $account_data->fields['AUTHORIZE_CLIENT_KEY'];//"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
 
 $card_details = '';
 

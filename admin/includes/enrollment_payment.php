@@ -311,24 +311,16 @@
 </div>
 
 <?php
-$SQUARE_MODE = 0;
-if ($SQUARE_APP_ID != '' && strpos($SQUARE_APP_ID, 'sandbox') !== false) {
-    $SQUARE_MODE = 2;
-} elseif ($SQUARE_APP_ID != '') {
-    $SQUARE_MODE = 1;
-}
-
-if ($SQUARE_MODE == 1)
+if ($GATEWAY_MODE == 'live')
     $SQ_URL = "https://connect.squareup.com";
-else if ($SQUARE_MODE == 2)
+else
     $SQ_URL = "https://connect.squareupsandbox.com";
 
-if ($SQUARE_MODE == 1)
+if ($GATEWAY_MODE == 'live')
     $URL = "https://web.squarecdn.com/v1/square.js";
-else if ($SQUARE_MODE == 2)
+else
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
 ?>
-
 
 <script src="https://js.stripe.com/v3/"></script>
 <script type="text/javascript">

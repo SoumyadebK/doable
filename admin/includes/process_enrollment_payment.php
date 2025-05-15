@@ -20,13 +20,20 @@ global $db_account;
 $header = '../'.$_POST['header'];
 
 $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+
 $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
+$GATEWAY_MODE  = $account_data->fields['GATEWAY_MODE'];
+
 $SECRET_KEY = $account_data->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
 
 $SQUARE_ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
 $SQUARE_APP_ID = $account_data->fields['APP_ID'];
 $SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
+
+$AUTHORIZE_LOGIN_ID 		= $account_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+$AUTHORIZE_TRANSACTION_KEY 	= $account_data->fields['TRANSACTION_KEY'];//"4ke43FW8z3287HV5";
+$AUTHORIZE_CLIENT_KEY 		= $account_data->fields['AUTHORIZE_CLIENT_KEY'];//"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
 
 /*$SQUARE_MODE 			= 2;
 if ($SQUARE_MODE == 1)
@@ -243,11 +250,18 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
             require_once("../../global/vendor/autoload.php");
 
-            $client = new SquareClient([
-                'accessToken' => $SQUARE_ACCESS_TOKEN,
-                'environment' => Environment::SANDBOX,
-            ]);
-
+            if ($GATEWAY_MODE == 'live') {
+                    $client = new SquareClient([
+                    'accessToken' => $SQUARE_ACCESS_TOKEN,
+                    'environment' => Environment::PRODUCTION,
+                ]);
+            } else {
+                $client = new SquareClient([
+                    'accessToken' => $SQUARE_ACCESS_TOKEN,
+                    'environment' => Environment::SANDBOX,
+                ]);
+            }
+                
             $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
             $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = ".$user_master->fields['PK_USER']);
 
@@ -354,12 +368,6 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         }
 
         elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-            $AUTHORIZE_MODE 			= 2;
-            $AUTHORIZE_LOGIN_ID 		= $account_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
-            $AUTHORIZE_TRANSACTION_KEY 	= $account_data->fields['TRANSACTION_KEY'];//"4ke43FW8z3287HV5";
-            $AUTHORIZE_CLIENT_KEY 		= $account_data->fields['AUTHORIZE_CLIENT_KEY'];//"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
-
-
             //$LOGIN_ID = '4Y5pCy8Qr'; //$account_data->fields['LOGIN_ID'];
             //$TRANSACTION_KEY = '8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay'; // $account_data->fields['TRANSACTION_KEY'];
 
@@ -429,7 +437,11 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                     $createPaymentProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
             
                     $controller = new AnetController\CreateCustomerPaymentProfileController($createPaymentProfileRequest);
-                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+
+                    if($GATEWAY_MODE == 'live')
+                        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+                    else
+                        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
             
                     if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
                         $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileId();
@@ -460,7 +472,11 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                     $createProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
             
                     $controller = new AnetController\CreateCustomerProfileController($createProfileRequest);
-                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+                    
+                    if($GATEWAY_MODE == 'live')
+                        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+                    else
+                        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
             
                     if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
                         $CUSTOMER_PAYMENT_ID = $response->getCustomerProfileId();
@@ -520,7 +536,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $controller = new AnetController\CreateTransactionController($request);
 
             try {
-                if($AUTHORIZE_MODE == 1)
+                if($GATEWAY_MODE == 'live')
                     $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
                 else
                     $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
