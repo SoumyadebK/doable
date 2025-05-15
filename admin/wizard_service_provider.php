@@ -125,10 +125,10 @@ if(!empty($_GET['id'])) {
                                             <ul class="nav nav-tabs" role="tablist">
                                                 <li> <a class="nav-link active" data-bs-toggle="tab" id="profile_tab_link" href="#profile" role="tab" ><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                                                 <li id="login_info_tab" style="display: <?=($CREATE_LOGIN == 1)?'':'none'?>"> <a class="nav-link" id="login_info_tab_link" onclick="goToLoginTab()" data-bs-toggle="tab" href="#login" role="tab"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-                                                <li id="rates_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="rates_tab_link" data-bs-toggle="tab" href="#rates" role="tab" ><span class="hidden-sm-up"><i class="ti-money"></i></span> <span class="hidden-xs-down">Rates</span></a> </li>
-                                                <li id="service_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="service_tab_link" onclick="getLocationHours()" data-bs-toggle="tab" href="#service" role="tab" ><span class="hidden-sm-up"><i class="ti-server"></i></span> <span class="hidden-xs-down">Service</span></a> </li>
+                                                <li> <a class="nav-link" id="rates_tab_link" data-bs-toggle="tab" href="#rates" role="tab" ><span class="hidden-sm-up"><i class="ti-money"></i></span> <span class="hidden-xs-down">Rates</span></a> </li>
+                                                <li> <a class="nav-link" id="service_tab_link" onclick="getLocationHours()" data-bs-toggle="tab" href="#service" role="tab" ><span class="hidden-sm-up"><i class="ti-server"></i></span> <span class="hidden-xs-down">Service</span></a> </li>
                                                 <li> <a class="nav-link" data-bs-toggle="tab" href="#documents" id="document_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                                                <li id="comment_tab" style="display: <?=(in_array(5, $selected_roles))?'':'none'?>"> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+                                                <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" ><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                                             </ul>
                                             <!-- Tab panes -->
                                             <div class="tab-content tabcontent-border">
@@ -171,8 +171,12 @@ if(!empty($_GET['id'])) {
                                                                         <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
                                                                             <?php
                                                                             $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' ".$user_role_condition." ORDER BY SORT_ORDER");
-                                                                            while (!$row->EOF) { ?>
-                                                                                <option value="<?php echo $row->fields['PK_ROLES'];?>" <?=in_array($row->fields['PK_ROLES'], $selected_roles)?"selected":""?>><?=$row->fields['ROLES']?></option>
+                                                                            while (!$row->EOF) { 
+                                                                            $isSelected = in_array($row->fields['PK_ROLES'], $selected_roles) || $row->fields['PK_ROLES'] == 5;
+                                                                            ?>
+                                                                            <option value="<?php echo $row->fields['PK_ROLES'];?>" <?=$isSelected?"selected":""?>>
+                                                                                <?=$row->fields['ROLES']?>
+                                                                            </option>
                                                                                 <?php $row->MoveNext(); } ?>
                                                                         </select>
                                                                     </div>
@@ -204,7 +208,7 @@ if(!empty($_GET['id'])) {
                                                                     <label class="col-md-12"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?=($CREATE_LOGIN == 1)?'checked':''?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
                                                                 </div>
                                                                 <div class="col-2">
-                                                                    <label class="col-md-12"><input type="checkbox" id="APPEAR_IN_CALENDAR" name="APPEAR_IN_CALENDAR" class="form-check-inline" style="margin-top: 30px;" checked disabled> Appear In Calendar</label>
+                                                                    <label class="col-md-12"><input type="checkbox" id="APPEAR_IN_CALENDAR" name="APPEAR_IN_CALENDAR" class="form-check-inline" style="margin-top: 30px;" checked> Appear In Calendar</label>
                                                                 </div>
                                                                 <div id="display_order" class="col-2">
                                                                     <div class="form-group">
@@ -309,9 +313,9 @@ if(!empty($_GET['id'])) {
 
                                                             <div class="row">
                                                                 <div class="col-6">
-                                                                    <label class="form-label">Location</label>
+                                                                    <label class="form-label">Location<span class="text-danger">*</span></label>
                                                                     <div class="col-md-12 multiselect-box">
-                                                                        <select class="multi_sumo_select_location" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
+                                                                        <select class="multi_sumo_select_location" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple required>
                                                                             <?php
                                                                             $selected_location = [];
                                                                             if(!empty($_GET['id'])) {
@@ -981,17 +985,25 @@ if(!empty($_GET['id'])) {
         }
 
         function showServiceProviderTabs(param) {
-            let pk_role = $(param).val();
-            if (pk_role.indexOf('5') !== -1){
-                $('#rates_tab').show();
-                $('#service_tab').show();
-                $('#comment_tab').show();
-                $('#display_order').show();
-            }else {
-                $('#rates_tab').hide();
-                $('#service_tab').hide();
-                $('#comment_tab').hide();
-                $('#display_order').hide();
+            const selectedRoles = Array.from(param.selectedOptions).map(opt => opt.value);
+    
+            if (!selectedRoles.includes('5')) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Required Role Missing',
+                    html: 'First must be a <b>Service Provider</b> <i class="fas fa-exclamation-circle text-danger ms-1"></i>',
+                    confirmButtonColor: '#3085d6',
+                }).then(() => {
+                    // Re-select role 5
+                    //$(param).find('option[value="5"]').attr('selected', true);
+                    $(param).val('5');
+                    $(param)[0].sumo.reload();
+                    //$(param).trigger('change');
+                    
+                    // Highlight the selection
+                    $(param).css('border-color', '#dc3545');
+                    setTimeout(() => $(param).css('border-color', ''), 2000);
+                });
             }
         }
 
@@ -1364,6 +1376,28 @@ if(!empty($_GET['id'])) {
         document.getElementById('PK_ROLES').addEventListener('change', function() {
             this.style.border = '';
         });
+    </script>
+    <script>
+    $(document).ready(function() {
+        $('#APPEAR_IN_CALENDAR').change(function() {
+            if (!this.checked) {
+                // Show error message
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Required Setting',
+                    html: '<b>Appear In Calendar</b> must remain checked <i class="fas fa-exclamation-circle text-danger ms-1"></i>',
+                    confirmButtonColor: '#3085d6',
+                });
+                
+                // Re-check the checkbox
+                this.checked = true;
+                
+                // Optional: Add visual feedback
+                $(this).css('border-color', 'red');
+                setTimeout(() => $(this).css('border-color', ''), 1000);
+            }
+        });
+    });
     </script>
 </body>
 </html>

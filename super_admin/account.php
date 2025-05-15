@@ -1152,6 +1152,24 @@ while (!$account_payment_info->EOF) {
         });
     });
 
+    $(document).ready(function () {
+            $('#USER_NAME').on('blur', function () {
+                const USER_NAME = $(this).val().trim();
+                if (USER_NAME != '') {
+                    $.ajax({
+                        url: 'ajax/username_checker.php',
+                        type: 'post',
+                        data: { USER_NAME: USER_NAME },
+                        success: function (response) {
+                            $('#username_result').html(response);
+                        }
+                    });
+                } else {
+                    $("#username_result").html("");
+                }
+            });
+        });
+
     $(document).on('submit', '#profile_info_form', function (event) {
         event.preventDefault();
         let form_data = $('#profile_info_form').serialize();
