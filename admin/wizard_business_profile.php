@@ -151,7 +151,7 @@ if(!empty($_POST)){
         }
     }
 
-    header("location:wizard_holiday_list.php");
+    header("location:wizard_corporation.php");
 }
 
 $header_text = '';
