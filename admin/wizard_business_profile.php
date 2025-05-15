@@ -116,9 +116,9 @@ if ($account_payment_info->RecordCount() > 0) {
 if(!empty($_POST)){
     if ($_POST['FUNCTION_NAME'] == 'saveProfileData') {
         $ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-        $ACCOUNT_DATA['PK_BUSINESS_TYPE'] = $_POST['PK_BUSINESS_TYPE'];
-        $ACCOUNT_DATA['BUSINESS_ID'] = $_POST['BUSINESS_ID'];
-        $ACCOUNT_DATA['BUSINESS_NAME'] = $_POST['BUSINESS_NAME'];
+        // $ACCOUNT_DATA['PK_BUSINESS_TYPE'] = $_POST['PK_BUSINESS_TYPE'];
+        // $ACCOUNT_DATA['BUSINESS_ID'] = $_POST['BUSINESS_ID'];
+        // $ACCOUNT_DATA['BUSINESS_NAME'] = $_POST['BUSINESS_NAME'];
         $ACCOUNT_DATA['ADDRESS'] = $_POST['ADDRESS'];
         $ACCOUNT_DATA['ADDRESS_1'] = $_POST['ADDRESS_1'];
         $ACCOUNT_DATA['CITY'] = $_POST['CITY'];
@@ -223,49 +223,6 @@ if ($header_data->RecordCount() > 0) {
                                     <form class="form-material form-horizontal" id="business_profile_form" action="" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveProfileData">
                                         <div class="p-20">
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Business Type<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <select class="form-control" required name="PK_BUSINESS_TYPE" id="PK_BUSINESS_TYPE">
-                                                                <option>Select Business Type</option>
-                                                                <?php
-                                                                $result_dropdown_query = mysqli_query($conn,"SELECT PK_BUSINESS_TYPE,BUSINESS_TYPE FROM DOA_BUSINESS_TYPE WHERE ACTIVE='1' ORDER BY PK_BUSINESS_TYPE");
-                                                                while ($result_dropdown=mysqli_fetch_array($result_dropdown_query,MYSQLI_ASSOC)) { ?>
-                                                                    <option value="<?php echo $result_dropdown['PK_BUSINESS_TYPE'];?>" <?php if($result_dropdown['PK_BUSINESS_TYPE'] == $PK_BUSINESS_TYPE) echo 'selected = "selected"';?> ><?=$result_dropdown['BUSINESS_TYPE']?></option>
-                                                                    <?php
-                                                                }
-                                                                ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Business ID<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="BUSINESS_ID" name="BUSINESS_ID" class="form-control" placeholder="Enter Business ID" required data-validation-required-message="This field is required" value="<?php echo $BUSINESS_ID?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-12">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Business Name<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="BUSINESS_NAME" name="BUSINESS_NAME" class="form-control" placeholder="Enter Business Name" required data-validation-required-message="This field is required" value="<?php echo $BUSINESS_NAME?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-
                                             <div class="row">
                                                 <div class="col-6">
                                                     <div class="form-group">
