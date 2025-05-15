@@ -321,10 +321,9 @@ while (!$account_payment_info->EOF) {
                             <div class="card-body">
                                 <!-- Nav tabs -->
                                 <ul class="nav nav-tabs" role="tablist">
-                                    <li class="active"> <a class="nav-link active" id="home_tab_link" data-bs-toggle="tab" href="#home" role="tab"><span class="hidden-sm-up"><i class="ti-home"></i></span> <span class="hidden-xs-down">Account Info</span></a> </li>
-                                    <?php if(empty($_GET['id'])) { ?>
-                                        <li> <a class="nav-link" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab"><span class="hidden-sm-up"><i class="ti-folder"></i></span> <span class="hidden-xs-down">User Profile</span></a> </li>
-                                    <?php } else { ?>
+                                    <!-- <li class="active"> <a class="nav-link active" id="home_tab_link" data-bs-toggle="tab" href="#home" role="tab"><span class="hidden-sm-up"><i class="ti-home"></i></span> <span class="hidden-xs-down">Account Info</span></a> </li> -->
+                                    <li class="active"> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab"><span class="hidden-sm-up"><i class="ti-folder"></i></span> <span class="hidden-xs-down">User Profile</span></a> </li>
+                                    <?php if(!empty($_GET['id'])) { ?>
                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#location" role="tab" id="location_tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Location List</span></a> </li>
                                     <?php } ?>
                                     <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
@@ -333,7 +332,7 @@ while (!$account_payment_info->EOF) {
                                 <!-- Tab panes -->
                                 <div class="tab-content tabcontent-border">
                                     <!--Account Info Tab-->
-                                    <div class="tab-pane active" id="home" role="tabpanel">
+                                    <!-- <div class="tab-pane active" id="home" role="tabpanel">
 
                                         <form class="form-material form-horizontal" id="account_info_form">
                                             <input type="hidden" name="FUNCTION_NAME" value="saveAccountInfoData">
@@ -556,12 +555,10 @@ while (!$account_payment_info->EOF) {
                                                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                             </div>
                                         </form>
-                                    </div>
+                                    </div> -->
 
-
-                                    <?php if(empty($_GET['id'])) { ?>
                                     <!--User Profile Info Tab-->
-                                    <div class="tab-pane p-20" id="profile" role="tabpanel">
+                                    <div class="tab-pane active" id="profile" role="tabpanel">
                                         <form class="form-material form-horizontal" id="profile_info_form">
                                             <input type="hidden" name="FUNCTION_NAME" value="saveProfileInfoData">
                                             <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?=$PK_ACCOUNT_MASTER?>">
@@ -570,15 +567,15 @@ while (!$account_payment_info->EOF) {
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <label class="form-label mb-0">Roles</label>
-                                                        <input type="hidden" name="PK_ROLES" value="2">
-                                                        <input type="text" class="form-control" value="Account Admin" readonly>
+                                                        <input type="hidden" name="PK_ROLES" value="11">
+                                                        <input type="text" class="form-control" value="Super Account Admin" readonly>
                                                     </div>
                                                     <div class="col-6">
                                                         <div class="form-group">
                                                             <label class="col-md-12">User Name<span class="text-danger">*</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" onkeyup="ValidateUsername()" value="<?=$USER_NAME?>">
+                                                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" <?=empty($_GET['id'])?'':'readonly'?> value="<?=$USER_NAME?>">
                                                             </div>
                                                         </div>
                                                         <span id="lblError" style="color: red"></span>
@@ -793,7 +790,8 @@ while (!$account_payment_info->EOF) {
                                             </div>
                                         </form>
                                     </div>
-                                    <?php } else { ?>
+
+                                    <?php if(!empty($_GET['id'])) { ?>
                                     <!--User List Tab-->
                                     <div class="tab-pane p-20" id="location" role="tabpanel">
                                         <table id="myTable" class="table table-striped border" data-page-length='50'>

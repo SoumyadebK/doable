@@ -39,13 +39,14 @@ $PK_ACCOUNT_TYPE    = $res->fields['PK_ACCOUNT_TYPE'];
 $PK_TIMEZONE        = $res->fields['PK_TIMEZONE'];
 $ACTIVE             = $res->fields['ACTIVE'];
 $SERVICE_PROVIDER_TITLE = $res->fields['SERVICE_PROVIDER_TITLE'];
-$OPERATION_TAB_TITLE = $res->fields['OPERATION_TAB_TITLE'];
+$OPERATION_TAB_TITLE    = $res->fields['OPERATION_TAB_TITLE'];
 $PK_CURRENCY            = $res->fields['PK_CURRENCY'];
 $ENROLLMENT_ID_CHAR     = $res->fields['ENROLLMENT_ID_CHAR'];
 $ENROLLMENT_ID_NUM      = $res->fields['ENROLLMENT_ID_NUM'];
-$MISCELLANEOUS_ID_CHAR = $res->fields['MISCELLANEOUS_ID_CHAR'];
-$MISCELLANEOUS_ID_NUM = $res->fields['MISCELLANEOUS_ID_NUM'];
+$MISCELLANEOUS_ID_CHAR  = $res->fields['MISCELLANEOUS_ID_CHAR'];
+$MISCELLANEOUS_ID_NUM   = $res->fields['MISCELLANEOUS_ID_NUM'];
 $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
+$GATEWAY_MODE           = $res->fields['GATEWAY_MODE'];
 $SECRET_KEY             = $res->fields['SECRET_KEY'];
 $PUBLISHABLE_KEY        = $res->fields['PUBLISHABLE_KEY'];
 $ACCESS_TOKEN           = $res->fields['ACCESS_TOKEN'];
@@ -54,12 +55,12 @@ $SQUARE_LOCATION_ID     = $res->fields['LOCATION_ID'];
 $LOGIN_ID               = $res->fields['LOGIN_ID'];
 $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
 $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
-$APPOINTMENT_REMINDER = $res->fields['APPOINTMENT_REMINDER'];
-$HOUR = $res->fields['HOUR'];
-$USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
-$FOCUSBIZ_API_KEY = $res->fields['FOCUSBIZ_API_KEY'];
-$SALES_TAX = $res->fields['SALES_TAX'];
-$TIME_SLOT_INTERVAL = $res->fields['TIME_SLOT_INTERVAL'];
+$APPOINTMENT_REMINDER   = $res->fields['APPOINTMENT_REMINDER'];
+$HOUR                   = $res->fields['HOUR'];
+$USERNAME_PREFIX        = $res->fields['USERNAME_PREFIX'];
+$FOCUSBIZ_API_KEY       = $res->fields['FOCUSBIZ_API_KEY'];
+$SALES_TAX              = $res->fields['SALES_TAX'];
+$TIME_SLOT_INTERVAL     = $res->fields['TIME_SLOT_INTERVAL'];
 
 $FRANCHISE = $res->fields['FRANCHISE'];
 $AM_USER_NAME = $res->fields['AM_USER_NAME'];
@@ -163,6 +164,7 @@ if(!empty($_POST)){
         $SETTINGS_DATA['MISCELLANEOUS_ID_CHAR'] = $_POST['MISCELLANEOUS_ID_CHAR'];
         $SETTINGS_DATA['MISCELLANEOUS_ID_NUM'] = $_POST['MISCELLANEOUS_ID_NUM'];
         $SETTINGS_DATA['PAYMENT_GATEWAY_TYPE'] = $_POST['PAYMENT_GATEWAY_TYPE'];
+        $SETTINGS_DATA['GATEWAY_MODE'] = $_POST['GATEWAY_MODE'];
         $SETTINGS_DATA['SECRET_KEY'] = $_POST['SECRET_KEY'];
         $SETTINGS_DATA['PUBLISHABLE_KEY'] = $_POST['PUBLISHABLE_KEY'];
         $SETTINGS_DATA['ACCESS_TOKEN'] = $_POST['ACCESS_TOKEN'];
@@ -563,12 +565,21 @@ if ($header_data->RecordCount() > 0) {
                                             <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
                                                 <div class="row" style="margin-top: 30px;">
                                                     <b class="btn btn-light" style="margin-bottom: 20px;">Payment Gateway Setting</b>
+
                                                     <div class="row">
                                                         <div class="col-6">
                                                             <div class="form-group">
+                                                                <label class="form-label" style="margin-bottom: 20px;">Gateway Type</label><br>
                                                                 <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
                                                                 <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
                                                                 <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'checked':''?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label" style="margin-bottom: 20px;">Gateway Mode</label><br>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="GATEWAY_MODE" name="GATEWAY_MODE" class="form-check-inline" value="test" <?=($GATEWAY_MODE=='test' || $GATEWAY_MODE==null || $GATEWAY_MODE=='')?'checked':''?>> Test</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="GATEWAY_MODE" name="GATEWAY_MODE" class="form-check-inline" value="live" <?=($GATEWAY_MODE=='live')?'checked':''?>> Live</label>
                                                             </div>
                                                         </div>
                                                     </div>
