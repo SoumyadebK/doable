@@ -576,6 +576,7 @@ while (!$account_payment_info->EOF) {
                                                             </label>
                                                             <div class="col-md-12">
                                                                 <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" <?=empty($_GET['id'])?'':'readonly'?> value="<?=$USER_NAME?>">
+                                                                <div id="username_result"></div>
                                                             </div>
                                                         </div>
                                                         <span id="lblError" style="color: red"></span>
@@ -1056,6 +1057,8 @@ while (!$account_payment_info->EOF) {
 
 </script>
 <script>
+    let PK_USER_EDIT = parseInt(<?=empty($PK_USER_EDIT)?0:$PK_USER_EDIT?>);
+
     function isGood(password) {
         //alert(password);
         var password_strength = document.getElementById("password-text");
@@ -1152,35 +1155,30 @@ while (!$account_payment_info->EOF) {
         });
     });
 
-    $(document).ready(function () {
-            $('#USER_NAME').on('blur', function () {
-                const USER_NAME = $(this).val().trim();
-                if (USER_NAME != '') {
-                    $.ajax({
-                        url: 'ajax/username_checker.php',
-                        type: 'post',
-                        data: { USER_NAME: USER_NAME },
-                        success: function (response) {
-                            $('#username_result').html(response);
-                        }
-                    });
-                } else {
-                    $("#username_result").html("");
-                }
-            });
-        });
-
     $(document).on('submit', '#profile_info_form', function (event) {
         event.preventDefault();
-        let form_data = $('#profile_info_form').serialize();
+        const USER_NAME = $('#USER_NAME').val().trim();
         $.ajax({
-            url: "ajax/AjaxFunctions.php",
-            type: 'POST',
-            data: form_data,
-            dataType: 'JSON',
-            success:function (data) {
-                $('.PK_ACCOUNT_MASTER').val(data);
-                window.location.href='all_accounts.php';
+            url: 'ajax/username_checker.php',
+            type: 'post',
+            data: {USER_NAME: USER_NAME},
+            success: function (response) {
+                if(response && PK_USER_EDIT == 0) {
+                    $('#USER_NAME').focus();
+                    $('#username_result').html(response);
+                } else {
+                    let form_data = $('#profile_info_form').serialize();
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: form_data,
+                        dataType: 'JSON',
+                        success:function (data) {
+                            $('.PK_ACCOUNT_MASTER').val(data);
+                            window.location.href='all_accounts.php';
+                        }
+                    });
+                }
             }
         });
     });
