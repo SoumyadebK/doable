@@ -748,7 +748,7 @@ while (!$account_payment_info->EOF) {
                                                             <label class="col-md-12">Password<span class="text-danger">*</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="password" autocomplete="off" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)" required>
+                                                                <input type="password" autocomplete="off" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -757,7 +757,7 @@ while (!$account_payment_info->EOF) {
                                                             <label class="col-md-12">Confirm Password<span class="text-danger">*</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="password" autocomplete="off" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)" required>
+                                                                <input type="password" autocomplete="off" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
                                                             </div>
                                                         </div>
                                                     </div>

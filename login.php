@@ -40,7 +40,7 @@ if ($FUNCTION_NAME == 'loginFunction'){
                 $_SESSION['ACCESS_TOKEN'] = $result->fields['ACCESS_TOKEN'];
                 $_SESSION['TICKET_SYSTEM_ACCESS'] = $result->fields['TICKET_SYSTEM_ACCESS'];
 
-                if ($_SESSION['PK_ROLES'] == 2) {
+                if ($_SESSION['PK_ROLES'] == 2 || $_SESSION['PK_ROLES'] == 11) {
                     $row = $db->Execute("SELECT PK_LOCATION FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                     $LOCATION_ARRAY = [];
                     while (!$row->EOF) {
