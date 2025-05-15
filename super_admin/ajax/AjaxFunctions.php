@@ -128,7 +128,7 @@ function saveProfileInfoData($RESPONSE_DATA)
         $ACCOUNT_DATA_UPDATE['DB_NAME'] = $databaseName;
         db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA_UPDATE, 'update'," PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
     } else {
-        $ACCOUNT_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        //$ACCOUNT_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
         $ACCOUNT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'update'," PK_ACCOUNT_MASTER =  '$RESPONSE_DATA[PK_ACCOUNT_MASTER]'");
@@ -177,7 +177,7 @@ function saveProfileInfoData($RESPONSE_DATA)
             $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
             db_perform('DOA_USERS', $USER_DATA, 'insert');
         } else {
-            $USER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+            //$USER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
             $USER_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
             db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER = ".$RESPONSE_DATA['PK_USER_EDIT']);
