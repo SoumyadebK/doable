@@ -14,7 +14,7 @@
                 <a class="navbar-brand" href="../super_admin/all_accounts.php">
                     <img src="../assets/images/doable_logo.png" alt="LOGO" style="height: 60px; width: auto;">
                 </a>
-            <?php } elseif ($_SESSION["PK_ROLES"] == 2) {
+            <?php } elseif ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 11) {
                 if ($business_logo == "" || $business_logo == null) { ?>
                     <a class="navbar-brand" href="../admin/my_profile.php">
                         <b>DOABLE</b>
@@ -68,7 +68,8 @@
                     <?php } elseif (
                         $_SESSION["PK_ROLES"] == 2 ||
                         $_SESSION["PK_ROLES"] == 4 ||
-                        $_SESSION["PK_ROLES"] == 5
+                        $_SESSION["PK_ROLES"] == 5 || 
+                        $_SESSION["PK_ROLES"] == 11
                     ) { ?>
                         <p style="width: 450px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 23px; font-weight: 400; color: white; margin-left: 40px; margin-top: 14px;"><?= $business_name ?></p>
                     <?php } ?>
@@ -83,7 +84,7 @@
                         <div id="location" class="multiselect-box" style="width: 300px">
                             <?php
                                 $selected_location = [];
-                                if ($_SESSION["PK_ROLES"] == 2) {
+                                if ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 11) {
                                     $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                 } else {
                                     $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = ".$_SESSION['PK_USER']);
@@ -95,7 +96,7 @@
                                     $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_LOCATION IN (".implode(',', $selected_location).")");
                                 } ?>
                             <?php
-                                if (($_SESSION["PK_ROLES"] == 2) || count($selected_location) > 1) { ?>
+                                if (($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 11) || count($selected_location) > 1) { ?>
                                 <select class="multi_select_location" onchange="selectDefaultLocation(this);" multiple>
                                     <?php
                                     while (!$row->EOF) { ?>
@@ -130,7 +131,7 @@
                     </li>
                 <?php endif;?>
 
-                <?php if ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 4) { ?>
+                <?php if ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 4 || $_SESSION["PK_ROLES"] == 11) { ?>
                     <li class="nav-item dropdown" style="margin-top: 4px;">
                         <a class="nav-link dropdown-toggle waves-effect waves-dark notice_box" href="javascript:" onclick="getCartItemList()" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <!--<div class="notify" id="cart_notify" style="display: <?php /*=(isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0)?'':'none'*/?>;"> <span class="button"></span> </div>-->
@@ -188,7 +189,7 @@
                                 <li>
                                     <a href="../super_admin/my_profile.php" class="dropdown-item"><i class="ti-user"></i> My Profile</a>
                                 </li>
-                            <?php } elseif ($_SESSION["PK_ROLES"] == 2) { ?>
+                            <?php } elseif ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 11) { ?>
                                 <li>
                                     <a href="../admin/my_profile.php" class="dropdown-item"><i class="ti-user"></i> My Profile</a>
                                 </li>
