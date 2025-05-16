@@ -19,7 +19,7 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
                                 General
                             </a>
                             <div id="dropdown-products" class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                                <a class="dropdown-item" href="../admin/business_profile.php">Business Profile</a>
+                                <!-- <a class="dropdown-item" href="../admin/business_profile.php">Business Profile</a> -->
                                 <a class="dropdown-item" href="../admin/settings.php">Settings</a>
                                 <a class="dropdown-item" href="../admin/all_corporations.php">Corporations</a>
                                 <a class="dropdown-item" href="../admin/all_locations.php">Locations</a>
@@ -92,7 +92,7 @@ if($_SERVER['HTTP_HOST'] == 'localhost' ) {
                         }
                         if ($address == "business_profile.php" || $address == "settings.php" || $address == "all_corporations.php" || $address == "all_locations.php" || $address == "all_users.php" || $address == "deleted_customer.php") { ?>
                             <ul class="nav nav-pills justify-content-center">
-                                <li class="nav-item"><a class="nav-link <?=($address == 'business_profile.php') ? 'active' : ''?>" href="../admin/business_profile.php">Business Profile</a></li>
+                                <!-- <li class="nav-item"><a class="nav-link <?=($address == 'business_profile.php') ? 'active' : ''?>" href="../admin/business_profile.php">Business Profile</a></li> -->
                                 <li class="nav-item"><a class="nav-link <?=($address == 'settings.php') ? 'active' : ''?>" href="../admin/settings.php">Settings</a></li>
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_corporations.php') ? 'active' : ''?>" href="../admin/all_corporations.php">Corporations</a></li>
                                 <li class="nav-item"><a class="nav-link <?=($address == 'all_locations.php') ? 'active' : ''?>" href="../admin/all_locations.php">Locations</a></li>
