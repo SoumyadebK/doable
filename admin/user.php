@@ -915,8 +915,8 @@ if(!empty($_GET['id'])) {
         }
 
         $(document).on('focus', '.time-picker', function () {
-            let minTime = $(this).closest('.location-hours').find('.minTime').val();
-            let maxTime = $(this).closest('.location-hours').find('.maxTime').val();
+            let minTime = $(this).closest('.form-group').find('.minTime').val();
+            let maxTime = $(this).closest('.form-group').find('.maxTime').val();
             $(this).timepicker({
                 timeFormat: 'hh:mm p',
                 interval: 30,
@@ -928,14 +928,14 @@ if(!empty($_GET['id'])) {
             });
         });
 
-        function closeThisDay(param){
-            if ($(param).is(':checked')){
+        function closeThisDay(param) {
+            if ($(param).is(':checked')) {
                 $(param).closest('.row').find('.time-input').val('');
                 //$(param).closest('.row').find('.time-input').css('pointer-events', 'none');
                 $(param).closest('.row').find('.time-input').each(function () {
                     this.style.cssText = 'background-color: #80808080 !important; pointer-events: none !important;';
                 });
-            }else {
+            } else {
                 $(param).closest('.row').find('.time-input').css('pointer-events', '');
                 $(param).closest('.row').find('.time-input').css('background-color', '');
             }
@@ -1155,12 +1155,12 @@ if(!empty($_GET['id'])) {
                                 } else {
                                     $('#document_tab_link')[0].click();
                                 }
-                            }else{
+                            } else {
                                 window.location.href='all_users.php';
                             }
                         }
                     });
-            } else{
+            } else {
                 $('#password_error').text('Password and Confirm Password not matched');
             }
         });

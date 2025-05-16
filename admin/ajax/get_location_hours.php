@@ -106,13 +106,69 @@ if($user_location->RecordCount() > 0) {
             $SUN_END_TIME = $location_hour_data->fields['SUN_END_TIME'];
         }
 
-        $location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DAY_NUMBER FROM DOA_OPERATIONAL_HOUR WHERE CLOSED = 0 AND PK_LOCATION = ".$user_location->fields['PK_LOCATION']);
+        $location_operational_hour = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE PK_LOCATION = ".$user_location->fields['PK_LOCATION']);
         if ($location_operational_hour->RecordCount() > 0) {
-            $minTime = $location_operational_hour->fields['OPEN_TIME'];
-            $maxTime = $location_operational_hour->fields['CLOSE_TIME'];
-        } else {
-            $minTime = '00:00:00';
-            $maxTime = '24:00:00';
+            while(!$location_operational_hour->EOF) {
+                switch ($location_operational_hour->fields['DAY_NUMBER']) {
+                    case 1:
+                        if ($location_operational_hour->fields['CLOSED'] == 1) {
+                            $MON_START_TIME = '00:00:00';
+                            $MON_END_TIME = '00:00:00';
+                        }
+                        $monMinTime = $location_operational_hour->fields['OPEN_TIME'];
+                        $monMaxTime = $location_operational_hour->fields['CLOSE_TIME'];
+                        break;
+                    case 2:
+                        if ($location_operational_hour->fields['CLOSED'] == 1) {
+                            $TUE_START_TIME = '00:00:00';
+                            $TUE_END_TIME = '00:00:00';
+                        }
+                        $tueMinTime = $location_operational_hour->fields['OPEN_TIME'];
+                        $tueMaxTime = $location_operational_hour->fields['CLOSE_TIME'];
+                        break;
+                    case 3:
+                        if ($location_operational_hour->fields['CLOSED'] == 1) {
+                            $WED_START_TIME = '00:00:00';
+                            $WED_END_TIME = '00:00:00';
+                        }
+                        $wedMinTime = $location_operational_hour->fields['OPEN_TIME'];
+                        $wedMaxTime = $location_operational_hour->fields['CLOSE_TIME'];
+                        break;
+                    case 4:
+                        if ($location_operational_hour->fields['CLOSED'] == 1) {
+                            $THU_START_TIME = '00:00:00';
+                            $THU_END_TIME = '00:00:00';
+                        }
+                        $thuMinTime = $location_operational_hour->fields['OPEN_TIME'];
+                        $thuMaxTime = $location_operational_hour->fields['CLOSE_TIME'];
+                        break;
+                    case 5:
+                        if ($location_operational_hour->fields['CLOSED'] == 1) {
+                            $FRI_START_TIME = '00:00:00';
+                            $FRI_END_TIME = '00:00:00';
+                        }
+                        $friMinTime = $location_operational_hour->fields['OPEN_TIME'];
+                        $friMaxTime = $location_operational_hour->fields['CLOSE_TIME'];
+                        break;
+                    case 6: 
+                        if ($location_operational_hour->fields['CLOSED'] == 1) {
+                            $SAT_START_TIME = '00:00:00';
+                            $SAT_END_TIME = '00:00:00';
+                        }
+                        $satMinTime = $location_operational_hour->fields['OPEN_TIME'];
+                        $satMaxTime = $location_operational_hour->fields['CLOSE_TIME'];
+                        break;
+                    case 7:
+                        if ($location_operational_hour->fields['CLOSED'] == 1) {
+                            $SUN_START_TIME = '00:00:00';
+                            $SUN_END_TIME = '00:00:00';
+                        }
+                        $sunMinTime = $location_operational_hour->fields['OPEN_TIME'];
+                        $sunMaxTime = $location_operational_hour->fields['CLOSE_TIME'];
+                        break;
+                }
+                $location_operational_hour->MoveNext();
+            }
         }
     ?>
         <div class="location-hours">
@@ -120,8 +176,6 @@ if($user_location->RecordCount() > 0) {
                 <div class="col-6">
                     <h5><strong>Location Name : </strong><?=$user_location->fields['LOCATION_NAME']?></h5>
                     <input type="hidden" name="PK_LOCATION[]" value="<?=$user_location->fields['PK_LOCATION']?>">
-                    <input type="hidden" class="minTime" value="<?=$minTime?>">
-                    <input type="hidden" class="maxTime" value="<?=$maxTime?>">
                 </div>
             </div>
 
@@ -137,6 +191,8 @@ if($user_location->RecordCount() > 0) {
             </div>
 
             <div class="row form-group">
+                <input type="hidden" class="minTime" value="<?=$monMinTime?>">
+                <input type="hidden" class="maxTime" value="<?=$monMaxTime?>">
                 <div class="col-1">
                     <label class="form-label">Monday</label>
                 </div>
@@ -152,6 +208,8 @@ if($user_location->RecordCount() > 0) {
             </div>
 
             <div class="row form-group">
+                <input type="hidden" class="minTime" value="<?=$tueMinTime?>">
+                <input type="hidden" class="maxTime" value="<?=$tueMaxTime?>">
                 <div class="col-1">
                     <label class="form-label">Tuesday</label>
                 </div>
@@ -167,6 +225,8 @@ if($user_location->RecordCount() > 0) {
             </div>
 
             <div class="row form-group">
+                <input type="hidden" class="minTime" value="<?=$wedMinTime?>">
+                <input type="hidden" class="maxTime" value="<?=$wedMaxTime?>">
                 <div class="col-1">
                     <label class="form-label">Wednesday</label>
                 </div>
@@ -182,6 +242,8 @@ if($user_location->RecordCount() > 0) {
             </div>
 
             <div class="row form-group">
+                <input type="hidden" class="minTime" value="<?=$thuMinTime?>">
+                <input type="hidden" class="maxTime" value="<?=$thuMaxTime?>">
                 <div class="col-1">
                     <label class="form-label">Thursday</label>
                 </div>
@@ -197,6 +259,8 @@ if($user_location->RecordCount() > 0) {
             </div>
 
             <div class="row form-group">
+                <input type="hidden" class="minTime" value="<?=$friMinTime?>">
+                <input type="hidden" class="maxTime" value="<?=$friMaxTime?>">
                 <div class="col-1">
                     <label class="form-label">Friday</label>
                 </div>
@@ -212,6 +276,8 @@ if($user_location->RecordCount() > 0) {
             </div>
 
             <div class="row form-group">
+                <input type="hidden" class="minTime" value="<?=$satMinTime?>">
+                <input type="hidden" class="maxTime" value="<?=$satMaxTime?>">
                 <div class="col-1">
                     <label class="form-label">Saturday</label>
                 </div>
@@ -227,6 +293,8 @@ if($user_location->RecordCount() > 0) {
             </div>
 
             <div class="row form-group">
+                <input type="hidden" class="minTime" value="<?=$sunMinTime?>">
+                <input type="hidden" class="maxTime" value="<?=$sunMaxTime?>">
                 <div class="col-1">
                     <label class="form-label">Sunday</label>
                 </div>
