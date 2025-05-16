@@ -19,7 +19,7 @@ else
 
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
-$PK_USER = '';
+$PK_USER = 0;
 $PK_CUSTOMER_DETAILS = '';
 $USER_NAME = '';
 $FIRST_NAME = '';
@@ -943,6 +943,7 @@ if(!empty($_GET['id'])) {
     </script>
     <script>
         let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
+        let NEW_USER = parseInt(<?=empty($_GET['id'])?true:false?>);
 
         function isGood(password) {
             let password_strength = document.getElementById("password-text");
@@ -1064,6 +1065,7 @@ if(!empty($_GET['id'])) {
 
         $(document).on('submit', '#profile_form', function (event) {
             event.preventDefault();
+            let PK_USER = $('.PK_USER').val();
             const PHONE = $('#PHONE').val().trim();
             const EMAIL_ID = $('#EMAIL_ID').val().trim();
             if (PHONE != '') {
@@ -1075,6 +1077,7 @@ if(!empty($_GET['id'])) {
                         if(response && PK_USER == 0) {
                             $('#phone_result').html(response);
                         } else {
+                            $('#phone_result').html('');
                             if (EMAIL_ID != '') {
                                 $.ajax({
                                     url: 'ajax/username_checker.php',
@@ -1084,6 +1087,7 @@ if(!empty($_GET['id'])) {
                                         if(response && PK_USER == 0) {
                                             $('#email_result').html(response);
                                         } else {
+                                            $('#email_result').html('');
                                             let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
                                             $.ajax({
                                                 url: "ajax/AjaxFunctions.php",
@@ -1095,7 +1099,7 @@ if(!empty($_GET['id'])) {
                                                 success: function (data) {
                                                     $('.PK_USER').val(data.PK_USER);
                                                     $('.PK_CUSTOMER_DETAILS').val(data.PK_CUSTOMER_DETAILS);
-                                                    if (PK_USER == 0) {
+                                                    if (PK_USER == 0 || NEW_USER) {
                                                         if ($('#CREATE_LOGIN').is(':checked')) {
                                                             $('#login_info_tab_link')[0].click();
                                                         } else {
@@ -1140,6 +1144,7 @@ if(!empty($_GET['id'])) {
 
         $(document).on('submit', '#login_form', function (event) {
             event.preventDefault();
+            let PK_USER = $('.PK_USER').val();
             let PASSWORD = $('#PASSWORD').val();
             let CONFIRM_PASSWORD = $('#CONFIRM_PASSWORD').val();
             if (PASSWORD === CONFIRM_PASSWORD) {
@@ -1149,7 +1154,7 @@ if(!empty($_GET['id'])) {
                         type: 'POST',
                         data: form_data,
                         success: function (data) {
-                            if (PK_USER == 0) {
+                            if (PK_USER == 0 || NEW_USER) {
                                 if ($('#PK_ROLES').val().indexOf('5') !== -1) {
                                     $('#rates_tab_link')[0].click();
                                 } else {
@@ -1192,13 +1197,14 @@ if(!empty($_GET['id'])) {
 
         $(document).on('submit', '#engagement_form', function (event) {
             event.preventDefault();
+            let PK_USER = $('.PK_USER').val();
             let form_data = $('#engagement_form').serialize();
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
                 data: form_data,
                 success:function (data) {
-                    if (PK_USER == 0) {
+                    if (PK_USER == 0 || NEW_USER) {
                         if ($('#PK_ROLES').val().indexOf('5') !== -1) {
                             $('#service_tab_link')[0].click();
                         } else {
