@@ -27,6 +27,7 @@ $LAST_NAME = '';
 //$TYPE = '';
 $EMAIL_ID = '';
 $DISPLAY_ORDER = '';
+$ARTHUR_MURRAY_ID = '';
 $USER_IMAGE = '';
 $GENDER = '';
 $DOB = '';
@@ -62,6 +63,7 @@ if(!empty($_GET['id'])) {
     //$TYPE = $res->fields['TYPE'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $DISPLAY_ORDER = $res->fields['DISPLAY_ORDER'];
+    $ARTHUR_MURRAY_ID = $res->fields['ARTHUR_MURRAY_ID'];
     $USER_IMAGE = $res->fields['USER_IMAGE'];
     $GENDER = $res->fields['GENDER'];
     $DOB = $res->fields['DOB'];
@@ -250,7 +252,15 @@ if(!empty($_GET['id'])) {
                                                             </div>
 
                                                             <div class="row">
-                                                                <div class="col-md-6">
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Arthur Murray ID</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" id="ARTHUR_MURRAY_ID" name="ARTHUR_MURRAY_ID" class="form-control" placeholder="Arthur Murray ID" value="<?=$ARTHUR_MURRAY_ID?>">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
                                                                     <div class="form-group">
                                                                         <label class="form-label">Gender</label>
                                                                         <select class="form-control" id="GENDER" name="GENDER">

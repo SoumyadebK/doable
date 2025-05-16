@@ -795,7 +795,7 @@ while (!$account_payment_info->EOF) {
                                     <?php if(!empty($_GET['id'])) { ?>
                                     <!--User List Tab-->
                                     <div class="tab-pane p-20" id="location" role="tabpanel">
-                                        <table id="myTable" class="table table-striped border" data-page-length='50'>
+                                        <table id="myTable" class="table table-striped border">
                                             <thead>
                                                 <tr>
                                                     <th>No</th>
@@ -813,20 +813,28 @@ while (!$account_payment_info->EOF) {
                                             $i=1;
                                             $row = $db->Execute("SELECT DOA_LOCATION.*, DOA_CORPORATION.CORPORATION_NAME FROM `DOA_LOCATION` LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION=DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.PK_ACCOUNT_MASTER = '$_GET[id]'");
                                             while (!$row->EOF) { ?>
-                                                <tr>
-                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$i;?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['LOCATION_NAME']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['CORPORATION_NAME']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['CITY']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['PHONE']?></td>
-                                                    <td onclick="editpage(<?=$row->fields['PK_LOCATION']?>);"><?=$row->fields['EMAIL']?></td>
+                                                <tr class="header" onclick="$(this).next().slideToggle(); showUserListByLocation(<?=$row->fields['PK_LOCATION']?>)" style="cursor: pointer;">
+                                                    <td><?=$i;?></td>
+                                                    <td><?=$row->fields['LOCATION_NAME']?></td>
+                                                    <td><?=$row->fields['CORPORATION_NAME']?></td>
+                                                    <td><?=$row->fields['CITY']?></td>
+                                                    <td><?=$row->fields['PHONE']?></td>
+                                                    <td><?=$row->fields['EMAIL']?></td>
                                                     <td>
-                                                        <a href="user_list.php?id=<?=$row->fields['PK_LOCATION']?>"><i class="ti-user"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <a onclick="showUserListByLocation(<?=$row->fields['PK_LOCATION']?>)"><i class="ti-user"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php if($row->fields['ACTIVE']==1){ ?>
                                                             <span class="active-box-green"></span>
                                                         <?php } else{ ?>
                                                             <span class="active-box-red"></span>
                                                         <?php } ?>
+                                                    </td>
+                                                </tr>
+                                                </tr>
+                                                <tr style="display: none">
+                                                    <td style="vertical-align: middle;" colspan="7">
+                                                        <div id="user_div_<?= $row->fields['PK_LOCATION'] ?>">
+
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 <?php $row->MoveNext();
@@ -1206,6 +1214,40 @@ while (!$account_payment_info->EOF) {
             $('#twilio_account_type').slideDown();
         }else {
             $('#twilio_account_type').slideUp();
+        }
+    }
+
+    // function showUserListByLocation(param, PK_LOCATION) {
+    //     let $nextRows = $(param).nextUntil('tr.header');
+
+    //     if ($nextRows.length) {
+    //         // If details are already shown, remove them
+    //         $nextRows.remove();
+    //     } else {
+    //         // Otherwise, fetch and show details
+    //         $.ajax({
+    //             url: "ajax/get_user_list.php",
+    //             type: 'GET',
+    //             data: { PK_LOCATION: PK_LOCATION },
+    //             success: function (result) {
+    //                 $('#user_div_'+PK_LOCATION).html(result);
+    //             }
+    //         });
+    //     }
+    // }
+
+    function showUserListByLocation(PK_LOCATION) {
+        if (PK_LOCATION) {
+            $.ajax({
+                url: "ajax/get_user_list.php",
+                type: "POST",
+                data: {PK_LOCATION: PK_LOCATION},
+                async: false,
+                cache: false,
+                success: function (result) {
+                    $('#user_div_'+PK_LOCATION).html(result);
+                }
+            });
         }
     }
 </script>

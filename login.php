@@ -77,7 +77,7 @@ if ($FUNCTION_NAME == 'loginFunction'){
                 } elseif ($_SESSION['PK_ROLES'] == 5) {
                     header("location: admin/all_schedules.php");
                 } elseif ($_SESSION['IS_NEW'] == 1) {
-                    header("location: admin/wizard_business_profile.php");
+                    header("location: admin/wizard_corporation.php");
                 } else {
                     header("location: admin/all_schedules.php?view=table");
                 }
@@ -102,7 +102,7 @@ if (!empty($_SESSION['PK_ACCOUNT_MASTER']) && !empty($_SESSION['PK_ROLES'])) {
     } elseif ($_SESSION['PK_ROLES'] == 5) {
         header("location: admin/all_schedules.php");
     } elseif ($_SESSION['IS_NEW'] == 1) {
-        header("location: admin/wizard_business_profile.php");
+        header("location: admin/wizard_corporation.php");
     } else {
         header("location: admin/all_schedules.php?view=table");
     }

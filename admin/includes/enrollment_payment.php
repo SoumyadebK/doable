@@ -57,7 +57,7 @@
                                         <select class="form-control PAYMENT_TYPE ENROLLMENT_PAYMENT_TYPE" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this, 'enrollment')">
                                             <option value="">Select</option>
                                             <?php
-                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE NOT IN (8, 9, 10, 11) AND ACTIVE = 1");
                                             while (!$row->EOF) { ?>
                                                 <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
                                             <?php $row->MoveNext(); } ?>

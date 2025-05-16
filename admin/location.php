@@ -64,6 +64,7 @@ if(empty($_GET['id'])){
     $TEXTING_FEATURE_ENABLED = '';
     $TWILIO_ACCOUNT_TYPE = '';
     $FOCUSBIZ_API_KEY = '';
+    $USERNAME_PREFIX = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
 
@@ -107,6 +108,7 @@ if(empty($_GET['id'])){
     $TEXTING_FEATURE_ENABLED = $res->fields['TEXTING_FEATURE_ENABLED'];
     $TWILIO_ACCOUNT_TYPE = $res->fields['TWILIO_ACCOUNT_TYPE'];
     $FOCUSBIZ_API_KEY = $res->fields['FOCUSBIZ_API_KEY'];
+    $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
 }
 
 $SMTP_HOST = '';
@@ -1371,7 +1373,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                 </div>
                                             </div>
 
-                                            <div class="col-6">
+                                            <div class="row">
+                                                <div class="col-6">
                                                 <div class="form-group">
                                                     <label class="col-md-12">Focusbiz API Key</label>
                                                     <div class="col-md-12">
@@ -1379,7 +1382,16 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="col-6">
+                                                <div class="form-group">
+                                                    <label class="col-md-12">Username Prefix</label>
+                                                    <div class="col-md-12">
+                                                        <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Enter Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
+                                                    </div>
+                                                </div>
+                                            </div>
 
+                                            </div>
                                             <div class="form-group">
                                                 <?php if($IMAGE_PATH!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $IMAGE_PATH;?>" data-fancybox-group="gallery"><img src = "<?php echo $IMAGE_PATH;?>" style="width:120px; height:120px" /></a></div><?php } ?>
                                             </div>
