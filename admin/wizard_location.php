@@ -520,18 +520,19 @@ if(!empty($_POST)){
 
                                             <div class="row">
                                                 <div class="col-6">
-                                                <div class="form-group">
-                                                    <label class="col-md-12">Focusbiz API Key</label>
-                                                    <div class="col-md-12">
-                                                        <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY?>">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Focusbiz API Key</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY?>">
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="form-group">
-                                                    <label class="col-md-12">Username Prefix</label>
-                                                    <div class="col-md-12">
-                                                        <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Enter Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Username Prefix</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Enter Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
