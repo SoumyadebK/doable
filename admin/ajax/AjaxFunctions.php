@@ -775,7 +775,7 @@ function generatePdf($html, $PK_ENROLLMENT_MASTER): string
     echo $PK_ENROLLMENT_PAYMENT;
 }*/
 
-function saveProfileData($RESPONSE_DATA){
+function saveProfileData($RESPONSE_DATA) {
     global $db;
     global $db_account;
     global $upload_path;
@@ -794,13 +794,18 @@ function saveProfileData($RESPONSE_DATA){
 
     if ($USER_DATA['CREATE_LOGIN'] == 1) {
         if (!empty($RESPONSE_DATA['PASSWORD']) && !empty($RESPONSE_DATA['USER_NAME'])) {
-            $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-            $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
-            if (strpos($RESPONSE_DATA['USER_NAME'], $USERNAME_PREFIX.'.') !== false) {
-                $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+            if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
+                $location_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_LOCATION WHERE PK_LOCATION = ".$RESPONSE_DATA['PRIMARY_LOCATION_ID']);
+                $USERNAME_PREFIX = ($location_data->RecordCount() > 0) ? $location_data->fields['USERNAME_PREFIX'] : '';
+                if (strpos($RESPONSE_DATA['USER_NAME'], $USERNAME_PREFIX.'.') !== false) {
+                    $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+                } else {
+                    $USER_DATA['USER_NAME'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['USER_NAME'];
+                }
             } else {
-                $USER_DATA['USER_NAME'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['USER_NAME'];
+                $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
             }
+
             $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
         }
     }
@@ -995,16 +1000,24 @@ function saveProfileData($RESPONSE_DATA){
 function saveLoginData($RESPONSE_DATA)
 {
     global $db;
-    $account_data = $db->Execute("SELECT USERNAME_PREFIX, FOCUSBIZ_API_KEY FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
-    $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
+    $account_data = $db->Execute("SELECT FOCUSBIZ_API_KEY FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+    $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$RESPONSE_DATA[PK_USER]' ");
     $FOCUSBIZ_API_KEY = ($account_data->RecordCount() > 0) ? $account_data->fields['FOCUSBIZ_API_KEY'] : '';
 
     if (!empty($RESPONSE_DATA['USER_NAME'])) {
-        if (strpos($RESPONSE_DATA['USER_NAME'], $USERNAME_PREFIX . '.') !== false) {
-            $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+        $user_master_data = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = ".$RESPONSE_DATA['PK_USER']);
+        if ($user_master_data->RecordCount() > 0) {
+            $location_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_LOCATION WHERE PK_LOCATION = ".$user_master_data->fields['PRIMARY_LOCATION_ID']);
+            $USERNAME_PREFIX = ($location_data->RecordCount() > 0) ? $location_data->fields['USERNAME_PREFIX'] : '';
+            if (strpos($RESPONSE_DATA['USER_NAME'], $USERNAME_PREFIX . '.') !== false) {
+                $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+            } else {
+                $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['USER_NAME'];
+            }
         } else {
-            $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['USER_NAME'];
+            $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
         }
+        
         db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = ".$RESPONSE_DATA['PK_USER']);
         $USER_DATA['CREATE_LOGIN'] = 1;
     }
@@ -1022,16 +1035,16 @@ function saveLoginData($RESPONSE_DATA)
     if(isset($RESPONSE_DATA['TICKET_SYSTEM_ACCESS']) && $RESPONSE_DATA['TICKET_SYSTEM_ACCESS'] == 1) {
         $USER_DATA['TICKET_SYSTEM_ACCESS'] = 1;
 
-        $res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$RESPONSE_DATA[PK_USER]' ");
-        if(($res->fields['ACCESS_TOKEN'] == NULL || $res->fields['ACCESS_TOKEN'] == "") && $FOCUSBIZ_API_KEY != NULL) {
+        //$res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$RESPONSE_DATA[PK_USER]' ");
+        if(($user_data->fields['ACCESS_TOKEN'] == NULL || $user_data->fields['ACCESS_TOKEN'] == "") && $FOCUSBIZ_API_KEY != NULL) {
             $user = array();
-            $user['FIRST_NAME'] = $res->fields['FIRST_NAME'];
-            $user['LAST_NAME'] = $res->fields['LAST_NAME'];
-            $user['EMAIL_ID'] = $res->fields['EMAIL_ID'];
-            $user['ACTIVE'] = $res->fields['ACTIVE'];
-            $user['USER_ID'] = $res->fields['USER_NAME'];
+            $user['FIRST_NAME'] = $user_data->fields['FIRST_NAME'];
+            $user['LAST_NAME'] = $user_data->fields['LAST_NAME'];
+            $user['EMAIL_ID'] = $user_data->fields['EMAIL_ID'];
+            $user['ACTIVE'] = $user_data->fields['ACTIVE'];
+            $user['USER_ID'] = $user_data->fields['USER_NAME'];
 
-            $user['PASSWORD'] = $USER_DATA['PASSWORD'] ?? $res->fields['PASSWORD'];
+            $user['PASSWORD'] = $USER_DATA['PASSWORD'] ?? $user_data->fields['PASSWORD'];
 
             $URL = "https://focusbiz.com/API/V1/user";
 
@@ -1067,8 +1080,8 @@ function saveLoginData($RESPONSE_DATA)
                 $_SESSION['ACCESS_TOKEN'] = $USER_DATA['ACCESS_TOKEN'];
                 $_SESSION['TICKET_SYSTEM_ACCESS'] = 1;
             }
-        } elseif($res->fields['ACCESS_TOKEN']) {
-            $_SESSION['ACCESS_TOKEN'] = $res->fields['ACCESS_TOKEN'];
+        } elseif($user_data->fields['ACCESS_TOKEN']) {
+            $_SESSION['ACCESS_TOKEN'] = $user_data->fields['ACCESS_TOKEN'];
             $_SESSION['TICKET_SYSTEM_ACCESS'] = 1;
         }
     } else {
@@ -1310,9 +1323,10 @@ function saveLocationData($RESPONSE_DATA){
             $LOCATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
             db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
             $PK_LOCATION = $db->insert_ID();
-            $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
+
+            /* $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
             $LOCATION_ARRAY[] = $PK_LOCATION;
-            $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
+            $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY); */
         } else {
             $LOCATION_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
             $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
@@ -1332,7 +1346,9 @@ function saveLocationData($RESPONSE_DATA){
             $EMAIL_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $EMAIL_DATA['EDITED_ON'] = date("Y-m-d H:i");
             db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_LOCATION = '$PK_LOCATION'");
-        }    
+        }
+
+        $_SESSION['DEFAULT_LOCATION_ID'] = $PK_LOCATION;
         
         $response['success'] = true;
         $response['PK_LOCATION'] = $PK_LOCATION;

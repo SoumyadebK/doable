@@ -885,8 +885,8 @@ if(!empty($_GET['id'])) {
         }
 
         $(document).on('focus', '.time-picker', function () {
-            let minTime = $(this).closest('.location-hours').find('.minTime').val();
-            let maxTime = $(this).closest('.location-hours').find('.maxTime').val();
+            let minTime = $(this).closest('.form-group').find('.minTime').val();
+            let maxTime = $(this).closest('.form-group').find('.maxTime').val();
             $(this).timepicker({
                 timeFormat: 'hh:mm p',
                 interval: 30,
