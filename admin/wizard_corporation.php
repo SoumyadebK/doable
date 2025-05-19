@@ -20,7 +20,7 @@ if(!empty($_POST)){
         $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE USERNAME_PREFIX = '$USERNAME_PREFIX'");
         if ($account_data->RecordCount() > 0 && $account_data->fields['USERNAME_PREFIX'] != null) {
             $_SESSION['error'] .= $USERNAME_PREFIX." Username Prefix already exists. Please use a different Username Prefix.";
-            header("location:settings.php"); exit();
+            header("location:wizard_corporation.php"); exit();
         }
     }
     $CORPORATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
