@@ -777,7 +777,7 @@ if (!empty($_POST)) {
                     db_perform_account('DOA_ENROLLMENT_LEDGER', $BILLING_LEDGER_DATA, 'insert');
                     $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
 
-                    $enrollment_payment = getAllEnrollmentPaymentByChargeId($allEnrollmentCharges->fields['id']);
+                    $enrollment_payment = getAllEnrollmentPaymentByChargeId($allEnrollmentCharges->fields['id'], 0);
                     if ($enrollment_payment->RecordCount() > 0) {
                         $TOTAL_PAID_AMOUNT = 0;
                         while (!$enrollment_payment->EOF) {
