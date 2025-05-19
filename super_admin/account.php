@@ -799,8 +799,8 @@ while (!$account_payment_info->EOF) {
                                             <thead>
                                                 <tr>
                                                     <th>No</th>
-                                                    <th>Location Name</th>
                                                     <th>Corporation Name</th>
+                                                    <th>Location Name</th>
                                                     <th>City</th>
                                                     <th>Phone</th>
                                                     <th>Email</th>
@@ -815,8 +815,8 @@ while (!$account_payment_info->EOF) {
                                             while (!$row->EOF) { ?>
                                                 <tr class="header" onclick="$(this).next().slideToggle(); showUserListByLocation(<?=$row->fields['PK_LOCATION']?>)" style="cursor: pointer;">
                                                     <td><?=$i;?></td>
-                                                    <td><?=$row->fields['LOCATION_NAME']?></td>
                                                     <td><?=$row->fields['CORPORATION_NAME']?></td>
+                                                    <td><?=$row->fields['LOCATION_NAME']?></td>
                                                     <td><?=$row->fields['CITY']?></td>
                                                     <td><?=$row->fields['PHONE']?></td>
                                                     <td><?=$row->fields['EMAIL']?></td>
