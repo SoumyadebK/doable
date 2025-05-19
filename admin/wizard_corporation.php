@@ -1,4 +1,8 @@
 <?php
+
+use Stripe\Exception\ApiErrorException;
+use Stripe\StripeClient;
+
 require_once('../global/config.php');
 
 if (empty($_GET['id']))
