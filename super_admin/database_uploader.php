@@ -33,6 +33,7 @@ if (!empty($_POST)) {
         }
     }
     $_SESSION['MIGRATION_DB_NAME'] = $_POST['DATABASE_NAME'];
+    $_SESSION['TABLE_NAME'] = $_POST['TABLE_NAME'];
     require_once('upload_functions.php');
 
     switch ($_POST['TABLE_NAME']) {
@@ -115,6 +116,7 @@ if (!empty($_POST)) {
                     $USER_DATA['APPEAR_IN_CALENDAR'] = $allUsers->fields['appear_in_calendar'];
                     $USER_DATA['IS_DELETED'] = 0;
                     $USER_DATA['DISPLAY_ORDER'] = $allUsers->fields['position'];
+                    $USER_DATA['ARTHUR_MURRAY_ID'] = $allUsers->fields['tax_id'];
                     $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                     $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
                     db_perform('DOA_USERS', $USER_DATA, 'insert');
@@ -400,6 +402,7 @@ if (!empty($_POST)) {
                 } else {
                     $PK_SERVICE_MASTER = $table_data->fields['PK_SERVICE_MASTER'];
                 }
+
                 $service_location_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_LOCATION WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND PK_LOCATION = '$PK_LOCATION'");
                 if ($service_location_data->RecordCount() == 0) {
                     $SERVICE_LOCATION_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
@@ -473,50 +476,53 @@ if (!empty($_POST)) {
         case "DOA_PACKAGE":
             $allPackages = getAllPackages();
             while (!$allPackages->EOF) {
-                $PACKAGE_DATA['PACKAGE_NAME'] = $allPackages->fields['package_name'];
-                $PACKAGE_DATA['SORT_ORDER'] = $allPackages->fields['sorder'];
-                $PACKAGE_DATA['EXPIRY_DATE'] = 30;
-                $PACKAGE_DATA['ACTIVE'] = ($allPackages->fields['closed'] == 1) ? 0 : 1;
-                $PACKAGE_DATA['IS_DELETED'] = 0;
-                $PACKAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-                $PACKAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-                db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'insert');
-                $PK_PACKAGE = $db_account->insert_ID();
-
-                $PACKAGE_LOCATION_DATA['PK_PACKAGE'] = $PK_PACKAGE;
-                $PACKAGE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
-                db_perform_account('DOA_PACKAGE_LOCATION', $PACKAGE_LOCATION_DATA, 'insert');
-
-                $packageServiceData = getPackageServices($allPackages->fields['package_id']);
-                while (!$packageServiceData->EOF) {
-                    $service_code = $packageServiceData->fields['service_id'];
-                    $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code'");
-                    $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
-                    $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
-                    $DESCRIPTION = $doableServiceId->fields['DESCRIPTION'];
-                    $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
-                    $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
-                    $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
-                    $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $DESCRIPTION;
-                    $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $packageServiceData->fields['quantity'];
-                    $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = $packageServiceData->fields['cost'];
-                    $PACKAGE_SERVICE_DATA['TOTAL'] = $packageServiceData->fields['quantity'] * $packageServiceData->fields['cost'];
-                    $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = 0;
-                    $PACKAGE_SERVICE_DATA['DISCOUNT'] = 0;
-                    $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = $PACKAGE_SERVICE_DATA['TOTAL'];
-                    $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
-                    db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
-
-                    $packageServiceData->MoveNext();
-                }
-
-                /*$package_name = $allPackages->fields['package_name'];
-                $package_data = $db_account->Execute("SELECT PK_PACKAGE FROM DOA_PACKAGE WHERE PACKAGE_NAME = '$package_name'");
-                if ($package_data->RecordCount() > 0) {
+                $package_name = $allPackages->fields['package_name'];
+                $table_data = $db_account->Execute("SELECT PK_PACKAGE FROM `DOA_PACKAGE` WHERE PACKAGE_NAME = '$package_name'");
+                if ($table_data->RecordCount() == 0) {
+                    $PACKAGE_DATA['PACKAGE_NAME'] = $allPackages->fields['package_name'];
+                    $PACKAGE_DATA['SORT_ORDER'] = $allPackages->fields['sorder'];
+                    $PACKAGE_DATA['EXPIRY_DATE'] = 30;
                     $PACKAGE_DATA['ACTIVE'] = ($allPackages->fields['closed'] == 1) ? 0 : 1;
-                    db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'update', ' PK_PACKAGE = '.$package_data->fields['PK_PACKAGE']);
-                }*/
+                    $PACKAGE_DATA['IS_DELETED'] = 0;
+                    $PACKAGE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+                    $PACKAGE_DATA['CREATED_ON']  = date("Y-m-d H:i");
+                    db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'insert');
+                    $PK_PACKAGE = $db_account->insert_ID();
 
+                    $PACKAGE_LOCATION_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                    $PACKAGE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+                    db_perform_account('DOA_PACKAGE_LOCATION', $PACKAGE_LOCATION_DATA, 'insert');
+
+                    $packageServiceData = getPackageServices($allPackages->fields['package_id']);
+                    while (!$packageServiceData->EOF) {
+                        $service_code = $packageServiceData->fields['service_id'];
+                        $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code'");
+                        $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                        $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                        $DESCRIPTION = $doableServiceId->fields['DESCRIPTION'];
+                        $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                        $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                        $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                        $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $DESCRIPTION;
+                        $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $packageServiceData->fields['quantity'];
+                        $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = $packageServiceData->fields['cost'];
+                        $PACKAGE_SERVICE_DATA['TOTAL'] = $packageServiceData->fields['quantity'] * $packageServiceData->fields['cost'];
+                        $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = 0;
+                        $PACKAGE_SERVICE_DATA['DISCOUNT'] = 0;
+                        $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = $PACKAGE_SERVICE_DATA['TOTAL'];
+                        $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+                        db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+
+                        $packageServiceData->MoveNext();
+                    }
+
+                    /*$package_name = $allPackages->fields['package_name'];
+                    $package_data = $db_account->Execute("SELECT PK_PACKAGE FROM DOA_PACKAGE WHERE PACKAGE_NAME = '$package_name'");
+                    if ($package_data->RecordCount() > 0) {
+                        $PACKAGE_DATA['ACTIVE'] = ($allPackages->fields['closed'] == 1) ? 0 : 1;
+                        db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'update', ' PK_PACKAGE = '.$package_data->fields['PK_PACKAGE']);
+                    }*/
+                }
                 $allPackages->MoveNext();
             }
             break;
@@ -536,7 +542,13 @@ if (!empty($_POST)) {
                 chmod('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/', 0777);
             }
 
-            $allEnrollments = getAllEnrollments();
+            $lastUploadedId = getLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $_SESSION['MIGRATION_DB_NAME'], $_POST['TABLE_NAME']);
+
+            $lastUploadedData = getLastEnrollmentId();
+            $lastId = $lastUploadedData->fields['last_id'];
+            insertLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $_SESSION['MIGRATION_DB_NAME'], $_POST['TABLE_NAME'], $lastId);
+
+            $allEnrollments = getAllEnrollments($lastUploadedId);
             while (!$allEnrollments->EOF) {
                 $enrollment_id = $allEnrollments->fields['enrollment_id'];
                 [$enrollment_type, $code] = getEnrollmentType($allEnrollments->fields['enrollment_type']);
@@ -850,8 +862,13 @@ if (!empty($_POST)) {
             break;
 
         case "DOA_SPECIAL_APPOINTMENT":
-            $allSpecialAppointment = getAllGeneralAppt();
+            $lastUploadedId = getLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $_SESSION['MIGRATION_DB_NAME'], $_POST['TABLE_NAME']);
 
+            $lastUploadedData = getLastGeneralAppt();
+            $lastId = $lastUploadedData->fields['last_id'];
+            insertLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $_SESSION['MIGRATION_DB_NAME'], $_POST['TABLE_NAME'], $lastId);
+
+            $allSpecialAppointment = getAllGeneralAppt($lastUploadedId);
             while (!$allSpecialAppointment->EOF) {
                 $header = $allSpecialAppointment->fields['appt_name'];
                 $start_date = $allSpecialAppointment->fields['appt_date'];
@@ -915,10 +932,16 @@ if (!empty($_POST)) {
             break;
 
         case "DOA_APPOINTMENT_MASTER":
+            $lastUploadedId = getLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $_SESSION['MIGRATION_DB_NAME'], $_POST['TABLE_NAME']);
+
+            $lastUploadedData = getLastAppointment();
+            $lastId = $lastUploadedData->fields['last_id'];
+            insertLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $_SESSION['MIGRATION_DB_NAME'], $_POST['TABLE_NAME'], $lastId);
+
             $allCustomers = getAllCustomersID();
             while (!$allCustomers->EOF) {
                 $customer_id = $allCustomers->fields['customer_id'];
-                $allPrivateAppointments = getAllPrivateAppointmentsByCustomerId($customer_id);
+                $allPrivateAppointments = getAllPrivateAppointmentsByCustomerId($customer_id, $lastUploadedId);
                 while (!$allPrivateAppointments->EOF) {
                     $studentId = $allPrivateAppointments->fields['student_id'];
                     $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$studentId' AND DOA_USER_MASTER.PRIMARY_LOCATION_ID = '$PK_LOCATION' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
@@ -1002,11 +1025,9 @@ if (!empty($_POST)) {
                     $APPOINTMENT_MASTER_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($PK_USER_MASTER);
                     $APPOINTMENT_MASTER_DATA['ACTIVE'] = 1;
                     $APPOINTMENT_MASTER_DATA['IS_PAID'] = 0;
-                    /*if ($allPrivateAppointments->fields['payment_status'] == "V") {
-                        $APPOINTMENT_MASTER_DATA['IS_PAID'] = 1;
-                    } elseif ($allPrivateAppointments->fields['payment_status'] == "U") {
-                        $APPOINTMENT_MASTER_DATA['IS_PAID'] = 0;
-                    }*/
+
+                    
+
                     $APPOINTMENT_MASTER_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
                     $APPOINTMENT_MASTER_DATA['CREATED_ON'] = date("Y-m-d H:i");
                     db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_MASTER_DATA, 'insert');
@@ -1029,7 +1050,7 @@ if (!empty($_POST)) {
                 $allCustomers->MoveNext();
             }
 
-            $allDemoAppointments = getDemoAppointments();
+            $allDemoAppointments = getDemoAppointments($lastUploadedId);
             while (!$allDemoAppointments->EOF) {
                 $studentId = $allDemoAppointments->fields['student_id'];
                 $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$studentId' AND DOA_USER_MASTER.PRIMARY_LOCATION_ID = '$PK_LOCATION' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
@@ -1105,7 +1126,7 @@ if (!empty($_POST)) {
                 $allDemoAppointments->Movenext();
             }
 
-            $allGroupAppointments = getAllGroupAppointments();
+            $allGroupAppointments = getAllGroupAppointments($lastUploadedId);
             while (!$allGroupAppointments->EOF) {
                 $studentId = $allGroupAppointments->fields['student_id'];
                 $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.USER_ID = '$studentId' AND DOA_USER_MASTER.PRIMARY_LOCATION_ID = '$PK_LOCATION' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
@@ -1277,7 +1298,13 @@ if (!empty($_POST)) {
             break;
 
         case 'OTHER_PAYMENT':
-            $enrollment_payment = getAllEnrollmentPaymentByChargeId(0);
+            $lastUploadedId = getLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $_SESSION['MIGRATION_DB_NAME'], $_POST['TABLE_NAME']);
+
+            $lastUploadedData = getLastPaymentId();
+            $lastId = $lastUploadedData->fields['last_id'];
+            insertLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $_SESSION['MIGRATION_DB_NAME'], $_POST['TABLE_NAME'], $lastId);
+
+            $enrollment_payment = getAllEnrollmentPaymentByChargeId(0, $lastUploadedId);
             if ($enrollment_payment->RecordCount() > 0) {
                 while (!$enrollment_payment->EOF) {
                     $orgDate = $enrollment_payment->fields['date_paid'];
@@ -1326,7 +1353,7 @@ if (!empty($_POST)) {
             break;
 
         case 'ENR_IS_SALE':
-            $allEnrollments = getAllEnrollments();
+            $allEnrollments = getAllEnrollments(0);
             while (!$allEnrollments->EOF) {
                 $ENROLLMENT_DATA['IS_SALE'] = $allEnrollments->fields['is_sale'];
                 $enrollment_id = $allEnrollments->fields['enrollment_id'];
@@ -1358,7 +1385,7 @@ if (!empty($_POST)) {
                 chmod('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/', 0777);
             }
 
-            $allEnrollments = getAllEnrollments();
+            $allEnrollments = getAllEnrollments(0);
             while (!$allEnrollments->EOF) {
                 $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = ($allEnrollments->fields['enroll_pdf_file']) ? $LOCATION_CODE.'/'.$allEnrollments->fields['enroll_pdf_file'] . '.pdf' : NULL;
                 $enrollment_id = $allEnrollments->fields['enrollment_id'];
@@ -1371,6 +1398,18 @@ if (!empty($_POST)) {
             break;
     }
     header("Location: database_uploader.php");
+}
+
+function getLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $DATABASE_NAME, $TABLE_NAME) {
+    global $db;
+    $last_uploaded = $db->Execute("SELECT MAX(LAST_UPLOAD_ID) AS ID FROM data_migration_log WHERE PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER AND PK_LOCATION = $PK_LOCATION AND DATABASE_NAME = '$DATABASE_NAME' AND TABLE_NAME = '$TABLE_NAME'");
+    return ($last_uploaded->RecordCount() > 0 && $last_uploaded->fields['ID'] != null && $last_uploaded->fields['ID'] != '') ? $last_uploaded->fields['ID'] : 0;
+}
+
+function insertLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $DATABASE_NAME, $TABLE_NAME, $LAST_UPLOAD_ID) {
+    global $db;
+    $date = date('Y-m-d H:i:s');
+    $db->Execute("INSERT INTO data_migration_log (PK_ACCOUNT_MASTER, PK_LOCATION, DATABASE_NAME, TABLE_NAME, LAST_UPLOAD_ID, LAST_UPLOAD_DATE) VALUES ($PK_ACCOUNT_MASTER, $PK_LOCATION, '$DATABASE_NAME', '$TABLE_NAME', $LAST_UPLOAD_ID, '$date')");
 }
 
 function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT_SERVICE, $PK_USER_MASTER, $PK_SERVICE_MASTER, $TYPE): array
@@ -1428,9 +1467,9 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <select class="form-control" name="PK_ACCOUNT_MASTER" id="PK_ACCOUNT_MASTER" onchange="getLocations(this)">
                                     <option value="">Select Business</option>
                                     <?php
-                                    $row = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_BUSINESS_TYPE.BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_BUSINESS_TYPE ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE = DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE ORDER BY CREATED_ON DESC");
+                                    $row = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE ACTIVE = 1 ORDER BY PK_ACCOUNT_MASTER DESC");
                                     while (!$row->EOF) { ?>
-                                        <option value="<?php echo $row->fields['PK_ACCOUNT_MASTER']; ?>"><?= $row->fields['BUSINESS_NAME'] ?>(<?php echo $row->fields['PK_ACCOUNT_MASTER']; ?>)</option>
+                                        <option value="<?php echo $row->fields['PK_ACCOUNT_MASTER']; ?>">(<?php echo $row->fields['PK_ACCOUNT_MASTER']; ?>) <?= $row->fields['BUSINESS_NAME'] ?></option>
                                     <?php $row->MoveNext();
                                     } ?>
                                 </select>
@@ -1452,7 +1491,7 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                     <option value="AMSJ">AMSJ</option>
                                     <option value="AMTO">AMTO</option>
                                     <option value="AMWH">AMWH</option>
-                                    <option value="AMLS" selected>AMLS</option>
+                                    <option value="AMLS">AMLS</option>
                                 </select>
                             </div>
                         </div>
@@ -1478,7 +1517,7 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                     <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
                                     <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
 
-                                    <option value="ENR_PDF">ENR_PDF</option>
+                                    <!-- <option value="ENR_PDF">ENR_PDF</option> -->
 
 
 

@@ -68,9 +68,14 @@ function getPackageServices($package_id) {
     return $db1->Execute("SELECT * FROM package_services WHERE package_id = '$package_id'");
 }
 
-function getAllEnrollments() {
+function getLastEnrollmentId() {
     global $db1;
-    return $db1->Execute("SELECT * FROM enrollment WHERE `enrollmentname` NOT LIKE '%Renewal (NO SALE)%'");
+    return $db1->Execute("SELECT MAX(enrollment_id) AS last_id FROM enrollment");
+}
+
+function getAllEnrollments($lastEnrollmentId) {
+    global $db1;
+    return $db1->Execute("SELECT * FROM enrollment WHERE enrollment_id > $lastEnrollmentId AND `enrollmentname` NOT LIKE '%Renewal (NO SALE)%'");
 }
 
 function getAllEnrollmentServices() {
@@ -88,9 +93,14 @@ function getAllEnrollmentChargesById($enrollment_id) {
     return $db1->Execute("SELECT * FROM `charges` WHERE `enroll_id` = '$enrollment_id'");
 }
 
-function getAllEnrollmentPaymentByChargeId($charge_id) {
+function getLastPaymentId() {
     global $db1;
-    return $db1->Execute("SELECT * FROM `payments` WHERE charge_id = '$charge_id'");
+    return $db1->Execute("SELECT MAX(id) AS last_id FROM payments");
+}
+
+function getAllEnrollmentPaymentByChargeId($charge_id, $lastId) {
+    global $db1;
+    return $db1->Execute("SELECT * FROM `payments` WHERE id > $lastId AND charge_id = '$charge_id'");
 }
 
 function getAllEnrollmentPayments() {
@@ -98,9 +108,14 @@ function getAllEnrollmentPayments() {
     return $db1->Execute("SELECT * FROM payments");
 }
 
-function getAllGeneralAppt() {
+function getLastGeneralAppt() {
     global $db1;
-    return $db1->Execute("SELECT * FROM general_appt");
+    return $db1->Execute("SELECT MAX(general_appt_id) AS last_id FROM general_appt");
+}
+
+function getAllGeneralAppt($lastApptId) {
+    global $db1;
+    return $db1->Execute("SELECT * FROM general_appt WHERE `general_appt_id` > $lastApptId");
 }
 
 function getAllPrivateAppointments() {
@@ -108,19 +123,24 @@ function getAllPrivateAppointments() {
     return $db1->Execute("SELECT * FROM service_appt WHERE `service_id` LIKE '%PRI%' ORDER BY appt_date ASC, appt_time ASC");
 }
 
-function getAllPrivateAppointmentsByCustomerId($customer_id) {
+function getLastAppointment() {
     global $db1;
-    return $db1->Execute("SELECT * FROM service_appt WHERE student_id = '$customer_id' AND (`service_id` LIKE '%PRI%' OR `service_id` LIKE '%PCMP%') ORDER BY appt_date ASC, appt_time ASC");
+    return $db1->Execute("SELECT MAX(service_appt_id) AS last_id FROM service_appt");
 }
 
-function getAllGroupAppointments() {
+function getAllPrivateAppointmentsByCustomerId($customer_id, $lastServiceApptId) {
     global $db1;
-    return $db1->Execute("SELECT * FROM service_appt WHERE `service_id` NOT LIKE '%PRI%' AND `service_id` NOT LIKE '%COMM%' AND `service_id` NOT LIKE '%PCMP%' ORDER BY appt_date ASC, appt_time ASC");
+    return $db1->Execute("SELECT * FROM service_appt WHERE service_appt_id > $lastServiceApptId AND student_id = '$customer_id' AND (`service_id` LIKE '%PRI%' OR `service_id` LIKE '%PCMP%') ORDER BY appt_date ASC, appt_time ASC");
 }
 
-function getDemoAppointments() {
+function getAllGroupAppointments($lastServiceApptId) {
     global $db1;
-    return $db1->Execute("SELECT * FROM service_appt WHERE `service_id` LIKE '%COMM%' ORDER BY appt_date ASC, appt_time ASC");
+    return $db1->Execute("SELECT * FROM service_appt WHERE service_appt_id > $lastServiceApptId AND `service_id` NOT LIKE '%PRI%' AND `service_id` NOT LIKE '%COMM%' AND `service_id` NOT LIKE '%PCMP%' ORDER BY appt_date ASC, appt_time ASC");
+}
+
+function getDemoAppointments($lastServiceApptId) {
+    global $db1;
+    return $db1->Execute("SELECT * FROM service_appt WHERE service_appt_id > $lastServiceApptId AND `service_id` LIKE '%COMM%' ORDER BY appt_date ASC, appt_time ASC");
 }
 
 function getAllStudentIds($service_appt_id) {
