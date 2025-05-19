@@ -13,6 +13,9 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROL
     exit;
 }
 
+$_SESSION['MIGRATION_DB_NAME'] = empty($_SESSION['MIGRATION_DB_NAME']) ? '' : $_SESSION['MIGRATION_DB_NAME'];
+$_SESSION['TABLE_NAME'] = empty($_SESSION['TABLE_NAME']) ? '' : $_SESSION['TABLE_NAME'];
+
 if (!empty($_POST)) {
     $PK_ACCOUNT_MASTER = $_POST['PK_ACCOUNT_MASTER'];
     $PK_LOCATION = $_POST['PK_LOCATION'];
@@ -1488,10 +1491,10 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <label class="form-label">Select Database Name</label>
                                 <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
                                     <option value="">Select Database Name</option>
-                                    <option value="AMSJ">AMSJ</option>
-                                    <option value="AMTO">AMTO</option>
-                                    <option value="AMWH">AMWH</option>
-                                    <option value="AMLS">AMLS</option>
+                                    <option value="AMSJ" <?=($_SESSION['MIGRATION_DB_NAME'] == 'AMSJ')?'selected':''?>>AMSJ</option>
+                                    <option value="AMTO" <?=($_SESSION['MIGRATION_DB_NAME'] == 'AMTO')?'selected':''?>>AMTO</option>
+                                    <option value="AMWH" <?=($_SESSION['MIGRATION_DB_NAME'] == 'AMWH')?'selected':''?>>AMWH</option>
+                                    <option value="AMLS" <?=($_SESSION['MIGRATION_DB_NAME'] == 'AMLS')?'selected':''?>>AMLS</option>
                                 </select>
                             </div>
                         </div>
@@ -1500,22 +1503,22 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <label class="form-label">Select Table Name</label>
                                 <select class="form-control" name="TABLE_NAME" id="TABLE_NAME" onchange="viewCsvDownload(this)">
                                     <option value="">Select Table Name</option>
-                                    <option value="DOA_OPERATIONAL_HOUR">DOA_OPERATIONAL_HOUR</option>
-                                    <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
+                                    <option value="DOA_OPERATIONAL_HOUR" <?=($_SESSION['TABLE_NAME'] == 'DOA_OPERATIONAL_HOUR')?'selected':''?>>DOA_OPERATIONAL_HOUR</option>
+                                    <option value="DOA_INQUIRY_METHOD" <?=($_SESSION['TABLE_NAME'] == 'DOA_INQUIRY_METHOD')?'selected':''?>>DOA_INQUIRY_METHOD</option>
                                     <!--<option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
                                 <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>-->
-                                    <option value="DOA_USERS">DOA_USERS</option>
-                                    <option value="DOA_CUSTOMER">DOA_CUSTOMER</option>
-                                    <option value="DOA_SERVICE_MASTER">DOA_SERVICE_MASTER</option>
-                                    <option value="DOA_SCHEDULING_CODE">DOA_SCHEDULING_CODE</option>
-                                    <option value="DOA_ENROLLMENT_TYPE">DOA_ENROLLMENT_TYPE</option>
-                                    <option value="DOA_PACKAGE">DOA_PACKAGE</option>
-                                    <option value="DOA_ENROLLMENT">DOA_ENROLLMENT</option>
-                                    <option value="OTHER_PAYMENT">OTHER_PAYMENT</option>
+                                    <option value="DOA_USERS" <?=($_SESSION['TABLE_NAME'] == 'DOA_USERS')?'selected':''?>>DOA_USERS</option>
+                                    <option value="DOA_CUSTOMER" <?=($_SESSION['TABLE_NAME'] == 'DOA_CUSTOMER')?'selected':''?>>DOA_CUSTOMER</option>
+                                    <option value="DOA_SERVICE_MASTER" <?=($_SESSION['TABLE_NAME'] == 'DOA_SERVICE_MASTER')?'selected':''?>>DOA_SERVICE_MASTER</option>
+                                    <option value="DOA_SCHEDULING_CODE" <?=($_SESSION['TABLE_NAME'] == 'DOA_SCHEDULING_CODE')?'selected':''?>>DOA_SCHEDULING_CODE</option>
+                                    <option value="DOA_ENROLLMENT_TYPE" <?=($_SESSION['TABLE_NAME'] == 'DOA_ENROLLMENT_TYPE')?'selected':''?>>DOA_ENROLLMENT_TYPE</option>
+                                    <option value="DOA_PACKAGE" <?=($_SESSION['TABLE_NAME'] == 'DOA_PACKAGE')?'selected':''?>>DOA_PACKAGE</option>
+                                    <option value="DOA_ENROLLMENT" <?=($_SESSION['TABLE_NAME'] == 'DOA_ENROLLMENT')?'selected':''?>>DOA_ENROLLMENT</option>
+                                    <option value="OTHER_PAYMENT" <?=($_SESSION['TABLE_NAME'] == 'OTHER_PAYMENT')?'selected':''?>>OTHER_PAYMENT</option>
                                     <!--<option value="DOA_ENROLLMENT_SERVICE">DOA_ENROLLMENT_SERVICE</option>
                                 <option value="DOA_ENROLLMENT_PAYMENT">DOA_ENROLLMENT_PAYMENT</option>-->
-                                    <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
-                                    <option value="DOA_SPECIAL_APPOINTMENT">DOA_SPECIAL_APPOINTMENT</option>
+                                    <option value="DOA_APPOINTMENT_MASTER" <?=($_SESSION['TABLE_NAME'] == 'DOA_APPOINTMENT_MASTER')?'selected':''?>>DOA_APPOINTMENT_MASTER</option>
+                                    <option value="DOA_SPECIAL_APPOINTMENT" <?=($_SESSION['TABLE_NAME'] == 'DOA_SPECIAL_APPOINTMENT')?'selected':''?>>DOA_SPECIAL_APPOINTMENT</option>
 
                                     <!-- <option value="ENR_PDF">ENR_PDF</option> -->
 
@@ -1528,7 +1531,7 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
 
                                 <option value="ENR_IS_SALE">ENR_IS_SALE</option>-->
 
-                                    <option value="MARK_APPOINTMENT_PAID">MARK_APPOINTMENT_PAID</option>
+                                    <option value="MARK_APPOINTMENT_PAID" <?=($_SESSION['TABLE_NAME'] == 'MARK_APPOINTMENT_PAID')?'selected':''?>>MARK_APPOINTMENT_PAID</option>
                                 </select>
                                 <div id="view_download_div" class="m-10"></div>
                             </div>
