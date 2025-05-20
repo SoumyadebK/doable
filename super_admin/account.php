@@ -326,7 +326,7 @@ while (!$account_payment_info->EOF) {
                                     <?php if(!empty($_GET['id'])) { ?>
                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#location" role="tab" id="location_tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Location List</span></a> </li>
                                     <?php } ?>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                    <!-- <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li> -->
                                 </ul>
 
                                 <!-- Tab panes -->
@@ -782,6 +782,19 @@ while (!$account_payment_info->EOF) {
                                                     <div class="col-6">
                                                         <label class="col-md-12"><input type="checkbox" id="ABLE_TO_EDIT_PAYMENT_GATEWAY" name="ABLE_TO_EDIT_PAYMENT_GATEWAY" class="form-check-inline" <?=($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1)?'checked':''?>> Able to edit payment gateway</label>
                                                     </div>
+                                                    <?php if(!empty($_GET['id'])) { ?>
+                                                        <div class="col-6">
+                                                    <div class="row">
+                                                        <div class="col-md-1">
+                                                            <label class="form-label">Active : </label>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                        </div>
+                                                    </div>
+                                                    </div>
+                                                <? } ?>
                                                 </div>
 
                                             </div>
