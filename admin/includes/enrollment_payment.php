@@ -11,15 +11,15 @@
                     <input type="hidden" name="token" id="token">
                     <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
                     <!--<input type="hidden" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">-->
-                    <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
-                    <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=($PK_ENROLLMENT_BILLING) ?? 0?>">
+                    <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?= (empty($_GET['id'])) ? '' : $_GET['id'] ?>">
+                    <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?= ($PK_ENROLLMENT_BILLING) ?? 0 ?>">
                     <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
-                    <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
-                    <input type="hidden" name="PK_USER_MASTER" class="CUSTOMER_ID" id="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
+                    <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?= $PAYMENT_GATEWAY ?>">
+                    <input type="hidden" name="PK_USER_MASTER" class="CUSTOMER_ID" id="PK_USER_MASTER" value="<?= isset($PK_USER_MASTER) ? $PK_USER_MASTER : '' ?>">
                     <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID">
                     <input type="hidden" name="BILLING_REF" id="PAYMENT_BILLING_REF">
                     <input type="hidden" name="BILLING_DATE" id="PAYMENT_BILLING_DATE">
-                    <input type="hidden" name="header" value="<?=$header?>">
+                    <input type="hidden" name="header" value="<?= $header ?>">
 
                     <div class="p-20">
                         <div class="row">
@@ -27,7 +27,7 @@
                                 <div class="form-group">
                                     <label class="form-label">Total Amount</label>
                                     <div class="col-md-12">
-                                        <input type="text" name="ACTUAL_AMOUNT" id="ACTUAL_AMOUNT" value="<?=($AMOUNT) ?? 0?>" class="form-control" readonly>
+                                        <input type="text" name="ACTUAL_AMOUNT" id="ACTUAL_AMOUNT" value="<?= ($AMOUNT) ?? 0 ?>" class="form-control" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -46,7 +46,7 @@
                                 <div class="form-group">
                                     <label class="form-label">Amount to Pay</label>
                                     <div class="col-md-12">
-                                        <input type="text" name="AMOUNT_TO_PAY" id="AMOUNT_TO_PAY" value="<?=($AMOUNT) ?? 0?>" class="form-control" onkeyup="calculatePartialPayment('actual')">
+                                        <input type="text" name="AMOUNT_TO_PAY" id="AMOUNT_TO_PAY" value="<?= ($AMOUNT) ?? 0 ?>" class="form-control" onkeyup="calculatePartialPayment('actual')">
                                     </div>
                                 </div>
                             </div>
@@ -59,8 +59,9 @@
                                             <?php
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE NOT IN (8, 9, 10, 11) AND ACTIVE = 1");
                                             while (!$row->EOF) { ?>
-                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                            <?php $row->MoveNext(); } ?>
+                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                            <?php $row->MoveNext();
+                                            } ?>
                                         </select>
                                     </div>
                                     <div id="wallet_balance_div">
@@ -70,7 +71,7 @@
                             </div>
                         </div>
 
-                        <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
+                        <?php if ($PAYMENT_GATEWAY == 'Stripe') { ?>
                             <div class="row" id="card_list">
                             </div>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
@@ -92,8 +93,9 @@
                                 <div id="payment-status-container"></div>
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
-                            $customer_data = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.EMAIL_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
-                            ?>
+                            $customer_id = isset($PK_USER_MASTER) ? $PK_USER_MASTER : '';
+                            $customer_data = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.EMAIL_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$customer_id'");
+                        ?>
                             <div class="payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="row" id="card_list">
                                 </div>
@@ -103,7 +105,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Name (As it appears on your card)</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$customer_data->fields['NAME']?>">
+                                                <input type="text" name="NAME" id="NAME" class="form-control" value="<?= ($customer_data->RecordCount() > 0) ? $customer_data->fields['NAME'] : '' ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -113,7 +115,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Email (For receiving payment confirmation mail)</label>
                                             <div class="col-md-12">
-                                                <input type="email" name="EMAIL" id="EMAIL" class="form-control" value="<?=$customer_data->fields['EMAIL_ID']?>" required>
+                                                <input type="email" name="EMAIL" id="EMAIL" class="form-control" value="<?= ($customer_data->RecordCount() > 0) ? $customer_data->fields['EMAIL_ID'] : '' ?>" required>
                                             </div>
                                         </div>
                                     </div>
@@ -136,7 +138,7 @@
                                                 <select name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control" required>
                                                     <?php
                                                     for ($i = 1; $i <= 12; $i++) { ?>
-                                                        <option value="<?=$i?>"><?=$i?></option>
+                                                        <option value="<?= $i ?>"><?= $i ?></option>
                                                     <?php } ?>
                                                 </select>
                                             </div>
@@ -149,8 +151,8 @@
                                                 <select name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control" required>
                                                     <?php
                                                     $year = (int)date('Y');
-                                                    for ($i = $year; $i <= $year+25; $i++) { ?>
-                                                        <option value="<?=$i?>"><?=$i?></option>
+                                                    for ($i = $year; $i <= $year + 25; $i++) { ?>
+                                                        <option value="<?= $i ?>"><?= $i ?></option>
                                                     <?php } ?>
                                                 </select>
                                             </div>
@@ -165,7 +167,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                             </div>
                         <?php } ?>
 
@@ -205,10 +207,10 @@
                                         <select class="form-control" name="PK_PAYMENT_TYPE_PARTIAL" id="PK_PAYMENT_TYPE_PARTIAL" onchange="selectPartialPaymentType(this)">
                                             <option value="">Select</option>
                                             <?php
-/*                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
-                                            while (!$row->EOF) { */?>
-                                                <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/?>"><?php /*=$row->fields['PAYMENT_TYPE']*/?></option>
-                                            <?php /*$row->MoveNext(); } */?>
+                                            /*                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
+                                            while (!$row->EOF) { */ ?>
+                                                <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/ ?>"><?php /*=$row->fields['PAYMENT_TYPE']*/ ?></option>
+                                            <?php /*$row->MoveNext(); } */ ?>
                                         </select>
                                     </div>
                                 </div>
@@ -236,7 +238,7 @@
                                 <div class="form-group">
                                     <label class="form-label">Partial Payment</label>
                                     <div class="col-md-12">
-                                        <input type="text" name="PARTIAL_AMOUNT" id="PARTIAL_AMOUNT" value="<?=($AMOUNT) ?? 0?>" class="form-control" onkeyup="calculatePartialPayment('partial')">
+                                        <input type="text" name="PARTIAL_AMOUNT" id="PARTIAL_AMOUNT" value="<?= ($AMOUNT) ?? 0 ?>" class="form-control" onkeyup="calculatePartialPayment('partial')">
                                     </div>
                                 </div>
                             </div>
@@ -249,8 +251,9 @@
                                             <?php
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE NOT IN (1, 7, 8, 9, 10, 11, 13, 14) AND ACTIVE = 1");
                                             while (!$row->EOF) { ?>
-                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                            <?php $row->MoveNext(); } ?>
+                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                            <?php $row->MoveNext();
+                                            } ?>
                                         </select>
                                     </div>
                                 </div>
@@ -324,7 +327,7 @@ else
 
 <script src="https://js.stripe.com/v3/"></script>
 <script type="text/javascript">
-    var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
+    var stripe = Stripe('<?= $PUBLISHABLE_KEY ?>');
     var elements = stripe.elements();
 
     var style = {
@@ -348,7 +351,9 @@ else
     };
 
     // Create an instance of the card Element.
-    var stripe_card = elements.create('card', {style: style});
+    var stripe_card = elements.create('card', {
+        style: style
+    });
     var pay_type = '';
 
     function stripePaymentFunction(type) {
@@ -358,7 +363,7 @@ else
             stripe_card.mount('#card-element');
         }
         // Handle real-time validation errors from the card Element.
-        stripe_card.addEventListener('change', function (event) {
+        stripe_card.addEventListener('change', function(event) {
             var displayError = document.getElementById('card-errors');
             if (event.error) {
                 displayError.textContent = event.error.message;
@@ -372,9 +377,9 @@ else
         form.addEventListener('submit', listener);*/
     }
 
-    function addStripeTokenOnForm(){
+    function addStripeTokenOnForm() {
         //event.preventDefault();
-        stripe.createToken(stripe_card).then(function (result) {
+        stripe.createToken(stripe_card).then(function(result) {
             if (result.error) {
                 // Inform the user if there was an error.
                 let errorElement = document.getElementById('card-errors');
@@ -403,46 +408,45 @@ else
 </script>
 
 
-<script src="<?=$URL?>"></script>
+<script src="<?= $URL ?>"></script>
 <script type="text/javascript">
-let square_card;
+    let square_card;
 
-async function squarePaymentFunction(type) {
-    let square_appId = '<?=$SQUARE_APP_ID ?>';
-    let square_locationId = '<?=$SQUARE_LOCATION_ID ?>';
-    const payments = Square.payments(square_appId, square_locationId);
-    square_card = await payments.card();
-    $('#'+type+'-card-container').text('');
-    await square_card.attach('#'+type+'-card-container');
-}
-
-async function addSquareTokenOnForm() {
-    const statusContainer = document.getElementById('payment-status-container');
-
-    try {
-        // Tokenize the card details
-        const result = await square_card.tokenize();
-        if (result.status === 'OK') {
-            // Add the token to the hidden input field
-            $('#enrollment_sourceId').val(result.token);
-            console.log(`Payment token is ${result.token}`);
-
-            // Submit the form after adding the token
-            //form.submit();
-        } else {
-            // Handle tokenization errors
-            let errorMessage = `Tokenization failed with status: ${result.status}`;
-            if (result.errors) {
-                errorMessage += ` and errors: ${JSON.stringify(result.errors)}`;
-            }
-            throw new Error(errorMessage);
-        }
-    } catch (e) {
-        console.error(e);
-        statusContainer.innerHTML = `<p class="alert alert-danger">Payment Failed: ${e.message}</p>`;
+    async function squarePaymentFunction(type) {
+        let square_appId = '<?= $SQUARE_APP_ID ?>';
+        let square_locationId = '<?= $SQUARE_LOCATION_ID ?>';
+        const payments = Square.payments(square_appId, square_locationId);
+        square_card = await payments.card();
+        $('#' + type + '-card-container').text('');
+        await square_card.attach('#' + type + '-card-container');
     }
-}
 
+    async function addSquareTokenOnForm() {
+        const statusContainer = document.getElementById('payment-status-container');
+
+        try {
+            // Tokenize the card details
+            const result = await square_card.tokenize();
+            if (result.status === 'OK') {
+                // Add the token to the hidden input field
+                $('#enrollment_sourceId').val(result.token);
+                console.log(`Payment token is ${result.token}`);
+
+                // Submit the form after adding the token
+                //form.submit();
+            } else {
+                // Handle tokenization errors
+                let errorMessage = `Tokenization failed with status: ${result.status}`;
+                if (result.errors) {
+                    errorMessage += ` and errors: ${JSON.stringify(result.errors)}`;
+                }
+                throw new Error(errorMessage);
+            }
+        } catch (e) {
+            console.error(e);
+            statusContainer.innerHTML = `<p class="alert alert-danger">Payment Failed: ${e.message}</p>`;
+        }
+    }
 </script>
 
 
@@ -451,14 +455,14 @@ async function addSquareTokenOnForm() {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    $(document).on('submit', '#enrollment_payment_form', function (event) {
+    $(document).on('submit', '#enrollment_payment_form', function(event) {
         $('#enr-payment-btn').prop('disabled', true);
         event.preventDefault();
 
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         if (PAYMENT_GATEWAY == 'Square') {
             let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
-            if (PAYMENT_METHOD_ID == '') {    
+            if (PAYMENT_METHOD_ID == '') {
                 addSquareTokenOnForm();
                 sleep(3000).then(() => {
                     submitEnrollmentPaymentForm();
@@ -478,7 +482,7 @@ async function addSquareTokenOnForm() {
             type: 'POST',
             data: form_data,
             dataType: 'json',
-            success:function (data) {
+            success: function(data) {
                 if (data.STATUS === 'Failed') {
                     $('#payment_status').html(`<p class="alert alert-danger">${data.PAYMENT_INFO}</p>`);
                     $('#enr-payment-btn').prop('disabled', false);
@@ -486,7 +490,7 @@ async function addSquareTokenOnForm() {
                     $('#payment_status').html(`<p class="alert alert-success">Payment Successful, Page will refresh automatically.</p>`);
 
                     setTimeout(function() {
-                        let header = '<?=$header?>';
+                        let header = '<?= $header ?>';
                         if (header) {
                             window.location.href = header;
                         } else {
@@ -512,12 +516,12 @@ async function addSquareTokenOnForm() {
         $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
     }
 
-    $(document).on('click', '.credit-card', function () {
+    $(document).on('click', '.credit-card', function() {
         $('.credit-card').css("opacity", "1");
         $(this).css("opacity", "0.6");
     });
 
-    function selectPaymentType(param, type){
+    function selectPaymentType(param, type) {
         let paymentType = parseInt($(param).val());
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         $(param).closest('.payment_modal').find('.payment_type_div').slideUp();
@@ -537,7 +541,7 @@ async function addSquareTokenOnForm() {
 
                 if (PAYMENT_GATEWAY == 'Square') {
                     $(param).closest('.payment_modal').find('#card_div').html(`<div id="enrollment-card-container"></div>`);
-                    $('#'+type+'-card-container').text('Loading......');
+                    $('#' + type + '-card-container').text('Loading......');
                     squarePaymentFunction(type);
                 }
 
@@ -548,7 +552,7 @@ async function addSquareTokenOnForm() {
                     });
                 }
                 getCreditCardList();
-                
+
                 break;
 
             case 14:
@@ -564,8 +568,10 @@ async function addSquareTokenOnForm() {
                 $.ajax({
                     url: "ajax/wallet_balance.php",
                     type: 'POST',
-                    data: {PK_USER_MASTER: PK_USER_MASTER},
-                    success: function (data) {
+                    data: {
+                        PK_USER_MASTER: PK_USER_MASTER
+                    },
+                    success: function(data) {
                         $('#wallet_balance_div').html(data);
                         $('#wallet_balance_div').slideDown();
 
@@ -610,14 +616,17 @@ async function addSquareTokenOnForm() {
         $.ajax({
             url: "ajax/get_credit_card_list.php",
             type: 'POST',
-            data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
-            success: function (data) {
+            data: {
+                PK_USER_MASTER: PK_USER_MASTER,
+                PAYMENT_GATEWAY: PAYMENT_GATEWAY
+            },
+            success: function(data) {
                 $('#card_list').slideDown().html(data);
             }
         });
     }
 
-    function selectPartialPaymentType(param){
+    function selectPartialPaymentType(param) {
         let paymentType = $("#PK_PAYMENT_TYPE_PARTIAL option:selected").text();
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         $('.partial_payment_type_div').slideUp();
@@ -708,5 +717,4 @@ async function addSquareTokenOnForm() {
             }
         }
     }
-
 </script>
