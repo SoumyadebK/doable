@@ -128,7 +128,7 @@ function saveProfileInfoData($RESPONSE_DATA)
         $ACCOUNT_DATA_UPDATE['DB_NAME'] = $databaseName;
         db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA_UPDATE, 'update'," PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
     } else {
-        //$ACCOUNT_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+        $ACCOUNT_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
         $ACCOUNT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
         $ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_ACCOUNT_MASTER', $ACCOUNT_DATA, 'update'," PK_ACCOUNT_MASTER =  '$RESPONSE_DATA[PK_ACCOUNT_MASTER]'");
@@ -156,6 +156,7 @@ function saveProfileInfoData($RESPONSE_DATA)
     $USER_DATA['PHONE'] = $RESPONSE_DATA['PHONE'];
     $USER_DATA['NOTES'] = $RESPONSE_DATA['NOTES'];
     $USER_DATA['ABLE_TO_EDIT_PAYMENT_GATEWAY'] = isset($_POST['ABLE_TO_EDIT_PAYMENT_GATEWAY']) ? 1 : 0;
+    $USER_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
 
 
     if(empty($RESPONSE_DATA['PK_USER_EDIT'])){
