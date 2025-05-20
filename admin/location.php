@@ -13,7 +13,7 @@ if (empty($_GET['id']))
 else
     $title = "Edit Location";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
     exit;
 }
@@ -26,7 +26,7 @@ if ($franchise_data->RecordCount() > 0) {
 
 $PK_USER = $_SESSION['PK_USER'];
 
-if(empty($_GET['id'])){
+if (empty($_GET['id'])) {
     $res = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = '$_SESSION[PK_ACCOUNT_MASTER]'");
 
     $PK_LOCATION = 0;
@@ -51,7 +51,7 @@ if(empty($_GET['id'])){
     $SECRET_KEY = '';
     $PUBLISHABLE_KEY = '';
     $ACCESS_TOKEN = '';
-    $SQUARE_APP_ID ='';
+    $SQUARE_APP_ID = '';
     $SQUARE_LOCATION_ID = '';
     $LOGIN_ID = '';
     $TRANSACTION_KEY = '';
@@ -68,7 +68,7 @@ if(empty($_GET['id'])){
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
 
-    if($res->RecordCount() == 0){
+    if ($res->RecordCount() == 0) {
         header("location:all_locations.php");
         exit;
     }
@@ -115,7 +115,7 @@ $SMTP_HOST = '';
 $SMTP_PORT = '';
 $SMTP_USERNAME = '';
 $SMTP_PASSWORD = '';
-$email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = ".$PK_LOCATION);
+$email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = " . $PK_LOCATION);
 if ($email->RecordCount() > 0) {
     $SMTP_HOST = $email->fields['HOST'];
     $SMTP_PORT = $email->fields['PORT'];
@@ -126,14 +126,14 @@ if ($email->RecordCount() > 0) {
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
 
-$payment_gateway_setting = $db->Execute( "SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
+$payment_gateway_setting = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 $STRIPE_SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
 $STRIPE_PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
 
 $help_title = '';
 $help_description = '';
 $help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'location'");
-if($help->RecordCount() > 0) {
+if ($help->RecordCount() > 0) {
     $help_title = $help->fields['TITLE'];
     $help_description = $help->fields['DESCRIPTION'];
 }
@@ -143,12 +143,12 @@ $PAYMENT_GATEWAY_TYPE = '';
 $SECRET_KEY = '';
 $PUBLISHABLE_KEY = '';
 $ACCESS_TOKEN = '';
-$SQUARE_APP_ID ='';
+$SQUARE_APP_ID = '';
 $SQUARE_LOCATION_ID = '';
 $LOGIN_ID = '';
 $TRANSACTION_KEY = '';
 $AUTHORIZE_CLIENT_KEY = '';
-$payment_gateway_setting = $db->Execute( "SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS` WHERE PK_PAYMENT_GATEWAY_SETTINGS = 1");
+$payment_gateway_setting = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS` WHERE PK_PAYMENT_GATEWAY_SETTINGS = 1");
 if ($payment_gateway_setting->RecordCount() > 0) {
     $PK_PAYMENT_GATEWAY_SETTINGS = $payment_gateway_setting->fields['PK_PAYMENT_GATEWAY_SETTINGS'];
     $PAYMENT_GATEWAY = $payment_gateway_setting->fields['PAYMENT_GATEWAY_TYPE'];
@@ -164,14 +164,14 @@ if ($payment_gateway_setting->RecordCount() > 0) {
 
 require_once("../global/stripe-php-master/init.php");
 $stripe = new StripeClient($STRIPE_SECRET_KEY);
-$account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PK_LOCATION = ".$PK_LOCATION." AND PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+$account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PK_LOCATION = " . $PK_LOCATION . " AND PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
 if ($account_payment_info->RecordCount() > 0) {
     $customer_id = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
     $stripe_customer = $stripe->customers->retrieve($customer_id);
     $card_id = $stripe_customer->default_source;
 
-    $url = "https://api.stripe.com/v1/customers/".$customer_id."/cards/".$card_id;
-    $AUTH = "Authorization: Bearer ".$STRIPE_SECRET_KEY;
+    $url = "https://api.stripe.com/v1/customers/" . $customer_id . "/cards/" . $card_id;
+    $AUTH = "Authorization: Bearer " . $STRIPE_SECRET_KEY;
 
     $curl = curl_init();
     curl_setopt_array($curl, array(
@@ -193,7 +193,7 @@ if ($account_payment_info->RecordCount() > 0) {
     //pre_r($card_details);
 }
 
-if(!empty($_POST)){
+if (!empty($_POST)) {
     if ($_POST['FUNCTION_NAME'] == 'saveLocationData') {
         $EMAIL_DATA['HOST'] = $_POST['SMTP_HOST'];
         $EMAIL_DATA['PORT'] = $_POST['SMTP_PORT'];
@@ -208,9 +208,9 @@ if(!empty($_POST)){
         $LOCATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
 
         if ($_FILES['IMAGE_PATH']['name'] != '') {
-            if (!file_exists('../'.$upload_path.'/location_image/')) {
-                mkdir('../'.$upload_path.'/location_image/', 0777, true);
-                chmod('../'.$upload_path.'/location_image/', 0777);
+            if (!file_exists('../' . $upload_path . '/location_image/')) {
+                mkdir('../' . $upload_path . '/location_image/', 0777, true);
+                chmod('../' . $upload_path . '/location_image/', 0777);
             }
 
             $extn = explode(".", $_FILES['IMAGE_PATH']['name']);
@@ -220,7 +220,7 @@ if(!empty($_POST)){
             $extension = strtolower($extn[$iindex]);
 
             if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-                $image_path = '../'.$upload_path.'/location_image/' . $file11;
+                $image_path = '../' . $upload_path . '/location_image/' . $file11;
                 move_uploaded_file($_FILES['IMAGE_PATH']['tmp_name'], $image_path);
                 $LOCATION_DATA['IMAGE_PATH'] = $image_path;
             }
@@ -247,7 +247,7 @@ if(!empty($_POST)){
         $EMAIL_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $EMAIL_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
-        $email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = ".$PK_LOCATION);
+        $email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = " . $PK_LOCATION);
         if ($email->RecordCount() == 0) {
             db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'insert');
         } else {
@@ -259,15 +259,15 @@ if(!empty($_POST)){
 
     if ($_POST['FUNCTION_NAME'] == 'saveOperationalHours') {
         $ALL_DAYS = isset($_POST['ALL_DAYS']) ? 1 : 0;
-        $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '".(int)$_GET['id']."'");
-    
-        if($operational_hours->RecordCount() > 0){
+        $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '" . (int)$_GET['id'] . "'");
+
+        if ($operational_hours->RecordCount() > 0) {
             for ($i = 0; $i < count($_POST['OPEN_TIME']); $i++) {
                 $PK_LOCATION = (int)$_GET['id'];
-                $DAY_NUMBER = (int)($i+1);
+                $DAY_NUMBER = (int)($i + 1);
                 $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = $PK_LOCATION;
                 $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $DAY_NUMBER;
-                
+
                 // Special handling for 12:00 AM
                 $open_time = ($ALL_DAYS == 0) ? $_POST['OPEN_TIME'][$i] : $_POST['OPEN_TIME'][0];
                 if (strtoupper($open_time) == '12:00 AM' || strtoupper($open_time) == '12:00:00 AM') {
@@ -275,16 +275,16 @@ if(!empty($_POST)){
                 } else {
                     $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = !empty($open_time) ? date('H:i:s', strtotime($open_time)) : '00:00:00';
                 }
-                
+
                 $close_time = ($ALL_DAYS == 0) ? $_POST['CLOSE_TIME'][$i] : $_POST['CLOSE_TIME'][0];
                 if (strtoupper($close_time) == '12:00 AM' || strtoupper($close_time) == '12:00:00 AM') {
                     $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = '24:00:00';
                 } else {
                     $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = !empty($close_time) ? date('H:i:s', strtotime($close_time)) : '00:00:00';
                 }
-                
-                $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_'.$i]) ? 1 : 0;
-                
+
+                $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_' . $i]) ? 1 : 0;
+
                 db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'update', " PK_LOCATION = $PK_LOCATION AND DAY_NUMBER = $DAY_NUMBER");
             }
         } else {
@@ -292,7 +292,7 @@ if(!empty($_POST)){
                 for ($i = 0; $i < count($_POST['OPEN_TIME']); $i++) {
                     $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = (int)$_GET['id'];
                     $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $i + 1;
-                    
+
                     // Special handling for 12:00 AM
                     $open_time = ($ALL_DAYS == 0) ? $_POST['OPEN_TIME'][$i] : $_POST['OPEN_TIME'][0];
                     if (strtoupper($open_time) == '12:00 AM' || strtoupper($open_time) == '12:00:00 AM') {
@@ -300,16 +300,16 @@ if(!empty($_POST)){
                     } else {
                         $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = !empty($open_time) ? date('H:i:s', strtotime($open_time)) : '00:00:00';
                     }
-                    
+
                     $close_time = ($ALL_DAYS == 0) ? $_POST['CLOSE_TIME'][$i] : $_POST['CLOSE_TIME'][0];
                     if (strtoupper($close_time) == '12:00 AM' || strtoupper($close_time) == '12:00:00 AM') {
                         $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = '24:00:00';
                     } else {
                         $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = !empty($close_time) ? date('H:i:s', strtotime($close_time)) : '00:00:00';
                     }
-                    
-                    $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_'.$i]) ? 1 : 0;
-                    
+
+                    $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_' . $i]) ? 1 : 0;
+
                     db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'insert');
                 }
             }
@@ -319,7 +319,7 @@ if(!empty($_POST)){
     if ($_POST['FUNCTION_NAME'] == 'saveHolidayData') {
         unset($_POST['FUNCTION_NAME']);
         $db_account->Execute("DELETE FROM `DOA_HOLIDAY_LIST` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-        for ($i=0; $i < count($_POST['HOLIDAY_DATE']); $i++) {
+        for ($i = 0; $i < count($_POST['HOLIDAY_DATE']); $i++) {
             $HOLIDAY_LIST_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
             $HOLIDAY_LIST_DATA['HOLIDAY_DATE'] = date('Y-m-d', strtotime($_POST['HOLIDAY_DATE'][$i]));
             $HOLIDAY_LIST_DATA['HOLIDAY_NAME'] = $_POST['HOLIDAY_NAME'][$i];
@@ -337,9 +337,9 @@ if(!empty($_POST)){
             try {
                 $customer = $stripe->customers->create([
                     'email' => $EMAIL,
-                    'name' => $account_data->fields['BUSINESS_NAME'].'('.$LOCATION_NAME.')',
+                    'name' => $account_data->fields['BUSINESS_NAME'] . '(' . $LOCATION_NAME . ')',
                     'phone' => $PHONE,
-                    'description' => $account_data->fields['BUSINESS_NAME'].'('.$LOCATION_NAME.')',
+                    'description' => $account_data->fields['BUSINESS_NAME'] . '(' . $LOCATION_NAME . ')',
                 ]);
                 $ACCOUNT_PAYMENT_ID = $customer->id;
             } catch (ApiErrorException $e) {
@@ -359,7 +359,7 @@ if(!empty($_POST)){
     header("location:all_locations.php");
 }
 
-if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
+if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
     $AMOUNT_TO_PAY = $_POST['AMOUNT_TO_PAY'] ?? 0;
 
     $LAST4 = '****';
@@ -377,12 +377,12 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
     if ($_POST['PK_PAYMENT_TYPE'] == 1 || $_POST['PK_PAYMENT_TYPE'] == 14) {
         if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
             $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` WHERE PK_USER = '$_POST[PK_USER]'");
-            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = ".$user_master->fields['PK_USER']);
+            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $user_master->fields['PK_USER']);
 
             $STRIPE_TOKEN = $_POST['token'];
             $CUSTOMER_PAYMENT_ID = '';
 
-            $error['error'] = $STRIPE_TOKEN.' - '.$user_master->fields['PHONE'];
+            $error['error'] = $STRIPE_TOKEN . ' - ' . $user_master->fields['PHONE'];
             $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
             db_perform('error_info', $error, 'insert');
 
@@ -461,9 +461,9 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                 $charge = \Stripe\Charge::create(array(
                     "amount" => $AMOUNT_TO_PAY * 100,
                     "currency" => "usd",
-                    "description" => "Receipt# ".$RECEIPT_NUMBER_ORIGINAL,
+                    "description" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
                     "customer" => $CUSTOMER_PAYMENT_ID,
-                    "statement_descriptor" => "Receipt# ".$RECEIPT_NUMBER_ORIGINAL,
+                    "statement_descriptor" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
                 ));
 
                 $LAST4 = $charge->payment_method_details->card->last4;
@@ -547,11 +547,10 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
 
                 $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                 $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                echo json_encode($RETURN_DATA); die();
+                echo json_encode($RETURN_DATA);
+                die();
             }
-        }
-
-        elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
+        } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
             require_once("../../global/vendor/autoload.php");
 
             $client = new SquareClient([
@@ -560,7 +559,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
             ]);
 
             $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = ".$user_master->fields['PK_USER']);
+            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = " . $user_master->fields['PK_USER']);
 
             if ($customer_payment_info->RecordCount() > 0) {
                 $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
@@ -596,7 +595,6 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                 $SQUARE_DETAILS['PAYMENT_TYPE'] = 'Square';
                 $SQUARE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
                 db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
-
             }
 
             if (empty($_POST['PAYMENT_METHOD_ID'])) {
@@ -652,7 +650,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
 
                     $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                     $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                    echo json_encode($RETURN_DATA); die();
+                    echo json_encode($RETURN_DATA);
+                    die();
                 }
             } catch (\Square\Exceptions\ApiException $e) {
                 $PAYMENT_STATUS = 'Failed';
@@ -660,22 +659,21 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
 
                 $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                 $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                echo json_encode($RETURN_DATA); die();
+                echo json_encode($RETURN_DATA);
+                die();
             }
-        }
-
-        elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-            $AUTHORIZE_MODE 			= 2;
-            $AUTHORIZE_LOGIN_ID 		= $account_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
-            $AUTHORIZE_TRANSACTION_KEY 	= $account_data->fields['TRANSACTION_KEY'];//"4ke43FW8z3287HV5";
-            $AUTHORIZE_CLIENT_KEY 		= $account_data->fields['AUTHORIZE_CLIENT_KEY'];//"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+        } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
+            $AUTHORIZE_MODE             = 2;
+            $AUTHORIZE_LOGIN_ID         = $account_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+            $AUTHORIZE_TRANSACTION_KEY     = $account_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
+            $AUTHORIZE_CLIENT_KEY         = $account_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
 
 
             //$LOGIN_ID = '4Y5pCy8Qr'; //$account_data->fields['LOGIN_ID'];
             //$TRANSACTION_KEY = '8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay'; // $account_data->fields['TRANSACTION_KEY'];
 
             $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = ".$user_master->fields['PK_USER']);
+            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $user_master->fields['PK_USER']);
 
             // Product Details
             $itemName = $_POST['PK_ENROLLMENT_MASTER'];
@@ -723,32 +721,32 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                 $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
                 $paymentProfile->setCustomerType('individual');
                 $paymentProfile->setPayment($paymentOne);
-                
+
                 if ($customer_payment_info->RecordCount() > 0) {
                     // Existing customer profile
                     $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-            
+
                     // Add a new payment profile to the existing customer profile
                     $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
                     $paymentProfile->setCustomerType('individual');
                     $paymentProfile->setPayment($paymentOne);
-            
+
                     $createPaymentProfileRequest = new AnetAPI\CreateCustomerPaymentProfileRequest();
                     $createPaymentProfileRequest->setMerchantAuthentication($merchantAuthentication);
                     $createPaymentProfileRequest->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
                     $createPaymentProfileRequest->setPaymentProfile($paymentProfile);
                     $createPaymentProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
-            
+
                     $controller = new AnetController\CreateCustomerPaymentProfileController($createPaymentProfileRequest);
                     $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
-            
+
                     if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
                         $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileId();
                         //echo "Payment profile created successfully: " . $PAYMENT_PROFILE_ID;
                     } else {
                         $PAYMENT_STATUS = 'Failed';
                         $PAYMENT_INFO = "Error saving card: " . $response->getMessages()->getMessage()[0]->getText();
-            
+
                         $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                         $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
                         echo json_encode($RETURN_DATA);
@@ -759,24 +757,24 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                     $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
                     $paymentProfile->setCustomerType('individual');
                     $paymentProfile->setPayment($paymentOne);
-            
+
                     $customerProfile = new AnetAPI\CustomerProfileType();
                     $customerProfile->setMerchantCustomerId("M_" . time());
                     $customerProfile->setEmail($email);
                     $customerProfile->setPaymentProfiles([$paymentProfile]);
-            
+
                     $createProfileRequest = new AnetAPI\CreateCustomerProfileRequest();
                     $createProfileRequest->setMerchantAuthentication($merchantAuthentication);
                     $createProfileRequest->setProfile($customerProfile);
                     $createProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
-            
+
                     $controller = new AnetController\CreateCustomerProfileController($createProfileRequest);
                     $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
-            
+
                     if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
                         $CUSTOMER_PAYMENT_ID = $response->getCustomerProfileId();
                         $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileIdList()[0];
-            
+
                         // Save the customer profile ID in the database
                         $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
                         $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
@@ -786,7 +784,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                     } else {
                         $PAYMENT_STATUS = 'Failed';
                         $PAYMENT_INFO = "Error creating customer profile: " . $response->getMessages()->getMessage()[0]->getText();
-            
+
                         $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                         $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
                         echo json_encode($RETURN_DATA);
@@ -831,7 +829,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
             $controller = new AnetController\CreateTransactionController($request);
 
             try {
-                if($AUTHORIZE_MODE == 1)
+                if ($AUTHORIZE_MODE == 1)
                     $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
                 else
                     $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
@@ -849,7 +847,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
 
                         $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                         $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                        echo json_encode($RETURN_DATA); die();
+                        echo json_encode($RETURN_DATA);
+                        die();
                     }
                 } else {
                     $PAYMENT_STATUS = 'Failed';
@@ -857,7 +856,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
 
                     $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                     $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                    echo json_encode($RETURN_DATA); die();
+                    echo json_encode($RETURN_DATA);
+                    die();
                 }
             } catch (\Square\Exceptions\ApiException $e) {
                 $PAYMENT_STATUS = 'Failed';
@@ -865,10 +865,10 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
 
                 $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                 $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                echo json_encode($RETURN_DATA); die();
+                echo json_encode($RETURN_DATA);
+                die();
             }
         }
-
     } else {
         $PAYMENT_INFO_JSON = 'Payment Done.';
     }
@@ -890,9 +890,14 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
 
 <!DOCTYPE html>
 <html lang="en">
-<?php require_once('../includes/header.php');?>
+<?php require_once('../includes/header.php'); ?>
 <style>
-    #advice-required-entry-ACCEPT_HANDLING{width: 150px;top: 20px;position: absolute;}
+    #advice-required-entry-ACCEPT_HANDLING {
+        width: 150px;
+        top: 20px;
+        position: absolute;
+    }
+
     .StripeElement {
         display: block;
         width: 100%;
@@ -919,885 +924,713 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
         background-color: #fefde5 !important;
     }
 </style>
+
 <body class="skin-default-dark fixed-layout">
-<?php require_once('../includes/loader.php');?>
-<div class="modal fade payment_modal" id="paymentModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Complete Payment</h4>
-            </div>
-            <div class="modal-body">
-                    <input type="hidden" name="sourceId" id="enrollment_sourceId">
-                    <input type="hidden" name="token" id="token">
-                    <input type="hidden" name="FUNCTION_NAME" value="confirmPayment">
-                    <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
-                    <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID">
-                    <input type="hidden" name="header" value="<?=$header?>">
+    <?php require_once('../includes/loader.php'); ?>
+    <div id="main-wrapper">
+        <?php require_once('../includes/top_menu.php'); ?>
+        <div class="page-wrapper">
+            <?php require_once('../includes/top_menu_bar.php') ?>
+            <div class="container-fluid body_content">
+                <div class="row page-titles">
+                    <div class="col-md-5 align-self-center">
+                        <h4 class="text-themecolor"><?= $title ?></h4>
+                    </div>
+                    <div class="col-md-7 align-self-center text-end">
+                        <div class="d-flex justify-content-end align-items-center">
+                            <ol class="breadcrumb justify-content-end">
+                                <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
+                                <li class="breadcrumb-item"><a href="all_locations.php">All Locations</a></li>
+                                <li class="breadcrumb-item active"><?= $title ?></li>
+                            </ol>
 
-                    <div class="p-20">
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Amount to Pay</label>
-                                    <div class="col-md-12">
-                                        <?php 
-                                        $row = $db->Execute("SELECT AMOUNT FROM DOA_ACCOUNT_BILLING_DETAILS WHERE PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." AND BILLING_TYPE = 'PER_LOCATION'"); 
-                                        $AMOUNT = $row->fields['AMOUNT'];
-                                        ?>
-                                        <input type="text" name="AMOUNT_TO_PAY" id="AMOUNT_TO_PAY" value="<?=($AMOUNT) ?? 0?>" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Payment Type</label>
-                                    <div class="col-md-12">
-                                        <select class="form-control PAYMENT_TYPE ENROLLMENT_PAYMENT_TYPE" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this, 'enrollment')">
-                                            <?php
-                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1 AND PK_PAYMENT_TYPE = 1");
-                                            while (!$row->EOF) { ?>
-                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                            <?php $row->MoveNext(); } ?>
-                                        </select>
-                                    </div>
-                                    <div id="wallet_balance_div">
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
-                            <div class="row" id="card_list">
-                            </div>
-                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="col-12">
-                                    <div class="form-group" id="card_div">
-
-                                    </div>
-                                </div>
-                            </div>
-                        <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
-                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" id="card_list">
-                                </div>
-                                <div class="col-12">
-                                    <div class="form-group" id="card_div">
-
-                                    </div>
-                                </div>
-                                <div id="payment-status-container"></div>
-                            </div>
-                        <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
-                            $customer_data = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.EMAIL_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
-                            ?>
-                            <div class="payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" id="card_list">
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label class="form-label">Name (As it appears on your card)</label>
-                                            <div class="col-md-12">
-                                                <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$customer_data->fields['NAME']?>">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label class="form-label">Email (For receiving payment confirmation mail)</label>
-                                            <div class="col-md-12">
-                                                <input type="email" name="EMAIL" id="EMAIL" class="form-control" value="<?=$customer_data->fields['EMAIL_ID']?>">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label class="form-label">Card Number</label>
-                                            <div class="col-md-12">
-                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" placeholder="Card Number" class="form-control">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-4">
-                                        <div class="form-group">
-                                            <label class="form-label">Expiration Month</label>
-                                            <div class="col-md-12">
-                                                <select name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control">
-                                                    <?php
-                                                    for ($i = 1; $i <= 12; $i++) { ?>
-                                                        <option value="<?=$i?>"><?=$i?></option>
-                                                    <?php } ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="form-group">
-                                            <label class="form-label">Expiration Year</label>
-                                            <div class="col-md-12">
-                                                <select name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control">
-                                                    <?php
-                                                    $year = (int)date('Y');
-                                                    for ($i = $year; $i <= $year+25; $i++) { ?>
-                                                        <option value="<?=$i?>"><?=$i?></option>
-                                                    <?php } ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="form-group">
-                                            <label class="form-label">Security Code</label>
-                                            <div class="col-md-12">
-                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                            </div>
-                        <?php } ?>
-
-
-                        <div class="row payment_type_div" id="check_payment" style="display: none;">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Check Number</label>
-                                    <div class="col-md-12">
-                                        <input type="text" name="CHECK_NUMBER" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Check Date</label>
-                                    <div class="col-md-12">
-                                        <input type="text" name="CHECK_DATE" class="form-control datepicker-normal">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-12" id="payment_status">
-
-                            </div>
                         </div>
                     </div>
                 </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-inverse waves-effect waves-light" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-info waves-effect waves-light" id="confirmPayment">Process Payment</button>
-            </div>
-        </div>
-    </div>
-</div>
-<div id="main-wrapper">
-    <?php require_once('../includes/top_menu.php');?>
-    <div class="page-wrapper">
-        <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid body_content">
-            <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
-                </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item"><a href="all_locations.php">All Locations</a></li>
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
 
-                    </div>
-                </div>
-            </div>
+                <div class="row">
+                    <div class="col-8">
+                        <div class="card">
+                            <div class="card-title" style="margin-top: 15px; margin-left: 15px;">
+                                <?php
+                                if (!empty($_GET['id'])) {
+                                    echo $LOCATION_NAME;
+                                }
+                                ?>
+                            </div>
+                            <div class="card-body">
+                                <!-- Nav tabs -->
+                                <ul class="nav nav-tabs" role="tablist">
+                                    <li> <a class="nav-link active" data-bs-toggle="tab" id="location_link" href="#location_div" role="tab"><span class="hidden-sm-up"><i class="ti-location-pin"></i></span> <span class="hidden-xs-down">Location</span></a> </li>
+                                    <?php if (!empty($_GET['id'])) { ?>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" id="holiday_list_link" href="#holiday_list" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Holiday List</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" id="credit_card_link" href="#credit_card" role="tab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
+                                        <!-- <li> <a class="nav-link" data-bs-toggle="tab" id="receipts_link" href="#receipts" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Receipts</span></a> </li> -->
+                                    <?php } ?>
+                                </ul>
 
-            <div class="row">
-                <div class="col-8">
-                    <div class="card">
-                        <div class="card-title" style="margin-top: 15px; margin-left: 15px;">
-                            <?php
-                            if(!empty($_GET['id'])) {
-                                echo $LOCATION_NAME;
-                            }
-                            ?>
-                        </div>
-                        <div class="card-body">
-                            <!-- Nav tabs -->
-                            <ul class="nav nav-tabs" role="tablist">
-                                <li> <a class="nav-link active" data-bs-toggle="tab" id="location_link" href="#location_div" role="tab"><span class="hidden-sm-up"><i class="ti-location-pin"></i></span> <span class="hidden-xs-down">Location</span></a> </li>
-                                <?php if (!empty($_GET['id'])) { ?>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" id="holiday_list_link" href="#holiday_list" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Holiday List</span></a> </li>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" id="credit_card_link" href="#credit_card" role="tab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" id="receipts_link" href="#receipts" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Receipts</span></a> </li>
-                                <?php } ?>
-                            </ul>
-
-                            <!-- Tab panes -->
-                            <div class="tab-content tabcontent-border">
-                                <div class="tab-pane active" id="location_div" role="tabpanel">
-                                    <form class="form-material form-horizontal" id="location_form" action="" method="post" enctype="multipart/form-data">
-                                        <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
-                                        <div class="p-20">
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Corporation<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <div class="col-sm-12">
-                                                                <select class="form-control" name="PK_CORPORATION" id="PK_CORPORATION" required>
-                                                                    <option value="">Select Corporation</option>
-                                                                    <?php
-                                                                    $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY PK_CORPORATION");
-                                                                    while (!$row->EOF) { ?>
-                                                                        <option value="<?php echo $row->fields['PK_CORPORATION'];?>" <?=($row->fields['PK_CORPORATION'] == $PK_CORPORATION)?"selected":""?>><?=$row->fields['CORPORATION_NAME']?></option>
-                                                                        <?php $row->MoveNext(); } ?>
-                                                                </select>
+                                <!-- Tab panes -->
+                                <div class="tab-content tabcontent-border">
+                                    <div class="tab-pane active" id="location_div" role="tabpanel">
+                                        <form class="form-material form-horizontal" id="location_form" action="" method="post" enctype="multipart/form-data">
+                                            <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
+                                            <div class="p-20">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Corporation<span class="text-danger">*</span>
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <div class="col-sm-12">
+                                                                    <select class="form-control" name="PK_CORPORATION" id="PK_CORPORATION" required>
+                                                                        <option value="">Select Corporation</option>
+                                                                        <?php
+                                                                        $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY PK_CORPORATION");
+                                                                        while (!$row->EOF) { ?>
+                                                                            <option value="<?php echo $row->fields['PK_CORPORATION']; ?>" <?= ($row->fields['PK_CORPORATION'] == $PK_CORPORATION) ? "selected" : "" ?>><?= $row->fields['CORPORATION_NAME'] ?></option>
+                                                                        <?php $row->MoveNext();
+                                                                        } ?>
+                                                                    </select>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Account Type<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <?php
-                                                            $row = $db->Execute("SELECT PK_ACCOUNT_TYPE,ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
-                                                            while (!$row->EOF) { ?>
-                                                                <input type="radio" name="PK_ACCOUNT_TYPE" id="<?=$row->fields['PK_ACCOUNT_TYPE'];?>" value="<?=$row->fields['PK_ACCOUNT_TYPE'];?>" <?php if($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked';?> required>
-                                                                <label for="<?=$row->fields['PK_ACCOUNT_TYPE'];?>"><?=$row->fields['ACCOUNT_TYPE']?></label>
-                                                            <?php $row->MoveNext(); } ?>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12">Arthur Murray Franchise ?</label>
-                                                        <div class="col-md-12">
-                                                            <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="1" <?php if($FRANCHISE == 1) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);"/>&nbsp;Yes</label>&nbsp;&nbsp;
-                                                            <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if($FRANCHISE == 0) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);"/>&nbsp;No</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div> 
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Location<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="LOCATION_NAME" name="LOCATION_NAME" class="form-control" placeholder="Enter Location Name" required value="<?php echo $LOCATION_NAME?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Location Code<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="LOCATION_CODE" name="LOCATION_CODE" class="form-control" placeholder="Enter Location Code" required value="<?php echo $LOCATION_CODE?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Address</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Apt/Ste</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Apartment OR Street" value="<?php echo $ADDRESS_1?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Country<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <div class="col-sm-12">
-                                                                <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
-                                                                    <option value="">Select Country</option>
-                                                                    <?php
-                                                                    $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
-                                                                    while (!$row->EOF) { ?>
-                                                                        <option value="<?php echo $row->fields['PK_COUNTRY'];?>" <?=($row->fields['PK_COUNTRY'] == $PK_COUNTRY)?"selected":""?>><?=$row->fields['COUNTRY_NAME']?></option>
-                                                                        <?php $row->MoveNext(); } ?>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">State<span class="text-danger">*</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <div class="col-sm-12">
-                                                                <div id="State_div"></div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">City</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter City" value="<?php echo $CITY?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Postal / Zip Code</span>
-                                                        </label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="ZIP_CODE" name="ZIP_CODE" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP_CODE?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Phone</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Email</label>
-                                                        <div class="col-md-12">
-                                                            <input type="email" id="EMAIL" name="EMAIL" class="form-control" placeholder="enter Email Address" value="<?php echo $EMAIL?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Location Image</label>
-                                                        <div class="col-md-12">
-                                                            <input type="file" name="IMAGE_PATH" id="IMAGE_PATH" class="form-control">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Timezone<span class="text-danger">*</span></label>
-                                                        <div class="col-md-12">
-                                                            <select name="PK_TIMEZONE" id="PK_TIMEZONE" class="form-control required-entry" required>
-                                                                <option value="">Select</option>
-                                                                <? $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
-                                                                while (!$res_type->EOF) { ?>
-                                                                    <option value="<?=$res_type->fields['PK_TIMEZONE']?>" <? if($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected="selected"'; ?>><?=$res_type->fields['NAME']?></option>
-                                                                    <?	$res_type->MoveNext();
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Account Type<span class="text-danger">*</span>
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <?php
+                                                                $row = $db->Execute("SELECT PK_ACCOUNT_TYPE,ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
+                                                                while (!$row->EOF) { ?>
+                                                                    <input type="radio" name="PK_ACCOUNT_TYPE" id="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>" value="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>" <?php if ($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked'; ?> required>
+                                                                    <label for="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"><?= $row->fields['ACCOUNT_TYPE'] ?></label>
+                                                                <?php $row->MoveNext();
                                                                 } ?>
-                                                            </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Arthur Murray Franchise ?</label>
+                                                            <div class="col-md-12">
+                                                                <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="1" <?php if ($FRANCHISE == 1) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                                <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if ($FRANCHISE == 0) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;No</label>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Royalty Percentage</label>
-                                                        <div class="input-group">
-                                                            <input type="text" name="ROYALTY_PERCENTAGE" id="ROYALTY_PERCENTAGE" class="form-control" value="<?php echo $ROYALTY_PERCENTAGE?>">
-                                                            <span class="form-control input-group-text">%</span>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Location<span class="text-danger">*</span>
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="LOCATION_NAME" name="LOCATION_NAME" class="form-control" placeholder="Enter Location Name" required value="<?php echo $LOCATION_NAME ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Location Code<span class="text-danger">*</span>
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="LOCATION_CODE" name="LOCATION_CODE" class="form-control" placeholder="Enter Location Code" required value="<?php echo $LOCATION_CODE ?>">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Sales Tax</label>
-                                                        <div class="input-group">
-                                                            <input type="text" name="SALES_TAX" id="SALES_TAX" class="form-control" value="<?php echo $SALES_TAX?>">
-                                                            <span class="form-control input-group-text">%</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="col-md-12" for="example-text">Receipt Character<span class="text-danger">*</span></label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Character" required value="<?=$RECEIPT_CHARACTER?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
-                                                <div class="col-md-2">
-                                                    <label class="form-label">Texting Feature Enabled?</label>
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="1" <? if($TEXTING_FEATURE_ENABLED == 1) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);"/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                    <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="0" <? if($TEXTING_FEATURE_ENABLED == 0) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);"/>&nbsp;No</label>
-                                                </div>
-                                            </div>
 
-                                            <div class="row twilio_account_type" id="twilio_account_type" style="display: <?=($TEXTING_FEATURE_ENABLED=='1')?'':'none'?>; margin-bottom: 15px;">
-                                                <div class="col-md-6">
-                                                    <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE" value="0" <? if($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                    <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE" value="1" <? if($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> />&nbsp;Using Their own Twilio Account</label>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Address</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Apt/Ste</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Apartment OR Street" value="<?php echo $ADDRESS_1 ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <div class="row">
-                                                <div class="col-6">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Country<span class="text-danger">*</span>
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <div class="col-sm-12">
+                                                                    <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
+                                                                        <option value="">Select Country</option>
+                                                                        <?php
+                                                                        $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                                                                        while (!$row->EOF) { ?>
+                                                                            <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= $row->fields['COUNTRY_NAME'] ?></option>
+                                                                        <?php $row->MoveNext();
+                                                                        } ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">State<span class="text-danger">*</span>
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <div class="col-sm-12">
+                                                                    <div id="State_div"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">City</span>
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter City" value="<?php echo $CITY ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Postal / Zip Code</span>
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="ZIP_CODE" name="ZIP_CODE" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP_CODE ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Phone</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Email</label>
+                                                            <div class="col-md-12">
+                                                                <input type="email" id="EMAIL" name="EMAIL" class="form-control" placeholder="enter Email Address" value="<?php echo $EMAIL ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Location Image</label>
+                                                            <div class="col-md-12">
+                                                                <input type="file" name="IMAGE_PATH" id="IMAGE_PATH" class="form-control">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Timezone<span class="text-danger">*</span></label>
+                                                            <div class="col-md-12">
+                                                                <select name="PK_TIMEZONE" id="PK_TIMEZONE" class="form-control required-entry" required>
+                                                                    <option value="">Select</option>
+                                                                    <? $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
+                                                                    while (!$res_type->EOF) { ?>
+                                                                        <option value="<?= $res_type->fields['PK_TIMEZONE'] ?>" <? if ($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected="selected"'; ?>><?= $res_type->fields['NAME'] ?></option>
+                                                                    <? $res_type->MoveNext();
+                                                                    } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Royalty Percentage</label>
+                                                            <div class="input-group">
+                                                                <input type="text" name="ROYALTY_PERCENTAGE" id="ROYALTY_PERCENTAGE" class="form-control" value="<?php echo $ROYALTY_PERCENTAGE ?>">
+                                                                <span class="form-control input-group-text">%</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Sales Tax</label>
+                                                            <div class="input-group">
+                                                                <input type="text" name="SALES_TAX" id="SALES_TAX" class="form-control" value="<?php echo $SALES_TAX ?>">
+                                                                <span class="form-control input-group-text">%</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12" for="example-text">Receipt Character<span class="text-danger">*</span></label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Character" required value="<?= $RECEIPT_CHARACTER ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
+                                                    <div class="col-md-2">
+                                                        <label class="form-label">Texting Feature Enabled?</label>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="1" <? if ($TEXTING_FEATURE_ENABLED == 1) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);" />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="0" <? if ($TEXTING_FEATURE_ENABLED == 0) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);" />&nbsp;No</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row twilio_account_type" id="twilio_account_type" style="display: <?= ($TEXTING_FEATURE_ENABLED == '1') ? '' : 'none' ?>; margin-bottom: 15px;">
+                                                    <div class="col-md-6">
+                                                        <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE" value="0" <? if ($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE" value="1" <? if ($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> />&nbsp;Using Their own Twilio Account</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Focusbiz API Key</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Username Prefix</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Enter Username Prefix" value="<?php echo $USERNAME_PREFIX ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
                                                 <div class="form-group">
-                                                    <label class="col-md-12">Focusbiz API Key</label>
-                                                    <div class="col-md-12">
-                                                        <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY?>">
-                                                    </div>
+                                                    <?php if ($IMAGE_PATH != '') { ?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $IMAGE_PATH; ?>" data-fancybox-group="gallery"><img src="<?php echo $IMAGE_PATH; ?>" style="width:120px; height:120px" /></a></div><?php } ?>
                                                 </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="form-group">
-                                                    <label class="col-md-12">Username Prefix</label>
-                                                    <div class="col-md-12">
-                                                        <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Enter Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
+
+                                                <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
+                                                    <div class="row" style="margin-top: 30px;">
+                                                        <b class="btn btn-light" style="margin-bottom: 20px;">Payment Gateway Setting</b>
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
+                                                                    <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Stripe</label>
+                                                                    <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Square</label>
+                                                                    <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row payment_gateway" id="stripe" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? '' : 'none' ?>;">
+                                                            <div class="col-12">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Secret Key</label>
+                                                                    <input type="text" class="form-control" name="SECRET_KEY" value="<?= $SECRET_KEY ?>">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Publishable Key</label>
+                                                                    <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?= $PUBLISHABLE_KEY ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row payment_gateway" id="square" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? '' : 'none' ?>">
+                                                            <div class="col-12">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Application ID</label>
+                                                                    <input type="text" class="form-control" name="APP_ID" value="<?= $SQUARE_APP_ID ?>">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Location ID</label>
+                                                                    <input type="text" class="form-control" name="LOCATION_ID" value="<?= $SQUARE_LOCATION_ID ?>">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Access Token</label>
+                                                                    <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?= $ACCESS_TOKEN ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row payment_gateway" id="authorized" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? '' : 'none' ?>">
+                                                            <div class="col-12">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Login ID</label>
+                                                                    <input type="text" class="form-control" name="LOGIN_ID" value="<?= $LOGIN_ID ?>">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Transaction Key</label>
+                                                                    <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?= $TRANSACTION_KEY ?>">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Authorize Client Key</label>
+                                                                    <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?= $AUTHORIZE_CLIENT_KEY ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </div>
+                                                <?php } ?>
 
-                                            </div>
-                                            <div class="form-group">
-                                                <?php if($IMAGE_PATH!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $IMAGE_PATH;?>" data-fancybox-group="gallery"><img src = "<?php echo $IMAGE_PATH;?>" style="width:120px; height:120px" /></a></div><?php } ?>
-                                            </div>
-
-                                            <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
                                                 <div class="row" style="margin-top: 30px;">
-                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Payment Gateway Setting</b>
-                                                    <div class="row">
-                                                        <div class="col-6">
-                                                            <div class="form-group">
-                                                                <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
-                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'checked':''?> onclick="showPaymentGateway(this);">Stripe</label>
-                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?=($PAYMENT_GATEWAY_TYPE=='Square')?'checked':''?> onclick="showPaymentGateway(this);">Square</label>
-                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'checked':''?> onclick="showPaymentGateway(this);">Authorized.net</label>
-                                                            </div>
+                                                    <b class="btn btn-light" style="margin-bottom: 20px;">SMTP Setup</b>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label">SMTP HOST</label>
+                                                            <input type="text" class="form-control" name="SMTP_HOST" value="<?= $SMTP_HOST ?>">
                                                         </div>
                                                     </div>
-
-                                                    <div class="row payment_gateway" id="stripe" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Stripe')?'':'none'?>;">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Secret Key</label>
-                                                                <input type="text" class="form-control" name="SECRET_KEY" value="<?=$SECRET_KEY?>">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="form-label">Publishable Key</label>
-                                                                <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?=$PUBLISHABLE_KEY?>">
-                                                            </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label">SMTP PORT</label>
+                                                            <input type="text" class="form-control" name="SMTP_PORT" value="<?= $SMTP_PORT ?>">
                                                         </div>
                                                     </div>
-
-                                                    <div class="row payment_gateway" id="square" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Square')?'':'none'?>">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Application ID</label>
-                                                                <input type="text" class="form-control" name="APP_ID" value="<?=$SQUARE_APP_ID?>">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="form-label">Location ID</label>
-                                                                <input type="text" class="form-control" name="LOCATION_ID" value="<?=$SQUARE_LOCATION_ID?>">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="form-label">Access Token</label>
-                                                                <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?=$ACCESS_TOKEN?>">
-                                                            </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label">SMTP USERNAME</label>
+                                                            <input type="text" class="form-control" name="SMTP_USERNAME" value="<?= $SMTP_USERNAME ?>">
                                                         </div>
                                                     </div>
-
-                                                    <div class="row payment_gateway" id="authorized" style="display: <?=($PAYMENT_GATEWAY_TYPE=='Authorized.net')?'':'none'?>">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Login ID</label>
-                                                                <input type="text" class="form-control" name="LOGIN_ID" value="<?=$LOGIN_ID?>">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="form-label">Transaction Key</label>
-                                                                <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?=$TRANSACTION_KEY?>">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="form-label">Authorize Client Key</label>
-                                                                <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?=$AUTHORIZE_CLIENT_KEY?>">
-                                                            </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label">SMTP PASSWORD</label>
+                                                            <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?= $SMTP_PASSWORD ?>">
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <?php } ?>
 
-                                            <div class="row" style="margin-top: 30px;">
-                                                <b class="btn btn-light" style="margin-bottom: 20px;">SMTP Setup</b>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">SMTP HOST</label>
-                                                        <input type="text" class="form-control" name="SMTP_HOST" value="<?=$SMTP_HOST?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">SMTP PORT</label>
-                                                        <input type="text" class="form-control" name="SMTP_PORT" value="<?=$SMTP_PORT?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">SMTP USERNAME</label>
-                                                        <input type="text" class="form-control" name="SMTP_USERNAME" value="<?=$SMTP_USERNAME?>">
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">SMTP PASSWORD</label>
-                                                        <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?=$SMTP_PASSWORD?>">
-                                                    </div>
-                                                </div>
-                                            </div>
 
-                                            
-                                            <div class="row arthur_murray_setup" id="arthur_murray_setup" style="display: <?=($FRANCHISE=='1')?'':'none'?>; margin-top: 30px;">
-                                                <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">User Name</label>
-                                                        <input type="text" class="form-control" name="AM_USER_NAME" value="<?=$AM_USER_NAME?>">
+                                                <div class="row arthur_murray_setup" id="arthur_murray_setup" style="display: <?= ($FRANCHISE == '1') ? '' : 'none' ?>; margin-top: 30px;">
+                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="form-label">User Name</label>
+                                                            <input type="text" class="form-control" name="AM_USER_NAME" value="<?= $AM_USER_NAME ?>">
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Password</label>
-                                                        <input type="text" class="form-control" name="AM_PASSWORD" value="<?=$AM_PASSWORD?>">
+                                                    <div class="col-4">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Password</label>
+                                                            <input type="text" class="form-control" name="AM_PASSWORD" value="<?= $AM_PASSWORD ?>">
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <!--<div class="col-4">
+                                                    <!--<div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Refresh Token</label>
-                                                        <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/?>">
+                                                        <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/ ?>">
                                                     </div>
                                                 </div>-->
-                                            </div>
-                                            
+                                                </div>
 
-                                            <?php if(!empty($_GET['id'])) { ?>
-                                                <div class="row" style="margin-bottom: 15px;">
-                                                    <div class="col-6">
-                                                        <div class="col-md-2">
-                                                            <label>Active</label>
+
+                                                <?php if (!empty($_GET['id'])) { ?>
+                                                    <div class="row" style="margin-bottom: 15px;">
+                                                        <div class="col-6">
+                                                            <div class="col-md-2">
+                                                                <label>Active</label>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                            </div>
                                                         </div>
-                                                        <div class="col-md-4">
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                    </div>
+                                                <?php } ?>
+
+                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                                <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+
+                                                <!-- Hidden submit button for the form -->
+                                                <button type="submit" id="realSubmit" style="display:none;"></button>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <div class="tab-pane" id="operational_hours" role="tabpanel">
+                                        <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                            <input type="hidden" name="FUNCTION_NAME" value="saveOperationalHours">
+                                            <div class="p-20" id="holiday_list_div">
+                                                <div class="row">
+                                                    <div class="col-3">
+                                                        <div class="form-group" style="text-align: center;">
+                                                            <label class="form-label" for="example-text" style="font-weight: bold;">Day</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group" style="text-align: center;">
+                                                            <label class="form-label" for="example-text" style="font-weight: bold;">Open Time</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group" style="text-align: center;">
+                                                            <label class="form-label" for="example-text" style="font-weight: bold;">Close Time</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label><input type="checkbox" name="ALL_DAYS" class="form-check-inline" onclick="applyToAllDays(this)"> All Days</label>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <?php } ?>
-
+                                                <?php
+                                                $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$PK_LOCATION'");
+                                                if ($operational_hours->RecordCount() > 0) {
+                                                    $i = 0;
+                                                    while (!$operational_hours->EOF) { ?>
+                                                        <div class="row">
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <select name="DAY_NUMBER[]" class="form-control required-entry" disabled>
+                                                                            <option value="1" <?= ($operational_hours->fields['DAY_NUMBER'] == 1) ? 'selected' : '' ?>>Monday</option>
+                                                                            <option value="2" <?= ($operational_hours->fields['DAY_NUMBER'] == 2) ? 'selected' : '' ?>>Tuesday</option>
+                                                                            <option value="3" <?= ($operational_hours->fields['DAY_NUMBER'] == 3) ? 'selected' : '' ?>>Wednesday</option>
+                                                                            <option value="4" <?= ($operational_hours->fields['DAY_NUMBER'] == 4) ? 'selected' : '' ?>>Thursday</option>
+                                                                            <option value="5" <?= ($operational_hours->fields['DAY_NUMBER'] == 5) ? 'selected' : '' ?>>Friday</option>
+                                                                            <option value="6" <?= ($operational_hours->fields['DAY_NUMBER'] == 6) ? 'selected' : '' ?>>Saturday</option>
+                                                                            <option value="7" <?= ($operational_hours->fields['DAY_NUMBER'] == 7) ? 'selected' : '' ?>>Sunday</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="OPEN_TIME[]" class="form-control time-input time-picker OPEN_TIME" value="<?= ($operational_hours->fields['OPEN_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['OPEN_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="CLOSE_TIME[]" class="form-control time-input time-picker CLOSE_TIME" value="<?= ($operational_hours->fields['CLOSE_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['CLOSE_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12" style="margin-top: 10px;">
+                                                                        <label><input type="checkbox" name="CLOSED_<?= $i ?>" onchange="closeThisDay(this)" <?= ($operational_hours->fields['CLOSED'] == 1) ? 'checked' : '' ?>> Closed</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php $operational_hours->MoveNext();
+                                                        $i++;
+                                                    } ?>
+                                                    <?php } else {
+                                                    for ($i = 1; $i <= 7; $i++) { ?>
+                                                        <div class="row">
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <select name="DAY_NUMBER[]" class="form-control required-entry" disabled>
+                                                                            <option value="1" <?= ($i == 1) ? 'selected' : '' ?>>Monday</option>
+                                                                            <option value="2" <?= ($i == 2) ? 'selected' : '' ?>>Tuesday</option>
+                                                                            <option value="3" <?= ($i == 3) ? 'selected' : '' ?>>Wednesday</option>
+                                                                            <option value="4" <?= ($i == 4) ? 'selected' : '' ?>>Thursday</option>
+                                                                            <option value="5" <?= ($i == 5) ? 'selected' : '' ?>>Friday</option>
+                                                                            <option value="6" <?= ($i == 6) ? 'selected' : '' ?>>Saturday</option>
+                                                                            <option value="7" <?= ($i == 7) ? 'selected' : '' ?>>Sunday</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="OPEN_TIME[]" class="form-control time-input time-picker OPEN_TIME" readonly>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="CLOSE_TIME[]" class="form-control time-input time-picker CLOSE_TIME" readonly>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12" style="margin-top: 10px;">
+                                                                        <label><input type="checkbox" name="CLOSED_<?= $i - 1 ?>" onchange="closeThisDay(this)"> Closed</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                <?php }
+                                                } ?>
+                                            </div>
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+                                        </form>
+                                    </div>
 
-                                            <!-- Hidden submit button for the form -->
-                                            <button type="submit" id="realSubmit" style="display:none;"></button>
-                                        </div>
-                                    </form>
-                                </div>
+                                    <div class="tab-pane" id="holiday_list" role="tabpanel">
+                                        <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                            <input type="hidden" name="FUNCTION_NAME" value="saveHolidayData">
+                                            <div class="p-20" id="holiday_list_section">
+                                                <div class="row">
+                                                    <div class="col-3">
+                                                        <div class="form-group" style="text-align: center;">
+                                                            <label class="form-label" style="font-weight: bold;">Holiday Date</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group" style="text-align: center;">
+                                                            <label class="form-label" style="font-weight: bold;">Holiday Name</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3" style="margin-top: -30px;">
+                                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreHoliday();">Add More</a>
+                                                    </div>
+                                                </div>
+                                                <?php
+                                                $holiday_list = $db_account->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                if ($holiday_list->RecordCount() > 0) {
+                                                    while (!$holiday_list->EOF) { ?>
+                                                        <div class="row">
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal" value="<?= date('m/d/Y', strtotime($holiday_list->fields['HOLIDAY_DATE'])) ?>">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="HOLIDAY_NAME[]" class="form-control" value="<?= $holiday_list->fields['HOLIDAY_NAME'] ?>">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3" style="padding-top: 5px;">
+                                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                            </div>
+                                                        </div>
+                                                    <?php $holiday_list->MoveNext();
+                                                    } ?>
+                                                <?php } else { ?>
+                                                    <div class="row">
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="HOLIDAY_NAME[]" class="form-control">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3" style="padding-top: 5px;">
+                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                        </div>
+                                                    </div>
+                                                <?php } ?>
+                                            </div>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
+                                        </form>
+                                    </div>
 
-                                <div class="tab-pane" id="operational_hours" role="tabpanel">
-                                    <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
-                                        <input type="hidden" name="FUNCTION_NAME" value="saveOperationalHours">
-                                        <div class="p-20" id="holiday_list_div">
-                                            <div class="row">
-                                                <div class="col-3">
-                                                    <div class="form-group" style="text-align: center;">
-                                                        <label class="form-label" for="example-text" style="font-weight: bold;">Day</label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group" style="text-align: center;">
-                                                        <label class="form-label" for="example-text" style="font-weight: bold;">Open Time</label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group" style="text-align: center;">
-                                                        <label class="form-label" for="example-text" style="font-weight: bold;">Close Time</label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label><input type="checkbox" name="ALL_DAYS" class="form-check-inline" onclick="applyToAllDays(this)"> All Days</label>
+
+                                    <div class="tab-pane" id="credit_card" role="tabpanel">
+                                        <form class="form-material form-horizontal" id="creditCardForm" action="" method="post" enctype="multipart/form-data">
+                                            <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
+                                            <div class="p-20" id="credit_card_div">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div id="card-element"></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <?php
-                                            $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$PK_LOCATION'");
-                                            if($operational_hours->RecordCount() > 0) {
-                                                $i = 0;
-                                                while (!$operational_hours->EOF) { ?>
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <select name="DAY_NUMBER[]" class="form-control required-entry" disabled>
-                                                                    <option value="1" <?=($operational_hours->fields['DAY_NUMBER']==1)?'selected':''?>>Monday</option>
-                                                                    <option value="2" <?=($operational_hours->fields['DAY_NUMBER']==2)?'selected':''?>>Tuesday</option>
-                                                                    <option value="3" <?=($operational_hours->fields['DAY_NUMBER']==3)?'selected':''?>>Wednesday</option>
-                                                                    <option value="4" <?=($operational_hours->fields['DAY_NUMBER']==4)?'selected':''?>>Thursday</option>
-                                                                    <option value="5" <?=($operational_hours->fields['DAY_NUMBER']==5)?'selected':''?>>Friday</option>
-                                                                    <option value="6" <?=($operational_hours->fields['DAY_NUMBER']==6)?'selected':''?>>Saturday</option>
-                                                                    <option value="7" <?=($operational_hours->fields['DAY_NUMBER']==7)?'selected':''?>>Sunday</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <input type="text" name="OPEN_TIME[]" class="form-control time-input time-picker OPEN_TIME" value="<?=($operational_hours->fields['OPEN_TIME']=='00:00:00')?'':date('h:i A', strtotime($operational_hours->fields['OPEN_TIME']))?>" style="pointer-events: <?=($operational_hours->fields['CLOSED']==1)?'none':''?>" readonly>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <input type="text" name="CLOSE_TIME[]" class="form-control time-input time-picker CLOSE_TIME" value="<?=($operational_hours->fields['CLOSE_TIME']=='00:00:00')?'':date('h:i A', strtotime($operational_hours->fields['CLOSE_TIME']))?>" style="pointer-events: <?=($operational_hours->fields['CLOSED']==1)?'none':''?>" readonly>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12" style="margin-top: 10px;">
-                                                                <label><input type="checkbox" name="CLOSED_<?=$i?>" onchange="closeThisDay(this)" <?=($operational_hours->fields['CLOSED']==1)?'checked':''?>> Closed</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <?php $operational_hours->MoveNext(); $i++;} ?>
-                                            <?php } else {
-                                                for ($i = 1; $i <= 7; $i++) { ?>
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <select name="DAY_NUMBER[]" class="form-control required-entry" disabled>
-                                                                    <option value="1" <?=($i==1)?'selected':''?>>Monday</option>
-                                                                    <option value="2" <?=($i==2)?'selected':''?>>Tuesday</option>
-                                                                    <option value="3" <?=($i==3)?'selected':''?>>Wednesday</option>
-                                                                    <option value="4" <?=($i==4)?'selected':''?>>Thursday</option>
-                                                                    <option value="5" <?=($i==5)?'selected':''?>>Friday</option>
-                                                                    <option value="6" <?=($i==6)?'selected':''?>>Saturday</option>
-                                                                    <option value="7" <?=($i==7)?'selected':''?>>Sunday</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <input type="text" name="OPEN_TIME[]" class="form-control time-input time-picker OPEN_TIME" readonly>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <input type="text" name="CLOSE_TIME[]" class="form-control time-input time-picker CLOSE_TIME" readonly>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12" style="margin-top: 10px;">
-                                                                <label><input type="checkbox" name="CLOSED_<?=$i-1?>" onchange="closeThisDay(this)"> Closed</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <?php }
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+                                        </form>
+                                        <?php if (isset($card_details['last4'])) {
+                                            switch ($card_details['brand']) {
+                                                case 'Visa':
+                                                case 'Visa (debit)':
+                                                    $card_type = 'visa';
+                                                    break;
+                                                case 'MasterCard':
+                                                case 'Mastercard (2-series)':
+                                                case 'Mastercard (debit)':
+                                                case 'Mastercard (prepaid)':
+                                                    $card_type = 'mastercard';
+                                                    break;
+                                                case 'American Express':
+                                                    $card_type = 'amex';
+                                                    break;
+                                                case 'Discover':
+                                                case 'Discover (debit)':
+                                                    $card_type = 'discover';
+                                                    break;
+                                                case 'Diners Club':
+                                                case 'Diners Club (14-digit card)':
+                                                    $card_type = 'diners';
+                                                    break;
+                                                case 'JCB':
+                                                    $card_type = 'jcb';
+                                                    break;
+                                                case 'UnionPay':
+                                                case 'UnionPay (debit)':
+                                                case 'UnionPay (19-digit card)':
+                                                    $card_type = 'unionpay';
+                                                    break;
+                                                default:
+                                                    $card_type = '';
+                                                    break;
                                             } ?>
-                                        </div>
-                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                        <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
-                                    </form>
-                                </div>
-
-                                <div class="tab-pane" id="holiday_list" role="tabpanel">
-                                    <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
-                                        <input type="hidden" name="FUNCTION_NAME" value="saveHolidayData">
-                                        <div class="p-20" id="holiday_list_section">
-                                            <div class="row">
-                                                <div class="col-3">
-                                                    <div class="form-group" style="text-align: center;">
-                                                        <label class="form-label" style="font-weight: bold;">Holiday Date</label>
+                                            <div class="p-20">
+                                                <h5>Saved Card Details</h5>
+                                                <div class="credit-card <?= $card_type ?> selectable" style="margin-right: 80%;">
+                                                    <div class="credit-card-last4">
+                                                        <?= $card_details['last4'] ?>
                                                     </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group" style="text-align: center;">
-                                                        <label class="form-label" style="font-weight: bold;">Holiday Name</label>
+                                                    <div class="credit-card-expiry">
+                                                        <?= $card_details['exp_month'] . '/' . $card_details['exp_year'] ?>
                                                     </div>
-                                                </div>
-                                                <div class="col-3" style="margin-top: -30px;">
-                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreHoliday();">Add More</a>
                                                 </div>
                                             </div>
-                                            <?php
-                                            $holiday_list = $db_account->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                            if($holiday_list->RecordCount() > 0) {
-                                                while (!$holiday_list->EOF) { ?>
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal" value="<?=date('m/d/Y', strtotime($holiday_list->fields['HOLIDAY_DATE']))?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <input type="text" name="HOLIDAY_NAME[]" class="form-control" value="<?=$holiday_list->fields['HOLIDAY_NAME']?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3" style="padding-top: 5px;">
-                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                    </div>
-                                                </div>
-                                                <?php $holiday_list->MoveNext(); } ?>
-                                            <?php } else { ?>
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <div class="col-md-12">
-                                                                <input type="text" name="HOLIDAY_NAME[]" class="form-control">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3" style="padding-top: 5px;">
-                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                    </div>
-                                                </div>
-                                            <?php } ?>
-                                        </div>
-                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                        <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
-                                    </form>
-                                </div>
-
-
-                                <div class="tab-pane" id="credit_card" role="tabpanel">
-                                    <form class="form-material form-horizontal" id="creditCardForm" action="" method="post" enctype="multipart/form-data">
-                                        <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
-                                        <div class="p-20" id="credit_card_div">
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div id="card-element"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                        <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
-                                    </form>
-                                    <?php if (isset($card_details['last4'])) {
-                                        switch ($card_details['brand']) {
-                                            case 'Visa':
-                                            case 'Visa (debit)':
-                                                $card_type = 'visa';
-                                                break;
-                                            case 'MasterCard':
-                                            case 'Mastercard (2-series)':
-                                            case 'Mastercard (debit)':
-                                            case 'Mastercard (prepaid)':
-                                                $card_type = 'mastercard';
-                                                break;
-                                            case 'American Express':
-                                                $card_type = 'amex';
-                                                break;
-                                            case 'Discover':
-                                            case 'Discover (debit)':
-                                                $card_type = 'discover';
-                                                break;
-                                            case 'Diners Club':
-                                            case 'Diners Club (14-digit card)':
-                                                $card_type = 'diners';
-                                                break;
-                                            case 'JCB':
-                                                $card_type = 'jcb';
-                                                break;
-                                            case 'UnionPay':
-                                            case 'UnionPay (debit)':
-                                            case 'UnionPay (19-digit card)':
-                                                $card_type = 'unionpay';
-                                                break;
-                                            default:
-                                                $card_type = '';
-                                                break;
-
-                                        } ?>
-                                        <div class="p-20">
-                                            <h5>Saved Card Details</h5>
-                                            <div class="credit-card <?=$card_type?> selectable" style="margin-right: 80%;">
-                                                <div class="credit-card-last4">
-                                                    <?=$card_details['last4']?>
-                                                </div>
-                                                <div class="credit-card-expiry">
-                                                    <?=$card_details['exp_month'].'/'.$card_details['exp_year']?>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <?php } ?>
+                                        <?php } ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="row">
-                                <h4 class="col-md-12" STYLE="text-align: center">
-                                    <?=$help_title?>
-                                </h4>
-                                <div class="col-md-12">
-                                    <text class="required-entry rich" id="DESCRIPTION"><?=$help_description?></text>
+                    <div class="col-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <h4 class="col-md-12" STYLE="text-align: center">
+                                        <?= $help_title ?>
+                                    </h4>
+                                    <div class="col-md-12">
+                                        <text class="required-entry rich" id="DESCRIPTION"><?= $help_description ?></text>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1806,180 +1639,183 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
             </div>
         </div>
     </div>
-</div>
 
-<?php require_once('../includes/footer.php');?>
+    <?php require_once('../includes/footer.php'); ?>
 
-<script>
-    $('.time-picker').timepicker({
-        timeFormat: 'hh:mm p',
-        interval: 30,
-        dynamic: false,
-        dropdown: true,
-        scrollbar: true
-    });
+    <?php require_once('includes/location_payment.php'); ?>
 
-    function closeThisDay(param){
-        if ($(param).is(':checked')){
-            $(param).closest('.row').find('.time-input').val('');
-            $(param).closest('.row').find('.time-input').css('pointer-events', 'none');
-        }else {
-            $(param).closest('.row').find('.time-input').css('pointer-events', '');
-        }
-    }
-
-    $(document).ready(function() {
-        fetch_state(<?php  echo $PK_COUNTRY; ?>);
-    });
-
-    function fetch_state(PK_COUNTRY){
-        jQuery(document).ready(function($) {
-            var data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
-            var value = $.ajax({
-                url: "ajax/state.php",
-                type: "POST",
-                data: data,
-                async: false,
-                cache :false,
-                success: function (result) {
-                    document.getElementById('State_div').innerHTML = result;
-                }
-            }).responseText;
+    <script>
+        $('.time-picker').timepicker({
+            timeFormat: 'hh:mm p',
+            interval: 30,
+            dynamic: false,
+            dropdown: true,
+            scrollbar: true
         });
-    }
 
-    function showPaymentGateway(param) {
-        $('.payment_gateway').slideUp();
-        if($(param).val() === 'Stripe'){
-            $('#stripe').slideDown();
-        }else {
-            if($(param).val() === 'Square'){
-                $('#square').slideDown();
-            }else {
-                if($(param).val() === 'Authorized.net'){
-                    $('#authorized').slideDown();
-                }
-            }
-
-        }
-    }
-</script>
-
-<script src="https://js.stripe.com/v3/"></script>
-<script type="text/javascript">
-    function stripePaymentFunction() {
-        let stripe = Stripe('<?=$STRIPE_PUBLISHABLE_KEY?>');
-        let elements = stripe.elements();
-
-        let style = {
-            base: {
-                height: '34px',
-                padding: '6px 12px',
-                fontSize: '14px',
-                lineHeight: '1.42857143',
-                color: '#555',
-                backgroundColor: '#fff',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                '::placeholder': {
-                    color: '#ddd'
-                }
-            },
-            invalid: {
-                color: '#fa755a',
-                iconColor: '#fa755a'
-            }
-        };
-
-        // Create an instance of the card Element.
-        let card = elements.create('card', {style: style});
-
-        if (($('#card-element')).length > 0) {
-            card.mount('#card-element');
-        }
-
-        // Handle real-time validation errors from the card Element.
-        card.addEventListener('change', function (event) {
-            let displayError = document.getElementById('card-errors');
-            if (event.error) {
-                displayError.textContent = event.error.message;
+        function closeThisDay(param) {
+            if ($(param).is(':checked')) {
+                $(param).closest('.row').find('.time-input').val('');
+                $(param).closest('.row').find('.time-input').css('pointer-events', 'none');
             } else {
-                displayError.textContent = '';
+                $(param).closest('.row').find('.time-input').css('pointer-events', '');
             }
+        }
+
+        $(document).ready(function() {
+            fetch_state(<?php echo $PK_COUNTRY; ?>);
         });
 
-        // Handle form submission.
-        let form = document.getElementById('creditCardForm');
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            stripe.createToken(card).then(function (result) {
-                if (result.error) {
-                    // Inform the user if there was an error.
-                    let errorElement = document.getElementById('card-errors');
-                    errorElement.textContent = result.error.message;
+        function fetch_state(PK_COUNTRY) {
+            jQuery(document).ready(function($) {
+                var data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
+                var value = $.ajax({
+                    url: "ajax/state.php",
+                    type: "POST",
+                    data: data,
+                    async: false,
+                    cache: false,
+                    success: function(result) {
+                        document.getElementById('State_div').innerHTML = result;
+                    }
+                }).responseText;
+            });
+        }
+
+        function showPaymentGateway(param) {
+            $('.payment_gateway').slideUp();
+            if ($(param).val() === 'Stripe') {
+                $('#stripe').slideDown();
+            } else {
+                if ($(param).val() === 'Square') {
+                    $('#square').slideDown();
                 } else {
-                    // Send the token to your server.
-                    stripeTokenHandler(result.token);
+                    if ($(param).val() === 'Authorized.net') {
+                        $('#authorized').slideDown();
+                    }
+                }
+
+            }
+        }
+    </script>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="text/javascript">
+        function stripePaymentFunction() {
+            let stripe = Stripe('<?= $STRIPE_PUBLISHABLE_KEY ?>');
+            let elements = stripe.elements();
+
+            let style = {
+                base: {
+                    height: '34px',
+                    padding: '6px 12px',
+                    fontSize: '14px',
+                    lineHeight: '1.42857143',
+                    color: '#555',
+                    backgroundColor: '#fff',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    '::placeholder': {
+                        color: '#ddd'
+                    }
+                },
+                invalid: {
+                    color: '#fa755a',
+                    iconColor: '#fa755a'
+                }
+            };
+
+            // Create an instance of the card Element.
+            let card = elements.create('card', {
+                style: style
+            });
+
+            if (($('#card-element')).length > 0) {
+                card.mount('#card-element');
+            }
+
+            // Handle real-time validation errors from the card Element.
+            card.addEventListener('change', function(event) {
+                let displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = event.error.message;
+                } else {
+                    displayError.textContent = '';
                 }
             });
+
+            // Handle form submission.
+            let form = document.getElementById('creditCardForm');
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                stripe.createToken(card).then(function(result) {
+                    if (result.error) {
+                        // Inform the user if there was an error.
+                        let errorElement = document.getElementById('card-errors');
+                        errorElement.textContent = result.error.message;
+                    } else {
+                        // Send the token to your server.
+                        stripeTokenHandler(result.token);
+                    }
+                });
+            });
+
+            // Submit the form with the token ID.
+            function stripeTokenHandler(token) {
+                // Insert the token ID into the form, so it gets submitted to the server
+                let form = document.getElementById('creditCardForm');
+                let hiddenInput = document.createElement('input');
+                hiddenInput.setAttribute('type', 'hidden');
+                hiddenInput.setAttribute('name', 'token');
+                hiddenInput.setAttribute('value', token.id);
+                form.appendChild(hiddenInput);
+                form.submit();
+            }
+        }
+
+        function applyToAllDays(param) {
+            if ($(param).is(':checked')) {
+                let OPEN_TIME = $(".OPEN_TIME");
+                $('.OPEN_TIME').val($(OPEN_TIME[0]).val());
+
+                let CLOSE_TIME = $(".CLOSE_TIME");
+                $('.CLOSE_TIME').val($(CLOSE_TIME[0]).val());
+            } else {
+                let OPEN_TIME = $(".OPEN_TIME");
+                for (let i = 1; i < 7; i++) {
+                    $(OPEN_TIME[i]).val('');
+                }
+
+                let CLOSE_TIME = $(".CLOSE_TIME");
+                for (let i = 1; i < 7; i++) {
+                    $(CLOSE_TIME[i]).val('');
+                }
+            }
+        }
+    </script>
+    <script>
+        function getPaymentMethodId(param) {
+            $('.credit-card-div').css("opacity", "1");
+            $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
+            $(param).css("opacity", "0.6");
+            /*let form = document.getElementById('enrollment_payment_form');
+            form.removeEventListener('submit', listener);*/
+            $(param).closest('.payment_modal').find('#card-element').remove();
+            $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
+        }
+
+        $(document).on('click', '.credit-card', function() {
+            $('.credit-card').css("opacity", "1");
+            $(this).css("opacity", "0.6");
         });
 
-        // Submit the form with the token ID.
-        function stripeTokenHandler(token) {
-            // Insert the token ID into the form, so it gets submitted to the server
-            let form = document.getElementById('creditCardForm');
-            let hiddenInput = document.createElement('input');
-            hiddenInput.setAttribute('type', 'hidden');
-            hiddenInput.setAttribute('name', 'token');
-            hiddenInput.setAttribute('value', token.id);
-            form.appendChild(hiddenInput);
-            form.submit();
-        }
-    }
+        /* $(document).ready(function() {
+            $('#saveButton').click(function(e) {
+                e.preventDefault(); // Prevent form submission
 
-    function applyToAllDays(param) {
-        if ($(param).is(':checked')) {
-            let OPEN_TIME = $(".OPEN_TIME");
-            $('.OPEN_TIME').val($(OPEN_TIME[0]).val());
-
-            let CLOSE_TIME = $(".CLOSE_TIME");
-            $('.CLOSE_TIME').val($(CLOSE_TIME[0]).val());
-        } else {
-            let OPEN_TIME = $(".OPEN_TIME");
-            for(let i = 1; i < 7; i++) {
-                $(OPEN_TIME[i]).val('');
-            }
-
-            let CLOSE_TIME = $(".CLOSE_TIME");
-            for(let i = 1; i < 7; i++) {
-                $(CLOSE_TIME[i]).val('');
-            }
-        }
-    }
-</script>
-<script>
-function getPaymentMethodId(param) {
-    $('.credit-card-div').css("opacity", "1");
-    $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
-    $(param).css("opacity", "0.6");
-    /*let form = document.getElementById('enrollment_payment_form');
-    form.removeEventListener('submit', listener);*/
-    $(param).closest('.payment_modal').find('#card-element').remove();
-    $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
-}
-
-$(document).on('click', '.credit-card', function () {
-    $('.credit-card').css("opacity", "1");
-    $(this).css("opacity", "0.6");
-});
-
-$(document).ready(function() {
-    $('#saveButton').click(function(e) {
-        e.preventDefault(); // Prevent form submission
-        
-        // Show payment modal
-        $('#paymentModal').modal('show');
-        $(1).closest('.payment_modal').find('#credit_card_payment').slideDown();
+                // Show payment modal
+                $('#paymentModal').modal('show');
+                $(1).closest('.payment_modal').find('#credit_card_payment').slideDown();
                 if (PAYMENT_GATEWAY == 'Stripe') {
                     $(1).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
                     stripePaymentFunction(type);
@@ -1987,7 +1823,7 @@ $(document).ready(function() {
 
                 if (PAYMENT_GATEWAY == 'Square') {
                     $(1).closest('.payment_modal').find('#card_div').html(`<div id="enrollment-card-container"></div>`);
-                    $('#'+type+'-card-container').text('Loading......');
+                    $('#' + type + '-card-container').text('Loading......');
                     squarePaymentFunction(type);
                 }
 
@@ -1998,48 +1834,51 @@ $(document).ready(function() {
                     });
                 }
                 getCreditCardList();
-    });
-    
-    $('#confirmPayment').click(function() {
-        // Hide modal first
-        $('#paymentModal').modal('hide');
-        
-        // Trigger the actual form submission
-        $('#realSubmit').click();
-    });
-});
+            });
 
-function getCreditCardList() {
-    let PK_USER = "<?php echo $PK_USER; ?>";
-    let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-    $.ajax({
-        url: "ajax/get_credit_card_list_from_master.php",
-        type: 'POST',
-        data: {PK_USER: PK_USER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
-        success: function (data) {
-            $('#card_list').slideDown().html(data);
+            $('#confirmPayment').click(function() {
+                // Hide modal first
+                $('#paymentModal').modal('hide');
+
+                // Trigger the actual form submission
+                $('#realSubmit').click();
+            });
+        }); */
+
+        function getCreditCardList() {
+            let PK_USER = "<?php echo $PK_USER; ?>";
+            let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+            $.ajax({
+                url: "ajax/get_credit_card_list_from_master.php",
+                type: 'POST',
+                data: {
+                    PK_USER: PK_USER,
+                    PAYMENT_GATEWAY: PAYMENT_GATEWAY
+                },
+                success: function(data) {
+                    $('#card_list').slideDown().html(data);
+                }
+            });
         }
-    });
-}
 
-function showTwilioAccountSetting(param) {
-    if($(param).val() === '1'){
-        $('#twilio_account_type').slideDown();
-    }else {
-        $('#twilio_account_type').slideUp();
-    }
-}
+        function showTwilioAccountSetting(param) {
+            if ($(param).val() === '1') {
+                $('#twilio_account_type').slideDown();
+            } else {
+                $('#twilio_account_type').slideUp();
+            }
+        }
 
-function showArthurMurraySetup(param) {
-    if($(param).val() === '1'){
-        $('#arthur_murray_setup').slideDown();
-    }else {
-        $('#arthur_murray_setup').slideUp();
-    }
-}
+        function showArthurMurraySetup(param) {
+            if ($(param).val() === '1') {
+                $('#arthur_murray_setup').slideDown();
+            } else {
+                $('#arthur_murray_setup').slideUp();
+            }
+        }
 
-function addMoreHoliday(){
-    $('#holiday_list_section').append(`<div class="row">
+        function addMoreHoliday() {
+            $('#holiday_list_section').append(`<div class="row">
                                         <div class="col-3">
                                             <div class="form-group">
                                                 <div class="col-md-12">
@@ -2059,14 +1898,15 @@ function addMoreHoliday(){
                                         </div>
                                     </div>`);
 
-    $('.datepicker-normal').datepicker({
-        format: 'mm/dd/yyyy',
-    });
-} 
+            $('.datepicker-normal').datepicker({
+                format: 'mm/dd/yyyy',
+            });
+        }
 
-function removeThis(param) {
+        function removeThis(param) {
             $(param).closest('.row').remove();
         }
-</script>
+    </script>
 </body>
+
 </html>

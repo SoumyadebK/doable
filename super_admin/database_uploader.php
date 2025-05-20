@@ -352,7 +352,8 @@ if (!empty($_POST)) {
                             }
                         }
                     } catch (mysqli_sql_exception $ex) {
-                        echo $ex->getMessage() . "<br>"; die();
+                        echo $ex->getMessage() . "<br>";
+                        die();
                     }
                 }
                 $allCustomers->MoveNext();
@@ -531,18 +532,18 @@ if (!empty($_POST)) {
             break;
 
         case "DOA_ENROLLMENT":
-            $upload_path = 'uploads/'.$PK_ACCOUNT_MASTER;
+            $upload_path = 'uploads/' . $PK_ACCOUNT_MASTER;
 
-            if (!file_exists('../'.$upload_path.'/enrollment_pdf/')) {
-                mkdir('../'.$upload_path.'/enrollment_pdf/', 0777, true);
-                chmod('../'.$upload_path.'/enrollment_pdf/', 0777);
+            if (!file_exists('../' . $upload_path . '/enrollment_pdf/')) {
+                mkdir('../' . $upload_path . '/enrollment_pdf/', 0777, true);
+                chmod('../' . $upload_path . '/enrollment_pdf/', 0777);
             }
-            
+
             $location_data = $db->Execute("SELECT LOCATION_CODE FROM DOA_LOCATION WHERE PK_LOCATION = '$PK_LOCATION'");
             $LOCATION_CODE = $location_data->fields['LOCATION_CODE'];
-            if (!file_exists('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/')) {
-                mkdir('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/', 0777, true);
-                chmod('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/', 0777);
+            if (!file_exists('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/')) {
+                mkdir('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777, true);
+                chmod('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777);
             }
 
             $lastUploadedId = getLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $_SESSION['MIGRATION_DB_NAME'], $_POST['TABLE_NAME']);
@@ -612,7 +613,7 @@ if (!empty($_POST)) {
                 $location_data = $db->Execute("SELECT LOCATION_CODE FROM DOA_LOCATION WHERE PK_LOCATION = '$PK_LOCATION'");
                 $LOCATION_CODE = $location_data->fields['LOCATION_CODE'];
 
-                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = ($allEnrollments->fields['enroll_pdf_file']) ? $LOCATION_CODE.'/'.$allEnrollments->fields['enroll_pdf_file'] . '.pdf' : NULL;
+                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = ($allEnrollments->fields['enroll_pdf_file']) ? $LOCATION_CODE . '/' . $allEnrollments->fields['enroll_pdf_file'] . '.pdf' : NULL;
                 $ENROLLMENT_DATA['CHARGE_TYPE'] = 0;
                 $ENROLLMENT_DATA['EXPIRY_DATE'] = $allEnrollments->fields['expdate'];
                 $ENROLLMENT_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
@@ -1029,7 +1030,7 @@ if (!empty($_POST)) {
                     $APPOINTMENT_MASTER_DATA['ACTIVE'] = 1;
                     $APPOINTMENT_MASTER_DATA['IS_PAID'] = 0;
 
-                    
+
 
                     $APPOINTMENT_MASTER_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
                     $APPOINTMENT_MASTER_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -1374,28 +1375,37 @@ if (!empty($_POST)) {
             break;
 
         case 'ENR_PDF':
-            $upload_path = 'uploads/'.$PK_ACCOUNT_MASTER;
+            $upload_path = 'uploads/' . $PK_ACCOUNT_MASTER;
 
-            if (!file_exists('../'.$upload_path.'/enrollment_pdf/')) {
-                mkdir('../'.$upload_path.'/enrollment_pdf/', 0777, true);
-                chmod('../'.$upload_path.'/enrollment_pdf/', 0777);
+            if (!file_exists('../' . $upload_path . '/enrollment_pdf/')) {
+                mkdir('../' . $upload_path . '/enrollment_pdf/', 0777, true);
+                chmod('../' . $upload_path . '/enrollment_pdf/', 0777);
             }
-            
+
             $location_data = $db->Execute("SELECT LOCATION_CODE FROM DOA_LOCATION WHERE PK_LOCATION = '$PK_LOCATION'");
             $LOCATION_CODE = $location_data->fields['LOCATION_CODE'];
-            if (!file_exists('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/')) {
-                mkdir('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/', 0777, true);
-                chmod('../'.$upload_path.'/enrollment_pdf/'.$LOCATION_CODE.'/', 0777);
+            if (!file_exists('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/')) {
+                mkdir('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777, true);
+                chmod('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777);
             }
 
             $allEnrollments = getAllEnrollments(0);
             while (!$allEnrollments->EOF) {
-                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = ($allEnrollments->fields['enroll_pdf_file']) ? $LOCATION_CODE.'/'.$allEnrollments->fields['enroll_pdf_file'] . '.pdf' : NULL;
+                $ENROLLMENT_DATA['AGREEMENT_PDF_LINK'] = ($allEnrollments->fields['enroll_pdf_file']) ? $LOCATION_CODE . '/' . $allEnrollments->fields['enroll_pdf_file'] . '.pdf' : NULL;
                 $enrollment_id = $allEnrollments->fields['enrollment_id'];
                 db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'update', " ENROLLMENT_ID = '$enrollment_id' AND PK_LOCATION = '$PK_LOCATION'");
                 $allEnrollments->MoveNext();
             }
             break;
+
+        case 'UPDATE_TAX_ID':
+            $allUsers = getAllUsers();
+            while (!$allUsers->EOF) {
+                $user_id = $allUsers->fields['user_id'];
+                $USER_DATA['ARTHUR_MURRAY_ID'] = $allUsers->fields['tax_id'];
+                db_perform('DOA_USERS', $USER_DATA, 'update', " USER_ID = '$user_id' AND PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
+                $allUsers->MoveNext();
+            }
 
         default:
             break;
@@ -1403,13 +1413,15 @@ if (!empty($_POST)) {
     header("Location: database_uploader.php");
 }
 
-function getLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $DATABASE_NAME, $TABLE_NAME) {
+function getLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $DATABASE_NAME, $TABLE_NAME)
+{
     global $db;
     $last_uploaded = $db->Execute("SELECT MAX(LAST_UPLOAD_ID) AS ID FROM data_migration_log WHERE PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER AND PK_LOCATION = $PK_LOCATION AND DATABASE_NAME = '$DATABASE_NAME' AND TABLE_NAME = '$TABLE_NAME'");
     return ($last_uploaded->RecordCount() > 0 && $last_uploaded->fields['ID'] != null && $last_uploaded->fields['ID'] != '') ? $last_uploaded->fields['ID'] : 0;
 }
 
-function insertLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $DATABASE_NAME, $TABLE_NAME, $LAST_UPLOAD_ID) {
+function insertLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $DATABASE_NAME, $TABLE_NAME, $LAST_UPLOAD_ID)
+{
     global $db;
     $date = date('Y-m-d H:i:s');
     $db->Execute("INSERT INTO data_migration_log (PK_ACCOUNT_MASTER, PK_LOCATION, DATABASE_NAME, TABLE_NAME, LAST_UPLOAD_ID, LAST_UPLOAD_DATE) VALUES ($PK_ACCOUNT_MASTER, $PK_LOCATION, '$DATABASE_NAME', '$TABLE_NAME', $LAST_UPLOAD_ID, '$date')");
@@ -1491,10 +1503,10 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <label class="form-label">Select Database Name</label>
                                 <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
                                     <option value="">Select Database Name</option>
-                                    <option value="AMSJ" <?=($_SESSION['MIGRATION_DB_NAME'] == 'AMSJ')?'selected':''?>>AMSJ</option>
-                                    <option value="AMTO" <?=($_SESSION['MIGRATION_DB_NAME'] == 'AMTO')?'selected':''?>>AMTO</option>
-                                    <option value="AMWH" <?=($_SESSION['MIGRATION_DB_NAME'] == 'AMWH')?'selected':''?>>AMWH</option>
-                                    <option value="AMLS" <?=($_SESSION['MIGRATION_DB_NAME'] == 'AMLS')?'selected':''?>>AMLS</option>
+                                    <option value="AMSJ" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSJ') ? 'selected' : '' ?>>AMSJ</option>
+                                    <option value="AMTO" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMTO') ? 'selected' : '' ?>>AMTO</option>
+                                    <option value="AMWH" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMWH') ? 'selected' : '' ?>>AMWH</option>
+                                    <option value="AMLS" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMLS') ? 'selected' : '' ?>>AMLS</option>
                                 </select>
                             </div>
                         </div>
@@ -1503,22 +1515,22 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <label class="form-label">Select Table Name</label>
                                 <select class="form-control" name="TABLE_NAME" id="TABLE_NAME" onchange="viewCsvDownload(this)">
                                     <option value="">Select Table Name</option>
-                                    <option value="DOA_OPERATIONAL_HOUR" <?=($_SESSION['TABLE_NAME'] == 'DOA_OPERATIONAL_HOUR')?'selected':''?>>DOA_OPERATIONAL_HOUR</option>
-                                    <option value="DOA_INQUIRY_METHOD" <?=($_SESSION['TABLE_NAME'] == 'DOA_INQUIRY_METHOD')?'selected':''?>>DOA_INQUIRY_METHOD</option>
+                                    <option value="DOA_OPERATIONAL_HOUR" <?= ($_SESSION['TABLE_NAME'] == 'DOA_OPERATIONAL_HOUR') ? 'selected' : '' ?>>DOA_OPERATIONAL_HOUR</option>
+                                    <option value="DOA_INQUIRY_METHOD" <?= ($_SESSION['TABLE_NAME'] == 'DOA_INQUIRY_METHOD') ? 'selected' : '' ?>>DOA_INQUIRY_METHOD</option>
                                     <!--<option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
                                 <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>-->
-                                    <option value="DOA_USERS" <?=($_SESSION['TABLE_NAME'] == 'DOA_USERS')?'selected':''?>>DOA_USERS</option>
-                                    <option value="DOA_CUSTOMER" <?=($_SESSION['TABLE_NAME'] == 'DOA_CUSTOMER')?'selected':''?>>DOA_CUSTOMER</option>
-                                    <option value="DOA_SERVICE_MASTER" <?=($_SESSION['TABLE_NAME'] == 'DOA_SERVICE_MASTER')?'selected':''?>>DOA_SERVICE_MASTER</option>
-                                    <option value="DOA_SCHEDULING_CODE" <?=($_SESSION['TABLE_NAME'] == 'DOA_SCHEDULING_CODE')?'selected':''?>>DOA_SCHEDULING_CODE</option>
-                                    <option value="DOA_ENROLLMENT_TYPE" <?=($_SESSION['TABLE_NAME'] == 'DOA_ENROLLMENT_TYPE')?'selected':''?>>DOA_ENROLLMENT_TYPE</option>
-                                    <option value="DOA_PACKAGE" <?=($_SESSION['TABLE_NAME'] == 'DOA_PACKAGE')?'selected':''?>>DOA_PACKAGE</option>
-                                    <option value="DOA_ENROLLMENT" <?=($_SESSION['TABLE_NAME'] == 'DOA_ENROLLMENT')?'selected':''?>>DOA_ENROLLMENT</option>
-                                    <option value="OTHER_PAYMENT" <?=($_SESSION['TABLE_NAME'] == 'OTHER_PAYMENT')?'selected':''?>>OTHER_PAYMENT</option>
+                                    <option value="DOA_USERS" <?= ($_SESSION['TABLE_NAME'] == 'DOA_USERS') ? 'selected' : '' ?>>DOA_USERS</option>
+                                    <option value="DOA_CUSTOMER" <?= ($_SESSION['TABLE_NAME'] == 'DOA_CUSTOMER') ? 'selected' : '' ?>>DOA_CUSTOMER</option>
+                                    <option value="DOA_SERVICE_MASTER" <?= ($_SESSION['TABLE_NAME'] == 'DOA_SERVICE_MASTER') ? 'selected' : '' ?>>DOA_SERVICE_MASTER</option>
+                                    <option value="DOA_SCHEDULING_CODE" <?= ($_SESSION['TABLE_NAME'] == 'DOA_SCHEDULING_CODE') ? 'selected' : '' ?>>DOA_SCHEDULING_CODE</option>
+                                    <option value="DOA_ENROLLMENT_TYPE" <?= ($_SESSION['TABLE_NAME'] == 'DOA_ENROLLMENT_TYPE') ? 'selected' : '' ?>>DOA_ENROLLMENT_TYPE</option>
+                                    <option value="DOA_PACKAGE" <?= ($_SESSION['TABLE_NAME'] == 'DOA_PACKAGE') ? 'selected' : '' ?>>DOA_PACKAGE</option>
+                                    <option value="DOA_ENROLLMENT" <?= ($_SESSION['TABLE_NAME'] == 'DOA_ENROLLMENT') ? 'selected' : '' ?>>DOA_ENROLLMENT</option>
+                                    <option value="OTHER_PAYMENT" <?= ($_SESSION['TABLE_NAME'] == 'OTHER_PAYMENT') ? 'selected' : '' ?>>OTHER_PAYMENT</option>
                                     <!--<option value="DOA_ENROLLMENT_SERVICE">DOA_ENROLLMENT_SERVICE</option>
                                 <option value="DOA_ENROLLMENT_PAYMENT">DOA_ENROLLMENT_PAYMENT</option>-->
-                                    <option value="DOA_APPOINTMENT_MASTER" <?=($_SESSION['TABLE_NAME'] == 'DOA_APPOINTMENT_MASTER')?'selected':''?>>DOA_APPOINTMENT_MASTER</option>
-                                    <option value="DOA_SPECIAL_APPOINTMENT" <?=($_SESSION['TABLE_NAME'] == 'DOA_SPECIAL_APPOINTMENT')?'selected':''?>>DOA_SPECIAL_APPOINTMENT</option>
+                                    <option value="DOA_APPOINTMENT_MASTER" <?= ($_SESSION['TABLE_NAME'] == 'DOA_APPOINTMENT_MASTER') ? 'selected' : '' ?>>DOA_APPOINTMENT_MASTER</option>
+                                    <option value="DOA_SPECIAL_APPOINTMENT" <?= ($_SESSION['TABLE_NAME'] == 'DOA_SPECIAL_APPOINTMENT') ? 'selected' : '' ?>>DOA_SPECIAL_APPOINTMENT</option>
 
                                     <!-- <option value="ENR_PDF">ENR_PDF</option> -->
 
@@ -1531,7 +1543,8 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
 
                                 <option value="ENR_IS_SALE">ENR_IS_SALE</option>-->
 
-                                    <option value="MARK_APPOINTMENT_PAID" <?=($_SESSION['TABLE_NAME'] == 'MARK_APPOINTMENT_PAID')?'selected':''?>>MARK_APPOINTMENT_PAID</option>
+                                    <option value="MARK_APPOINTMENT_PAID" <?= ($_SESSION['TABLE_NAME'] == 'MARK_APPOINTMENT_PAID') ? 'selected' : '' ?>>MARK_APPOINTMENT_PAID</option>
+                                    <option value="UPDATE_TAX_ID" <?= ($_SESSION['TABLE_NAME'] == 'UPDATE_TAX_ID') ? 'selected' : '' ?>>UPDATE_TAX_ID</option>
                                 </select>
                                 <div id="view_download_div" class="m-10"></div>
                             </div>
