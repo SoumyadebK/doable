@@ -840,11 +840,12 @@ while (!$account_payment_info->EOF) {
                                         <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?=$PK_ACCOUNT_MASTER?>">
                                         <div class="p-20">
                                             <div class="row">
-                                                <div class="col-6">
+                                                <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="col-md-12">Subscription Start Date</label>
                                                         <div class="col-md-12">
-                                                            <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Select Date" value="<?=($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE))?>">
+                                                            <!-- <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Select Date" value="<?=($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE))?>"> -->
+                                                            <p><?=($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE))?></p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -865,7 +866,7 @@ while (!$account_payment_info->EOF) {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="row">
+                                            <!-- <div class="row">
                                                 <div class="col-6">
                                                     <div class="row">
                                                         <div class="form-group">
@@ -885,7 +886,7 @@ while (!$account_payment_info->EOF) {
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                             <div class="row">
                                                 <div class="col-6">
                                                     <div class="form-group">
