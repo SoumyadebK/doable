@@ -138,9 +138,9 @@ $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY
 $location_data = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE ACTIVE = 1 AND PK_CORPORATION = '$PK_CORPORATION' AND `PK_ACCOUNT_MASTER`  = " . $PK_ACCOUNT_MASTER);
 $location_count = ($location_data->RecordCount() > 0) ? $location_data->RecordCount() : 1;
 
-$payment_gateway_setting = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
+/* $payment_gateway_setting = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 $SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
-$PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+$PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY']; */
 
 require_once("../global/stripe-php-master/init.php");
 Stripe::setApiKey($SECRET_KEY);

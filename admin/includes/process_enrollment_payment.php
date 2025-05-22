@@ -21,21 +21,21 @@ global $db_account;
 
 $header = '../' . $_POST['header'];
 
-$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$payment_gateway_data = getPaymentGatewayData();
 
-$PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
-$GATEWAY_MODE  = $account_data->fields['GATEWAY_MODE'];
+$PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
+$GATEWAY_MODE  = $payment_gateway_data->fields['GATEWAY_MODE'];
 
-$SECRET_KEY = $account_data->fields['SECRET_KEY'];
-$PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
+$SECRET_KEY = $payment_gateway_data->fields['SECRET_KEY'];
+$PUBLISHABLE_KEY = $payment_gateway_data->fields['PUBLISHABLE_KEY'];
 
-$SQUARE_ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
-$SQUARE_APP_ID = $account_data->fields['APP_ID'];
-$SQUARE_LOCATION_ID = $account_data->fields['LOCATION_ID'];
+$SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
+$SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
 
-$AUTHORIZE_LOGIN_ID         = $account_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
-$AUTHORIZE_TRANSACTION_KEY     = $account_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
-$AUTHORIZE_CLIENT_KEY         = $account_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+$AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+$AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
+$AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
 
 /*$SQUARE_MODE 			= 2;
 if ($SQUARE_MODE == 1)
@@ -77,11 +77,13 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
             $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $user_master->fields['PK_USER']);
 
-            $STRIPE_TOKEN = $_POST['token'];
+            $STRIPE_TOKEN = empty($_POST['token']) ? '' : $_POST['token'];
             $CUSTOMER_PAYMENT_ID = '';
 
-            $error['error'] = $STRIPE_TOKEN . ' - ' . $user_master->fields['PHONE'];
+            $error['error'] = $STRIPE_TOKEN . ' - ' . $user_master->fields['PHONE'] . ' - ' . $_POST['PAYMENT_METHOD_ID'];
+            $error['PK_USER'] = $user_master->fields['PK_USER'];
             $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+            $error['DATE_TIME'] = date("Y-m-d H:i:s");
             db_perform('error_info', $error, 'insert');
 
             try {
