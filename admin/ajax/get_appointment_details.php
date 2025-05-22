@@ -602,13 +602,13 @@ if ($PK_USER_MASTER > 0) {
                     <div class="col-4">
                         <div class="form-group">
                             <label class="form-label">Start Time</label>
-                            <input type="text" id="START_TIME" name="START_TIME" class="form-control timepicker-normal" value="<?php echo ($START_TIME) ? date('h:i A', strtotime($START_TIME)) : '' ?>" readonly>
+                            <input type="text" id="START_TIME" name="START_TIME" class="form-control timepicker-normal" value="<?php echo ($START_TIME) ? date('h:i A', strtotime($START_TIME)) : '' ?>">
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="form-group">
                             <label class="form-label">End Time</label>
-                            <input type="text" id="END_TIME" name="END_TIME" class="form-control timepicker-normal" value="<?php echo ($END_TIME) ? date('h:i A', strtotime($END_TIME)) : '' ?>" readonly>
+                            <input type="text" id="END_TIME" name="END_TIME" class="form-control timepicker-normal" value="<?php echo ($END_TIME) ? date('h:i A', strtotime($END_TIME)) : '' ?>">
                         </div>
                     </div>
                     <!--<div class="col-3">
@@ -2172,6 +2172,7 @@ if ($PK_USER_MASTER > 0) {
     });
     $('.timepicker-normal').timepicker({
         timeFormat: 'hh:mm p',
+        interval: 15,
     });
 </script>
 

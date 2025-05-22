@@ -20,6 +20,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 }
 
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
+$PK_CORPORATION =  (!empty($_GET['id'])) ? $_GET['id'] : 0;
 
 if (empty($_GET['id'])) {
     $CORPORATION_NAME       = '';
@@ -59,7 +60,7 @@ if (empty($_GET['id'])) {
 
     $ACTIVE                 = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_CORPORATION` WHERE PK_CORPORATION = '$_GET[id]'");
+    $res = $db->Execute("SELECT * FROM `DOA_CORPORATION` WHERE PK_CORPORATION = '$PK_CORPORATION'");
     if ($res->RecordCount() == 0) {
         header("location:all_corporations.php");
         exit;
@@ -134,7 +135,7 @@ if ($email->RecordCount() > 0) {
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
 
-$location_data = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE ACTIVE = 1 AND PK_CORPORATION = '$_GET[id]' AND `PK_ACCOUNT_MASTER`  = " . $PK_ACCOUNT_MASTER);
+$location_data = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE ACTIVE = 1 AND PK_CORPORATION = '$PK_CORPORATION' AND `PK_ACCOUNT_MASTER`  = " . $PK_ACCOUNT_MASTER);
 $location_count = ($location_data->RecordCount() > 0) ? $location_data->RecordCount() : 1;
 
 $payment_gateway_setting = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
@@ -155,7 +156,8 @@ if ($help->RecordCount() > 0) {
 if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveCorporationData') {
     unset($_SESSION['mail_error']);
     unset($_SESSION['error']);
-    $OLD_USERNAME_PREFIX = $_POST['OLD_USERNAME_PREFIX'];
+
+    /* $OLD_USERNAME_PREFIX = $_POST['OLD_USERNAME_PREFIX'];
     $USERNAME_PREFIX = $_POST['USERNAME_PREFIX'];
     if ($OLD_USERNAME_PREFIX != $USERNAME_PREFIX) {
         $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE USERNAME_PREFIX = '$USERNAME_PREFIX'");
@@ -164,7 +166,8 @@ if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveCorporationData') {
             header("location:corporation.php");
             exit();
         }
-    }
+    } */
+
     $CORPORATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     $CORPORATION_DATA['CORPORATION_NAME'] = $_POST['CORPORATION_NAME'];
     $CORPORATION_DATA['PK_TIMEZONE'] = $_POST['PK_TIMEZONE'];
@@ -177,6 +180,8 @@ if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveCorporationData') {
     $CORPORATION_DATA['ENROLLMENT_ID_NUM'] = $_POST['ENROLLMENT_ID_NUM'];
     $CORPORATION_DATA['MISCELLANEOUS_ID_CHAR'] = $_POST['MISCELLANEOUS_ID_CHAR'];
     $CORPORATION_DATA['MISCELLANEOUS_ID_NUM'] = $_POST['MISCELLANEOUS_ID_NUM'];
+    $CORPORATION_DATA['APPOINTMENT_REMINDER'] = $_POST['APPOINTMENT_REMINDER'];
+
     $CORPORATION_DATA['PAYMENT_GATEWAY_TYPE'] = $_POST['PAYMENT_GATEWAY_TYPE'];
     $CORPORATION_DATA['GATEWAY_MODE'] = $_POST['GATEWAY_MODE'];
     $CORPORATION_DATA['SECRET_KEY'] = $_POST['SECRET_KEY'];
@@ -187,21 +192,21 @@ if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveCorporationData') {
     $CORPORATION_DATA['AUTHORIZE_CLIENT_KEY'] = $_POST['AUTHORIZE_CLIENT_KEY'];
     $CORPORATION_DATA['TRANSACTION_KEY'] = $_POST['TRANSACTION_KEY'];
     $CORPORATION_DATA['LOGIN_ID'] = $_POST['LOGIN_ID'];
-    $CORPORATION_DATA['APPOINTMENT_REMINDER'] = $_POST['APPOINTMENT_REMINDER'];
+
     $CORPORATION_DATA['HOUR'] = empty($_POST['HOUR']) ? 0 : $_POST['HOUR'];
     $CORPORATION_DATA['AM_USER_NAME'] = $_POST['AM_USER_NAME'];
     $CORPORATION_DATA['AM_PASSWORD'] = $_POST['AM_PASSWORD'];
     //$CORPORATION_DATA['AM_REFRESH_TOKEN'] = $_POST['AM_REFRESH_TOKEN'];
     $CORPORATION_DATA['FOCUSBIZ_API_KEY'] = $_POST['FOCUSBIZ_API_KEY'];
     $CORPORATION_DATA['SALES_TAX'] = $_POST['SALES_TAX'];
-    $CORPORATION_DATA['ACTIVE'] = 1;
-    $CORPORATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-    $CORPORATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
-    $settings = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-    if ($settings->RecordCount() == 0) {
+    if (empty($_GET['id'])) {
+        $CORPORATION_DATA['ACTIVE'] = 1;
+        $CORPORATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $CORPORATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_CORPORATION', $CORPORATION_DATA, 'insert');
     } else {
+        $CORPORATION_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $CORPORATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $CORPORATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_CORPORATION', $CORPORATION_DATA, 'update', " PK_CORPORATION =  '$_GET[id]'");

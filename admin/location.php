@@ -48,6 +48,7 @@ if (empty($_GET['id'])) {
     $ROYALTY_PERCENTAGE = '';
     $ACTIVE = '';
     $PAYMENT_GATEWAY_TYPE = '';
+    $GATEWAY_MODE = '';
     $SECRET_KEY = '';
     $PUBLISHABLE_KEY = '';
     $ACCESS_TOKEN = '';
@@ -92,6 +93,7 @@ if (empty($_GET['id'])) {
     $ROYALTY_PERCENTAGE = $res->fields['ROYALTY_PERCENTAGE'];
     $ACTIVE = $res->fields['ACTIVE'];
     $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
+    $GATEWAY_MODE           = $res->fields['GATEWAY_MODE'];
     $SECRET_KEY             = $res->fields['SECRET_KEY'];
     $PUBLISHABLE_KEY        = $res->fields['PUBLISHABLE_KEY'];
     $ACCESS_TOKEN           = $res->fields['ACCESS_TOKEN'];
@@ -138,7 +140,7 @@ if ($help->RecordCount() > 0) {
     $help_description = $help->fields['DESCRIPTION'];
 }
 
-$PK_PAYMENT_GATEWAY_SETTINGS = 0;
+/* $PK_PAYMENT_GATEWAY_SETTINGS = 0;
 $PAYMENT_GATEWAY_TYPE = '';
 $SECRET_KEY = '';
 $PUBLISHABLE_KEY = '';
@@ -160,7 +162,7 @@ if ($payment_gateway_setting->RecordCount() > 0) {
     $LOGIN_ID = $payment_gateway_setting->fields['LOGIN_ID'];
     $TRANSACTION_KEY = $payment_gateway_setting->fields['TRANSACTION_KEY'];
     $AUTHORIZE_CLIENT_KEY = $payment_gateway_setting->fields['AUTHORIZE_CLIENT_KEY'];
-}
+} */
 
 require_once("../global/stripe-php-master/init.php");
 $stripe = new StripeClient($STRIPE_SECRET_KEY);
@@ -1232,10 +1234,17 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                         <div class="row">
                                                             <div class="col-6">
                                                                 <div class="form-group">
-                                                                    <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
+                                                                    <label class="form-label" style="margin-bottom: 20px;">Payment Gateway</label><br>
                                                                     <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Stripe</label>
                                                                     <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Square</label>
                                                                     <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label" style="margin-bottom: 20px;">Gateway Mode</label><br>
+                                                                    <label style="margin-right: 70px;"><input type="radio" id="GATEWAY_MODE" name="GATEWAY_MODE" class="form-check-inline" value="test" <?= ($GATEWAY_MODE == 'test' || $GATEWAY_MODE == null || $GATEWAY_MODE == '') ? 'checked' : '' ?>> Test</label>
+                                                                    <label style="margin-right: 70px;"><input type="radio" id="GATEWAY_MODE" name="GATEWAY_MODE" class="form-check-inline" value="live" <?= ($GATEWAY_MODE == 'live') ? 'checked' : '' ?>> Live</label>
                                                                 </div>
                                                             </div>
                                                         </div>
