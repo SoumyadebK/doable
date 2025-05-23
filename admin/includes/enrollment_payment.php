@@ -458,20 +458,27 @@ else
     $(document).on('submit', '#enrollment_payment_form', function(event) {
         $('#enr-payment-btn').prop('disabled', true);
         event.preventDefault();
+        let paymentType = parseInt($('#PK_PAYMENT_TYPE').val());
+        let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
 
-        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        if (PAYMENT_GATEWAY == 'Square') {
-            let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
-            if (PAYMENT_METHOD_ID == '') {
-                addSquareTokenOnForm();
-                sleep(3000).then(() => {
+        if (paymentType == 14 && PAYMENT_METHOD_ID == '') {
+            $('#payment_status').html(`<p class="alert alert-danger">Please Select a Card to Process</p>`);
+            $('#enr-payment-btn').prop('disabled', false);
+        } else {
+            let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+            if (PAYMENT_GATEWAY == 'Square') {
+                let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
+                if (PAYMENT_METHOD_ID == '') {
+                    addSquareTokenOnForm();
+                    sleep(3000).then(() => {
+                        submitEnrollmentPaymentForm();
+                    });
+                } else {
                     submitEnrollmentPaymentForm();
-                });
+                }
             } else {
                 submitEnrollmentPaymentForm();
             }
-        } else {
-            submitEnrollmentPaymentForm();
         }
     });
 
