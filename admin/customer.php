@@ -66,80 +66,9 @@ $AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5p
 $AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
 $AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
 
-$card_details = '';
+$MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
+$API_KEY                = $payment_gateway_data->fields['API_KEY'];
 
-require_once("../global/stripe-php-master/init.php");
-$customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $PK_USER);
-
-if ($SECRET_KEY != '') {
-    $stripe = new StripeClient($SECRET_KEY);
-    $message = '';
-
-    if ($customer_payment_info->RecordCount() > 0) {
-        try {
-            $customer_id = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-            $stripe_customer = $stripe->customers->retrieve($customer_id);
-            $card_id = $stripe_customer->default_source;
-
-            $url = "https://api.stripe.com/v1/customers/" . $customer_id . "/cards/" . $card_id;
-            $AUTH = "Authorization: Bearer " . $SECRET_KEY;
-
-            $curl = curl_init();
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => $url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => "GET",
-                CURLOPT_HTTPHEADER => array(
-                    $AUTH
-                ),
-            ));
-
-            $response = curl_exec($curl);
-            $card_details = json_decode($response, true);
-        } catch (Exception $e) {
-            $error_message = $e->getMessage();
-        }
-    }
-}
-
-if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard') {
-    $STRIPE_TOKEN = $_POST['token'];
-    $CUSTOMER_PAYMENT_ID = '';
-    if ($customer_payment_info->RecordCount() > 0) {
-        $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-    } else {
-        try {
-            $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = " . $PK_USER);
-            $customer = $stripe->customers->create([
-                'email' => $user_data->fields['EMAIL_ID'],
-                'name' => $user_data->fields['FIRST_NAME'] . ' ' . $user_data->fields['LAST_NAME'],
-                'phone' => $user_data->fields['PHONE'],
-                'description' => 'Add Credit Card',
-            ]);
-            $CUSTOMER_PAYMENT_ID = $customer->id;
-        } catch (ApiErrorException $e) {
-            pre_r($e->getMessage());
-        }
-
-        $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $PK_USER;
-        $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
-        $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Stripe';
-        $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
-    }
-    try {
-        $card = $stripe->customers->createSource($CUSTOMER_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
-        $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $card->id]);
-    } catch (ApiErrorException $e) {
-        pre_r($e->getMessage());
-    }
-    $message = "Credit Card has been saved";
-}
 
 /*$card_number = '';
 
@@ -459,7 +388,7 @@ if ($PK_USER_MASTER > 0) {
                                     <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
                                     <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
                                     <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
-                                    <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#credit_card" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
+                                    <li> <a class="nav-link" id="credit_card_tab_link" data-bs-toggle="tab" href="#credit_card" onclick="getSavedCreditCardList()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
                                     <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
                                 <?php } ?>
                                 <?php if (in_array('Customers Delete', $PERMISSION_ARRAY)) { ?>
@@ -1975,89 +1904,29 @@ if ($PK_USER_MASTER > 0) {
                                                     </div>
 
                                                     <div class="tab-pane" id="credit_card" role="tabpanel">
-                                                        <div class="p-20 payment_modal">
+                                                        <div class="p-20">
                                                             <div class="row">
                                                                 <div class="col-md-6">
-                                                                    <h3>Credit Card</h3>
+                                                                    <h5>Credit Card</h5>
                                                                 </div>
-                                                                <?php if ($PAYMENT_GATEWAY == null || $PAYMENT_GATEWAY == '') { ?>
-                                                                    <div class="alert alert-danger">
-                                                                        Payment Gateway is Not set Yet
-                                                                    </div>
-                                                                <?php } else { ?>
-                                                                    <div class="col-md-6">
-                                                                        <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard(this)" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
-                                                                    </div>
-                                                                    <?php if ($message != '') { ?>
-                                                                        <div class="alert alert-success">
-                                                                            <?= $message ?>
-                                                                        </div>
-                                                                    <?php } ?>
-                                                                    <form class="form-material form-horizontal" id="save_credit_card_payment_form" action="" method="post" enctype="multipart/form-data">
-                                                                        <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
-                                                                        <div class="row credit_card_div" style="display: none;">
-                                                                            <div class="col-6">
-                                                                                <div class="form-group" id="card_div">
-
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="row credit_card_div" style="display: none;">
-                                                                            <div class="col-6">
-                                                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Save</button>
-                                                                            </div>
-                                                                        </div>
-                                                                    </form>
-                                                                    <?php if (isset($card_details['last4'])) {
-                                                                        switch ($card_details['brand']) {
-                                                                            case 'Visa':
-                                                                            case 'Visa (debit)':
-                                                                                $card_type = 'visa';
-                                                                                break;
-                                                                            case 'MasterCard':
-                                                                            case 'Mastercard (2-series)':
-                                                                            case 'Mastercard (debit)':
-                                                                            case 'Mastercard (prepaid)':
-                                                                                $card_type = 'mastercard';
-                                                                                break;
-                                                                            case 'American Express':
-                                                                                $card_type = 'amex';
-                                                                                break;
-                                                                            case 'Discover':
-                                                                            case 'Discover (debit)':
-                                                                                $card_type = 'discover';
-                                                                                break;
-                                                                            case 'Diners Club':
-                                                                            case 'Diners Club (14-digit card)':
-                                                                                $card_type = 'diners';
-                                                                                break;
-                                                                            case 'JCB':
-                                                                                $card_type = 'jcb';
-                                                                                break;
-                                                                            case 'UnionPay':
-                                                                            case 'UnionPay (debit)':
-                                                                            case 'UnionPay (19-digit card)':
-                                                                                $card_type = 'unionpay';
-                                                                                break;
-                                                                            default:
-                                                                                $card_type = '';
-                                                                                break;
-                                                                        } ?>
-                                                                        <div class="p-20">
-                                                                            <h5>Saved Card Details</h5>
-                                                                            <div class="credit-card <?= $card_type ?> selectable" style="margin-right: 80%;">
-                                                                                <div class="credit-card-last4">
-                                                                                    <?= $card_details['last4'] ?>
-                                                                                </div>
-                                                                                <div class="credit-card-expiry">
-                                                                                    <?= $card_details['exp_month'] . '/' . $card_details['exp_year'] ?>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                <?php }
-                                                                } ?>
-
                                                             </div>
+                                                            <?php if ($PAYMENT_GATEWAY == null || $PAYMENT_GATEWAY == '') { ?>
+                                                                <div class="alert alert-danger">
+                                                                    Payment Gateway is Not set Yet
+                                                                </div>
+                                                            <?php } else { ?>
+                                                                <div class="row">
+                                                                    <div class="col-md-12">
+                                                                        <div id="add_credit_card_div" style="display: none;">
+
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="row" id="saved_credit_card_list" style="display: none;">
+
+                                                                </div>
+                                                            <?php } ?>
                                                         </div>
                                                     </div>
 
@@ -2230,18 +2099,9 @@ if ($PK_USER_MASTER > 0) {
             <!--Payment Model-->
             <?php include('includes/enrollment_payment.php'); ?>
 
-            <!--Wallet Payment Model-->
+            <!--Wallet Payment-->
             <?php include('includes/add_money_to_wallet.php'); ?>
 
-            <!--Add Credit Card Model-->
-            <div class="modal fade payment_modal" id="add_credit_card_modal" tabindex="-1" aria-hidden="true">
-
-            </div>
-
-            <!--Edit Appointment Model-->
-            <div class="modal fade" id="edit_appointment_modal" tabindex="-1" aria-hidden="true">
-
-            </div>
 
             <!--Verify Password Model-->
             <div class="modal fade" id="verify_password_model" tabindex="-1" aria-hidden="true">
@@ -2324,235 +2184,252 @@ if ($PK_USER_MASTER > 0) {
                 }
             </style>
 
-            <script>
-                let PK_USER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
-                let PK_USER_MASTER = parseInt(<?= empty($_GET['master_id']) ? 0 : $_GET['master_id'] ?>);
 
-                function createUserComment() {
-                    $('#comment_header').text("Add Comment");
-                    $('#PK_COMMENT').val(0);
-                    $('#COMMENT').val('');
-                    $('#COMMENT_DATE').val('');
-                    $('#comment_active').hide();
-                    openCommentModel();
+            <!-- Popup Modal -->
+            <div id="mediaPopup" class="popup" onclick="closePopup()">
+                <span class="close" onclick="closePopup()">&times;</span>
+                <div class="popup-content" onclick="event.stopPropagation();">
+                    <img id="popupImage" src="" style="display:none; max-width: 100%;">
+                    <video id="popupVideo" controls style="display:none; max-width: 100%;">
+                        <source id="popupVideoSource" src="" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+</body>
+
+
+<script>
+    let PK_USER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
+    let PK_USER_MASTER = parseInt(<?= empty($_GET['master_id']) ? 0 : $_GET['master_id'] ?>);
+
+    function createUserComment() {
+        $('#comment_header').text("Add Comment");
+        $('#PK_COMMENT').val(0);
+        $('#COMMENT').val('');
+        $('#COMMENT_DATE').val('');
+        $('#comment_active').hide();
+        openCommentModel();
+    }
+
+    function createEnrollment() {
+        $('#enrollment_header').text("Add Enrollment");
+        openEnrollmentModel();
+    }
+
+    function createNewAppointment() {
+        $('#appointment_header').text("Add Appointment");
+        openAppointmentModel();
+    }
+
+    function viewPaymentList() {
+        $('#payment_header').text("Add Payment");
+        openPaymentListModel();
+    }
+
+    function editComment(PK_COMMENT) {
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            dataType: 'JSON',
+            data: {
+                FUNCTION_NAME: 'getEditCommentData',
+                PK_COMMENT: PK_COMMENT
+            },
+            success: function(data) {
+                $('#comment_header').text("Edit Comment");
+                $('#PK_COMMENT').val(data.fields.PK_COMMENT);
+                $('#COMMENT').val(data.fields.COMMENT);
+                $('#COMMENT_DATE').val(data.fields.COMMENT_DATE);
+                $('#COMMENT_ACTIVE_' + data.fields.ACTIVE).prop('checked', true);
+                $('#comment_active').show();
+                openCommentModel();
+            }
+        });
+    }
+
+    $(document).on('submit', '#comment_add_edit_form', function(event) {
+        event.preventDefault();
+        let form_data = new FormData($('#comment_add_edit_form')[0]); //$('#document_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                window.location.href = `customer.php?id=${PK_USER}&master_id=${PK_USER_MASTER}&on_tab=comments`;
+            }
+        });
+    });
+
+    function deleteComment(PK_COMMENT) {
+        let conf = confirm("Are you sure you want to delete?");
+        if (conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'deleteCommentData',
+                    PK_COMMENT: PK_COMMENT
+                },
+                success: function(data) {
+                    window.location.href = `customer.php?id=${PK_USER}&master_id=${PK_USER_MASTER}&on_tab=comments`;
                 }
+            });
+        }
+    }
 
-                function createEnrollment() {
-                    $('#enrollment_header').text("Add Enrollment");
-                    openEnrollmentModel();
+    $('.multi_sumo_select').SumoSelect({
+        placeholder: 'Select Location',
+        selectAll: true
+    });
+
+    $(document).ready(function() {
+        let tab_link = <?= empty($_GET['tab']) ? 0 : $_GET['tab'] ?>;
+        fetch_state(<?php echo $PK_COUNTRY; ?>);
+        if (tab_link.id == 'profile') {
+            $('#profile_tab_link')[0].click();
+        }
+        if (tab_link.id == 'enrollment') {
+            $('#enrollment_tab_link')[0].click();
+        }
+        if (tab_link.id == 'appointment') {
+            $('#appointment_tab_link')[0].click();
+        }
+        if (tab_link.id == 'billing') {
+            $('#billing_tab_link')[0].click();
+        }
+        if (tab_link.id == 'comments') {
+            $('#comment_tab_link')[0].click();
+        }
+        if (tab_link.id == 'credit_card') {
+            $('#credit_card_tab_link')[0].click();
+        }
+        let on_tab_link = <?= empty($_GET['on_tab']) ? 0 : $_GET['on_tab'] ?>;
+        if (on_tab_link.id == 'comments') {
+            $('#comment_tab_link')[0].click();
+        }
+    });
+
+    function fetch_state(PK_COUNTRY) {
+        jQuery(document).ready(function() {
+            let data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
+            let value = $.ajax({
+                url: "ajax/state.php",
+                type: "POST",
+                data: data,
+                async: false,
+                cache: false,
+                success: function(result) {
+                    document.getElementById('State_div').innerHTML = result;
                 }
+            }).responseText;
+        });
+    }
 
-                function createNewAppointment() {
-                    $('#appointment_header').text("Add Appointment");
-                    openAppointmentModel();
-                }
+    function selectRefundType(param) {
+        let paymentType = parseInt($(param).val());
+        if (paymentType === 2) {
+            $(param).closest('.modal-body').find('#check_payment').slideDown();
+        } else {
+            $(param).closest('.modal-body').find('#check_payment').slideUp();
+        }
+    }
+</script>
+<script>
+    function isGood(password) {
+        let password_strength = document.getElementById("password-text");
 
-                function viewPaymentList() {
-                    $('#payment_header').text("Add Payment");
-                    openPaymentListModel();
-                }
+        if (password.length == 0) {
+            password_strength.innerHTML = "";
+            return;
+        }
+        //Regular Expressions.
+        let regex = new Array();
+        regex.push("[A-Z]"); //Uppercase Alphabet.
+        regex.push("[a-z]"); //Lowercase Alphabet.
+        regex.push("[0-9]"); //Digit.
+        regex.push("[$@$!%*#?&]"); //Special Character.
+        let passed = 0;
+        //Validate for each Regular Expression.
+        for (let i = 0; i < regex.length; i++) {
+            if (new RegExp(regex[i]).test(password)) {
+                passed++;
+            }
+        }
+        //Display status.
+        let strength = "";
+        switch (passed) {
+            case 0:
+            case 1:
+            case 2:
+                strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
+                $('#password_note').slideDown();
+                break;
+            case 3:
+                strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
+                $('#password_note').slideDown();
+                break;
+            case 4:
+                strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
+                $('#password_note').slideUp();
+                break;
 
-                function editComment(PK_COMMENT) {
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        dataType: 'JSON',
-                        data: {
-                            FUNCTION_NAME: 'getEditCommentData',
-                            PK_COMMENT: PK_COMMENT
-                        },
-                        success: function(data) {
-                            $('#comment_header').text("Edit Comment");
-                            $('#PK_COMMENT').val(data.fields.PK_COMMENT);
-                            $('#COMMENT').val(data.fields.COMMENT);
-                            $('#COMMENT_DATE').val(data.fields.COMMENT_DATE);
-                            $('#COMMENT_ACTIVE_' + data.fields.ACTIVE).prop('checked', true);
-                            $('#comment_active').show();
-                            openCommentModel();
-                        }
-                    });
-                }
+        }
+        // alert(strength);
+        password_strength.innerHTML = strength;
+    }
 
-                $(document).on('submit', '#comment_add_edit_form', function(event) {
-                    event.preventDefault();
-                    let form_data = new FormData($('#comment_add_edit_form')[0]); //$('#document_form').serialize();
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: form_data,
-                        processData: false,
-                        contentType: false,
-                        success: function(data) {
-                            window.location.href = `customer.php?id=${PK_USER}&master_id=${PK_USER_MASTER}&on_tab=comments`;
-                        }
-                    });
-                });
+    function ValidateUsername() {
+        let username = document.getElementById("USER_NAME").value;
+        let lblError = document.getElementById("lblError");
+        lblError.innerHTML = "";
+        let expr = /^[a-zA-Z0-9_]{8,20}$/;
+        if (!expr.test(username)) {
+            lblError.innerHTML = "Only Alphabets, Numbers and Underscore and between 8 to 20 characters.";
+        } else {
+            lblError.innerHTML = "";
+        }
+    }
 
-                function deleteComment(PK_COMMENT) {
-                    let conf = confirm("Are you sure you want to delete?");
-                    if (conf) {
-                        $.ajax({
-                            url: "ajax/AjaxFunctions.php",
-                            type: 'POST',
-                            data: {
-                                FUNCTION_NAME: 'deleteCommentData',
-                                PK_COMMENT: PK_COMMENT
-                            },
-                            success: function(data) {
-                                window.location.href = `customer.php?id=${PK_USER}&master_id=${PK_USER_MASTER}&on_tab=comments`;
-                            }
-                        });
-                    }
-                }
+    $(document).on('click', '#cancel_button', function() {
+        window.location.href = 'all_customers.php';
+    });
 
-                $('.multi_sumo_select').SumoSelect({
-                    placeholder: 'Select Location',
-                    selectAll: true
-                });
+    $(document).on('change', '.engagement_terms', function() {
+        if ($(this).is(':checked')) {
+            $(this).closest('.col-1').next().slideDown();
+        } else {
+            $(this).closest('.col-1').next().slideUp();
+        }
+    });
 
-                $(document).ready(function() {
-                    let tab_link = <?= empty($_GET['tab']) ? 0 : $_GET['tab'] ?>;
-                    fetch_state(<?php echo $PK_COUNTRY; ?>);
-                    if (tab_link.id == 'profile') {
-                        $('#profile_tab_link')[0].click();
-                    }
-                    if (tab_link.id == 'enrollment') {
-                        $('#enrollment_tab_link')[0].click();
-                    }
-                    if (tab_link.id == 'appointment') {
-                        $('#appointment_tab_link')[0].click();
-                    }
-                    if (tab_link.id == 'billing') {
-                        $('#billing_tab_link')[0].click();
-                    }
-                    if (tab_link.id == 'comments') {
-                        $('#comment_tab_link')[0].click();
-                    }
-                    let on_tab_link = <?= empty($_GET['on_tab']) ? 0 : $_GET['on_tab'] ?>;
-                    if (on_tab_link.id == 'comments') {
-                        $('#comment_tab_link')[0].click();
-                    }
-                });
+    function createLogin(param) {
+        if ($(param).is(':checked')) {
+            $('#login_info_tab').show();
+            $('#phone_label').text('* (Please type your phone number)');
+            $('#PHONE').prop('required', true);
+            $('#email_label').text('* (Please type your email id)');
+            $('#EMAIL_ID').prop('required', true);
+            $('#submit_button').hide();
+            $('#next_button_interest').hide();
+            $('#next_button').show();
+        } else {
+            $('#login_info_tab').hide();
+            $('#phone_label').text('');
+            $('#PHONE').prop('required', false);
+            $('#email_label').text('');
+            $('#EMAIL_ID').prop('required', false);
+            $('#submit_button').show();
+            $('#next_button_interest').show();
+            $('#next_button').hide();
+        }
+    }
 
-                function fetch_state(PK_COUNTRY) {
-                    jQuery(document).ready(function() {
-                        let data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
-                        let value = $.ajax({
-                            url: "ajax/state.php",
-                            type: "POST",
-                            data: data,
-                            async: false,
-                            cache: false,
-                            success: function(result) {
-                                document.getElementById('State_div').innerHTML = result;
-                            }
-                        }).responseText;
-                    });
-                }
+    let counter = parseInt(<?= $user_doc_count ?>);
 
-                function selectRefundType(param) {
-                    let paymentType = parseInt($(param).val());
-                    if (paymentType === 2) {
-                        $(param).closest('.modal-body').find('#check_payment').slideDown();
-                    } else {
-                        $(param).closest('.modal-body').find('#check_payment').slideUp();
-                    }
-                }
-            </script>
-            <script>
-                function isGood(password) {
-                    let password_strength = document.getElementById("password-text");
-
-                    if (password.length == 0) {
-                        password_strength.innerHTML = "";
-                        return;
-                    }
-                    //Regular Expressions.
-                    let regex = new Array();
-                    regex.push("[A-Z]"); //Uppercase Alphabet.
-                    regex.push("[a-z]"); //Lowercase Alphabet.
-                    regex.push("[0-9]"); //Digit.
-                    regex.push("[$@$!%*#?&]"); //Special Character.
-                    let passed = 0;
-                    //Validate for each Regular Expression.
-                    for (let i = 0; i < regex.length; i++) {
-                        if (new RegExp(regex[i]).test(password)) {
-                            passed++;
-                        }
-                    }
-                    //Display status.
-                    let strength = "";
-                    switch (passed) {
-                        case 0:
-                        case 1:
-                        case 2:
-                            strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
-                            $('#password_note').slideDown();
-                            break;
-                        case 3:
-                            strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
-                            $('#password_note').slideDown();
-                            break;
-                        case 4:
-                            strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
-                            $('#password_note').slideUp();
-                            break;
-
-                    }
-                    // alert(strength);
-                    password_strength.innerHTML = strength;
-                }
-
-                function ValidateUsername() {
-                    let username = document.getElementById("USER_NAME").value;
-                    let lblError = document.getElementById("lblError");
-                    lblError.innerHTML = "";
-                    let expr = /^[a-zA-Z0-9_]{8,20}$/;
-                    if (!expr.test(username)) {
-                        lblError.innerHTML = "Only Alphabets, Numbers and Underscore and between 8 to 20 characters.";
-                    } else {
-                        lblError.innerHTML = "";
-                    }
-                }
-
-                $(document).on('click', '#cancel_button', function() {
-                    window.location.href = 'all_customers.php';
-                });
-
-                $(document).on('change', '.engagement_terms', function() {
-                    if ($(this).is(':checked')) {
-                        $(this).closest('.col-1').next().slideDown();
-                    } else {
-                        $(this).closest('.col-1').next().slideUp();
-                    }
-                });
-
-                function createLogin(param) {
-                    if ($(param).is(':checked')) {
-                        $('#login_info_tab').show();
-                        $('#phone_label').text('* (Please type your phone number)');
-                        $('#PHONE').prop('required', true);
-                        $('#email_label').text('* (Please type your email id)');
-                        $('#EMAIL_ID').prop('required', true);
-                        $('#submit_button').hide();
-                        $('#next_button_interest').hide();
-                        $('#next_button').show();
-                    } else {
-                        $('#login_info_tab').hide();
-                        $('#phone_label').text('');
-                        $('#PHONE').prop('required', false);
-                        $('#email_label').text('');
-                        $('#EMAIL_ID').prop('required', false);
-                        $('#submit_button').show();
-                        $('#next_button_interest').show();
-                        $('#next_button').hide();
-                    }
-                }
-
-                let counter = parseInt(<?= $user_doc_count ?>);
-
-                function addMoreUserDocument() {
-                    $('#append_user_document').append(`<div class="row">
+    function addMoreUserDocument() {
+        $('#append_user_document').append(`<div class="row">
                                                 <div class="col-5">
                                                     <div class="form-group">
                                                         <label class="form-label">Document Name</label>
@@ -2571,50 +2448,50 @@ if ($PK_USER_MASTER > 0) {
                                                     </div>
                                                 </div>
                                               </div>`);
-                    counter++;
-                }
+        counter++;
+    }
 
-                function removeUserDocument(param) {
-                    $(param).closest('.row').remove();
-                    counter--;
-                }
+    function removeUserDocument(param) {
+        $(param).closest('.row').remove();
+        counter--;
+    }
 
-                function goLoginInfo() {
-                    let element = $('#profile').find('input');
-                    let count = element.length;
-                    element.each(function() {
-                        if ($(this).prop('required') && ($(this).val() === '')) {
-                            $(this).focus();
-                            return false;
-                        }
-                        count--;
-                        if (count === 0) {
-                            $('#login_info_tab_link')[0].click();
-                        }
-                    });
-                }
+    function goLoginInfo() {
+        let element = $('#profile').find('input');
+        let count = element.length;
+        element.each(function() {
+            if ($(this).prop('required') && ($(this).val() === '')) {
+                $(this).focus();
+                return false;
+            }
+            count--;
+            if (count === 0) {
+                $('#login_info_tab_link')[0].click();
+            }
+        });
+    }
 
-                function goInterest() {
-                    let element = $('#profile').find('input');
-                    let count = element.length;
-                    element.each(function() {
-                        if ($(this).prop('required') && ($(this).val() === '')) {
-                            $(this).focus();
-                            return false;
-                        }
-                        count--;
-                        if (count === 0) {
-                            $('#interest_tab_link')[0].click();
-                        }
-                    });
-                }
+    function goInterest() {
+        let element = $('#profile').find('input');
+        let count = element.length;
+        element.each(function() {
+            if ($(this).prop('required') && ($(this).val() === '')) {
+                $(this).focus();
+                return false;
+            }
+            count--;
+            if (count === 0) {
+                $('#interest_tab_link')[0].click();
+            }
+        });
+    }
 
-                function removeThis(param) {
-                    $(param).closest('.row').remove();
-                }
+    function removeThis(param) {
+        $(param).closest('.row').remove();
+    }
 
-                function addMorePhone() {
-                    $('#add_more_phone').append(`<div class="row">
+    function addMorePhone() {
+        $('#add_more_phone').append(`<div class="row">
                                             <div class="col-9">
                                                 <div class="form-group">
                                                     <label class="form-label">Phone</label>
@@ -2627,10 +2504,10 @@ if ($PK_USER_MASTER > 0) {
                                                 <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                             </div>
                                         </div>`);
-                }
+    }
 
-                function addMoreEmail() {
-                    $('#add_more_email').append(`<div class="row">
+    function addMoreEmail() {
+        $('#add_more_email').append(`<div class="row">
                                             <div class="col-9">
                                                 <div class="form-group">
                                                     <label class="col-md-12">Email</label>
@@ -2643,10 +2520,10 @@ if ($PK_USER_MASTER > 0) {
                                                 <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                             </div>
                                          </div>`);
-                }
+    }
 
-                function addMoreSpecialDays(param) {
-                    $(param).closest('.row').next('.add_more_special_days').append(`<div class="row">
+    function addMoreSpecialDays(param) {
+        $(param).closest('.row').next('.add_more_special_days').append(`<div class="row">
                                                     <div class="col-5">
                                                         <div class="form-group">
                                                             <label class="form-label">Special Date</label>
@@ -2667,13 +2544,13 @@ if ($PK_USER_MASTER > 0) {
                                                         <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                     </div>
                                                 </div>`);
-                }
+    }
 
-                let family_special_day_count = parseInt(<?= ($family_member_count == 0) ? 0 : ($family_member_count - 1) ?>);
+    let family_special_day_count = parseInt(<?= ($family_member_count == 0) ? 0 : ($family_member_count - 1) ?>);
 
-                function addMoreFamilyMember() {
-                    family_special_day_count++;
-                    $('#add_more_family_member').append(`<div class="row family_member" style="padding: 35px; margin-top: -60px;"">
+    function addMoreFamilyMember() {
+        family_special_day_count++;
+        $('#add_more_family_member').append(`<div class="row family_member" style="padding: 35px; margin-top: -60px;"">
                                                     <div class="row">
                                                         <div class="col-3">
                                                             <div class="form-group">
@@ -2790,12 +2667,12 @@ if ($PK_USER_MASTER > 0) {
                                                         </div>
                                                     </div>
                                                 </div>`);
-                }
+    }
 
 
-                function addMoreSpecialDaysFamily(param) {
-                    let data_counter = $(param).data('counter');
-                    $(param).closest('.row').next('.add_more_special_days').append(`<div class="row">
+    function addMoreSpecialDaysFamily(param) {
+        let data_counter = $(param).data('counter');
+        $(param).closest('.row').next('.add_more_special_days').append(`<div class="row">
                                                                                 <div class="col-5">
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Special Date</label>
@@ -2816,98 +2693,78 @@ if ($PK_USER_MASTER > 0) {
                                                                                     <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                                 </div>
                                                                             </div>`);
+    }
+
+    function removeThisFamilyMember(param) {
+        family_special_day_count--;
+        $(param).closest('.family_member').remove();
+    }
+
+    function selectThisPrimaryLocation(param) {
+        let primary_location = $(param).val();
+        let selected_location = $('#selected_location').val();
+        $.ajax({
+            url: "ajax/get_all_locations.php",
+            type: 'GET',
+            data: {
+                primary_location: primary_location,
+                selected_location: selected_location
+            },
+            success: function(data) {
+                $('#PK_LOCATION_MULTIPLE').empty().append(data);
+                $('#PK_LOCATION_MULTIPLE')[0].sumo.reload();
+            }
+        });
+    }
+
+    $(document).on('submit', '#profile_form', function(event) {
+        event.preventDefault();
+        let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            dataType: 'JSON',
+            success: function(data) {
+                console.log(data);
+                $('.PK_USER').val(data.PK_USER);
+                $('.PK_USER_MASTER').val(data.PK_USER_MASTER);
+                $('.PK_CUSTOMER_DETAILS').val(data.PK_CUSTOMER_DETAILS);
+                if (PK_USER == 0) {
+                    if ($('#CREATE_LOGIN').is(':checked')) {
+                        $('#login_info_tab_link')[0].click();
+                    } else {
+                        $('#family_tab_link')[0].click();
+                    }
+                } else {
+                    let PK_USER = $('.PK_USER').val();
+                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                    window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
                 }
+            }
+        });
+    });
 
-                function removeThisFamilyMember(param) {
-                    family_special_day_count--;
-                    $(param).closest('.family_member').remove();
-                }
-
-                function selectThisPrimaryLocation(param) {
-                    let primary_location = $(param).val();
-                    let selected_location = $('#selected_location').val();
-                    $.ajax({
-                        url: "ajax/get_all_locations.php",
-                        type: 'GET',
-                        data: {
-                            primary_location: primary_location,
-                            selected_location: selected_location
-                        },
-                        success: function(data) {
-                            $('#PK_LOCATION_MULTIPLE').empty().append(data);
-                            $('#PK_LOCATION_MULTIPLE')[0].sumo.reload();
-                        }
-                    });
-                }
-
-                $(document).on('submit', '#profile_form', function(event) {
-                    event.preventDefault();
-                    let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: form_data,
-                        processData: false,
-                        contentType: false,
-                        dataType: 'JSON',
-                        success: function(data) {
-                            console.log(data);
-                            $('.PK_USER').val(data.PK_USER);
-                            $('.PK_USER_MASTER').val(data.PK_USER_MASTER);
-                            $('.PK_CUSTOMER_DETAILS').val(data.PK_CUSTOMER_DETAILS);
-                            if (PK_USER == 0) {
-                                if ($('#CREATE_LOGIN').is(':checked')) {
-                                    $('#login_info_tab_link')[0].click();
-                                } else {
-                                    $('#family_tab_link')[0].click();
-                                }
-                            } else {
-                                let PK_USER = $('.PK_USER').val();
-                                let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
-                            }
-                        }
-                    });
-                });
-
-                $(document).on('submit', '#login_form', function(event) {
-                    event.preventDefault();
-                    let PASSWORD = $('#PASSWORD').val();
-                    let CONFIRM_PASSWORD = $('#CONFIRM_PASSWORD').val();
-                    if (PASSWORD === CONFIRM_PASSWORD) {
-                        let SAVED_OLD_PASSWORD = $('#SAVED_OLD_PASSWORD').val();
-                        let OLD_PASSWORD = $('#OLD_PASSWORD').val();
-                        if (SAVED_OLD_PASSWORD) {
-                            $.ajax({
-                                url: "ajax/check_old_password.php",
-                                type: 'POST',
-                                data: {
-                                    ENTERED_PASSWORD: OLD_PASSWORD,
-                                    SAVED_PASSWORD: SAVED_OLD_PASSWORD
-                                },
-                                success: function(data) {
-                                    if (data == 0) {
-                                        $('#password_error').text('Old Password not matched');
-                                    } else {
-                                        let form_data = $('#login_form').serialize();
-                                        $.ajax({
-                                            url: "ajax/AjaxFunctions.php",
-                                            type: 'POST',
-                                            data: form_data,
-                                            success: function(data) {
-                                                $('.PK_USER').val(data);
-                                                if (PK_USER == 0) {
-                                                    $('#family_tab_link')[0].click();
-                                                } else {
-                                                    let PK_USER = $('.PK_USER').val();
-                                                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                                                    window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
-                                                }
-                                            }
-                                        });
-                                    }
-                                }
-                            });
+    $(document).on('submit', '#login_form', function(event) {
+        event.preventDefault();
+        let PASSWORD = $('#PASSWORD').val();
+        let CONFIRM_PASSWORD = $('#CONFIRM_PASSWORD').val();
+        if (PASSWORD === CONFIRM_PASSWORD) {
+            let SAVED_OLD_PASSWORD = $('#SAVED_OLD_PASSWORD').val();
+            let OLD_PASSWORD = $('#OLD_PASSWORD').val();
+            if (SAVED_OLD_PASSWORD) {
+                $.ajax({
+                    url: "ajax/check_old_password.php",
+                    type: 'POST',
+                    data: {
+                        ENTERED_PASSWORD: OLD_PASSWORD,
+                        SAVED_PASSWORD: SAVED_OLD_PASSWORD
+                    },
+                    success: function(data) {
+                        if (data == 0) {
+                            $('#password_error').text('Old Password not matched');
                         } else {
                             let form_data = $('#login_form').serialize();
                             $.ajax({
@@ -2926,546 +2783,580 @@ if ($PK_USER_MASTER > 0) {
                                 }
                             });
                         }
+                    }
+                });
+            } else {
+                let form_data = $('#login_form').serialize();
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: form_data,
+                    success: function(data) {
+                        $('.PK_USER').val(data);
+                        if (PK_USER == 0) {
+                            $('#family_tab_link')[0].click();
+                        } else {
+                            let PK_USER = $('.PK_USER').val();
+                            let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                            window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
+                        }
+                    }
+                });
+            }
+        } else {
+            $('#password_error').text('Password and Confirm Password not matched');
+        }
+    });
+
+    $(document).on('submit', '#family_form', function(event) {
+        event.preventDefault();
+        let form_data = $('#family_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            success: function(data) {
+                let PK_USER = $('.PK_USER').val();
+                let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
+            }
+        });
+    });
+
+    $(document).on('submit', '#interest_form', function(event) {
+        event.preventDefault();
+        let form_data = $('#interest_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            success: function(data) {
+                let PK_USER = $('.PK_USER').val();
+                let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
+            }
+        });
+    });
+
+    $(document).on('submit', '#document_form', function(event) {
+        event.preventDefault();
+        let form_data = new FormData($('#document_form')[0]); //$('#document_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                let PK_USER = $('.PK_USER').val();
+                let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
+            }
+        });
+    });
+</script>
+
+<script>
+    $('#NAME').SumoSelect({
+        placeholder: 'Select Customer',
+        search: true,
+        searchText: 'Search...'
+    });
+
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+    });
+
+    $('.datepicker-past').datepicker({
+        format: 'mm/dd/yyyy',
+        maxDate: 0
+    });
+
+    function confirmComplete(param) {
+        let conf = confirm("Do you want to mark this appointment as completed?");
+        if (conf) {
+            let PK_APPOINTMENT_MASTER = $(param).data('id');
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'markAppointmentCompleted',
+                    PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
+                },
+                success: function(data) {
+                    if (data == 1) {
+                        $(param).closest('td').html('<span class="status-box" style="background-color: #ff0019">Completed</span>');
                     } else {
-                        $('#password_error').text('Password and Confirm Password not matched');
-                    }
-                });
-
-                $(document).on('submit', '#family_form', function(event) {
-                    event.preventDefault();
-                    let form_data = $('#family_form').serialize();
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: form_data,
-                        success: function(data) {
-                            let PK_USER = $('.PK_USER').val();
-                            let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                            window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
-                        }
-                    });
-                });
-
-                $(document).on('submit', '#interest_form', function(event) {
-                    event.preventDefault();
-                    let form_data = $('#interest_form').serialize();
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: form_data,
-                        success: function(data) {
-                            let PK_USER = $('.PK_USER').val();
-                            let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                            window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
-                        }
-                    });
-                });
-
-                $(document).on('submit', '#document_form', function(event) {
-                    event.preventDefault();
-                    let form_data = new FormData($('#document_form')[0]); //$('#document_form').serialize();
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: form_data,
-                        processData: false,
-                        contentType: false,
-                        success: function(data) {
-                            let PK_USER = $('.PK_USER').val();
-                            let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                            window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
-                        }
-                    });
-                });
-            </script>
-
-            <script>
-                $('#NAME').SumoSelect({
-                    placeholder: 'Select Customer',
-                    search: true,
-                    searchText: 'Search...'
-                });
-
-                $('.datepicker-normal').datepicker({
-                    format: 'mm/dd/yyyy',
-                });
-
-                $('.datepicker-past').datepicker({
-                    format: 'mm/dd/yyyy',
-                    maxDate: 0
-                });
-
-                function confirmComplete(param) {
-                    let conf = confirm("Do you want to mark this appointment as completed?");
-                    if (conf) {
-                        let PK_APPOINTMENT_MASTER = $(param).data('id');
-                        $.ajax({
-                            url: "ajax/AjaxFunctions.php",
-                            type: 'POST',
-                            data: {
-                                FUNCTION_NAME: 'markAppointmentCompleted',
-                                PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
-                            },
-                            success: function(data) {
-                                if (data == 1) {
-                                    $(param).closest('td').html('<span class="status-box" style="background-color: #ff0019">Completed</span>');
-                                } else {
-                                    alert("Something wrong");
-                                }
-                            }
-                        });
+                        alert("Something wrong");
                     }
                 }
+            });
+        }
+    }
 
-                function showEnrollmentList(page, type) {
-                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                    $.ajax({
-                        url: "pagination/enrollment.php",
-                        type: "GET",
-                        data: {
-                            search_text: '',
-                            page: page,
-                            type: type,
-                            pk_user: PK_USER,
-                            master_id: PK_USER_MASTER
-                        },
-                        async: false,
-                        cache: false,
-                        success: function(result) {
-                            $('#enrollment_list').html(result);
-                        }
-                    });
-                    window.scrollTo(0, 0);
-                }
+    function showEnrollmentList(page, type) {
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "pagination/enrollment.php",
+            type: "GET",
+            data: {
+                search_text: '',
+                page: page,
+                type: type,
+                pk_user: PK_USER,
+                master_id: PK_USER_MASTER
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#enrollment_list').html(result);
+            }
+        });
+        window.scrollTo(0, 0);
+    }
 
-                function showAgreementDocument() {
-                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                    $.ajax({
-                        url: "pagination/agreement_document.php",
-                        type: "GET",
-                        data: {
-                            master_id: PK_USER_MASTER
-                        },
-                        async: false,
-                        cache: false,
-                        success: function(result) {
-                            $('#agreement_document').html(result);
-                        }
-                    });
-                    window.scrollTo(0, 0);
-                }
+    function showAgreementDocument() {
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "pagination/agreement_document.php",
+            type: "GET",
+            data: {
+                master_id: PK_USER_MASTER
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#agreement_document').html(result);
+            }
+        });
+        window.scrollTo(0, 0);
+    }
 
-                /*function showCompletedEnrollmentList(page) {
-                    let PK_USER_MASTER=$('.PK_USER_MASTER').val();
-                    $.ajax({
-                        url: "pagination/completed_enrollments.php",
-                        type: "GET",
-                        data: {search_text:'', page:page, master_id:PK_USER_MASTER},
-                        async: false,
-                        cache: false,
-                        success: function (result) {
-                            $('#completed_enrollment_list').html(result)
-                        }
-                    });
-                    window.scrollTo(0,0);
-                }*/
+    /*function showCompletedEnrollmentList(page) {
+        let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "pagination/completed_enrollments.php",
+            type: "GET",
+            data: {search_text:'', page:page, master_id:PK_USER_MASTER},
+            async: false,
+            cache: false,
+            success: function (result) {
+                $('#completed_enrollment_list').html(result)
+            }
+        });
+        window.scrollTo(0,0);
+    }*/
 
-                function showAppointment(page, type) {
-                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                    $.ajax({
-                        url: "pagination/appointment.php",
-                        type: "GET",
-                        data: {
-                            search_text: '',
-                            page: page,
-                            master_id: PK_USER_MASTER,
-                            type: type
-                        },
-                        async: false,
-                        cache: false,
-                        success: function(result) {
-                            $('#appointment_list').html(result)
-                            if (type === 'unposted') {
-                                $('#unposted').hide()
-                                $('#posted').show();
-                                $('#canceled').show();
-                                $('#posted_list').hide();
-                                $('#unposted_list').show();
-                                $('#canceled_list').hide();
-                            } else {
-                                if (type === 'posted') {
-                                    $('#posted').hide();
-                                    $('#unposted').show();
-                                    $('#canceled').show();
-                                    $('#unposted_list').hide();
-                                    $('#posted_list').show();
-                                    $('#canceled_list').hide();
-                                } else {
-                                    if (type === 'cancelled') {
-                                        $('#posted').show();
-                                        $('#unposted').hide();
-                                        $('#unposted_list').hide();
-                                        $('#posted_list').hide();
-                                        $('#canceled_list').show();
-                                    } else {
-                                        $('#unposted').hide()
-                                        $('#posted').show();
-                                        $('#canceled').show();
-                                        $('#posted_list').hide();
-                                        $('#unposted_list').show();
-                                        $('#canceled_list').hide();
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    window.scrollTo(0, 0);
-                }
-
-                function showDemoAppointment(page) {
-                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                    $.ajax({
-                        url: "pagination/demo_appointment.php",
-                        type: "GET",
-                        data: {
-                            search_text: '',
-                            page: page,
-                            master_id: PK_USER_MASTER
-                        },
-                        async: false,
-                        cache: false,
-                        success: function(result) {
-                            $('#demo_appointment_list').html(result)
-                        }
-                    });
-                    window.scrollTo(0, 0);
-                }
-
-                function showBillingList(page) {
-                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                    $.ajax({
-                        url: "pagination/billing.php",
-                        type: "GET",
-                        data: {
-                            search_text: '',
-                            page: page,
-                            master_id: PK_USER_MASTER
-                        },
-                        async: false,
-                        cache: false,
-                        success: function(result) {
-                            $('#billing_list').html(result)
-                        }
-                    });
-                    window.scrollTo(0, 0);
-                }
-
-                function showLedgerList(page) {
-                    let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                    $.ajax({
-                        url: "pagination/ledger.php",
-                        type: "GET",
-                        data: {
-                            search_text: '',
-                            page: page,
-                            master_id: PK_USER_MASTER
-                        },
-                        async: false,
-                        cache: false,
-                        success: function(result) {
-                            $('#ledger_list').html(result)
-                        }
-                    });
-                    window.scrollTo(0, 0);
-                }
-
-                function editpage(param) {
-                    var id = $(param).val();
-                    var master_id = $(param).find(':selected').data('master_id');
-                    window.location.href = "customer.php?id=" + id + "&master_id=" + master_id;
-
-                }
-            </script>
-            <script>
-                $(document).ready(function() {
-                    $('#CUSTOMER_ID').on('blur', function() {
-                        const CUSTOMER_ID = $(this).val().trim();
-                        let PK_USER = $('.PK_USER').val()
-                        if (CUSTOMER_ID != '' && PK_USER == '') {
-                            $.ajax({
-                                url: 'ajax/username_checker.php',
-                                type: 'post',
-                                data: {
-                                    CUSTOMER_ID: CUSTOMER_ID,
-                                    PK_USER: PK_USER
-                                },
-                                success: function(response) {
-                                    $('#uname_result').html(response);
-                                    if (response == '') {
-                                        $('#submit').removeAttr('disabled')
-                                    } else {
-                                        $('#submit').attr('disabled', 'disabled')
-                                    }
-                                }
-                            });
+    function showAppointment(page, type) {
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "pagination/appointment.php",
+            type: "GET",
+            data: {
+                search_text: '',
+                page: page,
+                master_id: PK_USER_MASTER,
+                type: type
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#appointment_list').html(result)
+                if (type === 'unposted') {
+                    $('#unposted').hide()
+                    $('#posted').show();
+                    $('#canceled').show();
+                    $('#posted_list').hide();
+                    $('#unposted_list').show();
+                    $('#canceled_list').hide();
+                } else {
+                    if (type === 'posted') {
+                        $('#posted').hide();
+                        $('#unposted').show();
+                        $('#canceled').show();
+                        $('#unposted_list').hide();
+                        $('#posted_list').show();
+                        $('#canceled_list').hide();
+                    } else {
+                        if (type === 'cancelled') {
+                            $('#posted').show();
+                            $('#unposted').hide();
+                            $('#unposted_list').hide();
+                            $('#posted_list').hide();
+                            $('#canceled_list').show();
                         } else {
-                            $("#uname_result").html("");
+                            $('#unposted').hide()
+                            $('#posted').show();
+                            $('#canceled').show();
+                            $('#posted_list').hide();
+                            $('#unposted_list').show();
+                            $('#canceled_list').hide();
                         }
-                    });
+                    }
+                }
+            }
+        });
+        window.scrollTo(0, 0);
+    }
+
+    function showDemoAppointment(page) {
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "pagination/demo_appointment.php",
+            type: "GET",
+            data: {
+                search_text: '',
+                page: page,
+                master_id: PK_USER_MASTER
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#demo_appointment_list').html(result)
+            }
+        });
+        window.scrollTo(0, 0);
+    }
+
+    function showBillingList(page) {
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "pagination/billing.php",
+            type: "GET",
+            data: {
+                search_text: '',
+                page: page,
+                master_id: PK_USER_MASTER
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#billing_list').html(result)
+            }
+        });
+        window.scrollTo(0, 0);
+    }
+
+    function showLedgerList(page) {
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "pagination/ledger.php",
+            type: "GET",
+            data: {
+                search_text: '',
+                page: page,
+                master_id: PK_USER_MASTER
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#ledger_list').html(result)
+            }
+        });
+        window.scrollTo(0, 0);
+    }
+
+    function editpage(param) {
+        var id = $(param).val();
+        var master_id = $(param).find(':selected').data('master_id');
+        window.location.href = "customer.php?id=" + id + "&master_id=" + master_id;
+
+    }
+</script>
+<script>
+    $(document).ready(function() {
+        $('#CUSTOMER_ID').on('blur', function() {
+            const CUSTOMER_ID = $(this).val().trim();
+            let PK_USER = $('.PK_USER').val()
+            if (CUSTOMER_ID != '' && PK_USER == '') {
+                $.ajax({
+                    url: 'ajax/username_checker.php',
+                    type: 'post',
+                    data: {
+                        CUSTOMER_ID: CUSTOMER_ID,
+                        PK_USER: PK_USER
+                    },
+                    success: function(response) {
+                        $('#uname_result').html(response);
+                        if (response == '') {
+                            $('#submit').removeAttr('disabled')
+                        } else {
+                            $('#submit').attr('disabled', 'disabled')
+                        }
+                    }
                 });
-            </script>
+            } else {
+                $("#uname_result").html("");
+            }
+        });
+    });
+</script>
 
-            <script>
-                function payNow(PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, BILLED_AMOUNT, ENROLLMENT_ID) {
-                    $('.partial_payment').show();
-                    $('#PARTIAL_PAYMENT').prop('checked', false);
-                    $('.partial_payment_div').slideUp();
+<script>
+    function payNow(PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, BILLED_AMOUNT, ENROLLMENT_ID) {
+        $('.partial_payment').show();
+        $('#PARTIAL_PAYMENT').prop('checked', false);
+        $('.partial_payment_div').slideUp();
 
-                    $('.PAYMENT_TYPE').val('');
-                    $('#remaining_amount_div').slideUp();
+        $('.PAYMENT_TYPE').val('');
+        $('#remaining_amount_div').slideUp();
 
-                    $('#enrollment_number').text(ENROLLMENT_ID);
-                    $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
-                    $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
-                    $('#ACTUAL_AMOUNT').val(BILLED_AMOUNT);
-                    $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
-                    //$('#payment_confirmation_form_div_customer').slideDown();
-                    //openPaymentModel();
-                    $('#enrollment_payment_modal').modal('show');
+        $('#enrollment_number').text(ENROLLMENT_ID);
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#ACTUAL_AMOUNT').val(BILLED_AMOUNT);
+        $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
+        //$('#payment_confirmation_form_div_customer').slideDown();
+        //openPaymentModel();
+        $('#enrollment_payment_modal').modal('show');
+    }
+
+    function paySelected(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
+        $('.partial_payment').hide();
+        $('#PARTIAL_PAYMENT').prop('checked', false);
+        $('.partial_payment_div').slideUp();
+
+        $('.PAYMENT_TYPE').val('');
+        $('#remaining_amount_div').slideUp();
+
+        let BILLED_AMOUNT = [];
+        let PK_ENROLLMENT_LEDGER = [];
+
+        $(".PAYMENT_CHECKBOX_" + PK_ENROLLMENT_MASTER + ":checked").each(function() {
+            BILLED_AMOUNT.push($(this).data('billed_amount'));
+            PK_ENROLLMENT_LEDGER.push($(this).val());
+        });
+
+        let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
+
+        function getSum(total, num) {
+            return total + num;
+        }
+
+        $('#enrollment_number').text(ENROLLMENT_ID);
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#ACTUAL_AMOUNT').val(parseFloat(TOTAL).toFixed(2));
+        $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
+        //$('#payment_confirmation_form_div_customer').slideDown();
+        //openPaymentModel();
+        $('#enrollment_payment_modal').modal('show');
+    }
+</script>
+
+<script>
+    function openWalletModel() {
+        $('#wallet_payment_model').modal('show');
+    }
+</script>
+
+<script>
+    function ConfirmPosted(PK_APPOINTMENT_MASTER) {
+        var conf = confirm("Are you sure you want to Post it?");
+        if (conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'updateAppointmentData',
+                    PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
+                },
+                success: function(data) {
+                    window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
                 }
+            });
+        }
+    }
 
-                function paySelected(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
-                    $('.partial_payment').hide();
-                    $('#PARTIAL_PAYMENT').prop('checked', false);
-                    $('.partial_payment_div').slideUp();
-
-                    $('.PAYMENT_TYPE').val('');
-                    $('#remaining_amount_div').slideUp();
-
-                    let BILLED_AMOUNT = [];
-                    let PK_ENROLLMENT_LEDGER = [];
-
-                    $(".PAYMENT_CHECKBOX_" + PK_ENROLLMENT_MASTER + ":checked").each(function() {
-                        BILLED_AMOUNT.push($(this).data('billed_amount'));
-                        PK_ENROLLMENT_LEDGER.push($(this).val());
-                    });
-
-                    let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
-
-                    function getSum(total, num) {
-                        return total + num;
-                    }
-
-                    $('#enrollment_number').text(ENROLLMENT_ID);
-                    $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
-                    $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
-                    $('#ACTUAL_AMOUNT').val(parseFloat(TOTAL).toFixed(2));
-                    $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
-                    //$('#payment_confirmation_form_div_customer').slideDown();
-                    //openPaymentModel();
-                    $('#enrollment_payment_modal').modal('show');
+    function ConfirmUnposted(PK_APPOINTMENT_MASTER) {
+        var conf = confirm("Are you sure you want to Unpost it?");
+        if (conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'updateAppointmentDataUnpost',
+                    PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
+                },
+                success: function(data) {
+                    window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
                 }
-            </script>
+            });
+        }
+    }
 
-            <script>
-                function openWalletModel() {
-                    $('#wallet_payment_model').modal('show');
-                }
-            </script>
+    function getSavedCreditCardList() {
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "ajax/get_credit_card_list.php",
+            type: 'POST',
+            data: {
+                PK_USER_MASTER: PK_USER_MASTER
+            },
+            success: function(data) {
+                $('#saved_credit_card_list').slideDown().html(data);
+                addCreditCard();
+            }
+        });
+    }
 
-            <script>
-                function ConfirmPosted(PK_APPOINTMENT_MASTER) {
-                    var conf = confirm("Are you sure you want to Post it?");
-                    if (conf) {
-                        $.ajax({
-                            url: "ajax/AjaxFunctions.php",
-                            type: 'POST',
-                            data: {
-                                FUNCTION_NAME: 'updateAppointmentData',
-                                PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
-                            },
-                            success: function(data) {
-                                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
-                            }
-                        });
-                    }
-                }
-
-                function ConfirmUnposted(PK_APPOINTMENT_MASTER) {
-                    var conf = confirm("Are you sure you want to Unpost it?");
-                    if (conf) {
-                        $.ajax({
-                            url: "ajax/AjaxFunctions.php",
-                            type: 'POST',
-                            data: {
-                                FUNCTION_NAME: 'updateAppointmentDataUnpost',
-                                PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
-                            },
-                            success: function(data) {
-                                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
-                            }
-                        });
-                    }
-                }
-
-                function addCreditCard(param) {
-                    $('.credit_card_div').slideDown();
-                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
-                    stripePaymentFunction('save_credit_card');
-                }
+    function addCreditCard() {
+        let PK_USER = $('.PK_USER').val();
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "includes/save_credit_card.php",
+            type: 'POST',
+            data: {
+                PK_USER: PK_USER,
+                PK_USER_MASTER: PK_USER_MASTER
+            },
+            success: function(data) {
+                $('#add_credit_card_div').slideDown().html(data);
+            }
+        });
+    }
 
 
 
-                function deleteThisCustomer(PK_USER) {
+    function deleteThisCustomer(PK_USER) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this profile will erase all data related to this person. Even previous numbers, reports, appointments and enrollments.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#verify_password_model').modal('show');
+            } else {
+                Swal.fire({
+                    title: "Cancelled",
+                    text: "Your imaginary file is safe :)",
+                    icon: "error"
+                });
+            }
+        });
+    }
+
+    $('#verify_password_form').on('submit', function(event) {
+        event.preventDefault();
+        let pk_user = $('.PK_USER').val();
+        let password = $('#verify_password').val();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {
+                FUNCTION_NAME: 'deleteCustomerAfterVerify',
+                pk_user: pk_user,
+                PASSWORD: password
+            },
+            success: function(data) {
+                $('#verify_password_error').slideUp();
+                if (data == 1) {
                     Swal.fire({
-                        title: "Are you sure?",
-                        text: "Deleting this profile will erase all data related to this person. Even previous numbers, reports, appointments and enrollments.",
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonColor: "#3085d6",
-                        cancelButtonColor: "#d33",
-                        confirmButtonText: "Yes, delete it!"
+                        title: "Deleted!",
+                        text: "Your file has been deleted.",
+                        icon: "success",
+                        timer: 3000,
                     }).then((result) => {
-                        if (result.isConfirmed) {
-                            $('#verify_password_model').modal('show');
-                        } else {
-                            Swal.fire({
-                                title: "Cancelled",
-                                text: "Your imaginary file is safe :)",
-                                icon: "error"
-                            });
-                        }
+                        window.location.href = 'all_customers.php';
                     });
+                } else {
+                    $('#verify_password_error').text("Incorrect Password").slideDown();
                 }
+            }
+        });
+    });
 
-                $('#verify_password_form').on('submit', function(event) {
-                    event.preventDefault();
-                    let pk_user = $('.PK_USER').val();
-                    let password = $('#verify_password').val();
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: {
-                            FUNCTION_NAME: 'deleteCustomerAfterVerify',
-                            pk_user: pk_user,
-                            PASSWORD: password
-                        },
-                        success: function(data) {
-                            $('#verify_password_error').slideUp();
-                            if (data == 1) {
-                                Swal.fire({
-                                    title: "Deleted!",
-                                    text: "Your file has been deleted.",
-                                    icon: "success",
-                                    timer: 3000,
-                                }).then((result) => {
-                                    window.location.href = 'all_customers.php';
-                                });
-                            } else {
-                                $('#verify_password_error').text("Incorrect Password").slideDown();
-                            }
-                        }
+    $('#edit_due_date_form').on('submit', function(event) {
+        event.preventDefault();
+
+        let PK_ENROLLMENT_LEDGER = $('#PK_ENROLLMENT_LEDGER').val();
+        let old_due_date = $('#old_due_date').val();
+        let due_date = $('#due_date').val();
+        let edit_type = $('#edit_type').val();
+        let due_date_verify_password = $('#due_date_verify_password').val();
+
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {
+                FUNCTION_NAME: 'updateBillingDueDate',
+                PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                old_due_date: old_due_date,
+                due_date: due_date,
+                edit_type: edit_type,
+                due_date_verify_password: due_date_verify_password
+            },
+            success: function(data) {
+                $('#due_date_verify_password_error').slideUp();
+                if (data == 1) {
+                    Swal.fire({
+                        title: "Updated!",
+                        text: "Due Date is Updated.",
+                        icon: "success",
+                        timer: 3000,
+                    }).then((result) => {
+                        $('#billing_due_date_model').modal('hide');
+                        showEnrollmentList(1, 'normal');
                     });
-                });
-
-                $('#edit_due_date_form').on('submit', function(event) {
-                    event.preventDefault();
-
-                    let PK_ENROLLMENT_LEDGER = $('#PK_ENROLLMENT_LEDGER').val();
-                    let old_due_date = $('#old_due_date').val();
-                    let due_date = $('#due_date').val();
-                    let edit_type = $('#edit_type').val();
-                    let due_date_verify_password = $('#due_date_verify_password').val();
-
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: {
-                            FUNCTION_NAME: 'updateBillingDueDate',
-                            PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
-                            old_due_date: old_due_date,
-                            due_date: due_date,
-                            edit_type: edit_type,
-                            due_date_verify_password: due_date_verify_password
-                        },
-                        success: function(data) {
-                            $('#due_date_verify_password_error').slideUp();
-                            if (data == 1) {
-                                Swal.fire({
-                                    title: "Updated!",
-                                    text: "Due Date is Updated.",
-                                    icon: "success",
-                                    timer: 3000,
-                                }).then((result) => {
-                                    $('#billing_due_date_model').modal('hide');
-                                    showEnrollmentList(1, 'normal');
-                                });
-                            } else {
-                                $('#due_date_verify_password_error').text("Incorrect Password").slideDown();
-                            }
-                        }
-                    });
-                });
-            </script>
-            <!-- JavaScript for Popup -->
-            <script>
-                function showPopup(type, src) {
-                    let popup = document.getElementById("mediaPopup");
-                    let image = document.getElementById("popupImage");
-                    let video = document.getElementById("popupVideo");
-                    let videoSource = document.getElementById("popupVideoSource");
-
-                    if (type === 'image') {
-                        image.src = src;
-                        image.style.display = "block";
-                        video.style.display = "none";
-                    } else if (type === 'video') {
-                        videoSource.src = src;
-                        video.load();
-                        video.style.display = "block";
-                        image.style.display = "none";
-                    }
-
-                    popup.style.display = "flex";
-
-                    // Add event listener to detect ESC key press
-                    document.addEventListener("keydown", escClose);
+                } else {
+                    $('#due_date_verify_password_error').text("Incorrect Password").slideDown();
                 }
+            }
+        });
+    });
+</script>
+<!-- JavaScript for Popup -->
+<script>
+    function showPopup(type, src) {
+        let popup = document.getElementById("mediaPopup");
+        let image = document.getElementById("popupImage");
+        let video = document.getElementById("popupVideo");
+        let videoSource = document.getElementById("popupVideoSource");
 
-                function closePopup() {
-                    document.getElementById("mediaPopup").style.display = "none";
-                    document.removeEventListener("keydown", escClose); // Remove listener when popup is closed
-                }
+        if (type === 'image') {
+            image.src = src;
+            image.style.display = "block";
+            video.style.display = "none";
+        } else if (type === 'video') {
+            videoSource.src = src;
+            video.load();
+            video.style.display = "block";
+            image.style.display = "none";
+        }
 
-                // Function to detect ESC key press and close the popup
-                function escClose(event) {
-                    if (event.key === "Escape") {
-                        closePopup();
-                    }
-                }
+        popup.style.display = "flex";
 
-                // Disable right-click on images and videos
-                document.addEventListener("contextmenu", function(event) {
-                    let target = event.target;
-                    if (target.tagName === "IMG" || target.tagName === "VIDEO") {
-                        event.preventDefault(); // Prevent right-click menu
-                    }
-                });
+        // Add event listener to detect ESC key press
+        document.addEventListener("keydown", escClose);
+    }
 
-                // Optional: Disable right-click for the whole page
-                // Uncomment the line below if you want to block right-click everywhere
-                // document.addEventListener("contextmenu", (event) => event.preventDefault());
-            </script>
-            <!-- Popup Modal -->
-            <div id="mediaPopup" class="popup" onclick="closePopup()">
-                <span class="close" onclick="closePopup()">&times;</span>
-                <div class="popup-content" onclick="event.stopPropagation();">
-                    <img id="popupImage" src="" style="display:none; max-width: 100%;">
-                    <video id="popupVideo" controls style="display:none; max-width: 100%;">
-                        <source id="popupVideoSource" src="" type="video/mp4">
-                    </video>
-                </div>
-            </div>
-</body>
+    function closePopup() {
+        document.getElementById("mediaPopup").style.display = "none";
+        document.removeEventListener("keydown", escClose); // Remove listener when popup is closed
+    }
+
+    // Function to detect ESC key press and close the popup
+    function escClose(event) {
+        if (event.key === "Escape") {
+            closePopup();
+        }
+    }
+
+    // Disable right-click on images and videos
+    document.addEventListener("contextmenu", function(event) {
+        let target = event.target;
+        if (target.tagName === "IMG" || target.tagName === "VIDEO") {
+            event.preventDefault(); // Prevent right-click menu
+        }
+    });
+
+    // Optional: Disable right-click for the whole page
+    // Uncomment the line below if you want to block right-click everywhere
+    // document.addEventListener("contextmenu", (event) => event.preventDefault());
+</script>
 
 </html>

@@ -36,53 +36,30 @@ $AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_
 
 if ($PAYMENT_GATEWAY == "Stripe") {
     $customer_payment_info = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-    if ($SECRET_KEY != '') {
+    if ($SECRET_KEY != '' && $customer_payment_info->RecordCount() > 0) {
         $stripe = new \Stripe\StripeClient($SECRET_KEY);
-        $message = '';
+        $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
 
-        if ($customer_payment_info->RecordCount() > 0) {
-            $customer_id = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-            $stripe_customer = $stripe->customers->retrieve($customer_id);
-            $card_id = $stripe_customer->default_source;
+        $all_cards = $stripe->customers->allSources(
+            $CUSTOMER_PAYMENT_ID,
+            ['object' => 'card']
+        );
 
-            $url = "https://api.stripe.com/v1/customers/" . $customer_id . "/cards/" . $card_id;
-            $AUTH = "Authorization: Bearer " . $SECRET_KEY;
-
-            $curl = curl_init();
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => $url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => "GET",
-                CURLOPT_HTTPHEADER => array(
-                    $AUTH
-                ),
-            ));
-
-            $response = curl_exec($curl);
-            $card_details = json_decode($response, true);
-        } ?>
-
-        <?php if (isset($card_details['last4'])) {
-            $card_type = getCardTypeDetails($card_details['brand']);
-        ?>
-            <h5>Saved Card Details</h5>
-            <div class="credit-card-div" id="<?php echo $card_details['id']; ?>" onclick="getPaymentMethodId(this)" style="width: 303px;">
+        foreach ($all_cards->data as $card_details) {
+            $card_type = getCardTypeDetails($card_details->brand);
+?>
+            <div class="credit-card-div" id="<?php echo $card_details->id; ?>" onclick="getPaymentMethodId(this)" style="width: 303px;">
                 <div class="credit-card <?= $card_type ?> selectable">
                     <div class="credit-card-last4">
-                        <?= $card_details['last4'] ?>
+                        <?= $card_details->last4 ?>
                     </div>
                     <div class="credit-card-expiry">
-                        <?= $card_details['exp_month'] . '/' . $card_details['exp_year'] ?>
+                        <?= $card_details->exp_month . '/' . $card_details->exp_year ?>
                     </div>
                 </div>
             </div>
-        <?php } ?>
 <?php }
+    }
 } elseif ($PAYMENT_GATEWAY == "Square") {
     $user_payment_info_data = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Square' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
 

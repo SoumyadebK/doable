@@ -48,6 +48,7 @@ $USERNAME_PREFIX = '';
 $FOCUSBIZ_API_KEY = '';
 $AM_AMOUNT       = '';
 $NOT_AM_AMOUNT      = '';
+$RENEWAL_INTERVAL = '';
 
 $PK_USER_EDIT = '';
 $USER_NAME = '';
@@ -100,6 +101,7 @@ if (!empty($_GET['id'])) {
     $ACTIVE = $account_res->fields['ACTIVE'];
     $AM_AMOUNT = $account_res->fields['AM_AMOUNT'];
     $NOT_AM_AMOUNT = $account_res->fields['NOT_AM_AMOUNT'];
+    $RENEWAL_INTERVAL = $account_res->fields['RENEWAL_INTERVAL'];
 
     $user_res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$_GET[id]' AND CREATED_BY = '$_SESSION[PK_USER]'");
     if ($user_res->RecordCount() > 0) {
@@ -153,6 +155,7 @@ Stripe::setApiKey($SECRET_KEY);
 if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingData') {
     $BILLING_DETAILS['AM_AMOUNT'] = $_POST['AM_AMOUNT'];
     $BILLING_DETAILS['NOT_AM_AMOUNT'] = $_POST['NOT_AM_AMOUNT'];
+    $BILLING_DETAILS['RENEWAL_INTERVAL'] = $_POST['RENEWAL_INTERVAL'];
     db_perform('DOA_ACCOUNT_MASTER', $BILLING_DETAILS, 'update', " PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
     header("location:account.php?id=" . $PK_ACCOUNT_MASTER);
 }
@@ -886,6 +889,15 @@ while (!$account_payment_info->EOF) {
                                             <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?= $PK_ACCOUNT_MASTER ?>">
                                             <div class="p-20">
                                                 <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label" style="margin-bottom: 20px;">Auto Renewal Interval</label><br>
+                                                            <label style="margin-right: 70px;"><input type="radio" id="RENEWAL_INTERVAL" name="RENEWAL_INTERVAL" class="form-check-inline" value="monthly" <?= ($RENEWAL_INTERVAL == 'monthly' || $RENEWAL_INTERVAL == null || $RENEWAL_INTERVAL == '') ? 'checked' : '' ?>> Monthly</label>
+                                                            <label style="margin-right: 70px;"><input type="radio" id="RENEWAL_INTERVAL" name="RENEWAL_INTERVAL" class="form-check-inline" value="yearly" <?= ($RENEWAL_INTERVAL == 'yearly') ? 'checked' : '' ?>> Yearly</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
                                                     <div class="col-3">
                                                         <div class="form-group">
                                                             <label class="col-md-12">Arthur Murray Location Amount</label>
@@ -906,6 +918,7 @@ while (!$account_payment_info->EOF) {
                                                 <div class="form-group">
                                                     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
                                                 </div>
+                                            </div>
                                         </form>
 
                                         <!-- <form class="form-material form-horizontal" id="billingForm" method="post" enctype="multipart/form-data">

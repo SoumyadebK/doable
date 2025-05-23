@@ -49,6 +49,8 @@ if (empty($_GET['id'])) {
     $LOGIN_ID               = '';
     $TRANSACTION_KEY        = '';
     $AUTHORIZE_CLIENT_KEY   = '';
+    $MERCHANT_ID            = '';
+    $API_KEY                = '';
 
     $FRANCHISE              = '';
     $AM_USER_NAME           = '';
@@ -91,6 +93,8 @@ if (empty($_GET['id'])) {
     $LOGIN_ID               = $res->fields['LOGIN_ID'];
     $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
     $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
+    $MERCHANT_ID            = $res->fields['MERCHANT_ID'];
+    $API_KEY                = $res->fields['API_KEY'];
 
     $FRANCHISE              = $res->fields['FRANCHISE'];
     $AM_USER_NAME           = $res->fields['AM_USER_NAME'];
@@ -192,6 +196,8 @@ if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveCorporationData') {
     $CORPORATION_DATA['AUTHORIZE_CLIENT_KEY'] = $_POST['AUTHORIZE_CLIENT_KEY'];
     $CORPORATION_DATA['TRANSACTION_KEY'] = $_POST['TRANSACTION_KEY'];
     $CORPORATION_DATA['LOGIN_ID'] = $_POST['LOGIN_ID'];
+    $CORPORATION_DATA['MERCHANT_ID'] = $_POST['MERCHANT_ID'];
+    $CORPORATION_DATA['API_KEY'] = $_POST['API_KEY'];
 
     $CORPORATION_DATA['HOUR'] = empty($_POST['HOUR']) ? 0 : $_POST['HOUR'];
     $CORPORATION_DATA['AM_USER_NAME'] = $_POST['AM_USER_NAME'];
@@ -704,9 +710,10 @@ while (!$account_payment_info->EOF) {
                                                         <div class="col-6">
                                                             <div class="form-group">
                                                                 <label class="form-label" style="margin-bottom: 20px;">Gateway Type</label><br>
-                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Stripe</label>
-                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Square</label>
-                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                                                <label style="margin-right: 30px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Stripe</label>
+                                                                <label style="margin-right: 30px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Square</label>
+                                                                <label style="margin-right: 30px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                                                <label style="margin-right: 30px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Clover" <?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Clover</label>
                                                             </div>
                                                         </div>
                                                         <div class="col-6">
@@ -761,6 +768,19 @@ while (!$account_payment_info->EOF) {
                                                             <div class="form-group">
                                                                 <label class="form-label">Authorize Client Key</label>
                                                                 <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?= $AUTHORIZE_CLIENT_KEY ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row payment_gateway" id="Clover" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? '' : 'none' ?>;">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Merchant ID</label>
+                                                                <input type="text" class="form-control" name="MERCHANT_ID" value="<?= $MERCHANT_ID ?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">API Key</label>
+                                                                <input type="text" class="form-control" name="API_KEY" value="<?= $API_KEY ?>">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1112,16 +1132,15 @@ while (!$account_payment_info->EOF) {
     }
 
     function showPaymentGateway(radio) {
-        var paymentGateway = document.querySelectorAll('.payment_gateway');
-        paymentGateway.forEach(function(element) {
-            element.style.display = 'none';
-        });
+        $('.payment_gateway').slideUp();
         if (radio.value == 'Stripe') {
             document.getElementById('stripe').style.display = 'block';
         } else if (radio.value == 'Square') {
             document.getElementById('square').style.display = 'block';
         } else if (radio.value == 'Authorized.net') {
             document.getElementById('authorized').style.display = 'block';
+        } else if (radio.value == 'Clover') {
+            document.getElementById('Clover').style.display = 'block';
         }
     }
 

@@ -47,6 +47,7 @@ if (empty($_GET['id'])) {
     $PK_TIMEZONE = '';
     $ROYALTY_PERCENTAGE = '';
     $ACTIVE = '';
+
     $PAYMENT_GATEWAY_TYPE = '';
     $GATEWAY_MODE = '';
     $SECRET_KEY = '';
@@ -57,6 +58,10 @@ if (empty($_GET['id'])) {
     $LOGIN_ID = '';
     $TRANSACTION_KEY = '';
     $AUTHORIZE_CLIENT_KEY = '';
+    $MERCHANT_ID = '';
+    $API_KEY = '';
+
+
     $AM_USER_NAME = '';
     $AM_PASSWORD = '';
     $AM_REFRESH_TOKEN = '';
@@ -92,6 +97,7 @@ if (empty($_GET['id'])) {
     $PK_TIMEZONE = $res->fields['PK_TIMEZONE'];
     $ROYALTY_PERCENTAGE = $res->fields['ROYALTY_PERCENTAGE'];
     $ACTIVE = $res->fields['ACTIVE'];
+
     $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
     $GATEWAY_MODE           = $res->fields['GATEWAY_MODE'];
     $SECRET_KEY             = $res->fields['SECRET_KEY'];
@@ -102,6 +108,9 @@ if (empty($_GET['id'])) {
     $LOGIN_ID               = $res->fields['LOGIN_ID'];
     $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
     $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
+    $MERCHANT_ID            = $res->fields['MERCHANT_ID'];
+    $API_KEY                = $res->fields['API_KEY'];
+
     $AM_USER_NAME           = $res->fields['AM_USER_NAME'];
     $AM_PASSWORD            = $res->fields['AM_PASSWORD'];
     $AM_REFRESH_TOKEN       = $res->fields['AM_REFRESH_TOKEN'];
@@ -1235,9 +1244,10 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                             <div class="col-6">
                                                                 <div class="form-group">
                                                                     <label class="form-label" style="margin-bottom: 20px;">Payment Gateway</label><br>
-                                                                    <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Stripe</label>
-                                                                    <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Square</label>
-                                                                    <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                                                    <label style="margin-right: 30px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Stripe</label>
+                                                                    <label style="margin-right: 30px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Square</label>
+                                                                    <label style="margin-right: 30px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Authorized.net</label>
+                                                                    <label style="margin-right: 30px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Clover" <?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Clover</label>
                                                                 </div>
                                                             </div>
                                                             <div class="col-6">
@@ -1292,6 +1302,19 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                                 <div class="form-group">
                                                                     <label class="form-label">Authorize Client Key</label>
                                                                     <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?= $AUTHORIZE_CLIENT_KEY ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row payment_gateway" id="Clover" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? '' : 'none' ?>;">
+                                                            <div class="col-12">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Merchant ID</label>
+                                                                    <input type="text" class="form-control" name="MERCHANT_ID" value="<?= $MERCHANT_ID ?>">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">API Key</label>
+                                                                    <input type="text" class="form-control" name="API_KEY" value="<?= $API_KEY ?>">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1691,19 +1714,16 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
             });
         }
 
-        function showPaymentGateway(param) {
+        function showPaymentGateway(radio) {
             $('.payment_gateway').slideUp();
-            if ($(param).val() === 'Stripe') {
-                $('#stripe').slideDown();
-            } else {
-                if ($(param).val() === 'Square') {
-                    $('#square').slideDown();
-                } else {
-                    if ($(param).val() === 'Authorized.net') {
-                        $('#authorized').slideDown();
-                    }
-                }
-
+            if (radio.value == 'Stripe') {
+                document.getElementById('stripe').style.display = 'block';
+            } else if (radio.value == 'Square') {
+                document.getElementById('square').style.display = 'block';
+            } else if (radio.value == 'Authorized.net') {
+                document.getElementById('authorized').style.display = 'block';
+            } else if (radio.value == 'Clover') {
+                document.getElementById('Clover').style.display = 'block';
             }
         }
     </script>

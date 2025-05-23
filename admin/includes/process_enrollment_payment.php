@@ -37,6 +37,9 @@ $AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5p
 $AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
 $AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
 
+$MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
+$API_KEY                = $payment_gateway_data->fields['API_KEY'];
+
 /*$SQUARE_MODE 			= 2;
 if ($SQUARE_MODE == 1)
     $SQ_URL = "https://connect.squareup.com";
@@ -155,6 +158,8 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 if (empty($_POST['PAYMENT_METHOD_ID'])) {
                     $card = $stripe->customers->createSource($CUSTOMER_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
                     $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $card->id]);
+                } else {
+                    $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $_POST['PAYMENT_METHOD_ID']]);
                 }
 
                 $account = \Stripe\Customer::retrieve($CUSTOMER_PAYMENT_ID);

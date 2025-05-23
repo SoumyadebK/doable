@@ -449,7 +449,6 @@ else
     }
 </script>
 
-
 <script>
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -558,6 +557,11 @@ else
                         placeholder: ""
                     });
                 }
+
+                if (PAYMENT_GATEWAY == 'Clover') {
+                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div>`);
+                    cloverPaymentFunction(type);
+                }
                 getCreditCardList();
 
                 break;
@@ -619,13 +623,11 @@ else
 
     function getCreditCardList() {
         let PK_USER_MASTER = $('#PK_USER_MASTER').val();
-        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         $.ajax({
             url: "ajax/get_credit_card_list.php",
             type: 'POST',
             data: {
-                PK_USER_MASTER: PK_USER_MASTER,
-                PAYMENT_GATEWAY: PAYMENT_GATEWAY
+                PK_USER_MASTER: PK_USER_MASTER
             },
             success: function(data) {
                 $('#card_list').slideDown().html(data);

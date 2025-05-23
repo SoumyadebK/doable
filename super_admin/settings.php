@@ -130,10 +130,21 @@ if ($smtp->RecordCount() > 0) {
         <?php require_once('../includes/top_menu.php'); ?>
         <div class="page-wrapper">
             <?php require_once('../includes/top_menu_bar.php') ?>
-            <div class="container-fluid body_content">
+            <?php require_once('../includes/setup_menu_super_admin.php') ?>
+            <div class="container-fluid body_content m-0">
                 <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
                         <h4 class="text-themecolor"><?= $title ?></h4>
+                    </div>
+                    <div class="col-md-3 align-self-center text-end">
+                    </div>
+                    <div class="col-md-4 align-self-center text-end">
+                        <div class="d-flex justify-content-end align-items-center">
+                            <ol class="breadcrumb justify-content-end">
+                                <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
+                                <li class="breadcrumb-item active"><?= $title ?></li>
+                            </ol>
+                        </div>
                     </div>
                 </div>
 
