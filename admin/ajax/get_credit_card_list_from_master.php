@@ -4,82 +4,81 @@ require_once("../../global/stripe-php-master/init.php");
 global $db;
 global $db_account;
 global $master_database;
+
 use Square\Models\Address;
 use Square\SquareClient;
 use Square\Environment;
 
 require_once('../../global/authorizenet/autoload.php');
+
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 
-$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-$ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
-$PAYMENT_GATEWAY = $_POST['PAYMENT_GATEWAY'];
+$PK_USER = $_SESSION['PK_USER'];
+$payment_gateway_data = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 
-if($PAYMENT_GATEWAY == "Stripe") {
-    $customer_payment_info = $db->Execute("SELECT DOA_USER_PAYMENT_INFO.USER_PAYMENT_ID FROM DOA_USER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = '$_POST[PK_USER]'");
-    $SECRET_KEY = $account_data->fields['SECRET_KEY'];
-    if ($SECRET_KEY != '') {
+$PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
+$GATEWAY_MODE  = $payment_gateway_data->fields['GATEWAY_MODE'];
+
+$SECRET_KEY = $payment_gateway_data->fields['SECRET_KEY'];
+$PUBLISHABLE_KEY = $payment_gateway_data->fields['PUBLISHABLE_KEY'];
+
+$SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
+$SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
+
+$AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+$AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
+$AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+
+if ($PAYMENT_GATEWAY == "Stripe") {
+    $user_payment_info = $db->Execute("SELECT * FROM `DOA_USER_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = '$PK_USER'");
+    if ($SECRET_KEY != '' && $user_payment_info->RecordCount() > 0) {
         $stripe = new \Stripe\StripeClient($SECRET_KEY);
-        $message = '';
+        $PAYMENT_ID = $user_payment_info->fields['PAYMENT_ID'];
 
-        if ($customer_payment_info->RecordCount() > 0) {
-            $customer_id = $customer_payment_info->fields['USER_PAYMENT_ID'];
-            $stripe_customer = $stripe->customers->retrieve($customer_id);
-            $card_id = $stripe_customer->default_source;
+        $all_cards = $stripe->customers->allSources(
+            $PAYMENT_ID,
+            ['object' => 'card']
+        );
 
-            $url = "https://api.stripe.com/v1/customers/" . $customer_id . "/cards/" . $card_id;
-            $AUTH = "Authorization: Bearer " . $SECRET_KEY;
-
-            $curl = curl_init();
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => $url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => "GET",
-                CURLOPT_HTTPHEADER => array(
-                    $AUTH
-                ),
-            ));
-
-            $response = curl_exec($curl);
-            $card_details = json_decode($response, true);
-        } ?>
-
-        <?php if (isset($card_details['last4'])) {
-            $card_type = getCardTypeDetails($card_details['brand']);
-            ?>
-            <h5>Saved Card Details</h5>
-            <div class="credit-card-div" id="<?php echo $card_details['id']; ?>" onclick="getPaymentMethodId(this)" style="width: 303px;">
-                <div class="credit-card <?=$card_type?> selectable">
+        foreach ($all_cards->data as $card_details) {
+            $card_type = getCardTypeDetails($card_details->brand);
+?>
+            <div class="credit-card-div" id="<?php echo $card_details->id; ?>" onclick="getPaymentMethodId(this)" style="width: 303px;">
+                <div class="credit-card <?= $card_type ?> selectable">
                     <div class="credit-card-last4">
-                        <?=$card_details['last4']?>
+                        <?= $card_details->last4 ?>
                     </div>
                     <div class="credit-card-expiry">
-                        <?=$card_details['exp_month'].'/'.$card_details['exp_year']?>
+                        <?= $card_details->exp_month . '/' . $card_details->exp_year ?>
                     </div>
                 </div>
             </div>
-        <?php } ?>
-    <?php }
+<?php }
+    }
 } elseif ($PAYMENT_GATEWAY == "Square") {
-    $user_payment_info_data = $db_account->Execute("SELECT DOA_USER_PAYMENT_INFO.USER_PAYMENT_ID FROM DOA_USER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Square' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+    $user_payment_info = $db->Execute("SELECT * FROM `DOA_USER_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Square' AND PK_USER = '$PK_USER'");
 
-    if ($user_payment_info_data->RecordCount() > 0) {
+    if ($user_payment_info->RecordCount() > 0) {
         require_once("../../global/vendor/autoload.php");
-        $client = new SquareClient([
-            'accessToken' => $ACCESS_TOKEN,
-            'environment' => Environment::SANDBOX,
-        ]);
 
-        $USER_PAYMENT_ID = $user_payment_info_data->fields['USER_PAYMENT_ID'];
+        if ($GATEWAY_MODE == 'live') {
+            $client = new SquareClient([
+                'accessToken' => $SQUARE_ACCESS_TOKEN,
+                'environment' => Environment::PRODUCTION,
+            ]);
+        } else {
+            $client = new SquareClient([
+                'accessToken' => $SQUARE_ACCESS_TOKEN,
+                'environment' => Environment::SANDBOX,
+            ]);
+        }
+
+        $PAYMENT_ID = $user_payment_info->fields['PAYMENT_ID'];
         try {
             $card = new \Square\Models\Card();
-            $card->setCustomerId($USER_PAYMENT_ID);
+            $card->setCustomerId($PAYMENT_ID);
             $all_payment_methods = $client->getCardsApi()->listCards();
             $all_payment_methods_array = json_decode($all_payment_methods->getBody());
         } catch (Exception $e) {
@@ -104,16 +103,16 @@ if($PAYMENT_GATEWAY == "Stripe") {
         echo $card_list;
     }
 } elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
-    $user_payment_info_data = $db_account->Execute("SELECT DOA_USER_PAYMENT_INFO.USER_PAYMENT_ID FROM DOA_USER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+    $user_payment_info = $db->Execute("SELECT * FROM `DOA_USER_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = '$PK_USER'");
 
-    if ($user_payment_info_data->RecordCount() > 0) {
+    if ($user_payment_info->RecordCount() > 0) {
         // Your API credentials
         $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-        $merchantAuthentication->setName($account_data->fields['LOGIN_ID']);
-        $merchantAuthentication->setTransactionKey($account_data->fields['TRANSACTION_KEY']);
+        $merchantAuthentication->setName($AUTHORIZE_LOGIN_ID);
+        $merchantAuthentication->setTransactionKey($AUTHORIZE_TRANSACTION_KEY);
 
         // Customer Profile ID (from your DB or after creating profile)
-        $customerProfileId = $user_payment_info_data->fields['USER_PAYMENT_ID'];
+        $customerProfileId = $user_payment_info->fields['PAYMENT_ID'];
 
         // Prepare the request
         $request = new AnetAPI\GetCustomerProfileRequest();
@@ -122,7 +121,13 @@ if($PAYMENT_GATEWAY == "Stripe") {
 
         // Execute the API call
         $controller = new AnetController\GetCustomerProfileController($request);
-        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX); // or PRODUCTION
+
+        if ($GATEWAY_MODE == 'live')
+            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+        else
+            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+
+        //$response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX); // or PRODUCTION
 
         // Handle response
         if (($response != null) && ($response->getMessages()->getResultCode() == "Ok")) {
@@ -155,8 +160,9 @@ if($PAYMENT_GATEWAY == "Stripe") {
     }
 } ?>
 
-<?php  
-function getCardTypeDetails ($brand) {
+<?php
+function getCardTypeDetails($brand)
+{
     $card_type = '';
     $brand = strtolower($brand);
     switch ($brand) {
@@ -192,7 +198,6 @@ function getCardTypeDetails ($brand) {
         default:
             $card_type = '';
             break;
-
     }
     return $card_type;
 }

@@ -1,12 +1,13 @@
 <?php
-
-use Stripe\Exception\ApiErrorException;
-use Stripe\StripeClient;
-
 require_once('../global/config.php');
+require_once("../global/stripe-php/init.php");
+
 global $db;
 global $db_account;
 global $upload_path;
+
+use Stripe\Exception\ApiErrorException;
+use Stripe\StripeClient;
 
 if (empty($_GET['id']))
     $title = "Add Location";
@@ -18,17 +19,27 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-$FRANCHISE = 0;
-$franchise_data = $db->Execute("SELECT FRANCHISE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-if ($franchise_data->RecordCount() > 0) {
-    $FRANCHISE = $franchise_data->fields['FRANCHISE'];
-}
-
+$PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 $PK_USER = $_SESSION['PK_USER'];
 
-if (empty($_GET['id'])) {
-    $res = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$help_title = '';
+$help_description = '';
+$help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'location'");
+if ($help->RecordCount() > 0) {
+    $help_title = $help->fields['TITLE'];
+    $help_description = $help->fields['DESCRIPTION'];
+}
 
+$SA_SECRET_KEY = '';
+$SA_PUBLISHABLE_KEY = '';
+
+$payment_gateway_setting = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
+if ($payment_gateway_setting->RecordCount() > 0) {
+    $SA_SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
+    $SA_PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+}
+
+if (empty($_GET['id'])) {
     $PK_LOCATION = 0;
     $PK_CORPORATION = '';
     $PK_ACCOUNT_TYPE = '';
@@ -83,9 +94,16 @@ if (empty($_GET['id'])) {
     $TWILIO_PHONE_NO = '';
     $FOCUSBIZ_API_KEY = '';
     $USERNAME_PREFIX = '';
+
+    $SMTP_HOST = '';
+    $SMTP_PORT = '';
+    $SMTP_USERNAME = '';
+    $SMTP_PASSWORD = '';
+
+    $START_DATE = '';
+    $PAYMENT_FROM = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
-
     if ($res->RecordCount() == 0) {
         header("location:all_locations.php");
         exit;
@@ -145,101 +163,38 @@ if (empty($_GET['id'])) {
 
     $FOCUSBIZ_API_KEY = $res->fields['FOCUSBIZ_API_KEY'];
     $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
-}
 
-$SMTP_HOST = '';
-$SMTP_PORT = '';
-$SMTP_USERNAME = '';
-$SMTP_PASSWORD = '';
-$email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = " . $PK_LOCATION);
-if ($email->RecordCount() > 0) {
-    $SMTP_HOST = $email->fields['HOST'];
-    $SMTP_PORT = $email->fields['PORT'];
-    $SMTP_USERNAME = $email->fields['USER_NAME'];
-    $SMTP_PASSWORD = $email->fields['PASSWORD'];
+    $SMTP_HOST = $res->fields['SMTP_HOST'];
+    $SMTP_PORT = $res->fields['SMTP_PORT'];
+    $SMTP_USERNAME = $res->fields['SMTP_USERNAME'];
+    $SMTP_PASSWORD = $res->fields['SMTP_PASSWORD'];
+
+    $START_DATE = $res->fields['CREATED_ON'];
+    $PAYMENT_FROM = $res->fields['PAYMENT_FROM'];
 }
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_data->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
 
-$payment_gateway_setting = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
-$STRIPE_SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
-$STRIPE_PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = " . $PK_ACCOUNT_MASTER);
 
-$help_title = '';
-$help_description = '';
-$help = $db->Execute("SELECT * FROM DOA_HELP_PAGE WHERE PAGE_LINK = 'location'");
-if ($help->RecordCount() > 0) {
-    $help_title = $help->fields['TITLE'];
-    $help_description = $help->fields['DESCRIPTION'];
+$RENEWAL_INTERVAL = $account_data->fields['RENEWAL_INTERVAL'];
+
+$AM_AMOUNT = $account_data->fields['AM_AMOUNT'];
+$NOT_AM_AMOUNT = $account_data->fields['NOT_AM_AMOUNT'];
+
+if (($AM_AMOUNT == '' || $AM_AMOUNT == 0.00) && ($NOT_AM_AMOUNT == '' || $NOT_AM_AMOUNT == 0.00)) {
+    $res = $db->Execute("SELECT * FROM `DOA_OTHER_SETTING`");
+    if ($res->RecordCount() > 0) {
+        $AM_AMOUNT       = $res->fields['AM_AMOUNT'];
+        $NOT_AM_AMOUNT   = $res->fields['NOT_AM_AMOUNT'];
+    }
 }
-
-/* $PK_PAYMENT_GATEWAY_SETTINGS = 0;
-$PAYMENT_GATEWAY_TYPE = '';
-$SECRET_KEY = '';
-$PUBLISHABLE_KEY = '';
-$ACCESS_TOKEN = '';
-$SQUARE_APP_ID = '';
-$SQUARE_LOCATION_ID = '';
-$LOGIN_ID = '';
-$TRANSACTION_KEY = '';
-$AUTHORIZE_CLIENT_KEY = '';
-$payment_gateway_setting = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS` WHERE PK_PAYMENT_GATEWAY_SETTINGS = 1");
-if ($payment_gateway_setting->RecordCount() > 0) {
-    $PK_PAYMENT_GATEWAY_SETTINGS = $payment_gateway_setting->fields['PK_PAYMENT_GATEWAY_SETTINGS'];
-    $PAYMENT_GATEWAY = $payment_gateway_setting->fields['PAYMENT_GATEWAY_TYPE'];
-    $SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
-    $PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
-    $ACCESS_TOKEN = $payment_gateway_setting->fields['ACCESS_TOKEN'];
-    $SQUARE_APP_ID = $payment_gateway_setting->fields['APP_ID'];
-    $SQUARE_LOCATION_ID = $payment_gateway_setting->fields['LOCATION_ID'];
-    $LOGIN_ID = $payment_gateway_setting->fields['LOGIN_ID'];
-    $TRANSACTION_KEY = $payment_gateway_setting->fields['TRANSACTION_KEY'];
-    $AUTHORIZE_CLIENT_KEY = $payment_gateway_setting->fields['AUTHORIZE_CLIENT_KEY'];
-} */
-
-require_once("../global/stripe-php-master/init.php");
-$stripe = new StripeClient($STRIPE_SECRET_KEY);
-$account_payment_info = $db->Execute("SELECT * FROM DOA_ACCOUNT_PAYMENT_INFO WHERE PK_LOCATION = " . $PK_LOCATION . " AND PAYMENT_TYPE = 'Stripe' AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
-if ($account_payment_info->RecordCount() > 0) {
-    $customer_id = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
-    $stripe_customer = $stripe->customers->retrieve($customer_id);
-    $card_id = $stripe_customer->default_source;
-
-    $url = "https://api.stripe.com/v1/customers/" . $customer_id . "/cards/" . $card_id;
-    $AUTH = "Authorization: Bearer " . $STRIPE_SECRET_KEY;
-
-    $curl = curl_init();
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => "",
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "GET",
-        CURLOPT_HTTPHEADER => array(
-            $AUTH
-        ),
-    ));
-
-    $response = curl_exec($curl);
-    $card_details = json_decode($response, true);
-    //pre_r($card_details);
-}
+$AMOUNT = ($FRANCHISE == 1) ? $AM_AMOUNT : $NOT_AM_AMOUNT;
 
 if (!empty($_POST)) {
     if ($_POST['FUNCTION_NAME'] == 'saveLocationData') {
-        $EMAIL_DATA['HOST'] = $_POST['SMTP_HOST'];
-        $EMAIL_DATA['PORT'] = $_POST['SMTP_PORT'];
-        $EMAIL_DATA['USER_NAME'] = $_POST['SMTP_USERNAME'];
-        $EMAIL_DATA['PASSWORD'] = $_POST['SMTP_PASSWORD'];
         unset($_POST['FUNCTION_NAME']);
-        unset($_POST['SMTP_HOST']);
-        unset($_POST['SMTP_PORT']);
-        unset($_POST['SMTP_USERNAME']);
-        unset($_POST['SMTP_PASSWORD']);
         $LOCATION_DATA = $_POST;
         $LOCATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
 
@@ -277,19 +232,6 @@ if (!empty($_POST)) {
             $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
             db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_GET[id]'");
             $PK_LOCATION = $_GET['id'];
-        }
-        $EMAIL_DATA['PK_LOCATION'] = $PK_LOCATION;
-        $EMAIL_DATA['ACTIVE'] = 1;
-        $EMAIL_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $EMAIL_DATA['CREATED_ON'] = date("Y-m-d H:i");
-
-        $email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = " . $PK_LOCATION);
-        if ($email->RecordCount() == 0) {
-            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'insert');
-        } else {
-            $EMAIL_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $EMAIL_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_LOCATION = '$PK_LOCATION'");
         }
     }
 
@@ -363,563 +305,57 @@ if (!empty($_POST)) {
         }
     }
 
-    if ($_POST['FUNCTION_NAME'] == 'saveCreditCard') {
-        $STRIPE_TOKEN = $_POST['token'];
-        $ACCOUNT_PAYMENT_ID = '';
-        if ($account_payment_info->RecordCount() > 0) {
-            $ACCOUNT_PAYMENT_ID = $account_payment_info->fields['ACCOUNT_PAYMENT_ID'];
-        } else {
-            $account_data = $db->Execute("SELECT BUSINESS_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-            try {
-                $customer = $stripe->customers->create([
-                    'email' => $EMAIL,
-                    'name' => $account_data->fields['BUSINESS_NAME'] . '(' . $LOCATION_NAME . ')',
-                    'phone' => $PHONE,
-                    'description' => $account_data->fields['BUSINESS_NAME'] . '(' . $LOCATION_NAME . ')',
-                ]);
-                $ACCOUNT_PAYMENT_ID = $customer->id;
-            } catch (ApiErrorException $e) {
-                pre_r($e->getMessage());
-            }
+    if ($_POST['FUNCTION_NAME'] == 'saveBillingData') {
+        $LOCATION_DATA['PAYMENT_FROM'] = $_POST['PAYMENT_FROM'];
+        db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_POST[PK_LOCATION]'");
 
-            $STRIPE_DETAILS['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-            $STRIPE_DETAILS['PK_LOCATION'] = $PK_LOCATION;
-            $STRIPE_DETAILS['ACCOUNT_PAYMENT_ID'] = $ACCOUNT_PAYMENT_ID;
-            $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
-            $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_ACCOUNT_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
-        }
-        $card = $stripe->customers->createSource($ACCOUNT_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
-        $stripe->customers->update($ACCOUNT_PAYMENT_ID, ['default_source' => $card->id]);
-    }
-    header("location:all_locations.php");
-}
+        if (isset($_POST['stripe_token'])) {
+            $stripe = new StripeClient($SA_SECRET_KEY);
 
-if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
-    $AMOUNT_TO_PAY = $_POST['AMOUNT_TO_PAY'] ?? 0;
+            $user_payment_info = $db->Execute("SELECT * FROM `DOA_USER_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = '$PK_USER'");
 
-    $LAST4 = '****';
-    $BILLED_AMOUNT = 0.00;
-    $AMOUNT_BILLED = $AMOUNT_TO_PAY;
-    $RECEIPT_NUMBER_ARRAY = [];
-
-    $PAYMENT_INFO = '';
-    $PAYMENT_INFO_JSON = '';
-    $PAYMENT_STATUS = 'Success';
-    $IS_ORIGINAL_RECEIPT = 1;
-
-    $RECEIPT_NUMBER_ORIGINAL = generateReceiptNumber($_POST['PK_ENROLLMENT_MASTER']);
-
-    if ($_POST['PK_PAYMENT_TYPE'] == 1 || $_POST['PK_PAYMENT_TYPE'] == 14) {
-        if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
-            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` WHERE PK_USER = '$_POST[PK_USER]'");
-            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $user_master->fields['PK_USER']);
-
-            $STRIPE_TOKEN = $_POST['token'];
-            $CUSTOMER_PAYMENT_ID = '';
-
-            $error['error'] = $STRIPE_TOKEN . ' - ' . $user_master->fields['PHONE'];
-            $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-            db_perform('error_info', $error, 'insert');
-
-            try {
-                $stripe = new StripeClient($SECRET_KEY);
-                Stripe::setApiKey($SECRET_KEY);
-
-                if ($customer_payment_info->RecordCount() > 0) {
-                    $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-                } else {
+            $STRIPE_TOKEN = $_POST['stripe_token'];
+            $PAYMENT_ID = '';
+            if ($user_payment_info->RecordCount() > 0) {
+                $PAYMENT_ID = $user_payment_info->fields['PAYMENT_ID'];
+            } else {
+                try {
+                    $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = " . $PK_USER);
 
                     $customer = $stripe->customers->create([
-                        'email' => $user_master->fields['EMAIL_ID'],
-                        'name' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
-                        'phone' => $user_master->fields['PHONE'],
-                        'description' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
+                        'email' => $user_data->fields['EMAIL_ID'],
+                        'name' => $user_data->fields['FIRST_NAME'] . ' ' . $user_data->fields['LAST_NAME'],
+                        'phone' => $user_data->fields['PHONE'],
+                        'description' => 'Add Credit Card',
                     ]);
-                    $CUSTOMER_PAYMENT_ID = $customer->id;
-
-                    $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
-                    $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
-                    $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Stripe';
-                    $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                    db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
+                    $PAYMENT_ID = $customer->id;
+                } catch (ApiErrorException $e) {
+                    $STATUS = false;
+                    echo $MESSAGE = $e->getMessage();
+                    die;
                 }
-            } catch (\Stripe\Exception\InvalidRequestException $e) {
-                // Invalid parameters
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
 
-                $error['error'] = $e;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
-            } catch (\Stripe\Exception\AuthenticationException $e) {
-                // Authentication with Stripe's API failed
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $error['error'] = $e;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
-            } catch (\Stripe\Exception\ApiConnectionException $e) {
-                // Network communication with Stripe failed
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $error['error'] = $e;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
-            } catch (\Stripe\Exception\ApiErrorException $e) {
-                // General API error
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $error['error'] = $e;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
-            } catch (Exception $e) {
-                // Other non-Stripe exceptions
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $error['error'] = $e;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
+                $USER_PAYMENT_DETAILS['PK_USER'] = $PK_USER;
+                $USER_PAYMENT_DETAILS['PAYMENT_ID'] = $PAYMENT_ID;
+                $USER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Stripe';
+                $USER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                db_perform('DOA_USER_PAYMENT_INFO', $USER_PAYMENT_DETAILS, 'insert');
             }
-
-            $LAST4 = '';
             try {
-                if (empty($_POST['PAYMENT_METHOD_ID'])) {
-                    $card = $stripe->customers->createSource($CUSTOMER_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
-                    $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $card->id]);
-                }
-
-                $account = \Stripe\Customer::retrieve($CUSTOMER_PAYMENT_ID);
-                $charge = \Stripe\Charge::create(array(
-                    "amount" => $AMOUNT_TO_PAY * 100,
-                    "currency" => "usd",
-                    "description" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
-                    "customer" => $CUSTOMER_PAYMENT_ID,
-                    "statement_descriptor" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
-                ));
-
-                $LAST4 = $charge->payment_method_details->card->last4;
-            } catch (\Stripe\Exception\CardException $e) {
-                // Card declined or related issue
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $error['error'] = $e;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
-            } catch (\Stripe\Exception\RateLimitException $e) {
-                // Too many requests
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $error['error'] = $e;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
-            } catch (\Stripe\Exception\InvalidRequestException $e) {
-                // Invalid parameters
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $error['error'] = $e;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
-            } catch (\Stripe\Exception\AuthenticationException $e) {
-                // Authentication error
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $error['error'] = $e;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
-            } catch (\Stripe\Exception\ApiConnectionException $e) {
-                // Network communication error
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $error['error'] = $e;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
-            } catch (\Stripe\Exception\ApiErrorException $e) {
-                // General API error
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $error['error'] = $e;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
-            } catch (Exception $e) {
-                // Non-Stripe exceptions
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $error['error'] = $e;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
-            }
-
-            register_shutdown_function(function () {
-                $error = error_get_last();
-                if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE)) {
-                    $error['error'] = "Fatal Error: " . $error['message'];
-                    $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                    db_perform('error_info', $error, 'insert');
-                }
-            });
-
-            if (isset($charge) && $charge->paid == 1) {
-                $PAYMENT_STATUS = 'Success';
-                $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $charge->id, 'LAST4' => $LAST4];
-                $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
-            } else {
-                $PAYMENT_STATUS = 'Failed';
-
-                $error['error'] = $PAYMENT_INFO_JSON = $PAYMENT_INFO;
-                $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-                db_perform('error_info', $error, 'insert');
-
-                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                echo json_encode($RETURN_DATA);
-                die();
-            }
-        } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
-            require_once("../../global/vendor/autoload.php");
-
-            $client = new SquareClient([
-                'accessToken' => $SQUARE_ACCESS_TOKEN,
-                'environment' => Environment::SANDBOX,
-            ]);
-
-            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = " . $user_master->fields['PK_USER']);
-
-            if ($customer_payment_info->RecordCount() > 0) {
-                $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-            } else {
-                $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-
-                $address = new \Square\Models\Address();
-                $address->setAddressLine1('500 Electric Ave');
-                $address->setAddressLine2('Suite 600');
-                $address->setLocality('New York');
-                $address->setAdministrativeDistrictLevel1('NY');
-                $address->setPostalCode('10003');
-                $address->setCountry('US');
-
-                $body = new \Square\Models\CreateCustomerRequest();
-                $body->setGivenName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
-                $body->setFamilyName('Earhart');
-                $body->setEmailAddress($user_master->fields['EMAIL_ID']);
-                $body->setAddress($address);
-                $body->setPhoneNumber($user_master->fields['PHONE']);
-                $body->setReferenceId('YOUR_REFERENCE_ID');
-                $body->setNote('a customer');
-
-                try {
-                    $api_response = $client->getCustomersApi()->createCustomer($body);
-                } catch (\Square\Exceptions\ApiException $e) {
-                    pre_r($e->getMessage());
-                }
-
-                $CUSTOMER_PAYMENT_ID = json_decode($api_response->getBody())->customer->id;
-                $SQUARE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
-                $SQUARE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
-                $SQUARE_DETAILS['PAYMENT_TYPE'] = 'Square';
-                $SQUARE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
-            }
-
-            if (empty($_POST['PAYMENT_METHOD_ID'])) {
-                $sourceId = $_POST['sourceId'];
-
-                $card = new \Square\Models\Card();
-                $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
-                //$card->setBillingAddress($billing_address);
-                $card->setCustomerId($CUSTOMER_PAYMENT_ID);
-                //$card->setReferenceId('user-id-1');
-
-                $body = new \Square\Models\CreateCardRequest(
-                    uniqid(),
-                    $sourceId,
-                    $card
-                );
-
-                $api_response = $client->getCardsApi()->createCard($body);
-
-                $result = $api_response->getResult();
-                $card = $result->getCard();
-
-                $CUSTOMER_CARD_ID = $card->getId();
-            } else {
-                $CUSTOMER_CARD_ID = $_POST['PAYMENT_METHOD_ID'];
-            }
-
-            // Create a money object (amount in cents)
-            $money = new Money();
-            $money->setAmount($AMOUNT_TO_PAY * 100);  // amount in cents
-            $money->setCurrency('USD'); // Currency type (USD, EUR, etc.)
-
-            // Create the payment request
-            $paymentRequest = new CreatePaymentRequest($CUSTOMER_CARD_ID, uniqid(), $money);
-
-            // Add the customer ID to the payment request
-            $paymentRequest->setCustomerId($CUSTOMER_PAYMENT_ID);
-
-            // Create payment using the Square API
-            $paymentsApi = $client->getPaymentsApi();
-            try {
-                $response = $paymentsApi->createPayment($paymentRequest);
-                if ($response->isSuccess()) {
-                    $paymentId = $response->getResult()->getPayment()->getId();
-                    $last4Digits = $response->getResult()->getPayment()->getCardDetails()->getCard()->getLast4();
-
-                    $PAYMENT_STATUS = 'Success';
-                    $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $paymentId, 'LAST4' => $last4Digits];
-                    $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
-                } else {
-                    $PAYMENT_STATUS = 'Failed';
-                    $PAYMENT_INFO = $response->getErrors()[0]->getDetail();
-
-                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                    echo json_encode($RETURN_DATA);
-                    die();
-                }
-            } catch (\Square\Exceptions\ApiException $e) {
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                echo json_encode($RETURN_DATA);
-                die();
-            }
-        } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-            $AUTHORIZE_MODE             = 2;
-            $AUTHORIZE_LOGIN_ID         = $account_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
-            $AUTHORIZE_TRANSACTION_KEY     = $account_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
-            $AUTHORIZE_CLIENT_KEY         = $account_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
-
-
-            //$LOGIN_ID = '4Y5pCy8Qr'; //$account_data->fields['LOGIN_ID'];
-            //$TRANSACTION_KEY = '8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay'; // $account_data->fields['TRANSACTION_KEY'];
-
-            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $user_master->fields['PK_USER']);
-
-            // Product Details
-            $itemName = $_POST['PK_ENROLLMENT_MASTER'];
-            $itemNumber = $_POST['PK_ENROLLMENT_BILLING'];
-            $itemPrice = $AMOUNT_TO_PAY;
-            $currency = "USD";
-
-            $refID = 'ref' . time();
-
-            $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-            $merchantAuthentication->setName($AUTHORIZE_LOGIN_ID);
-            $merchantAuthentication->setTransactionKey($AUTHORIZE_TRANSACTION_KEY);
-
-            if (!empty($_POST['PAYMENT_METHOD_ID'])) {
-                // Set payment using saved profile
-                $profileToCharge = new AnetAPI\CustomerProfilePaymentType();
-                $profileToCharge->setCustomerProfileId($customer_payment_info->fields['CUSTOMER_PAYMENT_ID']);
-
-                $paymentProfile = new AnetAPI\PaymentProfileType();
-                $paymentProfile->setPaymentProfileId($_POST['PAYMENT_METHOD_ID']);
-                $profileToCharge->setPaymentProfile($paymentProfile);
-            } else {
-                // Retrieve card and user info from the submitted form data
-                $name = $_POST['NAME'];
-                $email = $_POST['EMAIL'];
-                $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
-                $card_exp_month = $_POST['EXPIRATION_MONTH'];
-                $card_exp_year = $_POST['EXPIRATION_YEAR'];
-                $card_exp_year_month = $card_exp_year . '-' . sprintf('%02d', $card_exp_month);
-                $card_cvc = $_POST['SECURITY_CODE'];
-
-                // Create the payment data for a credit card
-                $creditCard = new AnetAPI\CreditCardType();
-                $creditCard->setCardNumber($card_number);
-                $creditCard->setExpirationDate($card_exp_year_month);
-                $creditCard->setCardCode($card_cvc);
-
-                // Add the payment data to a paymentType object
-                $paymentOne = new AnetAPI\PaymentType();
-                $paymentOne->setCreditCard($creditCard);
-
-                //$paymentOne->setPaymentProfile($CUSTOMER_PAYMENT_ID);
-
-                // Create Payment Profile
-                $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
-                $paymentProfile->setCustomerType('individual');
-                $paymentProfile->setPayment($paymentOne);
-
-                if ($customer_payment_info->RecordCount() > 0) {
-                    // Existing customer profile
-                    $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-
-                    // Add a new payment profile to the existing customer profile
-                    $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
-                    $paymentProfile->setCustomerType('individual');
-                    $paymentProfile->setPayment($paymentOne);
-
-                    $createPaymentProfileRequest = new AnetAPI\CreateCustomerPaymentProfileRequest();
-                    $createPaymentProfileRequest->setMerchantAuthentication($merchantAuthentication);
-                    $createPaymentProfileRequest->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
-                    $createPaymentProfileRequest->setPaymentProfile($paymentProfile);
-                    $createPaymentProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
-
-                    $controller = new AnetController\CreateCustomerPaymentProfileController($createPaymentProfileRequest);
-                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
-
-                    if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
-                        $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileId();
-                        //echo "Payment profile created successfully: " . $PAYMENT_PROFILE_ID;
-                    } else {
-                        $PAYMENT_STATUS = 'Failed';
-                        $PAYMENT_INFO = "Error saving card: " . $response->getMessages()->getMessage()[0]->getText();
-
-                        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-                        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                        echo json_encode($RETURN_DATA);
-                        die();
-                    }
-                } else {
-                    // Create a new customer profile
-                    $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
-                    $paymentProfile->setCustomerType('individual');
-                    $paymentProfile->setPayment($paymentOne);
-
-                    $customerProfile = new AnetAPI\CustomerProfileType();
-                    $customerProfile->setMerchantCustomerId("M_" . time());
-                    $customerProfile->setEmail($email);
-                    $customerProfile->setPaymentProfiles([$paymentProfile]);
-
-                    $createProfileRequest = new AnetAPI\CreateCustomerProfileRequest();
-                    $createProfileRequest->setMerchantAuthentication($merchantAuthentication);
-                    $createProfileRequest->setProfile($customerProfile);
-                    $createProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
-
-                    $controller = new AnetController\CreateCustomerProfileController($createProfileRequest);
-                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
-
-                    if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
-                        $CUSTOMER_PAYMENT_ID = $response->getCustomerProfileId();
-                        $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileIdList()[0];
-
-                        // Save the customer profile ID in the database
-                        $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
-                        $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
-                        $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Authorized.net';
-                        $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                        db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
-                    } else {
-                        $PAYMENT_STATUS = 'Failed';
-                        $PAYMENT_INFO = "Error creating customer profile: " . $response->getMessages()->getMessage()[0]->getText();
-
-                        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-                        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                        echo json_encode($RETURN_DATA);
-                        die();
-                    }
-                }
-                $profileToCharge = new AnetAPI\CustomerProfilePaymentType();
-                $profileToCharge->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
-            }
-
-            // Create order information
-            $order = new AnetAPI\OrderType();
-            $order->setDescription($itemName);
-
-            // Create a transaction
-            $transactionRequestType = new AnetAPI\TransactionRequestType();
-            $transactionRequestType->setTransactionType("authCaptureTransaction");
-            $transactionRequestType->setAmount($itemPrice);
-            $transactionRequestType->setOrder($order);
-
-            if (empty($_POST['PAYMENT_METHOD_ID'])) {
-                $transactionRequestType->setPayment($paymentOne);
-            } else {
-                $transactionRequestType->setProfile($profileToCharge);
-            }
-
-            //$transactionRequestType->setProfile($profileToCharge);
-
-            //$transactionRequestType->setPayment($paymentOne);
-            //$transactionRequestType->setCustomer($customerData);
-
-            // $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
-            // $paymentProfile->setPaymentProfileId($PAYMENT_PROFILE_ID);
-            // $profileToCharge->setPaymentProfile($paymentProfile);
-
-            //$transactionRequest->setProfile($profileToCharge);
-
-            $request = new AnetAPI\CreateTransactionRequest();
-            $request->setMerchantAuthentication($merchantAuthentication);
-            $request->setRefId($refID);
-            $request->setTransactionRequest($transactionRequestType);
-            $controller = new AnetController\CreateTransactionController($request);
-
-            try {
-                if ($AUTHORIZE_MODE == 1)
-                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
-                else
-                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
-
-                if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
-                    $tresponse = $response->getTransactionResponse();
-
-                    if ($tresponse != null && $tresponse->getMessages() != null) {
-                        $PAYMENT_STATUS = 'Success';
-                        $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $tresponse->getTransId(), 'LAST4' => $tresponse->getaccountNumber()];
-                        $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
-                    } else {
-                        $PAYMENT_STATUS = 'Failed';
-                        $PAYMENT_INFO = $tresponse->getErrors()[0]->getErrorCode();
-
-                        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-                        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                        echo json_encode($RETURN_DATA);
-                        die();
-                    }
-                } else {
-                    $PAYMENT_STATUS = 'Failed';
-                    $PAYMENT_INFO = "Transaction Failed";
-
-                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                    echo json_encode($RETURN_DATA);
-                    die();
-                }
-            } catch (\Square\Exceptions\ApiException $e) {
-                $PAYMENT_STATUS = 'Failed';
-                $PAYMENT_INFO = $e->getMessage();
-
-                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                echo json_encode($RETURN_DATA);
-                die();
+                $card = $stripe->customers->createSource($PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
+                $stripe->customers->update($PAYMENT_ID, ['default_source' => $card->id]);
+
+                $STATUS = true;
+                $MESSAGE = "Credit Card Added Successfully";
+            } catch (ApiErrorException $e) {
+                $STATUS = false;
+                echo $MESSAGE = $e->getMessage();
+                die;
             }
         }
-    } else {
-        $PAYMENT_INFO_JSON = 'Payment Done.';
     }
 
-    if (count($RECEIPT_NUMBER_ARRAY) > 0) {
-        $RECEIPT_NUMBER = implode(',', $RECEIPT_NUMBER_ARRAY);
-    } else {
-        $RECEIPT_NUMBER = $RECEIPT_NUMBER_ORIGINAL;
-    }
-
-    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-    echo json_encode($RETURN_DATA);
-
-    //header('location:'.$header);
+    header("location:all_locations.php");
 }
 
 ?>
@@ -1001,7 +437,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                     <?php if (!empty($_GET['id'])) { ?>
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="holiday_list_link" href="#holiday_list" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Holiday List</span></a> </li>
-                                        <li> <a class="nav-link" data-bs-toggle="tab" id="credit_card_link" href="#credit_card" role="tab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="getSavedCreditCardList();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                         <!-- <li> <a class="nav-link" data-bs-toggle="tab" id="receipts_link" href="#receipts" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Receipts</span></a> </li> -->
                                     <?php } ?>
                                 </ul>
@@ -1198,7 +634,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                     <?php if ($IMAGE_PATH != '') { ?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $IMAGE_PATH; ?>" data-fancybox-group="gallery"><img src="<?php echo $IMAGE_PATH; ?>" style="width:120px; height:120px" /></a></div><?php } ?>
                                                 </div>
                                                 <div class="row">
-                                                <!-- <div class="col-6">
+                                                    <!-- <div class="col-6">
                                                     <div class="form-group">
                                                         <label class="col-md-12">Username Prefix</label>
                                                         <div class="col-md-12">
@@ -1207,19 +643,19 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                         </div>
                                                     </div>
                                                 </div> -->
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label for="example-text">Time Slot Interval</label>
-                                                        <div>
-                                                            <input type="text" id="TIME_SLOT_INTERVAL" name="TIME_SLOT_INTERVAL" class="form-control time-picker" placeholder="Enter Time Slot Interval" value="<?php echo $TIME_SLOT_INTERVAL ?>">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label for="example-text">Time Slot Interval</label>
+                                                            <div>
+                                                                <input type="text" id="TIME_SLOT_INTERVAL" name="TIME_SLOT_INTERVAL" class="form-control time-picker" placeholder="Enter Time Slot Interval" value="<?php echo $TIME_SLOT_INTERVAL ?>">
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <?php if (isset($_SESSION['error'])) { ?>
-                                                    <div class="alert alert-danger">
-                                                        <strong><?= $_SESSION['error']; ?></strong>
-                                                    </div>
-                                                <?php } ?>
+                                                    <?php if (isset($_SESSION['error'])) { ?>
+                                                        <div class="alert alert-danger">
+                                                            <strong><?= $_SESSION['error']; ?></strong>
+                                                        </div>
+                                                    <?php } ?>
                                                 </div>
 
                                                 <div class="row">
@@ -1386,9 +822,6 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                         </div>
                                                     </div>
                                                 </div>
-
-
-
 
                                                 <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
                                                     <div class="row" style="margin-top: 30px;">
@@ -1732,82 +1165,100 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                         </form>
                                     </div>
 
-
-                                    <div class="tab-pane" id="credit_card" role="tabpanel">
-                                        <form class="form-material form-horizontal" id="creditCardForm" action="" method="post" enctype="multipart/form-data">
-                                            <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
-                                            <div class="p-20" id="credit_card_div">
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div id="card-element"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
-                                        </form>
-                                        <?php if (isset($card_details['last4'])) {
-                                            switch ($card_details['brand']) {
-                                                case 'Visa':
-                                                case 'Visa (debit)':
-                                                    $card_type = 'visa';
-                                                    break;
-                                                case 'MasterCard':
-                                                case 'Mastercard (2-series)':
-                                                case 'Mastercard (debit)':
-                                                case 'Mastercard (prepaid)':
-                                                    $card_type = 'mastercard';
-                                                    break;
-                                                case 'American Express':
-                                                    $card_type = 'amex';
-                                                    break;
-                                                case 'Discover':
-                                                case 'Discover (debit)':
-                                                    $card_type = 'discover';
-                                                    break;
-                                                case 'Diners Club':
-                                                case 'Diners Club (14-digit card)':
-                                                    $card_type = 'diners';
-                                                    break;
-                                                case 'JCB':
-                                                    $card_type = 'jcb';
-                                                    break;
-                                                case 'UnionPay':
-                                                case 'UnionPay (debit)':
-                                                case 'UnionPay (19-digit card)':
-                                                    $card_type = 'unionpay';
-                                                    break;
-                                                default:
-                                                    $card_type = '';
-                                                    break;
-                                            } ?>
+                                    <div class="tab-pane p-20" id="billing" role="tabpanel">
+                                        <form class="form-material form-horizontal" id="billingForm" method="post" enctype="multipart/form-data">
+                                            <input type="hidden" name="FUNCTION_NAME" value="saveBillingData">
+                                            <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?= $PK_ACCOUNT_MASTER ?>">
+                                            <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
                                             <div class="p-20">
-                                                <h5>Saved Card Details</h5>
-                                                <div class="credit-card <?= $card_type ?> selectable" style="margin-right: 80%;">
-                                                    <div class="credit-card-last4">
-                                                        <?= $card_details['last4'] ?>
+                                                <div class="row">
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Subscription Start Date</label>
+                                                            <div class="col-md-12">
+                                                                <p><?= ($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE)) ?></p>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div class="credit-card-expiry">
-                                                        <?= $card_details['exp_month'] . '/' . $card_details['exp_year'] ?>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Next Renewal Date</label>
+                                                            <div class="col-md-12">
+                                                                <p><?= ($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))) ?></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Status</label>
+                                                            <div class="col-md-12">
+                                                                <p><?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?></p>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        <?php } ?>
+
+                                                <div class="row" style="margin-bottom: 15px;">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label" style="margin-bottom: 10px;">Payment From</label><br>
+                                                            <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" id="PAYMENT_FROM" value="location" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Location</label>&nbsp;&nbsp;
+                                                            <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" id="PAYMENT_FROM" value="corporation" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Corporation</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div id="payment_details_div" style="display: <?= ($PAYMENT_FROM == 'location') ? '' : 'none' ?>;">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label class="col-md-12">Amount</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" class="form-control" value="<?= $AMOUNT ?>" disabled>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row" id="credit_card_payment">
+                                                        <div class="col-6">
+                                                            <input type="hidden" name="stripe_token" id="stripe_token" value="">
+                                                            <div class="col-12">
+                                                                <div class="form-group" id="card_div">
+                                                                    <label class="col-md-12">Card Details</label>
+                                                                    <div id="card-element"></div>
+                                                                    <p id="card-errors" role="alert"></p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row card_list_div" style="display: none;">
+                                                    </div>
+                                                </div>
+
+
+                                                <div class="form-group">
+                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Process</button>
+                                                </div>
+                                        </form>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row">
-                                    <h4 class="col-md-12" STYLE="text-align: center">
-                                        <?= $help_title ?>
-                                    </h4>
-                                    <div class="col-md-12">
-                                        <text class="required-entry rich" id="DESCRIPTION"><?= $help_description ?></text>
-                                    </div>
+                </div>
+
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <h4 class="col-md-12" STYLE="text-align: center">
+                                    <?= $help_title ?>
+                                </h4>
+                                <div class="col-md-12">
+                                    <text class="required-entry rich" id="DESCRIPTION"><?= $help_description ?></text>
                                 </div>
                             </div>
                         </div>
@@ -1816,253 +1267,113 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
             </div>
         </div>
     </div>
+    </div>
 
     <?php require_once('../includes/footer.php'); ?>
 
     <?php require_once('includes/location_payment.php'); ?>
+</body>
 
-    <script>
-        $('.time-picker').timepicker({
-            timeFormat: 'hh:mm p',
-            interval: 30,
-            dynamic: false,
-            dropdown: true,
-            scrollbar: true
+<script>
+    $('.time-picker').timepicker({
+        timeFormat: 'hh:mm p',
+        interval: 30,
+        dynamic: false,
+        dropdown: true,
+        scrollbar: true
+    });
+
+    function closeThisDay(param) {
+        if ($(param).is(':checked')) {
+            $(param).closest('.row').find('.time-input').val('');
+            $(param).closest('.row').find('.time-input').css('pointer-events', 'none');
+        } else {
+            $(param).closest('.row').find('.time-input').css('pointer-events', '');
+        }
+    }
+
+    $(document).ready(function() {
+        fetch_state(<?php echo $PK_COUNTRY; ?>);
+    });
+
+    function fetch_state(PK_COUNTRY) {
+        jQuery(document).ready(function($) {
+            var data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
+            var value = $.ajax({
+                url: "ajax/state.php",
+                type: "POST",
+                data: data,
+                async: false,
+                cache: false,
+                success: function(result) {
+                    document.getElementById('State_div').innerHTML = result;
+                }
+            }).responseText;
         });
+    }
 
-        function closeThisDay(param) {
-            if ($(param).is(':checked')) {
-                $(param).closest('.row').find('.time-input').val('');
-                $(param).closest('.row').find('.time-input').css('pointer-events', 'none');
-            } else {
-                $(param).closest('.row').find('.time-input').css('pointer-events', '');
-            }
+    function showPaymentGateway(radio) {
+        $('.payment_gateway').slideUp();
+        if (radio.value == 'Stripe') {
+            document.getElementById('stripe').style.display = 'block';
+        } else if (radio.value == 'Square') {
+            document.getElementById('square').style.display = 'block';
+        } else if (radio.value == 'Authorized.net') {
+            document.getElementById('authorized').style.display = 'block';
+        } else if (radio.value == 'Clover') {
+            document.getElementById('Clover').style.display = 'block';
         }
+    }
 
-        $(document).ready(function() {
-            fetch_state(<?php echo $PK_COUNTRY; ?>);
-        });
+    function applyToAllDays(param) {
+        if ($(param).is(':checked')) {
+            let OPEN_TIME = $(".OPEN_TIME");
+            $('.OPEN_TIME').val($(OPEN_TIME[0]).val());
 
-        function fetch_state(PK_COUNTRY) {
-            jQuery(document).ready(function($) {
-                var data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
-                var value = $.ajax({
-                    url: "ajax/state.php",
-                    type: "POST",
-                    data: data,
-                    async: false,
-                    cache: false,
-                    success: function(result) {
-                        document.getElementById('State_div').innerHTML = result;
-                    }
-                }).responseText;
-            });
-        }
-
-        function showPaymentGateway(radio) {
-            $('.payment_gateway').slideUp();
-            if (radio.value == 'Stripe') {
-                document.getElementById('stripe').style.display = 'block';
-            } else if (radio.value == 'Square') {
-                document.getElementById('square').style.display = 'block';
-            } else if (radio.value == 'Authorized.net') {
-                document.getElementById('authorized').style.display = 'block';
-            } else if (radio.value == 'Clover') {
-                document.getElementById('Clover').style.display = 'block';
-            }
-        }
-    </script>
-
-    <script src="https://js.stripe.com/v3/"></script>
-    <script type="text/javascript">
-        function stripePaymentFunction() {
-            let stripe = Stripe('<?= $STRIPE_PUBLISHABLE_KEY ?>');
-            let elements = stripe.elements();
-
-            let style = {
-                base: {
-                    height: '34px',
-                    padding: '6px 12px',
-                    fontSize: '14px',
-                    lineHeight: '1.42857143',
-                    color: '#555',
-                    backgroundColor: '#fff',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    '::placeholder': {
-                        color: '#ddd'
-                    }
-                },
-                invalid: {
-                    color: '#fa755a',
-                    iconColor: '#fa755a'
-                }
-            };
-
-            // Create an instance of the card Element.
-            let card = elements.create('card', {
-                style: style
-            });
-
-            if (($('#card-element')).length > 0) {
-                card.mount('#card-element');
+            let CLOSE_TIME = $(".CLOSE_TIME");
+            $('.CLOSE_TIME').val($(CLOSE_TIME[0]).val());
+        } else {
+            let OPEN_TIME = $(".OPEN_TIME");
+            for (let i = 1; i < 7; i++) {
+                $(OPEN_TIME[i]).val('');
             }
 
-            // Handle real-time validation errors from the card Element.
-            card.addEventListener('change', function(event) {
-                let displayError = document.getElementById('card-errors');
-                if (event.error) {
-                    displayError.textContent = event.error.message;
-                } else {
-                    displayError.textContent = '';
-                }
-            });
-
-            // Handle form submission.
-            let form = document.getElementById('creditCardForm');
-            form.addEventListener('submit', function(event) {
-                event.preventDefault();
-                stripe.createToken(card).then(function(result) {
-                    if (result.error) {
-                        // Inform the user if there was an error.
-                        let errorElement = document.getElementById('card-errors');
-                        errorElement.textContent = result.error.message;
-                    } else {
-                        // Send the token to your server.
-                        stripeTokenHandler(result.token);
-                    }
-                });
-            });
-
-            // Submit the form with the token ID.
-            function stripeTokenHandler(token) {
-                // Insert the token ID into the form, so it gets submitted to the server
-                let form = document.getElementById('creditCardForm');
-                let hiddenInput = document.createElement('input');
-                hiddenInput.setAttribute('type', 'hidden');
-                hiddenInput.setAttribute('name', 'token');
-                hiddenInput.setAttribute('value', token.id);
-                form.appendChild(hiddenInput);
-                form.submit();
+            let CLOSE_TIME = $(".CLOSE_TIME");
+            for (let i = 1; i < 7; i++) {
+                $(CLOSE_TIME[i]).val('');
             }
         }
-
-        function applyToAllDays(param) {
-            if ($(param).is(':checked')) {
-                let OPEN_TIME = $(".OPEN_TIME");
-                $('.OPEN_TIME').val($(OPEN_TIME[0]).val());
-
-                let CLOSE_TIME = $(".CLOSE_TIME");
-                $('.CLOSE_TIME').val($(CLOSE_TIME[0]).val());
-            } else {
-                let OPEN_TIME = $(".OPEN_TIME");
-                for (let i = 1; i < 7; i++) {
-                    $(OPEN_TIME[i]).val('');
-                }
-
-                let CLOSE_TIME = $(".CLOSE_TIME");
-                for (let i = 1; i < 7; i++) {
-                    $(CLOSE_TIME[i]).val('');
-                }
-            }
+    }
+</script>
+<script>
+    function showTwilioAccountSetting(param) {
+        if ($(param).val() === '1') {
+            $('#twilio_account_type').slideDown();
+        } else {
+            $('#twilio_account_type').slideUp();
+            $('#TWILIO_ACCOUNT_TYPE_0').prop('checked', true);
+            $('#twilio_setting_div').slideUp();
         }
-    </script>
-    <script>
-        function getPaymentMethodId(param) {
-            $('.credit-card-div').css("opacity", "1");
-            $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
-            $(param).css("opacity", "0.6");
-            /*let form = document.getElementById('enrollment_payment_form');
-            form.removeEventListener('submit', listener);*/
-            $(param).closest('.payment_modal').find('#card-element').remove();
-            $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
+    }
+
+    function showTwilioSetting(param) {
+        if ($(param).val() === '1') {
+            $('#twilio_setting_div').slideDown();
+        } else {
+            $('#twilio_setting_div').slideUp();
         }
+    }
 
-        $(document).on('click', '.credit-card', function() {
-            $('.credit-card').css("opacity", "1");
-            $(this).css("opacity", "0.6");
-        });
-
-        /* $(document).ready(function() {
-            $('#saveButton').click(function(e) {
-                e.preventDefault(); // Prevent form submission
-
-                // Show payment modal
-                $('#paymentModal').modal('show');
-                $(1).closest('.payment_modal').find('#credit_card_payment').slideDown();
-                if (PAYMENT_GATEWAY == 'Stripe') {
-                    $(1).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
-                    stripePaymentFunction(type);
-                }
-
-                if (PAYMENT_GATEWAY == 'Square') {
-                    $(1).closest('.payment_modal').find('#card_div').html(`<div id="enrollment-card-container"></div>`);
-                    $('#' + type + '-card-container').text('Loading......');
-                    squarePaymentFunction(type);
-                }
-
-                if (PAYMENT_GATEWAY == 'Authorized.net') {
-                    $("#CARD_NUMBER").inputmask({
-                        mask: "9999 9999 9999 9999",
-                        placeholder: ""
-                    });
-                }
-                getCreditCardList();
-            });
-
-            $('#confirmPayment').click(function() {
-                // Hide modal first
-                $('#paymentModal').modal('hide');
-
-                // Trigger the actual form submission
-                $('#realSubmit').click();
-            });
-        }); */
-
-        function getCreditCardList() {
-            let PK_USER = "<?php echo $PK_USER; ?>";
-            let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-            $.ajax({
-                url: "ajax/get_credit_card_list_from_master.php",
-                type: 'POST',
-                data: {
-                    PK_USER: PK_USER,
-                    PAYMENT_GATEWAY: PAYMENT_GATEWAY
-                },
-                success: function(data) {
-                    $('#card_list').slideDown().html(data);
-                }
-            });
+    function showArthurMurraySetup(param) {
+        if ($(param).val() === '1') {
+            $('#arthur_murray_setup').slideDown();
+        } else {
+            $('#arthur_murray_setup').slideUp();
         }
+    }
 
-        function showTwilioAccountSetting(param) {
-            if ($(param).val() === '1') {
-                $('#twilio_account_type').slideDown();
-            } else {
-                $('#twilio_account_type').slideUp();
-                $('#TWILIO_ACCOUNT_TYPE_0').prop('checked', true);
-                $('#twilio_setting_div').slideUp();
-            }
-        }
-
-        function showTwilioSetting(param) {
-            if ($(param).val() === '1') {
-                $('#twilio_setting_div').slideDown();
-            } else {
-                $('#twilio_setting_div').slideUp();
-            }
-        }
-
-        function showArthurMurraySetup(param) {
-            if ($(param).val() === '1') {
-                $('#arthur_murray_setup').slideDown();
-            } else {
-                $('#arthur_murray_setup').slideUp();
-            }
-        }
-
-        function addMoreHoliday() {
-            $('#holiday_list_section').append(`<div class="row">
+    function addMoreHoliday() {
+        $('#holiday_list_section').append(`<div class="row">
                                         <div class="col-3">
                                             <div class="form-group">
                                                 <div class="col-md-12">
@@ -2082,23 +1393,104 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                         </div>
                                     </div>`);
 
-            $('.datepicker-normal').datepicker({
-                format: 'mm/dd/yyyy',
-            });
-        }
+        $('.datepicker-normal').datepicker({
+            format: 'mm/dd/yyyy',
+        });
+    }
 
-        function removeThis(param) {
-            $(param).closest('.row').remove();
-        }
+    function removeThis(param) {
+        $(param).closest('.row').remove();
+    }
 
-        function showHourBox(radio) {
+    function showHourBox(radio) {
         if (radio.value == 1) {
             document.getElementById("yes").style.display = "block";
         } else {
             document.getElementById("yes").style.display = "none";
         }
     }
-    </script>
-</body>
+
+    function changePaymentFrom(param) {
+        if ($(param).val() == 'corporation') {
+            $('#payment_details_div').slideUp();
+        } else {
+            $('#payment_details_div').slideDown();
+        }
+    }
+
+    function getSavedCreditCardList() {
+        stripePaymentFunction();
+        $.ajax({
+            url: "ajax/get_credit_card_list_from_master.php",
+            type: 'POST',
+            data: {
+                PK_LOCATION: '<?= $PK_LOCATION ?>',
+            },
+            success: function(data) {
+                $('.card_list_div').slideDown().html(data);
+            }
+        });
+    }
+</script>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script type="text/javascript">
+    var stripe = Stripe('<?= $SA_PUBLISHABLE_KEY ?>');
+    var elements = stripe.elements();
+
+    var style = {
+        base: {
+            height: '34px',
+            padding: '6px 12px',
+            fontSize: '14px',
+            lineHeight: '1.42857143',
+            color: '#555',
+            backgroundColor: '#fff',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            '::placeholder': {
+                color: '#ddd'
+            }
+        },
+        invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
+        }
+    };
+
+    // Create an instance of the card Element.
+    var stripe_card = elements.create('card', {
+        style: style
+    });
+    var pay_type = '';
+
+    function stripePaymentFunction() {
+        if (($('#card-element')).length > 0) {
+            stripe_card.mount('#card-element');
+        }
+        stripe_card.addEventListener('change', function(event) {
+            var displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+                addStripeTokenOnForm();
+            }
+        });
+    }
+
+    function addStripeTokenOnForm() {
+        stripe.createToken(stripe_card).then(function(result) {
+            if (result.error) {
+                // Inform the user if there was an error.
+                let errorElement = document.getElementById('card-errors');
+                errorElement.textContent = result.error.message;
+            } else {
+                // Send the token to your server.
+                $('#stripe_token').val(result.token.id);
+            }
+        });
+    }
+</script>
 
 </html>

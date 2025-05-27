@@ -244,7 +244,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                 <!-- Nav tabs -->
                                 <ul class="nav nav-tabs" role="tablist">
                                     <li class="active"> <a class="nav-link active" id="corporation_tab_link" data-bs-toggle="tab" href="#corporation" role="tab"><span class="hidden-sm-up"><i class="ti-folder"></i></span> <span class="hidden-xs-down">Corporation </span></a> </li>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="getSavedCreditCardList();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                 </ul>
 
                                 <!-- Tab panes -->
@@ -656,8 +656,6 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                 </div>
 
                                                 <div class="row card_list_div" style="display: none;">
-                                                    <div class="col-6" id="card_list">
-                                                    </div>
                                                 </div>
 
                                                 <div class="form-group">
@@ -669,10 +667,26 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                             </div>
                         </div>
                     </div>
-
                 </div>
+
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <h4 class="col-md-12" STYLE="text-align: center">
+                                    <?= $help_title ?>
+                                </h4>
+                                <div class="col-md-12">
+                                    <text class="required-entry rich" id="DESCRIPTION"><?= $help_description ?></text>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
+    </div>
     </div>
     <?php require_once('../includes/footer.php'); ?>
 </body>
@@ -728,20 +742,16 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
         }
     }
 
-    function calculatePaymentAmount() {
-        let BILLING_TYPE = $('.BILLING_TYPE:checked').val();
-        let AMOUNT = $('#AMOUNT').val();
-        let LOCATION_COUNT = parseInt(<?= $location_count ?>);
-
-        if (BILLING_TYPE == 'PER_ACCOUNT') {
-            $('#TOTAL_AMOUNT').val(AMOUNT);
-            $('.per_account').show();
-            $('.per_location').hide();
-        } else {
-            $('#TOTAL_AMOUNT').val(AMOUNT * LOCATION_COUNT);
-            $('.per_account').hide();
-            $('.per_location').show();
-        }
+    function getSavedCreditCardList() {
+        stripePaymentFunction();
+        $.ajax({
+            url: "ajax/get_credit_card_list_from_master.php",
+            type: 'POST',
+            data: {},
+            success: function(data) {
+                $('.card_list_div').slideDown().html(data);
+            }
+        });
     }
 </script>
 
