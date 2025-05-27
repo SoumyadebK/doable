@@ -367,8 +367,8 @@ if($help->RecordCount() > 0) {
                                     </div>
                                 </div>
 
-                                <div class="row">
-                                    <!-- <div class="col-6">
+                                <!-- <div class="row">
+                                    <div class="col-6">
                                         <div class="form-group">
                                             <label class="col-md-12">Username Prefix</label>
                                             <div class="col-md-12">
@@ -376,7 +376,7 @@ if($help->RecordCount() > 0) {
                                                 <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Username Prefix" value="<?php echo $USERNAME_PREFIX?>">
                                             </div>
                                         </div>
-                                    </div> -->
+                                    </div>
                                     <div class="col-6">
                                         <div class="form-group">
                                             <label for="example-text">Time Slot Interval</label>
@@ -483,7 +483,7 @@ if($help->RecordCount() > 0) {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
 
                                 <?php if($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) { ?>
                                     <div class="row" style="margin-top: 30px;">

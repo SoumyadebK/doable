@@ -45,6 +45,15 @@ if (empty($_GET['id'])) {
     $EMAIL = ''; //$res->fields['EMAIL'];
     $IMAGE_PATH = '';
     $PK_TIMEZONE = '';
+    $TIME_SLOT_INTERVAL     = '';
+    $SERVICE_PROVIDER_TITLE = '';
+    $OPERATION_TAB_TITLE    = '';
+    $ENROLLMENT_ID_CHAR     = '';
+    $ENROLLMENT_ID_NUM      = '';
+    $MISCELLANEOUS_ID_CHAR  = '';
+    $MISCELLANEOUS_ID_NUM   = '';
+    $APPOINTMENT_REMINDER   = '';
+    $HOUR                   = '';
     $ROYALTY_PERCENTAGE = '';
     $ACTIVE = '';
 
@@ -95,6 +104,15 @@ if (empty($_GET['id'])) {
     $EMAIL = $res->fields['EMAIL'];
     $IMAGE_PATH = $res->fields['IMAGE_PATH'];
     $PK_TIMEZONE = $res->fields['PK_TIMEZONE'];
+    $TIME_SLOT_INTERVAL     = $res->fields['TIME_SLOT_INTERVAL'];
+    $SERVICE_PROVIDER_TITLE = $res->fields['SERVICE_PROVIDER_TITLE'];
+    $OPERATION_TAB_TITLE    = $res->fields['OPERATION_TAB_TITLE'];
+    $ENROLLMENT_ID_CHAR     = $res->fields['ENROLLMENT_ID_CHAR'];
+    $ENROLLMENT_ID_NUM      = $res->fields['ENROLLMENT_ID_NUM'];
+    $MISCELLANEOUS_ID_CHAR  = $res->fields['MISCELLANEOUS_ID_CHAR'];
+    $MISCELLANEOUS_ID_NUM   = $res->fields['MISCELLANEOUS_ID_NUM'];
+    $APPOINTMENT_REMINDER   = $res->fields['APPOINTMENT_REMINDER'];
+    $HOUR                   = $res->fields['HOUR'];
     $ROYALTY_PERCENTAGE = $res->fields['ROYALTY_PERCENTAGE'];
     $ACTIVE = $res->fields['ACTIVE'];
 
@@ -1170,6 +1188,103 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                     </div>
                                                 </div>
                                                 <div class="row">
+                                                <!-- <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Username Prefix</label>
+                                                        <div class="col-md-12">
+                                                            <input type="hidden" name="OLD_USERNAME_PREFIX" id="OLD_USERNAME_PREFIX" value="<?php echo $USERNAME_PREFIX ?>">
+                                                            <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Username Prefix" value="<?php echo $USERNAME_PREFIX ?>">
+                                                        </div>
+                                                    </div>
+                                                </div> -->
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label for="example-text">Time Slot Interval</label>
+                                                        <div>
+                                                            <input type="text" id="TIME_SLOT_INTERVAL" name="TIME_SLOT_INTERVAL" class="form-control time-picker" placeholder="Enter Time Slot Interval" value="<?php echo $TIME_SLOT_INTERVAL ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <?php if (isset($_SESSION['error'])) { ?>
+                                                    <div class="alert alert-danger">
+                                                        <strong><?= $_SESSION['error']; ?></strong>
+                                                    </div>
+                                                <?php } ?>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Service Provider Title</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="SERVICE_PROVIDER_TITLE" name="SERVICE_PROVIDER_TITLE" class="form-control" placeholder="Enter Service Provider Title" value="<?php echo $SERVICE_PROVIDER_TITLE ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Operation Tab Title</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="OPERATION_TAB_TITLE" name="OPERATION_TAB_TITLE" class="form-control" placeholder="Enter Operation Tab Title" value="<?php echo $OPERATION_TAB_TITLE ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Enrollment Id Character</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="ENROLLMENT_ID_CHAR" name="ENROLLMENT_ID_CHAR" class="form-control" placeholder="Enrollment Id Character" value="<?php echo $ENROLLMENT_ID_CHAR ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Enrollment Id Number</label>
+                                                            <div class="col-md-12">
+                                                                <input type="number" id="ENROLLMENT_ID_NUM" name="ENROLLMENT_ID_NUM" class="form-control" placeholder="Enrollment Id Number" value="<?php echo $ENROLLMENT_ID_NUM ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Miscellaneous Id Character</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="MISCELLANEOUS_ID_CHAR" name="MISCELLANEOUS_ID_CHAR" class="form-control" placeholder="Miscellaneous Id Character" value="<?php echo $MISCELLANEOUS_ID_CHAR ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Miscellaneous Id Number</label>
+                                                            <div class="col-md-12">
+                                                                <input type="number" id="MISCELLANEOUS_ID_NUM" name="MISCELLANEOUS_ID_NUM" class="form-control" placeholder="Miscellaneous Id Number" value="<?php echo $MISCELLANEOUS_ID_NUM ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label" style="margin-bottom: 20px;">Send an Appointment Reminder Text message.</label><br>
+                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);">Yes</label>
+                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);">No</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6 hour_box" id="yes" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? '' : 'none' ?>;">
+                                                        <div class="form-group">
+                                                            <label class="form-label">How many hours before the appointment ?</label>
+                                                            <input type="text" class="form-control" name="HOUR" value="<?= $HOUR ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
                                                     <div class="col-3">
                                                         <div class="form-group">
                                                             <label class="col-md-12" for="example-text">Royalty Percentage</label>
@@ -1231,7 +1346,6 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
                                                             </div>
                                                         </div>
                                                     </div>
-
                                                 </div>
                                                 <div class="form-group">
                                                     <?php if ($IMAGE_PATH != '') { ?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $IMAGE_PATH; ?>" data-fancybox-group="gallery"><img src="<?php echo $IMAGE_PATH; ?>" style="width:120px; height:120px" /></a></div><?php } ?>
@@ -1935,6 +2049,14 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmPayment') {
         function removeThis(param) {
             $(param).closest('.row').remove();
         }
+
+        function showHourBox(radio) {
+        if (radio.value == 1) {
+            document.getElementById("yes").style.display = "block";
+        } else {
+            document.getElementById("yes").style.display = "none";
+        }
+    }
     </script>
 </body>
 
