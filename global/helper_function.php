@@ -853,6 +853,7 @@ function checkAllEnrollmentStatus($PK_USER_MASTER): void
     global $db_account;
     $allActiveEnrollment = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_MASTER WHERE STATUS = 'A' AND PK_USER_MASTER = '$PK_USER_MASTER'");
     while (!$allActiveEnrollment->EOF) {
+        markAdhocAppointmentNormal($allActiveEnrollment->fields['PK_ENROLLMENT_MASTER']);
         markEnrollmentComplete($allActiveEnrollment->fields['PK_ENROLLMENT_MASTER']);
         $allActiveEnrollment->MoveNext();
     }

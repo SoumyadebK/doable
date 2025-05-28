@@ -2102,6 +2102,10 @@ if ($PK_USER_MASTER > 0) {
             <!--Wallet Payment-->
             <?php include('includes/add_money_to_wallet.php'); ?>
 
+            <!--Edit Appointment Model-->
+            <div class="modal fade" id="edit_appointment_modal" tabindex="-1" aria-hidden="true">
+
+            </div>
 
             <!--Verify Password Model-->
             <div class="modal fade" id="verify_password_model" tabindex="-1" aria-hidden="true">
