@@ -691,6 +691,11 @@ $API_KEY                = $payment_gateway_data->fields['API_KEY'];
                             </div>-->
 
                             <div class="card-body row">
+                                <div class="col-12">
+                                    <p id="day-count">D-55</p>
+                                    <p id="week-count">W-44</p>
+                                </div>
+
                                 <div class="col-12" id='calendar-container'>
                                     <div id='calendar'></div>
                                 </div>
@@ -1399,10 +1404,13 @@ $API_KEY                = $payment_gateway_data->fields['API_KEY'];
                 async: false,
                 cache: false,
                 success: function(result) {
-                    let appointment_data = JSON.parse(result);
+                    let result_data = JSON.parse(result);
+                    let appointment_data = result_data.service_provider_count;
                     for (let i = 0; i < appointment_data.length; i++) {
                         $('th[data-resource-id="' + appointment_data[i].SERVICE_PROVIDER_ID + '"]').text(appointment_data[i].SERVICE_PROVIDER_NAME + ' - ' + appointment_data[i].APPOINTMENT_COUNT);
                     }
+                    $('#day-count').text('D - ' + result_data.day_count);
+                    $('#week-count').text('W - ' + result_data.week_count);
                 }
             });
         }

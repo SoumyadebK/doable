@@ -65,7 +65,7 @@ if ($_GET['type'] == 'normal') { ?>
     </div>
 <?php } else { ?>
     <div class="row" style="padding: 35px 35px 0 35px">
-        <h5 style="margin-left: 30%;">List of Completed Services</h5>
+        <h5 style="margin-left: 25%;">List of Completed Services</h5>
         <?php require_once('completed_services.php'); ?>
     </div>
 <?php } ?>
@@ -111,6 +111,7 @@ while (!$enrollment_data->EOF) {
                             <th></th>
                             <th style="text-align: right;">Enrolled</th>
                             <th style="text-align: right;">Used</th>
+                            <th style="text-align: right;">Scheduled</th>
                             <th style="text-align: right;">Balance</th>
                             <th style="text-align: right;">Paid</th>
                             <th style="text-align: right;">Service Credit</th>
@@ -123,6 +124,7 @@ while (!$enrollment_data->EOF) {
                         $total_amount = 0;
                         $total_paid_amount = 0;
                         $total_used_amount = 0;
+                        $total_scheduled_amount = 0;
                         $enrollment_service_array = [];
                         while (!$serviceCodeData->EOF) {
                             if ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership') {
@@ -130,6 +132,8 @@ while (!$enrollment_data->EOF) {
                             } else {
                                 $NUMBER_OF_SESSION = $serviceCodeData->fields['NUMBER_OF_SESSION'];
                             }
+
+                            $SESSION_SCHEDULED = getSessionScheduledCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
 
                             if ($type == 'completed') {
                                 $SESSION_COMPLETED = $NUMBER_OF_SESSION;
@@ -158,11 +162,13 @@ while (!$enrollment_data->EOF) {
 
                             $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
                             $total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-                            $total_used_amount +=  ($PRICE_PER_SESSION * $SESSION_COMPLETED); ?>
+                            $total_used_amount +=  ($PRICE_PER_SESSION * $SESSION_COMPLETED);
+                            $total_scheduled_amount += ($PRICE_PER_SESSION * $SESSION_SCHEDULED); ?>
                             <tr>
                                 <td><?= $serviceCodeData->fields['SERVICE_CODE'] ?></td>
                                 <td style="text-align: right"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $NUMBER_OF_SESSION <= 0) ? 'XX' : $NUMBER_OF_SESSION ?></td>
                                 <td style="text-align: right;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_COMPLETED <= 0) ? 'XX' : $SESSION_COMPLETED ?></td>
+                                <td style="text-align: right;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_SCHEDULED <= 0) ? 'XX' : $SESSION_SCHEDULED ?></td>
                                 <td style="text-align: right; color:<?= ($ENR_BALANCE < 0) ? 'red' : 'black' ?>;"><?= number_format($ENR_BALANCE, 2) ?></td>
                                 <td style="text-align: right"><?= number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / (($PRICE_PER_SESSION == 0) ? 1 : $PRICE_PER_SESSION), 2) ?></td>
                                 <td style="text-align: right; color:<?= ($SERVICE_CREDIT < 0) ? 'red' : 'black' ?>;"><?= number_format($SERVICE_CREDIT, 2) ?></td>
@@ -173,6 +179,7 @@ while (!$enrollment_data->EOF) {
                             <td>Amount</td>
                             <td style="text-align: right;"><?= number_format($total_amount, 2) ?></td>
                             <td style="text-align: right;"><?= number_format($total_amount - $total_used_amount < 0.00 ? $total_amount : $total_used_amount, 2) ?></td>
+                            <td style="text-align: right;"><?= number_format($total_scheduled_amount, 2) ?></td>
                             <td style="text-align: right; color:<?= ($total_amount - $total_paid_amount < -0.03) ? 'red' : 'black' ?>;"><?= number_format((($total_amount - $total_paid_amount < 0.03) ? 0 : $total_amount - $total_paid_amount), 2) ?></td>
                             <td style="text-align: right;">$<?= number_format($total_paid_amount, 2) ?></td>
                             <td style="text-align: right; color:<?= ($total_paid_amount - $total_used_amount < 0) ? 'red' : 'black' ?>;"><?= number_format($total_paid_amount - $total_used_amount, 2) ?></td>
