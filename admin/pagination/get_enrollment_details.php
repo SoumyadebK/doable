@@ -304,7 +304,7 @@ while (!$serviceCodeData->EOF) {
                 }
 
                 /*if (($appointment_data->fields['APPOINTMENT_STATUS'] != 'Cancelled' && $appointment_data->fields['APPOINTMENT_STATUS'] != 'No Show') || $appointment_data->fields['IS_CHARGED'] == 1)*/
-                if ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $IS_CHARGED == 1) {
+                if ($IS_CHARGED == 1) {
                     if (isset($service_code_array[$appointment_data->fields['SERVICE_CODE']])) {
                         $service_code_array[$appointment_data->fields['SERVICE_CODE']] = $service_code_array[$appointment_data->fields['SERVICE_CODE']] + $UNIT;
                         $service_credit_array[$appointment_data->fields['SERVICE_CODE']] = $service_credit_array[$appointment_data->fields['SERVICE_CODE']] + $PRICE_PER_SESSION;
@@ -325,14 +325,14 @@ while (!$serviceCodeData->EOF) {
                 if (!isset($total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']])) {
                     $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] = $per_session_price->fields['TOTAL_AMOUNT_PAID'];
                 }
-                $service_credit = ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $IS_CHARGED == 1) ? $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']] : 0;
+                $service_credit = ($IS_CHARGED == 1) ? $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] - $service_credit_array[$appointment_data->fields['SERVICE_CODE']] : 0;
                 $appointment_array[] = [
                     "PK_APPOINTMENT_MASTER" => $appointment_data->fields['PK_APPOINTMENT_MASTER'],
                     "SERVICE_NAME" => $appointment_data->fields['SERVICE_NAME'],
                     "APPOINTMENT_STATUS" => $appointment_data->fields['APPOINTMENT_STATUS'],
                     "STATUS_COLOR" => $appointment_data->fields['STATUS_COLOR'],
                     "IS_CHARGED" => $IS_CHARGED,
-                    "APPOINTMENT_NUMBER" => ($appointment_data->fields['APPOINTMENT_STATUS'] == 'Scheduled' || $IS_CHARGED == 1) ? $service_code_array[$appointment_data->fields['SERVICE_CODE']] . '/' . $NUMBER_OF_SESSION : '',
+                    "APPOINTMENT_NUMBER" => ($IS_CHARGED == 1) ? $service_code_array[$appointment_data->fields['SERVICE_CODE']] . '/' . $NUMBER_OF_SESSION : '',
                     "SERVICE_CODE" => $appointment_data->fields['SERVICE_CODE'],
                     "APPOINTMENT_DATE" => date('m/d/Y', strtotime($appointment_data->fields['DATE'])),
                     "APPOINTMENT_TIME" => date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME'])),
@@ -350,7 +350,7 @@ while (!$serviceCodeData->EOF) {
                         <?= $appointment_value['SERVICE_NAME'] ?>
                     </td>
                     <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
-                    if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
+                    if ($appointment_value['IS_CHARGED'] == 1) { ?>
                         <td style="text-align: left;"><?= $appointment_value['APPOINTMENT_NUMBER'] ?></td>
                     <?php } else { ?>
                         <td></td>
@@ -366,13 +366,13 @@ while (!$serviceCodeData->EOF) {
                     </td>
                     <td style="text-align: left;"><?= $appointment_value['SERVICE_PROVIDER'] ?></td>
                     <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
-                    if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
+                    if ($appointment_value['IS_CHARGED'] == 1) { ?>
                         <td style="text-align: right;"><?= number_format((float)$appointment_value['PRICE_PER_SESSION'], 2, '.', ','); ?></td>
                     <?php } else { ?>
                         <td></td>
                     <?php } ?>
                     <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
-                    if ($appointment_value['APPOINTMENT_STATUS'] == 'Scheduled' || $appointment_value['IS_CHARGED'] == 1) { ?>
+                    if ($appointment_value['IS_CHARGED'] == 1) { ?>
                         <td style="color:<?= ($appointment_value['SERVICE_CREDIT'] < 0) ? 'red' : 'black' ?>; text-align: right;"><?= number_format((float)($appointment_value['SERVICE_CREDIT']), 2, '.', ','); ?></td>
                     <?php } else { ?>
                         <td></td>

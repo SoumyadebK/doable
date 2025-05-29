@@ -614,7 +614,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                                 <div class="form-group">
                                                                     <label class="col-md-12">AM Amount</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" class="form-control" value="<?= $AM_AMOUNT ?>" disabled>
+                                                                        <input type="text" class="form-control" value="<?= $AM_AMOUNT * $am_location_count ?>" disabled>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -622,7 +622,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                                 <div class="form-group">
                                                                     <label class="col-md-12">Non AM Amount</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" class="form-control" value="<?= $NOT_AM_AMOUNT ?>" disabled>
+                                                                        <input type="text" class="form-control" value="<?= $NOT_AM_AMOUNT * $non_am_location_count ?>" disabled>
                                                                     </div>
                                                                 </div>
                                                             </div>

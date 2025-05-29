@@ -577,20 +577,19 @@ $API_KEY                = $payment_gateway_data->fields['API_KEY'];
 </style>
 
 <style>
-.clearfix {
-  display: flex;
-  flex-wrap: nowrap;
-  
-}
+    .clearfix {
+        display: flex;
+        flex-wrap: nowrap;
 
-.clearfix .box {
-  background-color: #f1f1f1;
-  height: 40px;
-  
-  text-align: center;
-  
-  
-}
+    }
+
+    .clearfix .box {
+        background-color: #f1f1f1;
+        height: 37px;
+        text-align: center;
+        padding-right: 10px;
+        padding-left: 0px;
+    }
 </style>
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
 
@@ -618,114 +617,105 @@ $API_KEY                = $payment_gateway_data->fields['API_KEY'];
                 <div class="row">
                     <div id="appointment_list_half" class="col-12">
                         <div class="card">
-                            <div class="card-body">
-                                <form id="search_form" class="form-material form-horizontal" action="" method="get" style="margin-bottom: -30px;">
-                                    <div class="col-12 row m-10">
-                                        <!--<div class="col-2">
-                                        <h5 class="card-title"><?php /*=$title*/ ?></h5>
-                                    </div>-->
-                                        <div class="col-2">
-                                            <div class="form-material form-horizontal">
-                                                <select class="form-control" name="STATUS_CODE" id="STATUS_CODE" onchange="$('#search_form').submit();">
-                                                    <option value="">Select Status</option>
-                                                    <?php
-                                                    $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
-                                                    while (!$row->EOF) { ?>
-                                                        <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>"><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
-                                                    <?php $row->MoveNext();
-                                                    } ?>
-                                                </select>
+
+
+
+                            <div class="card-body row" style="margin-bottom: -30px;">
+                                <div class="col-2">
+                                    <div class="row">
+                                        <div class="clearfix col-auto d-flex align-items-center gap-3">
+                                            <div class="box d-flex align-items-center gap-2">
+                                                <button type="button" class="btn btn-info d-none d-lg-block text-white" style="font-size:15px; cursor: not-allowed;">D</button>
+                                                <div id="day-count" class="timer count-title count-number" style="font-size:20px" data-from="0" data-to="0" data-speed="1500"></div>
+                                            </div>
+                                            <div class="box d-flex align-items-center gap-2">
+                                                <button type="button" class="btn btn-info d-none d-lg-block text-white" style="font-size:15px; cursor: not-allowed;">W</button>
+                                                <div id="week-count" class="timer count-title count-number" style="font-size:20px" data-from="0" data-to="0" data-speed="1500"></div>
                                             </div>
                                         </div>
-                                        <div class="col-3">
-                                            <div class="form-material form-horizontal">
-                                                <select class="form-control" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();">
-                                                    <option value="">Select Appointment Type</option>
-                                                    <option value="NORMAL" <?php if ($appointment_type == "NORMAL") {
-                                                                                echo "selected";
-                                                                            } ?>>Appointment</option>
-                                                    <option value="GROUP" <?php if ($appointment_type == "GROUP") {
-                                                                                echo "selected";
-                                                                            } ?>>Group Class</option>
-                                                    <option value="TO-DO" <?php if ($appointment_type == "TO-DO") {
-                                                                                echo "selected";
-                                                                            } ?>>To Dos</option>
-                                                    <option value="EVENT" <?php if ($appointment_type == "EVENT") {
-                                                                                echo "selected";
-                                                                            } ?>>Event</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-2">
-                                            <input type="hidden" id="IS_SELECTED" value="0">
-                                            <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" value="<?php /*=($_GET['CHOOSE_DATE']) ?? ''*/ ?>">
-                                        </div>
-                                        <div class="col-3">
-                                            <div class="search-container">
-                                                <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="height: 37px" multiple>
-                                                    <?php
-                                                    $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
-                                                    while (!$row->EOF) { ?>
-                                                        <option value="<?= $row->fields['PK_USER'] ?>" <?= (!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers))) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
-                                                    <?php $row->MoveNext();
-                                                    } ?>
-                                                </select>
-                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="height: 37px"><i class="fa fa-search"></i></button>
-                                            </div>
-                                        </div>
-
-                                        <!--<div class="col-2">
-                                        <div class="input-group">
-                                            <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="width: 150px; height: 37px" multiple>
-                                                <?php
-                                                /*                                                $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
-                                                while (!$row->EOF) { */ ?>
-                                                    <option value="<?php /*=$row->fields['PK_USER']*/ ?>" <?php /*=(!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers)))?"selected":""*/ ?>><?php /*=$row->fields['NAME']*/ ?></option>
-                                                    <?php /*$row->MoveNext(); } */ ?>
-                                            </select>
-
-                                        </div>
-                                    </div>
-
-
-                                    <div class="col-1">
-                                        <div>
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="margin-left:-14px; height: 37px; float: left"><i class="fa fa-search"></i></button>
-                                        </div>
-                                    </div>-->
-                                        <div class="col-2">
-                                            <div class="input-group" style="width: 100px; float: right;">
-                                                <a onclick="zoomInOut('out');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-minus"></i></a>
-                                                <a onclick="zoomInOut('in');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-plus"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-
-                            <div class="card-body row" style="margin-left: 10px; margin-bottom: -50px;">
-                                <div class="clearfix col-auto d-flex align-items-center gap-3">
-                                    <div class="box d-flex align-items-center gap-2">
-                                        <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" style="font-size:15px; cursor: not-allowed;">D -</button>
-                                        <div class="timer count-title count-number" style="font-size:20px" data-to="300" data-speed="1500"></div>
-                                    </div>
-                                    <div class="box d-flex align-items-center gap-2">
-                                        <button type="button" class="btn btn-info d-none d-lg-block m-l-10 text-white" style="font-size:15px; cursor: not-allowed;">W -</button>
-                                        <div class="timer count-title count-number" style="font-size:20px" data-to="300" data-speed="1500"></div>
                                     </div>
                                 </div>
+
+                                <div class="col-8">
+                                    <form id="search_form" class="form-material form-horizontal" action="" method="get" style="margin-bottom: -30px;">
+                                        <div class="row">
+                                            <div class="col-2">
+                                                <div class="form-material form-horizontal">
+                                                    <select class="form-control" name="STATUS_CODE" id="STATUS_CODE" onchange="$('#search_form').submit();">
+                                                        <option value="">Select Status</option>
+                                                        <?php
+                                                        $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
+                                                        while (!$row->EOF) { ?>
+                                                            <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>"><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
+                                                        <?php $row->MoveNext();
+                                                        } ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-2">
+                                                <div class="form-material form-horizontal">
+                                                    <select class="form-control" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();">
+                                                        <option value="">Select Appointment Type</option>
+                                                        <option value="NORMAL" <?php if ($appointment_type == "NORMAL") {
+                                                                                    echo "selected";
+                                                                                } ?>>Appointment</option>
+                                                        <option value="GROUP" <?php if ($appointment_type == "GROUP") {
+                                                                                    echo "selected";
+                                                                                } ?>>Group Class</option>
+                                                        <option value="TO-DO" <?php if ($appointment_type == "TO-DO") {
+                                                                                    echo "selected";
+                                                                                } ?>>To Dos</option>
+                                                        <option value="EVENT" <?php if ($appointment_type == "EVENT") {
+                                                                                    echo "selected";
+                                                                                } ?>>Event</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-3">
+                                                <input type="hidden" id="IS_SELECTED" value="0">
+                                                <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" value="<?php /*=($_GET['CHOOSE_DATE']) ?? ''*/ ?>">
+                                            </div>
+                                            <div class="col-5">
+                                                <div class="search-container">
+                                                    <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="height: 37px" multiple>
+                                                        <?php
+                                                        $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
+                                                        while (!$row->EOF) { ?>
+                                                            <option value="<?= $row->fields['PK_USER'] ?>" <?= (!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers))) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
+                                                        <?php $row->MoveNext();
+                                                        } ?>
+                                                    </select>
+                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="height: 37px"><i class="fa fa-search"></i></button>
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="col-2">
+                                    <div class="input-group" style="width: 100px; float: right; margin-top: 1px;">
+                                        <a onclick="zoomInOut('out');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-minus"></i></a>
+                                        <a onclick="zoomInOut('in');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-plus"></i></a>
+                                    </div>
+                                </div>
+
+
                             </div>
+
+
+
+
+
+
+
 
                             <!--  <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
 
                             </div>-->
 
                             <div class="card-body row">
-                                <div class="col-12">
-                                    <p id="day-count">D-55</p>
-                                    <p id="week-count">W-44</p>
-                                </div>
-
                                 <div class="col-12" id='calendar-container'>
                                     <div id='calendar'></div>
                                 </div>
@@ -1439,8 +1429,9 @@ $API_KEY                = $payment_gateway_data->fields['API_KEY'];
                     for (let i = 0; i < appointment_data.length; i++) {
                         $('th[data-resource-id="' + appointment_data[i].SERVICE_PROVIDER_ID + '"]').text(appointment_data[i].SERVICE_PROVIDER_NAME + ' - ' + appointment_data[i].APPOINTMENT_COUNT);
                     }
-                    $('#day-count').text('D - ' + result_data.day_count);
-                    $('#week-count').text('W - ' + result_data.week_count);
+                    $('#day-count').attr('data-to', result_data.day_count);
+                    $('#week-count').attr('data-to', result_data.week_count);
+                    $('.count-number').countTo();
                 }
             });
         }
@@ -1615,104 +1606,74 @@ $API_KEY                = $payment_gateway_data->fields['API_KEY'];
     </script>
 
     <script>
-    (function ($) {
-        $.fn.countTo = function (options) {
-            options = options || {};
-            
-            return $(this).each(function () {
-                // set options for current element
-                var settings = $.extend({}, $.fn.countTo.defaults, {
-                    from:            $(this).data('from'),
-                    to:              $(this).data('to'),
-                    speed:           $(this).data('speed'),
-                    refreshInterval: $(this).data('refresh-interval'),
-                    decimals:        $(this).data('decimals')
-                }, options);
-                
-                // how many times to update the value, and how much to increment the value on each update
-                var loops = Math.ceil(settings.speed / settings.refreshInterval),
-                    increment = (settings.to - settings.from) / loops;
-                
-                // references & variables that will change with each update
-                var self = this,
-                    $self = $(this),
-                    loopCount = 0,
-                    value = settings.from,
-                    data = $self.data('countTo') || {};
-                
-                $self.data('countTo', data);
-                
-                // if an existing interval can be found, clear it first
-                if (data.interval) {
-                    clearInterval(data.interval);
-                }
-                data.interval = setInterval(updateTimer, settings.refreshInterval);
-                
-                // initialize the element with the starting value
-                render(value);
-                
-                function updateTimer() {
-                    value += increment;
-                    loopCount++;
-                    
-                    render(value);
-                    
-                    if (typeof(settings.onUpdate) == 'function') {
-                        settings.onUpdate.call(self, value);
+        (function($) {
+            $.fn.countTo = function(options) {
+                return this.each(function() {
+                    var $this = $(this);
+
+                    // Always get fresh data attributes using attr()
+                    var settings = $.extend({}, $.fn.countTo.defaults, {
+                        from: parseFloat($this.attr('data-from')) || 0,
+                        to: parseFloat($this.attr('data-to')) || 0,
+                        speed: parseInt($this.attr('data-speed')) || 1000,
+                        refreshInterval: parseInt($this.attr('data-refresh-interval')) || 100,
+                        decimals: parseInt($this.attr('data-decimals')) || 0
+                    }, options);
+
+                    // Clear existing interval if any
+                    if ($this.data('countToInterval')) {
+                        clearInterval($this.data('countToInterval'));
                     }
-                    
-                    if (loopCount >= loops) {
-                        // remove the interval
-                        $self.removeData('countTo');
-                        clearInterval(data.interval);
-                        value = settings.to;
-                        
-                        if (typeof(settings.onComplete) == 'function') {
-                            settings.onComplete.call(self, value);
+
+                    var loops = Math.ceil(settings.speed / settings.refreshInterval),
+                        increment = (settings.to - settings.from) / loops,
+                        value = settings.from,
+                        loopCount = 0;
+
+                    function render(val) {
+                        var formatted = settings.formatter.call($this, val, settings);
+                        $this.html(formatted);
+                    }
+
+                    function updateTimer() {
+                        value += increment;
+                        loopCount++;
+                        render(value);
+
+                        if (typeof settings.onUpdate === 'function') {
+                            settings.onUpdate.call($this, value);
+                        }
+
+                        if (loopCount >= loops) {
+                            clearInterval(interval);
+                            render(settings.to);
+                            $this.removeData('countToInterval');
+
+                            if (typeof settings.onComplete === 'function') {
+                                settings.onComplete.call($this, settings.to);
+                            }
                         }
                     }
-                }
-                
-                function render(value) {
-                    var formattedValue = settings.formatter.call(self, value, settings);
-                    $self.html(formattedValue);
-                }
-            });
-        };
-        
-        $.fn.countTo.defaults = {
-            from: 0,               // the number the element should start at
-            to: 0,                 // the number the element should end at
-            speed: 1000,           // how long it should take to count between the target numbers
-            refreshInterval: 100,  // how often the element should be updated
-            decimals: 0,           // the number of decimal places to show
-            formatter: formatter,  // handler for formatting the value before rendering
-            onUpdate: null,        // callback method for every time the element is updated
-            onComplete: null       // callback method for when the element finishes updating
-        };
-        
-        function formatter(value, settings) {
-            return value.toFixed(settings.decimals);
-        }
-    }(jQuery));
 
-    jQuery(function ($) {
-    // custom formatting example
-    $('.count-number').data('countToOptions', {
-        formatter: function (value, options) {
-        return value.toFixed(options.decimals).replace(/\B(?=(?:\d{3})+(?!\d))/g, ',');
-        }
-    });
+                    render(value);
+                    var interval = setInterval(updateTimer, settings.refreshInterval);
+                    $this.data('countToInterval', interval);
+                });
+            };
 
-    // start all the timers
-    $('.timer').each(count);  
-
-    function count(options) {
-        var $this = $(this);
-        options = $.extend({}, options || {}, $this.data('countToOptions') || {});
-        $this.countTo(options);
-    }
-    });   
+            $.fn.countTo.defaults = {
+                from: 0,
+                to: 0,
+                speed: 1000,
+                refreshInterval: 100,
+                decimals: 0,
+                formatter: function(value, settings) {
+                    return value.toFixed(settings.decimals);
+                },
+                onUpdate: null,
+                onComplete: null
+            };
+        })(jQuery);
     </script>
 
 </body>
