@@ -635,7 +635,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                         <div class="form-group">
                                                             <label class="col-md-12">Total Amount</label>
                                                             <div class="col-md-12">
-                                                                <input type="text" class="form-control" value="<?= ($am_location_count * $AM_AMOUNT) + ($non_am_location_count * $NOT_AM_AMOUNT) ?>" disabled>
+                                                                <input type="text" class="form-control" value="<?= '$'.number_format(($am_location_count * $AM_AMOUNT) + ($non_am_location_count * $NOT_AM_AMOUNT), 2) ?>" disabled>
                                                             </div>
                                                         </div>
                                                     </div>
